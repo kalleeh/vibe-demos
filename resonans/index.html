@@ -337,43 +337,65 @@
       return { coefs, totalE };
     }
 
-    // Lock confidence in [0..1]: how much of the string's energy is in
-    // the target mode, smoothed with rolling average.
+    // Lock confidence in [0..1]. Reward DOMINANCE of the target mode
+    // over its neighbours — that's what visually reads as "the right
+    // shape" and is achievable with a few well-timed plucks. Strict
+    // energy-purity is too punitive: even a perfect center pluck only
+    // puts ~30-40% of its energy into n=1 (the rest leaks to n=3, 5...).
     let lockEMA = 0;
+    let targetCoefEMA = 0;   // smoothed magnitude of the target-mode coefficient
     function updateLock() {
-      const { coefs, totalE } = modeEnergies();
-      const targetE = coefs[mode] * coefs[mode];
-      const purity = targetE / totalE;
-      // Also require that the string be actually moving (ignore 0-everywhere)
-      let amp = 0;
-      for (let i = 0; i < N; i++) amp += Math.abs(u[i]);
-      amp /= N;
-      const alive = Math.min(1, amp / 0.04);
-      const inst = purity * alive;
+      const { coefs } = modeEnergies();
+      const targetMag = Math.abs(coefs[mode]);
+      // Largest competitor magnitude
+      let rivalMag = 1e-6;
+      for (let n = 1; n <= 5; n++) {
+        if (n === mode) continue;
+        const m = Math.abs(coefs[n]);
+        if (m > rivalMag) rivalMag = m;
+      }
+      // Dominance: how much bigger the target is vs. the next one.
+      // 0 → equal, 1 → target is ≥3x its rival.
+      const dominance = Math.min(1, Math.max(0, (targetMag / rivalMag - 1) / 2));
+      // Require the string to actually be moving so a still string
+      // doesn't accidentally read as "locked"
+      const alive = Math.min(1, targetMag / 0.06);
+      const inst = dominance * alive;
       lockEMA += (inst - lockEMA) * 0.06;
-      return { purity, lockEMA, coefs };
+      targetCoefEMA += (targetMag - targetCoefEMA) * 0.08;
+      return { lockEMA, coefs, targetMag };
     }
 
     // ── Audio (Web Audio sine + gentle pluck) ─────────────────────
     let audioCtx = null;
+    let masterGain = null;   // every voice goes through here
     let resOsc = null;       // resonance drone
     let resGain = null;
     let muted = false;
 
     function ensureAudio() {
-      if (audioCtx) return;
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const master = audioCtx.createGain();
-      master.gain.value = 0.65;
-      master.connect(audioCtx.destination);
+      if (!audioCtx) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        audioCtx = new Ctx();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0.65;
+        masterGain.connect(audioCtx.destination);
 
-      // Drone for the locked mode
-      resOsc = audioCtx.createOscillator();
-      resOsc.type = "sine";
-      resGain = audioCtx.createGain();
-      resGain.gain.value = 0;
-      resOsc.connect(resGain).connect(master);
-      resOsc.start();
+        // Drone for the locked mode
+        resOsc = audioCtx.createOscillator();
+        resOsc.type = "sine";
+        resGain = audioCtx.createGain();
+        resGain.gain.value = 0;
+        resOsc.connect(resGain);
+        resGain.connect(masterGain);
+        resOsc.start();
+      }
+      // Browsers create the context in `suspended` state until a user
+      // gesture explicitly resumes it; iOS Safari is strict here.
+      if (audioCtx.state === "suspended") {
+        audioCtx.resume().catch(() => {});
+      }
     }
 
     // Map mode 1..5 to a pleasing pentatonic-feeling pitch ladder.
@@ -388,7 +410,7 @@
     }
 
     function pluckSound(amplitude = 0.35) {
-      if (!audioCtx || muted) return;
+      if (!audioCtx || !masterGain || muted) return;
       const o = audioCtx.createOscillator();
       const g = audioCtx.createGain();
       const lp = audioCtx.createBiquadFilter();
@@ -398,7 +420,7 @@
       o.frequency.value = MODE_HZ[mode] * 2;
       g.gain.setValueAtTime(amplitude, audioCtx.currentTime);
       g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
-      o.connect(lp).connect(g).connect(audioCtx.destination);
+      o.connect(lp); lp.connect(g); g.connect(masterGain);
       o.start();
       o.stop(audioCtx.currentTime + 0.62);
     }
@@ -476,21 +498,38 @@
       ctx.restore();
     }
 
-    // Ghost target line (faint dashed sine of current mode)
-    function drawTarget() {
+    // Ghost target line (faint dashed sine of current mode).
+    // Drawn with the SAME amplitude scale as the live curve, and sized
+    // to whatever modal energy the player has built up — so the live
+    // line can literally lay over the ghost when the shape locks in.
+    // A small floor keeps the ghost visible before the first pluck.
+    function drawTarget(curveAmp) {
+      const tAmp = curveAmp * (Math.max(0.18, targetCoefEMA * 1.6));
+      // Sign: lock onto the sign of the current target coefficient so
+      // the ghost flips with the player's pluck instead of fighting it.
+      const sign = targetCoefEMA > 1e-4
+        ? Math.sign(coefForRender(mode)) || 1
+        : 1;
       ctx.save();
       ctx.strokeStyle = "rgba(107, 138, 118, 0.55)";
       ctx.setLineDash([1, 6]);
       ctx.lineWidth = 1.5;
       ctx.beginPath();
-      const tAmp = 38;
       for (let i = 0; i < N; i++) {
         const x = gridX(i);
-        const y = stringY - target[i] * tAmp;
+        const y = stringY - sign * target[i] * tAmp;
         if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
       ctx.stroke();
       ctx.restore();
+    }
+    // Compute a single mode coefficient (used to align the ghost's sign)
+    function coefForRender(n) {
+      let c = 0;
+      for (let i = 1; i < N - 1; i++) {
+        c += u[i] * Math.sin((n * Math.PI * i) / (N - 1));
+      }
+      return c * 2 / (N - 1);
     }
 
     // Bird perched on the right peg
@@ -550,9 +589,10 @@
       const r = canvas.getBoundingClientRect();
       ctx.clearRect(0, 0, r.width, r.height);
 
-      drawTarget();
+      const curveAmp = 70;
+      drawTarget(curveAmp);
       drawBlooms(lockEMA);
-      buildCurve(70);
+      buildCurve(curveAmp);
 
       // Two strokes: a soft graphite "search" line that's always there,
       // and an ink-in line whose alpha rises with lock confidence.
@@ -561,7 +601,7 @@
         alpha: 0.55, jitter: reduceMotion ? 0.4 : 1.4,
         passes: reduceMotion ? 1 : 2, lineWidth: 1.4
       });
-      const inkAlpha = Math.min(1, Math.max(0, (lockEMA - 0.10) / 0.55));
+      const inkAlpha = Math.min(1, Math.max(0, (lockEMA - 0.08) / 0.40));
       if (inkAlpha > 0.01) {
         strokePath(curveCoords, {
           color: "rgba(42, 38, 29, 0.95)",
@@ -579,10 +619,10 @@
       // Lock pip + drone
       const pip = document.getElementById("lockPip");
       const txt = document.getElementById("lockText");
-      if (lockEMA > 0.45) {
+      if (lockEMA > 0.35) {
         pip.classList.add("lit");
         txt.textContent = "locked · n=" + mode;
-      } else if (lockEMA > 0.18) {
+      } else if (lockEMA > 0.12) {
         pip.classList.remove("lit");
         txt.textContent = "warming · " + Math.round(lockEMA * 100) + "%";
       } else {
@@ -631,6 +671,7 @@
         document.getElementById("modeNum").textContent = mode;
         document.getElementById("modeName").textContent = "— " + MODE_NAMES[mode].split("—")[0].trim();
         lockEMA *= 0.5;
+        targetCoefEMA = 0;
         if (audioCtx) setDronePitch();
       });
     });
