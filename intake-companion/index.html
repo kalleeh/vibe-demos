@@ -713,10 +713,551 @@
       .frame { padding: 0 18px; }
     }
 
+    /* ── 사상체질 badge ── */
+    .sasang {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 12px 6px 8px;
+      background: rgba(107,148,130,0.10);
+      border: 1px solid rgba(107,148,130,0.40);
+      border-radius: 999px;
+      margin-bottom: 6px;
+      align-self: flex-start;
+    }
+    .sasang .glyph {
+      font-family: "Noto Serif KR", serif;
+      font-size: 14px;
+      font-weight: 600;
+      width: 22px; height: 22px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      color: var(--paper);
+      background: var(--celadon);
+    }
+    .sasang.so-yang .glyph    { background: #c89a3a; }
+    .sasang.tae-yang .glyph   { background: var(--rust); }
+    .sasang.tae-eum .glyph    { background: #4a5b48; }
+    .sasang.so-eum .glyph     { background: var(--celadon-d); }
+    .sasang .name {
+      font-family: "Noto Serif KR", serif;
+      font-size: 15px;
+      font-weight: 500;
+    }
+    .sasang .conf {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      color: var(--ink-2);
+      font-size: 14px;
+    }
+
+    /* ── 경혈 atlas (Body) ── */
+    .atlas-panel {
+      background: var(--paper-2);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 22px 24px;
+      margin-top: 28px;
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .atlas-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 18px;
+    }
+    .atlas-head .lbl {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .atlas-head h2 {
+      font-family: "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: 22px;
+      letter-spacing: -0.01em;
+      margin-top: 4px;
+    }
+    .atlas-head h2 em { font-family: "Cormorant Garamond", serif; font-style: italic; color: var(--celadon-d); font-weight: 400; }
+    .atlas-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+    .atlas-figure {
+      position: relative;
+      background: rgba(255,255,255,0.45);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .atlas-figure .view-label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      align-self: flex-start;
+    }
+    .atlas-figure svg {
+      width: 100%;
+      height: auto;
+      max-height: 480px;
+      display: block;
+    }
+    .atlas svg .body {
+      fill: rgba(107,148,130,0.04);
+      stroke: var(--ink-2);
+      stroke-width: 1.1;
+      stroke-linejoin: round;
+      stroke-linecap: round;
+    }
+    .atlas svg .midline {
+      stroke: var(--line-2);
+      stroke-width: 0.6;
+      stroke-dasharray: 2 3;
+      fill: none;
+    }
+    .atlas svg .pt {
+      cursor: pointer;
+      transition: r .25s, stroke-width .25s;
+    }
+    .atlas svg .pt circle.ring {
+      fill: rgba(245,239,226,0.85);
+      stroke: var(--ink-2);
+      stroke-width: 1.1;
+    }
+    .atlas svg .pt circle.dot {
+      fill: var(--ink-2);
+    }
+    .atlas svg .pt.active circle.ring {
+      stroke: var(--celadon-d);
+      stroke-width: 1.6;
+      animation: ringPulse 1.6s ease-in-out infinite;
+    }
+    .atlas svg .pt.active circle.dot {
+      fill: var(--celadon-d);
+    }
+    @keyframes ringPulse {
+      0%, 100% { filter: drop-shadow(0 0 0 rgba(107,148,130,0.0)); }
+      50%      { filter: drop-shadow(0 0 6px rgba(107,148,130,0.85)); }
+    }
+    .atlas svg .pt:hover circle.ring {
+      stroke: var(--celadon-d);
+      stroke-width: 1.6;
+    }
+    .atlas-tip {
+      position: absolute;
+      pointer-events: none;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 7px 10px;
+      border-radius: 3px;
+      font-family: "Noto Serif KR", serif;
+      font-size: 12px;
+      line-height: 1.45;
+      max-width: 220px;
+      opacity: 0;
+      transform: translate(-50%, calc(-100% - 8px));
+      transition: opacity .18s;
+      z-index: 5;
+      white-space: normal;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+    }
+    .atlas-tip.on { opacity: 1; }
+    .atlas-tip .han {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      color: #c8d3cb;
+      font-size: 11px;
+      letter-spacing: 1px;
+      margin-bottom: 2px;
+    }
+    .atlas-tip .nm { font-weight: 500; margin-bottom: 2px; }
+    .atlas-tip .indi {
+      font-style: italic;
+      font-family: "Cormorant Garamond", serif;
+      color: #d8e1d9;
+      font-size: 12px;
+    }
+
+    /* ── 설진 + 맥진 panels ── */
+    .diag-row {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr;
+      gap: 18px;
+      margin-top: 22px;
+    }
+    .diag-card {
+      background: rgba(255,255,255,0.55);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .diag-card .hd {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .diag-card .hd .han {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      color: var(--celadon-d);
+      font-size: 12px;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .tongue-stage {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 0 4px;
+    }
+    .tongue-stage svg { width: 100%; max-width: 220px; height: auto; }
+    .tongue-meta {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      column-gap: 12px;
+      row-gap: 4px;
+      font-size: 13px;
+    }
+    .tongue-meta dt {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      align-self: center;
+    }
+    .tongue-meta dd {
+      font-family: "Noto Serif KR", serif;
+      font-size: 14px;
+      color: var(--ink);
+    }
+    .pulse-grid {
+      display: grid;
+      grid-template-columns: auto repeat(3, 1fr);
+      grid-template-rows: auto auto auto;
+      gap: 4px 6px;
+      align-items: center;
+      padding-top: 4px;
+    }
+    .pulse-grid .col-h, .pulse-grid .row-h {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+    }
+    .pulse-grid .row-h { text-align: right; padding-right: 4px; }
+    .pulse-cell {
+      background: rgba(255,255,255,0.55);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      padding: 4px 6px 2px;
+      position: relative;
+      min-height: 38px;
+    }
+    .pulse-cell svg {
+      width: 100%;
+      height: 22px;
+      display: block;
+    }
+    .pulse-cell .pulse-wave {
+      fill: none;
+      stroke: var(--celadon-d);
+      stroke-width: 1.4;
+      stroke-linejoin: round;
+      stroke-linecap: round;
+    }
+    .pulse-cell .lbl {
+      position: absolute;
+      bottom: 1px;
+      right: 4px;
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+    }
+    .pulse-cell .han {
+      position: absolute;
+      top: 2px;
+      left: 4px;
+      font-family: "Noto Serif KR", serif;
+      font-size: 10px;
+      color: var(--ink-2);
+      font-weight: 500;
+    }
+
+    /* ── 오행 wheel ── */
+    .wuxing-wrap {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding-top: 8px;
+    }
+    .wuxing-svg {
+      width: 220px;
+      height: 220px;
+      flex-shrink: 0;
+    }
+    .wuxing-svg .node circle {
+      fill: var(--paper);
+      stroke: var(--ink-2);
+      stroke-width: 1.2;
+      transition: stroke .3s, stroke-width .3s, fill .3s;
+    }
+    .wuxing-svg .node text {
+      font-family: "Noto Serif KR", serif;
+      font-size: 13px;
+      fill: var(--ink);
+      text-anchor: middle;
+      dominant-baseline: central;
+      pointer-events: none;
+    }
+    .wuxing-svg .node .organ {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: 10px;
+      fill: var(--muted);
+    }
+    .wuxing-svg .node.lit circle {
+      stroke: var(--celadon-d);
+      stroke-width: 2.2;
+      fill: rgba(107,148,130,0.18);
+      animation: nodeGlow 2s ease-in-out infinite;
+    }
+    .wuxing-svg .node.lit text { fill: var(--celadon-d); font-weight: 500; }
+    @keyframes nodeGlow {
+      0%, 100% { filter: drop-shadow(0 0 0 rgba(107,148,130,0)); }
+      50%      { filter: drop-shadow(0 0 7px rgba(107,148,130,0.7)); }
+    }
+    .wuxing-svg .gen {
+      stroke: var(--celadon);
+      stroke-width: 1.2;
+      fill: none;
+      opacity: 0.55;
+      transition: opacity .3s, stroke-width .3s;
+    }
+    .wuxing-svg .gen.lit { stroke: var(--celadon-d); opacity: 1; stroke-width: 1.8; }
+    .wuxing-svg .ko {
+      stroke: var(--rust);
+      stroke-width: 1;
+      fill: none;
+      stroke-dasharray: 4 3;
+      opacity: 0.45;
+      transition: opacity .3s, stroke-width .3s;
+    }
+    .wuxing-svg .ko.lit { stroke: var(--rust); opacity: 1; stroke-width: 1.6; }
+    .wuxing-legend {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      min-width: 140px;
+    }
+    .wuxing-legend .row { display: flex; align-items: center; gap: 8px; }
+    .wuxing-legend .swatch { width: 18px; height: 1px; background: var(--celadon); }
+    .wuxing-legend .swatch.dashed { background: none; border-top: 1px dashed var(--rust); height: 0; width: 18px; }
+    .wuxing-legend .note {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      color: var(--ink-2);
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-top: 4px;
+    }
+
+    /* ── 본초 atlas (formula → herbs expansion) ── */
+    .herb-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .herb-card {
+      background: rgba(255,255,255,0.6);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      padding: 8px 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      position: relative;
+    }
+    .herb-card .img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: var(--paper);
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+    .herb-card .img img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: saturate(0.92);
+    }
+    .herb-card .role-badge {
+      position: absolute;
+      top: 5px; left: 5px;
+      width: 22px; height: 22px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      background: var(--paper);
+      border: 1px solid var(--ink-2);
+      font-family: "Noto Serif KR", serif;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .herb-card.role-gun .role-badge  { background: var(--celadon-d); color: var(--paper); border-color: var(--celadon-d); }
+    .herb-card.role-shin .role-badge { background: var(--celadon); color: var(--paper); border-color: var(--celadon); }
+    .herb-card.role-jwa .role-badge  { background: #c89a3a; color: var(--paper); border-color: #c89a3a; }
+    .herb-card.role-sa .role-badge   { background: var(--paper-2); color: var(--ink); border-color: var(--ink-2); }
+    .herb-card .nm {
+      font-family: "Noto Serif KR", serif;
+      font-size: 13px;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+    .herb-card .role-name {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ── Print / chart export ── */
+    .print-bar {
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 14px;
+      border-top: 1px dashed var(--line);
+      margin-top: 14px;
+    }
+
+    @media (max-width: 880px) {
+      .atlas-grid { grid-template-columns: 1fr; }
+      .diag-row   { grid-template-columns: 1fr; }
+      .wuxing-svg { width: 180px; height: 180px; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .output-area .progress::after { animation: none; left: 0; width: 100%; }
       .btn.mic.recording { animation: none; }
       .brief { animation: none; }
+      .atlas svg .pt.active circle.ring { animation: none; }
+      .wuxing-svg .node.lit circle { animation: none; }
+    }
+
+    /* ── Print stylesheet — turns the brief into a 한의원 chart ── */
+    @media print {
+      @page { size: A4; margin: 16mm 14mm 16mm 14mm; }
+      html, body { background: #fff !important; color: #000 !important; font-size: 11pt; }
+      body::before, .topbar, .footer-note, .herb-vignette { display: none !important; }
+      body.printing-chart .frame { max-width: none; padding: 0; }
+    }
+
+    /* The chart-print container — hidden on screen, revealed only during printing. */
+    .chart-print {
+      display: none;
+      background: #fff;
+      color: #000;
+      padding: 20px 24px;
+      font-family: "Noto Serif KR", serif;
+      font-size: 11pt;
+      line-height: 1.55;
+    }
+    body.printing-chart .chart-print { display: block; }
+    body.printing-chart .frame > section:not(.chart-print),
+    body.printing-chart .frame > .footer-note,
+    body.printing-chart .topbar { display: none !important; }
+    .chart-print .clinic-head {
+      border-bottom: 2px solid #000;
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+    }
+    .chart-print .clinic-head .clinic-name {
+      font-size: 20pt;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+    }
+    .chart-print .clinic-head .clinic-name em {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-weight: 400;
+    }
+    .chart-print .clinic-head .clinic-meta {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9pt;
+      letter-spacing: 0.5px;
+      text-align: right;
+      line-height: 1.5;
+    }
+    .chart-print h3 {
+      font-size: 11pt;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border-bottom: 1px solid #000;
+      padding-bottom: 3px;
+      margin: 14px 0 6px;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .chart-print .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .chart-print p, .chart-print li { font-size: 10.5pt; }
+    .chart-print ul { padding-left: 18px; margin: 4px 0; }
+    .chart-print .field {
+      margin: 2px 0 6px;
+    }
+    .chart-print .field .k {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9pt;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #444;
+      margin-right: 6px;
     }
   </style>
 </head>
@@ -819,10 +1360,79 @@
             <p>증상을 입력하거나 받아쓰기를 시작하세요. 브리프는 여기에 나타납니다.</p>
           </div>
           <div class="brief" id="brief" style="display:none;"></div>
+          <div class="print-bar" id="printBar" style="display:none;">
+            <button class="btn" id="printChartBtn" type="button" title="한의원 차트 양식으로 인쇄">
+              <span class="dot"></span> 한방 차트로 인쇄
+            </button>
+          </div>
         </div>
       </div>
 
     </section>
+
+    <!-- ── 경혈 atlas (Body) ─────────────────────────────────────── -->
+    <section class="atlas-panel atlas" id="atlasPanel" style="display:none;">
+      <header class="atlas-head">
+        <div>
+          <div class="lbl">03 · 경혈 도해</div>
+          <h2>Acupoint <em>atlas</em> — 經穴</h2>
+        </div>
+        <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:var(--muted);">
+          Highlighted points appear in the brief
+        </div>
+      </header>
+      <div class="atlas-grid">
+        <div class="atlas-figure">
+          <span class="view-label">전면 · Anterior</span>
+          <svg id="atlasFront" viewBox="0 0 220 460" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+        </div>
+        <div class="atlas-figure">
+          <span class="view-label">후면 · Posterior</span>
+          <svg id="atlasBack" viewBox="0 0 220 460" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+        </div>
+      </div>
+      <div class="atlas-tip" id="atlasTip" role="tooltip"></div>
+
+      <!-- 설진 + 맥진 -->
+      <div class="diag-row">
+        <div class="diag-card">
+          <div class="hd">
+            <span>설진 · Tongue</span>
+            <span class="han" id="tongueShortLabel">舌診</span>
+          </div>
+          <div class="tongue-stage">
+            <svg id="tongueSvg" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+          </div>
+          <dl class="tongue-meta" id="tongueMeta"></dl>
+        </div>
+        <div class="diag-card">
+          <div class="hd">
+            <span>맥진 · Pulse</span>
+            <span class="han" id="pulseShortLabel">寸口診</span>
+          </div>
+          <div class="pulse-grid" id="pulseGrid"></div>
+        </div>
+      </div>
+
+      <!-- 오행 wheel -->
+      <div class="diag-card" style="margin-top:18px;">
+        <div class="hd">
+          <span>오행 · Five-phase wheel</span>
+          <span class="han">五行 五臟</span>
+        </div>
+        <div class="wuxing-wrap">
+          <svg class="wuxing-svg" id="wuxingSvg" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+          <div class="wuxing-legend">
+            <div class="row"><span class="swatch"></span> 相生 · generation</div>
+            <div class="row"><span class="swatch dashed"></span> 相剋 · control</div>
+            <div class="note" id="wuxingNote">변증의 장부가 점등됩니다.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Hidden chart-for-print container ─────────────────────── -->
+    <section class="chart-print" id="chartPrint" aria-hidden="true"></section>
 
     <div class="footer-note">
       <span>한방 Intake Companion · Live demo · 데모 도구입니다</span>
@@ -866,12 +1476,27 @@
       },
       formula: {
         name: "보중익기탕",
+        slug: "bojungikgi-tang",
         pinyin: "Bǔ zhōng yì qì tāng — modified",
         note: {
           ko: "기본 처방에 백출·복령 가중하여 비기를 보강하고, 산조인·용안육을 가하여 심신(心神)을 자양한다. 증상이 차갑게 나타나므로 건강(乾薑) 소량 가능. 1일 2첩, 식후 30분.",
           en: "Base formula reinforced with extra Bai Zhu and Fu Ling for Spleen-qi; add Suan Zao Ren and Long Yan Rou to nourish Heart-Shen. Small amount of dried ginger acceptable given the cold pattern. Two doses daily, 30 minutes after meals."
         }
       },
+      sasang: {
+        type: "소음인",
+        latin: "So-eum",
+        why: { ko: "수족냉증·식욕부진·기력저하의 한증·기허 양상은 소음인의 전형적 임상상.", en: "Cold extremities, low appetite, and fatigue characteristic of So-eum constitution." }
+      },
+      tongue: { color: "담홍", shape: "반대 · 치흔", coating: "박백", note: { ko: "담홍·반대·치흔은 비양 부족의 전형.", en: "Pale-red, swollen, scalloped — Spleen-yang deficient." } },
+      pulse: {
+        global: { ko: "침세무력 · 우관 약함", en: "Deep, thin, forceless; right guan weak" },
+        cells: {
+          left:  [ { type: "세", han: "細" }, { type: "침", han: "沉" }, { type: "약", han: "弱" } ],
+          right: [ { type: "세", han: "細" }, { type: "약", han: "弱" }, { type: "침", han: "沉" } ]
+        }
+      },
+      organs: ["비", "심"],
       points: [
         { code: "ST 36", ko: "족삼리", why: { ko: "비위 보강", en: "Tonifies Spleen-Stomach" } },
         { code: "SP 6",  ko: "삼음교", why: { ko: "음혈 자양",   en: "Nourishes yin-blood" } },
@@ -879,6 +1504,11 @@
         { code: "HT 7",  ko: "신문",   why: { ko: "심신 안정",   en: "Calms Heart-Shen" } },
         { code: "CV 6",  ko: "기해",   why: { ko: "원기 보충",   en: "Tonifies original qi" } }
       ],
+      lifestyle: {
+        ko: ["생냉(生冷) 음식 금지 — 차가운 물·음료 피하라", "23시 이전 취침, 7시간 이상 수면", "복부 보온, 관원·기해 부위 따뜻하게"],
+        en: ["Avoid raw/cold foods and chilled drinks", "Sleep before 23:00, at least 7 hours", "Keep abdomen warm, especially CV4–CV6"]
+      },
+      next: { ko: "1주 후 재진 — 수면·식욕·대변 추적", en: "Follow-up in 1 week — track sleep, appetite, stool" },
       followups: {
         ko: [
           "잠이 들기는 어렵지 않은데 자꾸 깨는 것인지, 처음부터 잠들기 힘든 것인지?",
@@ -912,12 +1542,27 @@
       },
       formula: {
         name: "삼령백출산",
+        slug: "samryeongbaekchul-san",
         pinyin: "Shēn líng bái zhú sǎn",
         note: {
           ko: "비기를 보하고 습을 거두는 대표 처방. 트림이 심하면 진피·반하 가중. 만성 피로가 두드러지면 황기 추가하여 보중익기탕과 합방 고려. 차가운 음식·생냉(生冷) 절대 금지.",
           en: "Classic formula for tonifying Spleen-qi and resolving damp. If belching dominates, increase Chen Pi and Ban Xia. If fatigue is severe, add Huang Qi and consider combining with Bu Zhong Yi Qi Tang. Strictly avoid cold and raw foods."
         }
       },
+      sasang: {
+        type: "태음인",
+        latin: "Tae-eum",
+        why: { ko: "식적·습담 경향, 냉식 악화는 태음인 비위 약형.", en: "Damp-stagnation tendency aggravated by cold foods — typical Tae-eum picture." }
+      },
+      tongue: { color: "담홍", shape: "반대", coating: "백니 · 두꺼움", note: { ko: "백니후태는 습담 정체.", en: "Thick white greasy coat — damp retention." } },
+      pulse: {
+        global: { ko: "유완 · 우관 활", en: "Soft, slow; right guan slippery" },
+        cells: {
+          left:  [ { type: "유", han: "濡" }, { type: "완", han: "緩" }, { type: "약", han: "弱" } ],
+          right: [ { type: "유", han: "濡" }, { type: "활", han: "滑" }, { type: "완", han: "緩" } ]
+        }
+      },
+      organs: ["비", "위"],
       points: [
         { code: "ST 36", ko: "족삼리", why: { ko: "비위 보강",   en: "Strengthens Spleen-Stomach" } },
         { code: "SP 3",  ko: "태백",   why: { ko: "비 원혈",       en: "Spleen yuan-source" } },
@@ -925,6 +1570,11 @@
         { code: "BL 21", ko: "위수",   why: { ko: "위기 조절",     en: "Regulates Stomach-qi" } },
         { code: "CV 12", ko: "중완",   why: { ko: "위 모혈, 중초", en: "Stomach mu, middle jiao" } }
       ],
+      lifestyle: {
+        ko: ["생냉·기름진 음식 금지 — 식적이 심해진다", "식후 가벼운 산보 15분", "찬 음료 대신 따뜻한 보리차"],
+        en: ["Avoid raw/cold and oily foods — they worsen stagnation", "Light 15-min walk after meals", "Warm barley tea instead of cold drinks"]
+      },
+      next: { ko: "10일 후 재진 — 더부룩·대변·체중 추적", en: "Follow-up in 10 days — track bloating, stool, weight" },
       followups: {
         ko: [
           "식사 후 어느 정도 시간에 더부룩함이 가장 심한가?",
@@ -958,12 +1608,27 @@
       },
       formula: {
         name: "천마구등음",
+        slug: "cheonmagudeung-eum",
         pinyin: "Tiān má gōu téng yǐn",
         note: {
           ko: "간양을 가라앉히고 풍을 식히는 대표 처방. 음허가 두드러지므로 생지황·구기자·여정자 가중하여 간음을 자양한다. 두통이 심한 발작 시 결명자·국화 단기 추가. 매운 음식·과로·수면 부족 금지.",
           en: "Classic formula to subdue Liver-yang and extinguish wind. Given prominent yin deficiency, add Sheng Di Huang, Gou Qi Zi, and Nü Zhen Zi to nourish Liver-yin. For acute headache, short-course Jue Ming Zi and Ju Hua. Avoid spicy food, overwork, and sleep deprivation."
         }
       },
+      sasang: {
+        type: "소양인",
+        latin: "So-yang",
+        why: { ko: "상열·구고·다몽·이명은 소양인 음허·간양상항의 흔한 임상상.", en: "Upper heat, bitter mouth, dreamful sleep — classic So-yang yin-deficient pattern." }
+      },
+      tongue: { color: "홍", shape: "수척", coating: "박황 · 약간 건조", note: { ko: "홍·소태·박황은 음허화왕.", en: "Red, thin, with scant yellow coat — yin-deficient heat." } },
+      pulse: {
+        global: { ko: "현세삭 · 좌관 현", en: "Wiry, thin, rapid; left guan markedly wiry" },
+        cells: {
+          left:  [ { type: "삭", han: "數" }, { type: "현", han: "弦" }, { type: "세", han: "細" } ],
+          right: [ { type: "삭", han: "數" }, { type: "세", han: "細" }, { type: "세", han: "細" } ]
+        }
+      },
+      organs: ["간", "신"],
       points: [
         { code: "GB 20", ko: "풍지",   why: { ko: "간양 하강·두통 완화",  en: "Subdues Liver-yang, relieves headache" } },
         { code: "LV 3",  ko: "태충",   why: { ko: "간기 소설",            en: "Courses Liver-qi" } },
@@ -971,6 +1636,11 @@
         { code: "GV 20", ko: "백회",   why: { ko: "두면 통락",            en: "Clears the head" } },
         { code: "GB 8",  ko: "솔곡",   why: { ko: "측두통",                en: "Lateral headache" } }
       ],
+      lifestyle: {
+        ko: ["매운·튀김·커피·알코올 금지", "23시 이전 취침, 과로 피하라", "분노·스트레스 줄이기 — 간기 소설"],
+        en: ["Avoid spicy, fried, coffee, alcohol", "Sleep before 23:00, avoid overwork", "Reduce anger and stress — soothes Liver-qi"]
+      },
+      next: { ko: "1주 후 재진 — 두통·어지럼·수면의 질 추적", en: "Follow-up in 1 week — headache, dizziness, sleep quality" },
       followups: {
         ko: [
           "두통이 한쪽에 치우치는지, 양쪽인지?",
@@ -1032,6 +1702,8 @@
     state.currentBrief = null;
     $("#brief").style.display = "none";
     $("#emptyState").style.display = "flex";
+    $("#printBar").style.display = "none";
+    const ap = $("#atlasPanel"); if (ap) ap.style.display = "none";
   });
 
   /* ── Mic / Web Speech API ── */
@@ -1181,6 +1853,19 @@
     const lang = state.lang;
     const t = (obj) => typeof obj === "string" ? obj : (obj[lang] || obj.ko);
 
+    const sasangSlug = (brief.sasang && brief.sasang.latin) ?
+      brief.sasang.latin.toLowerCase().replace(/[^a-z]+/g, "-") : "";
+
+    const sasangHtml = brief.sasang ? `
+      <div class="sasang ${sasangSlug}" title="${brief.sasang.latin}">
+        <span class="glyph">${(brief.sasang.type || "").charAt(0)}</span>
+        <span class="name">${brief.sasang.type}</span>
+        <span class="conf">${t(brief.sasang.why)}</span>
+      </div>
+    ` : "";
+
+    const herbHtml = renderFormulaHerbs(brief, t);
+
     const html = `
       <div class="section">
         <h3>주소 · Chief complaints</h3>
@@ -1196,6 +1881,7 @@
 
       <div class="section">
         <h3>변증 · Pattern</h3>
+        ${sasangHtml}
         <div class="pattern">
           <div class="head">
             <div class="name">${brief.pattern.ko}</div>
@@ -1212,6 +1898,7 @@
           <div class="pinyin">${brief.formula.pinyin}</div>
           <div class="note">${t(brief.formula.note)}</div>
         </div>
+        ${herbHtml}
       </div>
 
       <div class="section">
@@ -1239,7 +1926,699 @@
     briefEl.innerHTML = html;
     briefEl.style.display = "flex";
     $("#emptyState").style.display = "none";
+    $("#printBar").style.display = "flex";
+
+    // Atlas + diagnostic visuals
+    $("#atlasPanel").style.display = "block";
+    paintAtlasFromBrief(brief);
+    paintTongueFromBrief(brief, t);
+    paintPulseFromBrief(brief);
+    paintWuxingFromBrief(brief, t);
   }
+
+  /* ───────────────────────────────────────────────
+     경혈 atlas — 25 most-clinically-relevant points
+     Coordinates inside a 220×460 SVG body silhouette.
+     side: "F" front, "B" back. A few overlap (단전 == 관원).
+     ─────────────────────────────────────────────── */
+  const ACUPOINTS = [
+    /* Head & face — front */
+    { code: "GV 20",  ko: "백회",   han: "百會",   side: "F", x: 110, y: 22,  indi: { ko: "두면 통락 · 뇌청정", en: "Clears the head" } },
+    { code: "EX-HN3", ko: "인당",   han: "印堂",   side: "F", x: 110, y: 36,  indi: { ko: "안신·전두통",        en: "Calms shen, frontal pain" } },
+    /* Neck — back */
+    { code: "GB 20",  ko: "풍지",   han: "風池",   side: "B", x: 96,  y: 50,  indi: { ko: "두통·현훈·간양",     en: "Headache, dizziness" } },
+    { code: "GB 20R", ko: "풍지",   han: "風池",   side: "B", x: 124, y: 50,  indi: { ko: "(우측)",            en: "(right side)" }, alias: "GB 20" },
+    /* Upper limb — front */
+    { code: "LI 4",   ko: "합곡",   han: "合谷",   side: "F", x: 50,  y: 220, indi: { ko: "두면 만증·통증",     en: "Head/face, pain" } },
+    { code: "LI 4R",  ko: "합곡",   han: "合谷",   side: "F", x: 170, y: 220, indi: { ko: "(우측)",            en: "(right side)" }, alias: "LI 4" },
+    { code: "LI 11",  ko: "곡지",   han: "曲池",   side: "F", x: 60,  y: 168, indi: { ko: "거풍·청열",          en: "Dispels wind, clears heat" } },
+    { code: "PC 6",   ko: "내관",   han: "內關",   side: "F", x: 56,  y: 200, indi: { ko: "흉격·심신",          en: "Chest, calms shen" } },
+    { code: "TE 5",   ko: "외관",   han: "外關",   side: "F", x: 164, y: 200, indi: { ko: "외사·소양 두통",     en: "Wards external pathogens" } },
+    { code: "HT 7",   ko: "신문",   han: "神門",   side: "F", x: 44,  y: 218, indi: { ko: "심신 안정·불면",     en: "Calms Heart-Shen, insomnia" } },
+    /* Trunk — front */
+    { code: "CV 12",  ko: "중완",   han: "中脘",   side: "F", x: 110, y: 178, indi: { ko: "위 모혈 · 중초",     en: "Stomach mu, middle jiao" } },
+    { code: "ST 25",  ko: "천추",   han: "天樞",   side: "F", x: 96,  y: 198, indi: { ko: "대장 모혈 · 변통",   en: "Large intestine mu, bowel" } },
+    { code: "CV 6",   ko: "기해",   han: "氣海",   side: "F", x: 110, y: 210, indi: { ko: "원기 보충",          en: "Tonifies original qi" } },
+    { code: "CV 4",   ko: "관원/단전", han: "關元 · 丹田", side: "F", x: 110, y: 222, indi: { ko: "원기·신정 · 단전", en: "Origin qi, dantian" } },
+    /* Lower limb — front */
+    { code: "ST 36",  ko: "족삼리", han: "足三里", side: "F", x: 96,  y: 320, indi: { ko: "비위 보강",          en: "Tonifies Spleen-Stomach" } },
+    { code: "SP 9",   ko: "음릉천", han: "陰陵泉", side: "F", x: 124, y: 308, indi: { ko: "비습·이수",          en: "Resolves damp" } },
+    { code: "GB 34",  ko: "양릉천", han: "陽陵泉", side: "F", x: 80,  y: 312, indi: { ko: "근회·간담",          en: "Hui of sinews, Liver-GB" } },
+    { code: "ST 40",  ko: "풍륭",   han: "豐隆",   side: "F", x: 96,  y: 360, indi: { ko: "거담·화담",          en: "Resolves phlegm" } },
+    { code: "SP 6",   ko: "삼음교", han: "三陰交", side: "F", x: 124, y: 384, indi: { ko: "삼음 자양",          en: "Three-yin nourishing" } },
+    { code: "LV 3",   ko: "태충",   han: "太衝",   side: "F", x: 100, y: 432, indi: { ko: "간기 소설",          en: "Courses Liver-qi" } },
+    { code: "KI 1",   ko: "용천",   han: "湧泉",   side: "F", x: 124, y: 446, indi: { ko: "신경·하기·번열",     en: "Kidney channel, descending" } },
+    { code: "KI 3",   ko: "태계",   han: "太溪",   side: "F", x: 130, y: 408, indi: { ko: "신음·신양 자양",     en: "Nourishes Kidney" } },
+    /* Back — Bladder line */
+    { code: "BL 18",  ko: "간유",   han: "肝兪",   side: "B", x: 96,  y: 158, indi: { ko: "간 배수혈",          en: "Liver shu" } },
+    { code: "BL 18R", ko: "간유",   han: "肝兪",   side: "B", x: 124, y: 158, indi: { ko: "(우측)",            en: "(right)" }, alias: "BL 18" },
+    { code: "BL 20",  ko: "비수",   han: "脾兪",   side: "B", x: 96,  y: 178, indi: { ko: "비 배수혈",          en: "Spleen shu" } },
+    { code: "BL 20R", ko: "비수",   han: "脾兪",   side: "B", x: 124, y: 178, indi: { ko: "(우측)",            en: "(right)" }, alias: "BL 20" },
+    { code: "BL 23",  ko: "신유",   han: "腎兪",   side: "B", x: 96,  y: 208, indi: { ko: "신 배수혈",          en: "Kidney shu" } },
+    { code: "BL 23R", ko: "신유",   han: "腎兪",   side: "B", x: 124, y: 208, indi: { ko: "(우측)",            en: "(right)" }, alias: "BL 23" },
+    { code: "BL 40",  ko: "위중",   han: "委中",   side: "B", x: 96,  y: 318, indi: { ko: "요배 통증",          en: "Lumbar pain" } }
+  ];
+
+  /* Hand-drawn body silhouette — front and back. Pure vector paths. */
+  const BODY_SVG_FRONT = `
+    <path class="body" d="
+      M 110 6
+      C 90 6 80 22 82 38
+      C 84 50 90 56 92 64
+      C 90 70 86 76 84 84
+      C 70 86 56 96 56 110
+      C 56 124 60 138 60 152
+      L 56 168
+      L 50 196
+      L 44 218
+      L 40 232
+      L 50 234
+      L 60 220
+      L 70 198
+      L 76 174
+      L 80 160
+      L 84 174
+      L 84 230
+      L 76 312
+      L 80 372
+      L 86 432
+      L 92 452
+      L 102 454
+      L 102 432
+      L 100 388
+      L 100 320
+      L 110 256
+      L 120 320
+      L 120 388
+      L 118 432
+      L 118 454
+      L 128 452
+      L 134 432
+      L 140 372
+      L 144 312
+      L 136 230
+      L 136 174
+      L 140 160
+      L 144 174
+      L 150 198
+      L 160 220
+      L 170 234
+      L 180 232
+      L 176 218
+      L 170 196
+      L 164 168
+      L 160 152
+      C 160 138 164 124 164 110
+      C 164 96 150 86 136 84
+      C 134 76 130 70 128 64
+      C 130 56 136 50 138 38
+      C 140 22 130 6 110 6 Z" />
+    <line class="midline" x1="110" y1="84" x2="110" y2="252" />
+  `;
+  const BODY_SVG_BACK = `
+    <path class="body" d="
+      M 110 6
+      C 90 6 80 22 82 38
+      C 84 50 90 56 92 64
+      C 90 70 86 76 84 84
+      C 70 86 56 96 56 110
+      C 56 124 60 138 60 152
+      L 56 168
+      L 50 196
+      L 44 218
+      L 40 232
+      L 50 234
+      L 60 220
+      L 70 198
+      L 76 174
+      L 80 160
+      L 84 174
+      L 84 230
+      L 76 312
+      L 80 372
+      L 86 432
+      L 92 452
+      L 102 454
+      L 102 432
+      L 100 388
+      L 100 320
+      L 110 256
+      L 120 320
+      L 120 388
+      L 118 432
+      L 118 454
+      L 128 452
+      L 134 432
+      L 140 372
+      L 144 312
+      L 136 230
+      L 136 174
+      L 140 160
+      L 144 174
+      L 150 198
+      L 160 220
+      L 170 234
+      L 180 232
+      L 176 218
+      L 170 196
+      L 164 168
+      L 160 152
+      C 160 138 164 124 164 110
+      C 164 96 150 86 136 84
+      C 134 76 130 70 128 64
+      C 130 56 136 50 138 38
+      C 140 22 130 6 110 6 Z" />
+    <line class="midline" x1="110" y1="84" x2="110" y2="450" />
+  `;
+
+  /* Build the SVG figures once on load. */
+  function initAtlas() {
+    const f = document.getElementById("atlasFront");
+    const b = document.getElementById("atlasBack");
+    if (!f || !b) return;
+    const drawPoints = (svg, side) => {
+      const pts = ACUPOINTS.filter(p => p.side === side);
+      const ptsHtml = pts.map(p => `
+        <g class="pt" data-code="${(p.alias || p.code).replace(/\s+/g, "")}" data-aliases="${(p.alias || p.code)}">
+          <circle class="ring" cx="${p.x}" cy="${p.y}" r="5"></circle>
+          <circle class="dot"  cx="${p.x}" cy="${p.y}" r="1.4"></circle>
+        </g>
+      `).join("");
+      svg.innerHTML = (side === "F" ? BODY_SVG_FRONT : BODY_SVG_BACK) + ptsHtml;
+    };
+    drawPoints(f, "F");
+    drawPoints(b, "B");
+
+    // Tooltip handling
+    const tip = document.getElementById("atlasTip");
+    const lookup = {};
+    ACUPOINTS.forEach(p => { lookup[(p.alias || p.code).replace(/\s+/g, "")] = p; });
+    [f, b].forEach(svg => {
+      svg.addEventListener("mousemove", e => {
+        const g = e.target.closest(".pt");
+        if (!g) { tip.classList.remove("on"); return; }
+        const p = lookup[g.dataset.code];
+        if (!p) return;
+        const rect = svg.getBoundingClientRect();
+        const panelRect = document.getElementById("atlasPanel").getBoundingClientRect();
+        // Position relative to atlas-panel since tip is absolutely positioned within
+        const cx = rect.left - panelRect.left + (p.x / 220) * rect.width;
+        const cy = rect.top  - panelRect.top  + (p.y / 460) * rect.height;
+        tip.style.left = cx + "px";
+        tip.style.top  = cy + "px";
+        const indiText = state.lang === "ko" ? p.indi.ko : p.indi.en;
+        tip.innerHTML = `
+          <div class="han">${p.han}</div>
+          <div class="nm">${p.ko} · ${(p.alias || p.code)}</div>
+          <div class="indi">${indiText}</div>
+        `;
+        tip.classList.add("on");
+      });
+      svg.addEventListener("mouseleave", () => tip.classList.remove("on"));
+      svg.addEventListener("touchstart", e => {
+        const g = e.target.closest(".pt");
+        if (!g) return;
+        const p = lookup[g.dataset.code];
+        if (!p) return;
+        const rect = svg.getBoundingClientRect();
+        const panelRect = document.getElementById("atlasPanel").getBoundingClientRect();
+        const cx = rect.left - panelRect.left + (p.x / 220) * rect.width;
+        const cy = rect.top  - panelRect.top  + (p.y / 460) * rect.height;
+        tip.style.left = cx + "px";
+        tip.style.top  = cy + "px";
+        tip.innerHTML = `
+          <div class="han">${p.han}</div>
+          <div class="nm">${p.ko} · ${(p.alias || p.code)}</div>
+          <div class="indi">${state.lang === "ko" ? p.indi.ko : p.indi.en}</div>
+        `;
+        tip.classList.add("on");
+        clearTimeout(svg._tipTimer);
+        svg._tipTimer = setTimeout(() => tip.classList.remove("on"), 2400);
+      }, { passive: true });
+    });
+  }
+
+  /* Light up atlas points referenced anywhere in the brief. */
+  function paintAtlasFromBrief(brief) {
+    const codes = new Set();
+    // From the points list directly (canonical):
+    (brief.points || []).forEach(p => {
+      if (p.code) codes.add(p.code.replace(/\s+/g, ""));
+    });
+    // Also scan formula.note + pattern.why + lifestyle for any hits
+    // (e.g. AI may reference 백회 / 합곡 in prose).
+    const blob = JSON.stringify(brief);
+    ACUPOINTS.forEach(p => {
+      const ko = p.ko;
+      if (blob.indexOf(ko) >= 0) codes.add((p.alias || p.code).replace(/\s+/g, ""));
+    });
+    document.querySelectorAll(".atlas svg .pt").forEach(g => {
+      const c = g.dataset.code;
+      g.classList.toggle("active", codes.has(c));
+    });
+  }
+
+  /* ───────────────────────────────────────────────
+     설진 — tongue SVG
+     Maps tongue.color/shape/coating to fill/stroke.
+     ─────────────────────────────────────────────── */
+  function paintTongueFromBrief(brief, t) {
+    const svg = document.getElementById("tongueSvg");
+    const meta = document.getElementById("tongueMeta");
+    if (!svg || !brief.tongue) return;
+
+    const COLOR_MAP = {
+      "담홍": "#f0c1b1", "홍": "#d65b4a", "담": "#f3d6c6",
+      "자": "#9b3a4a", "청": "#7c8a8a", "암홍": "#bf5d5d",
+      "담백": "#f5e2cf"
+    };
+    const COAT_MAP = {
+      "박백": { fill: "rgba(255,255,255,0.55)", thick: false },
+      "백": { fill: "rgba(255,255,255,0.7)", thick: false },
+      "백니": { fill: "rgba(245,240,225,0.85)", thick: true },
+      "후니": { fill: "rgba(245,235,210,0.92)", thick: true },
+      "박황": { fill: "rgba(232,205,140,0.55)", thick: false },
+      "황": { fill: "rgba(212,170,90,0.7)", thick: false },
+      "황니": { fill: "rgba(212,170,90,0.85)", thick: true },
+      "회": { fill: "rgba(170,170,160,0.75)", thick: true },
+      "흑": { fill: "rgba(70,70,75,0.7)", thick: true }
+    };
+    const tongue = brief.tongue;
+    // Pick best color match (prefix match)
+    const colorKey = Object.keys(COLOR_MAP).find(k => (tongue.color || "").indexOf(k) === 0) || "담홍";
+    const coatKey  = Object.keys(COAT_MAP).find(k => (tongue.coating || "").indexOf(k) === 0) || "박백";
+    const fill = COLOR_MAP[colorKey];
+    const coat = COAT_MAP[coatKey];
+
+    const swollen = /반대|胖/.test(tongue.shape || "");
+    const thin    = /수척|瘦/.test(tongue.shape || "");
+    const tooth   = /치흔|齒痕/.test(tongue.shape || "");
+    // Shape: a slightly pointed oval. Tweak width by swollen/thin.
+    const w = swollen ? 88 : (thin ? 64 : 76);
+    // Build tongue path
+    const cx = 100, cy = 130;
+    const top = cy - 90;
+    const bot = cy + 90;
+    let edge;
+    if (tooth) {
+      // Mild scalloped edge
+      const sc = [];
+      const N = 8;
+      for (let i = 0; i <= N; i++) {
+        const k = i / N;
+        const yy = top + (bot - top) * k;
+        const r = Math.sin(Math.PI * k);
+        const off = Math.sin(k * Math.PI * N) * 2.5;
+        sc.push([cx - w * r + off, yy]);
+      }
+      const right = [];
+      for (let i = N; i >= 0; i--) {
+        const k = i / N;
+        const yy = top + (bot - top) * k;
+        const r = Math.sin(Math.PI * k);
+        const off = Math.sin(k * Math.PI * N) * 2.5;
+        right.push([cx + w * r - off, yy]);
+      }
+      edge = sc.concat(right).map((p, i) => (i === 0 ? "M" : "L") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ") + " Z";
+    } else {
+      edge = `M ${cx} ${top}
+              C ${cx - w} ${top + 12}, ${cx - w} ${bot - 18}, ${cx - w * 0.55} ${bot - 6}
+              C ${cx - w * 0.25} ${bot + 4}, ${cx + w * 0.25} ${bot + 4}, ${cx + w * 0.55} ${bot - 6}
+              C ${cx + w} ${bot - 18}, ${cx + w} ${top + 12}, ${cx} ${top} Z`;
+    }
+    // Tongue body + coating
+    svg.innerHTML = `
+      <defs>
+        <radialGradient id="tg-${colorKey}" cx="50%" cy="55%" r="60%">
+          <stop offset="0%" stop-color="${fill}" stop-opacity="0.95"/>
+          <stop offset="100%" stop-color="${fill}" stop-opacity="0.7"/>
+        </radialGradient>
+      </defs>
+      <path d="${edge}" fill="url(#tg-${colorKey})" stroke="rgba(80,40,40,0.45)" stroke-width="1.2"/>
+      <!-- coating -->
+      <ellipse cx="${cx}" cy="${cy + 4}" rx="${w * 0.78}" ry="${72}" fill="${coat.fill}" stroke="none" opacity="${coat.thick ? 0.85 : 0.55}"/>
+      <!-- midline crack -->
+      <path d="M ${cx} ${top + 16} Q ${cx - 1.5} ${cy} ${cx} ${bot - 18}"
+            fill="none" stroke="rgba(120,60,60,0.35)" stroke-width="0.9" stroke-dasharray="2 3"/>
+    `;
+    meta.innerHTML = `
+      <dt>색</dt><dd>${tongue.color || "—"}</dd>
+      <dt>형태</dt><dd>${tongue.shape || "—"}</dd>
+      <dt>태</dt><dd>${tongue.coating || "—"}</dd>
+      ${tongue.note ? `<dt>판독</dt><dd style="font-style:italic;">${t(tongue.note)}</dd>` : ""}
+    `;
+  }
+
+  /* ───────────────────────────────────────────────
+     맥진 — 좌·우 촌·관·척 grid with type-shaped waveforms
+     ─────────────────────────────────────────────── */
+  const PULSE_SHAPES = {
+    // 0..30 normalized samples, returns y (0..22)
+    "부": (n) => 11 - Math.sin(n / 30 * Math.PI * 4) * 8,                       // shallow, big swing near surface
+    "침": (n) => 11 - Math.sin(n / 30 * Math.PI * 4) * 3,                       // small amplitude, low
+    "지": (n) => 11 - Math.sin(n / 30 * Math.PI * 2) * 6,                       // slow, fewer cycles
+    "삭": (n) => 11 - Math.sin(n / 30 * Math.PI * 6.5) * 6,                     // fast, more cycles
+    "현": (n) => 11 - (Math.sign(Math.sin(n / 30 * Math.PI * 4))) * Math.min(1, Math.abs(Math.sin(n / 30 * Math.PI * 4)) * 3) * 6, // wiry, taut
+    "활": (n) => 11 - Math.sin(n / 30 * Math.PI * 4) * 6 - Math.sin(n / 30 * Math.PI * 8) * 1.5, // slippery, with second harmonic
+    "세": (n) => 11 - Math.sin(n / 30 * Math.PI * 4) * 2.8,                     // thin, small amplitude
+    "약": (n) => 11 - Math.sin(n / 30 * Math.PI * 3) * 1.8,                     // weak
+    "유": (n) => 11 - Math.sin(n / 30 * Math.PI * 3) * 4 + Math.sin(n / 30 * Math.PI * 7) * 0.6, // soggy/soft
+    "완": (n) => 11 - Math.sin(n / 30 * Math.PI * 2.5) * 3.5,                   // moderate
+    "긴": (n) => 11 - (Math.sign(Math.sin(n / 30 * Math.PI * 5))) * Math.abs(Math.sin(n / 30 * Math.PI * 5)) * 5.5, // tight
+    "허": (n) => 11 - Math.sin(n / 30 * Math.PI * 3.5) * 2.0
+  };
+  function pulsePath(type) {
+    const fn = PULSE_SHAPES[type] || PULSE_SHAPES["완"];
+    const pts = [];
+    const W = 100;
+    for (let i = 0; i <= 30; i++) {
+      const x = (i / 30) * W;
+      const y = fn(i);
+      pts.push((i === 0 ? "M" : "L") + x.toFixed(1) + " " + y.toFixed(2));
+    }
+    return pts.join(" ");
+  }
+  function paintPulseFromBrief(brief) {
+    const grid = document.getElementById("pulseGrid");
+    if (!grid || !brief.pulse) return;
+    const labels = ["촌", "관", "척"];
+    const cols = ["chon", "gwan", "cheok"];
+    const rows = [
+      { label: "좌", k: "left",  cells: brief.pulse.cells && brief.pulse.cells.left  || [] },
+      { label: "우", k: "right", cells: brief.pulse.cells && brief.pulse.cells.right || [] }
+    ];
+    let html = `<div></div>`;
+    labels.forEach(l => html += `<div class="col-h">${l}</div>`);
+    rows.forEach(r => {
+      html += `<div class="row-h">${r.label}</div>`;
+      for (let i = 0; i < 3; i++) {
+        const c = r.cells[i] || { type: "완", han: "緩" };
+        html += `
+          <div class="pulse-cell" title="${c.type}맥 — ${cols[i]}">
+            <div class="han">${c.han || ""}</div>
+            <svg viewBox="0 0 100 22" preserveAspectRatio="none">
+              <path class="pulse-wave" d="${pulsePath(c.type)}" />
+            </svg>
+            <div class="lbl">${c.type || ""}</div>
+          </div>
+        `;
+      }
+    });
+    grid.innerHTML = html;
+  }
+
+  /* ───────────────────────────────────────────────
+     오행 wheel — 五行 五臟
+     Generation (相生): 木→火→土→金→水→木
+     Control    (相剋): 木→土, 土→水, 水→火, 火→金, 金→木
+     ─────────────────────────────────────────────── */
+  const WUXING = [
+    { phase: "木", organ: "肝", ko: "간", id: "mu",  angleDeg: -90 },
+    { phase: "火", organ: "心", ko: "심", id: "hwa", angleDeg: -18 },
+    { phase: "土", organ: "脾", ko: "비", id: "to",  angleDeg:  54 },
+    { phase: "金", organ: "肺", ko: "폐", id: "geum",angleDeg: 126 },
+    { phase: "水", organ: "腎", ko: "신", id: "su",  angleDeg: 198 }
+  ];
+  // Map 한글 organ → wuxing id, including alternates
+  const ORGAN_TO_WUXING = {
+    "간": "mu", "膽": "mu", "담": "mu",
+    "심": "hwa", "소장": "hwa",
+    "비": "to", "위": "to",
+    "폐": "geum", "대장": "geum",
+    "신": "su", "방광": "su", "삼초": "su"
+  };
+  function wuxingPos(angleDeg, r) {
+    const rad = angleDeg * Math.PI / 180;
+    return [120 + r * Math.cos(rad), 120 + r * Math.sin(rad)];
+  }
+  function initWuxing() {
+    const svg = document.getElementById("wuxingSvg");
+    if (!svg) return;
+    const R = 78;
+    const positions = {};
+    WUXING.forEach(w => positions[w.id] = wuxingPos(w.angleDeg, R));
+
+    // 相生 cycle (consecutive)
+    const genOrder = ["mu", "hwa", "to", "geum", "su", "mu"];
+    const genLines = [];
+    for (let i = 0; i < genOrder.length - 1; i++) {
+      const a = positions[genOrder[i]], b = positions[genOrder[i + 1]];
+      // Curved arc between adjacent nodes
+      const mx = (a[0] + b[0]) / 2;
+      const my = (a[1] + b[1]) / 2;
+      const dx = b[0] - a[0], dy = b[1] - a[1];
+      const ax = my - 120, ay = 120 - mx; // perp toward center
+      const len = Math.hypot(ax, ay) || 1;
+      const cx = mx + (ax / len) * 8;
+      const cy = my + (ay / len) * 8;
+      genLines.push({ from: genOrder[i], to: genOrder[i + 1], d: `M ${a[0].toFixed(1)} ${a[1].toFixed(1)} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${b[0].toFixed(1)} ${b[1].toFixed(1)}` });
+    }
+    // 相剋 (skip-one): mu→to, to→su, su→hwa, hwa→geum, geum→mu
+    const koPairs = [["mu","to"],["to","su"],["su","hwa"],["hwa","geum"],["geum","mu"]];
+    const koLines = koPairs.map(([f, tt]) => {
+      const a = positions[f], b = positions[tt];
+      return { from: f, to: tt, d: `M ${a[0].toFixed(1)} ${a[1].toFixed(1)} L ${b[0].toFixed(1)} ${b[1].toFixed(1)}` };
+    });
+
+    let h = "";
+    h += `<defs>
+      <marker id="wx-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 Z" fill="currentColor" />
+      </marker>
+    </defs>`;
+    h += `<g style="color:var(--celadon)">` + genLines.map(l =>
+      `<path class="gen" data-from="${l.from}" data-to="${l.to}" d="${l.d}" marker-end="url(#wx-arrow)"/>`
+    ).join("") + `</g>`;
+    h += `<g style="color:var(--rust)">` + koLines.map(l =>
+      `<path class="ko" data-from="${l.from}" data-to="${l.to}" d="${l.d}" marker-end="url(#wx-arrow)"/>`
+    ).join("") + `</g>`;
+    h += WUXING.map(w => {
+      const [x, y] = positions[w.id];
+      return `
+        <g class="node" data-id="${w.id}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})">
+          <circle r="22"/>
+          <text dy="-3" class="phase">${w.phase}</text>
+          <text dy="11" class="organ">${w.organ}</text>
+        </g>
+      `;
+    }).join("");
+    svg.innerHTML = h;
+  }
+  function paintWuxingFromBrief(brief, t) {
+    const note = document.getElementById("wuxingNote");
+    const lit = new Set();
+    (brief.organs || []).forEach(o => {
+      const id = ORGAN_TO_WUXING[o];
+      if (id) lit.add(id);
+    });
+    // Also scan pattern.ko for organ chars
+    const ko = (brief.pattern && brief.pattern.ko) || "";
+    Object.keys(ORGAN_TO_WUXING).forEach(k => { if (ko.indexOf(k) >= 0) lit.add(ORGAN_TO_WUXING[k]); });
+
+    document.querySelectorAll("#wuxingSvg .node").forEach(n => {
+      n.classList.toggle("lit", lit.has(n.dataset.id));
+    });
+    document.querySelectorAll("#wuxingSvg .gen, #wuxingSvg .ko").forEach(p => {
+      const f = p.dataset.from, tt = p.dataset.to;
+      p.classList.toggle("lit", lit.has(f) || lit.has(tt));
+    });
+    if (note) {
+      const litNames = WUXING.filter(w => lit.has(w.id)).map(w => `${w.organ} (${w.ko})`).join(" · ") || "—";
+      note.textContent = `점등된 장부: ${litNames}`;
+    }
+  }
+
+  /* ───────────────────────────────────────────────
+     본초 atlas — formula → 君臣佐使 herbs map
+     20 herbs: 인삼·황기·백출·복령·감초·당귀·천궁·작약·숙지황·진피·반하·시호·황금·황련·계지·마황·갈근·생강·대조·박하
+     Slugs: insam, hwanggi, baekchul, bokryeong, gamcho, danggui, cheongung, jakyak,
+            sukjihwang, jinpi, banha, siho, hwanggeum, hwangryeon, gyeji, mahwang,
+            galgeun, saenggang, daejo, bakha
+     ─────────────────────────────────────────────── */
+  const HERB_META = {
+    insam:      { ko: "인삼",   han: "人蔘" },
+    hwanggi:    { ko: "황기",   han: "黃芪" },
+    baekchul:   { ko: "백출",   han: "白朮" },
+    bokryeong:  { ko: "복령",   han: "茯苓" },
+    gamcho:     { ko: "감초",   han: "甘草" },
+    danggui:    { ko: "당귀",   han: "當歸" },
+    cheongung:  { ko: "천궁",   han: "川芎" },
+    jakyak:     { ko: "작약",   han: "芍藥" },
+    sukjihwang: { ko: "숙지황", han: "熟地黃" },
+    jinpi:      { ko: "진피",   han: "陳皮" },
+    banha:      { ko: "반하",   han: "半夏" },
+    siho:       { ko: "시호",   han: "柴胡" },
+    hwanggeum:  { ko: "황금",   han: "黃芩" },
+    hwangryeon: { ko: "황련",   han: "黃連" },
+    gyeji:      { ko: "계지",   han: "桂枝" },
+    mahwang:    { ko: "마황",   han: "麻黃" },
+    galgeun:    { ko: "갈근",   han: "葛根" },
+    saenggang:  { ko: "생강",   han: "生薑" },
+    daejo:      { ko: "대조",   han: "大棗" },
+    bakha:      { ko: "박하",   han: "薄荷" }
+  };
+
+  /* Formula → ordered list of {slug, role}.  Role: gun 君 · shin 臣 · jwa 佐 · sa 使 */
+  const FORMULA_HERBS = {
+    "보중익기탕":      [["hwanggi","gun"],["insam","shin"],["baekchul","shin"],["danggui","jwa"],["jinpi","jwa"],["gamcho","sa"]],
+    "삼령백출산":      [["insam","gun"],["baekchul","shin"],["bokryeong","shin"],["gamcho","sa"],["jinpi","jwa"],["banha","jwa"]],
+    "천마구등음":      [["siho","gun"],["jakyak","shin"],["danggui","jwa"],["bokryeong","jwa"],["gamcho","sa"]],
+    "사물탕":          [["sukjihwang","gun"],["danggui","shin"],["jakyak","jwa"],["cheongung","sa"]],
+    "사군자탕":        [["insam","gun"],["baekchul","shin"],["bokryeong","jwa"],["gamcho","sa"]],
+    "팔물탕":          [["insam","gun"],["sukjihwang","gun"],["baekchul","shin"],["danggui","shin"],["bokryeong","jwa"],["jakyak","jwa"],["cheongung","jwa"],["gamcho","sa"]],
+    "십전대보탕":      [["insam","gun"],["hwanggi","gun"],["baekchul","shin"],["danggui","shin"],["sukjihwang","jwa"],["jakyak","jwa"],["bokryeong","jwa"],["cheongung","jwa"],["gyeji","sa"],["gamcho","sa"]],
+    "귀비탕":          [["insam","gun"],["hwanggi","gun"],["baekchul","shin"],["danggui","shin"],["bokryeong","jwa"],["gamcho","sa"]],
+    "쌍화탕":          [["jakyak","gun"],["sukjihwang","shin"],["danggui","shin"],["cheongung","jwa"],["hwanggi","jwa"],["gyeji","sa"],["gamcho","sa"]],
+    "시호소간탕":      [["siho","gun"],["jakyak","shin"],["jinpi","jwa"],["cheongung","jwa"],["gamcho","sa"]],
+    "가미소요산":      [["siho","gun"],["danggui","shin"],["jakyak","shin"],["baekchul","jwa"],["bokryeong","jwa"],["bakha","sa"],["gamcho","sa"]],
+    "용담사간탕":      [["hwanggeum","gun"],["hwangryeon","shin"],["siho","jwa"],["danggui","jwa"],["sukjihwang","jwa"],["gamcho","sa"]],
+    "육미지황탕":      [["sukjihwang","gun"],["jakyak","shin"],["bokryeong","jwa"],["danggui","jwa"]],
+    "지백지황탕":      [["sukjihwang","gun"],["hwanggeum","shin"],["bokryeong","jwa"],["jakyak","jwa"]],
+    "반하사심탕":      [["banha","gun"],["hwanggeum","shin"],["hwangryeon","shin"],["insam","jwa"],["saenggang","jwa"],["daejo","sa"],["gamcho","sa"]],
+    "평위산":          [["jinpi","gun"],["baekchul","shin"],["banha","jwa"],["gamcho","sa"]],
+    "갈근탕":          [["galgeun","gun"],["mahwang","shin"],["gyeji","shin"],["jakyak","jwa"],["saenggang","jwa"],["daejo","jwa"],["gamcho","sa"]],
+    "마황탕":          [["mahwang","gun"],["gyeji","shin"],["gamcho","sa"]],
+    "계지탕":          [["gyeji","gun"],["jakyak","shin"],["saenggang","jwa"],["daejo","jwa"],["gamcho","sa"]],
+    "곽향정기산":      [["jinpi","gun"],["banha","shin"],["baekchul","jwa"],["bokryeong","jwa"],["gamcho","sa"]],
+    "향사양위탕":      [["insam","gun"],["baekchul","shin"],["bokryeong","jwa"],["jinpi","jwa"],["banha","jwa"],["gamcho","sa"]],
+    "산조인탕":        [["bokryeong","gun"],["danggui","shin"],["jakyak","jwa"],["gamcho","sa"]],
+    "감맥대조탕":      [["gamcho","gun"],["daejo","shin"]],
+    "보화환":          [["jinpi","gun"],["banha","shin"],["bokryeong","jwa"]],
+    "형방지황탕":      [["sukjihwang","gun"],["jakyak","shin"],["bokryeong","jwa"]],
+    "태음조위탕":      [["galgeun","gun"],["mahwang","shin"],["jinpi","jwa"]]
+  };
+
+  const ROLE_LABEL = {
+    gun:  { ko: "君 군약",  en: "Sovereign" },
+    shin: { ko: "臣 신약",  en: "Minister" },
+    jwa:  { ko: "佐 좌약",  en: "Assistant" },
+    sa:   { ko: "使 사약",  en: "Envoy" }
+  };
+  const ROLE_GLYPH = { gun: "君", shin: "臣", jwa: "佐", sa: "使" };
+
+  function renderFormulaHerbs(brief, t) {
+    if (!brief.formula || !brief.formula.name) return "";
+    // Strip trailing modifiers like "— modified" or " 가감" etc.  Just match the base name.
+    const baseName = brief.formula.name.replace(/\s*[-—].*$/, "").replace(/\s+가감.*$/, "").trim();
+    const herbs = FORMULA_HERBS[baseName];
+    if (!herbs) return "";
+    const items = herbs.map(([slug, role]) => {
+      const meta = HERB_META[slug];
+      if (!meta) return "";
+      const roleNm = state.lang === "ko" ? ROLE_LABEL[role].ko : ROLE_LABEL[role].en;
+      return `
+        <div class="herb-card role-${role}" title="${meta.ko} · ${meta.han}">
+          <div class="img">
+            <img src="./herbs/${slug}.jpg" alt="${meta.ko}" loading="lazy" decoding="async">
+            <span class="role-badge">${ROLE_GLYPH[role]}</span>
+          </div>
+          <div class="nm">${meta.ko}</div>
+          <div class="role-name">${roleNm}</div>
+        </div>
+      `;
+    }).join("");
+    return `<div class="herb-list">${items}</div>`;
+  }
+
+  /* ───────────────────────────────────────────────
+     Chart-style print export
+     Reformats the brief into a 한의원 chart and calls window.print().
+     ─────────────────────────────────────────────── */
+  function buildChartPrint(brief) {
+    if (!brief) return;
+    const lang = state.lang;
+    const t = (obj) => typeof obj === "string" ? obj : (obj && (obj[lang] || obj.ko)) || "";
+    const today = new Date();
+    const stamp = today.getFullYear() + "-" +
+      String(today.getMonth() + 1).padStart(2, "0") + "-" +
+      String(today.getDate()).padStart(2, "0");
+    const baseName = (brief.formula && brief.formula.name || "").replace(/\s*[-—].*$/, "").replace(/\s+가감.*$/, "").trim();
+    const herbs = (FORMULA_HERBS[baseName] || []).map(([s, r]) => `${HERB_META[s] ? HERB_META[s].ko : s} (${ROLE_GLYPH[r]})`).join(" · ");
+
+    const narrative = (document.getElementById("narrative").value || "").trim();
+
+    const html = `
+      <header class="clinic-head">
+        <div>
+          <div class="clinic-name">한방 진료 동반자 — Intake <em>Companion</em></div>
+          <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11pt;">Korean Traditional Medicine — Clinical Brief</div>
+        </div>
+        <div class="clinic-meta">
+          진료일 · ${stamp}<br>
+          차트 #${("000" + Math.floor(Math.random() * 9000 + 1000)).slice(-4)}<br>
+          담당의 · 한의사
+        </div>
+      </header>
+
+      <h3>환자 진술 · Patient narrative</h3>
+      <p>${narrative ? narrative.replace(/</g, "&lt;") : "—"}</p>
+
+      <div class="grid-2">
+        <div>
+          <h3>주소 · Chief complaints</h3>
+          <ul>
+            ${brief.complaints.map(c => `<li>${lang === "ko" ? c.ko : c.en} <span style="color:#888;">— ${"●".repeat(c.sev)}${"○".repeat(4 - c.sev)} · ${t(c.dur)}</span></li>`).join("")}
+          </ul>
+        </div>
+        <div>
+          <h3>체질 / 변증 · Constitution &amp; pattern</h3>
+          ${brief.sasang ? `<div class="field"><span class="k">사상</span>${brief.sasang.type} · <em>${brief.sasang.latin}</em></div>` : ""}
+          <div class="field"><span class="k">변증</span>${brief.pattern.ko} <span style="font-style:italic;color:#666;">(${brief.pattern.latin})</span></div>
+          <div class="field"><span class="k">근거</span>${t(brief.pattern.why)}</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <h3>설진 · Tongue</h3>
+          ${brief.tongue ? `
+            <div class="field"><span class="k">색</span>${brief.tongue.color || "—"}</div>
+            <div class="field"><span class="k">형태</span>${brief.tongue.shape || "—"}</div>
+            <div class="field"><span class="k">태</span>${brief.tongue.coating || "—"}</div>
+          ` : "<p>—</p>"}
+        </div>
+        <div>
+          <h3>맥진 · Pulse</h3>
+          ${brief.pulse ? `<div class="field"><span class="k">전체</span>${t(brief.pulse.global)}</div>` : "<p>—</p>"}
+        </div>
+      </div>
+
+      <h3>처방 · Formula</h3>
+      <div class="field"><span class="k">방명</span>${brief.formula.name} <span style="font-style:italic;color:#666;">(${brief.formula.pinyin})</span></div>
+      <div class="field"><span class="k">설명</span>${t(brief.formula.note)}</div>
+      ${herbs ? `<div class="field"><span class="k">본초</span>${herbs}</div>` : ""}
+
+      <h3>경혈 · Acupoints</h3>
+      <ul>
+        ${brief.points.map(p => `<li>${p.code} · ${p.ko} — <span style="color:#666;">${t(p.why)}</span></li>`).join("")}
+      </ul>
+
+      <h3>양생 · Lifestyle</h3>
+      ${brief.lifestyle ? `<ul>${(lang === "ko" ? brief.lifestyle.ko : brief.lifestyle.en).map(l => `<li>${l}</li>`).join("")}</ul>` : "<p>—</p>"}
+
+      <h3>다음 진료 · Next visit</h3>
+      <p>${brief.next ? t(brief.next) : "—"}</p>
+    `;
+    document.getElementById("chartPrint").innerHTML = html;
+  }
+
+  /* Print button — only visible after a brief is rendered. */
+  document.getElementById("printChartBtn").addEventListener("click", () => {
+    if (!state.currentBrief) return;
+    buildChartPrint(state.currentBrief);
+    document.body.classList.add("printing-chart");
+    // Allow layout to settle before opening the print dialog.
+    requestAnimationFrame(() => {
+      window.print();
+      // Some browsers fire afterprint, others don't — clean up either way.
+      setTimeout(() => document.body.classList.remove("printing-chart"), 600);
+    });
+  });
+  window.addEventListener("afterprint", () => document.body.classList.remove("printing-chart"));
+
+  /* Boot the static figure layers */
+  initAtlas();
+  initWuxing();
 
   /* ── Browser-direct Claude call ── */
   async function callClaude(narrative, key, model) {
@@ -1320,9 +2699,15 @@ Use the international code in the 'code' field with a single space (ST 36, BL 20
 
 <output_constraints>
 - complaints: 4-6 items. Each is a clinically-named symptom group, not a verbatim quote.
+- sasang: exactly 1. type ∈ {태양인, 소양인, 태음인, 소음인}. Latin is the WHO-style romanization (Tae-yang / So-yang / Tae-eum / So-eum).
 - pattern: exactly 1. Korean name in 'ko' (may be a "·"-joined dual pattern). 'latin' is the scholarly English form.
+- tongue: exactly 1. color ∈ {담홍, 홍, 담백, 자, 청, 암홍}. shape may include 반대 / 수척 / 치흔 / 정상. coating ∈ {박백, 백, 백니, 후니, 박황, 황, 황니, 회, 흑}. Choose the closest single canonical token, even if the case is mixed.
+- pulse: exactly 1. Each of the six cells (left[0..2], right[0..2]) is { "type": <한글 단일자>, "han": <漢字 단일자> }. Allowed types: 부浮·침沉·지遲·삭數·현弦·활滑·세細·약弱·유濡·완緩·긴緊·허虛.
+- organs: 1-3 한글 organ names from {간, 심, 비, 폐, 신, 담, 소장, 위, 대장, 방광, 삼초}.
 - formula: exactly 1. 'name' is Korean. 'pinyin' is Latin transliteration with optional " — modified" suffix when 가감 is significant.
 - points: 4-6. Codes use the format "ST 36" with one space.
+- lifestyle: exactly 3 lines per language. Concrete and Korean-clinic-typical (생냉 금지, 23시 이전 취침, …).
+- next: exactly 1 follow-up plan ("1주 후 재진 — 수면·식욕 추적").
 - followups: exactly 3 in each language. They must be specific clinical disambiguators that would change the 변증, not generic check-ins.
 - Severity: 1=경도, 2=중등도, 3=현저, 4=심각.
 </output_constraints>
@@ -1334,6 +2719,11 @@ Return STRICT JSON. No markdown fences. No commentary before or after. The JSON 
   "complaints": [
     { "ko": "<한글 증상명>", "en": "<English symptom>", "sev": 1|2|3|4, "dur": { "ko": "<지속기간>", "en": "<duration phrase>" } }
   ],
+  "sasang": {
+    "type": "<태양인 | 소양인 | 태음인 | 소음인>",
+    "latin": "<Tae-yang | So-yang | Tae-eum | So-eum>",
+    "why": { "ko": "<1문장 — 체질 단서>", "en": "<1 sentence>" }
+  },
   "pattern": {
     "ko": "<변증, 예: 비양허 또는 비양허 · 심비양허>",
     "latin": "<Spleen-yang deficiency · Heart-Spleen yang deficiency>",
@@ -1342,6 +2732,20 @@ Return STRICT JSON. No markdown fences. No commentary before or after. The JSON 
       "en": "<2-3 sentences mirroring the Korean rationale.>"
     }
   },
+  "tongue": {
+    "color":   "<담홍 | 홍 | 담백 | 자 | 청 | 암홍>",
+    "shape":   "<반대 | 수척 | 치흔 | 정상 | 또는 결합>",
+    "coating": "<박백 | 백 | 백니 | 후니 | 박황 | 황 | 황니 | 회 | 흑>",
+    "note":    { "ko": "<설진 한 줄 판독>", "en": "<one-line tongue reading>" }
+  },
+  "pulse": {
+    "global": { "ko": "<전체 맥상 한 줄>", "en": "<one-line global pulse>" },
+    "cells": {
+      "left":  [ { "type": "<한글>", "han": "<漢字>" }, { "type": "...", "han": "..." }, { "type": "...", "han": "..." } ],
+      "right": [ { "type": "...",    "han": "..."    }, { "type": "...", "han": "..." }, { "type": "...", "han": "..." } ]
+    }
+  },
+  "organs": [ "<간 | 심 | 비 | 폐 | 신 | 위 | 담 | 소장 | 대장 | 방광>", "..." ],
   "formula": {
     "name": "<한글 처방명, 예: 보중익기탕>",
     "pinyin": "<Bǔ zhōng yì qì tāng — modified>",
@@ -1353,6 +2757,11 @@ Return STRICT JSON. No markdown fences. No commentary before or after. The JSON 
   "points": [
     { "code": "ST 36", "ko": "족삼리", "why": { "ko": "<짧은 경혈 선택 이유>", "en": "<short rationale>" } }
   ],
+  "lifestyle": {
+    "ko": ["<양생 1>", "<양생 2>", "<양생 3>"],
+    "en": ["<lifestyle 1>", "<lifestyle 2>", "<lifestyle 3>"]
+  },
+  "next": { "ko": "<재진 계획 한 줄>", "en": "<follow-up plan in one sentence>" },
   "followups": {
     "ko": ["<감별진단을 좁히는 질문 1>", "<2>", "<3>"],
     "en": ["<diagnostic-narrowing question 1>", "<2>", "<3>"]
