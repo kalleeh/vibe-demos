@@ -501,6 +501,7 @@
   <script type="module">
     import * as THREE from "three";
     import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+    import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
     /* ============================================================
        MOLECULE'S JOURNEY — full-scene rewrite
@@ -549,6 +550,9 @@
     pmrem.compileEquirectangularShader();
     const envTex = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
     scene.environment = envTex;
+
+    /* ── GLTF loader for Kenney CC0 props (ship, kitchen) ── */
+    const gltfLoader = new GLTFLoader();
 
     /* ── Lighting (per-chapter colors are lerped) ── */
     const ambient = new THREE.AmbientLight(0xffffff, 0.35);
@@ -826,94 +830,39 @@
       ocean.position.y = -3.2;
       sceneTanker.add(ocean);
 
-      // Tanker hull
+      // Tanker — Kenney "ship-cargo-a" GLB (CC0). Loaded async; we add it
+      // to the group as soon as it arrives. Until then the scene shows
+      // ocean + sky + pier so it's not blank.
       const tanker = new THREE.Group();
-      const hullMat = new THREE.MeshStandardMaterial({ color: 0x2a3140, roughness: 0.85, metalness: 0.3 });
-      const hullDarkMat = new THREE.MeshStandardMaterial({ color: 0x171c26, roughness: 0.9, metalness: 0.25 });
-      const hull = new THREE.Mesh(new THREE.BoxGeometry(14, 1.4, 2.4), hullMat);
-      hull.position.y = -1.4;
-      tanker.add(hull);
-      // Hull bottom (tapered) — darker waterline boot
-      const keelBox = new THREE.Mesh(new THREE.BoxGeometry(13.2, 0.8, 1.8), hullDarkMat);
-      keelBox.position.y = -2.4;
-      tanker.add(keelBox);
-
-      // Main deck (so the LNG tanks visibly sit on the ship)
-      const deckMat = new THREE.MeshStandardMaterial({ color: 0xb04a2f, roughness: 0.7, metalness: 0.15 });
-      const deck = new THREE.Mesh(new THREE.BoxGeometry(13.6, 0.18, 2.5), deckMat);
-      deck.position.y = -0.6;
-      tanker.add(deck);
-      // Deck rails (low fore-aft kerbs)
-      for (let s = -1; s <= 1; s += 2) {
-        const kerb = new THREE.Mesh(
-          new THREE.BoxGeometry(13.6, 0.08, 0.06),
-          new THREE.MeshStandardMaterial({ color: 0x5a3020, roughness: 0.85 })
-        );
-        kerb.position.set(0, -0.45, s * 1.2);
-        tanker.add(kerb);
-      }
-      // Bow wedge
-      const bow = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.4, 2.4), hullMat);
-      bow.position.set(-7.5, -1.4, 0);
-      bow.scale.set(1, 1, 0.6);
-      tanker.add(bow);
-
-      // Four Moss-type spherical LNG tanks (half-buried in deck cradles)
-      const sphMat = new THREE.MeshStandardMaterial({ color: 0xf2efe6, roughness: 0.55, metalness: 0.15 });
-      const cradleMat = new THREE.MeshStandardMaterial({ color: 0x6e6a64, metalness: 0.55, roughness: 0.55 });
-      for (let i = 0; i < 4; i++) {
-        const s = new THREE.Mesh(new THREE.SphereGeometry(1.05, 96, 64), sphMat);
-        s.position.set(-4.5 + i * 3.0, 0.4, 0);
-        tanker.add(s);
-        // Equatorial band
-        const band = new THREE.Mesh(
-          new THREE.TorusGeometry(1.06, 0.06, 24, 96),
-          cradleMat
-        );
-        band.rotation.x = Math.PI / 2;
-        band.position.copy(s.position);
-        tanker.add(band);
-        // Cradle skirt under sphere — gives it a base to sit on
-        const skirt = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.95, 1.05, 0.7, 48, 1, true),
-          cradleMat
-        );
-        skirt.position.set(s.position.x, -0.25, 0);
-        tanker.add(skirt);
-      }
-
-      // Bridge tower (aft)
-      const bridgeMat = new THREE.MeshStandardMaterial({ color: 0xece6d8, roughness: 0.7 });
-      const bridge = new THREE.Mesh(new THREE.BoxGeometry(2.2, 2.6, 1.8), bridgeMat);
-      bridge.position.set(5.7, 0.6, 0);
-      tanker.add(bridge);
-      // Bridge windows (warm strips)
-      for (let i = 0; i < 3; i++) {
-        const w = new THREE.Mesh(
-          new THREE.PlaneGeometry(2.0, 0.18),
-          new THREE.MeshBasicMaterial({ color: 0xffd28a, transparent: true, opacity: 0.85 })
-        );
-        w.position.set(5.7, 0.4 + i * 0.5, 0.91);
-        tanker.add(w);
-      }
-      // Funnel/stack
-      const stack = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.32, 0.36, 1.2, 48, 4),
-        new THREE.MeshStandardMaterial({ color: 0xb04a2f, roughness: 0.6 })
-      );
-      stack.position.set(6.1, 2.5, 0);
-      tanker.add(stack);
-
-      // Bow piping manifold
-      const manifold = new THREE.Mesh(
-        new THREE.BoxGeometry(1.0, 0.35, 1.6),
-        new THREE.MeshStandardMaterial({ color: 0x4a4a52, metalness: 0.4, roughness: 0.6 })
-      );
-      manifold.position.set(-6.5, -0.3, 0);
-      tanker.add(manifold);
-
-      tanker.position.set(0.5, 0, -2);
+      tanker.position.set(0.5, -1.6, -2);
       sceneTanker.add(tanker);
+      gltfLoader.load("./assets/ship-cargo.glb", gltf => {
+        const ship = gltf.scene;
+        // Kenney watercraft is z-forward, ~6 units long; scale to fit 14u hull.
+        const box = new THREE.Box3().setFromObject(ship);
+        const size = box.getSize(new THREE.Vector3());
+        const scale = 14 / Math.max(size.x, size.z);
+        ship.scale.setScalar(scale);
+        // Re-center horizontally and sit on the waterline.
+        const center = box.getCenter(new THREE.Vector3()).multiplyScalar(scale);
+        ship.position.set(-center.x, -box.min.y * scale, -center.z);
+        // Boost material response — Kenney materials are flat by default.
+        ship.traverse(o => {
+          if (o.isMesh && o.material) {
+            const mats = Array.isArray(o.material) ? o.material : [o.material];
+            for (const m of mats) {
+              if ("envMapIntensity" in m) m.envMapIntensity = 0.9;
+              if ("metalness" in m) m.metalness = Math.max(m.metalness, 0.15);
+              if ("roughness" in m) m.roughness = Math.min(m.roughness, 0.75);
+            }
+          }
+        });
+        // If the long axis came in along Z, rotate so the ship lies along X.
+        const box2 = new THREE.Box3().setFromObject(ship);
+        const sz = box2.getSize(new THREE.Vector3());
+        if (sz.z > sz.x) ship.rotation.y = Math.PI / 2;
+        tanker.add(ship);
+      });
 
       // Pier on right side
       const pier = new THREE.Mesh(
@@ -1363,13 +1312,30 @@
         sceneKitchen.add(door);
       }
 
-      // Stove — black inset on counter
-      const stove = new THREE.Mesh(
-        new THREE.BoxGeometry(3.0, 0.05, 1.8),
-        new THREE.MeshStandardMaterial({ color: 0x080a0c, roughness: 0.4, metalness: 0.5 })
-      );
-      stove.position.set(0, -0.92, -4.5);
-      sceneKitchen.add(stove);
+      // Stove — Kenney "kitchenStove" GLB (CC0). Fitted into the counter
+      // inset so the burner ring sits on its hob.
+      gltfLoader.load("./assets/kitchen-stove.glb", gltf => {
+        const stove = gltf.scene;
+        const box = new THREE.Box3().setFromObject(stove);
+        const size = box.getSize(new THREE.Vector3());
+        // Fit to a 3.0 wide footprint to match the original stove inset.
+        const scale = 3.0 / Math.max(size.x, size.z);
+        stove.scale.setScalar(scale);
+        const b2 = new THREE.Box3().setFromObject(stove);
+        const c = b2.getCenter(new THREE.Vector3());
+        // Center horizontally, sit hob at y = -0.92 (where the original
+        // black inset sat), so the burner ring still lands correctly.
+        stove.position.set(-c.x, -0.92 - b2.max.y, -4.5 - c.z);
+        stove.traverse(o => {
+          if (o.isMesh && o.material) {
+            const mats = Array.isArray(o.material) ? o.material : [o.material];
+            for (const m of mats) {
+              if ("envMapIntensity" in m) m.envMapIntensity = 0.85;
+            }
+          }
+        });
+        sceneKitchen.add(stove);
+      });
       // Burner ring (the gas-jet circle)
       const burnerRing = new THREE.Mesh(
         new THREE.RingGeometry(0.55, 0.78, 96),
@@ -1400,31 +1366,29 @@
         jets.push(j);
       }
 
-      // Pot (된장찌개 가능)
-      const potBody = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.85, 0.7, 0.55, 96, 4, false),
-        new THREE.MeshStandardMaterial({ color: 0x3a2418, roughness: 0.55, metalness: 0.5 })
-      );
-      potBody.position.set(0, -0.45, -4.5);
-      sceneKitchen.add(potBody);
-      // Pot rim
-      const potRim = new THREE.Mesh(
-        new THREE.TorusGeometry(0.85, 0.04, 24, 96),
-        new THREE.MeshStandardMaterial({ color: 0x14110d, roughness: 0.6 })
-      );
-      potRim.rotation.x = Math.PI / 2;
-      potRim.position.set(0, -0.18, -4.5);
-      sceneKitchen.add(potRim);
-      // Pot handles
-      [-1, 1].forEach(s => {
-        const h = new THREE.Mesh(
-          new THREE.TorusGeometry(0.18, 0.025, 24, 48, Math.PI),
-          new THREE.MeshStandardMaterial({ color: 0x2a1a10, roughness: 0.7 })
-        );
-        h.position.set(s * 0.95, -0.3, -4.5);
-        h.rotation.y = s > 0 ? -Math.PI/2 : Math.PI/2;
-        h.rotation.z = -Math.PI/2;
-        sceneKitchen.add(h);
+      // Pot — Kenney "pot-stew" GLB (CC0). Sits on the burner cap with
+      // its rim near y = -0.18 so the stew shader still aligns.
+      gltfLoader.load("./assets/pot-stew.glb", gltf => {
+        const pot = gltf.scene;
+        const box = new THREE.Box3().setFromObject(pot);
+        const size = box.getSize(new THREE.Vector3());
+        // Fit to ~1.7-wide pot (same as old 0.85 radius).
+        const scale = 1.7 / Math.max(size.x, size.z);
+        pot.scale.setScalar(scale);
+        const b2 = new THREE.Box3().setFromObject(pot);
+        const c = b2.getCenter(new THREE.Vector3());
+        // Sit the bottom of the pot on the burner (~y = -0.78).
+        pot.position.set(-c.x, -0.78 - b2.min.y, -4.5 - c.z);
+        pot.traverse(o => {
+          if (o.isMesh && o.material) {
+            const mats = Array.isArray(o.material) ? o.material : [o.material];
+            for (const m of mats) {
+              if ("envMapIntensity" in m) m.envMapIntensity = 0.9;
+              if ("metalness" in m) m.metalness = Math.max(m.metalness, 0.4);
+            }
+          }
+        });
+        sceneKitchen.add(pot);
       });
       // Stew surface
       const stewMat = new THREE.ShaderMaterial({
