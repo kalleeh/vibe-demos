@@ -532,7 +532,7 @@
     scene.fog = new THREE.FogExp2(0x050608, 0.04);
 
     const camera = new THREE.PerspectiveCamera(
-      40, window.innerWidth / window.innerHeight, 0.05, 400
+      52, window.innerWidth / window.innerHeight, 0.05, 400
     );
     camera.position.set(0, 0, 8);
 
@@ -1680,9 +1680,9 @@
         products: 0, starsOpacity: 0.4
       },
       { // 1 — Tanker dawn.
-        bg: 0x1a1018, fog: 0.012, ambient: 0.7,
+        bg: 0x1a1018, fog: 0.010, ambient: 0.7,
         keyColor: 0xffae7a, rimColor: 0xff7a4a, rimI: 1.8,
-        cam: v(-2, 1.6, 9.5), look: v(2, -0.4, -2),
+        cam: v(-4, 3.2, 22), look: v(2, -0.4, -2),
         scenes: { tanker:1, cryo:0, regas:0, pipeline:0, kitchen:0, combustion:0 },
         heroVis: 0,
         // Marker: emerges from tanker bow, follows the loading arm to the pier
