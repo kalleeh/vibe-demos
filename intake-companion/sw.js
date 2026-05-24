@@ -1,6 +1,11 @@
 /* intake-companion — minimal offline shell SW */
-const CACHE = "vibe-intake-companion-v1";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
+const CACHE = "vibe-intake-companion-v2";
+const SHELL = [
+  "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
+  // Watercolor herb vignettes that float in the page margins.
+  "./herb-ginseng.jpg",
+  "./herb-mugwort.jpg"
+];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });

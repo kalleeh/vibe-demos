@@ -36,7 +36,10 @@
     html { scroll-behavior: smooth; }
 
     body {
-      background: var(--paper);
+      background:
+        linear-gradient(rgba(236, 230, 216, 0.65), rgba(236, 230, 216, 0.65)),
+        url("./thumbs/paper-texture.jpg") center / cover fixed,
+        var(--paper);
       color: var(--ink);
       font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 16px;
@@ -413,6 +416,16 @@
       .preview { display: none; }
     }
 
+    /* ── Section divider ── */
+    .divider {
+      display: block;
+      width: 100%;
+      max-width: 720px;
+      margin: 24px auto 8px;
+      opacity: 0.85;
+      mix-blend-mode: multiply;
+    }
+
     /* ── About / Process ── */
     .about {
       padding: 120px 0;
@@ -613,6 +626,8 @@
         <span class="arrow">→</span>
       </a>
     </section>
+
+    <img class="divider" src="./thumbs/divider.jpg" alt="" width="2240" height="960" loading="lazy" decoding="async" aria-hidden="true">
 
     <section class="about" id="about">
       <div>

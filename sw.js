@@ -1,11 +1,13 @@
 /* vibe-studio root landing — minimal offline shell SW.
    Tight scope: only caches the root landing, never demo subpaths
    (each demo registers its own SW under its own scope). */
-const CACHE = "vibe-root-v2";
+const CACHE = "vibe-root-v3";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
-  // Landing-page imagery — hero band + 6 hover thumbnails.
+  // Landing-page imagery — hero band, 6 hover thumbs, paper texture, divider.
   "./thumbs/hero-band.jpg",
+  "./thumbs/paper-texture.jpg",
+  "./thumbs/divider.jpg",
   "./thumbs/sweden.jpg",
   "./thumbs/molecule.jpg",
   "./thumbs/globe.jpg",
