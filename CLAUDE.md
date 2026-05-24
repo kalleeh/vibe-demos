@@ -19,7 +19,12 @@ vibe-demos/
 
 Currently shipped demos (verify with `ls` before recommending — this list can drift):
 
-- `sweden-food-guide/` — Korean-language interactive guide to Swedish restaurants & food. Self-contained `index.html` + `shared.css`.
+- `sweden-food-guide/` — Korean-language interactive travel + food guide for Sweden (Stockholm / Göteborg / Malmö). Self-contained `index.html`.
+- `molecule-journey/` — Three.js scrollytelling, six chapters following one methane molecule from LNG tanker to Seoul kitchen flame. Uses Kenney CC0 GLBs in `assets/` for the ship + stove + pot.
+- `live-globe/` — interactive 3D Earth (Three.js), live time/weather/sunrise/sunset for Seoul ⇄ Stockholm, AI "right now" snapshots.
+- `intake-companion/` — Korean traditional medicine intake assistant (한방). Voice-in, structured 변증 / 처방 / 경혈 brief, three-way model toggle. Reference implementation for the AI demo pattern.
+- `korean-mbti/` — short Korean MBTI test + AI deep-read mode that infers type from a free-form Korean passage. Uses Korean MBTI culture nicknames (잔망 루피, 곰돌이 푸…).
+- `resonans/` — calm sketchbook game on a hand-drawn cream-paper string. Real 1D wave physics, tap to pluck, pick mode (n=1..5), the line "inks itself in" when you lock the resonance. No score, no timer.
 
 GitHub Pages is configured to serve `main` from the repo root. Push to `main` = deploy. There is no build step.
 
@@ -199,6 +204,114 @@ If the demo is purely aesthetic (a flame shader, a particle text effect), skip t
 ### Reference implementation
 
 `intake-companion/index.html` — `callClaude()`'s `sys` variable is the canonical worked example. Read it before tuning any new AI demo's prompt.
+
+## Three.js fidelity stack
+
+For any demo that renders 3D, the difference between "looks like clay" and "looks like a real object" is the rendering setup, NOT polygon count. Polycount only matters for silhouettes that visibly facet (round things — spheres, tori, cylinders); flat-shaded boxes don't get more real with more triangles. Before reaching for higher mesh densities, make sure the four-step setup below is in place.
+
+### The setup that does the heavy lifting
+
+```js
+import * as THREE from "three";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+
+const renderer = new THREE.WebGLRenderer({
+  antialias: true, alpha: true,
+  powerPreference: "high-performance"
+});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+
+// Environment map gives PBR materials something to reflect.
+const pmrem = new THREE.PMREMGenerator(renderer);
+pmrem.compileEquirectangularShader();
+scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+```
+
+**Why each line matters:**
+- `outputColorSpace = SRGBColorSpace` — without it, every PBR color is rendered in linear space and looks washed out / muted.
+- `ACESFilmicToneMapping` — gives proper highlight rolloff. Without it, bright spots clip to flat white.
+- `setPixelRatio(min(dpr, 3))` — most demos cap at 2; on retina phones the line at "ratio 2" is visibly soft. 3 is enough.
+- `RoomEnvironment` PMREM — this is the single biggest visual win. Without an env map, every metallic / shiny surface has nothing to reflect and reads as matte gray.
+
+The importmap needs the addons path:
+```html
+<script type="importmap">
+  {
+    "imports": {
+      "three":          "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/":  "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+</script>
+```
+
+### Polygon count rules
+
+- Round primitives (`Sphere`, `Torus`, `Cylinder`, `Tube`, `Icosahedron`, curved `Plane`s) need real density: spheres at `64-128` segments, tori at `24-96` radial × `96-384` tubular, cylinders at `48-96` radial.
+- Flat primitives (`Box`, flat `Plane`) gain nothing from subdivision. Don't waste vertices.
+- The `molecule-journey/index.html` density bump commit (3776015) is the worked example.
+
+### Real CC0 assets — don't hand-model what already exists
+
+For ships, kitchen, vehicles, props: use Kenney CC0 packs (`https://kenney.nl/assets/`). Quaternius and Khronos glTF samples are also viable. Always verify CC0 — CC-BY needs an attribution panel and is rarely worth the friction.
+
+Kenney distributes only as zips. Download once, extract, commit individual GLBs into `<slug>/assets/`, and load via `GLTFLoader`. Each Kenney GLB is well under 200 KB; precache them in the demo's SW SHELL list.
+
+```js
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+const gltfLoader = new GLTFLoader();
+gltfLoader.load("./assets/foo.glb", gltf => {
+  const obj = gltf.scene;
+  // Auto-fit to your scene's units:
+  const box = new THREE.Box3().setFromObject(obj);
+  const size = box.getSize(new THREE.Vector3());
+  const scale = TARGET_WIDTH / Math.max(size.x, size.z);
+  obj.scale.setScalar(scale);
+  // Re-center / sit on ground:
+  const c = box.getCenter(new THREE.Vector3()).multiplyScalar(scale);
+  obj.position.set(-c.x, -box.min.y * scale, -c.z);
+  parent.add(obj);
+});
+```
+
+### Painting Kenney assets — the gotcha
+
+Kenney exports default to `metalness: 0, roughness: 1` and use named material slots like `metal`, `metalDark`, `wood`, `glass`, `carpetWhite`. With a bright env map, those defaults wash out to flat gray. **Recolor by material name** to match the rendering pipeline:
+
+```js
+function paintKenney(root) {
+  const tones = {
+    metal:       { metalness: 0.85, roughness: 0.32, env: 0.55, hex: 0xb6c4cf },
+    metalDark:   { metalness: 0.75, roughness: 0.42, env: 0.50, hex: 0x4a5560 },
+    wood:        { metalness: 0.05, roughness: 0.75, env: 0.35, hex: 0xb04a2f },
+    carpetWhite: { metalness: 0.10, roughness: 0.55, env: 0.45, hex: 0xece6d8 },
+    glass:       { metalness: 0.00, roughness: 0.08, env: 1.00 }
+  };
+  root.traverse(o => {
+    if (!o.isMesh || !o.material) return;
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    for (const m of mats) {
+      if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
+      const t = tones[m.name];
+      if (t) {
+        m.metalness = t.metalness; m.roughness = t.roughness;
+        m.envMapIntensity = t.env;
+        if (t.hex !== undefined && !m.map) m.color.setHex(t.hex);
+      }
+      m.needsUpdate = true;
+    }
+  });
+}
+```
+
+`molecule-journey/index.html` is the canonical worked example: `paintKenney()` lives there, and the `ship-cargo.glb` / `kitchenStove.glb` / `pot-stew.glb` loaders show the auto-fit + paint pattern end-to-end.
+
+### Reference implementation
+
+`molecule-journey/index.html` — env-map setup, GLTFLoader integration, `paintKenney()`, and density-tuned hand-modeled scenes (cryo, regas, pipeline, combustion) where no free CC0 asset exists.
 
 ## PWA shell pattern
 
