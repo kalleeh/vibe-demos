@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>한방 진료 동반자 — Intake Companion</title>
+  <meta name="description" content="A Korean traditional medicine intake assistant. Speak or type symptoms in Korean; receive a structured 변증 / 처방 / 경혈 brief.">
+  <meta property="og:title" content="한방 진료 동반자 — Intake Companion">
+  <meta property="og:description" content="Voice-in Korean symptoms, structured clinical brief.">
+  <meta property="og:type" content="website">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --paper:    #f5efe2;
+      --paper-2:  #ece6d4;
+      --ink:      #1f2620;
+      --ink-2:    #2e3830;
+      --muted:    #6c7669;
+      --faint:    #9ca596;
+      --celadon:  #6b9482;
+      --celadon-d:#48695a;
+      --rust:     #b54a32;
+      --line:     rgba(31,38,32,0.14);
+      --line-2:   rgba(31,38,32,0.22);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Noto Serif KR", "Cormorant Garamond", serif;
+      font-weight: 300;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    /* paper grain */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.08 0 0 0 0 0.10 0 0 0 0 0.08 0 0 0 0.13 0'/></filter><rect width='240' height='240' filter='url(%23n)' opacity='0.6'/></svg>");
+      mix-blend-mode: multiply;
+      opacity: 0.55;
+    }
+
+    .frame {
+      position: relative;
+      z-index: 2;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 22px 0;
+      border-bottom: 1px solid var(--line);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--ink-2);
+    }
+    .topbar a { color: inherit; text-decoration: none; }
+    .topbar a:hover { color: var(--celadon-d); }
+    .mark { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; }
+    .mark::before {
+      content: "";
+      width: 8px; height: 8px;
+      background: var(--celadon);
+      border-radius: 50%;
+    }
+
+    .topbar .mode-toggle {
+      background: none;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      padding: 5px 11px;
+      border-radius: 999px;
+      font: inherit;
+      cursor: pointer;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      transition: background .2s, color .2s, border-color .2s;
+    }
+    .topbar .mode-toggle:hover { border-color: var(--celadon); color: var(--celadon-d); }
+    .topbar.live .mode-toggle {
+      background: var(--celadon);
+      color: var(--paper);
+      border-color: var(--celadon);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 72px 0 48px;
+      max-width: 720px;
+    }
+    .hero .eyebrow {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 22px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .hero .eyebrow::before {
+      content: ""; width: 28px; height: 1px; background: var(--ink);
+    }
+    .hero h1 {
+      font-family: "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: clamp(40px, 6vw, 80px);
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+      margin-bottom: 22px;
+    }
+    .hero h1 em {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--celadon-d);
+    }
+    .hero .deck {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: 22px;
+      color: var(--ink-2);
+      line-height: 1.5;
+      max-width: 540px;
+    }
+
+    /* ── Workspace ── */
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 40px;
+      padding: 24px 0 80px;
+    }
+
+    .panel {
+      background: var(--paper-2);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 28px 32px;
+      min-height: 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .panel-head .lbl {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .panel-head h2 {
+      font-family: "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: 24px;
+      letter-spacing: -0.01em;
+      margin-top: 4px;
+    }
+    .panel-head h2 em { font-family: "Cormorant Garamond", serif; font-style: italic; color: var(--celadon-d); font-weight: 400; }
+
+    /* ── Input panel ── */
+    .input-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 320px;
+    }
+    .input-area textarea {
+      flex: 1;
+      width: 100%;
+      min-height: 240px;
+      background: rgba(255,255,255,0.45);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      padding: 16px 18px;
+      font-family: "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: 17px;
+      line-height: 1.7;
+      color: var(--ink);
+      resize: vertical;
+      outline: none;
+      transition: border-color .2s, background .2s;
+    }
+    .input-area textarea:focus {
+      border-color: var(--celadon);
+      background: rgba(255,255,255,0.7);
+    }
+    .input-area textarea::placeholder {
+      color: var(--faint);
+      font-style: italic;
+    }
+
+    .input-controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--line-2);
+      background: rgba(255,255,255,0.4);
+      color: var(--ink);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background .2s, color .2s, border-color .2s;
+    }
+    .btn:hover {
+      background: var(--ink);
+      color: var(--paper);
+      border-color: var(--ink);
+    }
+    .btn.primary {
+      background: var(--celadon);
+      color: var(--paper);
+      border-color: var(--celadon);
+    }
+    .btn.primary:hover {
+      background: var(--celadon-d);
+      border-color: var(--celadon-d);
+    }
+    .btn.mic {
+      background: rgba(255,255,255,0.4);
+    }
+    .btn.mic.recording {
+      background: var(--rust);
+      color: var(--paper);
+      border-color: var(--rust);
+      animation: micPulse 1.4s ease-in-out infinite;
+    }
+    @keyframes micPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(181,74,50,0.45); }
+      50%      { box-shadow: 0 0 0 8px rgba(181,74,50,0); }
+    }
+    .btn .dot {
+      width: 6px; height: 6px;
+      background: currentColor;
+      border-radius: 50%;
+    }
+
+    .examples {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding-top: 8px;
+      border-top: 1px dashed var(--line);
+    }
+    .examples .lbl {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      align-self: center;
+      margin-right: 4px;
+    }
+    .examples button {
+      background: none;
+      border: 1px solid var(--line);
+      color: var(--ink-2);
+      padding: 5px 10px;
+      border-radius: 3px;
+      font-family: "Noto Serif KR", serif;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+    }
+    .examples button:hover {
+      background: var(--paper);
+      border-color: var(--celadon);
+    }
+
+    /* ── Output panel ── */
+    .output-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      position: relative;
+    }
+    .output-area .progress {
+      height: 1px;
+      background: rgba(31,38,32,0.10);
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .output-area .progress.on { opacity: 1; }
+    .output-area .progress::after {
+      content: "";
+      position: absolute;
+      top: 0; left: -40%;
+      width: 40%; height: 100%;
+      background: linear-gradient(90deg, transparent, var(--celadon-d), transparent);
+      animation: shimmer 1.4s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0%   { left: -40%; }
+      100% { left: 100%; }
+    }
+
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 14px;
+      color: var(--faint);
+      padding: 40px 20px;
+    }
+    .empty-state .gua {
+      font-family: "Noto Serif KR", serif;
+      font-size: 56px;
+      color: var(--celadon);
+      opacity: 0.55;
+      letter-spacing: 4px;
+    }
+    .empty-state p {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: 17px;
+      color: var(--muted);
+      max-width: 320px;
+    }
+
+    /* Brief sections */
+    .brief {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      animation: fadeIn .6s cubic-bezier(.2,.8,.2,1);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .section h3 {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section h3::before {
+      content: "";
+      width: 18px; height: 1px;
+      background: var(--celadon);
+    }
+
+    .complaints {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .complaint {
+      background: rgba(255,255,255,0.6);
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      border-radius: 3px;
+    }
+    .complaint .name {
+      font-family: "Noto Serif KR", serif;
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+    .complaint .meta {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .complaint .sev {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+    .complaint.sev-1 .sev { background: var(--celadon); opacity: 0.55; }
+    .complaint.sev-2 .sev { background: var(--celadon); }
+    .complaint.sev-3 .sev { background: #c89a3a; }
+    .complaint.sev-4 .sev { background: var(--rust); }
+
+    .pattern {
+      background: rgba(107,148,130,0.10);
+      border: 1px solid rgba(107,148,130,0.40);
+      padding: 18px 20px;
+      border-radius: 3px;
+    }
+    .pattern .head {
+      display: flex; align-items: baseline; gap: 12px;
+      margin-bottom: 8px;
+    }
+    .pattern .name {
+      font-family: "Noto Serif KR", serif;
+      font-size: 24px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    .pattern .latin {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      color: var(--celadon-d);
+      font-size: 16px;
+    }
+    .pattern .why {
+      font-family: "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--ink-2);
+    }
+
+    .formula {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 4px 16px;
+      align-items: baseline;
+    }
+    .formula .name {
+      font-family: "Noto Serif KR", serif;
+      font-size: 22px;
+      font-weight: 500;
+    }
+    .formula .pinyin {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      color: var(--celadon-d);
+      font-size: 15px;
+    }
+    .formula .note {
+      grid-column: 1 / -1;
+      margin-top: 6px;
+      font-size: 14px;
+      color: var(--ink-2);
+      line-height: 1.7;
+    }
+
+    .points {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 8px;
+    }
+    .point {
+      background: rgba(255,255,255,0.55);
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      border-radius: 3px;
+    }
+    .point .code {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--celadon-d);
+      margin-bottom: 2px;
+    }
+    .point .name {
+      font-family: "Noto Serif KR", serif;
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+    .point .why {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .followups {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .followups li {
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.4);
+      border-left: 2px solid var(--celadon);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    /* Lang toggle */
+    .lang-seg {
+      display: inline-flex;
+      background: rgba(255,255,255,0.4);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px;
+    }
+    .lang-seg button {
+      padding: 5px 11px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 999px;
+    }
+    .lang-seg button.active {
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    /* Model toggle */
+    .model-seg {
+      display: inline-flex;
+      background: rgba(255,255,255,0.4);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px;
+    }
+    .model-seg button {
+      padding: 5px 11px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 999px;
+    }
+    .model-seg button.active {
+      background: var(--celadon);
+      color: var(--paper);
+    }
+
+    /* Key panel */
+    .key-panel {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 14px;
+      padding: 14px;
+      background: rgba(255,255,255,0.4);
+      border: 1px dashed var(--line-2);
+      border-radius: 3px;
+    }
+    .topbar.live ~ .frame .key-panel { display: flex; }
+    .key-panel .help {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .key-panel .help a { color: var(--celadon-d); }
+    .key-panel .row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .key-panel input {
+      flex: 1;
+      min-width: 200px;
+      background: rgba(255,255,255,0.7);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      padding: 9px 12px;
+      border-radius: 3px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      outline: none;
+    }
+    .key-panel input:focus { border-color: var(--celadon); }
+    .key-panel .err {
+      color: var(--rust);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: none;
+    }
+    .key-panel.error .err { display: block; }
+
+    .footer-note {
+      padding: 24px 0 60px;
+      border-top: 1px solid var(--line);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-note a { color: var(--ink); text-decoration: none; }
+    .footer-note a:hover { color: var(--celadon-d); }
+
+    @media (max-width: 880px) {
+      .workspace { grid-template-columns: 1fr; gap: 24px; }
+      .panel { min-height: auto; padding: 22px 22px; }
+      .complaints { grid-template-columns: 1fr; }
+      .frame { padding: 0 18px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .output-area .progress::after { animation: none; left: 0; width: 100%; }
+      .btn.mic.recording { animation: none; }
+      .brief { animation: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar" id="topbar">
+    <div class="frame" style="display:flex;justify-content:space-between;align-items:center;padding:0;border:none;width:100%;">
+      <a href="../" class="mark">Vibe Studio</a>
+      <button class="mode-toggle" id="modeToggle">Demo mode · canned</button>
+    </div>
+  </header>
+
+  <div class="frame">
+
+    <section class="hero">
+      <div class="eyebrow">한방 진료 동반자 · Intake Companion</div>
+      <h1>증상을 말하면,<br>한 장의 <em>진료 노트</em>가 됩니다.</h1>
+      <p class="deck">Speak symptoms in Korean. The screen returns a structured 변증 / 처방 / 경혈 brief — fast.</p>
+    </section>
+
+    <section class="workspace">
+
+      <!-- Input panel -->
+      <div class="panel">
+        <header class="panel-head">
+          <div>
+            <div class="lbl">01 · 환자 진술</div>
+            <h2>Patient <em>narrative</em></h2>
+          </div>
+        </header>
+
+        <div class="input-area">
+          <textarea
+            id="narrative"
+            placeholder="예) 요즘 잠을 잘 못 자고, 손발이 차고, 소화도 잘 안 돼요. 피곤해도 자꾸 깨요…"
+            rows="10"
+            spellcheck="false"></textarea>
+
+          <div class="input-controls">
+            <button class="btn mic" id="micBtn" type="button">
+              <span class="dot"></span> 받아쓰기
+            </button>
+            <button class="btn primary" id="analyzeBtn" type="button">
+              진료 노트 생성 →
+            </button>
+            <button class="btn" id="clearBtn" type="button">Clear</button>
+          </div>
+
+          <div class="examples">
+            <span class="lbl">Example cases →</span>
+            <button data-ex="0">불면 · 수족냉증</button>
+            <button data-ex="1">소화불량 · 만성 피로</button>
+            <button data-ex="2">두통 · 어지럼</button>
+          </div>
+        </div>
+
+        <div class="key-panel" id="keyPanel">
+          <div class="help">
+            Browser-direct call to api.anthropic.com · key stays on this device · <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">get one →</a>
+          </div>
+          <div class="row">
+            <input type="password" id="keyInput" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
+            <button class="btn" id="keyPaste" type="button">Paste</button>
+            <button class="btn primary" id="keySave" type="button">Save key</button>
+          </div>
+          <div class="row" style="align-items:center;justify-content:space-between;">
+            <button class="btn" id="keyForget" type="button">Forget my key</button>
+            <span class="err" id="keyErr">Key was rejected — try another</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Output panel -->
+      <div class="panel">
+        <header class="panel-head">
+          <div>
+            <div class="lbl">02 · 임상 브리프</div>
+            <h2>Clinical <em>brief</em></h2>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+            <div class="lang-seg" id="langSeg">
+              <button data-lang="ko" class="active">한국어</button>
+              <button data-lang="en">English</button>
+            </div>
+            <div class="model-seg" id="modelSeg">
+              <button data-model="claude-opus-4-7" class="active">Opus 4.7</button>
+              <button data-model="claude-sonnet-4-6">Sonnet 4.6</button>
+              <button data-model="claude-haiku-4-5">Haiku 4.5</button>
+            </div>
+          </div>
+        </header>
+
+        <div class="output-area" id="outputArea">
+          <div class="progress" id="outputProgress"></div>
+          <div class="empty-state" id="emptyState">
+            <div class="gua">☱ ☵ ☲</div>
+            <p>증상을 입력하거나 받아쓰기를 시작하세요. 브리프는 여기에 나타납니다.</p>
+          </div>
+          <div class="brief" id="brief" style="display:none;"></div>
+        </div>
+      </div>
+
+    </section>
+
+    <div class="footer-note">
+      <span>한방 Intake Companion · Live demo · 데모 도구입니다</span>
+      <span><a href="../">← Back to Vibe Studio</a></span>
+    </div>
+
+  </div>
+
+  <script>
+
+  /* ───────────────────────────────────────────────
+     Example narratives
+     ─────────────────────────────────────────────── */
+  const EXAMPLES = [
+    "요즘 잠을 잘 못 자고, 손발이 차고, 소화도 잘 안 돼요. 피곤해도 자꾸 새벽에 깨고, 일어나면 더 무거워요. 식욕도 떨어졌어요.",
+    "두 달 전부터 식후에 속이 더부룩하고 트림이 자주 나와요. 항상 피곤하고, 말하기도 귀찮을 때가 있어요. 대변도 묽고, 차가운 음식 먹으면 더 심해져요.",
+    "오후만 되면 머리가 무겁고 어지러워요. 일어설 때 핑 돌고, 가끔 귀에서 소리가 나요. 잠은 자는데 꿈을 많이 꿔요. 입이 쓰고 마른 느낌이에요."
+  ];
+
+  /* ───────────────────────────────────────────────
+     Canned briefs — match each example
+     Real-feeling 한의학 reasoning. No hedging.
+     ─────────────────────────────────────────────── */
+  const CANNED_BRIEFS = [
+    /* Case 0 — sleep + cold extremities + digestion */
+    {
+      complaints: [
+        { ko: "불면 · 새벽 각성", en: "Insomnia · early waking",   sev: 3, dur: { ko: "수 주", en: "several weeks" } },
+        { ko: "수족냉증",        en: "Cold extremities",            sev: 2, dur: { ko: "지속적", en: "ongoing" } },
+        { ko: "소화불량",        en: "Poor digestion",              sev: 2, dur: { ko: "수 주", en: "several weeks" } },
+        { ko: "기력 저하",       en: "Low energy",                  sev: 3, dur: { ko: "지속적", en: "ongoing" } },
+        { ko: "식욕 부진",       en: "Decreased appetite",          sev: 2, dur: { ko: "최근",   en: "recent" } }
+      ],
+      pattern: {
+        ko: "비양허 · 심비양허",
+        latin: "Spleen-yang deficiency · Heart-Spleen yang deficiency",
+        why: {
+          ko: "수족냉증과 식욕 부진, 묽은 변 경향은 비양(脾陽)의 부족을 시사하며, 새벽 각성과 기력 저하는 양기 부족이 심신(心神)을 충분히 자양하지 못함을 의미한다. 비위의 운화 기능이 약해지면서 기혈 생성이 부족해지고, 이로 인해 잠이 얕아지고 손발 끝까지 양기가 도달하지 못한다.",
+          en: "Cold extremities, poor appetite, and loose-stool tendency point to Spleen-yang deficiency. Early waking and low energy reflect insufficient yang failing to nourish the Heart-Shen. Weak Spleen transformation impairs qi-blood production, leading to shallow sleep and yang failing to reach the limbs."
+        }
+      },
+      formula: {
+        name: "보중익기탕",
+        pinyin: "Bǔ zhōng yì qì tāng — modified",
+        note: {
+          ko: "기본 처방에 백출·복령 가중하여 비기를 보강하고, 산조인·용안육을 가하여 심신(心神)을 자양한다. 증상이 차갑게 나타나므로 건강(乾薑) 소량 가능. 1일 2첩, 식후 30분.",
+          en: "Base formula reinforced with extra Bai Zhu and Fu Ling for Spleen-qi; add Suan Zao Ren and Long Yan Rou to nourish Heart-Shen. Small amount of dried ginger acceptable given the cold pattern. Two doses daily, 30 minutes after meals."
+        }
+      },
+      points: [
+        { code: "ST 36", ko: "족삼리", why: { ko: "비위 보강", en: "Tonifies Spleen-Stomach" } },
+        { code: "SP 6",  ko: "삼음교", why: { ko: "음혈 자양",   en: "Nourishes yin-blood" } },
+        { code: "BL 20", ko: "비수",   why: { ko: "비기 강화",   en: "Strengthens Spleen-qi" } },
+        { code: "HT 7",  ko: "신문",   why: { ko: "심신 안정",   en: "Calms Heart-Shen" } },
+        { code: "CV 6",  ko: "기해",   why: { ko: "원기 보충",   en: "Tonifies original qi" } }
+      ],
+      followups: {
+        ko: [
+          "잠이 들기는 어렵지 않은데 자꾸 깨는 것인지, 처음부터 잠들기 힘든 것인지?",
+          "차가운 음식이나 음료를 마시면 증상이 어떻게 변하는지?",
+          "월경 주기와 양상에 변화가 있는지 (해당된다면)?"
+        ],
+        en: [
+          "Is sleep onset easy but you wake repeatedly, or is falling asleep itself difficult?",
+          "How do symptoms change with cold foods or drinks?",
+          "Any changes in menstrual cycle or character (if applicable)?"
+        ]
+      }
+    },
+
+    /* Case 1 — post-meal bloating + chronic fatigue + loose stools */
+    {
+      complaints: [
+        { ko: "식후 더부룩",   en: "Post-meal bloating",   sev: 3, dur: { ko: "2개월",   en: "2 months" } },
+        { ko: "잦은 트림",     en: "Frequent belching",    sev: 2, dur: { ko: "수 주",   en: "several weeks" } },
+        { ko: "만성 피로",     en: "Chronic fatigue",      sev: 3, dur: { ko: "지속적", en: "ongoing" } },
+        { ko: "변 묽음",       en: "Loose stools",         sev: 2, dur: { ko: "수 주",   en: "several weeks" } },
+        { ko: "냉식 악화",     en: "Cold food worsens",    sev: 3, dur: { ko: "확연",   en: "marked" } }
+      ],
+      pattern: {
+        ko: "비위허약 · 비기허",
+        latin: "Spleen-Stomach weakness · Spleen-qi deficiency",
+        why: {
+          ko: "식후 더부룩과 트림, 묽은 변, 차가운 음식에 악화되는 양상은 비기(脾氣)의 운화 기능 저하의 전형적 임상상이다. 만성 피로는 비기가 후천지본(後天之本)으로 기혈을 만들어내지 못함을 의미한다. 위기(胃氣)의 하강 기능이 흐트러지면서 트림으로 발현된다.",
+          en: "Post-meal bloating, belching, loose stools, and worsening with cold foods present a classic Spleen-qi deficiency picture with impaired transformation. Chronic fatigue reflects the Spleen's failure as the postnatal root of qi-blood. Disrupted descending of Stomach-qi manifests as belching."
+        }
+      },
+      formula: {
+        name: "삼령백출산",
+        pinyin: "Shēn líng bái zhú sǎn",
+        note: {
+          ko: "비기를 보하고 습을 거두는 대표 처방. 트림이 심하면 진피·반하 가중. 만성 피로가 두드러지면 황기 추가하여 보중익기탕과 합방 고려. 차가운 음식·생냉(生冷) 절대 금지.",
+          en: "Classic formula for tonifying Spleen-qi and resolving damp. If belching dominates, increase Chen Pi and Ban Xia. If fatigue is severe, add Huang Qi and consider combining with Bu Zhong Yi Qi Tang. Strictly avoid cold and raw foods."
+        }
+      },
+      points: [
+        { code: "ST 36", ko: "족삼리", why: { ko: "비위 보강",   en: "Strengthens Spleen-Stomach" } },
+        { code: "SP 3",  ko: "태백",   why: { ko: "비 원혈",       en: "Spleen yuan-source" } },
+        { code: "BL 20", ko: "비수",   why: { ko: "비기 강화",     en: "Tonifies Spleen-qi" } },
+        { code: "BL 21", ko: "위수",   why: { ko: "위기 조절",     en: "Regulates Stomach-qi" } },
+        { code: "CV 12", ko: "중완",   why: { ko: "위 모혈, 중초", en: "Stomach mu, middle jiao" } }
+      ],
+      followups: {
+        ko: [
+          "식사 후 어느 정도 시간에 더부룩함이 가장 심한가?",
+          "스트레스를 받으면 증상이 어떻게 변하는지?",
+          "체중 변화가 있었는지?"
+        ],
+        en: [
+          "How long after meals does bloating peak?",
+          "How do symptoms change under stress?",
+          "Any changes in body weight?"
+        ]
+      }
+    },
+
+    /* Case 2 — afternoon headaches + dizziness + bitter mouth + dream-disturbed sleep */
+    {
+      complaints: [
+        { ko: "오후 두통",       en: "Afternoon headache",       sev: 3, dur: { ko: "수 주",   en: "several weeks" } },
+        { ko: "어지럼 · 기립성", en: "Dizziness on standing",    sev: 3, dur: { ko: "지속적", en: "ongoing" } },
+        { ko: "이명",            en: "Tinnitus",                 sev: 2, dur: { ko: "간헐적", en: "intermittent" } },
+        { ko: "다몽",            en: "Dream-disturbed sleep",    sev: 3, dur: { ko: "수 주",   en: "several weeks" } },
+        { ko: "구고 · 구건",     en: "Bitter, dry mouth",        sev: 2, dur: { ko: "최근",   en: "recent" } }
+      ],
+      pattern: {
+        ko: "간양상항 · 간음허",
+        latin: "Liver-yang rising on a Liver-yin deficient base",
+        why: {
+          ko: "오후 두통과 기립성 어지럼, 이명, 다몽은 간양(肝陽)이 위로 항진된 표(標)증이며, 구고·구건과 음허의 양상은 간음(肝陰) 부족의 본(本)증이다. 음이 양을 거두지 못하여 양이 상요(上擾)함으로써 두면(頭面) 증상이 발현된다.",
+          en: "Afternoon headache, postural dizziness, tinnitus, and dream-disturbed sleep are the manifest sign of Liver-yang rising. Bitter mouth and dryness reveal the underlying Liver-yin deficiency root. Yin fails to anchor yang; yang ascends and disturbs the head."
+        }
+      },
+      formula: {
+        name: "천마구등음",
+        pinyin: "Tiān má gōu téng yǐn",
+        note: {
+          ko: "간양을 가라앉히고 풍을 식히는 대표 처방. 음허가 두드러지므로 생지황·구기자·여정자 가중하여 간음을 자양한다. 두통이 심한 발작 시 결명자·국화 단기 추가. 매운 음식·과로·수면 부족 금지.",
+          en: "Classic formula to subdue Liver-yang and extinguish wind. Given prominent yin deficiency, add Sheng Di Huang, Gou Qi Zi, and Nü Zhen Zi to nourish Liver-yin. For acute headache, short-course Jue Ming Zi and Ju Hua. Avoid spicy food, overwork, and sleep deprivation."
+        }
+      },
+      points: [
+        { code: "GB 20", ko: "풍지",   why: { ko: "간양 하강·두통 완화",  en: "Subdues Liver-yang, relieves headache" } },
+        { code: "LV 3",  ko: "태충",   why: { ko: "간기 소설",            en: "Courses Liver-qi" } },
+        { code: "KI 3",  ko: "태계",   why: { ko: "신음 자양",            en: "Nourishes Kidney-yin" } },
+        { code: "GV 20", ko: "백회",   why: { ko: "두면 통락",            en: "Clears the head" } },
+        { code: "GB 8",  ko: "솔곡",   why: { ko: "측두통",                en: "Lateral headache" } }
+      ],
+      followups: {
+        ko: [
+          "두통이 한쪽에 치우치는지, 양쪽인지?",
+          "분노나 스트레스 후 증상이 악화되는지?",
+          "야간 발한이나 손발 화끈거림이 있는지?"
+        ],
+        en: [
+          "Is the headache one-sided or bilateral?",
+          "Do anger or stress worsen the symptoms?",
+          "Any night sweats or warm sensation in palms/soles?"
+        ]
+      }
+    }
+  ];
+
+  /* ───────────────────────────────────────────────
+     State
+     ─────────────────────────────────────────────── */
+  const KEY_STORAGE = "vibe.intake-companion.key";
+  const state = {
+    liveMode: false,
+    model: "claude-opus-4-7",
+    lang: "ko",
+    currentBrief: null
+  };
+  const $ = s => document.querySelector(s);
+
+  /* ── Top bar mode toggle ── */
+  const topbar = $("#topbar");
+  const modeToggle = $("#modeToggle");
+  const keyPanel = $("#keyPanel");
+  modeToggle.addEventListener("click", () => {
+    state.liveMode = !state.liveMode;
+    topbar.classList.toggle("live", state.liveMode);
+    keyPanel.style.display = state.liveMode ? "flex" : "none";
+    modeToggle.textContent = state.liveMode ? "Live mode · using your key" : "Demo mode · canned";
+    if (state.currentBrief) renderBrief(state.currentBrief);
+  });
+
+  /* ── Examples ── */
+  document.querySelectorAll(".examples button").forEach(b => {
+    b.addEventListener("click", () => {
+      $("#narrative").value = EXAMPLES[parseInt(b.dataset.ex, 10)];
+      $("#narrative").focus();
+    });
+  });
+
+  /* ── Clear ── */
+  $("#clearBtn").addEventListener("click", () => {
+    $("#narrative").value = "";
+    state.currentBrief = null;
+    $("#brief").style.display = "none";
+    $("#emptyState").style.display = "flex";
+  });
+
+  /* ── Mic / Web Speech API ── */
+  const micBtn = $("#micBtn");
+  let recognition = null;
+  let recognizing = false;
+
+  if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SR();
+    recognition.lang = "ko-KR";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    let interim = "";
+    let final = "";
+    recognition.onresult = (e) => {
+      interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) final += r[0].transcript;
+        else interim += r[0].transcript;
+      }
+      const text = (final + interim).trim();
+      const ta = $("#narrative");
+      ta.value = text;
+      ta.scrollTop = ta.scrollHeight;
+    };
+    recognition.onend = () => {
+      recognizing = false;
+      micBtn.classList.remove("recording");
+      micBtn.innerHTML = '<span class="dot"></span> 받아쓰기';
+    };
+    recognition.onerror = () => {
+      recognizing = false;
+      micBtn.classList.remove("recording");
+      micBtn.innerHTML = '<span class="dot"></span> 받아쓰기';
+    };
+
+    micBtn.addEventListener("click", () => {
+      if (recognizing) {
+        recognition.stop();
+      } else {
+        final = $("#narrative").value ? $("#narrative").value + " " : "";
+        interim = "";
+        try { recognition.start(); recognizing = true; } catch {}
+        micBtn.classList.add("recording");
+        micBtn.innerHTML = '<span class="dot"></span> 녹음 중 · 클릭하여 정지';
+      }
+    });
+  } else {
+    micBtn.disabled = true;
+    micBtn.title = "Speech recognition not supported in this browser";
+    micBtn.style.opacity = "0.5";
+  }
+
+  /* ── Lang toggle ── */
+  $("#langSeg").addEventListener("click", e => {
+    if (e.target.tagName !== "BUTTON") return;
+    document.querySelectorAll("#langSeg button").forEach(b => b.classList.remove("active"));
+    e.target.classList.add("active");
+    state.lang = e.target.dataset.lang;
+    if (state.currentBrief) renderBrief(state.currentBrief);
+  });
+
+  /* ── Model toggle ── */
+  $("#modelSeg").addEventListener("click", e => {
+    if (e.target.tagName !== "BUTTON") return;
+    document.querySelectorAll("#modelSeg button").forEach(b => b.classList.remove("active"));
+    e.target.classList.add("active");
+    state.model = e.target.dataset.model;
+    /* Don't auto-rerun — user can click Analyze again */
+  });
+
+  /* ── Key handling ── */
+  function getKey()   { return localStorage.getItem(KEY_STORAGE) || ""; }
+  function setKey(v)  { localStorage.setItem(KEY_STORAGE, v); }
+  function clearKey() { localStorage.removeItem(KEY_STORAGE); }
+
+  $("#keyInput").value = getKey() ? "•".repeat(20) : "";
+  $("#keySave").addEventListener("click", () => {
+    const v = $("#keyInput").value.trim();
+    if (!v || v.startsWith("•")) return;
+    setKey(v);
+    $("#keyInput").value = "•".repeat(20);
+    keyPanel.classList.remove("error");
+  });
+  $("#keyPaste").addEventListener("click", async () => {
+    try {
+      const t = await navigator.clipboard.readText();
+      $("#keyInput").value = t.trim();
+    } catch { $("#keyInput").focus(); }
+  });
+  $("#keyForget").addEventListener("click", () => {
+    clearKey();
+    $("#keyInput").value = "";
+    keyPanel.classList.remove("error");
+  });
+
+  /* ── Analyze button ── */
+  $("#analyzeBtn").addEventListener("click", analyze);
+
+  async function analyze() {
+    const text = $("#narrative").value.trim();
+    if (!text) { $("#narrative").focus(); return; }
+
+    $("#emptyState").style.display = "none";
+    $("#brief").style.display = "none";
+    $("#outputProgress").classList.add("on");
+
+    try {
+      let brief;
+      if (state.liveMode && getKey()) {
+        brief = await callClaude(text, getKey(), state.model);
+      } else {
+        // Canned: pick the closest example, or default to case 0 if free-form
+        const idx = matchExample(text);
+        await new Promise(r => setTimeout(r, 700)); // simulate think
+        brief = CANNED_BRIEFS[idx];
+      }
+      state.currentBrief = brief;
+      renderBrief(brief);
+    } catch (err) {
+      $("#outputProgress").classList.remove("on");
+      if (err.status === 401) {
+        clearKey();
+        keyPanel.classList.add("error");
+      }
+      $("#emptyState").style.display = "flex";
+      $("#emptyState p").textContent = err.message || "요청 실패";
+    } finally {
+      $("#outputProgress").classList.remove("on");
+    }
+  }
+
+  function matchExample(text) {
+    for (let i = 0; i < EXAMPLES.length; i++) {
+      if (text === EXAMPLES[i]) return i;
+    }
+    if (/소화|더부룩|트림|변|냉식/.test(text)) return 1;
+    if (/두통|어지|이명|꿈|구고/.test(text)) return 2;
+    return 0;
+  }
+
+  /* ── Render brief ── */
+  function renderBrief(brief) {
+    const lang = state.lang;
+    const t = (obj) => typeof obj === "string" ? obj : (obj[lang] || obj.ko);
+
+    const html = `
+      <div class="section">
+        <h3>주소 · Chief complaints</h3>
+        <div class="complaints">
+          ${brief.complaints.map(c => `
+            <div class="complaint sev-${c.sev}">
+              <div class="name"><span class="sev"></span>${lang === "ko" ? c.ko : c.en}</div>
+              <div class="meta">${"●".repeat(c.sev)}${"○".repeat(4 - c.sev)} · ${t(c.dur)}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>변증 · Pattern</h3>
+        <div class="pattern">
+          <div class="head">
+            <div class="name">${brief.pattern.ko}</div>
+            <div class="latin">${brief.pattern.latin}</div>
+          </div>
+          <div class="why">${t(brief.pattern.why)}</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>처방 · Formula</h3>
+        <div class="formula">
+          <div class="name">${brief.formula.name}</div>
+          <div class="pinyin">${brief.formula.pinyin}</div>
+          <div class="note">${t(brief.formula.note)}</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>경혈 · Points for needling</h3>
+        <div class="points">
+          ${brief.points.map(p => `
+            <div class="point">
+              <div class="code">${p.code}</div>
+              <div class="name">${p.ko}</div>
+              <div class="why">${t(p.why)}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>추가 문진 · Follow-up</h3>
+        <ul class="followups">
+          ${(lang === "ko" ? brief.followups.ko : brief.followups.en).map(f => `<li>${f}</li>`).join("")}
+        </ul>
+      </div>
+    `;
+
+    const briefEl = $("#brief");
+    briefEl.innerHTML = html;
+    briefEl.style.display = "flex";
+    $("#emptyState").style.display = "none";
+  }
+
+  /* ── Browser-direct Claude call ── */
+  async function callClaude(narrative, key, model) {
+    const sys = `You are an experienced 한의사 (Korean traditional medicine clinician). Given a patient's free-form Korean narrative of symptoms, return a structured intake brief with full clinical confidence — commit to a 변증 pattern, recommend a 처방, and propose 경혈 acupoints. No hedging, no participatory disclaimers — this is a professional clinical brief.
+
+Return STRICT JSON matching this schema, no markdown, no commentary:
+
+{
+  "complaints": [
+    { "ko": "<symptom in Korean>", "en": "<symptom in English>", "sev": 1|2|3|4, "dur": { "ko": "<Korean duration phrase>", "en": "<English duration phrase>" } }
+  ],
+  "pattern": {
+    "ko": "<변증 in Korean, e.g. 비양허>",
+    "latin": "<scholarly Latin/English form, e.g. Spleen-yang deficiency>",
+    "why": {
+      "ko": "<2-3 sentence Korean rationale tying symptoms to the pattern>",
+      "en": "<2-3 sentence English rationale>"
+    }
+  },
+  "formula": {
+    "name": "<처방 in Korean, e.g. 보중익기탕>",
+    "pinyin": "<Pinyin transliteration with Latin gloss>",
+    "note": {
+      "ko": "<2-3 sentence Korean note on modifications and dosing>",
+      "en": "<2-3 sentence English note>"
+    }
+  },
+  "points": [
+    { "code": "ST 36", "ko": "족삼리", "why": { "ko": "<short Korean rationale>", "en": "<short English rationale>" } }
+  ],
+  "followups": {
+    "ko": ["<question 1>", "<question 2>", "<question 3>"],
+    "en": ["<question 1>", "<question 2>", "<question 3>"]
+  }
+}
+
+Provide 4-6 complaints, exactly 1 pattern, exactly 1 formula, 4-6 points, exactly 3 followups. Severity: 1=mild, 4=severe.`;
+
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 2000,
+        system: sys,
+        messages: [{ role: "user", content: narrative }]
+      })
+    });
+    if (!res.ok) {
+      const txt = await res.text().catch(() => "");
+      const e = new Error(`Claude API ${res.status}: ${txt.slice(0, 200)}`);
+      e.status = res.status;
+      throw e;
+    }
+    const data = await res.json();
+    const text = (data.content?.[0]?.text) || "";
+    const m = text.match(/\{[\s\S]*\}/);
+    if (!m) throw new Error("No JSON in response");
+    return JSON.parse(m[0]);
+  }
+
+  </script>
+
+</body>
+</html>

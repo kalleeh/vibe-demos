@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>가스의 여정 — A Molecule's Journey</title>
+  <meta name="description" content="A scrollytelling journey of a single LNG molecule from an Incheon terminal to a Seoul kitchen flame.">
+  <meta property="og:title" content="가스의 여정 — A Molecule's Journey">
+  <meta property="og:description" content="Follow a single methane molecule from tanker to kitchen flame.">
+  <meta property="og:type" content="website">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink:        #f4f0e6;
+      --ink-dim:    #c8c2b0;
+      --muted:      #8b8678;
+      --accent:     #6cc5ff;
+      --accent-2:   #ffb37a;
+      --flame:      #4ea1ff;
+      --bg:         #050608;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── Fixed scene canvas ── */
+    #scene {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+    }
+    #scene canvas { display: block; width: 100%; height: 100%; }
+
+    /* ── Loading screen ── */
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      transition: opacity .8s ease;
+    }
+    #loading.hidden { opacity: 0; pointer-events: none; }
+    #loading .lbl {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    #loading .bar {
+      width: 220px;
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    #loading .bar::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -40%;
+      width: 40%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      animation: shimmer 1.4s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0%   { left: -40%; }
+      100% { left: 100%; }
+    }
+
+    /* ── Atmospheric vignette overlay ── */
+    .vignette {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      background:
+        radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.55) 100%),
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.04 0'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>");
+      mix-blend-mode: screen;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      padding: 22px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      mix-blend-mode: difference;
+    }
+    .topbar a { color: inherit; text-decoration: none; opacity: 0.8; }
+    .topbar a:hover { opacity: 1; color: var(--accent); }
+    .topbar .mark {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 600;
+    }
+    .topbar .mark::before {
+      content: "";
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+    }
+    .topbar .progress {
+      display: flex; align-items: center; gap: 14px;
+    }
+    .topbar .progress .track {
+      width: 90px; height: 1px;
+      background: rgba(255,255,255,0.18);
+      position: relative;
+    }
+    .topbar .progress .fill {
+      position: absolute;
+      top: 0; left: 0;
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width .15s linear;
+    }
+
+    /* ── Scrolling chapter overlay ── */
+    main {
+      position: relative;
+      z-index: 5;
+    }
+
+    /* Intro hero */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 32px;
+    }
+    .hero .eyebrow {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 28px;
+    }
+    .hero h1 {
+      font-family: "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: clamp(56px, 11vw, 144px);
+      line-height: 1.0;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      margin-bottom: 18px;
+      text-shadow: 0 2px 30px rgba(108,197,255,0.2);
+    }
+    .hero h1 em {
+      font-style: italic;
+      font-weight: 400;
+      color: var(--accent);
+    }
+    .hero .sub {
+      font-family: "Inter", sans-serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: clamp(18px, 2.4vw, 26px);
+      color: var(--ink-dim);
+      max-width: 540px;
+      margin-bottom: 64px;
+    }
+    .hero .scroll-cue {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+    .hero .scroll-cue::after {
+      content: "";
+      width: 1px;
+      height: 38px;
+      background: linear-gradient(to bottom, var(--muted), transparent);
+      animation: cue 2.2s ease-in-out infinite;
+    }
+    @keyframes cue {
+      0%, 100% { transform: scaleY(1); transform-origin: top; }
+      50%      { transform: scaleY(0.4); transform-origin: top; }
+    }
+
+    /* Each chapter is a tall scroll zone whose midpoint pins the scene */
+    .chapter {
+      min-height: 130vh;
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+    }
+    .chapter:nth-child(odd)  .copy { margin-left: 8vw; }
+    .chapter:nth-child(even) .copy {
+      margin-left: auto; margin-right: 8vw;
+      text-align: right;
+    }
+    .chapter .copy {
+      max-width: 480px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      background: rgba(5,6,8,0.32);
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 36px 38px;
+      border-radius: 2px;
+    }
+    .chapter .num {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .chapter:nth-child(even) .num { justify-content: flex-end; }
+    .chapter .num::before {
+      content: "";
+      width: 28px; height: 1px;
+      background: var(--accent);
+    }
+    .chapter:nth-child(even) .num::before { order: 2; }
+    .chapter h2 {
+      font-family: "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: clamp(36px, 5vw, 56px);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      margin-bottom: 10px;
+    }
+    .chapter h2 em {
+      font-style: italic;
+      color: var(--accent);
+      font-weight: 400;
+    }
+    .chapter .en {
+      font-family: "Inter", sans-serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      margin-bottom: 22px;
+    }
+    .chapter p {
+      font-family: "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: 17px;
+      line-height: 1.7;
+      color: var(--ink-dim);
+    }
+    .chapter p + p { margin-top: 14px; }
+    .chapter .stat {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-top: 22px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      padding: 6px 12px;
+      border: 1px solid rgba(108,197,255,0.3);
+      border-radius: 999px;
+      background: rgba(108,197,255,0.06);
+    }
+
+    /* Outro */
+    .outro {
+      min-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 80px 32px;
+    }
+    .outro .eyebrow {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 28px;
+    }
+    .outro h2 {
+      font-family: "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: clamp(38px, 6vw, 76px);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      max-width: 720px;
+      margin-bottom: 28px;
+    }
+    .outro h2 em { font-style: italic; color: var(--accent-2); font-weight: 400; }
+    .outro p {
+      font-family: "Inter", sans-serif;
+      font-style: italic;
+      font-weight: 300;
+      color: var(--ink-dim);
+      max-width: 440px;
+      margin-bottom: 48px;
+    }
+    .outro .back {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      text-decoration: none;
+      padding: 12px 22px;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 999px;
+      transition: color .25s, border-color .25s, background .25s;
+    }
+    .outro .back:hover {
+      color: var(--bg);
+      background: var(--ink);
+      border-color: var(--ink);
+    }
+
+    @media (max-width: 720px) {
+      .chapter { min-height: 110vh; padding: 0 20px; }
+      .chapter:nth-child(odd) .copy,
+      .chapter:nth-child(even) .copy {
+        margin: 0 auto;
+        text-align: left;
+      }
+      .chapter:nth-child(even) .num { justify-content: flex-start; }
+      .chapter:nth-child(even) .num::before { order: 0; }
+      .topbar { padding: 16px 18px; font-size: 10px; }
+      .topbar .progress .track { width: 60px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #loading .bar::after { animation: none; left: 0; width: 100%; }
+      .hero .scroll-cue::after { animation: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loading">
+    <div class="lbl">Initializing scene</div>
+    <div class="bar"></div>
+  </div>
+
+  <div id="scene"></div>
+  <div class="vignette"></div>
+
+  <header class="topbar">
+    <a href="../" class="mark">Vibe Studio</a>
+    <div class="progress">
+      <span id="chapterLabel">00 · Origin</span>
+      <span class="track"><span class="fill" id="progressFill"></span></span>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="hero">
+      <div class="eyebrow">Chapter 00 · Selected Works</div>
+      <h1>가스의 <em>여정</em></h1>
+      <p class="sub">A single methane molecule, from <em>Incheon</em> harbor to a <em>Seoul</em> kitchen flame.</p>
+      <div class="scroll-cue">Scroll</div>
+    </section>
+
+    <section class="chapter" data-chapter="1">
+      <div class="copy">
+        <div class="num">Chapter 01</div>
+        <h2>새벽의 <em>접안</em></h2>
+        <div class="en">A tanker at dawn</div>
+        <p>인천의 LNG 터미널, 새벽 다섯 시. 적도에서 출발한 거대한 탱커가 16일간의 항해 끝에 조용히 접안한다.</p>
+        <p>그 안에는 −162°C로 냉각되어 액체가 된 천연가스. 한 분자 — CH₄ — 가 깨어난다.</p>
+        <span class="stat">−162°C · 액화 천연가스</span>
+      </div>
+    </section>
+
+    <section class="chapter" data-chapter="2">
+      <div class="copy">
+        <div class="num">Chapter 02</div>
+        <h2>차가운 <em>저장</em></h2>
+        <div class="en">Cryogenic storage</div>
+        <p>두꺼운 단열 탱크 안. 외부 공기보다 200도 가까이 차가운 어둠 속에서, 분자는 거의 움직이지 않는다.</p>
+        <p>한국 가정의 7개월치 난방을 담은 탱크 하나가, 별처럼 고요하게 빛난다.</p>
+        <span class="stat">한 탱크 · 200,000m³</span>
+      </div>
+    </section>
+
+    <section class="chapter" data-chapter="3">
+      <div class="copy">
+        <div class="num">Chapter 03</div>
+        <h2>다시 <em>기체로</em></h2>
+        <div class="en">Regasification &amp; pressure</div>
+        <p>해수와의 열 교환기를 거치며 분자는 다시 기체가 된다. 부피는 600배로 팽창한다.</p>
+        <p>압력 조절 밸브를 통과하는 순간, 여행이 시작된다.</p>
+        <span class="stat">×600 · 부피 팽창</span>
+      </div>
+    </section>
+
+    <section class="chapter" data-chapter="4">
+      <div class="copy">
+        <div class="num">Chapter 04</div>
+        <h2>지하의 <em>대동맥</em></h2>
+        <div class="en">The underground arteries</div>
+        <p>인천에서 서울까지, 지하 1.5미터 아래로 뻗은 강철 파이프라인.</p>
+        <p>분자는 시속 30km의 흐름을 따라 도시로 향한다. 어둠 속에서, 빛 없이.</p>
+        <span class="stat">약 5,000km · 전국 배관망</span>
+      </div>
+    </section>
+
+    <section class="chapter" data-chapter="5">
+      <div class="copy">
+        <div class="num">Chapter 05</div>
+        <h2>도시의 <em>입구</em></h2>
+        <div class="en">Into a Seoul home</div>
+        <p>마포구의 한 아파트, 7층. 가스 계량기가 작은 소리로 회전한다.</p>
+        <p>분자는 좁은 동관을 따라 부엌의 가스레인지 앞에 도착한다.</p>
+        <span class="stat">압력 · 약 2.5 kPa</span>
+      </div>
+    </section>
+
+    <section class="chapter" data-chapter="6">
+      <div class="copy">
+        <div class="num">Chapter 06</div>
+        <h2>푸른 <em>불꽃</em></h2>
+        <div class="en">The blue flame</div>
+        <p>저녁 일곱 시. 누군가 손잡이를 돌린다. 분자는 산소를 만나, 잠깐의 빛이 된다.</p>
+        <p>CH₄ + 2O₂ → CO₂ + 2H₂O. 16일간의 여정이, 된장찌개 한 냄비를 데운다.</p>
+        <span class="stat">≈ 1,950°C · 연소</span>
+      </div>
+    </section>
+
+    <section class="outro">
+      <div class="eyebrow">Fin</div>
+      <h2>한 분자의 <em>긴 여행</em>이<br>저녁 식탁이 된다.</h2>
+      <p>One molecule. Sixteen days. One bowl of stew.</p>
+      <a href="../" class="back">← Back to Studio</a>
+    </section>
+
+  </main>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from "three";
+
+    /* ───────────────────────────────────────────
+       Scene setup
+       ─────────────────────────────────────────── */
+    const container = document.getElementById("scene");
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x050608, 1);
+    container.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x050608, 0.04);
+
+    const camera = new THREE.PerspectiveCamera(
+      45, window.innerWidth / window.innerHeight, 0.1, 200
+    );
+    camera.position.set(0, 0, 8);
+
+    /* Lighting (per-chapter colors will be lerped) */
+    const ambient = new THREE.AmbientLight(0xffffff, 0.35);
+    scene.add(ambient);
+
+    const keyLight = new THREE.DirectionalLight(0x88aaff, 1.2);
+    keyLight.position.set(4, 6, 6);
+    scene.add(keyLight);
+
+    const rimLight = new THREE.PointLight(0x6cc5ff, 1.4, 20);
+    rimLight.position.set(-3, 2, -3);
+    scene.add(rimLight);
+
+    /* ───────────────────────────────────────────
+       The molecule — CH4 (1 carbon + 4 hydrogens)
+       ─────────────────────────────────────────── */
+    const moleculeGroup = new THREE.Group();
+    scene.add(moleculeGroup);
+
+    const carbonGeo = new THREE.IcosahedronGeometry(0.55, 2);
+    const carbonMat = new THREE.MeshPhysicalMaterial({
+      color: 0x1a2538,
+      metalness: 0.2,
+      roughness: 0.25,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.15,
+      emissive: 0x0a1830,
+      emissiveIntensity: 0.5
+    });
+    const carbon = new THREE.Mesh(carbonGeo, carbonMat);
+    moleculeGroup.add(carbon);
+
+    /* Inner glow shell */
+    const glowGeo = new THREE.SphereGeometry(0.85, 32, 32);
+    const glowMat = new THREE.ShaderMaterial({
+      transparent: true,
+      side: THREE.BackSide,
+      uniforms: {
+        glowColor: { value: new THREE.Color(0x6cc5ff) },
+        intensity: { value: 0.55 }
+      },
+      vertexShader: `
+        varying vec3 vNormal;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vNormal;
+        uniform vec3 glowColor;
+        uniform float intensity;
+        void main() {
+          float fres = pow(0.7 - dot(vNormal, vec3(0,0,1)), 3.0);
+          gl_FragColor = vec4(glowColor, fres * intensity);
+        }
+      `
+    });
+    const glow = new THREE.Mesh(glowGeo, glowMat);
+    moleculeGroup.add(glow);
+
+    /* Four hydrogens — tetrahedral positions */
+    const hPositions = [
+      [ 1,  1,  1],
+      [-1, -1,  1],
+      [-1,  1, -1],
+      [ 1, -1, -1]
+    ].map(([x, y, z]) => new THREE.Vector3(x, y, z).normalize().multiplyScalar(1.15));
+
+    const hMat = new THREE.MeshPhysicalMaterial({
+      color: 0xeaf3ff,
+      metalness: 0.0,
+      roughness: 0.2,
+      clearcoat: 0.8,
+      emissive: 0x223244,
+      emissiveIntensity: 0.4
+    });
+    const hGeo = new THREE.IcosahedronGeometry(0.22, 2);
+    const hydrogens = hPositions.map((p) => {
+      const m = new THREE.Mesh(hGeo, hMat);
+      m.position.copy(p);
+      moleculeGroup.add(m);
+      return m;
+    });
+
+    /* Bonds — thin cylinders from carbon to each hydrogen */
+    const bondMat = new THREE.MeshBasicMaterial({
+      color: 0x6cc5ff, transparent: true, opacity: 0.35
+    });
+    hPositions.forEach((p) => {
+      const len = p.length();
+      const geom = new THREE.CylinderGeometry(0.025, 0.025, len, 8);
+      const bond = new THREE.Mesh(geom, bondMat);
+      bond.position.copy(p.clone().multiplyScalar(0.5));
+      bond.lookAt(p);
+      bond.rotateX(Math.PI / 2);
+      moleculeGroup.add(bond);
+    });
+
+    /* ───────────────────────────────────────────
+       Particles — atmospheric dust per chapter
+       ─────────────────────────────────────────── */
+    function makeParticles(count, spread, color, size) {
+      const positions = new Float32Array(count * 3);
+      for (let i = 0; i < count; i++) {
+        positions[i*3 + 0] = (Math.random() - 0.5) * spread;
+        positions[i*3 + 1] = (Math.random() - 0.5) * spread;
+        positions[i*3 + 2] = (Math.random() - 0.5) * spread;
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      const mat = new THREE.PointsMaterial({
+        color, size,
+        transparent: true,
+        opacity: 0.0,
+        sizeAttenuation: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      });
+      return new THREE.Points(geo, mat);
+    }
+
+    const particles = makeParticles(900, 30, 0x6cc5ff, 0.06);
+    scene.add(particles);
+
+    const flameParticles = makeParticles(400, 5, 0x4ea1ff, 0.12);
+    scene.add(flameParticles);
+
+    /* ───────────────────────────────────────────
+       Background "ribbon" — pipeline / horizon line
+       ─────────────────────────────────────────── */
+    const ribbonGeo = new THREE.PlaneGeometry(60, 0.08, 60, 1);
+    const ribbonMat = new THREE.MeshBasicMaterial({
+      color: 0x6cc5ff, transparent: true, opacity: 0.0
+    });
+    const ribbon = new THREE.Mesh(ribbonGeo, ribbonMat);
+    ribbon.position.set(0, -2.5, -8);
+    scene.add(ribbon);
+
+    /* Stove flame plane (chapter 6) */
+    const flameGeo = new THREE.PlaneGeometry(4, 4);
+    const flameMat = new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      uniforms: {
+        time: { value: 0 },
+        opacity: { value: 0.0 }
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec2 vUv;
+        uniform float time;
+        uniform float opacity;
+        // Cheap noise
+        float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        float noise(vec2 p) {
+          vec2 i = floor(p), f = fract(p);
+          float a = hash(i);
+          float b = hash(i + vec2(1, 0));
+          float c = hash(i + vec2(0, 1));
+          float d = hash(i + vec2(1, 1));
+          vec2 u = f * f * (3.0 - 2.0 * f);
+          return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+        }
+        void main() {
+          vec2 p = vUv - vec2(0.5, 0.0);
+          float r = length(p * vec2(2.0, 1.0));
+          float n = noise(vec2(vUv.x * 6.0, vUv.y * 4.0 - time * 1.4));
+          float flame = smoothstep(0.7, 0.0, r) * (0.7 + n * 0.5);
+          flame *= smoothstep(0.0, 0.15, vUv.y) * smoothstep(1.0, 0.4, vUv.y);
+          vec3 col = mix(vec3(0.1, 0.4, 1.0), vec3(0.6, 0.85, 1.0), flame);
+          gl_FragColor = vec4(col, flame * opacity);
+        }
+      `
+    });
+    const flame = new THREE.Mesh(flameGeo, flameMat);
+    flame.position.set(0, -1.0, -2);
+    scene.add(flame);
+
+    /* Frost ring for cryo storage chapter */
+    const ringGeo = new THREE.RingGeometry(2.4, 2.5, 64);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0xa8d8ff, transparent: true, opacity: 0.0, side: THREE.DoubleSide
+    });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.position.z = -1;
+    scene.add(ring);
+
+    /* ───────────────────────────────────────────
+       Chapter states — what the scene looks like
+       at each moment of the journey
+       ─────────────────────────────────────────── */
+    const states = [
+      { // 0 — hero / origin
+        bg: 0x050608,
+        ambient: 0.3,
+        keyColor: 0x88aaff,
+        rimColor: 0x6cc5ff,
+        rimIntensity: 1.4,
+        camera: new THREE.Vector3(0, 0, 6),
+        moleculeScale: 1.0,
+        moleculeY: 0,
+        glowIntensity: 0.55,
+        particleOpacity: 0.4,
+        ribbonOpacity: 0.0,
+        flameOpacity: 0.0,
+        ringOpacity: 0.0,
+        carbonEmissive: 0x0a1830,
+        fogDensity: 0.04
+      },
+      { // 1 — tanker at dawn
+        bg: 0x18141d,
+        ambient: 0.55,
+        keyColor: 0xffae7a,
+        rimColor: 0xff7a4a,
+        rimIntensity: 1.8,
+        camera: new THREE.Vector3(2, 0.4, 6.5),
+        moleculeScale: 1.05,
+        moleculeY: 0.2,
+        glowIntensity: 0.4,
+        particleOpacity: 0.35,
+        ribbonOpacity: 0.18,
+        flameOpacity: 0.0,
+        ringOpacity: 0.0,
+        carbonEmissive: 0x2a1408,
+        fogDensity: 0.06
+      },
+      { // 2 — cryogenic storage
+        bg: 0x0a1018,
+        ambient: 0.4,
+        keyColor: 0xa8d8ff,
+        rimColor: 0x6cc5ff,
+        rimIntensity: 0.9,
+        camera: new THREE.Vector3(-1.5, 0, 5.5),
+        moleculeScale: 0.85,
+        moleculeY: -0.1,
+        glowIntensity: 0.85,
+        particleOpacity: 0.7,
+        ribbonOpacity: 0.0,
+        flameOpacity: 0.0,
+        ringOpacity: 0.45,
+        carbonEmissive: 0x081428,
+        fogDensity: 0.08
+      },
+      { // 3 — regasification
+        bg: 0x141022,
+        ambient: 0.55,
+        keyColor: 0xb38aff,
+        rimColor: 0x6cc5ff,
+        rimIntensity: 1.5,
+        camera: new THREE.Vector3(0, 0.2, 5),
+        moleculeScale: 1.25,
+        moleculeY: 0.25,
+        glowIntensity: 0.95,
+        particleOpacity: 0.55,
+        ribbonOpacity: 0.0,
+        flameOpacity: 0.0,
+        ringOpacity: 0.18,
+        carbonEmissive: 0x140a28,
+        fogDensity: 0.05
+      },
+      { // 4 — pipeline
+        bg: 0x080a14,
+        ambient: 0.3,
+        keyColor: 0x6cc5ff,
+        rimColor: 0x4ea1ff,
+        rimIntensity: 1.7,
+        camera: new THREE.Vector3(0, -0.2, 4.5),
+        moleculeScale: 1.1,
+        moleculeY: -0.3,
+        glowIntensity: 0.7,
+        particleOpacity: 0.4,
+        ribbonOpacity: 0.85,
+        flameOpacity: 0.0,
+        ringOpacity: 0.0,
+        carbonEmissive: 0x0a1830,
+        fogDensity: 0.07
+      },
+      { // 5 — Seoul home
+        bg: 0x141a22,
+        ambient: 0.5,
+        keyColor: 0xffd28a,
+        rimColor: 0xff9c5a,
+        rimIntensity: 1.2,
+        camera: new THREE.Vector3(0.5, 0.1, 5.0),
+        moleculeScale: 1.0,
+        moleculeY: 0.0,
+        glowIntensity: 0.5,
+        particleOpacity: 0.3,
+        ribbonOpacity: 0.0,
+        flameOpacity: 0.0,
+        ringOpacity: 0.0,
+        carbonEmissive: 0x281408,
+        fogDensity: 0.05
+      },
+      { // 6 — blue flame
+        bg: 0x05080f,
+        ambient: 0.7,
+        keyColor: 0x6cc5ff,
+        rimColor: 0x4ea1ff,
+        rimIntensity: 2.4,
+        camera: new THREE.Vector3(0, 0.3, 4.0),
+        moleculeScale: 1.3,
+        moleculeY: 0.4,
+        glowIntensity: 1.4,
+        particleOpacity: 0.0,
+        ribbonOpacity: 0.0,
+        flameOpacity: 0.85,
+        ringOpacity: 0.0,
+        carbonEmissive: 0x143a78,
+        fogDensity: 0.03
+      },
+      { // 7 — outro
+        bg: 0x050608,
+        ambient: 0.4,
+        keyColor: 0x88aaff,
+        rimColor: 0x6cc5ff,
+        rimIntensity: 1.3,
+        camera: new THREE.Vector3(0, 0, 7.5),
+        moleculeScale: 0.85,
+        moleculeY: 0,
+        glowIntensity: 0.45,
+        particleOpacity: 0.35,
+        ribbonOpacity: 0.0,
+        flameOpacity: 0.0,
+        ringOpacity: 0.0,
+        carbonEmissive: 0x0a1830,
+        fogDensity: 0.04
+      }
+    ];
+
+    const chapterLabels = [
+      "00 · Origin",
+      "01 · 접안",
+      "02 · 저장",
+      "03 · 기체",
+      "04 · 배관",
+      "05 · 도시",
+      "06 · 불꽃",
+      "Fin"
+    ];
+
+    /* ───────────────────────────────────────────
+       Scroll → progress (0..N) interpolation
+       ─────────────────────────────────────────── */
+    const _v3 = new THREE.Vector3();
+    const _c1 = new THREE.Color();
+    const _c2 = new THREE.Color();
+    const _ce = new THREE.Color();
+
+    function lerp(a, b, t) { return a + (b - a) * t; }
+    function lerpColor(out, a, b, t) {
+      _c1.setHex(a); _c2.setHex(b);
+      out.copy(_c1).lerp(_c2, t);
+      return out;
+    }
+
+    let scrollProgress = 0; // 0..(states.length - 1)
+    let smoothProgress = 0;
+
+    function computeProgress() {
+      const total = document.body.scrollHeight - window.innerHeight;
+      const t = Math.max(0, Math.min(1, window.scrollY / total));
+      scrollProgress = t * (states.length - 1);
+    }
+
+    function applyState(p) {
+      const idx = Math.floor(p);
+      const next = Math.min(idx + 1, states.length - 1);
+      const t = p - idx;
+      const a = states[idx];
+      const b = states[next];
+
+      /* Background + fog */
+      lerpColor(_ce, a.bg, b.bg, t);
+      renderer.setClearColor(_ce, 1);
+      scene.fog.color.copy(_ce);
+      scene.fog.density = lerp(a.fogDensity, b.fogDensity, t);
+
+      /* Lights */
+      ambient.intensity = lerp(a.ambient, b.ambient, t);
+      lerpColor(keyLight.color, a.keyColor, b.keyColor, t);
+      lerpColor(rimLight.color, a.rimColor, b.rimColor, t);
+      rimLight.intensity = lerp(a.rimIntensity, b.rimIntensity, t);
+
+      /* Camera */
+      _v3.copy(a.camera).lerp(b.camera, t);
+      camera.position.copy(_v3);
+      camera.lookAt(0, 0, 0);
+
+      /* Molecule */
+      const scale = lerp(a.moleculeScale, b.moleculeScale, t);
+      moleculeGroup.scale.setScalar(scale);
+      moleculeGroup.position.y = lerp(a.moleculeY, b.moleculeY, t);
+      glowMat.uniforms.intensity.value = lerp(a.glowIntensity, b.glowIntensity, t);
+      lerpColor(_ce, a.carbonEmissive, b.carbonEmissive, t);
+      carbonMat.emissive.copy(_ce);
+
+      /* Atmospheric */
+      particles.material.opacity = lerp(a.particleOpacity, b.particleOpacity, t);
+      ribbon.material.opacity = lerp(a.ribbonOpacity, b.ribbonOpacity, t);
+      flameMat.uniforms.opacity.value = lerp(a.flameOpacity, b.flameOpacity, t);
+      ring.material.opacity = lerp(a.ringOpacity, b.ringOpacity, t);
+      flameParticles.material.opacity = lerp(a.flameOpacity * 0.6, b.flameOpacity * 0.6, t);
+
+      /* Top bar */
+      const fillPct = (p / (states.length - 1)) * 100;
+      document.getElementById("progressFill").style.width = fillPct + "%";
+      const labelIdx = Math.round(p);
+      document.getElementById("chapterLabel").textContent = chapterLabels[labelIdx] || "";
+    }
+
+    /* ───────────────────────────────────────────
+       Animation loop
+       ─────────────────────────────────────────── */
+    const clock = new THREE.Clock();
+
+    function tick() {
+      const dt = clock.getDelta();
+      const elapsed = clock.getElapsedTime();
+
+      /* Smooth scroll progress */
+      smoothProgress += (scrollProgress - smoothProgress) * 0.08;
+      applyState(smoothProgress);
+
+      /* Molecule idle motion */
+      moleculeGroup.rotation.y += dt * 0.35;
+      moleculeGroup.rotation.x = Math.sin(elapsed * 0.4) * 0.1;
+      hydrogens.forEach((h, i) => {
+        h.position.copy(hPositions[i]).multiplyScalar(
+          1.0 + Math.sin(elapsed * 1.2 + i) * 0.04
+        );
+      });
+
+      /* Particle drift */
+      particles.rotation.y = elapsed * 0.02;
+      flameParticles.rotation.y = -elapsed * 0.05;
+
+      /* Flame shader animation */
+      flameMat.uniforms.time.value = elapsed;
+
+      renderer.render(scene, camera);
+      requestAnimationFrame(tick);
+    }
+
+    /* ───────────────────────────────────────────
+       Events
+       ─────────────────────────────────────────── */
+    function onResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+    window.addEventListener("resize", onResize);
+    window.addEventListener("scroll", computeProgress, { passive: true });
+
+    /* Init */
+    computeProgress();
+    smoothProgress = scrollProgress;
+    applyState(smoothProgress);
+    tick();
+
+    /* Hide loader once we've rendered at least one frame */
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.getElementById("loading").classList.add("hidden");
+      });
+    });
+  </script>
+
+</body>
+</html>

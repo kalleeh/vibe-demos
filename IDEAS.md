@@ -2,9 +2,9 @@
 
 A queue of vibe-demos to build. Each has enough detail to pick up on a future session without re-pitching.
 
-**Audience:** the user's Korean friends. One works at a hagwon (학원, private academy/teacher); one works at a Korean government-adjacent "gas" utility — likely **KOGAS (한국가스공사)** or similar. The demos should show both how *cool* AI/web can be and how *practically useful* it can be in their work, so the queue mixes flashy 3D/animation pieces with productivity tools.
+**Audience:** the user's Korean friends. One works at a haniwon (한의원, Korean traditional medicine clinic — 한의사/한약/침·뜸 territory); one works at a Korean government-adjacent "gas" utility — likely **KOGAS (한국가스공사)** or similar. The demos should show both how *cool* AI/web can be and how *practically useful* it can be in their work, so the queue mixes flashy 3D/animation pieces with productivity tools.
 
-**Tech baseline:** plain static HTML/CSS/JS, hosted on GitHub Pages. WebGL via Three.js (CDN, no build step). For demos that need an LLM, default to the Claude API via a small client-side fetch with a key the user supplies at runtime (kept in `localStorage`, never committed) — or stub with canned realistic outputs first and wire the key later.
+**Tech baseline:** plain static HTML/CSS/JS, hosted on GitHub Pages. WebGL via Three.js (CDN, no build step). For demos that need an LLM, follow the **AI demo pattern** documented in [CLAUDE.md](./CLAUDE.md#ai-demo-pattern) — browser-direct Anthropic API calls, viewer-supplied key in localStorage, canned-first/live-optional, three-way model toggle (Opus 4.7 / Sonnet 4.6 / Haiku 4.5). Loading and progress UX rules also live there under **Loading states and async UX**.
 
 Status legend: `🟡 queued` · `🟠 in progress` · `🟢 shipped` · `⚪ shelved`
 
@@ -12,7 +12,7 @@ Status legend: `🟡 queued` · `🟠 in progress` · `🟢 shipped` · `⚪ she
 
 ## WOW factor — 3D / WebGL / scroll
 
-### 01 · 가스의 여정 — A Molecule's Journey 🟡 queued
+### 01 · 가스의 여정 — A Molecule's Journey 🟢 shipped → [/molecule-journey/](./molecule-journey/)
 
 Scrollytelling 3D piece. The viewer scrolls and follows a single LNG molecule from an Incheon-style LNG terminal → through a national pipeline → into a Seoul kitchen stove flame.
 
@@ -44,7 +44,7 @@ Full-screen real-time aurora over a stylised fjord skyline. Mouse moves the wind
 Type Korean (or Roman) text and the glyphs assemble from ~50,000 GPU particles in 3D space. Each character explodes apart and reforms into the next as you type.
 
 - **Tech:** Three.js `Points` with custom vertex shader; sample text-to-canvas to get particle target positions per character; lerp between targets.
-- **Interactions:** input field at top; preset words (이름, 사랑, 가스, 학원, 안녕); click background to scatter.
+- **Interactions:** input field at top; preset words (이름, 사랑, 가스, 한의원, 안녕); click background to scatter.
 - **Audience hook:** Both friends will type their own names and screenshot it. Shareable as hell.
 - **Slug:** `hangul-particles`
 - **Scope estimate:** medium. The particle-target sampling is the trick.
@@ -53,19 +53,24 @@ Type Korean (or Roman) text and the glyphs assemble from ~50,000 GPU particles i
 
 ## AI productivity — useful, not just pretty
 
-### 04 · Energy Bill Sense-Maker 🟡 queued
+### 04 · 한방 Intake Companion 🟢 shipped → [/intake-companion/](./intake-companion/)
 
-Paste a Korean utility bill (gas/electric/water — any format, OCR'd or copy-pasted text), Claude extracts line items, flags anomalies, suggests savings, and produces a plain-language Korean summary.
+Patient-intake assistant for Korean traditional medicine (한의원). The 한의사 dictates symptoms in real time — "요즘 잠을 잘 못 자고, 손발이 차고, 소화도 안 돼요" — and the screen renders a confident clinical brief.
 
-- **Tech:** Single page. Textarea on the left, structured output on the right. Calls Claude API (Sonnet 4.6 or Haiku 4.5) with a structured-output system prompt. Optional file upload + Tesseract.js for OCR of photographed bills.
+- **Tech:** Web Speech API (`lang: "ko-KR"`) for live dictation, or paste/type. Browser-direct Anthropic API call per the [AI demo pattern](./CLAUDE.md#ai-demo-pattern). Strict JSON schema for the structured output. Side-by-side: raw narrative on left, structured brief on right.
 - **Output panels:**
-  1. Parsed line-item table (charge type, amount, prior-month delta)
-  2. Anomaly badges (e.g. "이번 달 가스 요금이 평균보다 32% 높습니다")
-  3. One-paragraph plain-language summary in Korean + English toggle
-  4. 2–3 actionable suggestions
-- **Audience hook:** Directly speaks to the gas-utility friend. Real practical value.
-- **Slug:** `bill-sense`
-- **Scope estimate:** medium. API key handling needs a polite key-prompt UI.
+  1. Structured chief-complaint card (sleep, circulation, digestion, pain, energy) with severity + duration
+  2. **변증** — Claude commits to a pattern (e.g. 비양허, 기허) with rationale tying back to symptoms
+  3. **처방** — formula suggestion (e.g. 사물탕, 보중익기탕) with modification notes
+  4. **경혈** — acupoint suggestions for 침 treatment, with anatomical context
+  5. Suggested follow-up questions (3 things to ask next)
+  6. Korean ↔ English toggle on the whole brief
+- **Tone:** Full clinical confidence — no "참고용" hedging. These are demos, not products. The boldness *is* the wow.
+- **Visual:** Soft cream + celadon palette, restrained editorial typography, animated progress (streaming text + thin gradient bar) per [Loading states](./CLAUDE.md#loading-states-and-async-ux).
+- **Models:** Default `claude-opus-4-7` for the wow run, three-way toggle to compare with Sonnet 4.6 / Haiku 4.5.
+- **Audience hook:** Speaks directly to the 한의원 friend's daily work. Voice-in is the visible wow; the structured brief is the productive payoff.
+- **Slug:** `intake-companion`
+- **Scope estimate:** medium. Tight system prompt + JSON schema is the careful work; UI is small.
 
 ### 05 · Meeting → Action Items 🟡 queued
 
@@ -73,7 +78,7 @@ Paste a meeting transcript (or capture live via Web Speech API), get a clean Kor
 
 - **Tech:** Three modes — paste, upload `.txt`/`.vtt`, or live capture (`SpeechRecognition` API, `lang: "ko-KR"`). Claude API call with a strict JSON schema for action items.
 - **Output:** Two columns (Korean / English), each item card has owner, due date if mentioned, and a citation snippet from the transcript.
-- **Audience hook:** Useful for the hagwon teacher (parent meetings, faculty notes) AND any office worker.
+- **Audience hook:** Useful for the haniwon side (intake notes, staff meetings) AND any office worker.
 - **Slug:** `meeting-actions`
 - **Scope estimate:** small-medium.
 
@@ -83,7 +88,7 @@ Hover or tap any Hanja (漢字) inside a Korean text passage and a card pops up 
 
 - **Tech:** Local Hanja dataset (small JSON, ~3k common characters) for instant lookups; falls back to Claude API for rare characters or fuller etymology paragraphs.
 - **Interactions:** Hover card on desktop; tap-to-pin on mobile. "Explain this paragraph" button generates a Korean-only paraphrase (no Hanja) for older legal/academic texts.
-- **Audience hook:** Tutoring/hagwon angle is strong; also useful for KOGAS internal documents that still mix Hanja.
+- **Audience hook:** Strong for the haniwon side — classical Korean medicine texts and prescription notes still lean heavily on Hanja (e.g. 補, 瀉, 氣, 血, 經絡); also useful for KOGAS internal documents that still mix Hanja.
 - **Slug:** `hanja-explainer`
 - **Scope estimate:** medium. Sourcing the Hanja dataset is the prep work.
 
@@ -91,7 +96,7 @@ Hover or tap any Hanja (漢字) inside a Korean text passage and a card pops up 
 
 ## Hybrid — flashy AND useful
 
-### 07 · Seoul ⇄ Stockholm Live Globe 🟡 queued
+### 07 · Seoul ⇄ Stockholm Live Globe 🟢 shipped → [/live-globe/](./live-globe/)
 
 Interactive 3D globe with Seoul and Stockholm pinned. Real-time: local time, weather, sunrise/sunset, daylight terminator sweeping across the surface, optional energy-grid load (real if a free API exists, otherwise plausible mock). Click either city for an AI-generated "what's happening right now" blurb in Korean + English.
 
@@ -152,11 +157,11 @@ Long-form editorial essay on a Swedish concept (lagom, fika, allemansrätten…)
 
 ---
 
-## Recommended ship order (subject to change)
+## Recommended ship order (locked in)
 
-1. **01 — Molecule's Journey** — emotional + 3D + directly hits the gas-utility friend's world
+1. **01 — Molecule's Journey** — emotional + 3D, hits the KOGAS friend's world
 2. **07 — Seoul ⇄ Stockholm Live Globe** — instant "is this live?" moment, broadest appeal
-3. **04 — Bill Sense-Maker** — productive-AI counterweight that proves the magic is also useful
+3. **04 — 한방 Intake Companion** — productive-AI counterweight, hits the 한의원 friend
 4. **03 — Hangul Particle Type** — shareable, high screenshot rate, low scope
 5. then pick from the wildcards based on mood
 

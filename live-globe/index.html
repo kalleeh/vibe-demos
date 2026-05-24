@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seoul ⇄ Stockholm — Live Globe</title>
+  <meta name="description" content="A real-time globe pinning Seoul and Stockholm: live weather, local time, day/night terminator, and an AI-written 'right now' blurb.">
+  <meta property="og:title" content="Seoul ⇄ Stockholm — Live Globe">
+  <meta property="og:description" content="Two cities, one globe, in real time.">
+  <meta property="og:type" content="website">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg:        #04060d;
+      --panel:     rgba(10, 14, 24, 0.78);
+      --panel-2:   rgba(20, 26, 40, 0.7);
+      --line:      rgba(255, 255, 255, 0.10);
+      --line-2:    rgba(255, 255, 255, 0.18);
+      --ink:       #f0f1f6;
+      --ink-dim:   #b9bcc7;
+      --muted:     #7a8094;
+      --accent:    #6cc5ff;
+      --warm:      #ffb37a;
+      --seoul:     #ff7a4a;
+      --sthlm:     #6cc5ff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.55;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Globe canvas ── */
+    #globe {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      cursor: grab;
+    }
+    #globe:active { cursor: grabbing; }
+    #globe canvas { display: block; }
+
+    /* ── Loading ── */
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      transition: opacity .8s ease;
+    }
+    #loading.hidden { opacity: 0; pointer-events: none; }
+    #loading .lbl {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    #loading .bar {
+      width: 240px;
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    #loading .bar::after {
+      content: "";
+      position: absolute;
+      top: 0; left: -40%;
+      width: 40%; height: 100%;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      animation: shimmer 1.4s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0%   { left: -40%; }
+      100% { left: 100%; }
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      padding: 18px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      pointer-events: none;
+    }
+    .topbar a, .topbar button {
+      pointer-events: auto;
+      color: inherit;
+      text-decoration: none;
+      background: none;
+      border: none;
+      font: inherit;
+      cursor: pointer;
+    }
+    .topbar .mark {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 600;
+    }
+    .topbar .mark::before {
+      content: "";
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.5; }
+    }
+    .topbar .right { display: flex; gap: 22px; align-items: center; }
+    .topbar a:hover, .topbar button:hover { color: var(--accent); }
+
+    /* ── City cards (left + right rails) ── */
+    .city-card {
+      position: fixed;
+      bottom: 32px;
+      width: 320px;
+      background: var(--panel);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 22px 24px 20px;
+      z-index: 8;
+      transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .25s;
+    }
+    .city-card.left  { left: 28px; }
+    .city-card.right { right: 28px; }
+
+    .city-card .lbl {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .city-card .lbl::before {
+      content: "";
+      width: 6px; height: 6px; border-radius: 50%;
+    }
+    .city-card.seoul .lbl::before { background: var(--seoul); box-shadow: 0 0 8px var(--seoul); }
+    .city-card.sthlm .lbl::before { background: var(--sthlm); box-shadow: 0 0 8px var(--sthlm); }
+
+    .city-card .name {
+      font-family: "Fraunces", serif;
+      font-weight: 300;
+      font-size: 32px;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      line-height: 1.0;
+      margin-bottom: 4px;
+    }
+    .city-card .name em {
+      font-style: italic;
+      color: var(--accent);
+      font-weight: 400;
+    }
+    .city-card .native {
+      font-family: "Fraunces", serif;
+      font-style: italic;
+      font-size: 14px;
+      color: var(--ink-dim);
+      margin-bottom: 18px;
+    }
+    .city-card .clock {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 36px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      margin-bottom: 4px;
+      line-height: 1;
+    }
+    .city-card .clock-meta {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+    .city-card .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px 12px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+    .city-card .stat .k {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+    .city-card .stat .v {
+      font-family: "Inter", sans-serif;
+      font-size: 14px;
+      color: var(--ink);
+      font-weight: 500;
+    }
+    .city-card .stat .v.shimmer {
+      display: inline-block;
+      background: linear-gradient(90deg, var(--muted) 0%, var(--ink) 50%, var(--muted) 100%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: textshimmer 1.6s linear infinite;
+    }
+    @keyframes textshimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .city-card .ai-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 18px;
+      padding: 10px 14px;
+      background: rgba(108,197,255,0.10);
+      border: 1px solid rgba(108,197,255,0.35);
+      color: var(--accent);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 999px;
+      transition: background .2s, color .2s, border-color .2s;
+    }
+    .city-card .ai-btn:hover {
+      background: var(--accent);
+      color: var(--bg);
+    }
+    .city-card .ai-btn .arrow {
+      display: inline-block;
+      transition: transform .25s;
+    }
+    .city-card .ai-btn:hover .arrow { transform: translateX(3px); }
+
+    /* ── AI blurb panel ── */
+    .ai-panel {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(0.96);
+      width: min(560px, 92vw);
+      max-height: min(80vh, 720px);
+      background: var(--panel);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid var(--line-2);
+      border-radius: 6px;
+      padding: 32px 36px;
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s, transform .35s cubic-bezier(.2,.8,.2,1);
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .ai-panel.open {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+      pointer-events: auto;
+    }
+    .ai-panel .head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+    }
+    .ai-panel .head .ai-lbl {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .ai-panel .head h3 {
+      font-family: "Fraunces", serif;
+      font-weight: 300;
+      font-size: 30px;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .ai-panel .head h3 em { font-style: italic; color: var(--accent); }
+    .ai-panel .close {
+      background: none;
+      border: 1px solid var(--line);
+      color: var(--ink-dim);
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color .2s, border-color .2s;
+    }
+    .ai-panel .close:hover { color: var(--accent); border-color: var(--accent); }
+
+    .ai-panel .demo-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      align-self: flex-start;
+      padding: 5px 11px;
+      background: rgba(255,179,122,0.10);
+      border: 1px solid rgba(255,179,122,0.35);
+      border-radius: 999px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--warm);
+      font-style: italic;
+    }
+    .ai-panel.live .demo-pill {
+      background: rgba(108,197,255,0.10);
+      border-color: rgba(108,197,255,0.35);
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    .ai-panel .blurb {
+      font-family: "Fraunces", serif;
+      font-weight: 300;
+      font-size: 17px;
+      line-height: 1.65;
+      color: var(--ink);
+    }
+    .ai-panel .blurb .ko {
+      display: block;
+      margin-bottom: 14px;
+    }
+    .ai-panel .blurb .en {
+      display: block;
+      font-style: italic;
+      color: var(--ink-dim);
+      font-size: 15px;
+    }
+
+    /* Loading bar inside AI panel */
+    .ai-panel .progress {
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .ai-panel .progress.on { opacity: 1; }
+    .ai-panel .progress::after {
+      content: "";
+      position: absolute;
+      top: 0; left: -40%;
+      width: 40%; height: 100%;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      animation: shimmer 1.4s ease-in-out infinite;
+    }
+
+    .ai-panel .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+    .ai-panel .seg {
+      display: inline-flex;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px;
+    }
+    .ai-panel .seg button {
+      padding: 6px 12px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 999px;
+      transition: background .2s, color .2s;
+    }
+    .ai-panel .seg button.active {
+      background: var(--accent);
+      color: var(--bg);
+    }
+    .ai-panel .controls .mode-toggle {
+      margin-left: auto;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      background: none;
+      border: none;
+      transition: color .2s;
+    }
+    .ai-panel .controls .mode-toggle:hover { color: var(--accent); }
+
+    /* Key prompt */
+    .key-prompt {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      padding: 14px 0 0;
+      border-top: 1px solid var(--line);
+    }
+    .ai-panel.live .key-prompt { display: flex; }
+    .key-prompt .row { display: flex; gap: 8px; }
+    .key-prompt input {
+      flex: 1;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--line-2);
+      color: var(--ink);
+      padding: 9px 12px;
+      border-radius: 4px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      outline: none;
+    }
+    .key-prompt input:focus { border-color: var(--accent); }
+    .key-prompt button {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 9px 14px;
+      border-radius: 4px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .key-prompt button:hover { background: #fff; }
+    .key-prompt button.ghost {
+      background: none;
+      color: var(--muted);
+      padding: 9px 10px;
+    }
+    .key-prompt button.ghost:hover { color: var(--accent); }
+    .key-prompt .help {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .key-prompt .help a { color: var(--accent); text-decoration: none; }
+    .key-prompt .help a:hover { text-decoration: underline; }
+    .key-prompt .err {
+      color: var(--seoul);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: none;
+    }
+    .key-prompt.error .err { display: block; }
+
+    @media (max-width: 800px) {
+      .city-card { width: calc(100% - 40px); bottom: 20px; }
+      .city-card.left  { left: 20px; right: 20px; bottom: 200px; }
+      .city-card.right { right: 20px; }
+      .ai-panel { padding: 22px 22px; max-height: 88vh; }
+      .ai-panel .head h3 { font-size: 24px; }
+      .topbar { padding: 14px 16px; }
+      .topbar .right .label-time { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #loading .bar::after,
+      .ai-panel .progress::after { animation: none; left: 0; width: 100%; }
+      .topbar .mark::before { animation: none; }
+      .city-card .stat .v.shimmer { animation: none; background: none; -webkit-text-fill-color: var(--ink); }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loading">
+    <div class="lbl">Loading globe</div>
+    <div class="bar"></div>
+  </div>
+
+  <div id="globe"></div>
+
+  <header class="topbar">
+    <a href="../" class="mark">Vibe Studio</a>
+    <div class="right">
+      <span class="label-time" id="utcClock">UTC · ——:——</span>
+      <a href="../" aria-label="back">← Back</a>
+    </div>
+  </header>
+
+  <!-- City cards -->
+  <aside class="city-card sthlm left" data-city="stockholm">
+    <div class="lbl">Stockholm · 59.33°N</div>
+    <div class="name">Stock<em>holm</em></div>
+    <div class="native">Sverige · Sweden</div>
+    <div class="clock" id="clock-stockholm">——:——</div>
+    <div class="clock-meta" id="meta-stockholm">— · Europe/Stockholm</div>
+    <div class="stats">
+      <div class="stat"><div class="k">Weather</div><div class="v shimmer" id="w-stockholm">loading</div></div>
+      <div class="stat"><div class="k">Temp</div><div class="v shimmer" id="t-stockholm">—</div></div>
+      <div class="stat"><div class="k">Sunrise</div><div class="v shimmer" id="sr-stockholm">—</div></div>
+      <div class="stat"><div class="k">Sunset</div><div class="v shimmer" id="ss-stockholm">—</div></div>
+    </div>
+    <button class="ai-btn" data-ai="stockholm">
+      Ask Claude what's happening <span class="arrow">→</span>
+    </button>
+  </aside>
+
+  <aside class="city-card seoul right" data-city="seoul">
+    <div class="lbl">Seoul · 37.57°N</div>
+    <div class="name">서<em>울</em></div>
+    <div class="native">대한민국 · Republic of Korea</div>
+    <div class="clock" id="clock-seoul">——:——</div>
+    <div class="clock-meta" id="meta-seoul">— · Asia/Seoul</div>
+    <div class="stats">
+      <div class="stat"><div class="k">Weather</div><div class="v shimmer" id="w-seoul">loading</div></div>
+      <div class="stat"><div class="k">Temp</div><div class="v shimmer" id="t-seoul">—</div></div>
+      <div class="stat"><div class="k">Sunrise</div><div class="v shimmer" id="sr-seoul">—</div></div>
+      <div class="stat"><div class="k">Sunset</div><div class="v shimmer" id="ss-seoul">—</div></div>
+    </div>
+    <button class="ai-btn" data-ai="seoul">
+      Ask Claude what's happening <span class="arrow">→</span>
+    </button>
+  </aside>
+
+  <!-- AI panel -->
+  <div class="ai-panel" id="aiPanel" role="dialog" aria-modal="true" aria-labelledby="aiTitle">
+    <div class="head">
+      <div>
+        <div class="ai-lbl">Right now in</div>
+        <h3 id="aiTitle">—</h3>
+      </div>
+      <button class="close" id="aiClose" aria-label="Close">×</button>
+    </div>
+    <span class="demo-pill" id="demoPill">demo mode · canned output</span>
+    <div class="progress" id="aiProgress"></div>
+    <div class="blurb" id="aiBlurb"></div>
+    <div class="controls">
+      <div class="seg" role="tablist" aria-label="Model">
+        <button data-model="claude-opus-4-7" class="active">Opus 4.7</button>
+        <button data-model="claude-sonnet-4-6">Sonnet 4.6</button>
+        <button data-model="claude-haiku-4-5">Haiku 4.5</button>
+      </div>
+      <button class="mode-toggle" id="modeToggle">Use my own key →</button>
+    </div>
+    <div class="key-prompt" id="keyPrompt">
+      <div class="help">
+        Browser-direct API call. Your key stays on your device. <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Get one →</a>
+      </div>
+      <div class="row">
+        <input type="password" id="keyInput" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
+        <button id="keyPaste" type="button">Paste</button>
+        <button id="keySave" type="button">Save</button>
+      </div>
+      <div class="row">
+        <button id="keyForget" class="ghost" type="button">Forget my key</button>
+        <span class="err" id="keyErr">Key was rejected — try another</span>
+      </div>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+      }
+    }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/suncalc@1.9.0/suncalc.min.js"></script>
+
+  <script type="module">
+    import * as THREE from "three";
+
+    /* ───────────────────────────────────────────────
+       Cities
+       ─────────────────────────────────────────────── */
+    const CITIES = {
+      stockholm: {
+        key: "stockholm",
+        name: "Stockholm",
+        nameTitle: "Stock<em>holm</em>",
+        nativeLine: "Sverige · Sweden",
+        lat: 59.3293, lon: 18.0686,
+        tz: "Europe/Stockholm",
+        color: 0x6cc5ff,
+        accent: "#6cc5ff"
+      },
+      seoul: {
+        key: "seoul",
+        name: "Seoul",
+        nameTitle: "서<em>울</em>",
+        nativeLine: "대한민국 · Republic of Korea",
+        lat: 37.5665, lon: 126.9780,
+        tz: "Asia/Seoul",
+        color: 0xff7a4a,
+        accent: "#ff7a4a"
+      }
+    };
+
+    /* ───────────────────────────────────────────────
+       Three.js scene
+       ─────────────────────────────────────────────── */
+    const container = document.getElementById("globe");
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x04060d, 1);
+    container.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 0, 5.0);
+
+    /* ── Lighting ── */
+    const sunLight = new THREE.DirectionalLight(0xffffff, 1.4);
+    scene.add(sunLight);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.06));
+
+    /* ── Stars background ── */
+    function makeStars() {
+      const positions = [];
+      const colors = [];
+      for (let i = 0; i < 1800; i++) {
+        const r = 50 + Math.random() * 30;
+        const t = Math.random() * Math.PI * 2;
+        const p = Math.acos(2 * Math.random() - 1);
+        positions.push(
+          r * Math.sin(p) * Math.cos(t),
+          r * Math.sin(p) * Math.sin(t),
+          r * Math.cos(p)
+        );
+        const tint = 0.7 + Math.random() * 0.3;
+        const blue = 0.85 + Math.random() * 0.15;
+        colors.push(tint, tint, blue);
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+      g.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+      const m = new THREE.PointsMaterial({
+        size: 0.18, sizeAttenuation: true,
+        vertexColors: true, transparent: true,
+        opacity: 0.85, depthWrite: false
+      });
+      return new THREE.Points(g, m);
+    }
+    scene.add(makeStars());
+
+    /* ───────────────────────────────────────────────
+       Globe — day / night blend with Earth textures
+       ─────────────────────────────────────────────── */
+    const RADIUS = 1.4;
+    const loader = new THREE.TextureLoader();
+    loader.crossOrigin = "anonymous";
+
+    /* Use threejs.org example textures (NASA public domain, stable CDN). */
+    const dayURL   = "https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg";
+    const nightURL = "https://threejs.org/examples/textures/planets/earth_lights_2048.png";
+
+    function loadTex(url) {
+      return new Promise((resolve, reject) => {
+        loader.load(url, t => {
+          t.colorSpace = THREE.SRGBColorSpace;
+          t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+          resolve(t);
+        }, undefined, reject);
+      });
+    }
+
+    const globeMat = new THREE.ShaderMaterial({
+      uniforms: {
+        dayMap:   { value: null },
+        nightMap: { value: null },
+        sunDir:   { value: new THREE.Vector3(1, 0, 0) },
+        atmoColor:{ value: new THREE.Color(0x6cc5ff) }
+      },
+      vertexShader: `
+        varying vec3 vNormal;
+        varying vec3 vWorldPos;
+        varying vec2 vUv;
+        void main() {
+          vNormal = normalize(mat3(modelMatrix) * normal);
+          vec4 wp = modelMatrix * vec4(position, 1.0);
+          vWorldPos = wp.xyz;
+          vUv = uv;
+          gl_Position = projectionMatrix * viewMatrix * wp;
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D dayMap;
+        uniform sampler2D nightMap;
+        uniform vec3 sunDir;
+        uniform vec3 atmoColor;
+        varying vec3 vNormal;
+        varying vec3 vWorldPos;
+        varying vec2 vUv;
+        void main() {
+          vec3 N = normalize(vNormal);
+          vec3 L = normalize(sunDir);
+          float lambert = dot(N, L);
+          float dayMix = smoothstep(-0.18, 0.22, lambert);
+
+          vec3 day   = texture2D(dayMap, vUv).rgb;
+          vec3 night = texture2D(nightMap, vUv).rgb;
+          night *= 1.6;
+
+          vec3 col = mix(night, day, dayMix);
+
+          // Cool-blue dawn band along the terminator
+          float term = 1.0 - abs(lambert);
+          term = pow(term, 6.0);
+          col += atmoColor * 0.18 * term * dayMix;
+
+          // Subtle rim from camera-grazing angles
+          vec3 V = normalize(cameraPosition - vWorldPos);
+          float rim = pow(1.0 - max(dot(N, V), 0.0), 3.0);
+          col += atmoColor * 0.18 * rim;
+
+          gl_FragColor = vec4(col, 1.0);
+        }
+      `
+    });
+
+    const globeGeo = new THREE.SphereGeometry(RADIUS, 96, 96);
+    const globe = new THREE.Mesh(globeGeo, globeMat);
+    scene.add(globe);
+
+    /* ── Atmosphere shell ── */
+    const atmoMat = new THREE.ShaderMaterial({
+      transparent: true,
+      side: THREE.BackSide,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      uniforms: { atmoColor: { value: new THREE.Color(0x6cc5ff) } },
+      vertexShader: `
+        varying vec3 vNormal;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vNormal;
+        uniform vec3 atmoColor;
+        void main() {
+          float intensity = pow(0.62 - dot(vNormal, vec3(0,0,1.0)), 2.5);
+          gl_FragColor = vec4(atmoColor, 1.0) * intensity;
+        }
+      `
+    });
+    const atmoGeo = new THREE.SphereGeometry(RADIUS * 1.06, 64, 64);
+    const atmo = new THREE.Mesh(atmoGeo, atmoMat);
+    scene.add(atmo);
+
+    /* ───────────────────────────────────────────────
+       Pins — for each city
+       ─────────────────────────────────────────────── */
+    function latLonToVec3(lat, lon, r = RADIUS) {
+      const phi = (90 - lat) * Math.PI / 180;
+      const theta = (lon + 180) * Math.PI / 180;
+      const x = -r * Math.sin(phi) * Math.cos(theta);
+      const z =  r * Math.sin(phi) * Math.sin(theta);
+      const y =  r * Math.cos(phi);
+      return new THREE.Vector3(x, y, z);
+    }
+
+    const pinObjects = {};
+    Object.values(CITIES).forEach(c => {
+      const group = new THREE.Group();
+      group.userData.cityKey = c.key;
+
+      const pos = latLonToVec3(c.lat, c.lon, RADIUS * 1.005);
+      group.position.copy(pos);
+      group.lookAt(pos.clone().multiplyScalar(2));
+
+      // Inner dot
+      const dotMat = new THREE.MeshBasicMaterial({ color: c.color });
+      const dotGeo = new THREE.SphereGeometry(0.02, 16, 16);
+      group.add(new THREE.Mesh(dotGeo, dotMat));
+
+      // Pulsing ring
+      const ringGeo = new THREE.RingGeometry(0.022, 0.06, 48);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: c.color, transparent: true, opacity: 0.6,
+        side: THREE.DoubleSide, depthWrite: false
+      });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.userData.isPulse = true;
+      group.add(ring);
+
+      // Halo
+      const haloGeo = new THREE.SphereGeometry(0.06, 24, 24);
+      const haloMat = new THREE.MeshBasicMaterial({
+        color: c.color, transparent: true, opacity: 0.12,
+        depthWrite: false, blending: THREE.AdditiveBlending
+      });
+      group.add(new THREE.Mesh(haloGeo, haloMat));
+
+      scene.add(group);
+      pinObjects[c.key] = group;
+    });
+
+    /* ───────────────────────────────────────────────
+       Drag-to-rotate + auto-spin
+       ─────────────────────────────────────────────── */
+    let isDragging = false;
+    let lastX = 0, lastY = 0;
+    let targetRotY = 0, targetRotX = 0;
+    let curRotY = 0, curRotX = 0;
+    let velY = 0, velX = 0;
+    let lastInputT = performance.now();
+
+    container.addEventListener("pointerdown", e => {
+      // Don't hijack drags that started on a card or button
+      if (e.target.closest(".city-card, .ai-panel, .topbar")) return;
+      isDragging = true;
+      lastX = e.clientX; lastY = e.clientY;
+      lastInputT = performance.now();
+      container.setPointerCapture(e.pointerId);
+    });
+    container.addEventListener("pointermove", e => {
+      if (!isDragging) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastX = e.clientX; lastY = e.clientY;
+      targetRotY += dx * 0.005;
+      targetRotX = Math.max(-0.7, Math.min(0.7, targetRotX + dy * 0.005));
+      velY = dx * 0.005;
+      velX = dy * 0.005;
+      lastInputT = performance.now();
+    });
+    container.addEventListener("pointerup", () => { isDragging = false; });
+    container.addEventListener("pointerleave", () => { isDragging = false; });
+    container.addEventListener("wheel", e => { lastInputT = performance.now(); }, { passive: true });
+
+    /* Click pin → open AI panel for that city */
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    let pointerDownXY = null;
+    container.addEventListener("pointerdown", e => {
+      if (e.target.closest(".city-card, .ai-panel, .topbar")) return;
+      pointerDownXY = { x: e.clientX, y: e.clientY };
+    });
+    container.addEventListener("pointerup", e => {
+      if (!pointerDownXY) return;
+      const dx = e.clientX - pointerDownXY.x;
+      const dy = e.clientY - pointerDownXY.y;
+      pointerDownXY = null;
+      if (Math.hypot(dx, dy) > 6) return; // it was a drag, not a click
+
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      const groups = Object.values(pinObjects);
+      const meshes = [];
+      groups.forEach(g => g.traverse(o => { if (o.isMesh) { o.userData.cityKey = g.userData.cityKey; meshes.push(o); } }));
+      const hits = raycaster.intersectObjects(meshes, false);
+      if (hits.length) {
+        const cityKey = hits[0].object.userData.cityKey;
+        if (cityKey) openAiPanel(cityKey);
+      }
+    });
+
+    /* ───────────────────────────────────────────────
+       Sun direction (for shader + day-night)
+       ─────────────────────────────────────────────── */
+    function sunDirection(date) {
+      // Subsolar point: where the sun is directly overhead.
+      // Compute via basic astronomy approximations.
+      const D = (date - new Date(Date.UTC(2000, 0, 1, 12))) / 86400000; // days since J2000
+      const g = (357.529 + 0.98560028 * D) * Math.PI / 180;
+      const q = (280.459 + 0.98564736 * D) * Math.PI / 180;
+      const L = q + (1.915 * Math.PI / 180) * Math.sin(g) + (0.020 * Math.PI / 180) * Math.sin(2 * g);
+      const e = (23.439 - 0.00000036 * D) * Math.PI / 180;
+
+      const RA = Math.atan2(Math.cos(e) * Math.sin(L), Math.cos(L));
+      const dec = Math.asin(Math.sin(e) * Math.sin(L));
+
+      const GMST = (18.697374558 + 24.06570982441908 * D) % 24;
+      const subLon = (RA * 180 / Math.PI - GMST * 15);
+      let lon = ((subLon + 540) % 360) - 180;
+      const lat = dec * 180 / Math.PI;
+      return latLonToVec3(lat, lon, 1).normalize();
+    }
+
+    /* ───────────────────────────────────────────────
+       Animation loop
+       ─────────────────────────────────────────────── */
+    const clock = new THREE.Clock();
+    function tick() {
+      const dt = clock.getDelta();
+      const t = clock.getElapsedTime();
+
+      /* Sun direction follows real-world time */
+      const sd = sunDirection(new Date());
+      globeMat.uniforms.sunDir.value.copy(sd);
+      sunLight.position.copy(sd).multiplyScalar(10);
+
+      /* Auto-spin if user has been idle for >2.5s */
+      const idle = (performance.now() - lastInputT) > 2500;
+      if (idle && !isDragging) targetRotY += dt * 0.04;
+
+      /* Smooth toward target rotation */
+      curRotY += (targetRotY - curRotY) * 0.08;
+      curRotX += (targetRotX - curRotX) * 0.08;
+      globe.rotation.y = curRotY;
+      globe.rotation.x = curRotX;
+      atmo.rotation.copy(globe.rotation);
+
+      /* Pin pulse rings */
+      Object.values(pinObjects).forEach(group => {
+        group.rotation.y = curRotY; // wrong axis-of-rotation? we set group as child of scene at fixed point
+      });
+      // Actually we want pins to rotate WITH the globe. Re-parent on first frame:
+      // (handled below in init)
+
+      /* Pulse all pin rings */
+      scene.traverse(o => {
+        if (o.userData && o.userData.isPulse) {
+          const s = 1 + (Math.sin(t * 2.4) + 1) * 0.6;
+          o.scale.setScalar(s);
+          o.material.opacity = 0.55 - (s - 1) * 0.4;
+        }
+      });
+
+      renderer.render(scene, camera);
+      requestAnimationFrame(tick);
+    }
+
+    function onResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+    window.addEventListener("resize", onResize);
+
+    /* ───────────────────────────────────────────────
+       Init: load textures, parent pins, start
+       ─────────────────────────────────────────────── */
+    Promise.all([loadTex(dayURL), loadTex(nightURL)]).then(([day, night]) => {
+      globeMat.uniforms.dayMap.value = day;
+      globeMat.uniforms.nightMap.value = night;
+
+      /* Re-parent pins to globe so they rotate with it */
+      Object.values(pinObjects).forEach(group => {
+        scene.remove(group);
+        globe.add(group);
+      });
+
+      tick();
+      requestAnimationFrame(() => {
+        document.getElementById("loading").classList.add("hidden");
+      });
+    }).catch(err => {
+      console.error("Texture load failed", err);
+      document.querySelector("#loading .lbl").textContent = "Texture load failed — check network";
+    });
+
+    /* ───────────────────────────────────────────────
+       Live data — clocks, weather, sun
+       ─────────────────────────────────────────────── */
+    function fmtTime(date, tz) {
+      return new Intl.DateTimeFormat("en-GB", {
+        timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false
+      }).format(date);
+    }
+    function fmtMeta(date, tz) {
+      const wd = new Intl.DateTimeFormat("en-GB", {
+        timeZone: tz, weekday: "short"
+      }).format(date);
+      const utc = new Intl.DateTimeFormat("en-GB", {
+        timeZone: tz, timeZoneName: "short"
+      }).formatToParts(date).find(p => p.type === "timeZoneName")?.value ?? "";
+      return `${wd} · ${utc}`;
+    }
+
+    function tickClocks() {
+      const now = new Date();
+      Object.values(CITIES).forEach(c => {
+        document.getElementById(`clock-${c.key}`).textContent = fmtTime(now, c.tz);
+        document.getElementById(`meta-${c.key}`).textContent  = fmtMeta(now, c.tz);
+      });
+      const utc = new Intl.DateTimeFormat("en-GB", {
+        timeZone: "UTC", hour: "2-digit", minute: "2-digit", hour12: false
+      }).format(now);
+      const utcEl = document.getElementById("utcClock");
+      if (utcEl) utcEl.textContent = `UTC · ${utc}`;
+    }
+    tickClocks();
+    setInterval(tickClocks, 15000);
+
+    /* SunCalc — sunrise/sunset per city */
+    function updateSun() {
+      const now = new Date();
+      Object.values(CITIES).forEach(c => {
+        const t = SunCalc.getTimes(now, c.lat, c.lon);
+        document.getElementById(`sr-${c.key}`).textContent = fmtTime(t.sunrise, c.tz);
+        document.getElementById(`sr-${c.key}`).classList.remove("shimmer");
+        document.getElementById(`ss-${c.key}`).textContent = fmtTime(t.sunset, c.tz);
+        document.getElementById(`ss-${c.key}`).classList.remove("shimmer");
+      });
+    }
+    updateSun();
+    setInterval(updateSun, 60 * 60 * 1000); // hourly is plenty
+
+    /* Open-Meteo weather (no key, CORS-friendly) */
+    const WEATHER_CODES = {
+      0: "Clear", 1: "Mostly clear", 2: "Partly cloudy", 3: "Overcast",
+      45: "Fog", 48: "Rime fog",
+      51: "Light drizzle", 53: "Drizzle", 55: "Heavy drizzle",
+      61: "Light rain", 63: "Rain", 65: "Heavy rain",
+      71: "Light snow", 73: "Snow", 75: "Heavy snow",
+      77: "Snow grains",
+      80: "Showers", 81: "Heavy showers", 82: "Violent showers",
+      85: "Snow showers", 86: "Heavy snow showers",
+      95: "Thunderstorm", 96: "Storm + hail", 99: "Storm + hail"
+    };
+
+    async function fetchWeather(c) {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current=temperature_2m,weather_code,wind_speed_10m`;
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("weather " + res.status);
+        const data = await res.json();
+        const cur = data.current;
+        const wel = document.getElementById(`w-${c.key}`);
+        const tel = document.getElementById(`t-${c.key}`);
+        wel.textContent = WEATHER_CODES[cur.weather_code] ?? `code ${cur.weather_code}`;
+        wel.classList.remove("shimmer");
+        tel.textContent = `${Math.round(cur.temperature_2m)}°C · ${Math.round(cur.wind_speed_10m)} km/h`;
+        tel.classList.remove("shimmer");
+        c.weather = { code: cur.weather_code, label: WEATHER_CODES[cur.weather_code] ?? "—",
+                      tempC: cur.temperature_2m, windKmh: cur.wind_speed_10m };
+      } catch (err) {
+        console.warn("weather fetch failed", err);
+        document.getElementById(`w-${c.key}`).textContent = "offline";
+        document.getElementById(`w-${c.key}`).classList.remove("shimmer");
+        document.getElementById(`t-${c.key}`).textContent = "—";
+        document.getElementById(`t-${c.key}`).classList.remove("shimmer");
+      }
+    }
+    Object.values(CITIES).forEach(c => fetchWeather(c));
+    setInterval(() => Object.values(CITIES).forEach(c => fetchWeather(c)), 10 * 60 * 1000);
+
+    /* ───────────────────────────────────────────────
+       AI panel — canned-first, key-optional, model toggle
+       ─────────────────────────────────────────────── */
+    const aiPanel    = document.getElementById("aiPanel");
+    const aiClose    = document.getElementById("aiClose");
+    const aiTitle    = document.getElementById("aiTitle");
+    const aiBlurb    = document.getElementById("aiBlurb");
+    const aiProgress = document.getElementById("aiProgress");
+    const demoPill   = document.getElementById("demoPill");
+    const modeToggle = document.getElementById("modeToggle");
+    const keyPrompt  = document.getElementById("keyPrompt");
+    const keyInput   = document.getElementById("keyInput");
+    const keySave    = document.getElementById("keySave");
+    const keyPaste   = document.getElementById("keyPaste");
+    const keyForget  = document.getElementById("keyForget");
+    const keyErr     = document.getElementById("keyErr");
+
+    let currentCity = null;
+    let currentModel = "claude-opus-4-7";
+    let liveMode = false;
+
+    const KEY_STORAGE = "vibe.live-globe.key";
+
+    function getKey()  { return localStorage.getItem(KEY_STORAGE) || ""; }
+    function setKey(v) { localStorage.setItem(KEY_STORAGE, v); }
+    function clearKey(){ localStorage.removeItem(KEY_STORAGE); }
+
+    document.querySelectorAll(".ai-btn").forEach(b => {
+      b.addEventListener("click", () => openAiPanel(b.dataset.ai));
+    });
+    aiClose.addEventListener("click", closeAiPanel);
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") closeAiPanel();
+    });
+
+    document.querySelectorAll(".ai-panel .seg button").forEach(b => {
+      b.addEventListener("click", () => {
+        document.querySelectorAll(".ai-panel .seg button").forEach(x => x.classList.remove("active"));
+        b.classList.add("active");
+        currentModel = b.dataset.model;
+        if (currentCity) renderBlurb(currentCity);
+      });
+    });
+
+    modeToggle.addEventListener("click", () => {
+      liveMode = !liveMode;
+      aiPanel.classList.toggle("live", liveMode);
+      if (liveMode) {
+        demoPill.textContent = "live mode · using your key";
+        modeToggle.textContent = "Back to demo mode ←";
+        keyInput.value = getKey() ? "•".repeat(20) : "";
+        if (currentCity && getKey()) renderBlurb(currentCity);
+      } else {
+        demoPill.textContent = "demo mode · canned output";
+        modeToggle.textContent = "Use my own key →";
+        if (currentCity) renderBlurb(currentCity);
+      }
+    });
+
+    keySave.addEventListener("click", () => {
+      const v = keyInput.value.trim();
+      if (!v || v.startsWith("•")) return;
+      setKey(v);
+      keyInput.value = "•".repeat(20);
+      keyPrompt.classList.remove("error");
+      if (currentCity) renderBlurb(currentCity);
+    });
+    keyPaste.addEventListener("click", async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        keyInput.value = text.trim();
+      } catch {
+        keyInput.focus();
+      }
+    });
+    keyForget.addEventListener("click", () => {
+      clearKey();
+      keyInput.value = "";
+      keyPrompt.classList.remove("error");
+      if (currentCity) renderBlurb(currentCity);
+    });
+
+    function openAiPanel(cityKey) {
+      currentCity = cityKey;
+      const c = CITIES[cityKey];
+      aiTitle.innerHTML = c.nameTitle;
+      aiPanel.classList.add("open");
+      renderBlurb(cityKey);
+    }
+    function closeAiPanel() {
+      aiPanel.classList.remove("open");
+      currentCity = null;
+    }
+
+    /* ── Canned blurbs (no API call, work for everyone) ── */
+    function cannedBlurb(c) {
+      const now = new Date();
+      const localTime = fmtTime(now, c.tz);
+      const w = c.weather;
+      const wLine = w ? `${w.label.toLowerCase()}, ${Math.round(w.tempC)}°C` : "weather offline";
+      if (c.key === "stockholm") {
+        return {
+          ko: `스톡홀름은 지금 ${localTime}, ${wLine}. 감라스탄의 좁은 골목에는 늦은 산책객 몇 명. 지하철 ${
+            now.getHours() < 8 ? "첫 차" : now.getHours() > 22 ? "막차" : "정상 운행"
+          }, 항구의 페리는 발틱해를 향해 천천히 미끄러진다.`,
+          en: `It's ${localTime} in Stockholm — ${wLine}. A handful of late walkers in Gamla Stan; the metro is ${
+            now.getHours() < 8 ? "starting up" : now.getHours() > 22 ? "winding down" : "running normally"
+          }; harbor ferries glide toward the Baltic.`
+        };
+      }
+      return {
+        ko: `서울은 지금 ${localTime}, ${wLine}. 강남역 일대는 ${
+          now.getHours() < 7 ? "조용" : now.getHours() < 10 ? "출근길" : now.getHours() < 18 ? "분주" : "퇴근 인파"
+        }하고, 한강을 따라 자전거가 지나간다. 종로의 작은 분식집들은 영업 중.`,
+        en: `It's ${localTime} in Seoul — ${wLine}. Around Gangnam Station the streets are ${
+          now.getHours() < 7 ? "quiet" : now.getHours() < 10 ? "in commute mode" : now.getHours() < 18 ? "busy" : "full of evening crowds"
+        }; cyclists trace the Han River; the small 분식 shops in Jongno are still open.`
+      };
+    }
+
+    function paintBlurb({ ko, en }) {
+      aiBlurb.innerHTML = `<span class="ko">${ko}</span><span class="en">${en}</span>`;
+    }
+
+    async function renderBlurb(cityKey) {
+      const c = CITIES[cityKey];
+      if (!liveMode) {
+        aiProgress.classList.remove("on");
+        paintBlurb(cannedBlurb(c));
+        return;
+      }
+      const key = getKey();
+      if (!key) {
+        aiBlurb.innerHTML = `<span class="ko" style="color:var(--muted)">Paste your Anthropic API key below to generate a live "right now" blurb. Stays on your device.</span>`;
+        aiProgress.classList.remove("on");
+        return;
+      }
+      aiBlurb.innerHTML = `<span class="ko" style="color:var(--muted)">Asking Claude…</span>`;
+      aiProgress.classList.add("on");
+      try {
+        const blurb = await callClaude(c, key, currentModel);
+        paintBlurb(blurb);
+      } catch (err) {
+        aiProgress.classList.remove("on");
+        if (err.status === 401) {
+          clearKey();
+          keyPrompt.classList.add("error");
+          aiBlurb.innerHTML = `<span class="ko" style="color:var(--seoul)">Key was rejected. Paste a valid key below.</span>`;
+        } else {
+          aiBlurb.innerHTML = `<span class="ko" style="color:var(--seoul)">${err.message || "Request failed"}</span>`;
+        }
+      } finally {
+        aiProgress.classList.remove("on");
+      }
+    }
+
+    /* ── Browser-direct Claude call per CLAUDE.md AI demo pattern ── */
+    async function callClaude(c, key, model) {
+      const now = new Date();
+      const localTime = fmtTime(now, c.tz);
+      const w = c.weather;
+      const wLine = w ? `${w.label}, ${Math.round(w.tempC)}°C, wind ${Math.round(w.windKmh)} km/h` : "weather data unavailable";
+      const sun = SunCalc.getTimes(now, c.lat, c.lon);
+      const sunLine = `sunrise ${fmtTime(sun.sunrise, c.tz)}, sunset ${fmtTime(sun.sunset, c.tz)}`;
+
+      const sys = `You write evocative, specific 2-paragraph "right now" snapshots of a city. Output strict JSON with two keys: "ko" (Korean) and "en" (English). Korean comes first because the audience is Korean. Each paragraph 2-3 sentences, present tense. Use sensory detail and specific neighborhoods. No greetings, no headers — just the prose. Do not wrap JSON in markdown.`;
+
+      const user = `City: ${c.name} (${c.lat}, ${c.lon}, ${c.tz})
+Local time: ${localTime}
+Weather: ${wLine}
+Sun: ${sunLine}
+
+Write a short snapshot of what's likely happening in the city right now. Be vivid and specific.
+
+Return strict JSON:
+{"ko": "<two short Korean paragraphs separated by \\n\\n>", "en": "<two short English paragraphs separated by \\n\\n>"}`;
+
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": key,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true"
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: 600,
+          system: sys,
+          messages: [{ role: "user", content: user }]
+        })
+      });
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        const err = new Error(`Claude API ${res.status}: ${txt.slice(0, 200)}`);
+        err.status = res.status;
+        throw err;
+      }
+      const data = await res.json();
+      const text = (data.content && data.content[0] && data.content[0].text) || "";
+      const m = text.match(/\{[\s\S]*\}/);
+      if (!m) throw new Error("No JSON in response");
+      const obj = JSON.parse(m[0]);
+      // Convert paragraph breaks to <br><br>
+      const fmt = s => String(s || "").replace(/\n\n/g, "<br><br>");
+      return { ko: fmt(obj.ko), en: fmt(obj.en) };
+    }
+
+  </script>
+
+</body>
+</html>
