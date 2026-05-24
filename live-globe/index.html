@@ -136,6 +136,34 @@
     .topbar .right { display: flex; gap: 22px; align-items: center; }
     .topbar a:hover, .topbar button:hover { color: var(--accent); }
 
+    /* Focus toggle — hide the info cards to see the globe alone */
+    .topbar .focus-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .topbar .focus-toggle .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--ink-dim);
+      transition: background .2s, box-shadow .2s;
+    }
+    body.focus .topbar .focus-toggle .dot {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    /* Focus mode: fade out the city cards (and any open AI panel) */
+    body.focus .city-card {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(20px);
+    }
+    body.focus .ai-panel {
+      opacity: 0;
+      pointer-events: none;
+    }
+
     /* ── City cards (left + right rails) ── */
     .city-card {
       position: fixed;
@@ -509,6 +537,7 @@
       .ai-panel { padding: 22px 22px; max-height: 88vh; }
       .ai-panel .head h3 { font-size: 24px; }
       .topbar { padding: 14px 16px; }
+      .topbar .right { gap: 14px; }
       .topbar .right .label-time { display: none; }
     }
 
@@ -533,6 +562,9 @@
     <a href="../" class="mark">Vibe Studio</a>
     <div class="right">
       <span class="label-time" id="utcClock">UTC · ——:——</span>
+      <button class="focus-toggle" id="focusToggle" type="button" aria-pressed="false" aria-label="Toggle focus mode">
+        <span class="dot" aria-hidden="true"></span><span class="lbl">Focus</span>
+      </button>
       <a href="../" aria-label="back">← Back</a>
     </div>
   </header>
@@ -1122,8 +1154,26 @@
       b.addEventListener("click", () => openAiPanel(b.dataset.ai));
     });
     aiClose.addEventListener("click", closeAiPanel);
+
+    /* ── Focus mode: hide cards for an unobstructed look at the globe ── */
+    const FOCUS_STORAGE = "vibe.live-globe.focus";
+    const focusToggle = document.getElementById("focusToggle");
+    function setFocus(on) {
+      document.body.classList.toggle("focus", on);
+      focusToggle.setAttribute("aria-pressed", String(on));
+      try { localStorage.setItem(FOCUS_STORAGE, on ? "1" : "0"); } catch (_) {}
+      if (on) closeAiPanel();
+    }
+    focusToggle.addEventListener("click", () => setFocus(!document.body.classList.contains("focus")));
+    // Restore on load
+    try { if (localStorage.getItem(FOCUS_STORAGE) === "1") setFocus(true); } catch (_) {}
+
     document.addEventListener("keydown", e => {
       if (e.key === "Escape") closeAiPanel();
+      if (e.key === "f" || e.key === "F") {
+        if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+        setFocus(!document.body.classList.contains("focus"));
+      }
     });
 
     document.querySelectorAll(".ai-panel .seg button").forEach(b => {
