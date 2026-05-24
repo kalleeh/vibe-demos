@@ -1,4 +1,4 @@
-const CACHE = "vibe-korean-mbti-v5";
+const CACHE = "vibe-korean-mbti-v6";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
   // Canned-demo portraits so the showcase flow is instant offline.

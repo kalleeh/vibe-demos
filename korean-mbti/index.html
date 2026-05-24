@@ -522,6 +522,161 @@ header.top {
   margin-top: 22px;
 }
 
+/* ---------- function-stack dial (cognitive functions) ---------- */
+.fnstack {
+  background: rgba(243, 237, 225, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 24px 26px;
+  margin-bottom: 18px;
+}
+.fnstack h3 {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+.fnstack .fnstack-sub {
+  font-size: 12px;
+  color: rgba(243, 237, 225, 0.55);
+  margin-bottom: 20px;
+  font-family: "Noto Serif KR", serif;
+  font-style: italic;
+}
+.fnstack-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.fn-dial {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: rgba(20, 17, 13, 0.18);
+  cursor: help;
+  transition: border-color 0.18s, background 0.18s, transform 0.12s;
+}
+.fn-dial:hover {
+  border-color: var(--accent-2);
+  background: rgba(199, 90, 58, 0.08);
+  transform: translateY(-1px);
+}
+.fn-dial .fn-hanja {
+  font-family: "Noto Serif KR", "Noto Serif", serif;
+  font-size: 26px;
+  font-weight: 500;
+  color: var(--paper);
+  line-height: 1;
+  margin-bottom: 4px;
+  letter-spacing: 0.04em;
+}
+.fn-dial.dim .fn-hanja { color: rgba(243, 237, 225, 0.5); }
+.fn-dial .fn-han { color: var(--accent-2); }
+.fn-dial.dim .fn-han { color: rgba(199, 90, 58, 0.55); }
+.fn-dial .fn-name-ko {
+  font-family: "Noto Sans KR", sans-serif;
+  font-size: 11px;
+  color: rgba(243, 237, 225, 0.7);
+  margin-bottom: 10px;
+  letter-spacing: 0.04em;
+}
+.fn-dial .fn-code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--gold);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.fn-dial .fn-rank {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: rgba(243, 237, 225, 0.4);
+  text-transform: uppercase;
+}
+.fn-arc {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 8px;
+}
+.fn-arc-track {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 4;
+}
+.fn-arc-fill {
+  fill: none;
+  stroke: url(#fnGrad);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  transition: stroke-dashoffset 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fn-tip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 8px 12px;
+  border-radius: 3px;
+  font-family: "Noto Sans KR", sans-serif;
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s, transform 0.18s;
+  z-index: 4;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.32);
+  max-width: 240px;
+  white-space: normal;
+  width: max-content;
+  text-align: center;
+}
+.fn-tip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--ink);
+}
+.fn-dial:hover .fn-tip,
+.fn-dial:focus .fn-tip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+@media (max-width: 580px) {
+  .fnstack-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .fn-arc { width: 56px; height: 56px; }
+}
+
+/* ---------- result-card share button ---------- */
+.btn.card-btn {
+  background: var(--gold);
+  color: var(--ink);
+}
+.btn.card-btn:hover { background: #d8b069; }
+.btn.card-btn::before {
+  content: "▤  ";
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  margin-right: 2px;
+  opacity: 0.7;
+}
+
 /* ---------- AI panel ---------- */
 .ai-intro {
   background: rgba(243, 237, 225, 0.04);
@@ -1125,6 +1280,77 @@ const TYPES = {
           vibes: ["에너지", "재미", "현재 중심"] }
 };
 
+// ============================================================
+// COGNITIVE FUNCTION STACKS (Jung / Myers / Beebe-style 4-stack)
+// Each type's dominant → auxiliary → tertiary → inferior.
+// Codes: Ti/Te/Fi/Fe/Ni/Ne/Si/Se. We collapse to 4 buckets in the dial:
+//   思 (사고 = T), 感 (감정 = F), 直 (직관 = N), 覺 (감각 = S)
+// Strength ranks: dom=4, aux=3, tert=2, inf=1
+// ============================================================
+const FN_STACKS = {
+  INTJ: ["Ni", "Te", "Fi", "Se"],
+  INTP: ["Ti", "Ne", "Si", "Fe"],
+  ENTJ: ["Te", "Ni", "Se", "Fi"],
+  ENTP: ["Ne", "Ti", "Fe", "Si"],
+  INFJ: ["Ni", "Fe", "Ti", "Se"],
+  INFP: ["Fi", "Ne", "Si", "Te"],
+  ENFJ: ["Fe", "Ni", "Se", "Ti"],
+  ENFP: ["Ne", "Fi", "Te", "Si"],
+  ISTJ: ["Si", "Te", "Fi", "Ne"],
+  ISFJ: ["Si", "Fe", "Ti", "Ne"],
+  ESTJ: ["Te", "Si", "Ne", "Fi"],
+  ESFJ: ["Fe", "Si", "Ne", "Ti"],
+  ISTP: ["Ti", "Se", "Ni", "Fe"],
+  ISFP: ["Fi", "Se", "Ni", "Te"],
+  ESTP: ["Se", "Ti", "Fe", "Ni"],
+  ESFP: ["Se", "Fi", "Te", "Ni"]
+};
+
+// 4-bucket dial labels (collapsed from Ti/Te → 思, etc.)
+const DIAL_BUCKETS = [
+  { key: "T", han: "思", ko: "사고", desc: "논리·기준·체계로 판단하는 결" },
+  { key: "F", han: "感", ko: "감정", desc: "사람·관계·가치로 판단하는 결" },
+  { key: "N", han: "直", ko: "직관", desc: "패턴·가능성·의미를 읽는 결" },
+  { key: "S", han: "覺", ko: "감각", desc: "사실·디테일·현장을 읽는 결" }
+];
+
+// Ranks within stack: dom=4, aux=3, tert=2, inf=1.
+// We compute each bucket's strength = max rank of any function in that bucket
+// that appears in the stack (covers e.g. ENFP where N appears as Ne(dom) only,
+// T appears as Te(tert)).
+function computeFnStrengths(type) {
+  const stack = FN_STACKS[type];
+  if (!stack) return null;
+  const ranks = { N: 0, T: 0, F: 0, S: 0 }; // 0..4
+  stack.forEach((fn, i) => {
+    const letter = fn[0]; // N/T/F/S
+    const rank = 4 - i;   // dom=4, aux=3, tert=2, inf=1
+    if (rank > ranks[letter]) ranks[letter] = rank;
+  });
+  // Convert to 0..1 strength. Bucket not in stack = 0.25 baseline.
+  const out = {};
+  for (const k of "TFNS") {
+    out[k] = ranks[k] === 0 ? 0.22 : (ranks[k] / 4) * 0.78 + 0.22;
+  }
+  // Tag the rank ordinal by bucket too (1 = dominant, 4 = inferior)
+  const ordinal = { N: 0, T: 0, F: 0, S: 0 };
+  stack.forEach((fn, i) => {
+    const letter = fn[0];
+    if (ordinal[letter] === 0) ordinal[letter] = i + 1; // first time = highest
+  });
+  // Buckets not present in stack at all: ordinal = 5 (off-stack)
+  for (const k of "TFNS") if (ordinal[k] === 0) ordinal[k] = 5;
+  return { strength: out, ordinal, stack };
+}
+
+const FN_RANK_LABEL = {
+  1: "Dominant · 주기능",
+  2: "Auxiliary · 부기능",
+  3: "Tertiary · 3차기능",
+  4: "Inferior · 열등기능",
+  5: "Off-stack · 비활성"
+};
+
 const CANNED = [
   {
     matches: ["조용히", "혼자", "책", "생각", "감정", "마음", "글", "일기"],
@@ -1358,6 +1584,12 @@ function showResult() {
     $("#test-result").style.display = "none";
     $("#test-intro").style.display = "block";
   });
+  wireSaveCard($("#test-result"), {
+    type,
+    nickname_ko: meta.nickname,
+    pull_quote: meta.one_liner,
+    fromTest: true
+  });
 }
 
 // ============================================================
@@ -1404,6 +1636,8 @@ function renderResultHTML(r) {
     ? `<img class="type-portrait" src="${portraitSrc}" alt="${escapeHTML(r.type)} — ${escapeHTML(r.nickname_ko)}" width="1024" height="640" loading="eager" decoding="async">`
     : "";
 
+  const fnHTML = renderFnStack(r.type);
+
   return `
     <div class="result">
       <div class="type-hero">
@@ -1419,6 +1653,7 @@ function renderResultHTML(r) {
         <h3>4 축 분석</h3>
         ${axisHTML}
       </div>
+      ${fnHTML}
       <div class="reading">
         <h3>읽어드린 결</h3>
         <p>${escapeHTML(r.reading_ko)}</p>
@@ -1426,8 +1661,65 @@ function renderResultHTML(r) {
         ${vibesHTML ? `<div class="vibes">${vibesHTML}</div>` : ""}
       </div>
       <div class="result-actions">
+        <button class="btn card-btn" data-action="save-card">결과 카드 저장</button>
         <button class="btn secondary" data-action="restart">${r.fromTest ? "다시 풀기" : "지우고 다시"}</button>
       </div>
+    </div>
+  `;
+}
+
+// ============================================================
+// FUNCTION-STACK DIAL (Feature 3)
+// 4 hanja dials — 思·感·直·覺 — with relative-strength SVG arcs
+// and Korean tooltips on hover.
+// ============================================================
+function renderFnStack(type) {
+  const data = computeFnStrengths(type);
+  if (!data) return "";
+  const dials = DIAL_BUCKETS.map(b => {
+    const s = data.strength[b.key];
+    const ord = data.ordinal[b.key];
+    const dim = ord >= 4;
+    // Arc: circumference 2πr where r=28 → ~175.93. Show s fraction.
+    const C = 2 * Math.PI * 28;
+    const offset = C * (1 - s);
+    // Find the actual function in this bucket from the stack (e.g. T → Te or Ti)
+    const fnInStack = data.stack.find(fn => fn[0] === b.key) || "—";
+    const rankLabel = FN_RANK_LABEL[ord] || "";
+    const tipDesc = ord <= 4
+      ? `${b.ko} (${b.han}) · ${rankLabel.split(" · ")[1] || rankLabel}. ${b.desc}.`
+      : `${b.ko} (${b.han}) · 이 유형의 기본 스택에는 없는 결.`;
+    return `
+      <div class="fn-dial${dim ? " dim" : ""}" tabindex="0">
+        <svg class="fn-arc" viewBox="0 0 64 64" aria-hidden="true">
+          <circle class="fn-arc-track" cx="32" cy="32" r="28"/>
+          <circle class="fn-arc-fill" cx="32" cy="32" r="28"
+                  stroke-dasharray="${C.toFixed(2)}"
+                  stroke-dashoffset="${offset.toFixed(2)}"/>
+        </svg>
+        <div class="fn-hanja"><span class="fn-han">${b.han}</span></div>
+        <div class="fn-name-ko">${b.ko}</div>
+        <div class="fn-code">${fnInStack}</div>
+        <div class="fn-rank">${ord <= 4 ? "#" + ord : "off"}</div>
+        <div class="fn-tip">${escapeHTML(tipDesc)}</div>
+      </div>
+    `;
+  }).join("");
+  const stackStr = data.stack.join(" · ");
+  return `
+    <div class="fnstack">
+      <h3>인지 기능 스택 — Function Stack</h3>
+      <div class="fnstack-sub">${escapeHTML(stackStr)} — 강한 결부터 약한 결 순서로.</div>
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+          <linearGradient id="fnGrad" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0%" stop-color="#9a2a2a"/>
+            <stop offset="60%" stop-color="#c75a3a"/>
+            <stop offset="100%" stop-color="#c8a35a"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div class="fnstack-grid">${dials}</div>
     </div>
   `;
 }
@@ -1437,6 +1729,226 @@ function escapeHTML(s) {
   return String(s).replace(/[&<>"']/g, c => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   }[c]));
+}
+
+// ============================================================
+// SHAREABLE RESULT CARD (Feature 2)
+// 1080×1080 editorial card on a 2D canvas.
+// Type code huge as masthead, Korean nickname italic, pull-quote,
+// inset watercolor portrait. PNG download.
+// ============================================================
+function wireSaveCard(rootEl, payload) {
+  if (!rootEl) return;
+  const btn = rootEl.querySelector("[data-action=save-card]");
+  if (!btn) return;
+  btn.addEventListener("click", async () => {
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "그리는 중…";
+    try {
+      const url = await renderResultCard(payload);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `mbti-${payload.type.toLowerCase()}-card.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      btn.textContent = "저장됨 ✓";
+      setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1600);
+    } catch (e) {
+      btn.textContent = "저장 실패";
+      console.error(e);
+      setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1600);
+    }
+  });
+}
+
+// Pull a short, readable quote from the user's input — the most "intent-y" sentence.
+function pickPullQuote(text, result) {
+  if (!text) return result.one_liner_ko || "";
+  const cleaned = text.replace(/\s+/g, " ").trim();
+  // Split on Korean sentence enders + Latin punctuation.
+  const sentences = cleaned.split(/(?<=[.!?。…”"\)])\s+|(?<=다\.)|(?<=요\.)|(?<=네\.)|\n+/)
+    .map(s => s.trim())
+    .filter(s => s.length >= 12 && s.length <= 90);
+  if (!sentences.length) return cleaned.slice(0, 70) + (cleaned.length > 70 ? "…" : "");
+  // Prefer mid-text sentences (rarely the most generic intro).
+  const mid = sentences[Math.min(sentences.length - 1, Math.floor(sentences.length / 2))];
+  return mid.length > 70 ? mid.slice(0, 68) + "…" : mid;
+}
+
+async function renderResultCard(payload) {
+  const W = 1080, H = 1080;
+  const c = document.createElement("canvas");
+  c.width = W; c.height = H;
+  const ctx = c.getContext("2d");
+
+  // ----- cream paper background with subtle gradient -----
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, "#f5efe2");
+  bg.addColorStop(1, "#ebe1cc");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // grain dots
+  ctx.save();
+  ctx.globalAlpha = 0.06;
+  for (let i = 0; i < 1400; i++) {
+    ctx.fillStyle = Math.random() < 0.5 ? "#1a2238" : "#9a2a2a";
+    const x = Math.random() * W, y = Math.random() * H, r = Math.random() * 1.4;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+
+  // editorial border
+  ctx.strokeStyle = "rgba(20,17,13,0.4)";
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(40, 40, W - 80, H - 80);
+  ctx.lineWidth = 0.8;
+  ctx.strokeRect(54, 54, W - 108, H - 108);
+
+  // accent rule (top-left)
+  ctx.fillStyle = "#9a2a2a";
+  ctx.fillRect(80, 88, 64, 4);
+
+  // eyebrow text
+  ctx.fillStyle = "rgba(20,17,13,0.6)";
+  ctx.font = "500 18px 'JetBrains Mono', monospace";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText("VIBE STUDIO  ·  MBTI 16  ·  KOREAN READ", 80, 132);
+
+  // ----- portrait inset (top-right area) -----
+  const portraitSrc = `portraits/${payload.type.toLowerCase()}.jpg`;
+  let portraitImg = null;
+  try {
+    portraitImg = await loadImage(portraitSrc);
+  } catch (_) { /* portrait optional */ }
+
+  // portrait box
+  const PX = 640, PY = 180, PW = 360, PH = 480;
+  if (portraitImg) {
+    // soft shadow
+    ctx.save();
+    ctx.shadowColor = "rgba(20,17,13,0.22)";
+    ctx.shadowBlur = 22;
+    ctx.shadowOffsetY = 8;
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(PX - 8, PY - 8, PW + 16, PH + 16);
+    ctx.restore();
+    // image
+    drawImageCover(ctx, portraitImg, PX, PY, PW, PH);
+    // inner stroke
+    ctx.strokeStyle = "rgba(20,17,13,0.28)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(PX, PY, PW, PH);
+  } else {
+    // fallback block
+    ctx.fillStyle = "#e3d8c1";
+    ctx.fillRect(PX, PY, PW, PH);
+  }
+
+  // ----- TYPE masthead (huge italic) -----
+  ctx.fillStyle = "#14110d";
+  ctx.font = "italic 300 280px 'Fraunces', 'Noto Serif KR', Georgia, serif";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText(payload.type, 72, 460);
+
+  // accent under masthead
+  ctx.fillStyle = "#c75a3a";
+  ctx.fillRect(80, 478, 220, 3);
+
+  // ----- nickname (italic Korean serif) -----
+  ctx.fillStyle = "#14110d";
+  ctx.font = "italic 600 38px 'Noto Serif KR', serif";
+  const nick = payload.nickname_ko || "";
+  wrapText(ctx, nick, 80, 540, W - 160, 48, 2);
+
+  // ----- pull-quote (serif italic, indented, with rust quote mark) -----
+  const quoteY = 740;
+  ctx.fillStyle = "#9a2a2a";
+  ctx.font = "italic 300 96px 'Fraunces', 'Noto Serif KR', Georgia, serif";
+  ctx.fillText("“", 78, quoteY + 24);
+
+  ctx.fillStyle = "rgba(20,17,13,0.82)";
+  ctx.font = "italic 400 30px 'Noto Serif KR', serif";
+  const quote = payload.pull_quote || "";
+  wrapText(ctx, quote, 158, quoteY, W - 240, 44, 4);
+
+  // ----- footer rule -----
+  ctx.strokeStyle = "rgba(20,17,13,0.18)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(80, 952);
+  ctx.lineTo(W - 80, 952);
+  ctx.stroke();
+
+  // footer text
+  ctx.fillStyle = "rgba(20,17,13,0.55)";
+  ctx.font = "500 16px 'JetBrains Mono', monospace";
+  ctx.fillText(payload.fromTest ? "12-Q QUICK TEST" : "AI DEEP-READ", 80, 988);
+  ctx.textAlign = "right";
+  ctx.fillText("kalleeh.github.io/vibe-demos", W - 80, 988);
+  ctx.textAlign = "left";
+
+  // small accent dot footer
+  ctx.fillStyle = "#c75a3a";
+  ctx.beginPath();
+  ctx.arc(W / 2, 988, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  return c.toDataURL("image/png");
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+function drawImageCover(ctx, img, x, y, w, h) {
+  const ir = img.width / img.height;
+  const dr = w / h;
+  let sx = 0, sy = 0, sw = img.width, sh = img.height;
+  if (ir > dr) {
+    sw = img.height * dr;
+    sx = (img.width - sw) / 2;
+  } else {
+    sh = img.width / dr;
+    sy = (img.height - sh) * 0.32; // bias upward (faces are usually upper)
+  }
+  ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+}
+
+function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
+  if (!text) return;
+  const words = text.split(/(\s+)/);
+  let line = "";
+  let lines = [];
+  for (const w of words) {
+    const test = line + w;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      lines.push(line.trimEnd());
+      line = w.trimStart();
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line.trimEnd());
+  if (lines.length > maxLines) {
+    lines = lines.slice(0, maxLines);
+    const last = lines[maxLines - 1];
+    // ellipsis on last
+    let trimmed = last;
+    while (trimmed.length > 4 && ctx.measureText(trimmed + "…").width > maxWidth) {
+      trimmed = trimmed.slice(0, -1);
+    }
+    lines[maxLines - 1] = trimmed + "…";
+  }
+  lines.forEach((l, i) => ctx.fillText(l, x, y + i * lineHeight));
 }
 
 // ============================================================
@@ -1585,6 +2097,12 @@ async function runAnalyze() {
     $("#ai-result [data-action=restart]")?.addEventListener("click", () => {
       $("#ai-result").innerHTML = "";
       $("#ai-input").focus();
+    });
+    wireSaveCard($("#ai-result"), {
+      type: result.type,
+      nickname_ko: result.nickname_ko,
+      pull_quote: pickPullQuote(text, result),
+      fromTest: false
     });
   } catch (e) {
     $("#loading-bar").classList.remove("active");
