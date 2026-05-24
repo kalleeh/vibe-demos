@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>vibe-demos</title>
+  <style>
+    :root {
+      --bg: #0a1628; --surface: #102338; --border: #1f3a55;
+      --text: #fff8e7; --muted: #b8c5d6; --accent: #ffcd00;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: radial-gradient(900px 500px at 80% 0%, rgba(254,204,2,0.10), transparent 55%), var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+      padding: 80px 24px;
+      line-height: 1.6;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; }
+    h1 { font-size: 40px; letter-spacing: -1px; margin-bottom: 12px; }
+    .lead { color: var(--muted); margin-bottom: 36px; font-size: 16px; }
+    .demo {
+      display: block;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 24px;
+      margin-bottom: 14px;
+      color: var(--text);
+      text-decoration: none;
+      transition: transform .15s, border-color .15s;
+    }
+    .demo:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .demo h2 { font-size: 18px; margin-bottom: 4px; }
+    .demo p { color: var(--muted); font-size: 14px; }
+    .demo .arrow { color: var(--accent); font-weight: 700; }
+    footer { margin-top: 48px; color: var(--muted); font-size: 13px; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>vibe-demos <span style="color:var(--accent)">.</span></h1>
+    <p class="lead">Quick interactive demos built live with Claude.</p>
+
+    <a class="demo" href="./sweden-food-guide/">
+      <h2>🇸🇪 스웨덴 미식 가이드 <span class="arrow">→</span></h2>
+      <p>Korean travel guide for Swedish food &amp; restaurants. Filters, modal details, 5-day itinerary, phrasebook (with TTS), quiz, budget calculator.</p>
+    </a>
+
+    <footer>
+      Source: <a href="https://github.com/kalleeh/vibe-demos">github.com/kalleeh/vibe-demos</a>
+    </footer>
+  </div>
+</body>
+</html>
