@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#f3eee2"/>
+  <!-- Ledger spine — horizontal celadon lines as ledger rules -->
+  <g stroke="#7ba89a" stroke-width="3" stroke-linecap="round" opacity="0.55">
+    <line x1="120" y1="180" x2="392" y2="180"/>
+    <line x1="120" y1="220" x2="392" y2="220"/>
+    <line x1="120" y1="260" x2="392" y2="260"/>
+    <line x1="120" y1="300" x2="392" y2="300"/>
+    <line x1="120" y1="340" x2="392" y2="340"/>
+  </g>
+  <!-- Vertical margin line in accent rust -->
+  <line x1="148" y1="160" x2="148" y2="360" stroke="#b04a2f" stroke-width="2" opacity="0.85"/>
+  <!-- Stamp circle, top-right -->
+  <circle cx="362" cy="172" r="36" fill="none" stroke="#b04a2f" stroke-width="4" opacity="0.85"/>
+  <circle cx="362" cy="172" r="22" fill="none" stroke="#b04a2f" stroke-width="2" opacity="0.6"/>
+  <!-- Hangul ㅎ as soft watermark behind the ledger -->
+  <text x="256" y="296" font-family="Noto Serif KR, serif" font-size="180" font-weight="300" text-anchor="middle" fill="#7ba89a" opacity="0.12">행</text>
+  <!-- Folder corner fold -->
+  <path d="M120 160 L160 160 L160 200 Z" fill="#7ba89a" opacity="0.25"/>
+</svg>

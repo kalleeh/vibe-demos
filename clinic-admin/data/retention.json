@@ -1,0 +1,17 @@
+{
+  "source": "의료법 시행규칙 제15조",
+  "source_url": "https://www.law.go.kr/법령/의료법시행규칙/제15조",
+  "effective_date": "2026-01-01",
+  "note": "보존기간은 작성일·완성일이 아닌 '진료완료일' 또는 '기록완성일' 기준. 마지막 진료일 기준 계산.",
+  "categories": [
+    { "key": "환자명부",      "years": 5,  "aliases": ["환자대장", "patient_register"] },
+    { "key": "진료기록부",    "years": 10, "aliases": ["의무기록", "medical_record", "EMR"] },
+    { "key": "처방전",        "years": 2,  "aliases": ["prescription"] },
+    { "key": "수술기록",      "years": 10, "aliases": ["수술기록부", "operation_record"] },
+    { "key": "검사기록",      "years": 5,  "aliases": ["검사내용 및 검사소견기록", "검사소견서", "lab_record"] },
+    { "key": "방사선기록",    "years": 5,  "aliases": ["방사선사진 및 그 소견서", "X-ray", "radiology"] },
+    { "key": "간호기록부",    "years": 5,  "aliases": ["nursing_record"] },
+    { "key": "조산기록부",    "years": 5,  "aliases": ["midwifery_record"] },
+    { "key": "진단서부본",    "years": 3,  "aliases": ["진단서 등의 부본", "diagnosis_copy"] }
+  ]
+}

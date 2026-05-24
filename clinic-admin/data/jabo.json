@@ -1,0 +1,78 @@
+{
+  "source": "국토교통부 고시 '자동차보험진료수가에 관한 기준'",
+  "source_url": "https://www.law.go.kr/행정규칙/자동차보험진료수가에관한기준",
+  "gazette": "국토교통부 고시 제2026-166호 (예시·실제 고시번호는 발행 시점에 확인 필요)",
+  "effective_date": "2026-04-01",
+  "note": "본 표는 데모 시연을 위한 한방 행위료 발췌본입니다. 실제 청구 전 원본 별표 확인 필수.",
+  "items": [
+    { "code": "40011", "name": "한방 초진 진찰료",           "category": "진찰",     "unit": "회",   "price": 16240 },
+    { "code": "40012", "name": "한방 재진 진찰료",           "category": "진찰",     "unit": "회",   "price": 11520 },
+    { "code": "40021", "name": "한방 외래관리료 (의원급)",    "category": "진찰",     "unit": "회",   "price": 5870 },
+    { "code": "40022", "name": "한방 외래관리료 (병원급)",    "category": "진찰",     "unit": "회",   "price": 7180 },
+    { "code": "40031", "name": "변증기술료 — 표준",          "category": "진찰",     "unit": "회",   "price": 9420 },
+    { "code": "40032", "name": "변증기술료 — 복잡",          "category": "진찰",     "unit": "회",   "price": 14780 },
+
+    { "code": "41001", "name": "체침술",                     "category": "침술",     "unit": "회",   "price": 8590 },
+    { "code": "41002", "name": "투자법침술 (장침)",           "category": "침술",     "unit": "회",   "price": 11240 },
+    { "code": "41003", "name": "전기침술",                   "category": "침술",     "unit": "회",   "price": 9870 },
+    { "code": "41004", "name": "두침술",                     "category": "침술",     "unit": "회",   "price": 10330 },
+    { "code": "41005", "name": "안면침술",                   "category": "침술",     "unit": "회",   "price": 10780 },
+    { "code": "41006", "name": "이침술",                     "category": "침술",     "unit": "회",   "price": 8420 },
+
+    { "code": "41011", "name": "직접구술",                   "category": "구술",     "unit": "회",   "price": 5340 },
+    { "code": "41012", "name": "간접구술",                   "category": "구술",     "unit": "회",   "price": 4980 },
+    { "code": "41013", "name": "기기구술 (적외선/온구기)",     "category": "구술",     "unit": "회",   "price": 4120 },
+
+    { "code": "41021", "name": "건식 부항술",                "category": "부항",     "unit": "회",   "price": 4260 },
+    { "code": "41022", "name": "습식 부항술 (사혈 동반)",     "category": "부항",     "unit": "회",   "price": 6480 },
+    { "code": "41023", "name": "유관법 부항술",              "category": "부항",     "unit": "회",   "price": 5210 },
+
+    { "code": "47011", "name": "추나요법 — 단순",            "category": "추나",     "unit": "회",   "price": 12830 },
+    { "code": "47012", "name": "추나요법 — 복잡",            "category": "추나",     "unit": "회",   "price": 19420 },
+    { "code": "47013", "name": "추나요법 — 특수 (탈구·골절 후) ", "category": "추나", "unit": "회",   "price": 38270 },
+
+    { "code": "40301", "name": "약침술 — 일반 (경혈)",        "category": "약침",     "unit": "회",   "price": 12640 },
+    { "code": "40302", "name": "약침술 — 아시혈",            "category": "약침",     "unit": "회",   "price": 12640 },
+    { "code": "40303", "name": "약침술 — 팔강 약침",          "category": "약침",     "unit": "회",   "price": 14820 },
+    { "code": "40304", "name": "약침술 — 봉독 약침",          "category": "약침",     "unit": "회",   "price": 17460 },
+    { "code": "40305", "name": "약침술 — 자하거 약침",        "category": "약침",     "unit": "회",   "price": 18920 },
+
+    { "code": "42011", "name": "한방물리요법 — 경피적외선조사", "category": "물리요법", "unit": "회",   "price": 1820 },
+    { "code": "42012", "name": "한방물리요법 — 경피전기자극",   "category": "물리요법", "unit": "회",   "price": 2380 },
+    { "code": "42013", "name": "한방물리요법 — 견인",         "category": "물리요법", "unit": "회",   "price": 4140 },
+
+    { "code": "43011", "name": "맥진",                       "category": "검사",     "unit": "회",   "price": 3210 },
+    { "code": "43012", "name": "체질감별 (한방)",            "category": "검사",     "unit": "회",   "price": 9870 },
+    { "code": "43013", "name": "양도락 검사",                "category": "검사",     "unit": "회",   "price": 5640 },
+    { "code": "43014", "name": "적외선체열진단 (DITI)",       "category": "검사",     "unit": "회",   "price": 22340 },
+
+    { "code": "44011", "name": "한약 첩약 (1제 = 10일분)",     "category": "한약",     "unit": "제",   "price": 78400 },
+    { "code": "44012", "name": "한약 첩약 (1일분)",           "category": "한약",     "unit": "일",   "price": 7840 },
+    { "code": "44021", "name": "탕전료",                     "category": "한약",     "unit": "제",   "price": 4860 },
+    { "code": "44031", "name": "환·산제 조제료",             "category": "한약",     "unit": "회",   "price": 6210 },
+
+    { "code": "45011", "name": "한방 입원료 — 1등급 (1·2인실)", "category": "입원",   "unit": "일",   "price": 84620 },
+    { "code": "45012", "name": "한방 입원료 — 2등급 (3·4인실)", "category": "입원",   "unit": "일",   "price": 56340 },
+    { "code": "45013", "name": "한방 입원료 — 3등급 (5인실↑)",  "category": "입원",   "unit": "일",   "price": 41280 },
+    { "code": "45021", "name": "입원환자 식대 (일반)",         "category": "입원",     "unit": "끼",   "price": 4810 },
+    { "code": "45022", "name": "입원환자 식대 (치료식)",       "category": "입원",     "unit": "끼",   "price": 6120 },
+    { "code": "45031", "name": "한방 의약품관리료 (입원)",     "category": "입원",     "unit": "일",   "price": 1620 },
+
+    { "code": "46011", "name": "도수치료 — 한방",            "category": "처치",     "unit": "회",   "price": 28640 },
+    { "code": "46012", "name": "한방 좌훈 요법",             "category": "처치",     "unit": "회",   "price": 8420 },
+    { "code": "46013", "name": "한방 훈증 요법",             "category": "처치",     "unit": "회",   "price": 7840 },
+    { "code": "46014", "name": "한방 운동요법",              "category": "처치",     "unit": "회",   "price": 4980 }
+  ],
+  "diagnosis_examples": [
+    { "code": "S134", "name": "경추의 염좌 및 긴장",          "common_in_jabo": true },
+    { "code": "S130", "name": "경추 추간판의 외상성 파열",     "common_in_jabo": true },
+    { "code": "S335", "name": "요추의 염좌 및 긴장",          "common_in_jabo": true },
+    { "code": "S331", "name": "요추 추간판의 외상성 파열",     "common_in_jabo": true },
+    { "code": "S434", "name": "어깨관절의 염좌 및 긴장",       "common_in_jabo": true },
+    { "code": "S535", "name": "팔꿈치의 염좌 및 긴장",        "common_in_jabo": true },
+    { "code": "S836", "name": "무릎의 염좌 및 긴장",          "common_in_jabo": true },
+    { "code": "S935", "name": "발목의 염좌 및 긴장",          "common_in_jabo": true },
+    { "code": "T143", "name": "다발 부위의 관절·인대 염좌",    "common_in_jabo": true },
+    { "code": "S060", "name": "뇌진탕",                      "common_in_jabo": true }
+  ]
+}

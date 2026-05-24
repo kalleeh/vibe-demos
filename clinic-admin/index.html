@@ -1,0 +1,2413 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>한방병원 행정 도구함 — Clinic Admin Toolkit</title>
+  <meta name="description" content="한방병원 행정원장을 위한 6개 탭 도구함. 파일을 올리면 변환·검증·다운로드까지 브라우저 안에서 완료됩니다.">
+
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#f3eee2">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="행정 도구함">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Noto+Serif+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- SheetJS for client-side .xlsx parsing — pinned, integrity-free CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
+
+  <style>
+    :root {
+      --paper:    #f3eee2;
+      --paper-2:  #ede6d3;
+      --paper-3:  #e3dccb;
+      --ink:      #14110d;
+      --ink-2:    #2a241c;
+      --muted:    #6b6457;
+      --faint:    #9a9384;
+      --accent:   #b04a2f;
+      --celadon:  #7ba89a;
+      --celadon-2: #5d8c7e;
+      --line:     rgba(20,17,13,0.14);
+      --line-2:   rgba(20,17,13,0.08);
+      --ok:       #4a7a4f;
+      --warn:     #b87a1c;
+      --err:      #b04a2f;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background:
+        radial-gradient(ellipse at 18% -8%, rgba(123,168,154,0.13), transparent 55%),
+        radial-gradient(ellipse at 95% 5%, rgba(176,74,47,0.08), transparent 50%),
+        var(--paper);
+      color: var(--ink);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+      font-size: 15px;
+      line-height: 1.55;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.08 0 0 0 0 0.07 0 0 0 0 0.05 0 0 0 0.13 0'/></filter><rect width='240' height='240' filter='url(%23n)' opacity='0.55'/></svg>");
+      mix-blend-mode: multiply;
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .frame {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 28px;
+    }
+
+    /* ── Header ── */
+    header.app {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 26px 0 22px;
+      border-bottom: 1px solid var(--line);
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    header.app .mark {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      color: var(--ink);
+    }
+    header.app .stamp {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: var(--paper-2);
+      border: 1px solid var(--line);
+      position: relative;
+      flex-shrink: 0;
+    }
+    header.app .stamp::before, header.app .stamp::after {
+      content: "";
+      position: absolute;
+      background: var(--accent);
+    }
+    header.app .stamp::before {
+      left: 50%; top: 8px; bottom: 8px;
+      width: 2px; transform: translateX(-50%);
+    }
+    header.app .stamp::after {
+      top: 50%; left: 8px; right: 8px;
+      height: 2px; transform: translateY(-50%);
+    }
+    header.app h1 {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: 22px;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+    }
+    header.app h1 em { font-style: italic; color: var(--accent); font-weight: 400; }
+    header.app h1 .sub {
+      display: block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .privacy-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 13px 7px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--ink-2);
+      background: rgba(255,255,255,0.35);
+    }
+    .privacy-pill .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--celadon-2);
+      box-shadow: 0 0 0 0 rgba(123,168,154,0.55);
+      animation: pulse 2.4s ease-out infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(123,168,154,0.55); }
+      70%  { box-shadow: 0 0 0 9px rgba(123,168,154,0); }
+      100% { box-shadow: 0 0 0 0 rgba(123,168,154,0); }
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 46px 0 22px;
+    }
+    .hero .eyebrow {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .hero .eyebrow::before {
+      content: "";
+      width: 28px; height: 1px;
+      background: var(--ink);
+    }
+    .hero h2 {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: clamp(34px, 5.5vw, 60px);
+      line-height: 1.02;
+      letter-spacing: -0.025em;
+      margin-bottom: 18px;
+      max-width: 880px;
+    }
+    .hero h2 em { font-style: italic; color: var(--accent); font-weight: 400; }
+    .hero .deck {
+      max-width: 620px;
+      font-size: 16px;
+      line-height: 1.55;
+      color: var(--ink-2);
+    }
+    .hero .deck strong { color: var(--ink); font-weight: 600; }
+
+    /* ── Tab nav ── */
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 18px 0 22px;
+      margin-top: 26px;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background:
+        linear-gradient(rgba(243,238,226,0.92), rgba(243,238,226,0.92)),
+        var(--paper);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .tab-btn {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 10px 16px 10px 12px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--ink-2);
+      cursor: pointer;
+      border-radius: 6px;
+      font-family: "Inter", sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: -0.005em;
+      transition: background .2s, border-color .2s, color .2s, transform .2s;
+    }
+    .tab-btn .num {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: var(--faint);
+      letter-spacing: 1px;
+    }
+    .tab-btn:hover { border-color: var(--ink-2); color: var(--ink); }
+    .tab-btn.active {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: var(--paper);
+    }
+    .tab-btn.active .num { color: var(--paper-3); }
+
+    /* ── Panels ── */
+    .panel {
+      display: none;
+      padding: 36px 0 80px;
+      animation: fadeIn .35s cubic-bezier(.2,.8,.2,1);
+    }
+    .panel.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: baseline;
+      gap: 18px;
+      flex-wrap: wrap;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 28px;
+    }
+    .panel-head .panel-num {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+    }
+    .panel-head h3 {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: clamp(26px, 3.6vw, 38px);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+    .panel-head h3 em { font-style: italic; color: var(--accent); font-weight: 400; }
+    .panel-head .badges {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.3);
+    }
+    .badge.live { color: var(--celadon-2); border-color: rgba(93,140,126,0.3); }
+    .badge.law  { color: var(--accent); border-color: rgba(176,74,47,0.3); }
+
+    .panel-blurb {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: 19px;
+      line-height: 1.4;
+      color: var(--ink-2);
+      max-width: 720px;
+      margin-bottom: 32px;
+    }
+    .panel-blurb em { color: var(--accent); font-style: italic; }
+
+    /* ── Two-column workspace layout ── */
+    .work {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 880px) {
+      .work { grid-template-columns: 1fr; gap: 18px; }
+    }
+
+    .card {
+      position: relative;
+      background: rgba(255,255,255,0.5);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 24px;
+      isolation: isolate;
+      overflow: hidden;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='1'/><feColorMatrix values='0 0 0 0 0.08 0 0 0 0 0.07 0 0 0 0 0.05 0 0 0 0.06 0'/></filter><rect width='100' height='100' filter='url(%23n)'/></svg>");
+      pointer-events: none;
+      z-index: -1;
+      opacity: 0.7;
+    }
+    .card h4 {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .card h4 .step {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ── Drop zone ── */
+    .drop {
+      border: 1.5px dashed rgba(20,17,13,0.22);
+      border-radius: 8px;
+      padding: 40px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+      background: rgba(255,255,255,0.25);
+    }
+    .drop:hover, .drop.dragover {
+      background: rgba(176,74,47,0.06);
+      border-color: var(--accent);
+    }
+    .drop .icon {
+      width: 42px;
+      height: 42px;
+      margin: 0 auto 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .drop .icon svg { width: 100%; height: 100%; }
+    .drop p {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-size: 17px;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .drop .hint {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .drop input[type="file"] { display: none; }
+    .drop-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 16px;
+    }
+    .drop-actions .ghost {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--ink-2);
+      background: transparent;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .drop-actions .ghost:hover { background: rgba(255,255,255,0.45); }
+
+    /* ── Schema chip ── */
+    .schema {
+      margin-top: 14px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.45);
+      border-radius: 6px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      line-height: 1.7;
+      color: var(--ink-2);
+      border-left: 2px solid var(--celadon);
+    }
+    .schema .label {
+      display: block;
+      font-size: 9px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .schema code {
+      background: rgba(123,168,154,0.13);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: var(--celadon-2);
+    }
+
+    /* ── Status / progress ── */
+    .status-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: rgba(123,168,154,0.10);
+      border-left: 2px solid var(--celadon);
+      border-radius: 4px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--ink-2);
+      margin-top: 14px;
+    }
+    .status-line.warn { background: rgba(184,122,28,0.12); border-color: var(--warn); }
+    .status-line.err  { background: rgba(176,74,47,0.10);  border-color: var(--accent); }
+    .status-line .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--celadon-2);
+    }
+    .status-line.warn .dot { background: var(--warn); }
+    .status-line.err  .dot { background: var(--accent); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 20px;
+      background: var(--ink);
+      color: var(--paper);
+      border: 1px solid var(--ink);
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: "Inter", sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: -0.005em;
+      transition: background .2s, transform .15s;
+    }
+    .btn:hover { background: var(--accent); border-color: var(--accent); }
+    .btn:active { transform: scale(0.98); }
+    .btn[disabled] {
+      background: var(--paper-3);
+      color: var(--faint);
+      border-color: var(--line);
+      cursor: not-allowed;
+    }
+    .btn[disabled]:hover { background: var(--paper-3); }
+    .btn .arrow {
+      transition: transform .2s;
+    }
+    .btn:hover .arrow:not([disabled]) { transform: translateX(2px); }
+
+    .btn.secondary {
+      background: transparent;
+      color: var(--ink);
+      border-color: var(--ink-2);
+    }
+    .btn.secondary:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+    /* ── Result table ── */
+    .result {
+      max-height: 480px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.6);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th, td {
+      text-align: left;
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--line-2);
+      vertical-align: top;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      background: var(--paper-2);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 500;
+      z-index: 1;
+      border-bottom: 1px solid var(--line);
+    }
+    tbody tr:hover { background: rgba(255,255,255,0.5); }
+    td.code, th.code {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--ink-2);
+    }
+    td .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    td .pill.ok    { background: rgba(74,122,79,0.13);  color: var(--ok); }
+    td .pill.warn  { background: rgba(184,122,28,0.15); color: var(--warn); }
+    td .pill.err   { background: rgba(176,74,47,0.13);  color: var(--err); }
+    td .pill.info  { background: rgba(123,168,154,0.16); color: var(--celadon-2); }
+
+    .empty-state {
+      padding: 56px 24px;
+      text-align: center;
+      color: var(--muted);
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-size: 16px;
+    }
+
+    /* ── Result toolbar ── */
+    .result-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .result-toolbar .summary {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+    }
+    .result-toolbar .summary strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+    .result-toolbar .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* ── Forms (Tab 2, 4) ── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+    }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .field input, .field select, .field textarea {
+      padding: 9px 11px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: rgba(255,255,255,0.7);
+      font-family: "Inter", sans-serif;
+      font-size: 13px;
+      color: var(--ink);
+      transition: border-color .2s, background .2s;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(255,255,255,0.95);
+    }
+    .field input[type="number"] { font-family: "JetBrains Mono", monospace; }
+
+    /* ── Line items list (Tab 2 / 4) ── */
+    .items {
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 380px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+    .item-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.5);
+      border: 1px solid var(--line-2);
+      border-radius: 5px;
+      font-size: 13px;
+    }
+    .item-row .code-tag {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: var(--celadon-2);
+      letter-spacing: 0.5px;
+      background: rgba(123,168,154,0.13);
+      padding: 3px 7px;
+      border-radius: 3px;
+    }
+    .item-row .name { color: var(--ink); }
+    .item-row .qty {
+      width: 56px;
+      padding: 5px 8px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      text-align: right;
+      background: var(--paper);
+    }
+    .item-row .price-display {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      color: var(--ink);
+      min-width: 76px;
+      text-align: right;
+    }
+    .item-row .remove-btn {
+      width: 22px; height: 22px;
+      background: transparent;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+    .item-row .remove-btn:hover { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+
+    .item-search {
+      position: relative;
+      margin-top: 12px;
+    }
+    .item-search input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      font-family: "Inter", sans-serif;
+      font-size: 13px;
+      background: rgba(255,255,255,0.7);
+    }
+    .item-search input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .item-search-results {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      max-height: 280px;
+      overflow-y: auto;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      box-shadow: 0 8px 24px rgba(20,17,13,0.12);
+      z-index: 5;
+      display: none;
+    }
+    .item-search-results.show { display: block; }
+    .search-opt {
+      display: grid;
+      grid-template-columns: 70px 1fr auto;
+      gap: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      align-items: center;
+      border-bottom: 1px solid var(--line-2);
+    }
+    .search-opt:hover { background: var(--paper-2); }
+    .search-opt:last-child { border-bottom: none; }
+    .search-opt .code-tag {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: var(--celadon-2);
+      background: rgba(123,168,154,0.13);
+      padding: 2px 6px;
+      border-radius: 3px;
+      letter-spacing: 0.5px;
+    }
+    .search-opt .price-mini {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .total-strip {
+      margin-top: 16px;
+      padding: 16px 18px;
+      background: var(--ink);
+      color: var(--paper);
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .total-strip .label {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--paper-3);
+    }
+    .total-strip .value {
+      font-family: "Fraunces", serif;
+      font-size: 26px;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      font-variant-numeric: tabular-nums;
+    }
+    .total-strip .value em {
+      font-style: italic;
+      font-weight: 300;
+    }
+
+    /* ── Search bar (Tab 6) ── */
+    .search-hero {
+      position: relative;
+      max-width: 760px;
+      margin: 0 auto 24px;
+    }
+    .search-hero input {
+      width: 100%;
+      padding: 22px 28px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.7);
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-size: 22px;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+    .search-hero input::placeholder {
+      font-style: italic;
+      color: var(--faint);
+    }
+    .search-hero input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(176,74,47,0.1);
+    }
+    .search-filters {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+    .filter-chip {
+      padding: 7px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: transparent;
+      cursor: pointer;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--ink-2);
+      transition: all .2s;
+    }
+    .filter-chip:hover { border-color: var(--ink-2); }
+    .filter-chip.active {
+      background: var(--ink);
+      color: var(--paper);
+      border-color: var(--ink);
+    }
+
+    /* ── Hospital profile (Tab 4) ── */
+    .profile-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    /* ── Audit summary (Tab 5) ── */
+    .audit-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .audit-stat {
+      padding: 16px 18px;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      border-top: 2px solid var(--celadon);
+    }
+    .audit-stat.warn { border-top-color: var(--warn); }
+    .audit-stat.err  { border-top-color: var(--accent); }
+    .audit-stat .label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .audit-stat .num {
+      font-family: "Fraunces", serif;
+      font-size: 32px;
+      font-weight: 300;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Footer / sources ── */
+    footer.app {
+      padding: 60px 0 56px;
+      border-top: 1px solid var(--line);
+      margin-top: 40px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    footer.app .row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 36px;
+      margin-bottom: 28px;
+    }
+    footer.app h5 {
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--ink);
+      margin-bottom: 10px;
+    }
+    footer.app a { color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 2px; }
+    footer.app a:hover { color: var(--accent); text-decoration-color: var(--accent); }
+    footer.app .colophon {
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    @media (max-width: 720px) {
+      footer.app .row { grid-template-columns: 1fr; }
+    }
+
+    /* ── Misc ── */
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 600px) {
+      .row-2 { grid-template-columns: 1fr; }
+    }
+
+    .small-link {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--ink-2);
+      text-decoration: none;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 1px;
+    }
+    .small-link:hover { color: var(--accent); border-color: var(--accent); }
+
+    .caveat {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+      margin-top: 14px;
+      padding-left: 14px;
+      border-left: 2px solid var(--line);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="frame">
+
+    <header class="app">
+      <a class="mark" href="../">
+        <span class="stamp" aria-hidden="true"></span>
+        <h1>한방병원 <em>행정 도구함</em>
+          <span class="sub">CLINIC ADMIN TOOLKIT · 2026 EDITION</span>
+        </h1>
+      </a>
+      <span class="privacy-pill">
+        <span class="dot"></span>
+        모든 처리 — 브라우저 내부에서만
+      </span>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow">행정원 / 06 도구</div>
+      <h2>코드를 옮기고, <em>청구서</em>를 짜고,<br>보존 기한을 <em>지켜드립니다</em>.</h2>
+      <p class="deck">
+        엑셀 한 장을 올리면 — KCD-9 매핑, 자보 한방 수가 견적, 연말정산 의료비 자료, HIRA 비급여 공개 자료, 의무기록 보존 감사, 그리고 통합 코드 검색까지 — <strong>모두 이 페이지 안에서</strong> 처리합니다. 환자 정보는 외부로 전송되지 않습니다.
+      </p>
+    </section>
+
+    <nav class="tabs" id="tabnav" role="tablist" aria-label="도구 선택">
+      <button class="tab-btn active" data-panel="tab-kcd"        role="tab"><span class="num">01</span><span>KCD-9 매핑</span></button>
+      <button class="tab-btn"        data-panel="tab-jabo"       role="tab"><span class="num">02</span><span>자보 견적기</span></button>
+      <button class="tab-btn"        data-panel="tab-yearend"    role="tab"><span class="num">03</span><span>연말정산 의료비</span></button>
+      <button class="tab-btn"        data-panel="tab-bigeup"     role="tab"><span class="num">04</span><span>비급여 공개</span></button>
+      <button class="tab-btn"        data-panel="tab-retention"  role="tab"><span class="num">05</span><span>보존 감사</span></button>
+      <button class="tab-btn"        data-panel="tab-search"     role="tab"><span class="num">06</span><span>코드 검색</span></button>
+    </nav>
+
+    <!-- ─────────────────────────────────────────── -->
+    <!-- Tab 1 — KCD-8 → KCD-9 매핑 -->
+    <!-- ─────────────────────────────────────────── -->
+    <section class="panel active" id="tab-kcd" role="tabpanel">
+      <div class="panel-head">
+        <span class="panel-num">01 · 진단코드 마이그레이션</span>
+        <h3>KCD-8을 <em>KCD-9</em>로 옮겨드립니다</h3>
+        <div class="badges">
+          <span class="badge live">데이터 기준일 2026-01-01</span>
+          <span class="badge law">통계청 9차 개정</span>
+        </div>
+      </div>
+      <p class="panel-blurb">
+        KCD-9가 2026년 1월부터 시행되었습니다. 환자 진단코드 엑셀을 올리시면 <em>1:1 자동매핑</em>, <em>분할(1:N) 후보 제시</em>, <em>통합·신설·삭제</em>까지 분류해드립니다.
+      </p>
+
+      <div class="work">
+        <div class="card">
+          <h4><span class="step">01</span> 파일 업로드</h4>
+          <label class="drop" id="drop-kcd">
+            <input type="file" accept=".xlsx,.xls,.csv">
+            <div class="icon">
+              <svg viewBox="0 0 48 48" fill="none" stroke="#7ba89a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M24 32V12M24 12l-8 8M24 12l8 8"/>
+                <path d="M8 32v6a2 2 0 002 2h28a2 2 0 002-2v-6" opacity="0.5"/>
+              </svg>
+            </div>
+            <p>엑셀 또는 CSV 파일을 끌어다 놓으세요</p>
+            <span class="hint">.xlsx · .xls · .csv</span>
+            <div class="drop-actions">
+              <button type="button" class="ghost" data-action="sample-kcd">샘플 파일 받기</button>
+            </div>
+          </label>
+          <div class="schema">
+            <span class="label">필요한 컬럼 (헤더 1행)</span>
+            <code>환자번호</code> · <code>진료일자</code> · <code>진단명</code> · <code>KCD8코드</code> · <code>비고</code>
+          </div>
+          <p class="caveat">
+            ※ 본 도구는 한방 다빈도 ~70개 코드의 발췌 매핑입니다. 매핑되지 않은 코드는 KOICD 신구대조표에서 확인해주세요.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4><span class="step">02</span> 변환 결과</h4>
+          <div id="kcd-status" class="status-line" style="display:none"></div>
+          <div class="result-toolbar" id="kcd-toolbar" style="display:none">
+            <div class="summary" id="kcd-summary"></div>
+            <div class="actions">
+              <button class="btn" id="kcd-download" disabled>
+                다운로드 <span class="arrow">↓</span>
+              </button>
+            </div>
+          </div>
+          <div class="result" id="kcd-result">
+            <div class="empty-state">파일을 올리면 여기에 매핑 결과가 표시됩니다.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────── -->
+    <!-- Tab 2 — 자보 한방 수가 견적기 -->
+    <!-- ─────────────────────────────────────────── -->
+    <section class="panel" id="tab-jabo" role="tabpanel">
+      <div class="panel-head">
+        <span class="panel-num">02 · 자동차보험 청구</span>
+        <h3>자보 <em>한방 수가</em> 견적기</h3>
+        <div class="badges">
+          <span class="badge law">국토교통부 고시</span>
+          <span class="badge live">2026-04-01 기준</span>
+        </div>
+      </div>
+      <p class="panel-blurb">
+        교통사고 환자의 <em>상병코드</em>와 시행한 <em>한방 행위</em>를 선택하면, 일자별 청구액과 총액을 자동 계산하고 청구서를 엑셀로 내려받을 수 있습니다.
+      </p>
+
+      <div class="work">
+        <div class="card">
+          <h4><span class="step">01</span> 환자 · 상병 정보</h4>
+          <div class="form-grid">
+            <div class="field">
+              <label>환자명</label>
+              <input id="jabo-name" type="text" placeholder="홍길동">
+            </div>
+            <div class="field">
+              <label>환자번호</label>
+              <input id="jabo-pid" type="text" placeholder="2026-0142">
+            </div>
+            <div class="field">
+              <label>사고일자</label>
+              <input id="jabo-accident" type="date">
+            </div>
+            <div class="field">
+              <label>진료일자</label>
+              <input id="jabo-date" type="date">
+            </div>
+            <div class="field" style="grid-column: 1/-1">
+              <label>주 상병</label>
+              <select id="jabo-dx"></select>
+            </div>
+          </div>
+
+          <h4 style="margin-top: 24px;"><span class="step">02</span> 한방 행위 추가</h4>
+          <div class="item-search">
+            <input type="text" id="jabo-search" placeholder="시술 검색 — 예: 침술, 부항, 추나, 약침…">
+            <div class="item-search-results" id="jabo-search-results"></div>
+          </div>
+          <div class="items" id="jabo-items"></div>
+
+          <div class="total-strip">
+            <span class="label">총 청구액 (자보)</span>
+            <span class="value"><em id="jabo-total-num">0</em> 원</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4><span class="step">03</span> 청구서 생성</h4>
+          <div id="jabo-status" class="status-line" style="display:none"></div>
+          <div class="result-toolbar">
+            <div class="summary" id="jabo-summary">
+              <strong>0건</strong> 행위 · <strong>0원</strong>
+            </div>
+            <div class="actions">
+              <button class="btn" id="jabo-download" disabled>
+                XLSX 청구서 <span class="arrow">↓</span>
+              </button>
+            </div>
+          </div>
+          <div class="result" id="jabo-preview">
+            <div class="empty-state">행위를 추가하면 여기에 청구서 미리보기가 표시됩니다.</div>
+          </div>
+          <p class="caveat">
+            ※ 발행 시점의 국토교통부 고시 본문 (<a class="small-link" href="https://www.law.go.kr" target="_blank" rel="noopener noreferrer">law.go.kr</a>) 별표를 반드시 대조하십시오. 본 도구는 데모 시연용 발췌본입니다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────── -->
+    <!-- Tab 3 — 연말정산 의료비 자료 빌더 -->
+    <!-- ─────────────────────────────────────────── -->
+    <section class="panel" id="tab-yearend" role="tabpanel">
+      <div class="panel-head">
+        <span class="panel-num">03 · NTS 의료비 자료제출</span>
+        <h3>연말정산 <em>의료비</em> 자료 빌더</h3>
+        <div class="badges">
+          <span class="badge law">국세청 표준 서식</span>
+          <span class="badge live">2026 귀속분 마감 2027-01-XX</span>
+        </div>
+      </div>
+      <p class="panel-blurb">
+        병의원 내부 진료 기록을 올리면, 홈택스 의료비 자료제출 서식의 <em>표준 CSV</em>로 변환합니다. 사업자등록번호만 입력하시면 끝.
+      </p>
+
+      <div class="work">
+        <div class="card">
+          <h4><span class="step">01</span> 의료기관 정보</h4>
+          <div class="form-grid">
+            <div class="field">
+              <label>사업자등록번호</label>
+              <input id="ye-biz" type="text" placeholder="123-45-67890">
+            </div>
+            <div class="field">
+              <label>의료기관명</label>
+              <input id="ye-clinic" type="text" placeholder="OO 한방병원">
+            </div>
+            <div class="field">
+              <label>증빙코드</label>
+              <select id="ye-evid">
+                <option value="1">1 · 의료기관</option>
+                <option value="2">2 · 약국</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>한방여부</label>
+              <select id="ye-han">
+                <option value="Y">Y · 한방</option>
+                <option value="N">N · 양방</option>
+              </select>
+            </div>
+          </div>
+
+          <h4 style="margin-top: 22px;"><span class="step">02</span> 진료 기록 업로드</h4>
+          <label class="drop" id="drop-ye">
+            <input type="file" accept=".xlsx,.xls,.csv">
+            <div class="icon">
+              <svg viewBox="0 0 48 48" fill="none" stroke="#7ba89a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M24 32V12M24 12l-8 8M24 12l8 8"/>
+                <path d="M8 32v6a2 2 0 002 2h28a2 2 0 002-2v-6" opacity="0.5"/>
+              </svg>
+            </div>
+            <p>병의원 내부 진료 기록 엑셀</p>
+            <span class="hint">.xlsx · .xls · .csv</span>
+            <div class="drop-actions">
+              <button type="button" class="ghost" data-action="sample-ye">샘플 파일 받기</button>
+            </div>
+          </label>
+          <div class="schema">
+            <span class="label">필요한 컬럼</span>
+            <code>환자성명</code> · <code>주민등록번호</code> · <code>진료일자</code> · <code>본인부담금</code> · <code>비급여금액</code>
+          </div>
+          <p class="caveat">
+            주민등록번호는 본 페이지에서만 처리되며, 제출은 사업자가 홈택스에서 직접 합니다.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4><span class="step">03</span> NTS 표준 자료</h4>
+          <div id="ye-status" class="status-line" style="display:none"></div>
+          <div class="result-toolbar" id="ye-toolbar" style="display:none">
+            <div class="summary" id="ye-summary"></div>
+            <div class="actions">
+              <button class="btn" id="ye-download" disabled>
+                CSV <span class="arrow">↓</span>
+              </button>
+            </div>
+          </div>
+          <div class="result" id="ye-result">
+            <div class="empty-state">진료 기록을 올리면 NTS 표준 자료가 생성됩니다.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────── -->
+    <!-- Tab 4 — 비급여 진료비용 공개 -->
+    <!-- ─────────────────────────────────────────── -->
+    <section class="panel" id="tab-bigeup" role="tabpanel">
+      <div class="panel-head">
+        <span class="panel-num">04 · HIRA 비급여 공개</span>
+        <h3>비급여 <em>진료비용</em> 공개 자료 빌더</h3>
+        <div class="badges">
+          <span class="badge law">의료법 §45조의2</span>
+          <span class="badge live">2026 제출분</span>
+        </div>
+      </div>
+      <p class="panel-blurb">
+        HIRA에 매년 제출하는 <em>비급여 항목별 단가</em> 공개 자료. 한방 항목은 이미 골라드렸으니, 우리 병원 단가만 채우시면 됩니다.
+      </p>
+
+      <div class="work">
+        <div class="card">
+          <h4><span class="step">01</span> 의료기관 정보</h4>
+          <div class="profile-strip">
+            <div class="field">
+              <label>요양기관기호</label>
+              <input id="bg-ykiho" type="text" placeholder="11000000">
+            </div>
+            <div class="field">
+              <label>의료기관명</label>
+              <input id="bg-clinic" type="text" placeholder="OO 한방병원">
+            </div>
+            <div class="field">
+              <label>적용일</label>
+              <input id="bg-date" type="date">
+            </div>
+          </div>
+
+          <h4 style="margin-top: 18px;"><span class="step">02</span> 한방 비급여 항목 단가</h4>
+          <p class="caveat" style="margin-top:0">
+            HIRA 비급여 코드 마스터에서 한방 항목 ~30개를 발췌했습니다. <em>최저금액</em>·<em>최고금액</em>·<em>중간금액</em>을 입력하면 자동 검증됩니다.
+          </p>
+          <div class="result" style="max-height: 460px; margin-top: 12px;">
+            <table id="bg-table">
+              <thead>
+                <tr>
+                  <th class="code">코드</th>
+                  <th>항목명</th>
+                  <th>분류</th>
+                  <th>최저</th>
+                  <th>최고</th>
+                  <th>중간</th>
+                </tr>
+              </thead>
+              <tbody id="bg-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4><span class="step">03</span> 검증 · 제출 자료</h4>
+          <div id="bg-status" class="status-line" style="display:none"></div>
+          <div class="audit-summary" id="bg-summary-strip">
+            <div class="audit-stat">
+              <div class="label">입력 완료</div>
+              <div class="num" id="bg-done">0</div>
+            </div>
+            <div class="audit-stat warn">
+              <div class="label">미입력</div>
+              <div class="num" id="bg-empty">—</div>
+            </div>
+            <div class="audit-stat err">
+              <div class="label">검증 오류</div>
+              <div class="num" id="bg-err">0</div>
+            </div>
+          </div>
+          <div class="result-toolbar">
+            <div class="summary" id="bg-summary">단가를 입력하면 검증됩니다.</div>
+            <div class="actions">
+              <button class="btn secondary" id="bg-prefill">표본 단가 채우기</button>
+              <button class="btn" id="bg-download" disabled>
+                XLSX <span class="arrow">↓</span>
+              </button>
+            </div>
+          </div>
+          <p class="caveat">
+            검증 규칙 — 최저 ≤ 중간 ≤ 최고. 빈 항목은 제출 파일에서 자동 제외됩니다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────── -->
+    <!-- Tab 5 — 의무기록 보존 감사 -->
+    <!-- ─────────────────────────────────────────── -->
+    <section class="panel" id="tab-retention" role="tabpanel">
+      <div class="panel-head">
+        <span class="panel-num">05 · 의무기록 보존</span>
+        <h3>의무기록 <em>보존</em> 감사</h3>
+        <div class="badges">
+          <span class="badge law">의료법 시행규칙 §15</span>
+          <span class="badge live">상시</span>
+        </div>
+      </div>
+      <p class="panel-blurb">
+        기록 종류별 법정 보존기간이 다릅니다 — <em>진료기록부 10년</em>, <em>처방전 2년</em>, <em>방사선 5년</em>… 기록 대장을 올리면 만료 임박·만료 초과·분류 오류를 한 번에 표시합니다.
+      </p>
+
+      <div class="work">
+        <div class="card">
+          <h4><span class="step">01</span> 기록 대장 업로드</h4>
+          <label class="drop" id="drop-ret">
+            <input type="file" accept=".xlsx,.xls,.csv">
+            <div class="icon">
+              <svg viewBox="0 0 48 48" fill="none" stroke="#7ba89a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M24 32V12M24 12l-8 8M24 12l8 8"/>
+                <path d="M8 32v6a2 2 0 002 2h28a2 2 0 002-2v-6" opacity="0.5"/>
+              </svg>
+            </div>
+            <p>기록 대장 엑셀을 끌어다 놓으세요</p>
+            <span class="hint">.xlsx · .xls · .csv</span>
+            <div class="drop-actions">
+              <button type="button" class="ghost" data-action="sample-ret">샘플 파일 받기</button>
+            </div>
+          </label>
+          <div class="schema">
+            <span class="label">필요한 컬럼</span>
+            <code>기록ID</code> · <code>기록종류</code> · <code>환자번호</code> · <code>작성일자</code> · <code>상태</code>
+          </div>
+
+          <h4 style="margin-top: 22px;"><span class="step">02</span> 법정 보존기간</h4>
+          <div class="result" style="max-height: 240px;">
+            <table>
+              <thead>
+                <tr><th>기록 종류</th><th>보존기간</th><th>근거</th></tr>
+              </thead>
+              <tbody id="ret-table"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4><span class="step">03</span> 감사 결과</h4>
+          <div id="ret-status" class="status-line" style="display:none"></div>
+          <div class="audit-summary" id="ret-stats" style="display:none">
+            <div class="audit-stat">
+              <div class="label">정상 보존</div>
+              <div class="num" id="ret-ok">0</div>
+            </div>
+            <div class="audit-stat warn">
+              <div class="label">만료 임박 6개월</div>
+              <div class="num" id="ret-soon">0</div>
+            </div>
+            <div class="audit-stat err">
+              <div class="label">만료 초과</div>
+              <div class="num" id="ret-over">0</div>
+            </div>
+            <div class="audit-stat err">
+              <div class="label">분류 오류</div>
+              <div class="num" id="ret-bad">0</div>
+            </div>
+          </div>
+          <div class="result-toolbar" id="ret-toolbar" style="display:none">
+            <div class="summary" id="ret-summary"></div>
+            <div class="actions">
+              <button class="btn" id="ret-download" disabled>
+                감사보고서 <span class="arrow">↓</span>
+              </button>
+            </div>
+          </div>
+          <div class="result" id="ret-result">
+            <div class="empty-state">기록 대장을 올리면 감사 결과가 여기에 표시됩니다.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────── -->
+    <!-- Tab 6 — 통합 코드 검색 -->
+    <!-- ─────────────────────────────────────────── -->
+    <section class="panel" id="tab-search" role="tabpanel">
+      <div class="panel-head">
+        <span class="panel-num">06 · 통합 코드 검색</span>
+        <h3>한 곳에서 <em>모든 코드</em></h3>
+        <div class="badges">
+          <span class="badge live">KCD-9 · 자보 · 비급여</span>
+        </div>
+      </div>
+      <p class="panel-blurb">
+        진단명·시술명·항목명을 한 번에 검색합니다. <em>한글</em>·<em>한자 코드</em>·<em>초성</em>까지 인식합니다.
+      </p>
+
+      <div class="search-hero">
+        <input id="search-input" type="search" placeholder="요통 · 추나 · BC0001 · ㅇㅈㅍ…" autocomplete="off">
+        <div class="search-filters">
+          <button class="filter-chip active" data-source="all">전체</button>
+          <button class="filter-chip" data-source="kcd">KCD-9 진단</button>
+          <button class="filter-chip" data-source="jabo">자보 수가</button>
+          <button class="filter-chip" data-source="bigeup">비급여</button>
+        </div>
+      </div>
+
+      <div class="result-toolbar">
+        <div class="summary" id="search-summary">검색어를 입력하세요.</div>
+        <div class="actions">
+          <button class="btn secondary" id="search-download" disabled>
+            결과 XLSX <span class="arrow">↓</span>
+          </button>
+        </div>
+      </div>
+      <div class="result" id="search-result">
+        <div class="empty-state">예) "요통", "추나", "BC0001", "ㅇㅈ"</div>
+      </div>
+    </section>
+
+    <footer class="app">
+      <div class="row">
+        <div>
+          <h5>출처 / 근거</h5>
+          <p>
+            KCD-9 — 통계청 9차 개정 (효력 2026-01-01) · <a href="https://www.koicd.kr" target="_blank" rel="noopener noreferrer">koicd.kr</a><br>
+            자동차보험 진료수가 — 국토교통부 고시 · <a href="https://www.law.go.kr" target="_blank" rel="noopener noreferrer">law.go.kr</a><br>
+            의료비 자료제출 — 국세청 홈택스 표준 서식 · <a href="https://www.hometax.go.kr" target="_blank" rel="noopener noreferrer">hometax.go.kr</a><br>
+            비급여 공개 — 의료법 §45조의2, HIRA · <a href="https://opendata.hira.or.kr" target="_blank" rel="noopener noreferrer">opendata.hira.or.kr</a><br>
+            의무기록 보존 — 의료법 시행규칙 §15 · <a href="https://www.law.go.kr" target="_blank" rel="noopener noreferrer">law.go.kr</a>
+          </p>
+        </div>
+        <div>
+          <h5>안내</h5>
+          <p>
+            본 도구는 행정 보조용이며, 최종 청구·제출 전 원본 고시·매뉴얼을 반드시 확인하십시오.<br><br>
+            모든 처리는 브라우저 내에서만 이루어지며, 환자정보·주민등록번호 등은 외부로 전송되지 않습니다.
+          </p>
+        </div>
+      </div>
+      <div class="colophon">
+        <span>© MMXXVI · Vibe Studio · Set in Fraunces &amp; Inter</span>
+        <span><a href="../">← 작품집으로 돌아가기</a></span>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    /* ─────────────────────────────────────────────────────────
+       Shared utilities
+       ───────────────────────────────────────────────────────── */
+    const $ = (sel, ctx = document) => ctx.querySelector(sel);
+    const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
+
+    const fmtKRW = (n) => new Intl.NumberFormat("ko-KR").format(Math.round(n || 0));
+    const todayISO = () => new Date().toISOString().slice(0, 10);
+
+    function setStatus(el, kind, text) {
+      if (!el) return;
+      el.style.display = "flex";
+      el.className = "status-line" + (kind ? " " + kind : "");
+      el.innerHTML = `<span class="dot"></span><span>${text}</span>`;
+    }
+
+    async function loadJSON(path) {
+      const r = await fetch(path);
+      if (!r.ok) throw new Error(`Failed: ${path}`);
+      return r.json();
+    }
+
+    // 한글 초성 추출
+    const CHO = ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+    function extractCho(str) {
+      let out = "";
+      for (const ch of str) {
+        const code = ch.charCodeAt(0);
+        if (code >= 0xAC00 && code <= 0xD7A3) {
+          const idx = Math.floor((code - 0xAC00) / 588);
+          out += CHO[idx];
+        } else {
+          out += ch;
+        }
+      }
+      return out;
+    }
+
+    function fuzzyMatch(haystack, needle) {
+      if (!needle) return true;
+      const h = haystack.toLowerCase();
+      const n = needle.toLowerCase();
+      if (h.includes(n)) return true;
+      // 초성 검색 시도
+      if (/^[ㄱ-ㅎ]+$/.test(needle)) {
+        return extractCho(haystack).includes(needle);
+      }
+      return false;
+    }
+
+    function readSpreadsheet(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const wb = XLSX.read(data, { type: "array" });
+            const ws = wb.Sheets[wb.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
+            resolve(rows);
+          } catch (err) {
+            reject(err);
+          }
+        };
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+      });
+    }
+
+    function downloadXLSX(rows, filename, sheetName = "Sheet1") {
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      XLSX.writeFile(wb, filename);
+    }
+
+    function downloadCSV(rows, filename) {
+      if (!rows.length) return;
+      const headers = Object.keys(rows[0]);
+      const escape = (v) => {
+        const s = String(v ?? "");
+        return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+      };
+      const csv = [
+        headers.join(","),
+        ...rows.map(r => headers.map(h => escape(r[h])).join(","))
+      ].join("\n");
+      const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    /* drop-zone wiring */
+    function bindDrop(zoneId, onFile) {
+      const zone = $("#" + zoneId);
+      const input = $("input[type=file]", zone);
+      zone.addEventListener("click", (e) => {
+        if (e.target.tagName === "BUTTON") return;
+        input.click();
+      });
+      zone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        zone.classList.add("dragover");
+      });
+      zone.addEventListener("dragleave", () => zone.classList.remove("dragover"));
+      zone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        zone.classList.remove("dragover");
+        if (e.dataTransfer.files[0]) onFile(e.dataTransfer.files[0]);
+      });
+      input.addEventListener("change", (e) => {
+        if (e.target.files[0]) onFile(e.target.files[0]);
+      });
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       Tab navigation
+       ───────────────────────────────────────────────────────── */
+    $$(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        $$(".tab-btn").forEach(b => b.classList.remove("active"));
+        $$(".panel").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        $("#" + btn.dataset.panel).classList.add("active");
+        // scroll panel into view if needed
+        const tabs = $("#tabnav");
+        if (window.scrollY > tabs.offsetTop) {
+          window.scrollTo({ top: tabs.offsetTop - 4, behavior: "smooth" });
+        }
+      });
+    });
+
+    /* ─────────────────────────────────────────────────────────
+       Boot — load data, then wire each tab
+       ───────────────────────────────────────────────────────── */
+    let DATA = { kcd: null, jabo: null, bigeup: null, retention: null };
+
+    Promise.all([
+      loadJSON("./data/kcd9.json"),
+      loadJSON("./data/jabo.json"),
+      loadJSON("./data/bigeup.json"),
+      loadJSON("./data/retention.json")
+    ]).then(([kcd, jabo, bigeup, ret]) => {
+      DATA.kcd = kcd; DATA.jabo = jabo; DATA.bigeup = bigeup; DATA.retention = ret;
+      initTab1();
+      initTab2();
+      initTab3();
+      initTab4();
+      initTab5();
+      initTab6();
+    }).catch(err => console.error("Data load failed:", err));
+
+    /* ─────────────────────────────────────────────────────────
+       Tab 1 — KCD-8 → KCD-9 매핑
+       ───────────────────────────────────────────────────────── */
+    function initTab1() {
+      let lastResult = null;
+
+      const buildIndex = () => {
+        const map = new Map();
+        for (const m of DATA.kcd.mappings) {
+          map.set(m.kcd8.replace(/\./g, ""), m);
+          map.set(m.kcd8, m);
+        }
+        return map;
+      };
+      const idx = buildIndex();
+
+      const transform = (rows) => {
+        const out = [];
+        const counters = { unchanged: 0, recoded: 0, split: 0, merged: 0, missing: 0 };
+        for (const row of rows) {
+          const k8 = String(row["KCD8코드"] || row["KCD코드"] || row["코드"] || "").trim();
+          const dx = String(row["진단명"] || row["상병명"] || "").trim();
+          const k8norm = k8.replace(/\./g, "");
+          const hit = idx.get(k8) || idx.get(k8norm);
+          let k9 = "", type = "missing", note = "매핑 데이터 없음 — KOICD 신구대조표 확인 필요";
+          if (hit) {
+            k9 = hit.kcd9;
+            type = hit.type;
+            if (type === "split" && hit.candidates) {
+              note = "후보 다수 — 검토필요: " + hit.candidates.join(" / ");
+            } else if (type === "merged") {
+              note = "통합 매핑";
+            } else if (type === "recoded") {
+              note = "포맷 변경 (점 제거)";
+            } else if (type === "unchanged") {
+              note = "변경 없음";
+            }
+          }
+          counters[type] = (counters[type] || 0) + 1;
+          out.push({
+            "환자번호":   row["환자번호"]   || "",
+            "진료일자":   row["진료일자"]   || "",
+            "진단명":     dx,
+            "KCD8코드":   k8,
+            "KCD9코드":   k9,
+            "매핑상태":   type,
+            "비고":       (row["비고"] ? row["비고"] + " · " : "") + note
+          });
+        }
+        return { rows: out, counters };
+      };
+
+      const renderResult = (result) => {
+        const { rows, counters } = result;
+        const total = rows.length;
+        $("#kcd-summary").innerHTML =
+          `<strong>${total}건</strong> 처리됨 · ` +
+          `자동매핑 <strong>${(counters.unchanged || 0) + (counters.recoded || 0) + (counters.merged || 0)}건</strong> · ` +
+          `검토필요 <strong>${counters.split || 0}건</strong> · ` +
+          `매핑없음 <strong>${counters.missing || 0}건</strong>`;
+        $("#kcd-toolbar").style.display = "flex";
+        $("#kcd-download").disabled = false;
+
+        const html = `
+          <table>
+            <thead>
+              <tr>
+                <th>환자번호</th><th>진료일자</th><th>진단명</th>
+                <th class="code">KCD-8</th><th class="code">KCD-9</th>
+                <th>상태</th><th>비고</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(r => {
+                const cls = r.매핑상태 === "missing" ? "err"
+                          : r.매핑상태 === "split"   ? "warn"
+                          : "ok";
+                const label = r.매핑상태 === "missing" ? "매핑없음"
+                            : r.매핑상태 === "split"   ? "검토필요"
+                            : r.매핑상태 === "merged"  ? "통합"
+                            : r.매핑상태 === "recoded" ? "재코딩"
+                            : "변경없음";
+                return `<tr>
+                  <td>${r.환자번호}</td>
+                  <td class="code">${r.진료일자}</td>
+                  <td>${r.진단명 || "—"}</td>
+                  <td class="code">${r.KCD8코드 || "—"}</td>
+                  <td class="code">${r.KCD9코드 || "—"}</td>
+                  <td><span class="pill ${cls}">${label}</span></td>
+                  <td>${r.비고}</td>
+                </tr>`;
+              }).join("")}
+            </tbody>
+          </table>`;
+        $("#kcd-result").innerHTML = html;
+      };
+
+      bindDrop("drop-kcd", async (file) => {
+        try {
+          setStatus($("#kcd-status"), null, `파일을 읽는 중 — ${file.name}`);
+          const rows = await readSpreadsheet(file);
+          if (!rows.length) {
+            setStatus($("#kcd-status"), "warn", "빈 파일이거나 데이터를 찾지 못했습니다.");
+            return;
+          }
+          const result = transform(rows);
+          lastResult = result;
+          renderResult(result);
+          setStatus($("#kcd-status"), null,
+            `${result.rows.length}건의 진단을 KCD-9로 변환했습니다.`);
+        } catch (err) {
+          setStatus($("#kcd-status"), "err", "파일을 읽지 못했습니다 — 형식 확인 필요.");
+        }
+      });
+
+      $("#kcd-download").addEventListener("click", () => {
+        if (!lastResult) return;
+        downloadXLSX(lastResult.rows, `KCD9_매핑_${todayISO()}.xlsx`, "KCD9 매핑");
+      });
+
+      $('[data-action="sample-kcd"]').addEventListener("click", (e) => {
+        e.stopPropagation();
+        const sample = [
+          { 환자번호: "P-2025-0042", 진료일자: "2025-12-10", 진단명: "요통",          KCD8코드: "M54.5", 비고: "" },
+          { 환자번호: "P-2025-0042", 진료일자: "2025-12-12", 진단명: "경부통",        KCD8코드: "M54.2", 비고: "" },
+          { 환자번호: "P-2025-0085", 진료일자: "2025-12-15", 진단명: "오십견",        KCD8코드: "M75.0", 비고: "" },
+          { 환자번호: "P-2025-0085", 진료일자: "2025-12-17", 진단명: "긴장성 두통",   KCD8코드: "G44.2", 비고: "" },
+          { 환자번호: "P-2025-0091", 진료일자: "2025-12-20", 진단명: "요추 염좌",     KCD8코드: "S33.5", 비고: "교통사고" },
+          { 환자번호: "P-2025-0091", 진료일자: "2025-12-20", 진단명: "경추 염좌",     KCD8코드: "S13.4", 비고: "교통사고" },
+          { 환자번호: "P-2025-0103", 진료일자: "2025-12-23", 진단명: "위염 NOS",      KCD8코드: "K29.7", 비고: "" },
+          { 환자번호: "P-2025-0117", 진료일자: "2025-12-26", 진단명: "기능성 소화불량", KCD8코드: "K30",   비고: "" }
+        ];
+        downloadXLSX(sample, "샘플_KCD8_진단대장.xlsx", "샘플");
+      });
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       Tab 2 — 자보 한방 수가 견적기
+       ───────────────────────────────────────────────────────── */
+    function initTab2() {
+      const items = []; // {code, name, qty, unit, price, category}
+      const dxSel = $("#jabo-dx");
+      DATA.jabo.diagnosis_examples.forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = d.code;
+        opt.textContent = `${d.code} · ${d.name}`;
+        dxSel.appendChild(opt);
+      });
+
+      const itemsByCode = new Map();
+      DATA.jabo.items.forEach(i => itemsByCode.set(i.code, i));
+
+      const searchEl = $("#jabo-search");
+      const resultsEl = $("#jabo-search-results");
+      let activeIdx = -1;
+
+      const renderSearch = (query) => {
+        if (!query.trim()) {
+          resultsEl.classList.remove("show");
+          resultsEl.innerHTML = "";
+          return;
+        }
+        const matches = DATA.jabo.items.filter(i =>
+          fuzzyMatch(i.name, query) || i.code.includes(query) || fuzzyMatch(i.category, query)
+        ).slice(0, 12);
+        if (!matches.length) {
+          resultsEl.innerHTML = `<div class="search-opt"><span></span><span style="color: var(--muted); font-style: italic;">검색 결과 없음</span><span></span></div>`;
+          resultsEl.classList.add("show");
+          return;
+        }
+        resultsEl.innerHTML = matches.map((m, i) => `
+          <div class="search-opt" data-code="${m.code}" data-idx="${i}">
+            <span class="code-tag">${m.code}</span>
+            <span><span style="color: var(--ink-2)">${m.name}</span> <span style="color: var(--faint); font-size: 11px; margin-left: 6px;">${m.category}</span></span>
+            <span class="price-mini">${fmtKRW(m.price)} / ${m.unit}</span>
+          </div>
+        `).join("");
+        resultsEl.classList.add("show");
+        resultsEl.querySelectorAll(".search-opt").forEach(opt => {
+          opt.addEventListener("click", () => addItem(opt.dataset.code));
+        });
+      };
+
+      const addItem = (code) => {
+        const def = itemsByCode.get(code);
+        if (!def) return;
+        const existing = items.find(x => x.code === code);
+        if (existing) {
+          existing.qty++;
+        } else {
+          items.push({ ...def, qty: 1 });
+        }
+        searchEl.value = "";
+        resultsEl.classList.remove("show");
+        renderItems();
+      };
+
+      const renderItems = () => {
+        const list = $("#jabo-items");
+        if (!items.length) {
+          list.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--muted); font-family: 'Fraunces', serif; font-style: italic; font-size: 14px;">아직 추가된 행위가 없습니다.</div>`;
+        } else {
+          list.innerHTML = items.map((it, i) => `
+            <div class="item-row" data-i="${i}">
+              <span class="code-tag">${it.code}</span>
+              <span class="name">${it.name} <span style="color: var(--faint); font-size: 11px; margin-left: 4px;">${it.category}</span></span>
+              <input type="number" class="qty" min="1" max="999" value="${it.qty}" data-i="${i}" aria-label="횟수">
+              <span class="price-display">${fmtKRW(it.price * it.qty)}</span>
+              <button class="remove-btn" data-i="${i}" aria-label="삭제">×</button>
+            </div>
+          `).join("");
+          list.querySelectorAll(".qty").forEach(input => {
+            input.addEventListener("input", e => {
+              const i = +e.target.dataset.i;
+              items[i].qty = Math.max(1, +e.target.value || 1);
+              renderItems();
+            });
+          });
+          list.querySelectorAll(".remove-btn").forEach(btn => {
+            btn.addEventListener("click", e => {
+              items.splice(+e.target.dataset.i, 1);
+              renderItems();
+            });
+          });
+        }
+        const total = items.reduce((s, it) => s + it.price * it.qty, 0);
+        $("#jabo-total-num").textContent = fmtKRW(total);
+        $("#jabo-summary").innerHTML = `<strong>${items.length}건</strong> 행위 · <strong>${fmtKRW(total)}원</strong>`;
+        $("#jabo-download").disabled = items.length === 0;
+
+        // preview table
+        if (!items.length) {
+          $("#jabo-preview").innerHTML = `<div class="empty-state">행위를 추가하면 여기에 청구서 미리보기가 표시됩니다.</div>`;
+        } else {
+          const dxOpt = dxSel.options[dxSel.selectedIndex];
+          $("#jabo-preview").innerHTML = `
+            <table>
+              <thead><tr><th class="code">코드</th><th>행위명</th><th>단가</th><th>횟수</th><th>소계</th></tr></thead>
+              <tbody>
+                ${items.map(it => `<tr>
+                  <td class="code">${it.code}</td>
+                  <td>${it.name}</td>
+                  <td class="code" style="text-align:right">${fmtKRW(it.price)}</td>
+                  <td class="code" style="text-align:right">${it.qty}</td>
+                  <td class="code" style="text-align:right"><strong>${fmtKRW(it.price * it.qty)}</strong></td>
+                </tr>`).join("")}
+                <tr style="background: var(--paper-2)"><td colspan="4" style="text-align:right; font-weight:600">총 청구액</td><td class="code" style="text-align:right; font-weight:700">${fmtKRW(total)}원</td></tr>
+              </tbody>
+            </table>`;
+        }
+      };
+
+      searchEl.addEventListener("input", e => renderSearch(e.target.value));
+      searchEl.addEventListener("focus", e => renderSearch(e.target.value));
+      document.addEventListener("click", e => {
+        if (!e.target.closest(".item-search")) resultsEl.classList.remove("show");
+      });
+
+      $("#jabo-download").addEventListener("click", () => {
+        const name = $("#jabo-name").value || "—";
+        const pid = $("#jabo-pid").value || "—";
+        const accident = $("#jabo-accident").value || "—";
+        const date = $("#jabo-date").value || todayISO();
+        const dx = dxSel.value;
+        const dxName = DATA.jabo.diagnosis_examples.find(d => d.code === dx)?.name || "";
+        const total = items.reduce((s, it) => s + it.price * it.qty, 0);
+
+        const rows = items.map(it => ({
+          "환자명":      name,
+          "환자번호":    pid,
+          "사고일자":    accident,
+          "진료일자":    date,
+          "주상병코드":  dx,
+          "주상병명":    dxName,
+          "행위코드":    it.code,
+          "행위명":      it.name,
+          "분류":        it.category,
+          "단가":        it.price,
+          "단위":        it.unit,
+          "횟수":        it.qty,
+          "소계":        it.price * it.qty
+        }));
+        rows.push({
+          "환자명": "", "환자번호": "", "사고일자": "", "진료일자": "",
+          "주상병코드": "", "주상병명": "",
+          "행위코드": "", "행위명": "총 청구액",
+          "분류": "", "단가": "", "단위": "", "횟수": "", "소계": total
+        });
+        downloadXLSX(rows, `자보청구서_${pid}_${date}.xlsx`, "자보청구");
+      });
+
+      // initial render
+      const today = todayISO();
+      $("#jabo-date").value = today;
+      $("#jabo-accident").value = today;
+      renderItems();
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       Tab 3 — 연말정산 의료비 자료 빌더
+       ───────────────────────────────────────────────────────── */
+    function initTab3() {
+      let lastRows = null;
+
+      const transform = (rows) => {
+        const biz = $("#ye-biz").value.trim();
+        const evid = $("#ye-evid").value;
+        const han = $("#ye-han").value;
+        const out = [];
+        for (const row of rows) {
+          const rrn = String(row["주민등록번호"] || row["주민번호"] || "").replace(/[^0-9]/g, "");
+          const masked = rrn.length >= 13 ? rrn.slice(0, 6) + "-" + rrn.slice(6, 7) + "******" : "";
+          const date = String(row["진료일자"] || "").replace(/-/g, "");
+          const own = +String(row["본인부담금"] || 0).replace(/[^0-9.]/g, "") || 0;
+          const non = +String(row["비급여금액"] || 0).replace(/[^0-9.]/g, "") || 0;
+          const tot = own + non;
+          out.push({
+            "사업자등록번호":       biz,
+            "환자성명":             row["환자성명"] || row["성명"] || "",
+            "주민등록번호(마스크)":   masked,
+            "진료일자":             date,
+            "의료비총액":           tot,
+            "본인부담금":           own,
+            "비급여금액":           non,
+            "의료비공제대상금액":     own + non,
+            "증빙코드":             evid,
+            "한방여부":             han
+          });
+        }
+        return out;
+      };
+
+      const render = (rows) => {
+        const total = rows.reduce((s, r) => s + (r["의료비총액"] || 0), 0);
+        $("#ye-summary").innerHTML =
+          `<strong>${rows.length}건</strong> · 총 의료비 <strong>${fmtKRW(total)}원</strong>`;
+        $("#ye-toolbar").style.display = "flex";
+        $("#ye-download").disabled = false;
+
+        $("#ye-result").innerHTML = `
+          <table>
+            <thead><tr>
+              <th>환자성명</th><th class="code">주민번호</th><th class="code">진료일자</th>
+              <th class="code">총액</th><th class="code">본인부담</th><th class="code">비급여</th>
+              <th>한방</th>
+            </tr></thead>
+            <tbody>
+              ${rows.map(r => `<tr>
+                <td>${r["환자성명"]}</td>
+                <td class="code">${r["주민등록번호(마스크)"]}</td>
+                <td class="code">${r["진료일자"]}</td>
+                <td class="code" style="text-align:right">${fmtKRW(r["의료비총액"])}</td>
+                <td class="code" style="text-align:right">${fmtKRW(r["본인부담금"])}</td>
+                <td class="code" style="text-align:right">${fmtKRW(r["비급여금액"])}</td>
+                <td><span class="pill info">${r["한방여부"]}</span></td>
+              </tr>`).join("")}
+            </tbody>
+          </table>`;
+      };
+
+      bindDrop("drop-ye", async (file) => {
+        try {
+          setStatus($("#ye-status"), null, `파일을 읽는 중 — ${file.name}`);
+          const rows = await readSpreadsheet(file);
+          if (!rows.length) {
+            setStatus($("#ye-status"), "warn", "빈 파일입니다.");
+            return;
+          }
+          const result = transform(rows);
+          lastRows = result;
+          render(result);
+          setStatus($("#ye-status"), null, `${result.length}건의 의료비 기록을 NTS 표준 자료로 변환했습니다. 주민등록번호는 마스킹되어 보관됩니다.`);
+        } catch (err) {
+          setStatus($("#ye-status"), "err", "파일을 읽지 못했습니다.");
+        }
+      });
+
+      $("#ye-download").addEventListener("click", () => {
+        if (!lastRows) return;
+        const biz = ($("#ye-biz").value || "biz").replace(/-/g, "");
+        downloadCSV(lastRows, `의료비_${biz}_${todayISO().replace(/-/g, "")}.csv`);
+      });
+
+      $('[data-action="sample-ye"]').addEventListener("click", (e) => {
+        e.stopPropagation();
+        const sample = [
+          { 환자성명: "김민지", 주민등록번호: "880314-2123456", 진료일자: "2025-04-08", 본인부담금: 12000, 비급여금액: 38000 },
+          { 환자성명: "김민지", 주민등록번호: "880314-2123456", 진료일자: "2025-04-15", 본인부담금: 12000, 비급여금액: 0     },
+          { 환자성명: "박지훈", 주민등록번호: "750822-1234567", 진료일자: "2025-06-02", 본인부담금: 18000, 비급여금액: 80000 },
+          { 환자성명: "박지훈", 주민등록번호: "750822-1234567", 진료일자: "2025-06-09", 본인부담금: 9000,  비급여금액: 0     },
+          { 환자성명: "이서윤", 주민등록번호: "920506-2654321", 진료일자: "2025-08-21", 본인부담금: 15000, 비급여금액: 120000 }
+        ];
+        downloadXLSX(sample, "샘플_진료기록_2025.xlsx", "샘플");
+      });
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       Tab 4 — 비급여 진료비용 공개
+       ───────────────────────────────────────────────────────── */
+    function initTab4() {
+      const tbody = $("#bg-tbody");
+      const state = DATA.bigeup.items.map(it => ({
+        ...it, min_input: "", max_input: "", med_input: ""
+      }));
+
+      const render = () => {
+        tbody.innerHTML = state.map((it, i) => `
+          <tr data-i="${i}">
+            <td class="code">${it.code}</td>
+            <td>${it.name}</td>
+            <td><span class="pill info">${it.category}</span></td>
+            <td><input type="number" class="bg-min" value="${it.min_input}" placeholder="${fmtKRW(it.min)}" data-i="${i}" style="width:90px; padding:5px 7px; border:1px solid var(--line); border-radius:3px; font-family:'JetBrains Mono', monospace; font-size:11px; text-align:right; background:rgba(255,255,255,0.6)"></td>
+            <td><input type="number" class="bg-max" value="${it.max_input}" placeholder="${fmtKRW(it.max)}" data-i="${i}" style="width:90px; padding:5px 7px; border:1px solid var(--line); border-radius:3px; font-family:'JetBrains Mono', monospace; font-size:11px; text-align:right; background:rgba(255,255,255,0.6)"></td>
+            <td><input type="number" class="bg-med" value="${it.med_input}" placeholder="${fmtKRW(Math.round((it.min+it.max)/2))}" data-i="${i}" style="width:90px; padding:5px 7px; border:1px solid var(--line); border-radius:3px; font-family:'JetBrains Mono', monospace; font-size:11px; text-align:right; background:rgba(255,255,255,0.6)"></td>
+          </tr>
+        `).join("");
+        tbody.querySelectorAll("input").forEach(input => {
+          input.addEventListener("input", e => {
+            const i = +e.target.dataset.i;
+            const f = e.target.classList.contains("bg-min") ? "min_input"
+                    : e.target.classList.contains("bg-max") ? "max_input"
+                    : "med_input";
+            state[i][f] = e.target.value;
+            updateSummary();
+          });
+        });
+      };
+
+      const updateSummary = () => {
+        let done = 0, empty = 0, errs = 0;
+        for (const it of state) {
+          const a = +it.min_input, b = +it.max_input, c = +it.med_input;
+          const filled = !!(it.min_input && it.max_input);
+          if (filled) {
+            done++;
+            const mid = c || Math.round((a + b) / 2);
+            if (a > b || mid < a || mid > b) errs++;
+          } else {
+            empty++;
+          }
+        }
+        $("#bg-done").textContent = done;
+        $("#bg-empty").textContent = empty;
+        $("#bg-err").textContent = errs;
+        $("#bg-download").disabled = done === 0 || errs > 0 || !$("#bg-ykiho").value.trim();
+
+        if (errs > 0) {
+          setStatus($("#bg-status"), "err",
+            `검증 오류 ${errs}건 — 최저 ≤ 중간 ≤ 최고 규칙을 확인하세요.`);
+        } else if (done > 0) {
+          setStatus($("#bg-status"), null,
+            `${done}개 항목 입력 완료 · 제출 자료 생성 가능.`);
+        } else {
+          $("#bg-status").style.display = "none";
+        }
+        $("#bg-summary").innerHTML = `완료 <strong>${done}</strong> · 미입력 <strong>${empty}</strong> · 오류 <strong>${errs}</strong>`;
+      };
+
+      $("#bg-prefill").addEventListener("click", () => {
+        for (const it of state) {
+          it.min_input = it.min;
+          it.max_input = it.max;
+          it.med_input = Math.round((it.min + it.max) / 2);
+        }
+        render();
+        updateSummary();
+      });
+
+      $("#bg-ykiho").addEventListener("input", updateSummary);
+
+      $("#bg-download").addEventListener("click", () => {
+        const ykiho = $("#bg-ykiho").value.trim();
+        const clinic = $("#bg-clinic").value.trim() || "—";
+        const date = $("#bg-date").value || todayISO();
+        const rows = state.filter(it => it.min_input && it.max_input).map(it => {
+          const a = +it.min_input, b = +it.max_input;
+          const mid = +it.med_input || Math.round((a + b) / 2);
+          return {
+            "요양기관기호":   ykiho,
+            "의료기관명":     clinic,
+            "항목코드":       it.code,
+            "항목명":         it.name,
+            "진료과목":       "한방",
+            "최저금액":       a,
+            "최고금액":       b,
+            "중간금액":       mid,
+            "단위":           it.unit,
+            "시행일자":       date,
+            "변경구분":       "신규"
+          };
+        });
+        downloadXLSX(rows, `비급여공개_${ykiho}_${date}.xlsx`, "비급여 공개");
+      });
+
+      // init date
+      $("#bg-date").value = todayISO();
+      render();
+      updateSummary();
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       Tab 5 — 의무기록 보존 감사
+       ───────────────────────────────────────────────────────── */
+    function initTab5() {
+      // render legal table
+      $("#ret-table").innerHTML = DATA.retention.categories.map(c =>
+        `<tr><td>${c.key}</td><td class="code">${c.years}년</td><td class="code" style="color:var(--muted)">의료법 시행규칙 §15</td></tr>`
+      ).join("");
+
+      let lastRows = null;
+      const today = new Date(todayISO());
+
+      const normalize = (typeStr) => {
+        const s = (typeStr || "").trim();
+        for (const c of DATA.retention.categories) {
+          if (s === c.key) return c;
+          if (c.aliases.some(a => a === s)) return c;
+        }
+        // fuzzy match
+        for (const c of DATA.retention.categories) {
+          if (s.includes(c.key) || c.key.includes(s)) return c;
+        }
+        return null;
+      };
+
+      const transform = (rows) => {
+        const out = [];
+        const stats = { ok: 0, soon: 0, over: 0, bad: 0 };
+        for (const row of rows) {
+          const id = row["기록ID"] || row["ID"] || "";
+          const rawType = row["기록종류"] || row["종류"] || "";
+          const created = String(row["작성일자"] || "").trim();
+          const status = (row["상태"] || "active").trim();
+          const cat = normalize(rawType);
+
+          if (!cat) {
+            stats.bad++;
+            out.push({
+              기록ID: id, 기록종류: rawType, 작성일자: created,
+              법정보존기간_년: "?", 만료예정일: "—", 잔여일수: "—",
+              감사결과: "분류 오류", 권고조치: "기록종류를 표준 9개 카테고리 중 하나로 정정"
+            });
+            continue;
+          }
+
+          const dt = new Date(created);
+          if (isNaN(dt.getTime())) {
+            stats.bad++;
+            out.push({
+              기록ID: id, 기록종류: cat.key, 작성일자: created,
+              법정보존기간_년: cat.years, 만료예정일: "—", 잔여일수: "—",
+              감사결과: "분류 오류", 권고조치: "작성일자 형식 확인 (YYYY-MM-DD)"
+            });
+            continue;
+          }
+
+          const expiry = new Date(dt);
+          expiry.setFullYear(expiry.getFullYear() + cat.years);
+          const remainingDays = Math.round((expiry - today) / 86400000);
+
+          let verdict, note, kind;
+          if (remainingDays < 0) {
+            verdict = "만료 초과 (폐기 검토)"; kind = "over";
+            note = `${-remainingDays}일 초과 — 안전 폐기 절차 검토`;
+            stats.over++;
+          } else if (remainingDays <= 180) {
+            verdict = "만료 임박"; kind = "soon";
+            note = `${remainingDays}일 후 만료 — 디지털 아카이브 권고`;
+            stats.soon++;
+          } else {
+            verdict = "정상 보존"; kind = "ok";
+            note = "—";
+            stats.ok++;
+          }
+
+          out.push({
+            기록ID: id, 기록종류: cat.key, 작성일자: created,
+            법정보존기간_년: cat.years,
+            만료예정일: expiry.toISOString().slice(0, 10),
+            잔여일수: remainingDays,
+            감사결과: verdict, 권고조치: note,
+            _kind: kind
+          });
+        }
+        return { rows: out, stats };
+      };
+
+      const render = (result) => {
+        const { rows, stats } = result;
+        $("#ret-stats").style.display = "grid";
+        $("#ret-ok").textContent = stats.ok;
+        $("#ret-soon").textContent = stats.soon;
+        $("#ret-over").textContent = stats.over;
+        $("#ret-bad").textContent = stats.bad;
+        $("#ret-toolbar").style.display = "flex";
+        $("#ret-summary").innerHTML = `<strong>${rows.length}건</strong> 감사 완료 · 즉시 조치 <strong>${stats.over + stats.bad}건</strong>`;
+        $("#ret-download").disabled = false;
+
+        // Sort: over → soon → bad → ok
+        const sorted = [...rows].sort((a, b) => {
+          const order = { over: 0, soon: 1, bad: 2, ok: 3 };
+          return (order[a._kind] ?? 3) - (order[b._kind] ?? 3);
+        });
+
+        $("#ret-result").innerHTML = `
+          <table>
+            <thead><tr>
+              <th>기록ID</th><th>기록종류</th><th class="code">작성일</th>
+              <th class="code">보존(년)</th><th class="code">만료일</th>
+              <th class="code">잔여일</th><th>결과</th>
+            </tr></thead>
+            <tbody>
+              ${sorted.map(r => {
+                const cls = r._kind === "over" ? "err"
+                          : r._kind === "soon" ? "warn"
+                          : r._kind === "bad"  ? "err"
+                          : "ok";
+                const label = r.감사결과;
+                const remaining = r.잔여일수 === "—" ? "—"
+                  : (r.잔여일수 < 0 ? "+" + (-r.잔여일수) : r.잔여일수);
+                return `<tr>
+                  <td class="code">${r.기록ID}</td>
+                  <td>${r.기록종류}</td>
+                  <td class="code">${r.작성일자}</td>
+                  <td class="code">${r.법정보존기간_년}</td>
+                  <td class="code">${r.만료예정일}</td>
+                  <td class="code" style="text-align:right">${remaining}</td>
+                  <td><span class="pill ${cls}">${label}</span></td>
+                </tr>`;
+              }).join("")}
+            </tbody>
+          </table>`;
+      };
+
+      bindDrop("drop-ret", async (file) => {
+        try {
+          setStatus($("#ret-status"), null, `파일을 읽는 중 — ${file.name}`);
+          const rows = await readSpreadsheet(file);
+          if (!rows.length) {
+            setStatus($("#ret-status"), "warn", "빈 파일입니다.");
+            return;
+          }
+          const result = transform(rows);
+          lastRows = result.rows.map(({_kind, ...rest}) => rest);
+          render(result);
+          const urgent = result.stats.over + result.stats.bad;
+          if (urgent > 0) {
+            setStatus($("#ret-status"), "warn",
+              `${urgent}건의 즉시 조치 항목이 있습니다.`);
+          } else {
+            setStatus($("#ret-status"), null,
+              `${result.rows.length}건 모두 정상 보존 또는 단순 모니터링 단계입니다.`);
+          }
+        } catch (err) {
+          setStatus($("#ret-status"), "err", "파일을 읽지 못했습니다.");
+        }
+      });
+
+      $("#ret-download").addEventListener("click", () => {
+        if (!lastRows) return;
+        downloadXLSX(lastRows, `의무기록_보존감사_${todayISO()}.xlsx`, "보존 감사");
+      });
+
+      $('[data-action="sample-ret"]').addEventListener("click", (e) => {
+        e.stopPropagation();
+        const sample = [
+          { 기록ID: "REC-2014-0001", 기록종류: "진료기록부", 환자번호: "P-2014-0042", 작성일자: "2014-03-14", 상태: "active" },
+          { 기록ID: "REC-2014-0002", 기록종류: "처방전",     환자번호: "P-2014-0042", 작성일자: "2014-03-14", 상태: "active" },
+          { 기록ID: "REC-2020-0098", 기록종류: "방사선기록", 환자번호: "P-2020-0098", 작성일자: "2020-08-22", 상태: "archived" },
+          { 기록ID: "REC-2021-0204", 기록종류: "검사기록",   환자번호: "P-2021-0204", 작성일자: "2021-11-04", 상태: "archived" },
+          { 기록ID: "REC-2022-0411", 기록종류: "진단서부본", 환자번호: "P-2022-0411", 작성일자: "2022-12-01", 상태: "archived" },
+          { 기록ID: "REC-2024-0512", 기록종류: "수술기록",   환자번호: "P-2024-0512", 작성일자: "2024-05-18", 상태: "active" },
+          { 기록ID: "REC-2025-0789", 기록종류: "환자명부",   환자번호: "P-2025-0789", 작성일자: "2025-09-30", 상태: "active" },
+          { 기록ID: "REC-2025-0790", 기록종류: "차트",       환자번호: "P-2025-0790", 작성일자: "2025-10-01", 상태: "active" },
+          { 기록ID: "REC-2026-0011", 기록종류: "간호기록부", 환자번호: "P-2026-0011", 작성일자: "2026-02-14", 상태: "active" }
+        ];
+        downloadXLSX(sample, "샘플_의무기록_대장.xlsx", "샘플");
+      });
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       Tab 6 — 통합 코드 검색
+       ───────────────────────────────────────────────────────── */
+    function initTab6() {
+      let activeFilter = "all";
+      let lastResults = [];
+
+      // build unified index
+      const all = [
+        ...DATA.kcd.mappings.map(m => ({
+          source: "kcd",
+          source_label: "KCD-9",
+          code: m.kcd9,
+          alt_code: m.kcd8,
+          name: m.name,
+          category: m.category,
+          extra: m.type === "split" ? `후보: ${(m.candidates || []).join(" / ")}` : "",
+          ref_date: DATA.kcd.effective_date
+        })),
+        ...DATA.jabo.items.map(it => ({
+          source: "jabo",
+          source_label: "자보 수가",
+          code: it.code,
+          alt_code: "",
+          name: it.name,
+          category: it.category,
+          extra: `${fmtKRW(it.price)}원 / ${it.unit}`,
+          ref_date: DATA.jabo.effective_date
+        })),
+        ...DATA.bigeup.items.map(it => ({
+          source: "bigeup",
+          source_label: "비급여",
+          code: it.code,
+          alt_code: "",
+          name: it.name,
+          category: it.category,
+          extra: `${fmtKRW(it.min)}~${fmtKRW(it.max)}원 / ${it.unit}`,
+          ref_date: DATA.bigeup.effective_date
+        }))
+      ];
+
+      const matches = (q, item) =>
+        fuzzyMatch(item.name, q) ||
+        fuzzyMatch(item.code, q) ||
+        (item.alt_code && fuzzyMatch(item.alt_code, q)) ||
+        fuzzyMatch(item.category, q);
+
+      const render = (q) => {
+        const trimmed = q.trim();
+        if (!trimmed) {
+          $("#search-result").innerHTML = `<div class="empty-state">예) "요통", "추나", "BC0001", "ㅇㅈ"</div>`;
+          $("#search-summary").textContent = "검색어를 입력하세요.";
+          $("#search-download").disabled = true;
+          lastResults = [];
+          return;
+        }
+        const results = all
+          .filter(it => activeFilter === "all" || it.source === activeFilter)
+          .filter(it => matches(trimmed, it))
+          .slice(0, 200);
+        lastResults = results;
+
+        $("#search-summary").innerHTML = `<strong>${results.length}건</strong> · "${trimmed}" — ${activeFilter === "all" ? "전체" : results[0]?.source_label || "—"}`;
+        $("#search-download").disabled = results.length === 0;
+
+        if (!results.length) {
+          $("#search-result").innerHTML = `<div class="empty-state">검색 결과가 없습니다.</div>`;
+          return;
+        }
+
+        $("#search-result").innerHTML = `
+          <table>
+            <thead><tr>
+              <th>구분</th><th class="code">코드</th><th>명칭</th>
+              <th>분류</th><th>가격/메모</th><th class="code">기준일</th>
+            </tr></thead>
+            <tbody>
+              ${results.map(r => {
+                const sourceCls = r.source === "kcd" ? "info" : r.source === "jabo" ? "warn" : "ok";
+                return `<tr>
+                  <td><span class="pill ${sourceCls}">${r.source_label}</span></td>
+                  <td class="code">${r.code}${r.alt_code ? `<br><span style="color:var(--faint); font-size:10px">← ${r.alt_code}</span>` : ""}</td>
+                  <td>${r.name}</td>
+                  <td>${r.category || "—"}</td>
+                  <td>${r.extra || "—"}</td>
+                  <td class="code" style="color:var(--muted)">${r.ref_date}</td>
+                </tr>`;
+              }).join("")}
+            </tbody>
+          </table>`;
+      };
+
+      const input = $("#search-input");
+      let debounceT;
+      input.addEventListener("input", e => {
+        clearTimeout(debounceT);
+        debounceT = setTimeout(() => render(e.target.value), 80);
+      });
+
+      $$(".filter-chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+          $$(".filter-chip").forEach(c => c.classList.remove("active"));
+          chip.classList.add("active");
+          activeFilter = chip.dataset.source;
+          render(input.value);
+        });
+      });
+
+      $("#search-download").addEventListener("click", () => {
+        if (!lastResults.length) return;
+        const rows = lastResults.map(r => ({
+          구분: r.source_label,
+          코드: r.code,
+          이전코드: r.alt_code,
+          명칭: r.name,
+          분류: r.category,
+          비고: r.extra,
+          기준일: r.ref_date
+        }));
+        downloadXLSX(rows, `통합검색_${input.value.trim()}_${todayISO()}.xlsx`, "검색결과");
+      });
+    }
+  </script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
+  </script>
+
+</body>
+</html>

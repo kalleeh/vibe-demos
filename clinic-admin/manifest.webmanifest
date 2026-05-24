@@ -1,0 +1,16 @@
+{
+  "name": "한방병원 행정 도구함 — Clinic Admin Toolkit",
+  "short_name": "행정 도구함",
+  "description": "한방병원 행정원장을 위한 6개 탭 도구함. 파일을 올리면 변환·검증·다운로드까지 브라우저 안에서 완료됩니다. 외부 전송 없음.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3eee2",
+  "theme_color": "#f3eee2",
+  "lang": "ko",
+  "categories": ["medical", "productivity", "business"],
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

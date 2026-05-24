@@ -1,0 +1,48 @@
+{
+  "source": "건강보험심사평가원 (HIRA) 비급여 진료비용 공개 항목 마스터",
+  "source_url": "https://opendata.hira.or.kr",
+  "legal_basis": "의료법 §45조의2, 의료법 시행규칙 §42조의2",
+  "effective_date": "2026-04-01",
+  "next_disclosure_window": "2026년 8월 ~ 9월 (제출), 2027년 4월 (공개)",
+  "note": "본 표는 데모 시연용 한방 비급여 항목 발췌본입니다. 실제 제출 전 HIRA 비급여보고시스템의 최신 코드 마스터를 확인하십시오.",
+  "items": [
+    { "code": "BC0001", "name": "약침술 — 경혈",              "category": "약침",       "unit": "부위",   "min": 8000,   "max": 25000  },
+    { "code": "BC0002", "name": "약침술 — 아시혈",            "category": "약침",       "unit": "부위",   "min": 8000,   "max": 25000  },
+    { "code": "BC0003", "name": "약침술 — 팔강 약침",         "category": "약침",       "unit": "부위",   "min": 12000,  "max": 35000  },
+    { "code": "BC0004", "name": "봉독 약침술",                "category": "약침",       "unit": "회",     "min": 18000,  "max": 50000  },
+    { "code": "BC0005", "name": "자하거 약침술",              "category": "약침",       "unit": "회",     "min": 25000,  "max": 60000  },
+
+    { "code": "BC0101", "name": "추나요법 — 자율신경",        "category": "추나",       "unit": "회",     "min": 30000,  "max": 80000  },
+    { "code": "BC0102", "name": "추나요법 — 전신",            "category": "추나",       "unit": "회",     "min": 50000,  "max": 120000 },
+    { "code": "BC0103", "name": "추나요법 — 소아",            "category": "추나",       "unit": "회",     "min": 30000,  "max": 70000  },
+
+    { "code": "BC0201", "name": "한약 첩약 — 보험적용 외 (1제)", "category": "한약",     "unit": "제",     "min": 80000,  "max": 250000 },
+    { "code": "BC0202", "name": "한약 첩약 — 보험적용 외 (1일분)", "category": "한약",   "unit": "일",     "min": 8000,   "max": 25000  },
+    { "code": "BC0203", "name": "공진단",                     "category": "한약",       "unit": "환",     "min": 40000,  "max": 120000 },
+    { "code": "BC0204", "name": "경옥고",                     "category": "한약",       "unit": "100g",   "min": 60000,  "max": 180000 },
+    { "code": "BC0205", "name": "녹용탕",                     "category": "한약",       "unit": "제",     "min": 150000, "max": 450000 },
+    { "code": "BC0206", "name": "한방 환제 — 처방 환",        "category": "한약",       "unit": "환",     "min": 5000,   "max": 30000  },
+    { "code": "BC0207", "name": "한방 산제 — 처방 산",        "category": "한약",       "unit": "10g",    "min": 4000,   "max": 25000  },
+    { "code": "BC0208", "name": "한방 고제 — 처방 고",        "category": "한약",       "unit": "100g",   "min": 30000,  "max": 100000 },
+    { "code": "BC0209", "name": "자하거 (태반) 추출물 (한방)",  "category": "한약",       "unit": "ml",     "min": 12000,  "max": 35000  },
+
+    { "code": "BC0301", "name": "체질감별 검사 — 사상체질",    "category": "검사",       "unit": "회",     "min": 30000,  "max": 100000 },
+    { "code": "BC0302", "name": "양도락 검사",                "category": "검사",       "unit": "회",     "min": 8000,   "max": 25000  },
+    { "code": "BC0303", "name": "맥진 (비급여 정밀)",         "category": "검사",       "unit": "회",     "min": 5000,   "max": 20000  },
+    { "code": "BC0304", "name": "적외선체열진단 (DITI)",      "category": "검사",       "unit": "회",     "min": 30000,  "max": 80000  },
+    { "code": "BC0305", "name": "맥파검사",                  "category": "검사",       "unit": "회",     "min": 20000,  "max": 50000  },
+    { "code": "BC0306", "name": "스트레스(HRV) 검사",         "category": "검사",       "unit": "회",     "min": 15000,  "max": 40000  },
+
+    { "code": "BC0401", "name": "도수치료 — 한방 (1부위)",    "category": "처치",       "unit": "회",     "min": 30000,  "max": 100000 },
+    { "code": "BC0402", "name": "도수치료 — 한방 (전신)",     "category": "처치",       "unit": "회",     "min": 60000,  "max": 180000 },
+    { "code": "BC0403", "name": "한방 좌훈요법",             "category": "처치",       "unit": "회",     "min": 10000,  "max": 30000  },
+    { "code": "BC0404", "name": "한방 훈증요법",             "category": "처치",       "unit": "회",     "min": 8000,   "max": 25000  },
+    { "code": "BC0405", "name": "약쑥 뜸 (특수)",            "category": "처치",       "unit": "회",     "min": 10000,  "max": 35000  },
+    { "code": "BC0406", "name": "한방 운동요법 (1:1)",        "category": "처치",       "unit": "회",     "min": 20000,  "max": 60000  },
+
+    { "code": "BC0501", "name": "한방 산후조리 패키지",       "category": "패키지",     "unit": "회",     "min": 100000, "max": 350000 },
+    { "code": "BC0502", "name": "한방 다이어트 침/약침 패키지", "category": "패키지",     "unit": "회",     "min": 80000,  "max": 250000 },
+    { "code": "BC0503", "name": "한방 비만 관리 한약",        "category": "한약",       "unit": "월",     "min": 200000, "max": 600000 },
+    { "code": "BC0504", "name": "한방 피부 관리 — 약침",      "category": "패키지",     "unit": "회",     "min": 50000,  "max": 150000 }
+  ]
+}
