@@ -318,7 +318,7 @@ header.top {
 .type-hero {
   background: var(--paper);
   color: var(--ink);
-  padding: 36px 30px 32px;
+  padding: 0;
   border-radius: 4px;
   margin-bottom: 22px;
   position: relative;
@@ -330,6 +330,20 @@ header.top {
   top: 0; left: 0;
   width: 6px; height: 100%;
   background: linear-gradient(to bottom, var(--accent), var(--accent-2));
+  z-index: 2;
+}
+.type-portrait {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  object-position: center 32%;
+  background: rgba(154, 42, 42, 0.06);
+  border-bottom: 1px solid rgba(26, 34, 56, 0.08);
+}
+.type-hero-text {
+  padding: 30px 30px 32px;
+  position: relative;
 }
 .type-hero .code {
   font-family: "Fraunces", "Georgia", serif;
@@ -1385,13 +1399,21 @@ function renderResultHTML(r) {
         ? `<span class="pill demo">DEMO</span>`
         : `<span class="pill">CLAUDE · ${escapeHTML(r.modelLabel || "Sonnet 4.6")}</span>`);
 
+  const portraitSrc = r.type ? `portraits/${r.type.toLowerCase()}.jpg` : "";
+  const portraitHTML = portraitSrc
+    ? `<img class="type-portrait" src="${portraitSrc}" alt="${escapeHTML(r.type)} — ${escapeHTML(r.nickname_ko)}" width="1024" height="640" loading="eager" decoding="async">`
+    : "";
+
   return `
     <div class="result">
       <div class="type-hero">
-        <div class="meta">${modeMeta}</div>
-        <div class="code">${escapeHTML(r.type)}</div>
-        <div class="nickname">${escapeHTML(r.nickname_ko)}</div>
-        <div class="one-liner">${escapeHTML(r.one_liner_ko)}</div>
+        ${portraitHTML}
+        <div class="type-hero-text">
+          <div class="meta">${modeMeta}</div>
+          <div class="code">${escapeHTML(r.type)}</div>
+          <div class="nickname">${escapeHTML(r.nickname_ko)}</div>
+          <div class="one-liner">${escapeHTML(r.one_liner_ko)}</div>
+        </div>
       </div>
       <div class="axes">
         <h3>4 축 분석</h3>

@@ -1,5 +1,13 @@
-const CACHE = "vibe-korean-mbti-v4";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
+const CACHE = "vibe-korean-mbti-v5";
+const SHELL = [
+  "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
+  // Canned-demo portraits so the showcase flow is instant offline.
+  // The other 12 types are picked up by the runtime cache on first view.
+  "./portraits/infj.jpg",
+  "./portraits/entj.jpg",
+  "./portraits/enfp.jpg",
+  "./portraits/isfj.jpg"
+];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
