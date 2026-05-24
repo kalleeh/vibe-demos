@@ -82,9 +82,10 @@
 
     /* ── Topbar (kicker, mode chips, hint) ─────────────────────────── */
     .topbar {
-      display: flex; align-items: center; gap: 18px;
+      display: flex; align-items: center; gap: 14px;
       padding: 18px 26px 6px;
       pointer-events: auto;
+      flex-wrap: wrap;
     }
     .brand {
       font-family: "Caveat", cursive;
@@ -107,14 +108,15 @@
     }
     .spacer { flex: 1; }
     .modes {
-      display: flex; gap: 6px;
+      display: flex; gap: 4px;
       font-family: "JetBrains Mono", monospace;
       font-size: 12px;
+      flex-wrap: wrap;
     }
     .mode-chip {
       appearance: none;
       border: none; background: none;
-      padding: 6px 10px;
+      padding: 6px 8px;
       cursor: pointer;
       color: var(--muted);
       letter-spacing: 0.1em;
@@ -127,6 +129,40 @@
       border-bottom-color: var(--bloom);
       font-style: italic;
     }
+    .mode-chip.voice { letter-spacing: 0; }
+    .mode-chip.voice.denied {
+      color: rgba(42, 38, 29, 0.30);
+      cursor: not-allowed;
+      text-decoration: line-through;
+    }
+    .scene-toggle {
+      appearance: none; border: none; background: none;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px; letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer; padding: 6px 0;
+      border-bottom: 1px dashed var(--line);
+      transition: color 160ms;
+    }
+    .scene-toggle:hover { color: var(--ink); }
+    .scene-toggle.active { color: var(--ink); border-bottom-color: var(--bloom); }
+    .pitch-bar {
+      display: inline-flex; align-items: baseline; gap: 8px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px; letter-spacing: 0.14em;
+      color: var(--muted);
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border: 1px dashed var(--line);
+      border-radius: 14px;
+      min-width: 130px;
+      opacity: 0;
+      transition: opacity 220ms;
+    }
+    .pitch-bar.live { opacity: 1; }
+    .pitch-bar .hz { color: var(--ink); font-style: normal; }
+    .pitch-bar .nm { color: var(--bloom); }
     .back {
       font-family: "JetBrains Mono", monospace;
       font-size: 11px; letter-spacing: 0.18em;
@@ -202,15 +238,30 @@
       margin-top: -10px;
     }
 
+    /* Chladni scene label, bottom-left corner of canvas region */
+    .scene-label {
+      position: absolute; pointer-events: none;
+      left: 38px; top: 90px;
+      font-family: "Caveat", cursive;
+      font-size: 22px;
+      color: var(--ink-soft);
+      transform: rotate(-1.2deg);
+      opacity: 0;
+      transition: opacity 220ms;
+    }
+    .scene-label.live { opacity: 1; }
+
     /* Reduced motion — calm everything */
     @media (prefers-reduced-motion: reduce) {
       .footer .lock .pip.lit { box-shadow: none; }
     }
 
     @media (max-width: 640px) {
-      .topbar { padding: 14px 18px 4px; gap: 10px; flex-wrap: wrap; }
+      .topbar { padding: 14px 18px 4px; gap: 8px; }
       .footer { padding: 6px 18px 18px; flex-wrap: wrap; gap: 10px; }
       .label-block { top: 70px; right: 18px; }
+      .scene-label { left: 18px; top: 130px; }
+      .pitch-bar { min-width: 110px; font-size: 10px; }
     }
   </style>
 </head>
@@ -226,7 +277,10 @@
         <button class="mode-chip"        data-mode="3">n=3</button>
         <button class="mode-chip"        data-mode="4">n=4</button>
         <button class="mode-chip"        data-mode="5">n=5</button>
+        <button class="mode-chip voice"  data-mode="voice" id="voiceChip">🎤 voice</button>
       </nav>
+      <span class="pitch-bar" id="pitchBar"><span class="hz" id="pitchHz">— Hz</span><span class="nm" id="pitchNm">n?</span></span>
+      <button class="scene-toggle" id="sceneToggle" aria-pressed="false">Chladni 2D</button>
       <a class="back" href="../">← Studio</a>
     </header>
 
@@ -236,6 +290,8 @@
       <span class="n" id="modeNum">1</span>
       <span class="t" id="modeName">— first harmonic</span>
     </div>
+
+    <div class="scene-label" id="sceneLabel" aria-hidden="true">Chladni 진동판 — n=2,3</div>
 
     <footer class="footer">
       <span class="hint" id="hint">tap on the string in rhythm — match the ghost line</span>
@@ -261,6 +317,11 @@
        interfere. When the spectral content of the string locks onto
        a target eigenmode (n=1..5), the pencil line inks itself in
        and a soft sine tone rises with the lock confidence.
+
+       Three optional layers on top:
+       • voice mode — mic pitch detection drives target + pluck
+       • Chladni 2D — alternate scene, sand-grain visualization
+       • spectral bar chart — modal coefficients n=1..8 in a corner
 
        No score, no timer, no fail. Sketchbook calm.
        ============================================================ */
@@ -307,6 +368,7 @@
       5: "fifth harmonic — major third"
     };
     let mode = 1;
+    let voiceMode = false; // when true, mic pitch chooses the active mode
 
     // Sine targets sampled to grid (fixed boundaries)
     function targetShape(n) {
@@ -318,14 +380,15 @@
     }
     let target = targetShape(mode);
 
-    // Project string onto the n-th sine mode → coefficient.
+    // Project string onto modes 1..NUM_MODES → coefficients.
     // Standing-wave amplitude in that mode. Use squared sum across modes
     // as the energy normalizer so the lock score is invariant to scale.
+    const NUM_MODES = 8;
     function modeEnergies() {
-      // Compute a few modal coefficients via direct sine projection.
-      const coefs = new Float64Array(6); // 1..5
+      // Compute modal coefficients via direct sine projection.
+      const coefs = new Float64Array(NUM_MODES + 1); // index 0 unused
       let totalE = 1e-9;
-      for (let n = 1; n <= 5; n++) {
+      for (let n = 1; n <= NUM_MODES; n++) {
         let c = 0;
         for (let i = 1; i < N - 1; i++) {
           c += u[i] * Math.sin((n * Math.PI * i) / (N - 1));
@@ -344,10 +407,13 @@
     // puts ~30-40% of its energy into n=1 (the rest leaks to n=3, 5...).
     let lockEMA = 0;
     let targetCoefEMA = 0;   // smoothed magnitude of the target-mode coefficient
+    let lastCoefs = null;     // shared with the spectral bar renderer
     function updateLock() {
       const { coefs } = modeEnergies();
+      lastCoefs = coefs;
       const targetMag = Math.abs(coefs[mode]);
-      // Largest competitor magnitude
+      // Largest competitor magnitude across n=1..5 (the modes the player
+      // can actually pick). Ignore high modes that are never targets.
       let rivalMag = 1e-6;
       for (let n = 1; n <= 5; n++) {
         if (n === mode) continue;
@@ -425,17 +491,162 @@
       o.stop(audioCtx.currentTime + 0.62);
     }
 
+    // ── Mic input + pitch detection ───────────────────────────────
+    // Routes a getUserMedia stream into the audio graph through an
+    // AnalyserNode. Each frame we pull the time-domain buffer, run a
+    // bounded autocorrelation to extract pitch, and EMA-smooth both the
+    // detected Hz and the chosen mode index so it doesn't jitter.
+    let micStream = null;
+    let micSource = null;
+    let micAnalyser = null;
+    let micBuf = null;
+    let micRMS = 0;
+    let micHzEMA = 0;
+    let micModeEMA = 1;
+    let micActive = false;
+    let micDenied = false;
+    let pluckPhase = 0; // accumulated time since last mic-driven pluck
+
+    async function enableMic() {
+      ensureAudio();
+      if (!audioCtx) return false;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+        });
+        micStream = stream;
+        micSource = audioCtx.createMediaStreamSource(stream);
+        micAnalyser = audioCtx.createAnalyser();
+        micAnalyser.fftSize = 2048;
+        micAnalyser.smoothingTimeConstant = 0.0;
+        micBuf = new Float32Array(micAnalyser.fftSize);
+        // Connect the mic to the analyser ONLY — never to masterGain,
+        // otherwise the user's microphone feeds back into their speakers.
+        micSource.connect(micAnalyser);
+        micActive = true;
+        micDenied = false;
+        return true;
+      } catch (err) {
+        micDenied = true;
+        micActive = false;
+        return false;
+      }
+    }
+
+    function disableMic() {
+      micActive = false;
+      if (micSource) { try { micSource.disconnect(); } catch (e) {} micSource = null; }
+      if (micAnalyser) { try { micAnalyser.disconnect(); } catch (e) {} micAnalyser = null; }
+      if (micStream) {
+        micStream.getTracks().forEach(t => { try { t.stop(); } catch (e) {} });
+        micStream = null;
+      }
+      micBuf = null;
+      micRMS = 0;
+    }
+
+    // Bounded autocorrelation pitch detection. Returns Hz or 0.
+    // Searches lags corresponding to ~80–700 Hz which covers the demo
+    // mode range (196–523 Hz) plus a little headroom for humming.
+    function detectPitch(buf, sampleRate) {
+      const SIZE = buf.length;
+      // RMS — used both as a noise gate and to drive pluck amplitude.
+      let sumSq = 0;
+      for (let i = 0; i < SIZE; i++) sumSq += buf[i] * buf[i];
+      const rms = Math.sqrt(sumSq / SIZE);
+      micRMS = rms;
+      if (rms < 0.012) return 0; // silence / room noise floor
+
+      const minLag = Math.floor(sampleRate / 700);
+      const maxLag = Math.floor(sampleRate / 80);
+      let bestLag = -1;
+      let bestCorr = 0;
+      for (let lag = minLag; lag <= maxLag; lag++) {
+        let corr = 0;
+        for (let i = 0; i < SIZE - lag; i++) corr += buf[i] * buf[i + lag];
+        // Normalise lightly so longer lags aren't penalised
+        corr /= (SIZE - lag);
+        if (corr > bestCorr) { bestCorr = corr; bestLag = lag; }
+      }
+      if (bestLag <= 0) return 0;
+      // Parabolic interpolation around the peak for sub-sample precision
+      let refinedLag = bestLag;
+      if (bestLag > minLag && bestLag < maxLag) {
+        let cm1 = 0, c0 = 0, cp1 = 0;
+        for (let i = 0; i < SIZE - (bestLag + 1); i++) {
+          cm1 += buf[i] * buf[i + bestLag - 1];
+          c0  += buf[i] * buf[i + bestLag];
+          cp1 += buf[i] * buf[i + bestLag + 1];
+        }
+        const denom = (cm1 - 2 * c0 + cp1);
+        if (Math.abs(denom) > 1e-9) {
+          const shift = 0.5 * (cm1 - cp1) / denom;
+          if (shift > -1 && shift < 1) refinedLag = bestLag + shift;
+        }
+      }
+      return sampleRate / refinedLag;
+    }
+
+    function nearestMode(hz) {
+      let best = 1, bd = Infinity;
+      // Compare in log-frequency: ear hears intervals, not Hz deltas.
+      const lh = Math.log(hz);
+      for (let n = 1; n <= 5; n++) {
+        const d = Math.abs(Math.log(MODE_HZ[n]) - lh);
+        if (d < bd) { bd = d; best = n; }
+      }
+      return best;
+    }
+
+    function processMic(dt) {
+      if (!micActive || !micAnalyser) return;
+      micAnalyser.getFloatTimeDomainData(micBuf);
+      const hz = detectPitch(micBuf, audioCtx.sampleRate);
+      // Smooth Hz in log space so jumps between modes don't look like
+      // crazy sweeps; smooth mode index separately as a soft selector.
+      if (hz > 0) {
+        const lh = Math.log(hz);
+        const cur = micHzEMA > 0 ? Math.log(micHzEMA) : lh;
+        micHzEMA = Math.exp(cur + (lh - cur) * 0.22);
+        const m = nearestMode(micHzEMA);
+        micModeEMA += (m - micModeEMA) * 0.18;
+      }
+      // Drive plucks proportionally to RMS — humming louder = more energy.
+      // Pulse rate is tuned so a steady hum (rms~0.05) produces ~6 Hz of
+      // plucks, well below the wave-equation step rate and well above
+      // visual aliasing. dt is in ms, threshold in same arbitrary units.
+      pluckPhase += dt * (3 + micRMS * 60);
+      if (voiceMode && micRMS > 0.018 && pluckPhase > 1000) {
+        pluckPhase = 0;
+        // Settle into the smoothed mode index
+        const m = Math.max(1, Math.min(5, Math.round(micModeEMA)));
+        if (m !== mode) {
+          mode = m;
+          target = targetShape(mode);
+          syncModeUI();
+          if (audioCtx) setDronePitch();
+        }
+        // Pluck position and amplitude scale with RMS
+        const amp = Math.min(1.4, 0.25 + micRMS * 8.0);
+        const pos = Math.floor(N * 0.5 + (Math.random() - 0.5) * N * 0.4);
+        pluck(pos, amp, 5);
+      }
+    }
+
     // ── Sketch rendering ──────────────────────────────────────────
     let dpr = 1;
     let stringY = 0;
     let stringW = 0;
     let leftX = 0, rightX = 0;
+    let viewW = 0, viewH = 0;
     function resize() {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       const r = canvas.getBoundingClientRect();
       canvas.width  = Math.floor(r.width * dpr);
       canvas.height = Math.floor(r.height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      viewW = r.width;
+      viewH = r.height;
       stringY = r.height * 0.55;
       const sidePad = Math.max(36, Math.min(r.width, r.height) * 0.08);
       leftX = sidePad;
@@ -573,48 +784,283 @@
       ctx.beginPath(); ctx.ellipse(rightX, stringY+5, 4, 1.2, 0, 0, Math.PI*2); ctx.fill();
     }
 
+    // ── Spectral bar chart (modal coefficients n=1..NUM_MODES) ────
+    // Tucked into the bottom-left of the canvas. Each bar is a
+    // hand-drawn graphite rectangle with a couple of jitter passes.
+    // The active mode bar uses --bloom; rivals stay graphite.
+    function drawSpectrum() {
+      if (!lastCoefs) return;
+      const padX = Math.max(20, Math.min(38, viewW * 0.04));
+      const padY = Math.max(80, Math.min(120, viewH * 0.18));
+      const baseY = viewH - padY;
+      const chartW = Math.min(220, viewW * 0.32);
+      const chartH = 70;
+      const slot = chartW / NUM_MODES;
+      const barW = slot * 0.6;
+
+      // Find max coefficient magnitude as a relative scale; floor so the
+      // chart doesn't explode when the string is barely moving.
+      let maxMag = 0.04;
+      for (let n = 1; n <= NUM_MODES; n++) {
+        const m = Math.abs(lastCoefs[n]);
+        if (m > maxMag) maxMag = m;
+      }
+
+      ctx.save();
+      // Faint baseline + label
+      ctx.strokeStyle = "rgba(42, 38, 29, 0.30)";
+      ctx.setLineDash([2, 4]);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(padX, baseY + 0.5);
+      ctx.lineTo(padX + chartW, baseY + 0.5);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Hand-written caption above the chart
+      ctx.fillStyle = "rgba(42, 38, 29, 0.55)";
+      ctx.font = '14px "Caveat", cursive';
+      ctx.textBaseline = "alphabetic";
+      ctx.fillText("modal energies", padX, baseY - chartH - 8);
+
+      for (let n = 1; n <= NUM_MODES; n++) {
+        const m = Math.abs(lastCoefs[n]);
+        const h = Math.min(chartH, (m / maxMag) * chartH);
+        const x = padX + (n - 1) * slot + (slot - barW) / 2;
+        const y = baseY - h;
+
+        const isActive = (n === mode);
+        const color = isActive ? "rgba(201, 126, 96, 0.85)" : "rgba(42, 38, 29, 0.55)";
+
+        // Two graphite passes for the sketch feel
+        const passes = reduceMotion ? 1 : 2;
+        for (let p = 0; p < passes; p++) {
+          ctx.globalAlpha = isActive ? 0.85 : 0.55;
+          ctx.fillStyle = color;
+          const j = reduceMotion ? 0 : 0.6;
+          const jx = (Math.random() - 0.5) * j;
+          const jy = (Math.random() - 0.5) * j;
+          ctx.fillRect(x + jx, y + jy, barW, h);
+        }
+        ctx.globalAlpha = 1;
+
+        // Tiny n label below
+        ctx.fillStyle = isActive ? "rgba(201, 126, 96, 0.85)" : "rgba(42, 38, 29, 0.45)";
+        ctx.font = '10px "JetBrains Mono", monospace';
+        ctx.fillText(String(n), x + barW / 2 - 3, baseY + 12);
+      }
+      ctx.restore();
+    }
+
+    // ── 2D Chladni plate scene ────────────────────────────────────
+    // Fixed-edge rectangular membrane. Standing-wave eigenmodes are
+    // products of sines: φ_{p,q}(x,y) = sin(pπx/Lx) sin(qπy/Ly).
+    // We don't actually integrate the 2D wave equation each frame —
+    // that's overkill for a sketchbook visual at ~60 fps. Instead we
+    // sample two driving modes (p,q) chosen from the active n, animate
+    // them with a phase, and let sand grains drift toward |φ|≈0 nodes.
+    const SAND_COUNT = 2000;
+    const sandX = new Float32Array(SAND_COUNT);
+    const sandY = new Float32Array(SAND_COUNT);
+    const sandVX = new Float32Array(SAND_COUNT);
+    const sandVY = new Float32Array(SAND_COUNT);
+    let sandInit = false;
+
+    function initSand() {
+      for (let i = 0; i < SAND_COUNT; i++) {
+        sandX[i] = Math.random();
+        sandY[i] = Math.random();
+        sandVX[i] = 0;
+        sandVY[i] = 0;
+      }
+      sandInit = true;
+    }
+
+    // Pick two driving modes from the current target n. Mapping is
+    // chosen so each n produces a recognisably distinct Chladni pattern.
+    function chladniModes(n) {
+      // Returns [{p, q, weight}, ...]
+      switch (n) {
+        case 1: return [{ p: 1, q: 1, w: 1.0 }];
+        case 2: return [{ p: 2, q: 1, w: 0.7 }, { p: 1, q: 2, w: 0.7 }];
+        case 3: return [{ p: 3, q: 1, w: 0.6 }, { p: 1, q: 3, w: 0.6 }, { p: 2, q: 2, w: 0.4 }];
+        case 4: return [{ p: 4, q: 1, w: 0.5 }, { p: 2, q: 3, w: 0.5 }, { p: 3, q: 2, w: 0.4 }];
+        case 5: return [{ p: 5, q: 1, w: 0.4 }, { p: 3, q: 3, w: 0.6 }, { p: 1, q: 5, w: 0.4 }];
+        default: return [{ p: n, q: 1, w: 1.0 }];
+      }
+    }
+
+    // Field value φ(x,y,t) at normalised coords in [0..1]
+    function chladniField(x, y, t, modes) {
+      let v = 0;
+      for (let k = 0; k < modes.length; k++) {
+        const m = modes[k];
+        // Slight phase offset between contributing modes so the pattern
+        // breathes a little instead of being purely static.
+        const phase = t * 0.0009 * (m.p + m.q) + k * 0.7;
+        v += m.w * Math.sin(m.p * Math.PI * x) * Math.sin(m.q * Math.PI * y) * Math.cos(phase);
+      }
+      return v;
+    }
+
+    // Drive Chladni from string mode (or smoothed mic mode in voice mode).
+    function activeChladniN() {
+      if (voiceMode) return Math.max(1, Math.min(5, Math.round(micModeEMA)));
+      return mode;
+    }
+
+    function drawChladni(now, dt) {
+      if (!sandInit) initSand();
+      // Plate rectangle inside the canvas
+      const margin = Math.max(28, Math.min(viewW, viewH) * 0.06);
+      const plateW = Math.min(viewW - margin * 2, viewH * 1.5);
+      const plateH = plateW * (2 / 3);
+      const plateX = (viewW - plateW) / 2;
+      const plateY = Math.max(70, (viewH - plateH) / 2);
+
+      // Cream paper plate underlay (subtle inner shadow only — we keep
+      // the page's grain visible through the plate)
+      ctx.save();
+      ctx.fillStyle = "rgba(237, 226, 193, 0.55)";
+      ctx.fillRect(plateX, plateY, plateW, plateH);
+      ctx.strokeStyle = "rgba(42, 38, 29, 0.55)";
+      ctx.lineWidth = 1.2;
+      // Hand-drawn rectangle border (jittered)
+      const passes = reduceMotion ? 1 : 2;
+      for (let p = 0; p < passes; p++) {
+        ctx.globalAlpha = 0.55;
+        ctx.beginPath();
+        const j = reduceMotion ? 0 : 1.2;
+        ctx.moveTo(plateX + (Math.random()-0.5)*j, plateY + (Math.random()-0.5)*j);
+        ctx.lineTo(plateX + plateW + (Math.random()-0.5)*j, plateY + (Math.random()-0.5)*j);
+        ctx.lineTo(plateX + plateW + (Math.random()-0.5)*j, plateY + plateH + (Math.random()-0.5)*j);
+        ctx.lineTo(plateX + (Math.random()-0.5)*j, plateY + plateH + (Math.random()-0.5)*j);
+        ctx.closePath();
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.restore();
+
+      const n = activeChladniN();
+      const modes = chladniModes(n);
+
+      // Update sand grains: drift them toward nodes (|φ| → 0).
+      // Numerical gradient with a small step gives the local "slope" of
+      // |φ|; we move opposite the gradient (descent on |φ|). Strength
+      // scales with how far from a node the grain is — grains right on
+      // a node barely move, grains in antinode regions skitter fast.
+      // dt is in ms; scale step accordingly.
+      const stepScale = Math.min(2.0, dt * 0.06);
+      const eps = 0.01;
+      for (let i = 0; i < SAND_COUNT; i++) {
+        const x = sandX[i];
+        const y = sandY[i];
+        const v  = chladniField(x, y, now, modes);
+        const av = Math.abs(v);
+        // Gradient of |φ| approximated via finite differences
+        const vxp = Math.abs(chladniField(Math.min(1, x + eps), y, now, modes));
+        const vxm = Math.abs(chladniField(Math.max(0, x - eps), y, now, modes));
+        const vyp = Math.abs(chladniField(x, Math.min(1, y + eps), now, modes));
+        const vym = Math.abs(chladniField(x, Math.max(0, y - eps), now, modes));
+        const gx = (vxp - vxm) / (2 * eps);
+        const gy = (vyp - vym) / (2 * eps);
+
+        // Force toward nodes: negative gradient of |φ|, scaled by |φ|
+        // so grains in flat areas (already near nodes) hold position.
+        const f = av * 0.0008 * stepScale;
+        sandVX[i] = sandVX[i] * 0.86 - gx * f;
+        sandVY[i] = sandVY[i] * 0.86 - gy * f;
+        // Tiny brownian jiggle scaled with antinode amplitude — this is
+        // the "the plate is shaking" feel.
+        const jig = av * 0.0010 * stepScale;
+        sandVX[i] += (Math.random() - 0.5) * jig;
+        sandVY[i] += (Math.random() - 0.5) * jig;
+        // Integrate
+        let nx = x + sandVX[i];
+        let ny = y + sandVY[i];
+        // Reflect at edges so grains stay on the plate
+        if (nx < 0) { nx = 0; sandVX[i] = -sandVX[i] * 0.4; }
+        if (nx > 1) { nx = 1; sandVX[i] = -sandVX[i] * 0.4; }
+        if (ny < 0) { ny = 0; sandVY[i] = -sandVY[i] * 0.4; }
+        if (ny > 1) { ny = 1; sandVY[i] = -sandVY[i] * 0.4; }
+        sandX[i] = nx;
+        sandY[i] = ny;
+      }
+
+      // Render sand as small dark dots
+      ctx.save();
+      ctx.fillStyle = "rgba(42, 38, 29, 0.78)";
+      for (let i = 0; i < SAND_COUNT; i++) {
+        const px = plateX + sandX[i] * plateW;
+        const py = plateY + sandY[i] * plateH;
+        ctx.fillRect(px, py, 1.4, 1.4);
+      }
+      ctx.restore();
+
+      // Update scene label content
+      const sl = document.getElementById("sceneLabel");
+      const driving = modes.map(m => `(${m.p},${m.q})`).join(" + ");
+      sl.textContent = `Chladni 진동판 — n=${n}  ${driving}`;
+    }
+
     // ── Main loop ────────────────────────────────────────────────
+    let scene = "string"; // "string" | "chladni"
     let lastT = performance.now();
     function frame(now) {
       const dt = Math.min(50, now - lastT);
       lastT = now;
 
-      // Multiple sub-steps for stability and a nicer rhythm
+      // Always step the 1D string and update lock — so switching scenes
+      // or toggling voice mode doesn't lose continuity.
       const sub = 4;
       for (let s = 0; s < sub; s++) step();
-
       const { lockEMA, coefs } = updateLock();
+
+      // Mic processing (voice mode is the only consumer; we keep the
+      // analyser active whenever the mic is enabled so the pitch UI
+      // stays live as a passive readout, but plucks only fire when
+      // voiceMode is truly the active mode).
+      processMic(dt);
+      updatePitchUI();
 
       // Render
       const r = canvas.getBoundingClientRect();
       ctx.clearRect(0, 0, r.width, r.height);
 
-      const curveAmp = 70;
-      drawTarget(curveAmp);
-      drawBlooms(lockEMA);
-      buildCurve(curveAmp);
+      if (scene === "chladni") {
+        drawChladni(now, dt);
+      } else {
+        const curveAmp = 70;
+        drawTarget(curveAmp);
+        drawBlooms(lockEMA);
+        buildCurve(curveAmp);
 
-      // Two strokes: a soft graphite "search" line that's always there,
-      // and an ink-in line whose alpha rises with lock confidence.
-      strokePath(curveCoords, {
-        color: "rgba(42, 38, 29, 0.42)",
-        alpha: 0.55, jitter: reduceMotion ? 0.4 : 1.4,
-        passes: reduceMotion ? 1 : 2, lineWidth: 1.4
-      });
-      const inkAlpha = Math.min(1, Math.max(0, (lockEMA - 0.08) / 0.40));
-      if (inkAlpha > 0.01) {
+        // Two strokes: a soft graphite "search" line that's always there,
+        // and an ink-in line whose alpha rises with lock confidence.
         strokePath(curveCoords, {
-          color: "rgba(42, 38, 29, 0.95)",
-          alpha: inkAlpha, jitter: reduceMotion ? 0.2 : 0.7,
-          passes: reduceMotion ? 1 : 3, lineWidth: 2.0
+          color: "rgba(42, 38, 29, 0.42)",
+          alpha: 0.55, jitter: reduceMotion ? 0.4 : 1.4,
+          passes: reduceMotion ? 1 : 2, lineWidth: 1.4
         });
+        const inkAlpha = Math.min(1, Math.max(0, (lockEMA - 0.08) / 0.40));
+        if (inkAlpha > 0.01) {
+          strokePath(curveCoords, {
+            color: "rgba(42, 38, 29, 0.95)",
+            alpha: inkAlpha, jitter: reduceMotion ? 0.2 : 0.7,
+            passes: reduceMotion ? 1 : 3, lineWidth: 2.0
+          });
+        }
+
+        drawPegs();
+
+        // Bird bobs with the right end's neighbour displacement (always 0 at the end itself)
+        const bobIdx = N - 8;
+        drawBird(-u[bobIdx] * 24);
       }
 
-      drawPegs();
-
-      // Bird bobs with the right end's neighbour displacement (always 0 at the end itself)
-      const bobIdx = N - 8;
-      drawBird(-u[bobIdx] * 24);
+      // Spectral bar chart in both scenes — gives the same visual
+      // "purity meter" no matter which view you're in.
+      drawSpectrum();
 
       // Lock pip + drone
       const pip = document.getElementById("lockPip");
@@ -638,6 +1084,26 @@
     }
     requestAnimationFrame(frame);
 
+    // ── Pitch UI ──────────────────────────────────────────────────
+    function updatePitchUI() {
+      const bar = document.getElementById("pitchBar");
+      const hzEl = document.getElementById("pitchHz");
+      const nmEl = document.getElementById("pitchNm");
+      if (!micActive || micRMS < 0.012 || !micHzEMA) {
+        if (micActive) {
+          bar.classList.add("live");
+          hzEl.textContent = "— Hz";
+          nmEl.textContent = micDenied ? "denied" : "listening";
+        } else {
+          bar.classList.remove("live");
+        }
+        return;
+      }
+      bar.classList.add("live");
+      hzEl.textContent = micHzEMA.toFixed(0) + " Hz";
+      nmEl.textContent = "n=" + Math.max(1, Math.min(5, Math.round(micModeEMA)));
+    }
+
     // ── Input ────────────────────────────────────────────────────
     function pluckAtClient(clientX, clientY) {
       const r = canvas.getBoundingClientRect();
@@ -657,23 +1123,78 @@
     }
 
     canvas.addEventListener("pointerdown", e => {
+      // In Chladni scene, taps don't pluck — keep the canvas inert there.
+      if (scene !== "string") { ensureAudio(); return; }
       e.preventDefault();
       pluckAtClient(e.clientX, e.clientY);
     }, { passive: false });
 
     // Mode chips
-    document.querySelectorAll(".mode-chip").forEach(btn => {
+    function syncModeUI() {
+      document.querySelectorAll(".mode-chip").forEach(b => b.classList.remove("active"));
+      if (voiceMode) {
+        document.getElementById("voiceChip").classList.add("active");
+      } else {
+        const chip = document.querySelector(`.mode-chip[data-mode="${mode}"]`);
+        if (chip) chip.classList.add("active");
+      }
+      document.getElementById("modeNum").textContent = mode;
+      document.getElementById("modeName").textContent =
+        "— " + (MODE_NAMES[mode] || "").split("—")[0].trim();
+    }
+
+    document.querySelectorAll(".mode-chip[data-mode]").forEach(btn => {
+      const dm = btn.dataset.mode;
+      if (dm === "voice") return; // handled separately
       btn.addEventListener("click", () => {
-        document.querySelectorAll(".mode-chip").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        mode = parseInt(btn.dataset.mode, 10);
+        // Picking a numeric mode exits voice mode
+        if (voiceMode) {
+          voiceMode = false;
+          disableMic();
+        }
+        mode = parseInt(dm, 10);
         target = targetShape(mode);
-        document.getElementById("modeNum").textContent = mode;
-        document.getElementById("modeName").textContent = "— " + MODE_NAMES[mode].split("—")[0].trim();
+        syncModeUI();
         lockEMA *= 0.5;
         targetCoefEMA = 0;
         if (audioCtx) setDronePitch();
       });
+    });
+
+    const voiceChip = document.getElementById("voiceChip");
+    voiceChip.addEventListener("click", async () => {
+      if (voiceChip.classList.contains("denied")) return;
+      if (voiceMode) {
+        // Toggle off — return to last numeric mode (n=1 default)
+        voiceMode = false;
+        disableMic();
+        syncModeUI();
+        const bar = document.getElementById("pitchBar");
+        bar.classList.remove("live");
+        return;
+      }
+      const ok = await enableMic();
+      if (!ok) {
+        voiceChip.classList.add("denied");
+        document.getElementById("hint").textContent = "마이크 사용 거부됨 — fallback to tap";
+        return;
+      }
+      voiceMode = true;
+      syncModeUI();
+      document.getElementById("hint").textContent =
+        "hum or sing — the string follows your pitch";
+    });
+
+    // Scene toggle (1D string ↔ 2D Chladni)
+    const sceneBtn = document.getElementById("sceneToggle");
+    sceneBtn.addEventListener("click", () => {
+      scene = (scene === "string") ? "chladni" : "string";
+      sceneBtn.classList.toggle("active", scene === "chladni");
+      sceneBtn.textContent = (scene === "chladni") ? "1D string" : "Chladni 2D";
+      sceneBtn.setAttribute("aria-pressed", scene === "chladni" ? "true" : "false");
+      document.getElementById("sceneLabel").classList.toggle("live", scene === "chladni");
+      // Reset sand grains so the new pattern emerges fresh
+      if (scene === "chladni") initSand();
     });
 
     // Mute
@@ -689,8 +1210,10 @@
     canvas.addEventListener("pointerdown", () => {
       if (!everPlucked) {
         everPlucked = true;
-        document.getElementById("hint").textContent =
-          "find a steady rhythm — the line will fill itself in";
+        if (!voiceMode) {
+          document.getElementById("hint").textContent =
+            "find a steady rhythm — the line will fill itself in";
+        }
       }
     }, { once: false });
 
