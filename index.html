@@ -133,28 +133,22 @@
     .hero {
       padding: 96px 0 80px;
       position: relative;
+      isolation: isolate;
     }
-    /* Hero band — no card framing; bleeds edge-to-edge and dissolves into the paper.
-       The image is treated as ambient atmosphere, not a placed illustration. */
+    /* Hero band — sits BEHIND the headline as ambient backdrop,
+       absolute-positioned inside .hero so it scrolls as one unit with
+       the text rather than as a separate band above it. */
     .hero-band {
-      position: relative;
-      margin: -32px 0 16px;
-      aspect-ratio: 21 / 8;
+      position: absolute;
+      top: -32px;
+      right: -48px;
+      width: clamp(420px, 60%, 780px);
+      aspect-ratio: 4 / 3;
+      z-index: -1;
       overflow: hidden;
-      -webkit-mask-image: linear-gradient(
-        to bottom,
-        rgba(0,0,0,0.85) 0%,
-        rgba(0,0,0,0.95) 30%,
-        rgba(0,0,0,0.7) 70%,
-        transparent 100%
-      );
-              mask-image: linear-gradient(
-        to bottom,
-        rgba(0,0,0,0.85) 0%,
-        rgba(0,0,0,0.95) 30%,
-        rgba(0,0,0,0.7) 70%,
-        transparent 100%
-      );
+      pointer-events: none;
+      -webkit-mask-image: radial-gradient(ellipse at 70% 40%, #000 25%, transparent 75%);
+              mask-image: radial-gradient(ellipse at 70% 40%, #000 25%, transparent 75%);
     }
     .hero-band img {
       display: block;
@@ -162,24 +156,18 @@
       height: 100%;
       object-fit: cover;
       object-position: center 55%;
-      filter: saturate(0.88) contrast(1.02);
+      filter: saturate(0.8) contrast(1.02);
       mix-blend-mode: multiply;
-      opacity: 0.78;
-    }
-    .hero-band::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        90deg,
-        rgba(236, 230, 216, 0) 0%,
-        rgba(236, 230, 216, 0) 30%,
-        rgba(236, 230, 216, 0.55) 100%
-      );
-      pointer-events: none;
+      opacity: 0.62;
     }
     @media (max-width: 720px) {
-      .hero-band { aspect-ratio: 16 / 9; margin: -16px 0 8px; }
+      .hero-band {
+        top: -8px;
+        right: -32px;
+        width: 90%;
+        aspect-ratio: 1 / 1;
+      }
+      .hero-band img { opacity: 0.45; }
     }
     .hero .eyebrow {
       font-family: "JetBrains Mono", monospace;
@@ -561,11 +549,10 @@
       </span>
     </header>
 
-    <div class="hero-band" aria-hidden="true">
-      <img src="./thumbs/hero-band.jpg" alt="" width="2240" height="960" loading="eager" decoding="async">
-    </div>
-
     <section class="hero">
+      <div class="hero-band" aria-hidden="true">
+        <img src="./thumbs/hero-band.jpg" alt="" width="2240" height="960" loading="eager" decoding="async">
+      </div>
       <div class="eyebrow">Selected works · MMXXVI</div>
       <h1>A studio of<br>small <em>interactive</em><br>miniatures.</h1>
       <p class="deck">

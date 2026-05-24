@@ -134,40 +134,36 @@
       padding: 72px 0 48px;
       max-width: 720px;
     }
-    /* Watercolor herb watermarks — ambient, behind the content.
-       Fixed to the viewport so they read as paper imagery, not page elements.
-       Large, very faded, anchored half-off the edge so the eye doesn't read
-       a bounded illustration; the leaves dissolve into the paper texture. */
+    /* Watercolor herb watermarks — embedded INTO the workspace panels.
+       Absolute-positioned inside each panel; the panel's own overflow + a
+       radial mask lets the leaves wash off the corner without a hard edge.
+       z-index:-1 + the panel's `isolation: isolate` keeps them between the
+       panel's paper fill and the text. They scroll WITH the panel. */
     .herb-vignette {
-      position: fixed;
+      position: absolute;
       pointer-events: none;
-      z-index: 0;
+      z-index: -1;
       height: auto;
       display: block;
-      opacity: 0.22;
-      filter: saturate(0.85);
-      -webkit-mask-image: radial-gradient(ellipse at center, #000 35%, transparent 78%);
-              mask-image: radial-gradient(ellipse at center, #000 35%, transparent 78%);
+      opacity: 0.18;
+      filter: saturate(0.7);
+      -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 78%);
+              mask-image: radial-gradient(ellipse at center, #000 30%, transparent 78%);
     }
     .herb-vignette.ginseng {
-      top: -8vh;
-      right: -10vw;
-      width: min(640px, 60vw);
-      transform: rotate(8deg);
+      top: -70px;
+      right: -90px;
+      width: 340px;
     }
     .herb-vignette.mugwort {
-      bottom: -10vh;
-      left: -8vw;
-      width: min(520px, 50vw);
-      opacity: 0.18;
-      transform: rotate(-6deg);
+      bottom: -50px;
+      left: -70px;
+      width: 300px;
+      opacity: 0.16;
     }
     @media (max-width: 720px) {
-      .herb-vignette { opacity: 0.16; }
-      .herb-vignette.mugwort { opacity: 0.14; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .herb-vignette { transform: none; }
+      .herb-vignette.ginseng { width: 240px; top: -50px; right: -70px; }
+      .herb-vignette.mugwort { width: 220px; bottom: -40px; left: -50px; }
     }
     .hero .eyebrow {
       font-family: "JetBrains Mono", monospace;
@@ -222,6 +218,9 @@
       display: flex;
       flex-direction: column;
       gap: 18px;
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
     }
 
     .panel-head {
@@ -732,8 +731,6 @@
 
   <div class="frame">
 
-    <img class="herb-vignette ginseng" src="./herb-ginseng.png" alt="" width="800" height="1200" loading="lazy" decoding="async" aria-hidden="true">
-
     <section class="hero">
       <div class="eyebrow">한방 진료 동반자 · Intake Companion</div>
       <h1>증상을 말하면,<br>한 장의 <em>진료 노트</em>가 됩니다.</h1>
@@ -744,6 +741,7 @@
 
       <!-- Input panel -->
       <div class="panel">
+        <img class="herb-vignette ginseng" src="./herb-ginseng.png" alt="" width="800" height="1200" loading="lazy" decoding="async" aria-hidden="true">
         <header class="panel-head">
           <div>
             <div class="lbl">01 · 환자 진술</div>
@@ -795,6 +793,7 @@
 
       <!-- Output panel -->
       <div class="panel">
+        <img class="herb-vignette mugwort" src="./herb-mugwort.png" alt="" width="800" height="1200" loading="lazy" decoding="async" aria-hidden="true">
         <header class="panel-head">
           <div>
             <div class="lbl">02 · 임상 브리프</div>
@@ -824,8 +823,6 @@
       </div>
 
     </section>
-
-    <img class="herb-vignette mugwort" src="./herb-mugwort.png" alt="" width="800" height="1200" loading="lazy" decoding="async" aria-hidden="true">
 
     <div class="footer-note">
       <span>한방 Intake Companion · Live demo · 데모 도구입니다</span>
