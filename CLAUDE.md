@@ -23,6 +23,10 @@ Currently shipped demos (verify with `ls` before recommending — this list can 
 
 GitHub Pages is configured to serve `main` from the repo root. Push to `main` = deploy. There is no build step.
 
+## Future ideas
+
+A queued backlog of demo pitches with scope, tech, and audience notes lives in [IDEAS.md](./IDEAS.md). When the user asks "what should we build next" or "give me ideas", read that file rather than re-pitching from scratch. When a queued pitch ships, mark it `🟢 shipped` there.
+
 ## The maintenance contract — READ THIS BEFORE EDITING
 
 Whenever you **add**, **remove**, or **rename** a demo, you MUST update three things in the same commit. They are designed to mirror each other; if they drift, the studio looks broken.
