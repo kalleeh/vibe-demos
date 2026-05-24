@@ -90,6 +90,84 @@ Pages serves whatever is on `main`. After pushing:
 
 Do not enable workflows, custom domains, or branch-protection rules without the user asking. Pages settings live on the repo via `gh api repos/kalleeh/vibe-demos/pages` — only touch them on explicit request.
 
+## AI demo pattern
+
+Demos that call Claude follow the same integration shape so each future demo can crib from the last instead of re-deciding the basics.
+
+### Endpoint and auth
+
+Browser-direct call to the Anthropic Messages API. No SDK bundle — raw `fetch`:
+
+```js
+const res = await fetch("https://api.anthropic.com/v1/messages", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": userKey,
+    "anthropic-version": "2023-06-01",
+    "anthropic-dangerous-direct-browser-access": "true",
+  },
+  body: JSON.stringify({ model, max_tokens, system, messages }),
+});
+```
+
+Three models, exposed as a UI toggle the viewer can flip mid-demo:
+
+- `claude-opus-4-7` — default, the wow run
+- `claude-sonnet-4-6` — balance
+- `claude-haiku-4-5` — fast/cheap
+
+Never hardcode a key. Never commit a key. Never log a key. The viewer pastes their own.
+
+### Key handling (mobile-friendly)
+
+- First load: a polite key-prompt panel with a "where do I get one?" link to console.anthropic.com.
+- Store under a per-demo localStorage key (e.g. `vibe.intake-companion.key`) — never share a key entry across demos.
+- `<input type="password">` so the key shows as dots on screen.
+- "Paste from clipboard" button using `navigator.clipboard.readText()` — critical for phone UX.
+- "Forget my key" button that wipes localStorage.
+- On a 401 response: wipe the stored key and re-show the prompt with a "key was rejected" hint.
+
+### Canned-first, live-optional
+
+Every AI demo ships in two modes:
+
+1. **Canned mode (default for first-time visitors)** — pre-baked realistic example outputs so the demo works with no key, no signup, no friction. This is what most viewers will see.
+2. **Live mode** — toggleable "use my own key" panel that switches to real Claude calls.
+
+Canned mode must be visibly labeled (a small "demo mode" pill, italic note, etc.) so it never misrepresents itself as live output.
+
+### Streaming where it helps
+
+Prefer the streaming endpoint (`stream: true`, SSE) for any demo where the output is human-readable text — even a 2s call feels instant when characters start arriving in 200ms. Use non-streaming only when the demo needs a complete JSON object before rendering anything (e.g. structured forms).
+
+### Cost guardrails (set in console.anthropic.com, not in code)
+
+- Dedicated workspace + per-key spend cap ($5–10/month is plenty for demo traffic).
+- Restrict the key to the three models above so a leaker can't pivot to anything wilder.
+- Email alerts at $1 / $3 / $5 thresholds.
+- Rotate the key immediately if anything looks off.
+
+## Loading states and async UX
+
+Every demo that does background work — LLM call, OCR, 3D asset load, audio analysis, speech recognition — must show **visible motion** while it works. Static "Loading…" text is forbidden; it makes the demo feel broken even when it isn't.
+
+### What to show, by operation type
+
+- **LLM call (streaming):** the response itself appears character-by-character as it arrives. No separate spinner needed once streaming has started — the streaming text *is* the progress indicator.
+- **LLM call (non-streaming):** an indeterminate bar (thin animated gradient at the top of the response area) or a typographic shimmer through the placeholder text. Avoid round spinners — they're generic and break the editorial tone.
+- **Asset load (3D models, textures, fonts):** a real progress bar driven by `THREE.LoadingManager`'s `onProgress` callback, or a `fetch` + `ReadableStream` reader. Show actual percentages.
+- **OCR (Tesseract.js):** real progress via the `logger` callback; show stage labels ("recognizing", "rendering").
+- **Speech recognition:** live interim transcripts streamed into the input as the user speaks — the partial text *is* the feedback.
+- **Audio / generative visuals:** the visualization itself is the feedback; no separate loader needed.
+
+### Visual rules for loaders
+
+- Each demo picks loading vocabulary that matches its own aesthetic — do **not** import or share a global spinner. The landing page is editorial; a 3D demo might be neon-on-black; a clinical demo might be celadon-on-cream. Loaders match.
+- Always honor `@media (prefers-reduced-motion: reduce)` — replace heavy animation with static or subtle-fade states.
+- Never block the whole viewport with a full-screen overlay unless the operation genuinely blocks all interaction. Inline progress preserves agency.
+- Empty/initial states should already have visual interest so the first paint isn't dead — pre-fill with placeholder content, animated in lightly.
+
 ## Things to NOT do
 
 - Do not introduce a build tool, framework, or package.json. Demos are plain static files.
