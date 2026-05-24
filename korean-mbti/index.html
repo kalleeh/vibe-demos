@@ -528,6 +528,124 @@ header.top {
   line-height: 1.7;
 }
 .ai-intro p + p { margin-top: 8px; }
+.ai-intro p.ai-intro-foot { margin-top: 14px; }
+
+.hint-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 14px 0 4px;
+}
+.hint-col {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 12px 14px;
+  background: rgba(243, 237, 225, 0.025);
+}
+.hint-col.good { border-color: rgba(199, 90, 58, 0.32); }
+.hint-col.bad  { border-color: rgba(243, 237, 225, 0.14); }
+.hint-h {
+  display: block;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(243, 237, 225, 0.55);
+  margin-bottom: 8px;
+}
+.hint-col.good .hint-h { color: var(--accent-2); }
+.hint-col ul {
+  list-style: none;
+  padding: 0; margin: 0;
+}
+.hint-col li {
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(243, 237, 225, 0.78);
+  padding-left: 14px;
+  position: relative;
+  margin-bottom: 4px;
+}
+.hint-col li:last-child { margin-bottom: 0; }
+.hint-col.good li::before {
+  content: "+";
+  position: absolute; left: 0; top: 0;
+  color: var(--accent-2);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+}
+.hint-col.bad li::before {
+  content: "−";
+  position: absolute; left: 0; top: 0;
+  color: rgba(243, 237, 225, 0.4);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+}
+@media (max-width: 600px) {
+  .hint-grid { grid-template-columns: 1fr; }
+}
+
+.sample-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.sample-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(243, 237, 225, 0.5);
+  margin-right: 4px;
+}
+.chip {
+  background: transparent;
+  color: var(--paper);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-family: "Noto Serif KR", serif;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.chip:hover {
+  background: rgba(199, 90, 58, 0.08);
+  border-color: var(--accent-2);
+  color: var(--accent-2);
+}
+.chip.ghost {
+  color: rgba(243, 237, 225, 0.45);
+  border-style: dashed;
+}
+.chip.ghost:hover {
+  color: var(--paper);
+  border-style: solid;
+}
+
+.counter-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  margin-top: -8px;
+  margin-bottom: 18px;
+  padding: 0 4px;
+}
+.counter {
+  color: rgba(243, 237, 225, 0.55);
+}
+.counter.ok { color: var(--accent-2); }
+.counter-hint {
+  color: rgba(243, 237, 225, 0.42);
+  text-transform: uppercase;
+  font-size: 10px;
+}
+.counter-hint.ok { color: var(--accent-2); }
 
 textarea.ai-input {
   width: 100%;
@@ -798,14 +916,49 @@ footer.bottom {
 
   <div class="ai-intro">
     <h2>당신의 글을 읽고 유형을 추론합니다</h2>
-    <p>일기, 카톡 한 토막, SNS 글, 블로그 — 200자 이상 한국어 글을 붙여넣으면
-    Claude가 글의 결을 읽고 16유형 중 하나를 자신 있게 골라냅니다.
-    한국 MBTI 문화 별명까지 같이 달아줍니다.</p>
-    <p>키 없이 <em>데모 모드</em>에서 미리 만든 예시 결과를 볼 수 있고,
+    <p>일기, 카톡 한 토막, SNS 게시물, 블로그 한 단락 — 200~600자 정도의
+    자연스러운 한국어 글을 붙여넣으면 Claude가 글의 결을 읽고 16유형 중 하나를
+    자신 있게 골라냅니다. 한국 MBTI 문화 별명까지 같이 달아줍니다.</p>
+
+    <div class="hint-grid">
+      <div class="hint-col good">
+        <span class="hint-h">잘 읽히는 글</span>
+        <ul>
+          <li>혼잣말처럼 적은 일기 한 토막</li>
+          <li>친구에게 푸념하듯 보낸 카톡 단락</li>
+          <li>최근 있었던 한 가지 사건·감정</li>
+          <li>자연스러운 반말/존댓말, 솔직한 톤</li>
+        </ul>
+      </div>
+      <div class="hint-col bad">
+        <span class="hint-h">덜 읽히는 글</span>
+        <ul>
+          <li>이력서·자기소개서처럼 정형화된 글</li>
+          <li>공지문, 뉴스 인용, 기사 같은 톤</li>
+          <li>한두 줄짜리 짧은 메시지 (50자 미만)</li>
+          <li>여러 사람의 대화가 섞인 채팅 로그</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="ai-intro-foot">키 없이 <em>데모 모드</em>에서 미리 만든 예시 결과를 볼 수 있고,
     본인 키를 입력하면 <em>실시간 모드</em>로 작동합니다.</p>
   </div>
 
-  <textarea class="ai-input" id="ai-input" placeholder="여기에 200자 이상의 한국어 글을 붙여넣어 주세요. 일기, 메신저 대화, SNS 게시물, 자기소개 — 자연스러운 본인의 글일수록 정확해집니다."></textarea>
+  <div class="sample-row">
+    <span class="sample-label">예시 글로 시작하기 →</span>
+    <button class="chip" data-sample="diary">일기 (몽글 INFP풍)</button>
+    <button class="chip" data-sample="kakao">카톡 (인싸 ENFP풍)</button>
+    <button class="chip" data-sample="reflect">자기성찰 (조용 INTJ풍)</button>
+    <button class="chip ghost" data-sample="clear">비우기</button>
+  </div>
+
+  <textarea class="ai-input" id="ai-input" placeholder="여기에 200~600자 정도의 한국어 글을 붙여넣어 주세요. 위 예시 칩을 눌러서 시작해도 됩니다."></textarea>
+
+  <div class="counter-row">
+    <span class="counter" id="char-counter">0자</span>
+    <span class="counter-hint" id="counter-hint">한 단락 정도 더 적어주세요</span>
+  </div>
 
   <div class="controls">
     <span class="mode-pill" id="mode-pill"><span class="dot"></span><span id="mode-pill-text">데모 모드</span></span>
@@ -1306,6 +1459,69 @@ $$("#model-toggle button").forEach(btn => {
     localStorage.setItem(MODEL_STORAGE, state.model);
   });
 });
+
+// ---------- sample passages ----------
+const SAMPLES = {
+  diary:
+`오늘은 카페 구석 자리에 앉아서 한참을 멍 때렸다. 옆 자리에서 누가 우는 소리가
+들려서 자꾸 그쪽으로 마음이 갔다. 무슨 일일까, 나라면 어땠을까, 그 사람한테
+지금 누가 옆에 있어줬으면, 같은 생각이 꼬리를 물었다. 결국 한 시간 동안
+책은 두 페이지밖에 못 넘겼는데도 이상하게 시간이 아깝지가 않았다. 나는 누군가에게
+그런 결을 가진 사람이고 싶다는 생각을, 오늘도 또 했다.`,
+
+  kakao:
+`아 진짜 ㅋㅋㅋㅋ 오늘 너무 웃겼어!! 점심에 새로 생긴 그 가게 갔는데 사장님이
+완전 텐션 미친 분이었어 ㅋㅋ 우리 테이블만 세 번 와서 농담함 ㅋㅋ 근데 음식도
+존맛이라 다음에 또 가야겠어. 너도 같이 가자!! 다음주 어때? 아 그리고 어제
+영화 본 얘기도 해야돼 진짜 미쳤음 보고 와서 잠을 못 잤다니까 ㅋㅋㅋ 빨리 만나
+얘기하고 싶어!! 시간 알려줘 내가 맞출게!`,
+
+  reflect:
+`최근 한 달을 돌아보면 결국 같은 패턴이 반복됐다. 새로운 프로젝트를 받으면
+먼저 큰 구조를 그리고, 5년 뒤에 이게 어떤 자산이 될지를 따져보는 데에 첫 며칠을
+쓴다. 일이 시작되면 사람들과의 마찰을 굳이 피하진 않지만, 회의 자체는 가능한
+짧게 끝내고 혼자 정리하는 시간을 길게 두는 편이다. 비효율은 견디기 어렵고,
+그래서 상대가 감정적으로 반응하면 잠깐 거리를 두고 사실관계부터 다시 본다.
+결과적으로 이번 분기 목표는 일정보다 빨리 매듭지을 수 있을 것 같다.`
+};
+
+const charCounter = document.getElementById("char-counter");
+const counterHint = document.getElementById("counter-hint");
+const aiInput = document.getElementById("ai-input");
+
+function updateCounter() {
+  const len = aiInput.value.trim().length;
+  charCounter.textContent = `${len}자`;
+  charCounter.classList.toggle("ok", len >= 200);
+  counterHint.classList.toggle("ok", len >= 200);
+  if (len === 0) {
+    counterHint.textContent = "한 단락 정도 적어주세요";
+  } else if (len < 80) {
+    counterHint.textContent = "조금 더 길게 — 80자 이상부터 가능";
+  } else if (len < 200) {
+    counterHint.textContent = "200자 이상이면 더 정확해져요";
+  } else if (len <= 600) {
+    counterHint.textContent = "좋아요, 읽기 좋은 길이";
+  } else {
+    counterHint.textContent = "꽤 길어요 — 600자 안쪽이 가장 잘 읽혀요";
+  }
+}
+aiInput.addEventListener("input", updateCounter);
+
+document.querySelectorAll("[data-sample]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const k = btn.dataset.sample;
+    if (k === "clear") {
+      aiInput.value = "";
+    } else if (SAMPLES[k]) {
+      aiInput.value = SAMPLES[k];
+    }
+    updateCounter();
+    aiInput.focus();
+  });
+});
+
+updateCounter();
 
 $("#btn-analyze").addEventListener("click", runAnalyze);
 
