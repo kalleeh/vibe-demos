@@ -1,0 +1,16 @@
+{
+  "name": "한방 진료 동반자 — Intake Companion",
+  "short_name": "한방 동반자",
+  "description": "Korean traditional medicine intake assistant — speak symptoms, receive a structured 변증 / 처방 / 경혈 brief.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5efe2",
+  "theme_color": "#f5efe2",
+  "lang": "ko",
+  "categories": ["medical", "health", "productivity"],
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

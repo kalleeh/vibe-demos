@@ -1,0 +1,16 @@
+{
+  "name": "Vibe Studio — Selected Works",
+  "short_name": "Vibe Studio",
+  "description": "A studio of small interactive demos, built live.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ece6d8",
+  "theme_color": "#ece6d8",
+  "lang": "en",
+  "categories": ["lifestyle", "productivity", "entertainment"],
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

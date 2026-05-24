@@ -200,6 +200,69 @@ If the demo is purely aesthetic (a flame shader, a particle text effect), skip t
 
 `intake-companion/index.html` — `callClaude()`'s `sys` variable is the canonical worked example. Read it before tuning any new AI demo's prompt.
 
+## PWA shell pattern
+
+Every demo (and the root studio landing) ships as an installable PWA. Each demo is its own scoped app — when the user adds the page to home screen, only that demo's files are cached and only that demo's name/icon/theme appear. The root has its own thin shell that does NOT shadow demo subroutes.
+
+### Per-demo files
+
+Each `<slug>/` folder has these PWA files alongside `index.html`:
+
+- `manifest.webmanifest` — name, short_name, theme/background colors matching the demo's aesthetic, `lang` (typically `"ko"`), `start_url: "./"`, `scope: "./"`, `display: "standalone"`, single SVG icon with `purpose: "any maskable"`.
+- `icon.svg` — distinctive editorial glyph for the demo (NOT a shared mark). Each demo gets its own — see existing demos for the visual grammar.
+- `sw.js` — service worker scoped to the demo folder. Cache name is `vibe-<slug>-v1`. **Network-first for HTML** (so deploys propagate); **cache-first for assets** (instant repeat loads). Skip `api.anthropic.com` from caching for AI demos.
+
+### Per-demo head tags
+
+Inject these inside `<head>`, after charset/viewport/title:
+
+```html
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="<demo theme color>">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="<black-translucent | default>">
+<meta name="apple-mobile-web-app-title" content="<short title>">
+```
+
+### Service worker registration
+
+Inject before `</body>`:
+
+```html
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    });
+  }
+</script>
+```
+
+### Root SW must not shadow demo SWs
+
+The root `sw.js` is scoped to `./` (the entire deployment). To prevent it from intercepting requests that demo SWs are responsible for, its `fetch` handler skips any path containing `/` after the scope root:
+
+```js
+const root = new URL(self.registration.scope);
+const path = url.pathname.slice(root.pathname.length);
+if (path.includes("/")) return; // belongs to a demo SW
+```
+
+This way, navigating to `/<demo>/` is handled exclusively by that demo's SW once it has registered.
+
+### Cache invalidation
+
+When a demo ships a meaningful change, bump its cache name (`vibe-<slug>-v1` → `v2`). The activate handler already deletes any caches that don't match the current name.
+
+### Reference implementations
+
+- `intake-companion/sw.js` — canonical demo SW pattern.
+- `sw.js` (root) — canonical root SW with subpath exclusion.
+- `korean-mbti/sw.js` — example with `api.anthropic.com` skipped from caching.
+
 ## Loading states and async UX
 
 Every demo that does background work — LLM call, OCR, 3D asset load, audio analysis, speech recognition — must show **visible motion** while it works. Static "Loading…" text is forbidden; it makes the demo feel broken even when it isn't.

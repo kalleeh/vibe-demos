@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#04060d"/>
+  <!-- Globe with day/night terminator -->
+  <defs>
+    <radialGradient id="day" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#4a8aff"/>
+      <stop offset="60%" stop-color="#1a3a6e"/>
+      <stop offset="100%" stop-color="#04060d"/>
+    </radialGradient>
+  </defs>
+  <circle cx="256" cy="256" r="160" fill="url(#day)"/>
+  <!-- atmosphere rim -->
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#9cdcff" stroke-width="3" opacity="0.4"/>
+  <!-- two pin dots: Seoul (right) + Stockholm (left) -->
+  <circle cx="180" cy="200" r="9" fill="#fecc02"/>
+  <circle cx="180" cy="200" r="18" fill="none" stroke="#fecc02" stroke-width="2" opacity="0.5"/>
+  <circle cx="328" cy="252" r="9" fill="#ff7a4a"/>
+  <circle cx="328" cy="252" r="18" fill="none" stroke="#ff7a4a" stroke-width="2" opacity="0.5"/>
+</svg>

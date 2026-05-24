@@ -82,6 +82,15 @@ Paste a meeting transcript (or capture live via Web Speech API), get a clean Kor
 - **Slug:** `meeting-actions`
 - **Scope estimate:** small-medium.
 
+### 05.5 · MBTI 16유형 — Korean MBTI Read 🟢 shipped → [/korean-mbti/](./korean-mbti/)
+
+Short Korean MBTI test (12 questions, 3 per axis) plus an AI deep-read mode where Claude infers the writer's type from a free-form Korean text passage (diary, chat, SNS post). Uses Korean MBTI culture nicknames natively — 잔망 루피 (INFP), 곰돌이 푸 (ISFJ), 인싸 끝판왕 (ENFP), 청렴결백한 공무원형 (ISTJ).
+
+- **Tech:** Self-contained `index.html`. Domain-tuned prompt with XML tags + canonical_types list of 16 Korean nicknames + errors_to_avoid (no Western clichés, no romanization, no hedging). Browser-direct Anthropic call per AI demo pattern; canned-first/live-optional; 3-way model toggle.
+- **Audience hook:** Korean MBTI culture is its own dialect — generic AI MBTI readings read as obviously foreign. The nickname canon and "친구가 톡으로 너 ENFP 같아 하는 톤" calibration is the wow.
+- **Slug:** `korean-mbti`
+- **Scope estimate:** medium. Question wording + canned-result calibration was the careful work.
+
 ### 06 · Hanja Explainer 🟡 queued
 
 Hover or tap any Hanja (漢字) inside a Korean text passage and a card pops up with the character's meaning, on/kun-style readings, etymology, and modern usage. Includes a paste-your-own-text mode.

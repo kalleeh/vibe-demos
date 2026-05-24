@@ -8,6 +8,14 @@
   <meta property="og:title" content="Vibe Studio — Selected Works">
   <meta property="og:description" content="A studio of small interactive demos, built live.">
   <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#ece6d8">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Vibe Studio">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,400;1,9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -515,7 +523,7 @@
     <section class="works" id="works">
       <header class="section-head">
         <h2>Selected <em>Works</em></h2>
-        <div class="count">Index / 04 entries</div>
+        <div class="count">Index / 05 entries</div>
       </header>
 
       <a class="work" href="./sweden-food-guide/" data-preview="sweden">
@@ -546,6 +554,14 @@
         <span class="num">04</span>
         <span class="title">Intake <em>Companion</em></span>
         <span class="tags">한방 · 진료 동반자<br>Voice · AI<br>Clinical brief</span>
+        <span class="year">2026</span>
+        <span class="arrow">→</span>
+      </a>
+
+      <a class="work" href="./korean-mbti/" data-preview="mbti">
+        <span class="num">05</span>
+        <span class="title">MBTI <em>16</em>유형</span>
+        <span class="tags">Korean MBTI · 별명<br>Test · AI deep-read<br>Free-text inference</span>
         <span class="year">2026</span>
         <span class="arrow">→</span>
       </a>
@@ -617,7 +633,8 @@
       sweden: "Svensk Mat",
       molecule: "가스의 여정",
       globe: "Live Globe",
-      intake: "Intake Companion"
+      intake: "Intake Companion",
+      mbti: "MBTI 16유형"
     };
     let activeWork = null;
 
@@ -649,6 +666,14 @@
         hero.style.transform = `translateY(${y * -0.08}px)`;
       }
     }, { passive: true });
+  </script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
   </script>
 
 </body>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0a1628"/>
+  <!-- Swedish flag wedge as a knife edge through a plate -->
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#fecc02" stroke-width="14"/>
+  <rect x="116" y="232" width="280" height="48" fill="#fecc02"/>
+  <rect x="232" y="116" width="48" height="280" fill="#fecc02"/>
+  <circle cx="256" cy="256" r="42" fill="#0a1628"/>
+  <text x="256" y="278" font-family="Georgia, serif" font-size="64" font-weight="700" text-anchor="middle" fill="#fecc02" font-style="italic">S</text>
+</svg>

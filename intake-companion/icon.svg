@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#f5efe2"/>
+  <!-- Acupuncture needle motif: vertical celadon line with bead handle -->
+  <line x1="256" y1="128" x2="256" y2="392" stroke="#7ba89a" stroke-width="6" stroke-linecap="round"/>
+  <!-- Needle handle (coiled top) -->
+  <circle cx="256" cy="128" r="32" fill="none" stroke="#7ba89a" stroke-width="6"/>
+  <circle cx="256" cy="128" r="20" fill="none" stroke="#7ba89a" stroke-width="4"/>
+  <circle cx="256" cy="128" r="9" fill="#7ba89a"/>
+  <!-- Acupoint glow at the tip -->
+  <circle cx="256" cy="392" r="16" fill="#b04a2f" opacity="0.85"/>
+  <circle cx="256" cy="392" r="32" fill="none" stroke="#b04a2f" stroke-width="2" opacity="0.4"/>
+  <!-- Hangul ㅎ as soft watermark -->
+  <text x="256" y="296" font-family="Noto Serif KR, serif" font-size="120" font-weight="300" text-anchor="middle" fill="#7ba89a" opacity="0.18">한</text>
+</svg>

@@ -1,0 +1,16 @@
+{
+  "name": "Live Globe — Seoul ⇄ Stockholm",
+  "short_name": "Live Globe",
+  "description": "Real-time 3D globe pinning Seoul and Stockholm with weather, time, and day/night terminator.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#04060d",
+  "theme_color": "#04060d",
+  "lang": "en",
+  "categories": ["lifestyle", "weather", "travel"],
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

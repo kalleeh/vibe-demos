@@ -1,0 +1,16 @@
+{
+  "name": "스웨덴 미식 가이드",
+  "short_name": "스웨덴 미식",
+  "description": "한국인 여행자를 위한 스웨덴 음식 & 맛집 가이드.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a1628",
+  "theme_color": "#0a1628",
+  "lang": "ko",
+  "categories": ["food", "travel", "lifestyle"],
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
