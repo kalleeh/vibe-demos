@@ -492,13 +492,15 @@
   <script type="importmap">
     {
       "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
       }
     }
   </script>
 
   <script type="module">
     import * as THREE from "three";
+    import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
     /* ============================================================
        MOLECULE'S JOURNEY — full-scene rewrite
@@ -522,8 +524,14 @@
        ============================================================ */
 
     const container = document.getElementById("scene");
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true, alpha: true,
+      powerPreference: "high-performance"
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x050608, 1);
     container.appendChild(renderer.domElement);
@@ -535,6 +543,12 @@
       52, window.innerWidth / window.innerHeight, 0.05, 400
     );
     camera.position.set(0, 0, 8);
+
+    /* ── Environment map gives PBR materials something to reflect ── */
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    pmrem.compileEquirectangularShader();
+    const envTex = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+    scene.environment = envTex;
 
     /* ── Lighting (per-chapter colors are lerped) ── */
     const ambient = new THREE.AmbientLight(0xffffff, 0.35);
