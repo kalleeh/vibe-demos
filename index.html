@@ -421,9 +421,14 @@
       display: block;
       width: 100%;
       max-width: 720px;
+      aspect-ratio: 5 / 1;
+      object-fit: cover;
+      object-position: center;
       margin: 24px auto 8px;
-      opacity: 0.85;
+      opacity: 0.9;
       mix-blend-mode: multiply;
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
+              mask-image: linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
     }
 
     /* ── About / Process ── */
