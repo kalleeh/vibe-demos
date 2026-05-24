@@ -385,6 +385,193 @@
       #loading .bar::after { animation: none; left: 0; width: 100%; }
       .hero .scroll-cue::after { animation: none; }
     }
+
+    /* ── Vibration caption (tiny, lower-left of viewport) ── */
+    .vib-caption {
+      position: fixed;
+      left: 28px;
+      bottom: 24px;
+      z-index: 6;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      letter-spacing: 1.2px;
+      color: var(--muted);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .8s ease;
+      max-width: 60vw;
+      line-height: 1.5;
+      text-transform: none;
+      mix-blend-mode: difference;
+    }
+    .vib-caption.show { opacity: 0.85; }
+    .vib-caption .nu  { color: var(--accent); font-style: italic; }
+    @media (max-width: 720px) {
+      .vib-caption { left: 16px; bottom: 14px; font-size: 9.5px; }
+    }
+
+    /* ── Hotspot markers (✦) inside each chapter copy block ── */
+    .hotspots {
+      margin-top: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .chapter:nth-child(even) .hotspots { justify-content: flex-end; }
+    .hotspot {
+      appearance: none;
+      background: rgba(108,197,255,0.06);
+      border: 1px solid rgba(108,197,255,0.28);
+      color: var(--accent);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      padding: 7px 11px 7px 9px;
+      border-radius: 999px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: background .25s, border-color .25s, color .25s, transform .25s;
+    }
+    .hotspot::before {
+      content: "✦";
+      font-size: 13px;
+      letter-spacing: 0;
+      color: var(--accent);
+      transition: transform .35s ease;
+    }
+    .hotspot:hover,
+    .hotspot:focus-visible,
+    .hotspot[aria-expanded="true"] {
+      background: rgba(108,197,255,0.14);
+      border-color: rgba(108,197,255,0.7);
+      color: var(--ink);
+      outline: none;
+    }
+    .hotspot:hover::before,
+    .hotspot[aria-expanded="true"]::before {
+      transform: rotate(72deg) scale(1.15);
+    }
+
+    /* ── Tooltip card (single, repositioned per hotspot) ── */
+    .tooltip {
+      position: fixed;
+      z-index: 40;
+      max-width: 320px;
+      min-width: 240px;
+      background: rgba(8,10,14,0.92);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(108,197,255,0.32);
+      border-radius: 4px;
+      padding: 18px 20px 16px;
+      font-family: "Noto Serif KR", serif;
+      color: var(--ink);
+      box-shadow: 0 16px 40px -10px rgba(0,0,0,0.7),
+                  0 0 0 1px rgba(255,255,255,0.02) inset;
+      opacity: 0;
+      transform: translateY(6px);
+      pointer-events: none;
+      transition: opacity .22s ease, transform .22s ease;
+    }
+    .tooltip.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .tooltip .eyebrow {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .tooltip .num {
+      font-family: "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: 30px;
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .tooltip .num em {
+      font-style: italic;
+      color: var(--accent);
+      font-weight: 400;
+    }
+    .tooltip .unit {
+      font-family: "Inter", sans-serif;
+      font-style: italic;
+      font-size: 13px;
+      color: var(--ink-dim);
+      margin-bottom: 10px;
+    }
+    .tooltip .desc {
+      font-family: "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--ink-dim);
+      margin-bottom: 12px;
+    }
+    .tooltip .src {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9.5px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* ── Poster export button (after final chapter) ── */
+    .poster-cta {
+      display: flex;
+      justify-content: center;
+      padding: 0 32px 20px;
+      margin-top: -28px;
+    }
+    .poster-btn {
+      appearance: none;
+      background: transparent;
+      border: 1px solid rgba(255,179,122,0.5);
+      color: var(--accent-2);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 14px 26px;
+      border-radius: 999px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      transition: color .25s, background .25s, border-color .25s;
+    }
+    .poster-btn::before {
+      content: "▢";
+      font-size: 14px;
+      color: var(--accent-2);
+    }
+    .poster-btn:hover,
+    .poster-btn:focus-visible {
+      color: var(--bg);
+      background: var(--accent-2);
+      border-color: var(--accent-2);
+      outline: none;
+    }
+    .poster-btn:hover::before,
+    .poster-btn:focus-visible::before {
+      color: var(--bg);
+    }
+    .poster-btn[disabled] {
+      opacity: 0.55;
+      cursor: progress;
+    }
   </style>
 </head>
 <body>
@@ -396,6 +583,11 @@
 
   <div id="scene"></div>
   <div class="vignette"></div>
+
+  <div class="vib-caption" id="vibCaption">
+    <span class="nu">ν(C–H)</span> — symmetric stretch, slowed ×10¹¹
+  </div>
+  <div class="tooltip" id="tooltip" role="dialog" aria-hidden="true"></div>
 
   <header class="topbar">
     <a href="../" class="mark">Vibe Studio</a>
@@ -422,6 +614,11 @@
         <p>인천의 LNG 터미널, 새벽 다섯 시. 적도에서 출발한 거대한 탱커가 16일간의 항해 끝에 조용히 접안한다.</p>
         <p>그 안에는 −162°C로 냉각되어 액체가 된 천연가스. 한 분자 — CH₄ — 가 깨어난다.</p>
         <span class="stat">−162°C · 액화 천연가스</span>
+        <div class="hotspots">
+          <button class="hotspot" data-hotspot="capacity">탱커 용량</button>
+          <button class="hotspot" data-hotspot="voyage">항해 일수</button>
+          <button class="hotspot" data-hotspot="imports">2024 수입량</button>
+        </div>
       </div>
     </section>
 
@@ -433,6 +630,10 @@
         <p>두꺼운 단열 탱크 안. 외부 공기보다 200도 가까이 차가운 어둠 속에서, 분자는 거의 움직이지 않는다.</p>
         <p>한국 가정의 7개월치 난방을 담은 탱크 하나가, 별처럼 고요하게 빛난다.</p>
         <span class="stat">한 탱크 · 200,000m³</span>
+        <div class="hotspots">
+          <button class="hotspot" data-hotspot="capacity">탱커 용량</button>
+          <button class="hotspot" data-hotspot="calorific">발열량</button>
+        </div>
       </div>
     </section>
 
@@ -444,6 +645,10 @@
         <p>해수와의 열 교환기를 거치며 분자는 다시 기체가 된다. 부피는 600배로 팽창한다.</p>
         <p>압력 조절 밸브를 통과하는 순간, 여행이 시작된다.</p>
         <span class="stat">×600 · 부피 팽창</span>
+        <div class="hotspots">
+          <button class="hotspot" data-hotspot="peakDemand">동절기 피크</button>
+          <button class="hotspot" data-hotspot="calorific">발열량</button>
+        </div>
       </div>
     </section>
 
@@ -455,6 +660,10 @@
         <p>인천에서 서울까지, 지하 1.5미터 아래로 뻗은 강철 파이프라인.</p>
         <p>분자는 시속 30km의 흐름을 따라 도시로 향한다. 어둠 속에서, 빛 없이.</p>
         <span class="stat">약 5,000km · 전국 배관망</span>
+        <div class="hotspots">
+          <button class="hotspot" data-hotspot="mainPressure">주배관 압력</button>
+          <button class="hotspot" data-hotspot="peakDemand">일일 수요</button>
+        </div>
       </div>
     </section>
 
@@ -466,6 +675,10 @@
         <p>마포구의 한 아파트, 7층. 가스 계량기가 작은 소리로 회전한다.</p>
         <p>분자는 좁은 동관을 따라 부엌의 가스레인지 앞에 도착한다.</p>
         <span class="stat">압력 · 약 2.5 kPa</span>
+        <div class="hotspots">
+          <button class="hotspot" data-hotspot="mainPressure">주배관 압력</button>
+          <button class="hotspot" data-hotspot="imports">2024 수입량</button>
+        </div>
       </div>
     </section>
 
@@ -477,8 +690,16 @@
         <p>저녁 일곱 시. 누군가 손잡이를 돌린다. 분자는 산소를 만나, 잠깐의 빛이 된다.</p>
         <p>CH₄ + 2O₂ → CO₂ + 2H₂O. 16일간의 여정이, 된장찌개 한 냄비를 데운다.</p>
         <span class="stat">≈ 1,950°C · 연소</span>
+        <div class="hotspots">
+          <button class="hotspot" data-hotspot="combustion">연소 온도</button>
+          <button class="hotspot" data-hotspot="calorific">발열량</button>
+        </div>
       </div>
     </section>
+
+    <div class="poster-cta">
+      <button class="poster-btn" id="posterBtn" type="button">포스터로 저장</button>
+    </div>
 
     <section class="outro">
       <div class="eyebrow">Fin</div>
@@ -1785,6 +2006,28 @@
     let scrollProgress = 0;
     let smoothProgress = 0;
 
+    // Vibration mode picked per chapter — drives hydrogen displacement and
+    // the lower-left ν(C–H) caption. Real frequencies, slowed ×10¹¹.
+    let heroVibMode = "symmetric";
+    const vibCaption = document.getElementById("vibCaption");
+    const vibLabels = {
+      symmetric:  { html: '<span class="nu">ν(C–H)</span> — symmetric stretch · 2917 cm⁻¹ · slowed ×10¹¹',  show: true  },
+      asymmetric: { html: '<span class="nu">ν(C–H)</span> — asymmetric stretch · 3019 cm⁻¹ · slowed ×10¹¹', show: true  },
+      bend:       { html: '<span class="nu">δ(H–C–H)</span> — bending mode · 1306 cm⁻¹ · slowed ×10¹¹',     show: true  },
+      off:        { html: '', show: false }
+    };
+    function setVibMode(mode) {
+      if (mode === heroVibMode) return;
+      heroVibMode = mode;
+      const lbl = vibLabels[mode] || vibLabels.off;
+      if (lbl.show) {
+        vibCaption.innerHTML = lbl.html;
+        vibCaption.classList.add("show");
+      } else {
+        vibCaption.classList.remove("show");
+      }
+    }
+
     function computeProgress() {
       const total = document.body.scrollHeight - window.innerHeight;
       const t = Math.max(0, Math.min(1, window.scrollY / total));
@@ -1821,6 +2064,22 @@
       // Hero molecule visibility (full-scale only in chapter 0; small reform in chapter 6)
       const heroVis = lerp(a.heroVis, b.heroVis, t);
       heroMolecule.visible = heroVis > 0.001;
+
+      // Vibration mode + caption — pick by current chapter (idx).
+      // ch0 hero: symmetric stretch (the textbook "breathing" mode).
+      // ch3 regas: asymmetric stretch as the molecule warms re-entering gas.
+      // ch4 pipeline: bending mode while flowing through the artery.
+      // ch6 combustion: symmetric again, just before the bonds break.
+      // Other chapters: caption hidden, but molecule (in marker form)
+      // still pulses subtly.
+      let modeNow = "symmetric";
+      if (idx === 0) modeNow = "symmetric";
+      else if (idx === 3) modeNow = "asymmetric";
+      else if (idx === 4) modeNow = "bend";
+      else if (idx === 6) modeNow = "symmetric";
+      // Show the caption only when hero molecule is rendered (ch0 + ch6).
+      const showCap = heroVis > 0.4;
+      setVibMode(showCap ? modeNow : "off");
       // Hero scale: full in ch0, small in ch6
       let heroScale = 1.0;
       if (idx >= 6) heroScale = 0.55;
@@ -1947,12 +2206,37 @@
       if (heroMolecule.visible) {
         heroMolecule.rotation.y += dt * 0.35;
         heroMolecule.rotation.x = Math.sin(elapsed * 0.4) * 0.1;
-        const vibSp = 1.2 + bondMat.uniforms.intensity.value * 1.0;
+        // ── Real C–H vibration, slowed ×10¹¹ ──
+        // ν(C–H) ≈ 3000 cm⁻¹ ≈ 9.0×10¹³ Hz. Slowed by 10¹¹ → ~0.9 Hz visible
+        // pulse. The bending mode (~1300 cm⁻¹) slows to ~0.39 Hz.
+        // Mode is picked by chapter (set via heroVibMode).
+        const omegaStretch = 2 * Math.PI * 0.90; // rad/s, symmetric/asym stretch
+        const omegaBend    = 2 * Math.PI * 0.39; // rad/s, bend
+        const ampStretch = 0.055; // ~5.5% radial stretch
+        const ampBend    = 0.045; // small angular nudge
         hydrogens.forEach((h, i) => {
           // basePos modulation only when not in chapter-6 explosion
           if (smoothProgress < 5.5) {
-            const stretch = 1.0 + Math.sin(elapsed * vibSp + i * 1.3) * 0.06;
-            h.group.position.copy(h.basePos).multiplyScalar(stretch);
+            let dir = h.basePos.clone().normalize();
+            let stretch = 1.0;
+            const off = new THREE.Vector3();
+            if (heroVibMode === "symmetric") {
+              // All four C–H bonds stretch in phase.
+              stretch = 1.0 + Math.sin(elapsed * omegaStretch) * ampStretch;
+            } else if (heroVibMode === "asymmetric") {
+              // Two H's stretch while two contract — opposite phase.
+              const sign = (i < 2) ? 1 : -1;
+              stretch = 1.0 + Math.sin(elapsed * omegaStretch) * ampStretch * sign;
+            } else { // "bend"
+              // Tetrahedral H–C–H angle wobbles. Lateral nudge perpendicular
+              // to bond axis, slower frequency, smaller amplitude.
+              stretch = 1.0 + Math.sin(elapsed * omegaBend) * ampStretch * 0.4;
+              const perp = new THREE.Vector3(-dir.y, dir.x, 0).normalize();
+              off.copy(perp).multiplyScalar(
+                Math.sin(elapsed * omegaBend + i * Math.PI / 2) * ampBend
+              );
+            }
+            h.group.position.copy(h.basePos).multiplyScalar(stretch).add(off);
           }
           h.mesh.rotation.x = Math.sin(elapsed * 1.7 + i) * 0.5;
           h.mesh.rotation.y = Math.cos(elapsed * 1.4 + i) * 0.5;
@@ -2149,6 +2433,701 @@
         document.getElementById("loading").classList.add("hidden");
       });
     });
+  </script>
+
+  <script>
+  /* ============================================================
+     KOGAS data hotspots (FEATURE 1)
+     Static seeded numbers — no live API calls.
+     Sources: KOGAS 통합 사업보고서 2024, MOTIE 에너지통계, EIA STEO 2024.
+     ============================================================ */
+  const HOTSPOT_DATA = {
+    capacity: {
+      eyebrow: "LNG 운반선 · Tanker capacity",
+      num: '약 <em>266,000</em>',
+      unit: "m³ · Q-Max class",
+      desc: "현대식 Q-Max LNG 운반선 한 척에 실리는 액화천연가스의 부피. 기체로 환산하면 약 1.6억 m³.",
+      src: "KOGAS 도입현황 · MOTIE 2024"
+    },
+    voyage: {
+      eyebrow: "항해 일수 · Typical voyage",
+      num: '<em>18–22</em>',
+      unit: "일 · Qatar / Australia → 인천",
+      desc: "Ras Laffan 또는 Gladstone에서 인천 LNG 인수기지까지. 평균 항속 19.5노트. 계절·기상에 따라 ±2일.",
+      src: "KOGAS 도입항로 · MOTIE 2024"
+    },
+    peakDemand: {
+      eyebrow: "동절기 일일 피크 수요",
+      num: '약 <em>80M</em>',
+      unit: "m³/일 · 겨울철 최대",
+      desc: "한파 시 전국 일일 가스 송출량 정점. 발전·도시가스·산업용 합산. 여름철 평균의 약 3배.",
+      src: "KOGAS 수급통계 2024"
+    },
+    mainPressure: {
+      eyebrow: "주배관 운영 압력",
+      num: '약 <em>70</em>',
+      unit: "bar · 본관 송출 압력",
+      desc: "전국 5,000km 강관 본관의 일반 운영 압력. 도시 인입 정압소에서 0.4 bar (중압) 또는 2.5 kPa (저압)로 단계적으로 감압.",
+      src: "KOGAS 배관망 운영기준 2024"
+    },
+    combustion: {
+      eyebrow: "메탄 화염 온도",
+      num: '약 <em>1,950</em>',
+      unit: "°C · 단열 화염 온도",
+      desc: "CH₄ + 2O₂ → CO₂ + 2H₂O. 충분한 산소 공급 시 이론 단열 화염 온도. 일반 가정용 가스레인지의 푸른 불꽃 핵심부 온도.",
+      src: "NIST 화염 데이터 · EIA 2024"
+    },
+    calorific: {
+      eyebrow: "총 발열량 · Calorific value",
+      num: '약 <em>10,500</em>',
+      unit: "kcal/m³ · HHV 기준",
+      desc: "한국 도시가스 표준 총발열량 (43.96 MJ/N·m³). 도시가스 사용량 1m³ = 약 12.2 kWh의 열에너지.",
+      src: "KOGAS 가스 품질기준 2024"
+    },
+    imports: {
+      eyebrow: "한국 LNG 수입량 · 2024",
+      num: '약 <em>46M</em>',
+      unit: "톤 · 연간 수입",
+      desc: "세계 3위 LNG 수입국. 주요 수입처는 카타르(약 23%), 호주(20%), 미국(18%), 오만, 말레이시아 순.",
+      src: "MOTIE · KOGAS 수입현황 2024"
+    }
+  };
+
+  (function initHotspots() {
+    const tooltip = document.getElementById("tooltip");
+    const buttons = document.querySelectorAll(".hotspot");
+    let activeBtn = null;
+
+    function close() {
+      if (!activeBtn) return;
+      activeBtn.setAttribute("aria-expanded", "false");
+      activeBtn = null;
+      tooltip.classList.remove("show");
+      tooltip.setAttribute("aria-hidden", "true");
+    }
+
+    function position(btn) {
+      // Pin to button rect, account for viewport edges.
+      const r = btn.getBoundingClientRect();
+      // Render first to measure
+      tooltip.style.visibility = "hidden";
+      tooltip.classList.add("show");
+      const tw = tooltip.offsetWidth;
+      const th = tooltip.offsetHeight;
+      tooltip.style.visibility = "";
+      const margin = 12;
+      let left = r.left + r.width / 2 - tw / 2;
+      let top  = r.bottom + 10;
+      if (top + th > window.innerHeight - margin) {
+        top = r.top - th - 10;
+      }
+      if (left < margin) left = margin;
+      if (left + tw > window.innerWidth - margin) left = window.innerWidth - tw - margin;
+      tooltip.style.left = left + "px";
+      tooltip.style.top  = top + "px";
+    }
+
+    function open(btn) {
+      const key = btn.getAttribute("data-hotspot");
+      const d = HOTSPOT_DATA[key];
+      if (!d) return;
+      tooltip.innerHTML =
+        '<div class="eyebrow">' + d.eyebrow + '</div>' +
+        '<div class="num">' + d.num + '</div>' +
+        '<div class="unit">' + d.unit + '</div>' +
+        '<div class="desc">' + d.desc + '</div>' +
+        '<div class="src">출처 · ' + d.src + '</div>';
+      tooltip.setAttribute("aria-hidden", "false");
+      if (activeBtn) activeBtn.setAttribute("aria-expanded", "false");
+      activeBtn = btn;
+      btn.setAttribute("aria-expanded", "true");
+      position(btn);
+    }
+
+    buttons.forEach(btn => {
+      btn.setAttribute("aria-expanded", "false");
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        if (activeBtn === btn) {
+          close();
+        } else {
+          open(btn);
+        }
+      });
+      // Hover-to-preview on pointer-fine devices, with a small delay
+      let hoverT = null;
+      btn.addEventListener("mouseenter", () => {
+        if (matchMedia && matchMedia("(hover: none)").matches) return;
+        clearTimeout(hoverT);
+        hoverT = setTimeout(() => open(btn), 120);
+      });
+      btn.addEventListener("mouseleave", () => {
+        clearTimeout(hoverT);
+      });
+    });
+
+    // Dismiss on tap-elsewhere / scroll / esc / resize.
+    document.addEventListener("click", e => {
+      if (!activeBtn) return;
+      if (tooltip.contains(e.target)) return;
+      if (e.target.closest(".hotspot") === activeBtn) return;
+      close();
+    });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") close();
+    });
+    window.addEventListener("scroll", () => {
+      if (activeBtn) position(activeBtn);
+    }, { passive: true });
+    window.addEventListener("resize", () => {
+      if (activeBtn) position(activeBtn);
+    });
+  })();
+
+  /* ============================================================
+     POSTER EXPORT (FEATURE 3)
+     1080×1920 portrait infographic, drawn entirely on a 2D canvas.
+     No Three.js. Hand-drawn editorial voice — same typography as
+     the scrollytelling page (Noto Serif KR / Inter / JetBrains Mono).
+     ============================================================ */
+  (function initPoster() {
+    const btn = document.getElementById("posterBtn");
+    if (!btn) return;
+
+    const W = 1080, H = 1920;
+    const PALETTE = {
+      bg:      "#050608",
+      paper:   "#0a0d12",
+      ink:     "#f4f0e6",
+      inkDim:  "#c8c2b0",
+      muted:   "#8b8678",
+      accent:  "#6cc5ff",
+      accent2: "#ffb37a",
+      flame:   "#4ea1ff",
+      hairline:"rgba(255,255,255,0.10)",
+      panel:   "rgba(108,197,255,0.08)",
+      panelBd: "rgba(108,197,255,0.28)"
+    };
+
+    function loadFonts() {
+      // Make sure the loaded display fonts are ready before drawing.
+      if (!document.fonts || !document.fonts.load) return Promise.resolve();
+      return Promise.all([
+        document.fonts.load('300 80px "Noto Serif KR"'),
+        document.fonts.load('400 24px "Noto Serif KR"'),
+        document.fonts.load('400 14px "JetBrains Mono"'),
+        document.fonts.load('400 18px "Inter"')
+      ]).catch(() => {});
+    }
+
+    function noiseFill(ctx, x, y, w, h, alpha) {
+      // Subtle stippled paper grain — keeps it editorial, not flat.
+      const id = ctx.getImageData(x, y, w, h);
+      const d = id.data;
+      for (let i = 0; i < d.length; i += 4) {
+        if (Math.random() < 0.06) {
+          const v = (Math.random() * 12) | 0;
+          d[i]     = Math.min(255, d[i]   + v);
+          d[i + 1] = Math.min(255, d[i+1] + v);
+          d[i + 2] = Math.min(255, d[i+2] + v);
+          d[i + 3] = Math.min(255, d[i+3] + alpha);
+        }
+      }
+      ctx.putImageData(id, x, y);
+    }
+
+    function drawHairline(ctx, x1, y1, x2, y2, color, w) {
+      ctx.strokeStyle = color || PALETTE.hairline;
+      ctx.lineWidth = w || 1;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+
+    // ── Hand-drawn icons for each stage. Editorial line-work, mono color.
+    function iconTanker(ctx, cx, cy, s, color) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      // Hull
+      ctx.beginPath();
+      ctx.moveTo(-s*0.95, 0);
+      ctx.quadraticCurveTo(-s*0.95, s*0.32, -s*0.7, s*0.32);
+      ctx.lineTo(s*0.7, s*0.32);
+      ctx.quadraticCurveTo(s*1.0, s*0.32, s*0.95, 0);
+      ctx.closePath();
+      ctx.stroke();
+      // Deck line
+      ctx.beginPath();
+      ctx.moveTo(-s*0.85, 0);
+      ctx.lineTo(s*0.85, 0);
+      ctx.stroke();
+      // Cargo spheres (Moss tanks)
+      for (let i = -1; i <= 1; i++) {
+        ctx.beginPath();
+        ctx.arc(i * s*0.32, -s*0.18, s*0.18, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      // Bridge
+      ctx.beginPath();
+      ctx.rect(s*0.55, -s*0.32, s*0.18, s*0.32);
+      ctx.stroke();
+      // Wave under
+      ctx.beginPath();
+      for (let x = -s; x <= s; x += s*0.18) {
+        ctx.moveTo(x, s*0.5);
+        ctx.quadraticCurveTo(x + s*0.09, s*0.42, x + s*0.18, s*0.5);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function iconCryo(ctx, cx, cy, s, color) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      // Outer tank dome
+      ctx.beginPath();
+      ctx.moveTo(-s*0.55, s*0.5);
+      ctx.lineTo(-s*0.55, -s*0.2);
+      ctx.quadraticCurveTo(-s*0.55, -s*0.55, 0, -s*0.55);
+      ctx.quadraticCurveTo(s*0.55, -s*0.55, s*0.55, -s*0.2);
+      ctx.lineTo(s*0.55, s*0.5);
+      ctx.closePath();
+      ctx.stroke();
+      // Inner liquid line
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(-s*0.4, s*0.18);
+      ctx.lineTo(s*0.4, s*0.18);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // Snowflake hint
+      ctx.beginPath();
+      const sx = 0, sy = -s*0.05;
+      for (let k = 0; k < 6; k++) {
+        const a = k / 6 * Math.PI * 2;
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(sx + Math.cos(a) * s*0.16, sy + Math.sin(a) * s*0.16);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function iconRegas(ctx, cx, cy, s, color) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      // Helix tower — 3 stacked ellipses suggesting coils
+      for (let i = -2; i <= 2; i++) {
+        ctx.beginPath();
+        ctx.ellipse(0, i * s*0.18, s*0.35, s*0.08, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      // Side struts
+      drawHairline(ctx, -s*0.36, -s*0.5, -s*0.36, s*0.5, color, 2);
+      drawHairline(ctx,  s*0.36, -s*0.5,  s*0.36, s*0.5, color, 2);
+      // Steam wisps
+      ctx.lineWidth = 1.4;
+      for (let i = -1; i <= 1; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * s*0.18, -s*0.55);
+        ctx.bezierCurveTo(i * s*0.18 + s*0.06, -s*0.7, i * s*0.18 - s*0.06, -s*0.85, i * s*0.18 + s*0.04, -s*0.95);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function iconPipeline(ctx, cx, cy, s, color) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      // Pipe tube (oblique)
+      ctx.beginPath();
+      ctx.moveTo(-s*0.95, -s*0.18);
+      ctx.lineTo(s*0.7, -s*0.4);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(-s*0.95, s*0.32);
+      ctx.lineTo(s*0.7, s*0.1);
+      ctx.stroke();
+      // End ellipses (flanges)
+      ctx.beginPath();
+      ctx.ellipse(-s*0.95, s*0.07, s*0.04, s*0.25, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.ellipse(s*0.7, -s*0.15, s*0.04, s*0.25, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      // Joint band
+      ctx.beginPath();
+      ctx.ellipse(-s*0.05, -s*0.04, s*0.05, s*0.27, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      // Flow arrow
+      ctx.beginPath();
+      ctx.moveTo(-s*0.1, s*0.55);
+      ctx.lineTo(s*0.4, s*0.55);
+      ctx.lineTo(s*0.32, s*0.5);
+      ctx.moveTo(s*0.4, s*0.55);
+      ctx.lineTo(s*0.32, s*0.6);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function iconStove(ctx, cx, cy, s, color) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      // Stove body
+      ctx.beginPath();
+      ctx.rect(-s*0.7, -s*0.1, s*1.4, s*0.65);
+      ctx.stroke();
+      // Burner ring (left + right)
+      [-s*0.32, s*0.32].forEach(x => {
+        ctx.beginPath();
+        ctx.ellipse(x, 0, s*0.18, s*0.07, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(x, 0, s*0.08, s*0.03, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+      // Knobs
+      [-s*0.5, -s*0.12, s*0.12, s*0.5].forEach(x => {
+        ctx.beginPath();
+        ctx.arc(x, s*0.42, s*0.04, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+      // Pot above left burner
+      ctx.beginPath();
+      ctx.moveTo(-s*0.5, -s*0.18);
+      ctx.lineTo(-s*0.5, -s*0.5);
+      ctx.lineTo(-s*0.14, -s*0.5);
+      ctx.lineTo(-s*0.14, -s*0.18);
+      ctx.stroke();
+      // Steam squiggles
+      for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(-s*0.45 + i*s*0.13, -s*0.55);
+        ctx.bezierCurveTo(-s*0.42 + i*s*0.13, -s*0.7, -s*0.48 + i*s*0.13, -s*0.8, -s*0.43 + i*s*0.13, -s*0.92);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function iconFlame(ctx, cx, cy, s, color) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      // Outer flame
+      ctx.beginPath();
+      ctx.moveTo(0, s*0.6);
+      ctx.bezierCurveTo(-s*0.55, s*0.45, -s*0.55, -s*0.1, -s*0.18, -s*0.4);
+      ctx.bezierCurveTo(-s*0.05, -s*0.65, 0, -s*0.5, s*0.05, -s*0.2);
+      ctx.bezierCurveTo(s*0.18, -s*0.55, s*0.5, -s*0.2, s*0.4, s*0.2);
+      ctx.bezierCurveTo(s*0.32, s*0.5, s*0.18, s*0.6, 0, s*0.6);
+      ctx.closePath();
+      ctx.stroke();
+      // Inner flame
+      ctx.beginPath();
+      ctx.moveTo(0, s*0.5);
+      ctx.bezierCurveTo(-s*0.22, s*0.35, -s*0.22, s*0.0, -s*0.05, -s*0.18);
+      ctx.bezierCurveTo(s*0.05, -s*0.05, s*0.2, s*0.15, s*0.15, s*0.35);
+      ctx.bezierCurveTo(s*0.1, s*0.5, s*0.05, s*0.55, 0, s*0.5);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // CH4 monogram — small tetrahedral glyph for the masthead.
+    function drawMethaneGlyph(ctx, cx, cy, s) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.strokeStyle = PALETTE.accent;
+      ctx.fillStyle = PALETTE.accent;
+      ctx.lineWidth = 1.4;
+      const positions = [
+        { x:  s*0.55, y: -s*0.35 },
+        { x: -s*0.55, y: -s*0.35 },
+        { x:  s*0.0,  y:  s*0.55 },
+        { x:  s*0.0,  y: -s*0.65 }
+      ];
+      // Bonds
+      positions.forEach(p => {
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+      });
+      // Carbon
+      ctx.beginPath();
+      ctx.arc(0, 0, s*0.18, 0, Math.PI * 2);
+      ctx.fillStyle = "#0a1628";
+      ctx.fill();
+      ctx.stroke();
+      // Hydrogens
+      positions.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, s*0.10, 0, Math.PI * 2);
+        ctx.fillStyle = PALETTE.ink;
+        ctx.fill();
+      });
+      ctx.restore();
+    }
+
+    function wrapText(ctx, text, x, y, maxW, lineH) {
+      const words = text.split(" ");
+      let line = "";
+      for (let i = 0; i < words.length; i++) {
+        const tst = line + words[i] + " ";
+        if (ctx.measureText(tst).width > maxW && i > 0) {
+          ctx.fillText(line.trim(), x, y);
+          line = words[i] + " ";
+          y += lineH;
+        } else {
+          line = tst;
+        }
+      }
+      ctx.fillText(line.trim(), x, y);
+      return y;
+    }
+
+    async function buildPoster() {
+      const canvas = document.createElement("canvas");
+      canvas.width = W;
+      canvas.height = H;
+      const ctx = canvas.getContext("2d");
+
+      // ── Background — deep ink with subtle vertical gradient
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+      bgGrad.addColorStop(0,    "#070a10");
+      bgGrad.addColorStop(0.45, "#050608");
+      bgGrad.addColorStop(1,    "#0a0d14");
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      // Soft accent halo top-right
+      const halo = ctx.createRadialGradient(W*0.85, H*0.08, 0, W*0.85, H*0.08, W*0.7);
+      halo.addColorStop(0,   "rgba(108,197,255,0.18)");
+      halo.addColorStop(0.4, "rgba(108,197,255,0.05)");
+      halo.addColorStop(1,   "rgba(108,197,255,0)");
+      ctx.fillStyle = halo;
+      ctx.fillRect(0, 0, W, H);
+
+      // Subtle paper grain
+      try { noiseFill(ctx, 0, 0, W, H, 14); } catch (e) {}
+
+      const margin = 80;
+
+      // ── Masthead
+      ctx.fillStyle = PALETTE.muted;
+      ctx.font = '500 18px "JetBrains Mono", monospace';
+      ctx.textAlign = "left";
+      ctx.fillText("VIBE STUDIO · MMXXIV", margin, 110);
+
+      ctx.textAlign = "right";
+      ctx.fillStyle = PALETTE.accent;
+      ctx.fillText("INFOGRAPHIC · 01", W - margin, 110);
+
+      // Hairline under masthead
+      drawHairline(ctx, margin, 130, W - margin, 130);
+
+      // CH4 glyph + title
+      drawMethaneGlyph(ctx, margin + 60, 240, 70);
+
+      ctx.fillStyle = PALETTE.ink;
+      ctx.textAlign = "left";
+      ctx.font = '300 76px "Noto Serif KR", serif';
+      ctx.fillText("가스의", margin + 150, 220);
+      ctx.fillStyle = PALETTE.accent;
+      ctx.font = 'italic 300 76px "Noto Serif KR", serif';
+      ctx.fillText("여정", margin + 150 + 175, 220);
+
+      ctx.fillStyle = PALETTE.inkDim;
+      ctx.font = 'italic 300 24px "Inter", sans-serif';
+      ctx.fillText("A methane molecule, from Incheon harbor to a Seoul kitchen flame.", margin + 150, 270);
+
+      // ── Stage strip — six glyphs across the page, joined by a hairline
+      const stages = [
+        { icon: iconTanker,   label: "탱커",   en: "tanker",   color: PALETTE.accent2 },
+        { icon: iconCryo,     label: "저장",   en: "cryogenic",color: PALETTE.accent  },
+        { icon: iconRegas,    label: "기화",   en: "regasify", color: PALETTE.accent  },
+        { icon: iconPipeline, label: "배관",   en: "pipeline", color: PALETTE.accent  },
+        { icon: iconStove,    label: "도착",   en: "kitchen",  color: PALETTE.accent2 },
+        { icon: iconFlame,    label: "불꽃",   en: "flame",    color: PALETTE.flame   }
+      ];
+      const stripY = 440;
+      const stripPadX = margin + 30;
+      const stripW = W - stripPadX * 2;
+      const stepX  = stripW / (stages.length - 1);
+
+      // Connecting hairline
+      drawHairline(ctx, stripPadX, stripY, stripPadX + stripW, stripY, "rgba(108,197,255,0.35)", 1);
+
+      stages.forEach((s, i) => {
+        const cx = stripPadX + stepX * i;
+        // Halo behind icon
+        const ig = ctx.createRadialGradient(cx, stripY, 0, cx, stripY, 80);
+        ig.addColorStop(0, "rgba(108,197,255,0.18)");
+        ig.addColorStop(1, "rgba(108,197,255,0)");
+        ctx.fillStyle = ig;
+        ctx.beginPath();
+        ctx.arc(cx, stripY, 80, 0, Math.PI * 2);
+        ctx.fill();
+        // Icon
+        s.icon(ctx, cx, stripY, 50, s.color);
+        // Korean label
+        ctx.fillStyle = PALETTE.ink;
+        ctx.font = '300 22px "Noto Serif KR", serif';
+        ctx.textAlign = "center";
+        ctx.fillText(s.label, cx, stripY + 95);
+        // En label
+        ctx.fillStyle = PALETTE.muted;
+        ctx.font = '500 11px "JetBrains Mono", monospace';
+        ctx.fillText(s.en.toUpperCase(), cx, stripY + 118);
+      });
+
+      // ── Section heading
+      const dataY = 640;
+      ctx.fillStyle = PALETTE.muted;
+      ctx.font = '500 14px "JetBrains Mono", monospace';
+      ctx.textAlign = "left";
+      ctx.fillText("DATA · KOGAS · MOTIE · EIA · 2024", margin, dataY);
+
+      // ── Six data panels, 3×2 grid, with KOGAS numbers (FEATURE 1).
+      const panels = [
+        { num: "266,000", unit: "m³",        kr: "탱커 1척 용량",    en: "Q-Max LNG carrier capacity",      src: "KOGAS, 2024" },
+        { num: "18–22",   unit: "일",         kr: "전형적 항해 일수",  en: "Qatar / Australia → Incheon",      src: "MOTIE, 2024" },
+        { num: "80M",     unit: "m³/일",     kr: "동절기 일일 피크 수요", en: "Winter peak gas dispatch",      src: "KOGAS, 2024" },
+        { num: "70",      unit: "bar",       kr: "주배관 운영 압력",  en: "Mainline operating pressure",     src: "KOGAS, 2024" },
+        { num: "1,950",   unit: "°C",        kr: "메탄 화염 온도",    en: "Adiabatic flame, CH₄ + 2O₂",      src: "NIST · EIA, 2024" },
+        { num: "10,500",  unit: "kcal/m³",  kr: "총 발열량 (HHV)",  en: "Korean city-gas calorific value", src: "KOGAS, 2024" }
+      ];
+
+      const cols = 2;
+      const rows = 3;
+      const panelGap = 22;
+      const panelW = (W - margin * 2 - panelGap) / cols;
+      const panelH = 200;
+      const panelTop = dataY + 30;
+
+      panels.forEach((p, i) => {
+        const c = i % cols;
+        const r = Math.floor(i / cols);
+        const px = margin + c * (panelW + panelGap);
+        const py = panelTop + r * (panelH + panelGap);
+
+        // Panel background
+        ctx.fillStyle = "rgba(108,197,255,0.05)";
+        ctx.fillRect(px, py, panelW, panelH);
+        ctx.strokeStyle = PALETTE.panelBd;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(px + 0.5, py + 0.5, panelW - 1, panelH - 1);
+
+        // Big number
+        ctx.fillStyle = PALETTE.accent;
+        ctx.font = '300 72px "Noto Serif KR", serif';
+        ctx.textAlign = "left";
+        ctx.fillText(p.num, px + 24, py + 90);
+
+        // Unit
+        ctx.fillStyle = PALETTE.inkDim;
+        ctx.font = 'italic 300 22px "Inter", sans-serif';
+        const numW = ctx.measureText(p.num).width;
+        ctx.font = '300 72px "Noto Serif KR", serif';
+        const realNumW = ctx.measureText(p.num).width;
+        ctx.font = 'italic 300 22px "Inter", sans-serif';
+        ctx.fillText(p.unit, px + 24 + realNumW + 12, py + 86);
+
+        // Korean label
+        ctx.fillStyle = PALETTE.ink;
+        ctx.font = '400 22px "Noto Serif KR", serif';
+        ctx.fillText(p.kr, px + 24, py + 130);
+
+        // English caption
+        ctx.fillStyle = PALETTE.muted;
+        ctx.font = 'italic 300 16px "Inter", sans-serif';
+        ctx.fillText(p.en, px + 24, py + 156);
+
+        // Source pill
+        ctx.fillStyle = PALETTE.muted;
+        ctx.font = '500 11px "JetBrains Mono", monospace';
+        ctx.fillText("SRC · " + p.src, px + 24, py + 182);
+      });
+
+      // ── Reaction strip
+      const reactionY = panelTop + 3 * (panelH + panelGap) + 30;
+      drawHairline(ctx, margin, reactionY - 28, W - margin, reactionY - 28);
+      ctx.fillStyle = PALETTE.muted;
+      ctx.font = '500 14px "JetBrains Mono", monospace';
+      ctx.textAlign = "left";
+      ctx.fillText("REACTION", margin, reactionY);
+
+      ctx.fillStyle = PALETTE.ink;
+      ctx.font = '300 56px "Noto Serif KR", serif';
+      ctx.textAlign = "center";
+      ctx.fillText("CH₄  +  2 O₂  →  CO₂  +  2 H₂O", W / 2, reactionY + 56);
+      ctx.fillStyle = PALETTE.inkDim;
+      ctx.font = 'italic 300 20px "Inter", sans-serif';
+      ctx.fillText("Complete combustion · ΔH ≈ −890 kJ/mol", W / 2, reactionY + 92);
+
+      // ── Footer block
+      const footY = H - 180;
+      drawHairline(ctx, margin, footY - 10, W - margin, footY - 10);
+
+      ctx.fillStyle = PALETTE.ink;
+      ctx.font = 'italic 300 30px "Noto Serif KR", serif';
+      ctx.textAlign = "center";
+      ctx.fillText("한 분자의 긴 여행이, 저녁 식탁이 된다.", W / 2, footY + 30);
+
+      ctx.fillStyle = PALETTE.muted;
+      ctx.font = 'italic 300 18px "Inter", sans-serif';
+      ctx.fillText("One molecule. Sixteen days. One bowl of stew.", W / 2, footY + 62);
+
+      ctx.fillStyle = PALETTE.muted;
+      ctx.font = '500 12px "JetBrains Mono", monospace';
+      ctx.fillText("VIBE-DEMOS / MOLECULE-JOURNEY · 2024 · KALLEEH.GITHUB.IO", W / 2, footY + 110);
+
+      return canvas;
+    }
+
+    btn.addEventListener("click", async () => {
+      if (btn.disabled) return;
+      const orig = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "그리는 중…";
+      try {
+        await loadFonts();
+        const canvas = await buildPoster();
+        const url = canvas.toDataURL("image/png");
+        const a = document.createElement("a");
+        a.href = url;
+        const stamp = new Date().toISOString().slice(0, 10);
+        a.download = `molecule-journey-poster-${stamp}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        btn.textContent = "저장 완료 ✓";
+        setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2200);
+      } catch (err) {
+        btn.textContent = "오류 — 다시";
+        setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2200);
+      }
+    });
+  })();
   </script>
 
   <script>
