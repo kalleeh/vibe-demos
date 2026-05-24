@@ -134,14 +134,27 @@
       padding: 96px 0 80px;
       position: relative;
     }
+    /* Hero band — no card framing; bleeds edge-to-edge and dissolves into the paper.
+       The image is treated as ambient atmosphere, not a placed illustration. */
     .hero-band {
       position: relative;
-      margin: -32px 0 64px;
-      border-radius: 4px;
-      overflow: hidden;
+      margin: -32px 0 16px;
       aspect-ratio: 21 / 8;
-      background: var(--paper-2);
-      box-shadow: 0 0 0 1px var(--line);
+      overflow: hidden;
+      -webkit-mask-image: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.85) 0%,
+        rgba(0,0,0,0.95) 30%,
+        rgba(0,0,0,0.7) 70%,
+        transparent 100%
+      );
+              mask-image: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.85) 0%,
+        rgba(0,0,0,0.95) 30%,
+        rgba(0,0,0,0.7) 70%,
+        transparent 100%
+      );
     }
     .hero-band img {
       display: block;
@@ -149,7 +162,9 @@
       height: 100%;
       object-fit: cover;
       object-position: center 55%;
-      filter: saturate(0.96) contrast(1.02);
+      filter: saturate(0.88) contrast(1.02);
+      mix-blend-mode: multiply;
+      opacity: 0.78;
     }
     .hero-band::after {
       content: "";
@@ -158,13 +173,13 @@
       background: linear-gradient(
         90deg,
         rgba(236, 230, 216, 0) 0%,
-        rgba(236, 230, 216, 0) 35%,
+        rgba(236, 230, 216, 0) 30%,
         rgba(236, 230, 216, 0.55) 100%
       );
       pointer-events: none;
     }
     @media (max-width: 720px) {
-      .hero-band { aspect-ratio: 16 / 9; margin: -16px 0 40px; }
+      .hero-band { aspect-ratio: 16 / 9; margin: -16px 0 8px; }
     }
     .hero .eyebrow {
       font-family: "JetBrains Mono", monospace;
@@ -416,19 +431,21 @@
       .preview { display: none; }
     }
 
-    /* ── Section divider ── */
+    /* Section divider — washes through the page edge-to-edge, fades on every side.
+       Reads as a watermark band, not a placed image. */
     .divider {
       display: block;
       width: 100%;
-      max-width: 640px;
-      height: 80px;
+      max-width: 880px;
+      height: 56px;
       object-fit: cover;
       object-position: center 50%;
-      margin: 32px auto 16px;
-      opacity: 0.95;
+      margin: 48px auto 24px;
+      opacity: 0.55;
       mix-blend-mode: multiply;
-      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 18%, #000 82%, transparent 100%);
-              mask-image: linear-gradient(to right, transparent 0%, #000 18%, #000 82%, transparent 100%);
+      filter: saturate(0.7);
+      -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 80%);
+              mask-image: radial-gradient(ellipse at center, #000 30%, transparent 80%);
     }
 
     /* ── About / Process ── */

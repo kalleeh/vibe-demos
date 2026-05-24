@@ -134,46 +134,40 @@
       padding: 72px 0 48px;
       max-width: 720px;
     }
+    /* Watercolor herb watermarks — ambient, behind the content.
+       Fixed to the viewport so they read as paper imagery, not page elements.
+       Large, very faded, anchored half-off the edge so the eye doesn't read
+       a bounded illustration; the leaves dissolve into the paper texture. */
     .herb-vignette {
+      position: fixed;
       pointer-events: none;
-      opacity: 0.95;
+      z-index: 0;
       height: auto;
       display: block;
+      opacity: 0.22;
+      filter: saturate(0.85);
+      -webkit-mask-image: radial-gradient(ellipse at center, #000 35%, transparent 78%);
+              mask-image: radial-gradient(ellipse at center, #000 35%, transparent 78%);
     }
-    /* Desktop ≥1100: float in the right margin, anchored to .frame. */
-    @media (min-width: 1100px) {
-      .herb-vignette {
-        position: absolute;
-        z-index: 3;
-      }
-      .herb-vignette.ginseng {
-        right: 24px;
-        top: 60px;
-        width: 200px;
-      }
-      .herb-vignette.mugwort {
-        right: 32px;
-        bottom: 100px;
-        width: 150px;
-        opacity: 0.85;
-      }
+    .herb-vignette.ginseng {
+      top: -8vh;
+      right: -10vw;
+      width: min(640px, 60vw);
+      transform: rotate(8deg);
     }
-    /* Mobile <1100: render inline as small centered flourishes. */
-    @media (max-width: 1099.98px) {
-      .herb-vignette {
-        margin: 0 auto;
-        width: 110px;
-      }
-      .herb-vignette.ginseng {
-        margin-top: 12px;
-        margin-bottom: -8px;
-      }
-      .herb-vignette.mugwort {
-        width: 90px;
-        margin-top: 24px;
-        margin-bottom: 16px;
-        opacity: 0.85;
-      }
+    .herb-vignette.mugwort {
+      bottom: -10vh;
+      left: -8vw;
+      width: min(520px, 50vw);
+      opacity: 0.18;
+      transform: rotate(-6deg);
+    }
+    @media (max-width: 720px) {
+      .herb-vignette { opacity: 0.16; }
+      .herb-vignette.mugwort { opacity: 0.14; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .herb-vignette { transform: none; }
     }
     .hero .eyebrow {
       font-family: "JetBrains Mono", monospace;
