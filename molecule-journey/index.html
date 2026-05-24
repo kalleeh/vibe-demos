@@ -554,6 +554,53 @@
     /* ── GLTF loader for Kenney CC0 props (ship, kitchen) ── */
     const gltfLoader = new GLTFLoader();
 
+    /* Paint Kenney palette materials so they stop reading as flat gray.
+       Kenney exports default to metalness:0 roughness:1, which the bright
+       RoomEnvironment then washes out. Match by material name to add the
+       right amount of specular per surface type, and tint the few that
+       Kenney left at neutral light-gray (metal, carpetWhite). */
+    function paintKenney(root, opts = {}) {
+      const tint = (m, hex) => {
+        if (m.color && hex !== undefined) m.color.setHex(hex);
+      };
+      const tones = {
+        // Cool brushed-steel for ship hull plating, stove hood, manifold
+        metal:        { metalness: 0.85, roughness: 0.32, env: 0.55, hex: 0xb6c4cf },
+        metalDark:    { metalness: 0.75, roughness: 0.42, env: 0.50, hex: 0x4a5560 },
+        // Warm matte paint for the cargo deck / wooden surfaces
+        wood:         { metalness: 0.05, roughness: 0.75, env: 0.35, hex: 0xb04a2f },
+        // Stove top "carpetWhite" is actually the white enamel — keep it bright
+        carpetWhite:  { metalness: 0.10, roughness: 0.55, env: 0.45, hex: 0xece6d8 },
+        // Translucent glass on stove door — keep cool tint, more reflective
+        glass:        { metalness: 0.00, roughness: 0.08, env: 1.00 }
+      };
+      root.traverse(o => {
+        if (!o.isMesh || !o.material) return;
+        const mats = Array.isArray(o.material) ? o.material : [o.material];
+        for (const m of mats) {
+          // Make sure baseColorMap is sRGB (GLTFLoader does this in r152+
+          // but be defensive) so palette atlases render at the right hue.
+          if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
+          const t = tones[m.name];
+          if (t) {
+            if ("metalness" in m) m.metalness = t.metalness;
+            if ("roughness" in m) m.roughness = t.roughness;
+            if ("envMapIntensity" in m) m.envMapIntensity = t.env;
+            if (t.hex !== undefined && !m.map) tint(m, t.hex);
+          } else {
+            // Unnamed/textured material — assume painted plastic.
+            if ("metalness" in m) m.metalness = Math.max(m.metalness ?? 0, 0.15);
+            if ("roughness" in m) m.roughness = Math.min(m.roughness ?? 1, 0.65);
+            if ("envMapIntensity" in m) m.envMapIntensity = 0.45;
+          }
+          if (opts.boost && "envMapIntensity" in m) {
+            m.envMapIntensity *= opts.boost;
+          }
+          m.needsUpdate = true;
+        }
+      });
+    }
+
     /* ── Lighting (per-chapter colors are lerped) ── */
     const ambient = new THREE.AmbientLight(0xffffff, 0.35);
     scene.add(ambient);
@@ -838,26 +885,13 @@
       sceneTanker.add(tanker);
       gltfLoader.load("./assets/ship-cargo.glb", gltf => {
         const ship = gltf.scene;
-        // Kenney watercraft is z-forward, ~6 units long; scale to fit 14u hull.
         const box = new THREE.Box3().setFromObject(ship);
         const size = box.getSize(new THREE.Vector3());
         const scale = 14 / Math.max(size.x, size.z);
         ship.scale.setScalar(scale);
-        // Re-center horizontally and sit on the waterline.
         const center = box.getCenter(new THREE.Vector3()).multiplyScalar(scale);
         ship.position.set(-center.x, -box.min.y * scale, -center.z);
-        // Boost material response — Kenney materials are flat by default.
-        ship.traverse(o => {
-          if (o.isMesh && o.material) {
-            const mats = Array.isArray(o.material) ? o.material : [o.material];
-            for (const m of mats) {
-              if ("envMapIntensity" in m) m.envMapIntensity = 0.9;
-              if ("metalness" in m) m.metalness = Math.max(m.metalness, 0.15);
-              if ("roughness" in m) m.roughness = Math.min(m.roughness, 0.75);
-            }
-          }
-        });
-        // If the long axis came in along Z, rotate so the ship lies along X.
+        paintKenney(ship);
         const box2 = new THREE.Box3().setFromObject(ship);
         const sz = box2.getSize(new THREE.Vector3());
         if (sz.z > sz.x) ship.rotation.y = Math.PI / 2;
@@ -1318,22 +1352,12 @@
         const stove = gltf.scene;
         const box = new THREE.Box3().setFromObject(stove);
         const size = box.getSize(new THREE.Vector3());
-        // Fit to a 3.0 wide footprint to match the original stove inset.
         const scale = 3.0 / Math.max(size.x, size.z);
         stove.scale.setScalar(scale);
         const b2 = new THREE.Box3().setFromObject(stove);
         const c = b2.getCenter(new THREE.Vector3());
-        // Center horizontally, sit hob at y = -0.92 (where the original
-        // black inset sat), so the burner ring still lands correctly.
         stove.position.set(-c.x, -0.92 - b2.max.y, -4.5 - c.z);
-        stove.traverse(o => {
-          if (o.isMesh && o.material) {
-            const mats = Array.isArray(o.material) ? o.material : [o.material];
-            for (const m of mats) {
-              if ("envMapIntensity" in m) m.envMapIntensity = 0.85;
-            }
-          }
-        });
+        paintKenney(stove);
         sceneKitchen.add(stove);
       });
       // Burner ring (the gas-jet circle)
@@ -1372,20 +1396,22 @@
         const pot = gltf.scene;
         const box = new THREE.Box3().setFromObject(pot);
         const size = box.getSize(new THREE.Vector3());
-        // Fit to ~1.7-wide pot (same as old 0.85 radius).
         const scale = 1.7 / Math.max(size.x, size.z);
         pot.scale.setScalar(scale);
         const b2 = new THREE.Box3().setFromObject(pot);
         const c = b2.getCenter(new THREE.Vector3());
-        // Sit the bottom of the pot on the burner (~y = -0.78).
         pot.position.set(-c.x, -0.78 - b2.min.y, -4.5 - c.z);
+        // Pot is a textured palette atlas; treat the whole thing as
+        // brushed steel so it picks up the stove highlights.
         pot.traverse(o => {
-          if (o.isMesh && o.material) {
-            const mats = Array.isArray(o.material) ? o.material : [o.material];
-            for (const m of mats) {
-              if ("envMapIntensity" in m) m.envMapIntensity = 0.9;
-              if ("metalness" in m) m.metalness = Math.max(m.metalness, 0.4);
-            }
+          if (!o.isMesh || !o.material) return;
+          const mats = Array.isArray(o.material) ? o.material : [o.material];
+          for (const m of mats) {
+            if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
+            if ("metalness" in m) m.metalness = 0.7;
+            if ("roughness" in m) m.roughness = 0.32;
+            if ("envMapIntensity" in m) m.envMapIntensity = 0.65;
+            m.needsUpdate = true;
           }
         });
         sceneKitchen.add(pot);
