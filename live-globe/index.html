@@ -162,6 +162,50 @@
       box-shadow: 0 0 8px var(--accent);
     }
 
+    /* Fast-forward "24h / 12s" button */
+    .topbar .ff-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-variant-numeric: tabular-nums;
+    }
+    .topbar .ff-btn .ff-glyph {
+      width: 14px; height: 8px;
+      position: relative;
+      display: inline-block;
+    }
+    .topbar .ff-btn .ff-glyph::before,
+    .topbar .ff-btn .ff-glyph::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      width: 0; height: 0;
+      border-left: 5px solid var(--ink-dim);
+      border-top: 4px solid transparent;
+      border-bottom: 4px solid transparent;
+      transition: border-left-color .2s, transform .25s;
+    }
+    .topbar .ff-btn .ff-glyph::before { left: 0; }
+    .topbar .ff-btn .ff-glyph::after  { left: 6px; }
+    .topbar .ff-btn:hover .ff-glyph::before,
+    .topbar .ff-btn:hover .ff-glyph::after {
+      border-left-color: var(--accent);
+    }
+    body.fastforward .topbar .ff-btn .ff-glyph::before,
+    body.fastforward .topbar .ff-btn .ff-glyph::after {
+      border-left-color: var(--warm);
+    }
+    body.fastforward .topbar .ff-btn .ff-glyph::before {
+      animation: ff-pulse 0.45s ease-in-out infinite alternate;
+    }
+    body.fastforward .topbar .ff-btn .ff-glyph::after {
+      animation: ff-pulse 0.45s ease-in-out infinite alternate-reverse;
+    }
+    @keyframes ff-pulse {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(2px); }
+    }
+
     /* Focus mode: fade out the city cards (and any open AI panel) */
     body.focus .city-card {
       opacity: 0;
@@ -555,6 +599,8 @@
       .ai-panel .progress::after { animation: none; left: 0; width: 100%; }
       .topbar .mark::before { animation: none; }
       .city-card .stat .v.shimmer { animation: none; background: none; -webkit-text-fill-color: var(--ink); }
+      body.fastforward .topbar .ff-btn .ff-glyph::before,
+      body.fastforward .topbar .ff-btn .ff-glyph::after { animation: none; }
     }
   </style>
 </head>
@@ -571,6 +617,9 @@
     <a href="../" class="mark">Vibe Studio</a>
     <div class="right">
       <span class="label-time" id="utcClock">UTC · ——:——</span>
+      <button class="ff-btn" id="ffToggle" type="button" aria-pressed="false" aria-label="Fast-forward 24 hours in 12 seconds">
+        <span class="ff-glyph" aria-hidden="true"></span><span class="lbl">24h / 12s</span>
+      </button>
       <button class="focus-toggle" id="focusToggle" type="button" aria-pressed="false" aria-label="Toggle focus mode">
         <span class="dot" aria-hidden="true"></span><span class="lbl">Focus</span>
       </button>
@@ -651,7 +700,8 @@
   <script type="importmap">
     {
       "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+        "three":         "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
       }
     }
   </script>
@@ -660,6 +710,7 @@
 
   <script type="module">
     import * as THREE from "three";
+    import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
     /* ───────────────────────────────────────────────
        Cities
@@ -691,15 +742,26 @@
        Three.js scene
        ─────────────────────────────────────────────── */
     const container = document.getElementById("globe");
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      powerPreference: "high-performance"
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x04060d, 1);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
     container.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.set(0, 0, 5.0);
+
+    /* PMREM environment so any future PBR materials have something to reflect */
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    pmrem.compileEquirectangularShader();
+    scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
 
     /* ── Lighting ── */
     const sunLight = new THREE.DirectionalLight(0xffffff, 1.4);
@@ -742,9 +804,12 @@
     const loader = new THREE.TextureLoader();
     loader.crossOrigin = "anonymous";
 
-    /* Use threejs.org example textures (NASA public domain, stable CDN). */
+    /* Day: threejs.org example texture (NASA public domain, stable CDN).
+       Night: NASA Black Marble 2016 (Earth Observatory, public domain) — committed
+       locally so the demo works offline once the SW caches it. */
     const dayURL   = "https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg";
-    const nightURL = "https://threejs.org/examples/textures/planets/earth_lights_2048.png";
+    const nightURL = "./textures/blackmarble.jpg";
+    const nightFallbackURL = "https://threejs.org/examples/textures/planets/earth_lights_2048.png";
 
     function loadTex(url) {
       return new Promise((resolve, reject) => {
@@ -787,18 +852,34 @@
           vec3 N = normalize(vNormal);
           vec3 L = normalize(sunDir);
           float lambert = dot(N, L);
-          float dayMix = smoothstep(-0.18, 0.22, lambert);
+
+          // Sharper day/night transition so the terminator reads as a real edge.
+          float dayMix = smoothstep(-0.10, 0.18, lambert);
 
           vec3 day   = texture2D(dayMap, vUv).rgb;
           vec3 night = texture2D(nightMap, vUv).rgb;
-          night *= 1.6;
 
-          vec3 col = mix(night, day, dayMix);
+          // NASA Black Marble: pure black elsewhere, bright cities. Lift the
+          // cities into a warm sodium-vapour tone so Seoul / Stockholm / Tokyo /
+          // NYC read as real city light, not flat white.
+          float lights = max(max(night.r, night.g), night.b);
+          vec3 cityWarm = vec3(1.00, 0.78, 0.46); // warm street-lamp tone
+          vec3 nightCol = night * 0.65 + cityWarm * pow(lights, 1.4) * 1.8;
 
-          // Cool-blue dawn band along the terminator
+          // Bloom-ish soft glow around bright city pixels (cheap one-tap fake)
+          nightCol += cityWarm * pow(lights, 4.0) * 0.55;
+
+          // Faint earth-shine on the unlit ocean so it doesn't read pitch black
+          // when there are no cities (Pacific, polar regions).
+          vec3 unlitBase = day * 0.025;
+          nightCol += unlitBase;
+
+          vec3 col = mix(nightCol, day, dayMix);
+
+          // Cool-blue dawn band along the terminator (only on the lit side)
           float term = 1.0 - abs(lambert);
           term = pow(term, 6.0);
-          col += atmoColor * 0.18 * term * dayMix;
+          col += atmoColor * 0.22 * term * dayMix;
 
           // Subtle rim from camera-grazing angles
           vec3 V = normalize(cameraPosition - vWorldPos);
@@ -973,6 +1054,23 @@
     }
 
     /* ───────────────────────────────────────────────
+       Simulated time (real time, OR fast-forward sweep)
+       ─────────────────────────────────────────────── */
+    // When fastForward.active is true, simNow() returns a synthetic Date
+    // marching through 24 real hours over FF_DURATION_MS.
+    const FF_DURATION_MS = 12000;       // 12 seconds wall-clock
+    const FF_SPAN_MS     = 24 * 3600 * 1000; // 24 hours simulated
+    const fastForward = { active: false, startWall: 0, startSim: 0 };
+    function simNow() {
+      if (!fastForward.active) return new Date();
+      const elapsed = performance.now() - fastForward.startWall;
+      const u = Math.min(1, elapsed / FF_DURATION_MS);
+      // ease-in-out for a cinematic start/stop without harsh jolts
+      const e = u < 0.5 ? 2*u*u : 1 - Math.pow(-2*u + 2, 2)/2;
+      return new Date(fastForward.startSim + e * FF_SPAN_MS);
+    }
+
+    /* ───────────────────────────────────────────────
        Animation loop
        ─────────────────────────────────────────────── */
     const clock = new THREE.Clock();
@@ -980,10 +1078,23 @@
       const dt = clock.getDelta();
       const t = clock.getElapsedTime();
 
-      /* Sun direction follows real-world time */
-      const sd = sunDirection(new Date());
+      /* Sun direction follows simulated time (real time OR fast-forward) */
+      const now = simNow();
+      const sd = sunDirection(now);
       globeMat.uniforms.sunDir.value.copy(sd);
       sunLight.position.copy(sd).multiplyScalar(10);
+
+      /* While fast-forwarding, drive clocks + UTC label every frame so
+         the city times sweep visibly through 24 hours. */
+      if (fastForward.active) {
+        tickClocks(now);
+        if (performance.now() - fastForward.startWall >= FF_DURATION_MS) {
+          fastForward.active = false;
+          document.body.classList.remove("fastforward");
+          ffToggle.setAttribute("aria-pressed", "false");
+          tickClocks(); // snap back to real time
+        }
+      }
 
       /* Auto-spin if user has been idle for >2.5s */
       const idle = (performance.now() - lastInputT) > 2500;
@@ -1026,7 +1137,11 @@
     /* ───────────────────────────────────────────────
        Init: load textures, parent pins, start
        ─────────────────────────────────────────────── */
-    Promise.all([loadTex(dayURL), loadTex(nightURL)]).then(([day, night]) => {
+    /* Try the local NASA Black Marble texture first; fall back to the
+       threejs.org earth_lights texture if the local file is unreachable. */
+    const loadNight = () => loadTex(nightURL).catch(() => loadTex(nightFallbackURL));
+
+    Promise.all([loadTex(dayURL), loadNight()]).then(([day, night]) => {
       globeMat.uniforms.dayMap.value = day;
       globeMat.uniforms.nightMap.value = night;
 
@@ -1063,8 +1178,8 @@
       return `${wd} · ${utc}`;
     }
 
-    function tickClocks() {
-      const now = new Date();
+    function tickClocks(when) {
+      const now = when || new Date();
       Object.values(CITIES).forEach(c => {
         document.getElementById(`clock-${c.key}`).textContent = fmtTime(now, c.tz);
         document.getElementById(`meta-${c.key}`).textContent  = fmtMeta(now, c.tz);
@@ -1076,7 +1191,23 @@
       if (utcEl) utcEl.textContent = `UTC · ${utc}`;
     }
     tickClocks();
-    setInterval(tickClocks, 15000);
+    // Real-time tick — pauses while fast-forward is active to avoid stomping
+    // the per-frame fast-forward updates.
+    setInterval(() => { if (!fastForward.active) tickClocks(); }, 15000);
+
+    /* ───────────────────────────────────────────────
+       Fast-forward: 24 real hours in 12 wall seconds
+       ─────────────────────────────────────────────── */
+    const ffToggle = document.getElementById("ffToggle");
+    function startFastForward() {
+      if (fastForward.active) return;
+      fastForward.active   = true;
+      fastForward.startWall = performance.now();
+      fastForward.startSim  = Date.now();
+      document.body.classList.add("fastforward");
+      ffToggle.setAttribute("aria-pressed", "true");
+    }
+    ffToggle.addEventListener("click", startFastForward);
 
     /* SunCalc — sunrise/sunset per city */
     function updateSun() {
