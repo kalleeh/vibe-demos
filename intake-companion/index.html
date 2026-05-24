@@ -84,10 +84,10 @@
     }
 
     .topbar .mode-toggle {
-      background: none;
-      border: 1px solid var(--line);
-      color: var(--ink);
-      padding: 5px 11px;
+      background: var(--celadon);
+      border: 1px solid var(--celadon);
+      color: var(--paper);
+      padding: 7px 14px;
       border-radius: 999px;
       font: inherit;
       cursor: pointer;
@@ -96,12 +96,28 @@
       letter-spacing: 1.5px;
       text-transform: uppercase;
       transition: background .2s, color .2s, border-color .2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
-    .topbar .mode-toggle:hover { border-color: var(--celadon); color: var(--celadon-d); }
+    .topbar .mode-toggle::before {
+      content: "";
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--paper);
+    }
+    .topbar .mode-toggle:hover {
+      background: var(--celadon-d);
+      border-color: var(--celadon-d);
+    }
     .topbar.live .mode-toggle {
-      background: var(--celadon);
-      color: var(--paper);
-      border-color: var(--celadon);
+      background: rgba(255,255,255,0.4);
+      color: var(--ink);
+      border-color: var(--line-2);
+    }
+    .topbar.live .mode-toggle::before {
+      background: var(--rust);
+      box-shadow: 0 0 6px var(--rust);
     }
 
     /* ── Hero ── */
@@ -584,12 +600,21 @@
       flex-direction: column;
       gap: 10px;
       margin-top: 14px;
-      padding: 14px;
-      background: rgba(255,255,255,0.4);
-      border: 1px dashed var(--line-2);
+      padding: 16px 18px;
+      background: rgba(107,148,130,0.08);
+      border: 1px solid rgba(107,148,130,0.30);
       border-radius: 3px;
     }
-    .topbar.live ~ .frame .key-panel { display: flex; }
+    .key-panel.open { display: flex; }
+    .key-panel .panel-title {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--celadon-d);
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
     .key-panel .help {
       font-family: "JetBrains Mono", monospace;
       font-size: 10px;
@@ -657,7 +682,7 @@
   <header class="topbar" id="topbar">
     <div class="frame" style="display:flex;justify-content:space-between;align-items:center;padding:0;border:none;width:100%;">
       <a href="../" class="mark">Vibe Studio</a>
-      <button class="mode-toggle" id="modeToggle">Demo mode · canned</button>
+      <button class="mode-toggle" id="modeToggle" title="Toggle between canned demo output and live Claude API calls">Use my Claude key →</button>
     </div>
   </header>
 
@@ -706,8 +731,9 @@
         </div>
 
         <div class="key-panel" id="keyPanel">
+          <div class="panel-title">Live mode · Anthropic API key</div>
           <div class="help">
-            Browser-direct call to api.anthropic.com · key stays on this device · <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">get one →</a>
+            Pasted key stays only on this device (localStorage). Direct call to api.anthropic.com — no server. <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Get a key →</a>
           </div>
           <div class="row">
             <input type="password" id="keyInput" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
@@ -934,8 +960,16 @@
   modeToggle.addEventListener("click", () => {
     state.liveMode = !state.liveMode;
     topbar.classList.toggle("live", state.liveMode);
-    keyPanel.style.display = state.liveMode ? "flex" : "none";
-    modeToggle.textContent = state.liveMode ? "Live mode · using your key" : "Demo mode · canned";
+    keyPanel.classList.toggle("open", state.liveMode);
+    modeToggle.textContent = state.liveMode ? "Live · canned mode ←" : "Use my Claude key →";
+    if (state.liveMode) {
+      // Scroll the key panel into view so the user can find it on mobile
+      requestAnimationFrame(() => {
+        keyPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+        const input = document.getElementById("keyInput");
+        if (!getKey()) input.focus();
+      });
+    }
     if (state.currentBrief) renderBrief(state.currentBrief);
   });
 
