@@ -554,7 +554,7 @@
     const heroMolecule = new THREE.Group();
     scene.add(heroMolecule);
 
-    const carbonGeo = new THREE.IcosahedronGeometry(0.55, 4);
+    const carbonGeo = new THREE.IcosahedronGeometry(0.55, 6);
     const carbonMat = new THREE.MeshPhysicalMaterial({
       color: 0x1a2538, metalness: 0.35, roughness: 0.16,
       clearcoat: 1.0, clearcoatRoughness: 0.06,
@@ -567,7 +567,7 @@
     const orbitals = [];
     for (let i = 0; i < 3; i++) {
       const tor = new THREE.Mesh(
-        new THREE.TorusGeometry(0.86 + i * 0.13, 0.013, 10, 128),
+        new THREE.TorusGeometry(0.86 + i * 0.13, 0.013, 24, 384),
         new THREE.MeshBasicMaterial({
           color: 0x6cc5ff, transparent: true, opacity: 0.55,
           blending: THREE.AdditiveBlending, depthWrite: false
@@ -621,7 +621,7 @@
       uniforms: { glowColor: { value: new THREE.Color(0x6cc5ff) }, intensity: { value: 0.55 } },
       vertexShader: fresnelVS, fragmentShader: fresnelFS
     });
-    const heroGlow = new THREE.Mesh(new THREE.SphereGeometry(1.0, 48, 48), heroGlowMat);
+    const heroGlow = new THREE.Mesh(new THREE.SphereGeometry(1.0, 128, 128), heroGlowMat);
     heroMolecule.add(heroGlow);
 
     const hPositions = [
@@ -635,8 +635,8 @@
       clearcoat: 0.9, clearcoatRoughness: 0.05,
       emissive: 0x223244, emissiveIntensity: 0.45
     });
-    const hGeo = new THREE.IcosahedronGeometry(0.24, 3);
-    const hHaloGeo = new THREE.SphereGeometry(0.42, 24, 24);
+    const hGeo = new THREE.IcosahedronGeometry(0.24, 5);
+    const hHaloGeo = new THREE.SphereGeometry(0.42, 64, 64);
     const hydrogens = hPositions.map(p => {
       const g = new THREE.Group();
       const m = new THREE.Mesh(hGeo, hMat);
@@ -675,7 +675,7 @@
     hPositions.forEach(p => {
       const len = p.length();
       const bond = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.045, 0.045, len, 16, 12, true),
+        new THREE.CylinderGeometry(0.045, 0.045, len, 48, 24, true),
         bondMat
       );
       bond.position.copy(p.clone().multiplyScalar(0.5));
@@ -692,7 +692,7 @@
 
     // Inner core
     const markerCore = new THREE.Mesh(
-      new THREE.IcosahedronGeometry(0.07, 2),
+      new THREE.IcosahedronGeometry(0.07, 4),
       new THREE.MeshBasicMaterial({ color: 0xeaf3ff })
     );
     markerGroup.add(markerCore);
@@ -704,7 +704,7 @@
       uniforms: { glowColor: { value: new THREE.Color(0x6cc5ff) }, intensity: { value: 1.4 } },
       vertexShader: fresnelVS, fragmentShader: fresnelFS
     });
-    const markerHalo = new THREE.Mesh(new THREE.SphereGeometry(0.28, 24, 24), markerHaloMat);
+    const markerHalo = new THREE.Mesh(new THREE.SphereGeometry(0.28, 64, 64), markerHaloMat);
     markerGroup.add(markerHalo);
 
     // Trail
@@ -723,7 +723,7 @@
     const markerHs = [];
     for (let i = 0; i < 4; i++) {
       const h = new THREE.Mesh(
-        new THREE.IcosahedronGeometry(0.025, 1),
+        new THREE.IcosahedronGeometry(0.025, 3),
         new THREE.MeshBasicMaterial({ color: 0xeaf3ff, transparent: true, opacity: 0.9 })
       );
       markerGroup.add(h);
@@ -745,7 +745,7 @@
     {
       // Sky gradient via large sphere with shader
       const sky = new THREE.Mesh(
-        new THREE.SphereGeometry(80, 32, 16),
+        new THREE.SphereGeometry(80, 96, 64),
         new THREE.ShaderMaterial({
           side: THREE.BackSide, depthWrite: false,
           uniforms: {
@@ -767,13 +767,13 @@
 
       // Sun disc + glow halo
       const sun = new THREE.Mesh(
-        new THREE.CircleGeometry(2.0, 48),
+        new THREE.CircleGeometry(2.0, 128),
         new THREE.MeshBasicMaterial({ color: 0xffe0a0 })
       );
       sun.position.set(-12, -1, -32);
       sceneTanker.add(sun);
       const sunHalo = new THREE.Mesh(
-        new THREE.CircleGeometry(5.0, 48),
+        new THREE.CircleGeometry(5.0, 128),
         new THREE.MeshBasicMaterial({ color: 0xff9c5a, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false })
       );
       sunHalo.position.set(-12, -1, -32.1);
@@ -807,7 +807,7 @@
             gl_FragColor = vec4(c, 1.0);
           }`
       });
-      const ocean = new THREE.Mesh(new THREE.PlaneGeometry(120, 80, 80, 60), oceanMat);
+      const ocean = new THREE.Mesh(new THREE.PlaneGeometry(120, 80, 240, 180), oceanMat);
       ocean.rotation.x = -Math.PI / 2;
       ocean.position.y = -3.2;
       sceneTanker.add(ocean);
@@ -819,7 +819,7 @@
       hull.position.y = -1.4;
       tanker.add(hull);
       // Hull bottom (tapered)
-      const keel = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 0.0, 1.6, 32, 1, true), hullMat);
+      const keel = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 0.0, 1.6, 96, 4, true), hullMat);
       keel.rotation.z = Math.PI / 2;
       keel.scale.set(1, 1, 7);
       keel.position.set(0, -2.5, 0);
@@ -831,12 +831,12 @@
       // Four Moss-type spherical LNG tanks
       const sphMat = new THREE.MeshStandardMaterial({ color: 0xf2efe6, roughness: 0.55, metalness: 0.15 });
       for (let i = 0; i < 4; i++) {
-        const s = new THREE.Mesh(new THREE.SphereGeometry(1.05, 32, 24), sphMat);
+        const s = new THREE.Mesh(new THREE.SphereGeometry(1.05, 96, 64), sphMat);
         s.position.set(-4.5 + i * 3.0, 0.05, 0);
         tanker.add(s);
         // Cradle band
         const band = new THREE.Mesh(
-          new THREE.TorusGeometry(1.06, 0.06, 8, 32),
+          new THREE.TorusGeometry(1.06, 0.06, 24, 96),
           new THREE.MeshStandardMaterial({ color: 0x8a847a, metalness: 0.5, roughness: 0.5 })
         );
         band.rotation.x = Math.PI / 2;
@@ -860,7 +860,7 @@
       }
       // Funnel/stack
       const stack = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.32, 0.36, 1.2, 16),
+        new THREE.CylinderGeometry(0.32, 0.36, 1.2, 48, 4),
         new THREE.MeshStandardMaterial({ color: 0xb04a2f, roughness: 0.6 })
       );
       stack.position.set(6.1, 2.5, 0);
@@ -887,7 +887,7 @@
       // Bollards
       for (let i = 0; i < 4; i++) {
         const b = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.12, 0.16, 0.5, 12),
+          new THREE.CylinderGeometry(0.12, 0.16, 0.5, 36, 4),
           new THREE.MeshStandardMaterial({ color: 0x14110d, roughness: 0.85 })
         );
         b.position.set(8 + i * 1.6, -1.6, -1.2);
@@ -896,14 +896,14 @@
       // Loading arm reaching from pier to tanker manifold
       const arm = new THREE.Group();
       const arm1 = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.14, 0.14, 5.5, 12),
+        new THREE.CylinderGeometry(0.14, 0.14, 5.5, 36, 4),
         new THREE.MeshStandardMaterial({ color: 0xaaa8a0, metalness: 0.7, roughness: 0.45 })
       );
       arm1.rotation.z = Math.PI / 2;
       arm1.position.set(7.8, -0.4, -2);
       sceneTanker.add(arm1);
       const arm2 = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.13, 0.13, 1.6, 12),
+        new THREE.CylinderGeometry(0.13, 0.13, 1.6, 36, 4),
         new THREE.MeshStandardMaterial({ color: 0xaaa8a0, metalness: 0.7, roughness: 0.45 })
       );
       arm2.position.set(11, 0.4, -2);
@@ -932,7 +932,7 @@
       const beacons = [];
       for (let i = 0; i < 3; i++) {
         const b = new THREE.Mesh(
-          new THREE.SphereGeometry(0.07, 12, 12),
+          new THREE.SphereGeometry(0.07, 32, 32),
           new THREE.MeshBasicMaterial({ color: 0xffcc66 })
         );
         b.position.set(8 + i * 1.6, -1.1, -1.2);
@@ -962,14 +962,14 @@
         side: THREE.DoubleSide, transparent: true, opacity: 0.55
       });
       const wall = new THREE.Mesh(
-        new THREE.CylinderGeometry(tankR, tankR, tankH, 48, 1, true),
+        new THREE.CylinderGeometry(tankR, tankR, tankH, 144, 6, true),
         wallMat
       );
       sceneCryo.add(wall);
 
       // Top dome
       const dome = new THREE.Mesh(
-        new THREE.SphereGeometry(tankR, 48, 24, 0, Math.PI*2, 0, Math.PI/2),
+        new THREE.SphereGeometry(tankR, 144, 72, 0, Math.PI*2, 0, Math.PI/2),
         wallMat.clone()
       );
       dome.position.y = tankH/2;
@@ -977,7 +977,7 @@
 
       // Floor
       const floor = new THREE.Mesh(
-        new THREE.CircleGeometry(tankR, 48),
+        new THREE.CircleGeometry(tankR, 192),
         new THREE.MeshStandardMaterial({ color: 0x080a12, roughness: 1 })
       );
       floor.rotation.x = -Math.PI / 2;
@@ -1009,7 +1009,7 @@
           }`
       });
       const liquid = new THREE.Mesh(
-        new THREE.CircleGeometry(tankR - 0.2, 64),
+        new THREE.CircleGeometry(tankR - 0.2, 192),
         liquidMat
       );
       liquid.rotation.x = -Math.PI / 2;
@@ -1020,7 +1020,7 @@
       const frostRings = [];
       for (let i = 0; i < 6; i++) {
         const r = new THREE.Mesh(
-          new THREE.TorusGeometry(tankR - 0.08, 0.04, 8, 96),
+          new THREE.TorusGeometry(tankR - 0.08, 0.04, 24, 288),
           new THREE.MeshBasicMaterial({
             color: 0xb8e0ff, transparent: true, opacity: 0.6,
             blending: THREE.AdditiveBlending, depthWrite: false
@@ -1092,7 +1092,7 @@
         }
         const curve = new THREE.CatmullRomCurve3(points);
         const tube = new THREE.Mesh(
-          new THREE.TubeGeometry(curve, 320, 0.06, 8, false),
+          new THREE.TubeGeometry(curve, 960, 0.06, 24, false),
           new THREE.MeshStandardMaterial({ color, metalness: 0.7, roughness: 0.35, emissive: color, emissiveIntensity: 0.15 })
         );
         return tube;
@@ -1105,7 +1105,7 @@
 
       // Frame — top + bottom rings + four vertical struts
       const frameMat = new THREE.MeshStandardMaterial({ color: 0x3a4050, metalness: 0.6, roughness: 0.5 });
-      const topRing = new THREE.Mesh(new THREE.TorusGeometry(2.6, 0.06, 8, 32), frameMat);
+      const topRing = new THREE.Mesh(new THREE.TorusGeometry(2.6, 0.06, 24, 96), frameMat);
       topRing.rotation.x = Math.PI / 2;
       topRing.position.y = 4.2;
       sceneRegas.add(topRing);
@@ -1121,7 +1121,7 @@
 
       // Inlet pipe (cold, bottom) and outlet (warm, top)
       const inletPipe = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.18, 0.18, 1.6, 16),
+        new THREE.CylinderGeometry(0.18, 0.18, 1.6, 48, 4),
         new THREE.MeshStandardMaterial({ color: 0x6cc5ff, emissive: 0x143a78, emissiveIntensity: 0.5, metalness: 0.6 })
       );
       inletPipe.rotation.z = Math.PI / 2;
@@ -1210,7 +1210,7 @@
           }`
       });
       const pipe = new THREE.Mesh(
-        new THREE.CylinderGeometry(2.6, 2.6, 80, 64, 1, true),
+        new THREE.CylinderGeometry(2.6, 2.6, 80, 192, 4, true),
         pipeMat
       );
       pipe.rotation.x = Math.PI / 2;
@@ -1220,7 +1220,7 @@
       const flangeMat = new THREE.MeshStandardMaterial({ color: 0x6cc5ff, emissive: 0x143a78, emissiveIntensity: 0.4, metalness: 0.7, roughness: 0.4 });
       const flanges = [];
       for (let z = -36; z <= 36; z += 6) {
-        const f = new THREE.Mesh(new THREE.TorusGeometry(2.55, 0.18, 12, 32), flangeMat);
+        const f = new THREE.Mesh(new THREE.TorusGeometry(2.55, 0.18, 36, 96), flangeMat);
         f.rotation.x = Math.PI / 2;
         f.position.z = z;
         scenePipeline.add(f);
@@ -1251,7 +1251,7 @@
       for (let z = -36; z <= 36; z += 12) {
         for (let aIdx = 0; aIdx < 4; aIdx++) {
           const a = (aIdx / 4) * Math.PI * 2;
-          const m = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), markerMat);
+          const m = new THREE.Mesh(new THREE.SphereGeometry(0.05, 24, 24), markerMat);
           m.position.set(Math.cos(a) * 2.55, Math.sin(a) * 2.55, z);
           scenePipeline.add(m);
           markers.push(m);
@@ -1334,7 +1334,7 @@
       sceneKitchen.add(stove);
       // Burner ring (the gas-jet circle)
       const burnerRing = new THREE.Mesh(
-        new THREE.RingGeometry(0.55, 0.78, 24),
+        new THREE.RingGeometry(0.55, 0.78, 96),
         new THREE.MeshBasicMaterial({ color: 0x222831, side: THREE.DoubleSide })
       );
       burnerRing.rotation.x = -Math.PI / 2;
@@ -1342,7 +1342,7 @@
       sceneKitchen.add(burnerRing);
       // Burner cap
       const burnerCap = new THREE.Mesh(
-        new THREE.CircleGeometry(0.42, 24),
+        new THREE.CircleGeometry(0.42, 96),
         new THREE.MeshBasicMaterial({ color: 0x14181f })
       );
       burnerCap.rotation.x = -Math.PI / 2;
@@ -1353,7 +1353,7 @@
       for (let i = 0; i < 12; i++) {
         const a = (i / 12) * Math.PI * 2;
         const j = new THREE.Mesh(
-          new THREE.CircleGeometry(0.04, 10),
+          new THREE.CircleGeometry(0.04, 32),
           new THREE.MeshBasicMaterial({ color: 0x3a4150 })
         );
         j.position.set(Math.cos(a) * 0.65, -0.87, -4.5 + Math.sin(a) * 0.65);
@@ -1364,14 +1364,14 @@
 
       // Pot (된장찌개 가능)
       const potBody = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.85, 0.7, 0.55, 32, 1, false),
+        new THREE.CylinderGeometry(0.85, 0.7, 0.55, 96, 4, false),
         new THREE.MeshStandardMaterial({ color: 0x3a2418, roughness: 0.55, metalness: 0.5 })
       );
       potBody.position.set(0, -0.45, -4.5);
       sceneKitchen.add(potBody);
       // Pot rim
       const potRim = new THREE.Mesh(
-        new THREE.TorusGeometry(0.85, 0.04, 8, 32),
+        new THREE.TorusGeometry(0.85, 0.04, 24, 96),
         new THREE.MeshStandardMaterial({ color: 0x14110d, roughness: 0.6 })
       );
       potRim.rotation.x = Math.PI / 2;
@@ -1380,7 +1380,7 @@
       // Pot handles
       [-1, 1].forEach(s => {
         const h = new THREE.Mesh(
-          new THREE.TorusGeometry(0.18, 0.025, 8, 16, Math.PI),
+          new THREE.TorusGeometry(0.18, 0.025, 24, 48, Math.PI),
           new THREE.MeshStandardMaterial({ color: 0x2a1a10, roughness: 0.7 })
         );
         h.position.set(s * 0.95, -0.3, -4.5);
@@ -1405,7 +1405,7 @@
             gl_FragColor = vec4(c, 1.0);
           }`
       });
-      const stew = new THREE.Mesh(new THREE.CircleGeometry(0.78, 48), stewMat);
+      const stew = new THREE.Mesh(new THREE.CircleGeometry(0.78, 192), stewMat);
       stew.rotation.x = -Math.PI / 2;
       stew.position.set(0, -0.18, -4.5);
       sceneKitchen.add(stew);
@@ -1433,7 +1433,7 @@
       meterBox.position.set(6.4, 1.0, -1);
       sceneKitchen.add(meterBox);
       const meterDial = new THREE.Mesh(
-        new THREE.CircleGeometry(0.22, 24),
+        new THREE.CircleGeometry(0.22, 96),
         new THREE.MeshBasicMaterial({ color: 0x14110d })
       );
       meterDial.position.set(6.27, 1.0, -1);
@@ -1449,13 +1449,13 @@
 
       // Pendant light over the counter (warm point glow)
       const pendantCord = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.01, 0.01, 1.8, 6),
+        new THREE.CylinderGeometry(0.01, 0.01, 1.8, 24, 4),
         new THREE.MeshBasicMaterial({ color: 0x14110d })
       );
       pendantCord.position.set(2.5, 2.5, -4.5);
       sceneKitchen.add(pendantCord);
       const pendantBulb = new THREE.Mesh(
-        new THREE.SphereGeometry(0.18, 16, 12),
+        new THREE.SphereGeometry(0.18, 48, 36),
         new THREE.MeshBasicMaterial({ color: 0xffd28a })
       );
       pendantBulb.position.set(2.5, 1.5, -4.5);
@@ -1512,7 +1512,7 @@
         color: 0xff8a4a, roughness: 0.2, clearcoat: 0.9,
         emissive: 0x4a1a08, emissiveIntensity: 0.6
       });
-      const oxyGeo = new THREE.IcosahedronGeometry(0.22, 3);
+      const oxyGeo = new THREE.IcosahedronGeometry(0.22, 5);
       const o2Pairs = [];
       for (let i = 0; i < 2; i++) {
         const pair = new THREE.Group();
@@ -1521,7 +1521,7 @@
         const b = new THREE.Mesh(oxyGeo, oxyMat);
         b.position.x = 0.25;
         const bond = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.04, 0.04, 0.5, 8),
+          new THREE.CylinderGeometry(0.04, 0.04, 0.5, 24, 4),
           new THREE.MeshBasicMaterial({ color: 0xff8a4a, transparent: true, opacity: 0.7 })
         );
         bond.rotation.z = Math.PI / 2;
@@ -1533,11 +1533,11 @@
       // Products — CO2 (linear) + 2 H2O
       const co2 = new THREE.Group();
       const cMesh = new THREE.Mesh(
-        new THREE.IcosahedronGeometry(0.34, 3),
+        new THREE.IcosahedronGeometry(0.34, 5),
         new THREE.MeshPhysicalMaterial({ color: 0x1a2538, roughness: 0.2, clearcoat: 1, emissive: 0x143a78, emissiveIntensity: 0.5 })
       );
       co2.add(cMesh);
-      const oGeo = new THREE.IcosahedronGeometry(0.3, 3);
+      const oGeo = new THREE.IcosahedronGeometry(0.3, 5);
       const o1 = new THREE.Mesh(oGeo, oxyMat); o1.position.set(0.85, 0, 0);
       const o2b = new THREE.Mesh(oGeo, oxyMat); o2b.position.set(-0.85, 0, 0);
       co2.add(o1); co2.add(o2b);
@@ -1545,7 +1545,7 @@
       [-0.85, 0.85].forEach(x => {
         for (const off of [-0.06, 0.06]) {
           const bg = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.018, 0.018, 0.85, 8),
+            new THREE.CylinderGeometry(0.018, 0.018, 0.85, 24, 4),
             co2BondMat
           );
           bg.position.set(x / 2, off, 0);
@@ -1560,7 +1560,7 @@
       for (let w = 0; w < 2; w++) {
         const water = new THREE.Group();
         const oxy = new THREE.Mesh(
-          new THREE.IcosahedronGeometry(0.3, 3),
+          new THREE.IcosahedronGeometry(0.3, 5),
           new THREE.MeshPhysicalMaterial({ color: 0x4a8aff, roughness: 0.15, clearcoat: 1, emissive: 0x102844, emissiveIntensity: 0.6 })
         );
         water.add(oxy);
@@ -1569,13 +1569,13 @@
           new THREE.Vector3(-0.6, 0.42, 0)
         ].forEach(p => {
           const h = new THREE.Mesh(
-            new THREE.IcosahedronGeometry(0.16, 2),
+            new THREE.IcosahedronGeometry(0.16, 4),
             new THREE.MeshPhysicalMaterial({ color: 0xeaf3ff, clearcoat: 0.8, emissive: 0x223244, emissiveIntensity: 0.45 })
           );
           h.position.copy(p);
           water.add(h);
           const bond = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.022, 0.022, p.length(), 8),
+            new THREE.CylinderGeometry(0.022, 0.022, p.length(), 24, 4),
             new THREE.MeshBasicMaterial({ color: 0x6cc5ff, transparent: true, opacity: 0.55 })
           );
           bond.position.copy(p.clone().multiplyScalar(0.5));
@@ -1590,7 +1590,7 @@
 
       // Shockwave ring
       const shock = new THREE.Mesh(
-        new THREE.RingGeometry(0.8, 0.88, 96),
+        new THREE.RingGeometry(0.8, 0.88, 256),
         new THREE.MeshBasicMaterial({
           color: 0xa8d8ff, transparent: true, opacity: 0,
           side: THREE.DoubleSide, blending: THREE.AdditiveBlending
@@ -1600,7 +1600,7 @@
 
       // Glowing core
       const core = new THREE.Mesh(
-        new THREE.SphereGeometry(0.6, 32, 32),
+        new THREE.SphereGeometry(0.6, 96, 96),
         new THREE.MeshBasicMaterial({
           color: 0x6cc5ff, transparent: true, opacity: 0,
           blending: THREE.AdditiveBlending, depthWrite: false

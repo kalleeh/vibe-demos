@@ -1,5 +1,5 @@
 /* molecule-journey — minimal offline shell SW */
-const CACHE = "vibe-molecule-journey-v2";
+const CACHE = "vibe-molecule-journey-v3";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
