@@ -1,8 +1,18 @@
 /* vibe-studio root landing — minimal offline shell SW.
    Tight scope: only caches the root landing, never demo subpaths
    (each demo registers its own SW under its own scope). */
-const CACHE = "vibe-root-v1";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
+const CACHE = "vibe-root-v2";
+const SHELL = [
+  "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
+  // Landing-page imagery — hero band + 6 hover thumbnails.
+  "./thumbs/hero-band.jpg",
+  "./thumbs/sweden.jpg",
+  "./thumbs/molecule.jpg",
+  "./thumbs/globe.jpg",
+  "./thumbs/intake.jpg",
+  "./thumbs/mbti.jpg",
+  "./thumbs/resonans.jpg"
+];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -24,7 +34,9 @@ self.addEventListener("fetch", e => {
   if (url.origin !== location.origin) return;
   const root = new URL(self.registration.scope);
   const path = url.pathname.slice(root.pathname.length);
-  if (path.includes("/")) return; // anything in a subfolder belongs to a demo SW
+  // Anything in a demo subfolder belongs to that demo's SW — except for
+  // `thumbs/`, which is the landing's own asset folder.
+  if (path.includes("/") && !path.startsWith("thumbs/")) return;
 
   if (req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html")) {
     e.respondWith(

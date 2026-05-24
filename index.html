@@ -131,6 +131,38 @@
       padding: 96px 0 80px;
       position: relative;
     }
+    .hero-band {
+      position: relative;
+      margin: -32px 0 64px;
+      border-radius: 4px;
+      overflow: hidden;
+      aspect-ratio: 21 / 8;
+      background: var(--paper-2);
+      box-shadow: 0 0 0 1px var(--line);
+    }
+    .hero-band img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 55%;
+      filter: saturate(0.96) contrast(1.02);
+    }
+    .hero-band::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        90deg,
+        rgba(236, 230, 216, 0) 0%,
+        rgba(236, 230, 216, 0) 35%,
+        rgba(236, 230, 216, 0.55) 100%
+      );
+      pointer-events: none;
+    }
+    @media (max-width: 720px) {
+      .hero-band { aspect-ratio: 16 / 9; margin: -16px 0 40px; }
+    }
     .hero .eyebrow {
       font-family: "JetBrains Mono", monospace;
       font-size: 11px;
@@ -331,7 +363,7 @@
     .preview {
       position: fixed;
       pointer-events: none;
-      width: 280px;
+      width: 320px;
       height: 200px;
       background: var(--paper-2);
       border: 1px solid var(--line);
@@ -346,27 +378,30 @@
     .preview.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
     .preview .pv-inner {
       width: 100%; height: 100%;
-      display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(135deg, #102338 0%, #0a1628 100%);
-      color: #fff8e7;
       position: relative;
       overflow: hidden;
+      background: var(--paper-2);
     }
-    .preview .pv-inner::before {
-      content: "";
+    .preview .pv-inner img {
       position: absolute;
       inset: 0;
-      background:
-        radial-gradient(180px 100px at 30% 30%, rgba(254,204,2,0.45), transparent 60%),
-        radial-gradient(160px 90px at 80% 60%, rgba(0,106,167,0.65), transparent 60%);
-      filter: blur(14px);
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity .35s cubic-bezier(.2,.8,.2,1);
     }
+    .preview .pv-inner img.active { opacity: 1; }
     .preview .pv-inner span {
-      position: relative;
+      position: absolute;
+      left: 14px;
+      bottom: 12px;
       font-family: "Fraunces", serif;
       font-style: italic;
-      font-size: 26px;
-      text-shadow: 0 2px 12px rgba(0,0,0,0.3);
+      font-size: 22px;
+      color: #fff8e7;
+      text-shadow: 0 2px 14px rgba(0,0,0,0.55);
+      letter-spacing: -0.01em;
     }
 
     @media (max-width: 700px) {
@@ -490,6 +525,10 @@
         <span id="clock" class="clock">—</span>
       </span>
     </header>
+
+    <div class="hero-band" aria-hidden="true">
+      <img src="./thumbs/hero-band.jpg" alt="" width="2240" height="960" loading="eager" decoding="async">
+    </div>
 
     <section class="hero">
       <div class="eyebrow">Selected works · MMXXVI</div>
@@ -618,7 +657,15 @@
   </div>
 
   <div class="preview" id="preview" aria-hidden="true">
-    <div class="pv-inner"><span id="previewLabel">—</span></div>
+    <div class="pv-inner">
+      <img data-thumb="sweden" src="./thumbs/sweden.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async">
+      <img data-thumb="molecule" src="./thumbs/molecule.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async">
+      <img data-thumb="globe" src="./thumbs/globe.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async">
+      <img data-thumb="intake" src="./thumbs/intake.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async">
+      <img data-thumb="mbti" src="./thumbs/mbti.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async">
+      <img data-thumb="resonans" src="./thumbs/resonans.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async">
+      <span id="previewLabel">—</span>
+    </div>
   </div>
 
   <script>
@@ -637,6 +684,7 @@
     // Cursor-following preview
     const preview = document.getElementById("preview");
     const previewLabel = document.getElementById("previewLabel");
+    const previewThumbs = preview.querySelectorAll("img[data-thumb]");
     const labels = {
       sweden: "Svensk Mat",
       molecule: "가스의 여정",
@@ -650,7 +698,9 @@
     document.querySelectorAll(".work[data-preview]").forEach(w => {
       w.addEventListener("mouseenter", () => {
         activeWork = w;
-        previewLabel.textContent = labels[w.dataset.preview] || "View";
+        const slug = w.dataset.preview;
+        previewLabel.textContent = labels[slug] || "View";
+        previewThumbs.forEach(t => t.classList.toggle("active", t.dataset.thumb === slug));
         preview.classList.add("show");
       });
       w.addEventListener("mouseleave", () => {
