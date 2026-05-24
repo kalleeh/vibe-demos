@@ -500,9 +500,27 @@
   <script type="module">
     import * as THREE from "three";
 
-    /* ───────────────────────────────────────────
-       Scene setup
-       ─────────────────────────────────────────── */
+    /* ============================================================
+       MOLECULE'S JOURNEY — full-scene rewrite
+       ----------------------------------------------------------
+       Hero (chapter 0): the CH4 molecule is fully rendered, large,
+       center-stage. From chapter 1 onward, the camera dollies *out*
+       and the molecule shrinks to a small glowing tracker that moves
+       along a per-chapter path through proper 3D scenes:
+         1. Tanker docking at dawn (sea, hull with Moss spheres,
+            harbor lights, dawn sun)
+         2. Cryogenic tank cross-section (insulated outer wall,
+            liquid LNG surface, frost ribbons, vapor curls)
+         3. Regasifier coil tower (vertical heat-exchanger coils,
+            steam plumes, expansion arrows)
+         4. Underground pipeline interior (tube the camera flies
+            *through*, with pipe segments, joints, distance markers)
+         5. Apartment kitchen (cabinets, stove, pot, window light,
+            meter dial)
+         6. Burner close-up + combustion (12 jet ports, blue flame
+            shader, products bloom)
+       ============================================================ */
+
     const container = document.getElementById("scene");
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -514,11 +532,11 @@
     scene.fog = new THREE.FogExp2(0x050608, 0.04);
 
     const camera = new THREE.PerspectiveCamera(
-      45, window.innerWidth / window.innerHeight, 0.1, 200
+      40, window.innerWidth / window.innerHeight, 0.05, 400
     );
     camera.position.set(0, 0, 8);
 
-    /* Lighting (per-chapter colors will be lerped) */
+    /* ── Lighting (per-chapter colors are lerped) ── */
     const ambient = new THREE.AmbientLight(0xffffff, 0.35);
     scene.add(ambient);
 
@@ -526,175 +544,123 @@
     keyLight.position.set(4, 6, 6);
     scene.add(keyLight);
 
-    const rimLight = new THREE.PointLight(0x6cc5ff, 1.4, 20);
+    const rimLight = new THREE.PointLight(0x6cc5ff, 1.4, 30);
     rimLight.position.set(-3, 2, -3);
     scene.add(rimLight);
 
-    /* ───────────────────────────────────────────
-       The molecule — CH4 (1 carbon + 4 hydrogens)
-       Rich version: nucleus + 3 orbital rings + electron cloud
-       + glowing pulse-bonds + hydrogen halos.
-       ─────────────────────────────────────────── */
-    const moleculeGroup = new THREE.Group();
-    scene.add(moleculeGroup);
+    /* ============================================================
+       HERO MOLECULE — only fully visible in chapter 0
+       ============================================================ */
+    const heroMolecule = new THREE.Group();
+    scene.add(heroMolecule);
 
-    /* Carbon nucleus — high-poly icosahedron with PBR + clearcoat */
     const carbonGeo = new THREE.IcosahedronGeometry(0.55, 4);
     const carbonMat = new THREE.MeshPhysicalMaterial({
-      color: 0x1a2538,
-      metalness: 0.35,
-      roughness: 0.16,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.06,
-      emissive: 0x0a1830,
-      emissiveIntensity: 0.6,
+      color: 0x1a2538, metalness: 0.35, roughness: 0.16,
+      clearcoat: 1.0, clearcoatRoughness: 0.06,
+      emissive: 0x0a1830, emissiveIntensity: 0.6,
       reflectivity: 0.75
     });
     const carbon = new THREE.Mesh(carbonGeo, carbonMat);
-    moleculeGroup.add(carbon);
+    heroMolecule.add(carbon);
 
-    /* Three electron orbital rings, each on its own axis */
-    const orbitalGroup = new THREE.Group();
-    moleculeGroup.add(orbitalGroup);
     const orbitals = [];
     for (let i = 0; i < 3; i++) {
       const tor = new THREE.Mesh(
         new THREE.TorusGeometry(0.86 + i * 0.13, 0.013, 10, 128),
         new THREE.MeshBasicMaterial({
-          color: 0x6cc5ff,
-          transparent: true,
-          opacity: 0.55,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false
+          color: 0x6cc5ff, transparent: true, opacity: 0.55,
+          blending: THREE.AdditiveBlending, depthWrite: false
         })
       );
-      tor.rotation.set(
-        (i * Math.PI) / 3,
-        (i * Math.PI) / 4,
-        (i * Math.PI) / 5
-      );
-      orbitalGroup.add(tor);
+      tor.rotation.set(i * Math.PI / 3, i * Math.PI / 4, i * Math.PI / 5);
+      heroMolecule.add(tor);
       orbitals.push(tor);
     }
 
-    /* Electron sparkle cloud — 240 dots scattered on a shell */
     const cloudCount = 240;
     const cloudPos = new Float32Array(cloudCount * 3);
     const cloudBase = new Float32Array(cloudCount * 3);
     for (let i = 0; i < cloudCount; i++) {
       const r = 0.92 + Math.random() * 0.45;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-      const x = r * Math.sin(phi) * Math.cos(theta);
-      const y = r * Math.sin(phi) * Math.sin(theta);
-      const z = r * Math.cos(phi);
-      cloudPos[i*3]   = cloudBase[i*3]   = x;
+      const t = Math.random() * Math.PI * 2;
+      const p = Math.acos(2 * Math.random() - 1);
+      const x = r * Math.sin(p) * Math.cos(t);
+      const y = r * Math.sin(p) * Math.sin(t);
+      const z = r * Math.cos(p);
+      cloudPos[i*3] = cloudBase[i*3] = x;
       cloudPos[i*3+1] = cloudBase[i*3+1] = y;
       cloudPos[i*3+2] = cloudBase[i*3+2] = z;
     }
     const cloudGeo = new THREE.BufferGeometry();
     cloudGeo.setAttribute("position", new THREE.BufferAttribute(cloudPos, 3));
     const cloudMat = new THREE.PointsMaterial({
-      color: 0x9cdcff,
-      size: 0.045,
-      transparent: true,
-      opacity: 0.75,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      sizeAttenuation: true
+      color: 0x9cdcff, size: 0.045, transparent: true,
+      opacity: 0.75, blending: THREE.AdditiveBlending,
+      depthWrite: false, sizeAttenuation: true
     });
     const electronCloud = new THREE.Points(cloudGeo, cloudMat);
-    moleculeGroup.add(electronCloud);
+    heroMolecule.add(electronCloud);
 
-    /* Outer halo (fresnel) */
-    const glowGeo = new THREE.SphereGeometry(1.0, 48, 48);
-    const glowMat = new THREE.ShaderMaterial({
-      transparent: true,
-      side: THREE.BackSide,
-      depthWrite: false,
-      uniforms: {
-        glowColor: { value: new THREE.Color(0x6cc5ff) },
-        intensity: { value: 0.55 }
-      },
-      vertexShader: `
-        varying vec3 vNormal;
-        void main() {
-          vNormal = normalize(normalMatrix * normal);
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        varying vec3 vNormal;
-        uniform vec3 glowColor;
-        uniform float intensity;
-        void main() {
-          float fres = pow(0.72 - dot(vNormal, vec3(0,0,1)), 3.0);
-          gl_FragColor = vec4(glowColor, fres * intensity);
-        }
-      `
+    const fresnelVS = `
+      varying vec3 vNormal;
+      void main() {
+        vNormal = normalize(normalMatrix * normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }`;
+    const fresnelFS = `
+      varying vec3 vNormal;
+      uniform vec3 glowColor;
+      uniform float intensity;
+      void main() {
+        float fres = pow(0.72 - dot(vNormal, vec3(0,0,1)), 3.0);
+        gl_FragColor = vec4(glowColor, fres * intensity);
+      }`;
+    const heroGlowMat = new THREE.ShaderMaterial({
+      transparent: true, side: THREE.BackSide, depthWrite: false,
+      uniforms: { glowColor: { value: new THREE.Color(0x6cc5ff) }, intensity: { value: 0.55 } },
+      vertexShader: fresnelVS, fragmentShader: fresnelFS
     });
-    const glow = new THREE.Mesh(glowGeo, glowMat);
-    moleculeGroup.add(glow);
+    const heroGlow = new THREE.Mesh(new THREE.SphereGeometry(1.0, 48, 48), heroGlowMat);
+    heroMolecule.add(heroGlow);
 
-    /* Four hydrogens — tetrahedral, each with its own halo group */
     const hPositions = [
       [ 1,  1,  1],
       [-1, -1,  1],
       [-1,  1, -1],
       [ 1, -1, -1]
     ].map(([x, y, z]) => new THREE.Vector3(x, y, z).normalize().multiplyScalar(1.25));
-
     const hMat = new THREE.MeshPhysicalMaterial({
-      color: 0xeaf3ff,
-      metalness: 0.0,
-      roughness: 0.18,
-      clearcoat: 0.9,
-      clearcoatRoughness: 0.05,
-      emissive: 0x223244,
-      emissiveIntensity: 0.45
+      color: 0xeaf3ff, metalness: 0.0, roughness: 0.18,
+      clearcoat: 0.9, clearcoatRoughness: 0.05,
+      emissive: 0x223244, emissiveIntensity: 0.45
     });
     const hGeo = new THREE.IcosahedronGeometry(0.24, 3);
-    const hHaloMat = new THREE.ShaderMaterial({
-      transparent: true,
-      side: THREE.BackSide,
-      depthWrite: false,
-      uniforms: {
-        glowColor: { value: new THREE.Color(0xeaf3ff) },
-        intensity: { value: 0.4 }
-      },
-      vertexShader: glowMat.vertexShader,
-      fragmentShader: glowMat.fragmentShader
-    });
     const hHaloGeo = new THREE.SphereGeometry(0.42, 24, 24);
-
-    const hydrogens = hPositions.map((p) => {
+    const hydrogens = hPositions.map(p => {
       const g = new THREE.Group();
       const m = new THREE.Mesh(hGeo, hMat);
-      const halo = new THREE.Mesh(hHaloGeo, hHaloMat.clone());
-      g.add(m);
-      g.add(halo);
+      const haloMat = new THREE.ShaderMaterial({
+        transparent: true, side: THREE.BackSide, depthWrite: false,
+        uniforms: { glowColor: { value: new THREE.Color(0xeaf3ff) }, intensity: { value: 0.4 } },
+        vertexShader: fresnelVS, fragmentShader: fresnelFS
+      });
+      const halo = new THREE.Mesh(hHaloGeo, haloMat);
+      g.add(m); g.add(halo);
       g.position.copy(p);
-      moleculeGroup.add(g);
+      heroMolecule.add(g);
       return { group: g, mesh: m, halo, basePos: p.clone() };
     });
 
-    /* Bonds — glowing tubes with traveling pulse along the axis */
     const bondMat = new THREE.ShaderMaterial({
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      uniforms: {
-        time: { value: 0 },
-        color: { value: new THREE.Color(0x6cc5ff) },
-        intensity: { value: 0.85 }
-      },
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      uniforms: { time: { value: 0 }, color: { value: new THREE.Color(0x6cc5ff) }, intensity: { value: 0.85 } },
       vertexShader: `
         varying float vAxis;
         void main() {
           vAxis = uv.y;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
+        }`,
       fragmentShader: `
         uniform float time;
         uniform vec3 color;
@@ -704,350 +670,880 @@
           float head = fract(time * 0.6);
           float pulse = 0.35 + 0.95 * exp(-pow((vAxis - head) * 5.0, 2.0));
           gl_FragColor = vec4(color * pulse, intensity);
-        }
-      `
+        }`
     });
-    const bondMeshes = [];
-    hPositions.forEach((p) => {
+    hPositions.forEach(p => {
       const len = p.length();
-      const geom = new THREE.CylinderGeometry(0.045, 0.045, len, 16, 12, true);
-      const bond = new THREE.Mesh(geom, bondMat);
+      const bond = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.045, 0.045, len, 16, 12, true),
+        bondMat
+      );
       bond.position.copy(p.clone().multiplyScalar(0.5));
       bond.lookAt(p);
       bond.rotateX(Math.PI / 2);
-      moleculeGroup.add(bond);
-      bondMeshes.push({ mesh: bond, end: p.clone() });
+      heroMolecule.add(bond);
     });
 
-    /* ───────────────────────────────────────────
-       Chapter props — each chapter has its own Group with
-       custom geometry that animates around the molecule.
-       ─────────────────────────────────────────── */
-    const props = {};
+    /* ============================================================
+       MARKER — small glowing CH4 dot that moves along chapter paths
+       ============================================================ */
+    const markerGroup = new THREE.Group();
+    scene.add(markerGroup);
 
-    /* — Chapter 1: tanker silhouette + ocean horizon line + dawn beacons */
+    // Inner core
+    const markerCore = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(0.07, 2),
+      new THREE.MeshBasicMaterial({ color: 0xeaf3ff })
+    );
+    markerGroup.add(markerCore);
+
+    // Outer halo (additive)
+    const markerHaloMat = new THREE.ShaderMaterial({
+      transparent: true, side: THREE.BackSide, depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      uniforms: { glowColor: { value: new THREE.Color(0x6cc5ff) }, intensity: { value: 1.4 } },
+      vertexShader: fresnelVS, fragmentShader: fresnelFS
+    });
+    const markerHalo = new THREE.Mesh(new THREE.SphereGeometry(0.28, 24, 24), markerHaloMat);
+    markerGroup.add(markerHalo);
+
+    // Trail
+    const TRAIL_LEN = 64;
+    const trailPos = new Float32Array(TRAIL_LEN * 3);
+    const trailGeo = new THREE.BufferGeometry();
+    trailGeo.setAttribute("position", new THREE.BufferAttribute(trailPos, 3));
+    const trailMat = new THREE.LineBasicMaterial({
+      color: 0x6cc5ff, transparent: true, opacity: 0.85,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    });
+    const trailLine = new THREE.Line(trailGeo, trailMat);
+    scene.add(trailLine);
+
+    // 4 hydrogen dots that orbit the marker (subtle CH4 hint)
+    const markerHs = [];
+    for (let i = 0; i < 4; i++) {
+      const h = new THREE.Mesh(
+        new THREE.IcosahedronGeometry(0.025, 1),
+        new THREE.MeshBasicMaterial({ color: 0xeaf3ff, transparent: true, opacity: 0.9 })
+      );
+      markerGroup.add(h);
+      markerHs.push(h);
+    }
+
+    markerGroup.visible = false;
+
+    /* ============================================================
+       CHAPTER 1 — Tanker docking at dawn
+       Full scene: ocean plane, tanker hull with Moss-type spheres,
+       bridge tower, harbor with cranes, dawn sun + sky gradient,
+       beacon lights, pier with bollards.
+       ============================================================ */
+    const sceneTanker = new THREE.Group();
+    sceneTanker.visible = false;
+    scene.add(sceneTanker);
+
     {
-      const g = new THREE.Group();
-      g.visible = false;
-      // tanker hull (long box) and superstructure
-      const hull = new THREE.Mesh(
-        new THREE.BoxGeometry(8.5, 0.6, 1.2),
-        new THREE.MeshStandardMaterial({ color: 0x161a22, roughness: 0.85, metalness: 0.3 })
+      // Sky gradient via large sphere with shader
+      const sky = new THREE.Mesh(
+        new THREE.SphereGeometry(80, 32, 16),
+        new THREE.ShaderMaterial({
+          side: THREE.BackSide, depthWrite: false,
+          uniforms: {
+            top: { value: new THREE.Color(0x2a1a3a) },
+            mid: { value: new THREE.Color(0xff8c5a) },
+            bot: { value: new THREE.Color(0xffd2a0) }
+          },
+          vertexShader: `varying float vH; void main(){ vH=position.y; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+          fragmentShader: `varying float vH; uniform vec3 top, mid, bot;
+            void main(){
+              float h = clamp((vH+30.0)/60.0, 0.0, 1.0);
+              vec3 c = h < 0.5 ? mix(bot, mid, h*2.0) : mix(mid, top, (h-0.5)*2.0);
+              gl_FragColor = vec4(c, 1.0);
+            }`
+        })
       );
-      hull.position.set(0, -2.6, -10);
-      g.add(hull);
-      // four LNG storage spheres (the iconic Moss-type tanker silhouette)
-      const sphMat = new THREE.MeshStandardMaterial({ color: 0x2a3140, roughness: 0.7, metalness: 0.2 });
-      for (let i = 0; i < 4; i++) {
-        const s = new THREE.Mesh(new THREE.SphereGeometry(0.55, 24, 16), sphMat);
-        s.position.set(-2.7 + i * 1.8, -1.85, -10);
-        g.add(s);
-      }
-      // bridge tower
-      const bridge = new THREE.Mesh(
-        new THREE.BoxGeometry(0.8, 1.0, 1.0),
-        new THREE.MeshStandardMaterial({ color: 0x1d2330, roughness: 0.8 })
-      );
-      bridge.position.set(3.6, -1.7, -10);
-      g.add(bridge);
-      // horizon line
-      const horizon = new THREE.Mesh(
-        new THREE.PlaneGeometry(80, 0.012),
-        new THREE.MeshBasicMaterial({ color: 0xff9c5a, transparent: true, opacity: 0.55 })
-      );
-      horizon.position.set(0, -2.95, -10);
-      g.add(horizon);
-      // dawn sun glow
+      sky.position.y = -10;
+      sceneTanker.add(sky);
+
+      // Sun disc + glow halo
       const sun = new THREE.Mesh(
-        new THREE.SphereGeometry(0.7, 32, 32),
-        new THREE.MeshBasicMaterial({ color: 0xffae7a, transparent: true, opacity: 0.55 })
+        new THREE.CircleGeometry(2.0, 48),
+        new THREE.MeshBasicMaterial({ color: 0xffe0a0 })
       );
-      sun.position.set(-4.5, -2.3, -12);
-      g.add(sun);
-      // beacon pulses at the dock
+      sun.position.set(-12, -1, -32);
+      sceneTanker.add(sun);
+      const sunHalo = new THREE.Mesh(
+        new THREE.CircleGeometry(5.0, 48),
+        new THREE.MeshBasicMaterial({ color: 0xff9c5a, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false })
+      );
+      sunHalo.position.set(-12, -1, -32.1);
+      sceneTanker.add(sunHalo);
+
+      // Ocean — animated wave shader plane
+      const oceanMat = new THREE.ShaderMaterial({
+        uniforms: { time: { value: 0 } },
+        vertexShader: `
+          varying vec2 vUv; varying float vH;
+          uniform float time;
+          float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+          float noise(vec2 p){vec2 i=floor(p),f=fract(p);
+            float a=hash(i),b=hash(i+vec2(1,0)),c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));
+            vec2 u=f*f*(3.0-2.0*f);
+            return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;}
+          void main(){
+            vUv=uv;
+            vec3 p=position;
+            float h = noise(p.xz*0.3 + time*0.4)*0.18 + noise(p.xz*0.8 - time*0.6)*0.06;
+            p.y += h;
+            vH = h;
+            gl_Position = projectionMatrix*modelViewMatrix*vec4(p,1.0);
+          }`,
+        fragmentShader: `
+          varying vec2 vUv; varying float vH;
+          void main(){
+            vec3 deep = vec3(0.05, 0.08, 0.16);
+            vec3 crest = vec3(0.6, 0.65, 0.8);
+            vec3 c = mix(deep, crest, smoothstep(0.0, 0.18, vH));
+            gl_FragColor = vec4(c, 1.0);
+          }`
+      });
+      const ocean = new THREE.Mesh(new THREE.PlaneGeometry(120, 80, 80, 60), oceanMat);
+      ocean.rotation.x = -Math.PI / 2;
+      ocean.position.y = -3.2;
+      sceneTanker.add(ocean);
+
+      // Tanker hull
+      const tanker = new THREE.Group();
+      const hullMat = new THREE.MeshStandardMaterial({ color: 0x14181f, roughness: 0.85, metalness: 0.3 });
+      const hull = new THREE.Mesh(new THREE.BoxGeometry(14, 1.4, 2.4), hullMat);
+      hull.position.y = -1.4;
+      tanker.add(hull);
+      // Hull bottom (tapered)
+      const keel = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 0.0, 1.6, 32, 1, true), hullMat);
+      keel.rotation.z = Math.PI / 2;
+      keel.scale.set(1, 1, 7);
+      keel.position.set(0, -2.5, 0);
+      // Use a long box keel instead — simpler
+      const keelBox = new THREE.Mesh(new THREE.BoxGeometry(13.2, 0.8, 1.8), hullMat);
+      keelBox.position.y = -2.4;
+      tanker.add(keelBox);
+
+      // Four Moss-type spherical LNG tanks
+      const sphMat = new THREE.MeshStandardMaterial({ color: 0xf2efe6, roughness: 0.55, metalness: 0.15 });
+      for (let i = 0; i < 4; i++) {
+        const s = new THREE.Mesh(new THREE.SphereGeometry(1.05, 32, 24), sphMat);
+        s.position.set(-4.5 + i * 3.0, 0.05, 0);
+        tanker.add(s);
+        // Cradle band
+        const band = new THREE.Mesh(
+          new THREE.TorusGeometry(1.06, 0.06, 8, 32),
+          new THREE.MeshStandardMaterial({ color: 0x8a847a, metalness: 0.5, roughness: 0.5 })
+        );
+        band.rotation.x = Math.PI / 2;
+        band.position.copy(s.position);
+        tanker.add(band);
+      }
+
+      // Bridge tower (aft)
+      const bridgeMat = new THREE.MeshStandardMaterial({ color: 0xece6d8, roughness: 0.7 });
+      const bridge = new THREE.Mesh(new THREE.BoxGeometry(2.2, 2.6, 1.8), bridgeMat);
+      bridge.position.set(5.7, 0.6, 0);
+      tanker.add(bridge);
+      // Bridge windows (warm strips)
+      for (let i = 0; i < 3; i++) {
+        const w = new THREE.Mesh(
+          new THREE.PlaneGeometry(2.0, 0.18),
+          new THREE.MeshBasicMaterial({ color: 0xffd28a, transparent: true, opacity: 0.85 })
+        );
+        w.position.set(5.7, 0.4 + i * 0.5, 0.91);
+        tanker.add(w);
+      }
+      // Funnel/stack
+      const stack = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.32, 0.36, 1.2, 16),
+        new THREE.MeshStandardMaterial({ color: 0xb04a2f, roughness: 0.6 })
+      );
+      stack.position.set(6.1, 2.5, 0);
+      tanker.add(stack);
+
+      // Bow piping manifold
+      const manifold = new THREE.Mesh(
+        new THREE.BoxGeometry(1.0, 0.35, 1.6),
+        new THREE.MeshStandardMaterial({ color: 0x4a4a52, metalness: 0.4, roughness: 0.6 })
+      );
+      manifold.position.set(-6.5, -0.3, 0);
+      tanker.add(manifold);
+
+      tanker.position.set(0.5, 0, -2);
+      sceneTanker.add(tanker);
+
+      // Pier on right side
+      const pier = new THREE.Mesh(
+        new THREE.BoxGeometry(8, 0.5, 3),
+        new THREE.MeshStandardMaterial({ color: 0x2a2620, roughness: 0.95 })
+      );
+      pier.position.set(11, -2.1, -2);
+      sceneTanker.add(pier);
+      // Bollards
+      for (let i = 0; i < 4; i++) {
+        const b = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.12, 0.16, 0.5, 12),
+          new THREE.MeshStandardMaterial({ color: 0x14110d, roughness: 0.85 })
+        );
+        b.position.set(8 + i * 1.6, -1.6, -1.2);
+        sceneTanker.add(b);
+      }
+      // Loading arm reaching from pier to tanker manifold
+      const arm = new THREE.Group();
+      const arm1 = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.14, 0.14, 5.5, 12),
+        new THREE.MeshStandardMaterial({ color: 0xaaa8a0, metalness: 0.7, roughness: 0.45 })
+      );
+      arm1.rotation.z = Math.PI / 2;
+      arm1.position.set(7.8, -0.4, -2);
+      sceneTanker.add(arm1);
+      const arm2 = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.13, 0.13, 1.6, 12),
+        new THREE.MeshStandardMaterial({ color: 0xaaa8a0, metalness: 0.7, roughness: 0.45 })
+      );
+      arm2.position.set(11, 0.4, -2);
+      sceneTanker.add(arm2);
+
+      // Harbor cranes (silhouettes far behind)
+      for (let i = 0; i < 3; i++) {
+        const cg = new THREE.Group();
+        const tower = new THREE.Mesh(
+          new THREE.BoxGeometry(0.15, 6, 0.15),
+          new THREE.MeshStandardMaterial({ color: 0x0a0c10, roughness: 1 })
+        );
+        tower.position.y = 1.0;
+        cg.add(tower);
+        const boom = new THREE.Mesh(
+          new THREE.BoxGeometry(4, 0.1, 0.1),
+          new THREE.MeshStandardMaterial({ color: 0x0a0c10, roughness: 1 })
+        );
+        boom.position.set(1.5, 3.8, 0);
+        cg.add(boom);
+        cg.position.set(-15 + i * 8, -2.2, -22);
+        sceneTanker.add(cg);
+      }
+
+      // Beacon flashers
       const beacons = [];
       for (let i = 0; i < 3; i++) {
         const b = new THREE.Mesh(
-          new THREE.SphereGeometry(0.05, 12, 12),
+          new THREE.SphereGeometry(0.07, 12, 12),
           new THREE.MeshBasicMaterial({ color: 0xffcc66 })
         );
-        b.position.set(4.5 + i * 0.6, -2.2, -9);
-        g.add(b);
+        b.position.set(8 + i * 1.6, -1.1, -1.2);
+        sceneTanker.add(b);
         beacons.push(b);
       }
-      g.userData = { hull, bridge, sun, beacons };
-      scene.add(g);
-      props.tanker = g;
+
+      sceneTanker.userData = { ocean, oceanMat, beacons };
     }
 
-    /* — Chapter 2: cryogenic tank — concentric frost ribbons + ice crystal points */
-    {
-      const g = new THREE.Group();
-      g.visible = false;
-      // Frost ribbons (spinning rings) at varying radii
-      const frostRings = [];
-      for (let i = 0; i < 5; i++) {
-        const r = 1.7 + i * 0.35;
-        const ring = new THREE.Mesh(
-          new THREE.TorusGeometry(r, 0.018, 8, 96),
-          new THREE.MeshBasicMaterial({
-            color: 0xa8d8ff,
-            transparent: true,
-            opacity: 0.55,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false
-          })
-        );
-        ring.rotation.x = Math.PI / 2 + Math.random() * 0.4 - 0.2;
-        ring.rotation.y = Math.random() * Math.PI;
-        g.add(ring);
-        frostRings.push(ring);
-      }
-      // Ice crystal sparkles
-      const crystalCount = 600;
-      const cPos = new Float32Array(crystalCount * 3);
-      for (let i = 0; i < crystalCount; i++) {
-        const r = 1.8 + Math.random() * 2.4;
-        const t = Math.random() * Math.PI * 2;
-        const p = Math.acos(2 * Math.random() - 1);
-        cPos[i*3]   = r * Math.sin(p) * Math.cos(t);
-        cPos[i*3+1] = r * Math.sin(p) * Math.sin(t);
-        cPos[i*3+2] = r * Math.cos(p);
-      }
-      const cGeo = new THREE.BufferGeometry();
-      cGeo.setAttribute("position", new THREE.BufferAttribute(cPos, 3));
-      const crystals = new THREE.Points(cGeo, new THREE.PointsMaterial({
-        color: 0xddf0ff,
-        size: 0.04,
-        transparent: true,
-        opacity: 0.85,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
-      }));
-      g.add(crystals);
-      g.userData = { frostRings, crystals };
-      scene.add(g);
-      props.cryo = g;
-    }
+    /* ============================================================
+       CHAPTER 2 — Cryogenic tank cross-section
+       Cylindrical tank with insulated outer wall, liquid LNG surface,
+       inner frost ribbons, vapor curls rising slightly off the surface.
+       Camera enters tank interior; tank wall is half-transparent.
+       ============================================================ */
+    const sceneCryo = new THREE.Group();
+    sceneCryo.visible = false;
+    scene.add(sceneCryo);
 
-    /* — Chapter 3: regasification — expanding heat-exchanger rings + steam plume */
     {
-      const g = new THREE.Group();
-      g.visible = false;
-      const heatRings = [];
-      for (let i = 0; i < 6; i++) {
-        const ring = new THREE.Mesh(
-          new THREE.TorusGeometry(0.6, 0.012, 8, 96),
-          new THREE.MeshBasicMaterial({
-            color: 0xb38aff,
-            transparent: true,
-            opacity: 0.0,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false
-          })
-        );
-        ring.userData.phase = i / 6;
-        g.add(ring);
-        heatRings.push(ring);
-      }
-      // Volume expansion arrows ×600
-      const arrowCount = 60;
-      const aPos = new Float32Array(arrowCount * 3);
-      const aBase = new Float32Array(arrowCount * 3);
-      for (let i = 0; i < arrowCount; i++) {
-        const t = Math.random() * Math.PI * 2;
-        const p = Math.acos(2 * Math.random() - 1);
-        const dx = Math.sin(p) * Math.cos(t);
-        const dy = Math.sin(p) * Math.sin(t);
-        const dz = Math.cos(p);
-        aBase[i*3] = dx; aBase[i*3+1] = dy; aBase[i*3+2] = dz;
-        aPos[i*3] = dx * 0.5; aPos[i*3+1] = dy * 0.5; aPos[i*3+2] = dz * 0.5;
-      }
-      const aGeo = new THREE.BufferGeometry();
-      aGeo.setAttribute("position", new THREE.BufferAttribute(aPos, 3));
-      const expansion = new THREE.Points(aGeo, new THREE.PointsMaterial({
-        color: 0xb38aff,
-        size: 0.08,
-        transparent: true,
-        opacity: 0.85,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
-      }));
-      g.add(expansion);
-      g.userData = { heatRings, expansion, expBase: aBase };
-      scene.add(g);
-      props.regas = g;
-    }
+      // Outer tank wall (large cylinder, double-sided, dim)
+      const tankR = 6;
+      const tankH = 12;
+      const wallMat = new THREE.MeshStandardMaterial({
+        color: 0x1a2030, roughness: 0.9, metalness: 0.2,
+        side: THREE.DoubleSide, transparent: true, opacity: 0.55
+      });
+      const wall = new THREE.Mesh(
+        new THREE.CylinderGeometry(tankR, tankR, tankH, 48, 1, true),
+        wallMat
+      );
+      sceneCryo.add(wall);
 
-    /* — Chapter 4: pipeline — long tube the molecule travels through */
-    {
-      const g = new THREE.Group();
-      g.visible = false;
-      // Pipeline tube (extends along Z, with the molecule appearing inside it)
-      const tubeMat = new THREE.ShaderMaterial({
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-        side: THREE.DoubleSide,
-        uniforms: {
-          time: { value: 0 },
-          opacity: { value: 1.0 }
-        },
+      // Top dome
+      const dome = new THREE.Mesh(
+        new THREE.SphereGeometry(tankR, 48, 24, 0, Math.PI*2, 0, Math.PI/2),
+        wallMat.clone()
+      );
+      dome.position.y = tankH/2;
+      sceneCryo.add(dome);
+
+      // Floor
+      const floor = new THREE.Mesh(
+        new THREE.CircleGeometry(tankR, 48),
+        new THREE.MeshStandardMaterial({ color: 0x080a12, roughness: 1 })
+      );
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.y = -tankH/2 + 0.01;
+      sceneCryo.add(floor);
+
+      // Liquid LNG surface — animated subtle wave shader
+      const liquidMat = new THREE.ShaderMaterial({
+        transparent: true, side: THREE.DoubleSide,
+        uniforms: { time: { value: 0 } },
         vertexShader: `
+          varying vec2 vUv; uniform float time;
+          float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+          float noise(vec2 p){vec2 i=floor(p),f=fract(p);
+            float a=hash(i),b=hash(i+vec2(1,0)),c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));
+            vec2 u=f*f*(3.0-2.0*f);
+            return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;}
+          void main(){
+            vUv=uv;
+            vec3 p=position;
+            p.z += (noise(p.xy*0.6 + time*0.2) - 0.5) * 0.12;
+            gl_Position = projectionMatrix*modelViewMatrix*vec4(p,1.0);
+          }`,
+        fragmentShader: `
           varying vec2 vUv;
-          void main() {
-            vUv = uv;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          }
-        `,
+          void main(){
+            vec3 c = mix(vec3(0.5,0.75,0.95), vec3(0.7,0.88,1.0), vUv.y);
+            gl_FragColor = vec4(c, 0.65);
+          }`
+      });
+      const liquid = new THREE.Mesh(
+        new THREE.CircleGeometry(tankR - 0.2, 64),
+        liquidMat
+      );
+      liquid.rotation.x = -Math.PI / 2;
+      liquid.position.y = -tankH/2 + 3.0;
+      sceneCryo.add(liquid);
+
+      // Frost ribbons climbing the inner wall
+      const frostRings = [];
+      for (let i = 0; i < 6; i++) {
+        const r = new THREE.Mesh(
+          new THREE.TorusGeometry(tankR - 0.08, 0.04, 8, 96),
+          new THREE.MeshBasicMaterial({
+            color: 0xb8e0ff, transparent: true, opacity: 0.6,
+            blending: THREE.AdditiveBlending, depthWrite: false
+          })
+        );
+        r.rotation.x = Math.PI / 2;
+        r.position.y = -tankH/2 + 3.2 + i * 1.4;
+        sceneCryo.add(r);
+        frostRings.push(r);
+      }
+
+      // Vapor curls — small drifting points
+      const vaporCount = 700;
+      const vPos = new Float32Array(vaporCount * 3);
+      const vBase = new Float32Array(vaporCount * 3);
+      for (let i = 0; i < vaporCount; i++) {
+        const r = (tankR - 0.5) * Math.sqrt(Math.random());
+        const a = Math.random() * Math.PI * 2;
+        const x = Math.cos(a) * r;
+        const z = Math.sin(a) * r;
+        const y = -tankH/2 + 3.0 + Math.random() * 6.5;
+        vPos[i*3] = vBase[i*3] = x;
+        vPos[i*3+1] = vBase[i*3+1] = y;
+        vPos[i*3+2] = vBase[i*3+2] = z;
+      }
+      const vGeo = new THREE.BufferGeometry();
+      vGeo.setAttribute("position", new THREE.BufferAttribute(vPos, 3));
+      const vapor = new THREE.Points(vGeo, new THREE.PointsMaterial({
+        color: 0xeaf3ff, size: 0.06, transparent: true,
+        opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false
+      }));
+      sceneCryo.add(vapor);
+
+      // Vertical support struts
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        const strut = new THREE.Mesh(
+          new THREE.BoxGeometry(0.12, tankH, 0.12),
+          new THREE.MeshStandardMaterial({ color: 0x2a3040, metalness: 0.5, roughness: 0.6 })
+        );
+        strut.position.set(Math.cos(a) * (tankR - 0.4), 0, Math.sin(a) * (tankR - 0.4));
+        sceneCryo.add(strut);
+      }
+
+      sceneCryo.userData = { liquidMat, frostRings, vapor, vBase, tankR, tankH };
+    }
+
+    /* ============================================================
+       CHAPTER 3 — Regasifier coil tower
+       Vertical stack of helical heat-exchanger coils, steam plumes
+       rising through, temperature gradient (cold blue at bottom →
+       warm purple at top).
+       ============================================================ */
+    const sceneRegas = new THREE.Group();
+    sceneRegas.visible = false;
+    scene.add(sceneRegas);
+
+    {
+      // Coil tower — three concentric helices made from tube geometry
+      const coils = [];
+      function makeHelix(radius, turns, height, color) {
+        const points = [];
+        const segs = 200;
+        for (let i = 0; i <= segs; i++) {
+          const t = i / segs;
+          const angle = t * turns * Math.PI * 2;
+          const y = -height/2 + t * height;
+          points.push(new THREE.Vector3(Math.cos(angle) * radius, y, Math.sin(angle) * radius));
+        }
+        const curve = new THREE.CatmullRomCurve3(points);
+        const tube = new THREE.Mesh(
+          new THREE.TubeGeometry(curve, 320, 0.06, 8, false),
+          new THREE.MeshStandardMaterial({ color, metalness: 0.7, roughness: 0.35, emissive: color, emissiveIntensity: 0.15 })
+        );
+        return tube;
+      }
+      const coil1 = makeHelix(1.2, 12, 8, 0x6cc5ff);
+      const coil2 = makeHelix(1.7, 10, 8, 0x8898ff);
+      const coil3 = makeHelix(2.2, 9, 8, 0xb38aff);
+      sceneRegas.add(coil1); sceneRegas.add(coil2); sceneRegas.add(coil3);
+      coils.push(coil1, coil2, coil3);
+
+      // Frame — top + bottom rings + four vertical struts
+      const frameMat = new THREE.MeshStandardMaterial({ color: 0x3a4050, metalness: 0.6, roughness: 0.5 });
+      const topRing = new THREE.Mesh(new THREE.TorusGeometry(2.6, 0.06, 8, 32), frameMat);
+      topRing.rotation.x = Math.PI / 2;
+      topRing.position.y = 4.2;
+      sceneRegas.add(topRing);
+      const botRing = topRing.clone();
+      botRing.position.y = -4.2;
+      sceneRegas.add(botRing);
+      for (let i = 0; i < 4; i++) {
+        const a = (i / 4) * Math.PI * 2;
+        const s = new THREE.Mesh(new THREE.BoxGeometry(0.12, 8.6, 0.12), frameMat);
+        s.position.set(Math.cos(a) * 2.6, 0, Math.sin(a) * 2.6);
+        sceneRegas.add(s);
+      }
+
+      // Inlet pipe (cold, bottom) and outlet (warm, top)
+      const inletPipe = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.18, 0.18, 1.6, 16),
+        new THREE.MeshStandardMaterial({ color: 0x6cc5ff, emissive: 0x143a78, emissiveIntensity: 0.5, metalness: 0.6 })
+      );
+      inletPipe.rotation.z = Math.PI / 2;
+      inletPipe.position.set(-3.6, -4.2, 0);
+      sceneRegas.add(inletPipe);
+      const outletPipe = inletPipe.clone();
+      outletPipe.material = outletPipe.material.clone();
+      outletPipe.material.color.setHex(0xff9c5a);
+      outletPipe.material.emissive.setHex(0x4a1a08);
+      outletPipe.position.set(3.6, 4.2, 0);
+      sceneRegas.add(outletPipe);
+
+      // Steam plumes — rising particle columns at four cardinal positions
+      const steamCount = 1200;
+      const stPos = new Float32Array(steamCount * 3);
+      const stBase = new Float32Array(steamCount * 3);
+      const stVel = new Float32Array(steamCount);
+      for (let i = 0; i < steamCount; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const r = 1.0 + Math.random() * 1.8;
+        stPos[i*3] = stBase[i*3] = Math.cos(a) * r;
+        stPos[i*3+1] = stBase[i*3+1] = -4 + Math.random() * 8;
+        stPos[i*3+2] = stBase[i*3+2] = Math.sin(a) * r;
+        stVel[i] = 0.5 + Math.random() * 1.2;
+      }
+      const stGeo = new THREE.BufferGeometry();
+      stGeo.setAttribute("position", new THREE.BufferAttribute(stPos, 3));
+      const steam = new THREE.Points(stGeo, new THREE.PointsMaterial({
+        color: 0xeaf3ff, size: 0.08, transparent: true,
+        opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false
+      }));
+      sceneRegas.add(steam);
+
+      // Expansion arrows — radial points at coil mid-height
+      const expansionCount = 100;
+      const ePos = new Float32Array(expansionCount * 3);
+      const eBase = new Float32Array(expansionCount * 3);
+      for (let i = 0; i < expansionCount; i++) {
+        const t = Math.random() * Math.PI * 2;
+        const p = Math.acos(2 * Math.random() - 1);
+        eBase[i*3] = Math.sin(p) * Math.cos(t);
+        eBase[i*3+1] = Math.sin(p) * Math.sin(t);
+        eBase[i*3+2] = Math.cos(p);
+      }
+      const eGeo = new THREE.BufferGeometry();
+      eGeo.setAttribute("position", new THREE.BufferAttribute(ePos, 3));
+      const expansion = new THREE.Points(eGeo, new THREE.PointsMaterial({
+        color: 0xb38aff, size: 0.1, transparent: true,
+        opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false
+      }));
+      sceneRegas.add(expansion);
+
+      sceneRegas.userData = { coils, steam, stBase, stVel, expansion, eBase };
+    }
+
+    /* ============================================================
+       CHAPTER 4 — Pipeline interior, traveled through
+       The camera (and marker) flies through a cylindrical pipe
+       interior. Pipe segments with weld bands every few units,
+       distance markers stenciled on the wall.
+       ============================================================ */
+    const scenePipeline = new THREE.Group();
+    scenePipeline.visible = false;
+    scene.add(scenePipeline);
+
+    {
+      // Inside-out pipe wall with shader showing weld bands + distance text
+      const pipeMat = new THREE.ShaderMaterial({
+        side: THREE.BackSide, transparent: true, depthWrite: false,
+        uniforms: { time: { value: 0 } },
+        vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
         fragmentShader: `
           varying vec2 vUv;
           uniform float time;
-          uniform float opacity;
-          void main() {
-            // animated dashed pattern along the length
-            float dash = step(0.5, fract(vUv.x * 26.0 - time * 1.4));
-            float ring = smoothstep(0.0, 0.05, vUv.y) * smoothstep(1.0, 0.95, vUv.y);
-            float a = (dash * 0.85 + ring * 0.4) * opacity;
-            vec3 col = mix(vec3(0.18, 0.5, 0.95), vec3(0.4, 0.78, 1.0), dash);
-            gl_FragColor = vec4(col, a);
-          }
-        `
+          void main(){
+            // Weld band every 0.1 of length (pipe is long; uv.x = around, uv.y = along)
+            float band = smoothstep(0.99, 1.0, sin(vUv.y * 60.0)*0.5+0.5);
+            // Subtle longitudinal stripes
+            float stripe = step(0.5, fract(vUv.x * 24.0)) * 0.05;
+            // Faint travel highlight that moves along pipe
+            float head = fract(time * 0.3);
+            float light = exp(-pow((vUv.y - head)*8.0, 2.0)) * 0.45;
+            vec3 base = vec3(0.06, 0.08, 0.12) + stripe;
+            vec3 col = base + vec3(0.42, 0.62, 0.95) * (band*0.6 + light);
+            gl_FragColor = vec4(col, 1.0);
+          }`
       });
-      const tube = new THREE.Mesh(
-        new THREE.CylinderGeometry(2.0, 2.0, 36, 48, 1, true),
-        tubeMat
+      const pipe = new THREE.Mesh(
+        new THREE.CylinderGeometry(2.6, 2.6, 80, 64, 1, true),
+        pipeMat
       );
-      tube.rotation.x = Math.PI / 2;
-      tube.position.z = 0;
-      g.add(tube);
-      // Faint inner pipe wall
-      const wall = new THREE.Mesh(
-        new THREE.CylinderGeometry(2.05, 2.05, 36, 48, 1, true),
-        new THREE.MeshBasicMaterial({
-          color: 0x0a1830,
-          transparent: true,
-          opacity: 0.35,
-          side: THREE.BackSide
-        })
-      );
-      wall.rotation.x = Math.PI / 2;
-      g.add(wall);
-      // Streaks along the pipe to convey 30 km/h flow
-      const streakCount = 400;
+      pipe.rotation.x = Math.PI / 2;
+      scenePipeline.add(pipe);
+
+      // Joint flanges — torus rings every 6 units along Z
+      const flangeMat = new THREE.MeshStandardMaterial({ color: 0x6cc5ff, emissive: 0x143a78, emissiveIntensity: 0.4, metalness: 0.7, roughness: 0.4 });
+      const flanges = [];
+      for (let z = -36; z <= 36; z += 6) {
+        const f = new THREE.Mesh(new THREE.TorusGeometry(2.55, 0.18, 12, 32), flangeMat);
+        f.rotation.x = Math.PI / 2;
+        f.position.z = z;
+        scenePipeline.add(f);
+        flanges.push(f);
+      }
+
+      // Streaks (gas flow particles) — drift toward camera
+      const streakCount = 600;
       const sPos = new Float32Array(streakCount * 3);
-      const sBase = new Float32Array(streakCount);
       for (let i = 0; i < streakCount; i++) {
-        const r = 1.6 * Math.sqrt(Math.random());
+        const r = 2.2 * Math.sqrt(Math.random());
         const a = Math.random() * Math.PI * 2;
         sPos[i*3]   = Math.cos(a) * r;
         sPos[i*3+1] = Math.sin(a) * r;
-        sPos[i*3+2] = (Math.random() - 0.5) * 30;
-        sBase[i] = Math.random();
+        sPos[i*3+2] = (Math.random() - 0.5) * 80;
       }
       const sGeo = new THREE.BufferGeometry();
       sGeo.setAttribute("position", new THREE.BufferAttribute(sPos, 3));
       const streaks = new THREE.Points(sGeo, new THREE.PointsMaterial({
-        color: 0x6cc5ff,
-        size: 0.06,
-        transparent: true,
-        opacity: 0.7,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
+        color: 0x6cc5ff, size: 0.07, transparent: true,
+        opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false
       }));
-      g.add(streaks);
-      g.userData = { tubeMat, streaks };
-      scene.add(g);
-      props.pipeline = g;
+      scenePipeline.add(streaks);
+
+      // Distance markers — small bright dots on the wall every 12 units (5/12 km milestones)
+      const markerMat = new THREE.MeshBasicMaterial({ color: 0xffd28a });
+      const markers = [];
+      for (let z = -36; z <= 36; z += 12) {
+        for (let aIdx = 0; aIdx < 4; aIdx++) {
+          const a = (aIdx / 4) * Math.PI * 2;
+          const m = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), markerMat);
+          m.position.set(Math.cos(a) * 2.55, Math.sin(a) * 2.55, z);
+          scenePipeline.add(m);
+          markers.push(m);
+        }
+      }
+
+      scenePipeline.userData = { pipeMat, flanges, streaks };
     }
 
-    /* — Chapter 5: kitchen — window grid + meter dial + stovetop ring (off) */
+    /* ============================================================
+       CHAPTER 5 — Apartment kitchen
+       Floor, three walls (one with window grid showing dusk light),
+       counter with stove + pot, hood, gas meter dial, faint cabinets.
+       ============================================================ */
+    const sceneKitchen = new THREE.Group();
+    sceneKitchen.visible = false;
+    scene.add(sceneKitchen);
+
     {
-      const g = new THREE.Group();
-      g.visible = false;
-      // Stovetop ring (hexagonal burner)
-      const burner = new THREE.Mesh(
-        new THREE.RingGeometry(1.15, 1.4, 24),
-        new THREE.MeshBasicMaterial({ color: 0x222831, transparent: true, opacity: 0.85, side: THREE.DoubleSide })
+      const wallMat = new THREE.MeshStandardMaterial({ color: 0xece6d8, roughness: 0.95 });
+      const floorMat = new THREE.MeshStandardMaterial({ color: 0x6a4a2c, roughness: 0.85 });
+
+      const floor = new THREE.Mesh(new THREE.PlaneGeometry(14, 14), floorMat);
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.y = -2;
+      sceneKitchen.add(floor);
+
+      // Back wall
+      const backWall = new THREE.Mesh(new THREE.PlaneGeometry(14, 8), wallMat);
+      backWall.position.set(0, 2, -6);
+      sceneKitchen.add(backWall);
+
+      // Right wall (with window)
+      const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(12, 8), wallMat);
+      rightWall.rotation.y = -Math.PI / 2;
+      rightWall.position.set(7, 2, 0);
+      sceneKitchen.add(rightWall);
+
+      // Window cutout (warm dusk light)
+      const window1 = new THREE.Mesh(
+        new THREE.PlaneGeometry(4.5, 3),
+        new THREE.ShaderMaterial({
+          uniforms: { time: { value: 0 } },
+          vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+          fragmentShader: `
+            varying vec2 vUv;
+            void main(){
+              vec3 sky = mix(vec3(0.95,0.65,0.42), vec3(0.85,0.45,0.55), vUv.y);
+              // Mullion grid
+              float g = step(0.02, abs(fract(vUv.x*3.0)-0.5)) * step(0.04, abs(fract(vUv.y*2.0)-0.5));
+              gl_FragColor = vec4(sky * mix(0.7, 1.0, g), 1.0);
+            }`
+        })
       );
-      burner.rotation.x = Math.PI / 2;
-      burner.position.y = -1.2;
-      g.add(burner);
-      // Inner burner cap
-      const cap = new THREE.Mesh(
-        new THREE.CircleGeometry(0.7, 24),
+      window1.rotation.y = -Math.PI / 2;
+      window1.position.set(6.99, 3, 0);
+      sceneKitchen.add(window1);
+
+      // Counter — long box along back wall
+      const counterMat = new THREE.MeshStandardMaterial({ color: 0x14110d, roughness: 0.6, metalness: 0.2 });
+      const counter = new THREE.Mesh(new THREE.BoxGeometry(10, 1.0, 2.2), counterMat);
+      counter.position.set(0, -1.4, -4.5);
+      sceneKitchen.add(counter);
+      // Cabinet doors below counter
+      for (let i = 0; i < 4; i++) {
+        const door = new THREE.Mesh(
+          new THREE.BoxGeometry(2.2, 1.2, 0.04),
+          new THREE.MeshStandardMaterial({ color: 0x2a201a, roughness: 0.7 })
+        );
+        door.position.set(-3.6 + i * 2.4, -1.5, -3.45);
+        sceneKitchen.add(door);
+      }
+
+      // Stove — black inset on counter
+      const stove = new THREE.Mesh(
+        new THREE.BoxGeometry(3.0, 0.05, 1.8),
+        new THREE.MeshStandardMaterial({ color: 0x080a0c, roughness: 0.4, metalness: 0.5 })
+      );
+      stove.position.set(0, -0.92, -4.5);
+      sceneKitchen.add(stove);
+      // Burner ring (the gas-jet circle)
+      const burnerRing = new THREE.Mesh(
+        new THREE.RingGeometry(0.55, 0.78, 24),
+        new THREE.MeshBasicMaterial({ color: 0x222831, side: THREE.DoubleSide })
+      );
+      burnerRing.rotation.x = -Math.PI / 2;
+      burnerRing.position.set(0, -0.89, -4.5);
+      sceneKitchen.add(burnerRing);
+      // Burner cap
+      const burnerCap = new THREE.Mesh(
+        new THREE.CircleGeometry(0.42, 24),
         new THREE.MeshBasicMaterial({ color: 0x14181f })
       );
-      cap.rotation.x = -Math.PI / 2;
-      cap.position.y = -1.18;
-      g.add(cap);
-      // Pot (stew bowl) hovering just above
-      const pot = new THREE.Mesh(
-        new THREE.CylinderGeometry(1.4, 1.1, 0.7, 32, 1, true),
-        new THREE.MeshStandardMaterial({ color: 0x3a2418, roughness: 0.6, metalness: 0.4, side: THREE.DoubleSide })
-      );
-      pot.position.y = -0.5;
-      g.add(pot);
-      // 12 gas-jet holes on the burner ring
-      const jetGroup = new THREE.Group();
+      burnerCap.rotation.x = -Math.PI / 2;
+      burnerCap.position.set(0, -0.88, -4.5);
+      sceneKitchen.add(burnerCap);
+      // 12 jet ports
+      const jets = [];
       for (let i = 0; i < 12; i++) {
         const a = (i / 12) * Math.PI * 2;
         const j = new THREE.Mesh(
-          new THREE.CircleGeometry(0.06, 12),
+          new THREE.CircleGeometry(0.04, 10),
           new THREE.MeshBasicMaterial({ color: 0x3a4150 })
         );
-        j.position.set(Math.cos(a) * 1.05, -1.16, Math.sin(a) * 1.05);
+        j.position.set(Math.cos(a) * 0.65, -0.87, -4.5 + Math.sin(a) * 0.65);
         j.rotation.x = -Math.PI / 2;
-        jetGroup.add(j);
+        sceneKitchen.add(j);
+        jets.push(j);
       }
-      g.add(jetGroup);
-      // Window light grid (warm rectangles in the bg)
-      const windowGroup = new THREE.Group();
-      const winMat = new THREE.MeshBasicMaterial({ color: 0xffd28a, transparent: true, opacity: 0.45 });
-      for (let i = 0; i < 6; i++) {
-        const w = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.9), winMat);
-        w.position.set(-4 + (i % 3) * 1.2, 0.6 + Math.floor(i / 3) * 1.0, -8);
-        windowGroup.add(w);
-      }
-      g.add(windowGroup);
-      g.userData = { burner, cap, pot, jetGroup, windowGroup };
-      scene.add(g);
-      props.kitchen = g;
-    }
 
-    /* — Chapter 6: combustion — explosion of products (CO2 + 2 H2O) */
-    {
-      const g = new THREE.Group();
-      g.visible = false;
-      // Glowing flame core (additional, sitting under molecule)
-      const core = new THREE.Mesh(
-        new THREE.SphereGeometry(0.6, 32, 32),
-        new THREE.MeshBasicMaterial({
-          color: 0x6cc5ff,
-          transparent: true,
-          opacity: 0.0,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false
+      // Pot (된장찌개 가능)
+      const potBody = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.85, 0.7, 0.55, 32, 1, false),
+        new THREE.MeshStandardMaterial({ color: 0x3a2418, roughness: 0.55, metalness: 0.5 })
+      );
+      potBody.position.set(0, -0.45, -4.5);
+      sceneKitchen.add(potBody);
+      // Pot rim
+      const potRim = new THREE.Mesh(
+        new THREE.TorusGeometry(0.85, 0.04, 8, 32),
+        new THREE.MeshStandardMaterial({ color: 0x14110d, roughness: 0.6 })
+      );
+      potRim.rotation.x = Math.PI / 2;
+      potRim.position.set(0, -0.18, -4.5);
+      sceneKitchen.add(potRim);
+      // Pot handles
+      [-1, 1].forEach(s => {
+        const h = new THREE.Mesh(
+          new THREE.TorusGeometry(0.18, 0.025, 8, 16, Math.PI),
+          new THREE.MeshStandardMaterial({ color: 0x2a1a10, roughness: 0.7 })
+        );
+        h.position.set(s * 0.95, -0.3, -4.5);
+        h.rotation.y = s > 0 ? -Math.PI/2 : Math.PI/2;
+        h.rotation.z = -Math.PI/2;
+        sceneKitchen.add(h);
+      });
+      // Stew surface
+      const stewMat = new THREE.ShaderMaterial({
+        uniforms: { time: { value: 0 } },
+        vertexShader: `varying vec2 vUv; uniform float time;
+          float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+          void main(){
+            vUv=uv;
+            vec3 p=position;
+            p.y += sin(p.x*8.0 + time*1.5)*0.008 + cos(p.z*8.0 - time*1.3)*0.008;
+            gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);
+          }`,
+        fragmentShader: `varying vec2 vUv;
+          void main(){
+            vec3 c = mix(vec3(0.5,0.2,0.1), vec3(0.7,0.35,0.18), vUv.y);
+            gl_FragColor = vec4(c, 1.0);
+          }`
+      });
+      const stew = new THREE.Mesh(new THREE.CircleGeometry(0.78, 48), stewMat);
+      stew.rotation.x = -Math.PI / 2;
+      stew.position.set(0, -0.18, -4.5);
+      sceneKitchen.add(stew);
+
+      // Range hood above
+      const hood = new THREE.Mesh(
+        new THREE.BoxGeometry(3.4, 0.7, 2.2),
+        new THREE.MeshStandardMaterial({ color: 0xc8c3b3, roughness: 0.5, metalness: 0.7 })
+      );
+      hood.position.set(0, 1.8, -4.7);
+      sceneKitchen.add(hood);
+      const hoodSlope = new THREE.Mesh(
+        new THREE.BoxGeometry(3.4, 0.7, 1.2),
+        hood.material
+      );
+      hoodSlope.position.set(0, 1.0, -3.6);
+      hoodSlope.rotation.x = 0.5;
+      sceneKitchen.add(hoodSlope);
+
+      // Gas meter on right wall (small dial)
+      const meterBox = new THREE.Mesh(
+        new THREE.BoxGeometry(0.6, 0.7, 0.25),
+        new THREE.MeshStandardMaterial({ color: 0xfff8e8, roughness: 0.4 })
+      );
+      meterBox.position.set(6.4, 1.0, -1);
+      sceneKitchen.add(meterBox);
+      const meterDial = new THREE.Mesh(
+        new THREE.CircleGeometry(0.22, 24),
+        new THREE.MeshBasicMaterial({ color: 0x14110d })
+      );
+      meterDial.position.set(6.27, 1.0, -1);
+      meterDial.rotation.y = -Math.PI/2;
+      sceneKitchen.add(meterDial);
+      const meterNeedle = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.18, 0.018),
+        new THREE.MeshBasicMaterial({ color: 0xff4a2a })
+      );
+      meterNeedle.position.set(6.265, 1.0, -1);
+      meterNeedle.rotation.y = -Math.PI/2;
+      sceneKitchen.add(meterNeedle);
+
+      // Pendant light over the counter (warm point glow)
+      const pendantCord = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.01, 0.01, 1.8, 6),
+        new THREE.MeshBasicMaterial({ color: 0x14110d })
+      );
+      pendantCord.position.set(2.5, 2.5, -4.5);
+      sceneKitchen.add(pendantCord);
+      const pendantBulb = new THREE.Mesh(
+        new THREE.SphereGeometry(0.18, 16, 12),
+        new THREE.MeshBasicMaterial({ color: 0xffd28a })
+      );
+      pendantBulb.position.set(2.5, 1.5, -4.5);
+      sceneKitchen.add(pendantBulb);
+
+      // Burner flame (hidden until chapter 6)
+      const flamePlane = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.4, 1.2),
+        new THREE.ShaderMaterial({
+          transparent: true, depthWrite: false,
+          uniforms: { time: { value: 0 }, opacity: { value: 0 } },
+          vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+          fragmentShader: `
+            varying vec2 vUv;
+            uniform float time, opacity;
+            float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+            float noise(vec2 p){vec2 i=floor(p),f=fract(p);
+              float a=hash(i),b=hash(i+vec2(1,0)),c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));
+              vec2 u=f*f*(3.0-2.0*f);
+              return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;}
+            void main(){
+              vec2 p = vUv - vec2(0.5, 0.0);
+              float r = length(p * vec2(2.0, 1.0));
+              float n = noise(vec2(vUv.x*6.0, vUv.y*4.0 - time*1.6));
+              float flame = smoothstep(0.6, 0.0, r) * (0.7 + n*0.5);
+              flame *= smoothstep(0.0, 0.18, vUv.y) * smoothstep(1.0, 0.45, vUv.y);
+              vec3 col = mix(vec3(0.1, 0.4, 1.0), vec3(0.8, 0.95, 1.0), flame);
+              gl_FragColor = vec4(col, flame * opacity);
+            }`
         })
       );
-      core.position.y = -0.4;
-      g.add(core);
-      // CO2 product: 1 carbon + 2 oxygens (linear)
+      flamePlane.position.set(0, -0.3, -4.5);
+      sceneKitchen.add(flamePlane);
+
+      sceneKitchen.userData = {
+        stewMat, meterNeedle, jets, flamePlane,
+        burnerCap, burnerRing
+      };
+    }
+
+    /* ============================================================
+       CHAPTER 6 — Combustion (atomic-scale, returns to molecule view)
+       Two O2 dimers approach, molecule integrity drops, products
+       (CO2 + 2 H2O) bloom outward, blue flame envelope.
+       ============================================================ */
+    const sceneCombustion = new THREE.Group();
+    sceneCombustion.visible = false;
+    scene.add(sceneCombustion);
+
+    {
+      // O2 dimers — two pairs of bonded oxygens that fly toward the molecule
+      const o2Group = new THREE.Group();
+      const oxyMat = new THREE.MeshPhysicalMaterial({
+        color: 0xff8a4a, roughness: 0.2, clearcoat: 0.9,
+        emissive: 0x4a1a08, emissiveIntensity: 0.6
+      });
+      const oxyGeo = new THREE.IcosahedronGeometry(0.22, 3);
+      const o2Pairs = [];
+      for (let i = 0; i < 2; i++) {
+        const pair = new THREE.Group();
+        const a = new THREE.Mesh(oxyGeo, oxyMat);
+        a.position.x = -0.25;
+        const b = new THREE.Mesh(oxyGeo, oxyMat);
+        b.position.x = 0.25;
+        const bond = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.04, 0.04, 0.5, 8),
+          new THREE.MeshBasicMaterial({ color: 0xff8a4a, transparent: true, opacity: 0.7 })
+        );
+        bond.rotation.z = Math.PI / 2;
+        pair.add(a); pair.add(b); pair.add(bond);
+        sceneCombustion.add(pair);
+        o2Pairs.push(pair);
+      }
+
+      // Products — CO2 (linear) + 2 H2O
       const co2 = new THREE.Group();
       const cMesh = new THREE.Mesh(
         new THREE.IcosahedronGeometry(0.34, 3),
         new THREE.MeshPhysicalMaterial({ color: 0x1a2538, roughness: 0.2, clearcoat: 1, emissive: 0x143a78, emissiveIntensity: 0.5 })
       );
       co2.add(cMesh);
-      const oMat = new THREE.MeshPhysicalMaterial({ color: 0xff8a4a, roughness: 0.2, clearcoat: 0.9, emissive: 0x4a1a08, emissiveIntensity: 0.5 });
-      const oGeo = new THREE.IcosahedronGeometry(0.32, 3);
-      const o1 = new THREE.Mesh(oGeo, oMat); o1.position.set(0.85, 0, 0);
-      const o2 = new THREE.Mesh(oGeo, oMat); o2.position.set(-0.85, 0, 0);
-      co2.add(o1); co2.add(o2);
-      // bonds for CO2 (double bonds — show two parallel lines each side)
+      const oGeo = new THREE.IcosahedronGeometry(0.3, 3);
+      const o1 = new THREE.Mesh(oGeo, oxyMat); o1.position.set(0.85, 0, 0);
+      const o2b = new THREE.Mesh(oGeo, oxyMat); o2b.position.set(-0.85, 0, 0);
+      co2.add(o1); co2.add(o2b);
       const co2BondMat = new THREE.MeshBasicMaterial({ color: 0xff8a4a, transparent: true, opacity: 0.6 });
       [-0.85, 0.85].forEach(x => {
-        for (let off of [-0.06, 0.06]) {
+        for (const off of [-0.06, 0.06]) {
           const bg = new THREE.Mesh(
             new THREE.CylinderGeometry(0.018, 0.018, 0.85, 8),
             co2BondMat
@@ -1057,25 +1553,23 @@
           co2.add(bg);
         }
       });
-      co2.position.set(0, 0, 0);
       co2.scale.setScalar(0);
-      g.add(co2);
-      // Two H2O molecules
+      sceneCombustion.add(co2);
+
       const waters = [];
       for (let w = 0; w < 2; w++) {
         const water = new THREE.Group();
         const oxy = new THREE.Mesh(
-          new THREE.IcosahedronGeometry(0.32, 3),
+          new THREE.IcosahedronGeometry(0.3, 3),
           new THREE.MeshPhysicalMaterial({ color: 0x4a8aff, roughness: 0.15, clearcoat: 1, emissive: 0x102844, emissiveIntensity: 0.6 })
         );
         water.add(oxy);
-        const hPos2 = [
-          new THREE.Vector3(0.65, 0.45, 0),
-          new THREE.Vector3(-0.65, 0.45, 0)
-        ];
-        hPos2.forEach(p => {
+        [
+          new THREE.Vector3(0.6, 0.42, 0),
+          new THREE.Vector3(-0.6, 0.42, 0)
+        ].forEach(p => {
           const h = new THREE.Mesh(
-            new THREE.IcosahedronGeometry(0.18, 2),
+            new THREE.IcosahedronGeometry(0.16, 2),
             new THREE.MeshPhysicalMaterial({ color: 0xeaf3ff, clearcoat: 0.8, emissive: 0x223244, emissiveIntensity: 0.45 })
           );
           h.position.copy(p);
@@ -1090,245 +1584,144 @@
           water.add(bond);
         });
         water.scale.setScalar(0);
-        g.add(water);
+        sceneCombustion.add(water);
         waters.push(water);
       }
-      // Combustion shockwave ring
+
+      // Shockwave ring
       const shock = new THREE.Mesh(
         new THREE.RingGeometry(0.8, 0.88, 96),
         new THREE.MeshBasicMaterial({
-          color: 0xa8d8ff,
-          transparent: true,
-          opacity: 0.0,
-          side: THREE.DoubleSide,
-          blending: THREE.AdditiveBlending
+          color: 0xa8d8ff, transparent: true, opacity: 0,
+          side: THREE.DoubleSide, blending: THREE.AdditiveBlending
         })
       );
-      g.add(shock);
-      g.userData = { core, co2, waters, shock };
-      scene.add(g);
-      props.combustion = g;
+      sceneCombustion.add(shock);
+
+      // Glowing core
+      const core = new THREE.Mesh(
+        new THREE.SphereGeometry(0.6, 32, 32),
+        new THREE.MeshBasicMaterial({
+          color: 0x6cc5ff, transparent: true, opacity: 0,
+          blending: THREE.AdditiveBlending, depthWrite: false
+        })
+      );
+      sceneCombustion.add(core);
+
+      sceneCombustion.userData = { o2Pairs, co2, waters, shock, core };
     }
 
-    /* ───────────────────────────────────────────
-       Particles — atmospheric dust per chapter
-       ─────────────────────────────────────────── */
-    function makeParticles(count, spread, color, size) {
-      const positions = new Float32Array(count * 3);
-      for (let i = 0; i < count; i++) {
-        positions[i*3 + 0] = (Math.random() - 0.5) * spread;
-        positions[i*3 + 1] = (Math.random() - 0.5) * spread;
-        positions[i*3 + 2] = (Math.random() - 0.5) * spread;
-      }
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-      const mat = new THREE.PointsMaterial({
-        color, size,
-        transparent: true,
-        opacity: 0.0,
-        sizeAttenuation: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending
-      });
-      return new THREE.Points(geo, mat);
+    /* ============================================================
+       Stars / atmosphere (always present, dimmed in lit chapters)
+       ============================================================ */
+    const starCount = 800;
+    const stPos2 = new Float32Array(starCount * 3);
+    for (let i = 0; i < starCount; i++) {
+      const r = 60 + Math.random() * 40;
+      const t = Math.random() * Math.PI * 2;
+      const p = Math.acos(2 * Math.random() - 1);
+      stPos2[i*3] = r * Math.sin(p) * Math.cos(t);
+      stPos2[i*3+1] = r * Math.sin(p) * Math.sin(t);
+      stPos2[i*3+2] = r * Math.cos(p);
     }
+    const stGeo2 = new THREE.BufferGeometry();
+    stGeo2.setAttribute("position", new THREE.BufferAttribute(stPos2, 3));
+    const stars = new THREE.Points(stGeo2, new THREE.PointsMaterial({
+      color: 0xffffff, size: 0.4, transparent: true, opacity: 0.4,
+      depthWrite: false, sizeAttenuation: false
+    }));
+    scene.add(stars);
 
-    const particles = makeParticles(900, 30, 0x6cc5ff, 0.06);
-    scene.add(particles);
+    /* ============================================================
+       PER-CHAPTER STATE
+       Each chapter declares:
+         - background color, fog density, lighting tint
+         - which scene group is visible (others fade)
+         - camera position + lookAt
+         - marker path (start, end Vector3) — marker is animated
+           continuously along the path with t = chapter sub-progress
+         - hero molecule visibility (1 in chapter 0, 0 elsewhere except outro)
+         - product bloom (chapter 6) — 0..1 blends molecule → products
+       ============================================================ */
+    const v = (x, y, z) => new THREE.Vector3(x, y, z);
 
-    const flameParticles = makeParticles(400, 5, 0x4ea1ff, 0.12);
-    scene.add(flameParticles);
-
-    /* ───────────────────────────────────────────
-       Background "ribbon" — pipeline / horizon line
-       ─────────────────────────────────────────── */
-    const ribbonGeo = new THREE.PlaneGeometry(60, 0.08, 60, 1);
-    const ribbonMat = new THREE.MeshBasicMaterial({
-      color: 0x6cc5ff, transparent: true, opacity: 0.0
-    });
-    const ribbon = new THREE.Mesh(ribbonGeo, ribbonMat);
-    ribbon.position.set(0, -2.5, -8);
-    scene.add(ribbon);
-
-    /* Stove flame plane (chapter 6) */
-    const flameGeo = new THREE.PlaneGeometry(4, 4);
-    const flameMat = new THREE.ShaderMaterial({
-      transparent: true,
-      depthWrite: false,
-      uniforms: {
-        time: { value: 0 },
-        opacity: { value: 0.0 }
-      },
-      vertexShader: `
-        varying vec2 vUv;
-        void main() {
-          vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        varying vec2 vUv;
-        uniform float time;
-        uniform float opacity;
-        // Cheap noise
-        float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-        float noise(vec2 p) {
-          vec2 i = floor(p), f = fract(p);
-          float a = hash(i);
-          float b = hash(i + vec2(1, 0));
-          float c = hash(i + vec2(0, 1));
-          float d = hash(i + vec2(1, 1));
-          vec2 u = f * f * (3.0 - 2.0 * f);
-          return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
-        }
-        void main() {
-          vec2 p = vUv - vec2(0.5, 0.0);
-          float r = length(p * vec2(2.0, 1.0));
-          float n = noise(vec2(vUv.x * 6.0, vUv.y * 4.0 - time * 1.4));
-          float flame = smoothstep(0.7, 0.0, r) * (0.7 + n * 0.5);
-          flame *= smoothstep(0.0, 0.15, vUv.y) * smoothstep(1.0, 0.4, vUv.y);
-          vec3 col = mix(vec3(0.1, 0.4, 1.0), vec3(0.6, 0.85, 1.0), flame);
-          gl_FragColor = vec4(col, flame * opacity);
-        }
-      `
-    });
-    const flame = new THREE.Mesh(flameGeo, flameMat);
-    flame.position.set(0, -1.0, -2);
-    scene.add(flame);
-
-    /* Frost ring for cryo storage chapter */
-    const ringGeo = new THREE.RingGeometry(2.4, 2.5, 64);
-    const ringMat = new THREE.MeshBasicMaterial({
-      color: 0xa8d8ff, transparent: true, opacity: 0.0, side: THREE.DoubleSide
-    });
-    const ring = new THREE.Mesh(ringGeo, ringMat);
-    ring.position.z = -1;
-    scene.add(ring);
-
-    /* ───────────────────────────────────────────
-       Chapter states — what the scene looks like
-       at each moment of the journey
-       ─────────────────────────────────────────── */
     const states = [
-      { // 0 — hero / origin
-        bg: 0x050608, ambient: 0.3,
-        keyColor: 0x88aaff, rimColor: 0x6cc5ff, rimIntensity: 1.4,
-        camera: new THREE.Vector3(0, 0, 6),
-        moleculeScale: 1.0, moleculeY: 0,
-        glowIntensity: 0.55, glowColor: 0x6cc5ff,
-        bondColor: 0x6cc5ff, bondIntensity: 0.85,
-        orbitalOpacity: 0.6, cloudOpacity: 0.75,
-        moleculeIntegrity: 1.0,
-        particleOpacity: 0.4,
-        ribbonOpacity: 0.0, flameOpacity: 0.0, ringOpacity: 0.0,
-        carbonEmissive: 0x0a1830,
-        fogDensity: 0.04,
-        propTanker: 0.0, propCryo: 0.0, propRegas: 0.0, propPipe: 0.0, propKitchen: 0.0, propCombustion: 0.0
+      { // 0 — Hero. Molecule center, no scenes.
+        bg: 0x050608, fog: 0.04, ambient: 0.35,
+        keyColor: 0x88aaff, rimColor: 0x6cc5ff, rimI: 1.4,
+        cam: v(0, 0, 7), look: v(0, 0, 0),
+        scenes: { tanker:0, cryo:0, regas:0, pipeline:0, kitchen:0, combustion:0 },
+        heroVis: 1,
+        markerStart: v(0, 0, 0), markerEnd: v(0, 0, 0),
+        products: 0, starsOpacity: 0.4
       },
-      { // 1 — tanker at dawn
-        bg: 0x18141d, ambient: 0.55,
-        keyColor: 0xffae7a, rimColor: 0xff7a4a, rimIntensity: 1.8,
-        camera: new THREE.Vector3(2, 0.4, 6.5),
-        moleculeScale: 1.05, moleculeY: 0.2,
-        glowIntensity: 0.5, glowColor: 0xff9c5a,
-        bondColor: 0xffae7a, bondIntensity: 0.7,
-        orbitalOpacity: 0.5, cloudOpacity: 0.6,
-        moleculeIntegrity: 1.0,
-        particleOpacity: 0.35,
-        ribbonOpacity: 0.0, flameOpacity: 0.0, ringOpacity: 0.0,
-        carbonEmissive: 0x2a1408,
-        fogDensity: 0.06,
-        propTanker: 1.0, propCryo: 0.0, propRegas: 0.0, propPipe: 0.0, propKitchen: 0.0, propCombustion: 0.0
+      { // 1 — Tanker dawn.
+        bg: 0x1a1018, fog: 0.018, ambient: 0.55,
+        keyColor: 0xffae7a, rimColor: 0xff7a4a, rimI: 1.8,
+        cam: v(2, 4, 16), look: v(0, -0.5, -2),
+        scenes: { tanker:1, cryo:0, regas:0, pipeline:0, kitchen:0, combustion:0 },
+        heroVis: 0,
+        // Marker: emerges from tanker bow, follows the loading arm to the pier
+        markerStart: v(-6.5, -0.3, -2), markerEnd: v(11, 0.4, -2),
+        products: 0, starsOpacity: 0.0
       },
-      { // 2 — cryogenic storage
-        bg: 0x0a1018, ambient: 0.4,
-        keyColor: 0xa8d8ff, rimColor: 0x6cc5ff, rimIntensity: 0.9,
-        camera: new THREE.Vector3(-1.2, 0, 5.0),
-        moleculeScale: 0.85, moleculeY: -0.1,
-        glowIntensity: 0.95, glowColor: 0xa8d8ff,
-        bondColor: 0xa8d8ff, bondIntensity: 0.5,
-        orbitalOpacity: 0.4, cloudOpacity: 0.55,
-        moleculeIntegrity: 1.0,
-        particleOpacity: 0.7,
-        ribbonOpacity: 0.0, flameOpacity: 0.0, ringOpacity: 0.45,
-        carbonEmissive: 0x081428,
-        fogDensity: 0.08,
-        propTanker: 0.0, propCryo: 1.0, propRegas: 0.0, propPipe: 0.0, propKitchen: 0.0, propCombustion: 0.0
+      { // 2 — Cryo tank interior.
+        bg: 0x070b14, fog: 0.05, ambient: 0.4,
+        keyColor: 0xa8d8ff, rimColor: 0x6cc5ff, rimI: 1.2,
+        cam: v(0, 0.4, 8.0), look: v(0, 0, 0),
+        scenes: { tanker:0, cryo:1, regas:0, pipeline:0, kitchen:0, combustion:0 },
+        heroVis: 0,
+        // Marker drifts from liquid surface upward into vapor space
+        markerStart: v(0, -3, 0), markerEnd: v(0, 4, 0),
+        products: 0, starsOpacity: 0.05
       },
-      { // 3 — regasification
-        bg: 0x141022, ambient: 0.55,
-        keyColor: 0xb38aff, rimColor: 0x6cc5ff, rimIntensity: 1.5,
-        camera: new THREE.Vector3(0, 0.2, 5),
-        moleculeScale: 1.25, moleculeY: 0.25,
-        glowIntensity: 1.05, glowColor: 0xb38aff,
-        bondColor: 0xb38aff, bondIntensity: 1.0,
-        orbitalOpacity: 0.85, cloudOpacity: 0.95,
-        moleculeIntegrity: 1.0,
-        particleOpacity: 0.55,
-        ribbonOpacity: 0.0, flameOpacity: 0.0, ringOpacity: 0.0,
-        carbonEmissive: 0x140a28,
-        fogDensity: 0.05,
-        propTanker: 0.0, propCryo: 0.0, propRegas: 1.0, propPipe: 0.0, propKitchen: 0.0, propCombustion: 0.0
+      { // 3 — Regasifier.
+        bg: 0x14101e, fog: 0.04, ambient: 0.55,
+        keyColor: 0xb38aff, rimColor: 0x6cc5ff, rimI: 1.6,
+        cam: v(5, 1, 8), look: v(0, 0, 0),
+        scenes: { tanker:0, cryo:0, regas:1, pipeline:0, kitchen:0, combustion:0 },
+        heroVis: 0,
+        // Marker spirals up from inlet (-3.6, -4.2) to outlet (3.6, 4.2)
+        markerStart: v(-3.6, -4.2, 0), markerEnd: v(3.6, 4.2, 0),
+        products: 0, starsOpacity: 0.05
       },
-      { // 4 — pipeline
-        bg: 0x080a14, ambient: 0.3,
-        keyColor: 0x6cc5ff, rimColor: 0x4ea1ff, rimIntensity: 1.7,
-        camera: new THREE.Vector3(0, -0.1, 3.6),
-        moleculeScale: 1.0, moleculeY: 0.0,
-        glowIntensity: 0.85, glowColor: 0x6cc5ff,
-        bondColor: 0x6cc5ff, bondIntensity: 1.1,
-        orbitalOpacity: 0.7, cloudOpacity: 0.85,
-        moleculeIntegrity: 1.0,
-        particleOpacity: 0.0,
-        ribbonOpacity: 0.0, flameOpacity: 0.0, ringOpacity: 0.0,
-        carbonEmissive: 0x0a1830,
-        fogDensity: 0.07,
-        propTanker: 0.0, propCryo: 0.0, propRegas: 0.0, propPipe: 1.0, propKitchen: 0.0, propCombustion: 0.0
+      { // 4 — Pipeline interior, traveled through.
+        bg: 0x040608, fog: 0.06, ambient: 0.3,
+        keyColor: 0x6cc5ff, rimColor: 0x4ea1ff, rimI: 1.7,
+        cam: v(0, 0, 4), look: v(0, 0, -10),
+        scenes: { tanker:0, cryo:0, regas:0, pipeline:1, kitchen:0, combustion:0 },
+        heroVis: 0,
+        // Marker travels Z+ → Z- (from far ahead to behind camera)
+        markerStart: v(0, 0, -36), markerEnd: v(0, 0, 36),
+        products: 0, starsOpacity: 0.0
       },
-      { // 5 — Seoul home / kitchen approach
-        bg: 0x141a22, ambient: 0.55,
-        keyColor: 0xffd28a, rimColor: 0xff9c5a, rimIntensity: 1.4,
-        camera: new THREE.Vector3(0.6, 0.1, 5.0),
-        moleculeScale: 0.9, moleculeY: 0.6,
-        glowIntensity: 0.6, glowColor: 0xffd28a,
-        bondColor: 0xffae7a, bondIntensity: 0.85,
-        orbitalOpacity: 0.55, cloudOpacity: 0.65,
-        moleculeIntegrity: 1.0,
-        particleOpacity: 0.3,
-        ribbonOpacity: 0.0, flameOpacity: 0.0, ringOpacity: 0.0,
-        carbonEmissive: 0x281408,
-        fogDensity: 0.05,
-        propTanker: 0.0, propCryo: 0.0, propRegas: 0.0, propPipe: 0.0, propKitchen: 1.0, propCombustion: 0.0
+      { // 5 — Kitchen approach.
+        bg: 0x18120a, fog: 0.025, ambient: 0.6,
+        keyColor: 0xffd28a, rimColor: 0xff9c5a, rimI: 1.4,
+        cam: v(2.5, 1.0, 4.5), look: v(0, -0.6, -4),
+        scenes: { tanker:0, cryo:0, regas:0, pipeline:0, kitchen:1, combustion:0 },
+        heroVis: 0,
+        // Marker: comes through gas meter on right wall, into burner cap
+        markerStart: v(6.2, 1.0, -1), markerEnd: v(0, -0.78, -4.5),
+        products: 0, starsOpacity: 0.0
       },
-      { // 6 — blue flame / combustion
-        bg: 0x05080f, ambient: 0.7,
-        keyColor: 0x6cc5ff, rimColor: 0x4ea1ff, rimIntensity: 2.4,
-        camera: new THREE.Vector3(0, 0.2, 4.2),
-        moleculeScale: 1.4, moleculeY: 0.3,
-        glowIntensity: 1.6, glowColor: 0x6cc5ff,
-        bondColor: 0x9ad6ff, bondIntensity: 1.3,
-        orbitalOpacity: 0.0, cloudOpacity: 0.0,
-        moleculeIntegrity: 0.0,  // dissolves; products bloom in
-        particleOpacity: 0.0,
-        ribbonOpacity: 0.0, flameOpacity: 0.85, ringOpacity: 0.0,
-        carbonEmissive: 0x143a78,
-        fogDensity: 0.03,
-        propTanker: 0.0, propCryo: 0.0, propRegas: 0.0, propPipe: 0.0, propKitchen: 0.4, propCombustion: 1.0
+      { // 6 — Combustion. Camera dives into burner; molecule reforms briefly then dissolves into products.
+        bg: 0x05080f, fog: 0.03, ambient: 0.7,
+        keyColor: 0x6cc5ff, rimColor: 0x4ea1ff, rimI: 2.4,
+        cam: v(0, -0.1, 1.6), look: v(0, -0.4, -4.5),
+        scenes: { tanker:0, cryo:0, regas:0, pipeline:0, kitchen:0.6, combustion:1 },
+        heroVis: 1, // molecule re-appears here at small scale (handled below)
+        markerStart: v(0, -0.3, -4.5), markerEnd: v(0, -0.3, -4.5),
+        products: 1, starsOpacity: 0.0
       },
-      { // 7 — outro
-        bg: 0x050608, ambient: 0.4,
-        keyColor: 0x88aaff, rimColor: 0x6cc5ff, rimIntensity: 1.3,
-        camera: new THREE.Vector3(0, 0, 8.0),
-        moleculeScale: 0.7, moleculeY: 0,
-        glowIntensity: 0.4, glowColor: 0x6cc5ff,
-        bondColor: 0x6cc5ff, bondIntensity: 0.7,
-        orbitalOpacity: 0.0, cloudOpacity: 0.0,
-        moleculeIntegrity: 0.0,
-        particleOpacity: 0.35,
-        ribbonOpacity: 0.0, flameOpacity: 0.0, ringOpacity: 0.0,
-        carbonEmissive: 0x0a1830,
-        fogDensity: 0.04,
-        propTanker: 0.0, propCryo: 0.0, propRegas: 0.0, propPipe: 0.0, propKitchen: 0.0, propCombustion: 0.5
+      { // 7 — Outro
+        bg: 0x050608, fog: 0.04, ambient: 0.4,
+        keyColor: 0x88aaff, rimColor: 0x6cc5ff, rimI: 1.3,
+        cam: v(0, 0, 9), look: v(0, 0, 0),
+        scenes: { tanker:0, cryo:0, regas:0, pipeline:0, kitchen:0, combustion:0.4 },
+        heroVis: 0,
+        markerStart: v(0, 0, 0), markerEnd: v(0, 0, 0),
+        products: 0.6, starsOpacity: 0.5
       }
     ];
 
@@ -1343,10 +1736,12 @@
       "Fin"
     ];
 
-    /* ───────────────────────────────────────────
-       Scroll → progress (0..N) interpolation
-       ─────────────────────────────────────────── */
+    /* ============================================================
+       SCROLL → STATE INTERPOLATION
+       ============================================================ */
     const _v3 = new THREE.Vector3();
+    const _vL = new THREE.Vector3();
+    const _vM = new THREE.Vector3();
     const _c1 = new THREE.Color();
     const _c2 = new THREE.Color();
     const _ce = new THREE.Color();
@@ -1357,8 +1752,9 @@
       out.copy(_c1).lerp(_c2, t);
       return out;
     }
+    function easeInOut(t) { return t < 0.5 ? 2*t*t : -1 + (4 - 2*t)*t; }
 
-    let scrollProgress = 0; // 0..(states.length - 1)
+    let scrollProgress = 0;
     let smoothProgress = 0;
 
     function computeProgress() {
@@ -1367,6 +1763,8 @@
       scrollProgress = t * (states.length - 1);
     }
 
+    /* Animate chapter visibility transitions; we keep a fade buffer so when
+       scrolling between chapters, both scenes fade through each other. */
     function applyState(p) {
       const idx = Math.floor(p);
       const next = Math.min(idx + 1, states.length - 1);
@@ -1374,257 +1772,337 @@
       const a = states[idx];
       const b = states[next];
 
-      /* Background + fog */
+      // Background + fog
       lerpColor(_ce, a.bg, b.bg, t);
       renderer.setClearColor(_ce, 1);
       scene.fog.color.copy(_ce);
-      scene.fog.density = lerp(a.fogDensity, b.fogDensity, t);
+      scene.fog.density = lerp(a.fog, b.fog, t);
 
-      /* Lights */
+      // Lights
       ambient.intensity = lerp(a.ambient, b.ambient, t);
       lerpColor(keyLight.color, a.keyColor, b.keyColor, t);
       lerpColor(rimLight.color, a.rimColor, b.rimColor, t);
-      rimLight.intensity = lerp(a.rimIntensity, b.rimIntensity, t);
+      rimLight.intensity = lerp(a.rimI, b.rimI, t);
 
-      /* Camera */
-      _v3.copy(a.camera).lerp(b.camera, t);
+      // Camera
+      _v3.copy(a.cam).lerp(b.cam, t);
       camera.position.copy(_v3);
-      camera.lookAt(0, 0, 0);
+      _vL.copy(a.look).lerp(b.look, t);
+      camera.lookAt(_vL);
 
-      /* Molecule */
-      const scale = lerp(a.moleculeScale, b.moleculeScale, t);
-      moleculeGroup.scale.setScalar(scale);
-      moleculeGroup.position.y = lerp(a.moleculeY, b.moleculeY, t);
-      glowMat.uniforms.intensity.value = lerp(a.glowIntensity, b.glowIntensity, t);
-      lerpColor(_ce, a.glowColor, b.glowColor, t);
-      glowMat.uniforms.glowColor.value.copy(_ce);
-      lerpColor(_ce, a.carbonEmissive, b.carbonEmissive, t);
-      carbonMat.emissive.copy(_ce);
-      lerpColor(_ce, a.bondColor, b.bondColor, t);
-      bondMat.uniforms.color.value.copy(_ce);
-      // Bonds glow brighter mid-journey but vanish with molecule on combustion
-      bondMat.uniforms.intensity.value = lerp(a.bondIntensity, b.bondIntensity, t) * Math.max(0.0, lerp(a.moleculeIntegrity, b.moleculeIntegrity, t));
-      // Orbital + cloud opacity
-      const orbOp = lerp(a.orbitalOpacity, b.orbitalOpacity, t);
-      orbitals.forEach(o => { o.material.opacity = orbOp; });
-      cloudMat.opacity = lerp(a.cloudOpacity, b.cloudOpacity, t);
-      // Molecule integrity (1 = whole, 0 = dissolved into products)
-      const integrity = lerp(a.moleculeIntegrity, b.moleculeIntegrity, t);
-      carbonMat.opacity = integrity;
-      carbonMat.transparent = integrity < 0.999;
-      hMat.opacity = integrity;
-      hMat.transparent = integrity < 0.999;
-      hydrogens.forEach(h => {
-        h.halo.material.opacity = integrity * 0.4;
-      });
+      // Hero molecule visibility (full-scale only in chapter 0; small reform in chapter 6)
+      const heroVis = lerp(a.heroVis, b.heroVis, t);
+      heroMolecule.visible = heroVis > 0.001;
+      // Hero scale: full in ch0, small in ch6
+      let heroScale = 1.0;
+      if (idx >= 6) heroScale = 0.55;
+      else if (idx === 0 && next === 1) heroScale = lerp(1.0, 0.5, t); // shrink as we leave hero
+      else if (idx === 0) heroScale = 1.0;
+      else heroScale = 0.5;
+      heroMolecule.scale.setScalar(heroScale);
 
-      /* Atmospheric */
-      particles.material.opacity = lerp(a.particleOpacity, b.particleOpacity, t);
-      ribbon.material.opacity = lerp(a.ribbonOpacity, b.ribbonOpacity, t);
-      flameMat.uniforms.opacity.value = lerp(a.flameOpacity, b.flameOpacity, t);
-      ring.material.opacity = lerp(a.ringOpacity, b.ringOpacity, t);
-      flameParticles.material.opacity = lerp(a.flameOpacity * 0.6, b.flameOpacity * 0.6, t);
+      const heroOpacity = heroVis;
+      // Apply opacity to all hero materials
+      carbonMat.opacity = heroOpacity;
+      carbonMat.transparent = heroOpacity < 0.999;
+      hMat.opacity = heroOpacity;
+      hMat.transparent = heroOpacity < 0.999;
+      orbitals.forEach(o => o.material.opacity = heroOpacity * 0.55);
+      cloudMat.opacity = heroOpacity * 0.75;
+      heroGlowMat.uniforms.intensity.value = heroOpacity * 0.55;
+      bondMat.uniforms.intensity.value = heroOpacity * 0.85;
 
-      /* Chapter props — opacity + visibility gate */
-      const propMix = (a, b, t) => lerp(a, b, t);
-      const setPropOpacity = (group, opacity, fader) => {
-        group.visible = opacity > 0.01;
-        if (group.visible) fader(opacity);
+      // For chapter 6, hero re-forms at burner location
+      if (idx >= 5) {
+        const reform = idx === 6 ? (1 - t) * (heroVis) : (heroVis);
+        heroMolecule.position.set(0, -0.3, -4.5);
+        // Make hero materials shrink products visibility too
+      } else {
+        heroMolecule.position.set(0, 0, 0);
+      }
+
+      // Scene visibilities (fade via opacity helper)
+      const sm = (key, target) => {
+        const groupName = "scene" + key.charAt(0).toUpperCase() + key.slice(1);
+        const g = ({ tanker: sceneTanker, cryo: sceneCryo, regas: sceneRegas, pipeline: scenePipeline, kitchen: sceneKitchen, combustion: sceneCombustion })[key];
+        const op = lerp(a.scenes[key], b.scenes[key], t);
+        g.visible = op > 0.005;
+        // Set opacity on traverse for materials that support it
+        if (g.visible) {
+          g.traverse(child => {
+            if (child.isMesh && child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              for (const m of mats) {
+                // Only set transparent if needed; preserve materials that have explicit opacity behaviors
+                if (m._origOpacity === undefined) m._origOpacity = m.opacity;
+                if (op < 0.999) {
+                  m.transparent = true;
+                  m.opacity = m._origOpacity * op;
+                } else if (m.transparent && m._origOpacity !== undefined) {
+                  m.opacity = m._origOpacity;
+                }
+              }
+            } else if (child.isPoints && child.material) {
+              const m = child.material;
+              if (m._origOpacity === undefined) m._origOpacity = m.opacity;
+              m.opacity = m._origOpacity * op;
+            } else if (child.isLine && child.material) {
+              const m = child.material;
+              if (m._origOpacity === undefined) m._origOpacity = m.opacity;
+              m.opacity = m._origOpacity * op;
+            }
+          });
+        }
       };
+      sm("tanker"); sm("cryo"); sm("regas"); sm("pipeline"); sm("kitchen"); sm("combustion");
 
-      setPropOpacity(props.tanker, propMix(a.propTanker, b.propTanker, t), op => {
-        const u = props.tanker.userData;
-        u.hull.material.opacity = op; u.hull.material.transparent = true;
-        u.bridge.material.opacity = op; u.bridge.material.transparent = true;
-        u.sun.material.opacity = op * 0.55;
-        u.beacons.forEach(bc => { bc.material.opacity = op; bc.material.transparent = true; });
-      });
+      // Marker — interpolate between markerStart of current chapter and markerEnd of current chapter,
+      // using sub-progress t. This makes the marker travel through each scene as you scroll.
+      // Marker is hidden in chapter 0 and chapter 6 (where the molecule reforms).
+      const markerActive = idx >= 1 && idx <= 5;
+      markerGroup.visible = markerActive;
+      if (markerActive) {
+        // Use the *current* chapter's path; sub-progress is t (0..1 within this chapter)
+        const eased = easeInOut(Math.min(1, t * 1.05));
+        _vM.copy(a.markerStart).lerp(a.markerEnd, eased);
+        markerGroup.position.copy(_vM);
+        // Marker color/halo tint blends with chapter palette
+        lerpColor(_ce, a.rimColor, b.rimColor, t);
+        markerHaloMat.uniforms.glowColor.value.copy(_ce);
+      }
 
-      setPropOpacity(props.cryo, propMix(a.propCryo, b.propCryo, t), op => {
-        const u = props.cryo.userData;
-        u.frostRings.forEach(r => { r.material.opacity = op * 0.6; });
-        u.crystals.material.opacity = op * 0.85;
-      });
+      // Stars
+      stars.material.opacity = lerp(a.starsOpacity, b.starsOpacity, t);
 
-      setPropOpacity(props.regas, propMix(a.propRegas, b.propRegas, t), op => {
-        const u = props.regas.userData;
-        u.regasOpacity = op; // ring opacity is animated per-frame in tick()
-        u.expansion.material.opacity = op * 0.85;
-      });
+      // Combustion product bloom — drives co2/water scale + shock + core
+      const products = lerp(a.products, b.products, t);
+      {
+        const u = sceneCombustion.userData;
+        u.co2.scale.setScalar(products * 1.2);
+        u.waters.forEach(w => w.scale.setScalar(products * 1.0));
+        u.shock.material.opacity = products * 0.6;
+        u.shock.scale.setScalar(0.5 + products * 4);
+        u.core.material.opacity = products * 0.85;
+        // Hero hydrogens fly out as products bloom (chapter 6)
+        if (idx >= 5) {
+          hydrogens.forEach((h, i) => {
+            const fly = products * 1.6;
+            const dir = h.basePos.clone().normalize();
+            h.group.position.copy(h.basePos).addScaledVector(dir, fly);
+          });
+        } else {
+          hydrogens.forEach(h => h.group.position.copy(h.basePos));
+        }
+      }
 
-      setPropOpacity(props.pipeline, propMix(a.propPipe, b.propPipe, t), op => {
-        const u = props.pipeline.userData;
-        u.tubeMat.uniforms.opacity.value = op;
-        u.streaks.material.opacity = op * 0.7;
-      });
-
-      setPropOpacity(props.kitchen, propMix(a.propKitchen, b.propKitchen, t), op => {
-        const u = props.kitchen.userData;
-        u.burner.material.opacity = op * 0.85;
-        u.pot.material.opacity = op;
-        u.pot.material.transparent = true;
-        u.windowGroup.children.forEach(w => { w.material.opacity = op * 0.45; w.material.transparent = true; });
-      });
-
-      setPropOpacity(props.combustion, propMix(a.propCombustion, b.propCombustion, t), op => {
-        const u = props.combustion.userData;
-        u.core.material.opacity = op * 0.85;
-        // Products bloom in: scale grows from molecule center as integrity drops
-        const productScale = (1.0 - integrity);
-        u.co2.scale.setScalar(productScale * 1.0);
-        u.waters.forEach((w, i) => {
-          w.scale.setScalar(productScale * 0.85);
-        });
-        u.shock.material.opacity = op * (1.0 - integrity) * 0.6;
-      });
-
-      /* Top bar */
+      // Topbar
       const fillPct = (p / (states.length - 1)) * 100;
       document.getElementById("progressFill").style.width = fillPct + "%";
       const labelIdx = Math.round(p);
       document.getElementById("chapterLabel").textContent = chapterLabels[labelIdx] || "";
     }
 
-    /* ───────────────────────────────────────────
-       Animation loop
-       ─────────────────────────────────────────── */
+    /* ============================================================
+       ANIMATION LOOP — per-frame motion for each scene
+       ============================================================ */
     const clock = new THREE.Clock();
+    const trailHistory = [];
 
     function tick() {
-      const dt = clock.getDelta();
+      const dt = Math.min(clock.getDelta(), 0.05);
       const elapsed = clock.getElapsedTime();
 
-      /* Smooth scroll progress */
       smoothProgress += (scrollProgress - smoothProgress) * 0.08;
       applyState(smoothProgress);
 
-      /* Molecule idle motion */
-      moleculeGroup.rotation.y += dt * 0.35;
-      moleculeGroup.rotation.x = Math.sin(elapsed * 0.4) * 0.1;
-
-      // Hydrogens vibrate radially (simulating bond stretching modes)
-      // Speed scales with bond intensity uniform — feels hotter when bond glows brighter
-      const vibrationSpeed = 1.2 + bondMat.uniforms.intensity.value * 1.0;
-      hydrogens.forEach((h, i) => {
-        const stretch = 1.0 + Math.sin(elapsed * vibrationSpeed + i * 1.3) * 0.06;
-        h.group.position.copy(h.basePos).multiplyScalar(stretch);
-        // Slight wobble on each H to give them life
-        h.mesh.rotation.x = Math.sin(elapsed * 1.7 + i) * 0.5;
-        h.mesh.rotation.y = Math.cos(elapsed * 1.4 + i) * 0.5;
-      });
-
-      // Orbitals counter-rotate at different rates
-      orbitals.forEach((o, i) => {
-        o.rotation.x += dt * (0.4 + i * 0.15) * (i % 2 === 0 ? 1 : -1);
-        o.rotation.y += dt * (0.3 + i * 0.1);
-      });
-
-      // Electron cloud breathe + jitter
-      const cArr = cloudGeo.attributes.position.array;
-      for (let i = 0; i < cloudCount; i++) {
-        const jitter = 0.04 * Math.sin(elapsed * 2.0 + i * 0.7);
-        const breath = 1.0 + jitter;
-        cArr[i*3]   = cloudBase[i*3]   * breath;
-        cArr[i*3+1] = cloudBase[i*3+1] * breath;
-        cArr[i*3+2] = cloudBase[i*3+2] * breath;
+      /* Hero molecule idle motion (only when visible) */
+      if (heroMolecule.visible) {
+        heroMolecule.rotation.y += dt * 0.35;
+        heroMolecule.rotation.x = Math.sin(elapsed * 0.4) * 0.1;
+        const vibSp = 1.2 + bondMat.uniforms.intensity.value * 1.0;
+        hydrogens.forEach((h, i) => {
+          // basePos modulation only when not in chapter-6 explosion
+          if (smoothProgress < 5.5) {
+            const stretch = 1.0 + Math.sin(elapsed * vibSp + i * 1.3) * 0.06;
+            h.group.position.copy(h.basePos).multiplyScalar(stretch);
+          }
+          h.mesh.rotation.x = Math.sin(elapsed * 1.7 + i) * 0.5;
+          h.mesh.rotation.y = Math.cos(elapsed * 1.4 + i) * 0.5;
+        });
+        orbitals.forEach((o, i) => {
+          o.rotation.x += dt * (0.4 + i * 0.15) * (i % 2 === 0 ? 1 : -1);
+          o.rotation.y += dt * (0.3 + i * 0.1);
+        });
+        const cArr = cloudGeo.attributes.position.array;
+        for (let i = 0; i < cloudCount; i++) {
+          const jitter = 0.04 * Math.sin(elapsed * 2.0 + i * 0.7);
+          const breath = 1.0 + jitter;
+          cArr[i*3]   = cloudBase[i*3]   * breath;
+          cArr[i*3+1] = cloudBase[i*3+1] * breath;
+          cArr[i*3+2] = cloudBase[i*3+2] * breath;
+        }
+        cloudGeo.attributes.position.needsUpdate = true;
+        bondMat.uniforms.time.value = elapsed;
       }
-      cloudGeo.attributes.position.needsUpdate = true;
 
-      // Bond pulse uniform
-      bondMat.uniforms.time.value = elapsed;
+      /* Marker idle (always advance) */
+      markerHaloMat.uniforms.intensity.value = 1.4 + Math.sin(elapsed * 3) * 0.4;
+      // 4 hydrogens orbit
+      markerHs.forEach((h, i) => {
+        const a = elapsed * 2.0 + i * Math.PI / 2;
+        const r = 0.12 + Math.sin(elapsed * 4 + i) * 0.02;
+        h.position.set(Math.cos(a) * r, Math.sin(a*0.9 + i) * r * 0.6, Math.sin(a) * r);
+      });
+      // Trail
+      if (markerGroup.visible) {
+        trailHistory.push(markerGroup.position.clone());
+        if (trailHistory.length > TRAIL_LEN) trailHistory.shift();
+        for (let i = 0; i < TRAIL_LEN; i++) {
+          const idx = trailHistory.length - 1 - i;
+          const p = idx >= 0 ? trailHistory[idx] : (trailHistory[0] || markerGroup.position);
+          trailPos[i*3]   = p.x;
+          trailPos[i*3+1] = p.y;
+          trailPos[i*3+2] = p.z;
+        }
+        trailGeo.attributes.position.needsUpdate = true;
+        trailLine.visible = true;
+      } else {
+        trailLine.visible = false;
+        trailHistory.length = 0;
+      }
 
-      /* Particle drift */
-      particles.rotation.y = elapsed * 0.02;
-      flameParticles.rotation.y = -elapsed * 0.05;
-
-      /* Flame shader animation */
-      flameMat.uniforms.time.value = elapsed;
-
-      /* ── Chapter prop animations ── */
-      // Tanker: subtle bob on hull, beacon blink
-      if (props.tanker.visible) {
-        const u = props.tanker.userData;
-        u.hull.position.y = -2.6 + Math.sin(elapsed * 0.6) * 0.04;
+      /* Tanker scene motion */
+      if (sceneTanker.visible) {
+        const u = sceneTanker.userData;
+        u.oceanMat.uniforms.time.value = elapsed;
         u.beacons.forEach((b, i) => {
           b.material.opacity = 0.5 + 0.5 * Math.sin(elapsed * 2.5 + i * 1.2);
         });
+        // gentle camera bob
+        camera.position.y += Math.sin(elapsed * 0.4) * 0.0015;
       }
-      // Cryo: frost rings rotate slowly, crystals rotate as a group
-      if (props.cryo.visible) {
-        const u = props.cryo.userData;
+
+      /* Cryo scene motion */
+      if (sceneCryo.visible) {
+        const u = sceneCryo.userData;
+        u.liquidMat.uniforms.time.value = elapsed;
         u.frostRings.forEach((r, i) => {
-          r.rotation.z += dt * 0.06 * (i % 2 === 0 ? 1 : -1);
-          r.rotation.x += dt * 0.02;
+          r.rotation.z += dt * 0.05 * (i % 2 === 0 ? 1 : -1);
         });
-        u.crystals.rotation.y = elapsed * 0.04;
+        // Vapor drift — slow upward + slight swirl
+        const vArr = u.vapor.geometry.attributes.position.array;
+        for (let i = 0; i < vArr.length / 3; i++) {
+          vArr[i*3+1] += dt * 0.4;
+          if (vArr[i*3+1] > u.tankH/2 - 1) vArr[i*3+1] = -u.tankH/2 + 3.0;
+          // tiny swirl around Y axis
+          const x = vArr[i*3], z = vArr[i*3+2];
+          const swirl = dt * 0.15;
+          vArr[i*3]   = x * Math.cos(swirl) - z * Math.sin(swirl);
+          vArr[i*3+2] = x * Math.sin(swirl) + z * Math.cos(swirl);
+        }
+        u.vapor.geometry.attributes.position.needsUpdate = true;
       }
-      // Regas: heat rings expand outward then reset (×600 expansion metaphor)
-      if (props.regas.visible) {
-        const u = props.regas.userData;
-        const baseOp = u.regasOpacity || 1;
-        u.heatRings.forEach((r, i) => {
-          const cycle = (elapsed * 0.5 + i / u.heatRings.length) % 1;
-          const radius = 0.4 + cycle * 4.5;
-          r.scale.setScalar(radius);
-          r.material.opacity = baseOp * 0.65 * (1.0 - cycle); // fresh each frame
-        });
+
+      /* Regas scene motion */
+      if (sceneRegas.visible) {
+        const u = sceneRegas.userData;
+        u.coils.forEach((c, i) => { c.rotation.y += dt * (0.05 + i * 0.03); });
+        // Steam particles rise; reset when over top
+        const stArr = u.steam.geometry.attributes.position.array;
+        for (let i = 0; i < stArr.length / 3; i++) {
+          stArr[i*3+1] += dt * (0.6 + (i % 3) * 0.2);
+          if (stArr[i*3+1] > 4.5) {
+            stArr[i*3+1] = -4.5;
+          }
+        }
+        u.steam.geometry.attributes.position.needsUpdate = true;
+        // Expansion arrows pulse outward from center
         const eArr = u.expansion.geometry.attributes.position.array;
         for (let i = 0; i < eArr.length / 3; i++) {
           const phase = (elapsed * 0.4 + i * 0.05) % 1;
-          const r = 0.5 + phase * 4.5;
-          eArr[i*3]   = u.expBase[i*3]   * r;
-          eArr[i*3+1] = u.expBase[i*3+1] * r;
-          eArr[i*3+2] = u.expBase[i*3+2] * r;
+          const r = 0.5 + phase * 3.0;
+          eArr[i*3]   = u.eBase[i*3]   * r;
+          eArr[i*3+1] = u.eBase[i*3+1] * r;
+          eArr[i*3+2] = u.eBase[i*3+2] * r;
         }
         u.expansion.geometry.attributes.position.needsUpdate = true;
       }
-      // Pipeline: tube dashes flow, streaks travel down Z
-      if (props.pipeline.visible) {
-        const u = props.pipeline.userData;
-        u.tubeMat.uniforms.time.value = elapsed;
+
+      /* Pipeline motion */
+      if (scenePipeline.visible) {
+        const u = scenePipeline.userData;
+        u.pipeMat.uniforms.time.value = elapsed;
+        // Streak flow — toward camera (negative Z)
         const sArr = u.streaks.geometry.attributes.position.array;
         for (let i = 0; i < sArr.length / 3; i++) {
-          sArr[i*3+2] += dt * 18; // flow toward camera
-          if (sArr[i*3+2] > 15) sArr[i*3+2] -= 30;
+          sArr[i*3+2] -= dt * 22;
+          if (sArr[i*3+2] < -40) sArr[i*3+2] += 80;
         }
         u.streaks.geometry.attributes.position.needsUpdate = true;
       }
-      // Kitchen: pot bob (window opacity is owned by applyState; don't override it here)
-      if (props.kitchen.visible) {
-        const u = props.kitchen.userData;
-        u.pot.position.y = -0.5 + Math.sin(elapsed * 0.8) * 0.02;
+
+      /* Kitchen motion */
+      if (sceneKitchen.visible) {
+        const u = sceneKitchen.userData;
+        u.stewMat.uniforms.time.value = elapsed;
+        // meter needle rotates slowly
+        u.meterNeedle.rotation.x = elapsed * 0.4;
       }
-      // Combustion: products orbit around the dissolving molecule + shock pulse
-      if (props.combustion.visible) {
-        const u = props.combustion.userData;
-        const integrity = carbonMat.opacity; // already lerped in applyState
-        const productR = (1.0 - integrity) * 2.4; // fly outward as molecule dissolves
-        u.co2.position.set(0, 0, 0); // CO2 stays roughly center
+
+      /* Combustion: O2 dimers approach during early ch6 t, then shockwave */
+      if (sceneCombustion.visible) {
+        const u = sceneCombustion.userData;
+        // Overall combustion phase
+        const subT = Math.max(0, smoothProgress - 5.5); // 0..1.5 within ch6 region
+        u.o2Pairs.forEach((pair, i) => {
+          const angle = elapsed * 0.4 + i * Math.PI;
+          const approach = Math.max(0, 1 - subT * 1.5); // 1=far, 0=at center
+          const r = 0.6 + approach * 3.0;
+          pair.position.set(
+            Math.cos(angle) * r,
+            (i === 0 ? 0.4 : -0.4) + Math.sin(elapsed*0.6+i) * 0.1,
+            Math.sin(angle) * r
+          );
+          pair.rotation.y = elapsed * 1.2 + i;
+          // Center the pairs at the burner location in ch5/6
+          pair.position.x += 0; pair.position.y += -0.3; pair.position.z += -4.5;
+        });
+        u.co2.position.set(0, -0.3, -4.5);
         u.co2.rotation.y = elapsed * 0.6;
         u.waters.forEach((w, i) => {
           const a = elapsed * 0.5 + (i * Math.PI);
+          const products = u.co2.scale.x;
+          const productR = products * 1.6;
           w.position.set(
             Math.cos(a) * productR,
-            Math.sin(a * 0.7) * productR * 0.6,
-            Math.sin(a) * productR
+            -0.3 + Math.sin(a*0.7) * productR * 0.6,
+            -4.5 + Math.sin(a) * productR
           );
           w.rotation.y = elapsed * 0.8 * (i === 0 ? 1 : -1);
           w.rotation.x = elapsed * 0.4;
         });
+        u.core.position.set(0, -0.3, -4.5);
         u.core.scale.setScalar(0.8 + Math.sin(elapsed * 4) * 0.15);
-        // Shockwave ring — expanding ring pulse synced with molecule integrity drop
-        const shockPhase = (elapsed * 0.7) % 1;
-        u.shock.scale.setScalar(0.5 + shockPhase * 4);
-        u.shock.rotation.x = Math.PI / 2;
+        u.shock.position.set(0, -0.3, -4.5);
+        u.shock.rotation.x = -Math.PI / 2;
+      }
+
+      /* Kitchen flame plane visible only in chapter 6 */
+      const flameOp = (smoothProgress >= 5.5)
+        ? Math.min(1, (smoothProgress - 5.5) * 2.5) * Math.max(0, 1 - (smoothProgress - 6.4) * 1.5)
+        : 0;
+      if (sceneKitchen.userData.flamePlane) {
+        sceneKitchen.userData.flamePlane.material.uniforms.time.value = elapsed;
+        sceneKitchen.userData.flamePlane.material.uniforms.opacity.value = flameOp;
       }
 
       renderer.render(scene, camera);
       requestAnimationFrame(tick);
     }
 
-    /* ───────────────────────────────────────────
-       Events
-       ─────────────────────────────────────────── */
+    /* ============================================================
+       Events & Init
+       ============================================================ */
     function onResize() {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -1633,13 +2111,11 @@
     window.addEventListener("resize", onResize);
     window.addEventListener("scroll", computeProgress, { passive: true });
 
-    /* Init */
     computeProgress();
     smoothProgress = scrollProgress;
     applyState(smoothProgress);
     tick();
 
-    /* Hide loader once we've rendered at least one frame */
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         document.getElementById("loading").classList.add("hidden");
