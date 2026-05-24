@@ -3,598 +3,1312 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>스웨덴 미식 가이드 — 한국인을 위한 스웨덴 맛집 여행</title>
-  <meta name="description" content="한국인 여행자를 위한 스웨덴 음식 & 맛집 가이드. 스톡홀름, 예테보리, 말뫼의 추천 식당, 꼭 먹어야 할 요리, 식사 매너까지.">
-  <meta property="og:title" content="스웨덴 미식 가이드 — Swedish Food Guide for Koreans">
-  <meta property="og:description" content="피카(fika)부터 미트볼까지, 한국인 입맛에 맞춰 큐레이션한 스웨덴 맛집 가이드.">
+  <title>스웨덴 미식 가이드 — Smaklig Måltid · 한국인을 위한 스웨덴 미식 여행</title>
+  <meta name="description" content="피카(fika)부터 미트볼까지, 한국인 입맛에 맞춰 큐레이션한 스웨덴 맛집·요리·여행 가이드. 스톡홀름·예테보리·말뫼.">
+  <meta property="og:title" content="스웨덴 미식 가이드 — Smaklig Måltid">
+  <meta property="og:description" content="한국인 여행자를 위한 스웨덴 음식·맛집·5일 코스·예산 계산기까지.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://kalleeh.github.io/continuum/">
-  <link rel="canonical" href="https://kalleeh.github.io/continuum/">
-  <link rel="icon" href="favicon.ico" sizes="any">
-  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+  <meta property="og:url" content="https://kalleeh.github.io/vibe-demos/sweden-food-guide/">
+  <link rel="canonical" href="https://kalleeh.github.io/vibe-demos/sweden-food-guide/">
+
   <link rel="icon" type="image/svg+xml" href="icon.svg">
-  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
   <link rel="apple-touch-icon" href="icon.svg">
   <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#0a1628">
+  <meta name="theme-color" content="#0c1726">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="스웨덴 미식">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="shared.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400;1,9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Serif+KR:wght@300;400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+
   <style>
+    /* ============================================================
+       Sweden Food Guide — editorial Nordic dark
+       Identity: deep midnight + warm cream paper + Sweden gold,
+       Fraunces italic display + Inter body + JetBrains Mono kickers.
+       ============================================================ */
+    :root {
+      --paper:        #0c1726;
+      --paper-2:      #142235;
+      --paper-3:      #1c2d44;
+      --ink:          #f4ecd6;
+      --ink-2:        #e9dfc4;
+      --muted:        rgba(244, 236, 214, 0.62);
+      --faint:        rgba(244, 236, 214, 0.40);
+
+      --gold:         #fecc02;
+      --gold-soft:    #fde08c;
+      --berry:        #d24a6a;
+      --frost:        #7eb6d3;
+      --pine:         #6fb38a;
+
+      --line:         rgba(244, 236, 214, 0.12);
+      --line-strong:  rgba(244, 236, 214, 0.26);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Inter", "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      word-break: keep-all;
+      overflow-x: hidden;
+    }
+
+    /* paper grain — subtle */
+    body::before {
+      content: "";
+      position: fixed; inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image:
+        radial-gradient(circle at 18% 12%, rgba(254, 204, 2, 0.05), transparent 38%),
+        radial-gradient(circle at 82% 78%, rgba(126, 182, 211, 0.06), transparent 42%);
+      mix-blend-mode: screen;
+    }
+    body::after {
+      content: "";
+      position: fixed; inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.06;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' /%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' /%3E%3C/svg%3E");
+    }
+
+    a { color: inherit; text-decoration: none; }
+    a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+    img { max-width: 100%; display: block; }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 28px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Topbar ── */
+    .topbar {
+      border-bottom: 1px solid var(--line);
+      padding: 18px 0;
+      background: rgba(12, 23, 38, 0.78);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 80;
+    }
+    .topbar .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--ink);
+    }
+    .brand .flag {
+      width: 28px; height: 18px;
+      background: #006aa7;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .brand .flag::before { content: ""; position: absolute; left: 8px; top: 0; bottom: 0; width: 2.5px; background: var(--gold); }
+    .brand .flag::after  { content: ""; position: absolute; left: 0; right: 0; top: 7.5px; height: 2.5px; background: var(--gold); }
+    .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+    .brand-text .name {
+      font-family: "Fraunces", serif;
+      font-weight: 400;
+      font-style: italic;
+      font-size: 18px;
+      letter-spacing: -0.01em;
+    }
+    .brand-text .kick {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9.5px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .topbar nav {
+      display: flex;
+      gap: 24px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .topbar nav a {
+      color: var(--muted);
+      transition: color 0.18s;
+    }
+    .topbar nav a:hover { color: var(--gold); }
+    .topbar .back-link {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid transparent;
+      padding-bottom: 1px;
+      transition: color 0.18s, border-color 0.18s;
+    }
+    .topbar .back-link:hover { color: var(--gold); border-bottom-color: var(--gold); }
+    @media (max-width: 720px) {
+      .topbar nav { display: none; }
+    }
+
     /* ── Hero ── */
     .hero {
       position: relative;
-      padding: 72px 0 48px;
-      text-align: center;
+      padding: 100px 0 72px;
       overflow: hidden;
     }
-    .hero::before {
-      content: "";
-      position: absolute;
-      inset: -40px;
-      background:
-        radial-gradient(600px 300px at 30% 30%, rgba(254,204,2,0.18), transparent 60%),
-        radial-gradient(500px 280px at 80% 60%, rgba(0,106,167,0.45), transparent 65%);
-      filter: blur(20px);
-      z-index: 0;
-      pointer-events: none;
+    .hero-stamps {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
     }
-    .hero-inner { position: relative; z-index: 1; }
-    .badge {
+    .hero-stamps .dot {
+      display: inline-block;
+      width: 4px; height: 4px; border-radius: 50%;
+      background: var(--gold);
+      vertical-align: middle;
+      margin: 0 6px;
+    }
+    .hero-stamps .city {
+      border: 1px solid var(--line-strong);
+      padding: 4px 9px;
+      border-radius: 2px;
+      letter-spacing: 0.22em;
+    }
+    .hero h1 {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: clamp(48px, 9vw, 128px);
+      line-height: 0.96;
+      letter-spacing: -0.02em;
+      margin-bottom: 22px;
+    }
+    .hero h1 em {
+      font-style: italic;
+      color: var(--gold);
+      font-weight: 400;
+    }
+    .hero h1 .breaker { display: block; }
+    .hero .deck {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: clamp(20px, 2.4vw, 28px);
+      color: var(--ink-2);
+      max-width: 720px;
+      line-height: 1.45;
+      margin-bottom: 22px;
+    }
+    .hero .lede {
+      max-width: 580px;
+      color: var(--muted);
+      font-size: 16px;
+      margin-bottom: 38px;
+    }
+    .hero-cta {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 56px;
+    }
+    .btn {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(254,204,2,0.10);
-      color: var(--accent);
-      border: 1px solid rgba(254,204,2,0.32);
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      padding: 6px 14px;
-      margin-bottom: 22px;
-    }
-    .badge .dot {
-      width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
-      box-shadow: 0 0 10px var(--accent);
-      animation: pulse 2s ease-in-out infinite;
-    }
-    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
-    h1 {
-      font-size: clamp(34px, 6vw, 60px);
-      font-weight: 800;
-      letter-spacing: -1px;
-      line-height: 1.15;
-      margin-bottom: 18px;
-    }
-    h1 em {
-      font-style: italic;
-      font-family: "Playfair Display", serif;
-      background: linear-gradient(135deg, var(--sweden-gold), #fff8a8 60%, var(--sweden-gold));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-    .hero p {
-      font-size: 17px;
-      color: var(--muted);
-      max-width: 600px;
-      margin: 0 auto 28px;
-    }
-    .cta-group {
-      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
-      margin-bottom: 12px;
-    }
-    .btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 12px 22px;
-      border-radius: 999px;
-      font-size: 15px; font-weight: 700;
-      transition: transform .15s, box-shadow .15s, opacity .15s;
+      padding: 13px 22px;
+      border: 1px solid var(--line-strong);
+      background: transparent;
+      color: var(--ink);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11.5px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
       cursor: pointer;
-      border: 0;
-      font-family: inherit;
+      transition: background 0.18s, color 0.18s, border-color 0.18s, transform 0.12s;
     }
-    .btn:hover { text-decoration: none; transform: translateY(-1px); }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--sweden-gold), #ffe17a);
+    .btn:hover { background: rgba(244, 236, 214, 0.06); border-color: var(--gold); color: var(--gold); }
+    .btn:active { transform: translateY(1px); }
+    .btn.primary {
+      background: var(--gold);
       color: #1a1200;
-      box-shadow: 0 6px 22px rgba(254,204,2,0.30);
+      border-color: var(--gold);
+      font-weight: 600;
     }
-    .btn-secondary {
-      background: rgba(255,255,255,0.06);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-    .btn-secondary:hover { background: rgba(255,255,255,0.10); }
+    .btn.primary:hover { background: var(--gold-soft); color: #1a1200; border-color: var(--gold-soft); }
+    .btn .arrow { font-family: "Fraunces", serif; font-style: italic; text-transform: none; letter-spacing: 0; font-size: 14px; }
 
-    .hero-stats {
-      display: flex; gap: 24px; justify-content: center; flex-wrap: wrap;
-      margin-top: 36px;
-      font-size: 13px; color: var(--faint);
+    .hero-meta {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 22px 0;
     }
-    .hero-stats .stat strong {
-      display: block; color: var(--accent); font-size: 22px; font-weight: 800;
+    .hero-meta .item {
+      padding: 0 8px;
+      border-right: 1px solid var(--line);
+    }
+    .hero-meta .item:last-child { border-right: 0; }
+    .hero-meta .k {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .hero-meta .v {
+      font-family: "Fraunces", serif;
+      font-weight: 300;
+      font-size: 28px;
+      letter-spacing: -0.01em;
+    }
+    .hero-meta .v em {
+      font-style: italic;
+      color: var(--gold);
+    }
+    @media (max-width: 720px) {
+      .hero { padding: 64px 0 48px; }
+      .hero-meta { grid-template-columns: repeat(2, 1fr); }
+      .hero-meta .item { padding: 12px 8px; border-bottom: 1px solid var(--line); }
+      .hero-meta .item:nth-child(2) { border-right: 0; }
+      .hero-meta .item:nth-child(3),
+      .hero-meta .item:nth-child(4) { border-bottom: 0; }
     }
 
-    section.block { padding: 56px 0 24px; }
-    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
-    .section-label {
-      font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
-      color: var(--accent); margin-bottom: 6px;
+    /* ── Sections ── */
+    section.block { padding: 84px 0 48px; }
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+      align-items: end;
+      gap: 32px;
+      margin-bottom: 36px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid var(--line);
+    }
+    .section-head .left { min-width: 0; }
+    .section-kicker {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 14px;
+    }
+    .section-kicker .num {
+      color: var(--muted);
+      margin-right: 12px;
     }
     .section-head h2 {
-      font-size: clamp(24px, 4vw, 34px);
-      font-weight: 800; letter-spacing: -0.5px;
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: clamp(32px, 5vw, 56px);
+      line-height: 1.05;
+      letter-spacing: -0.015em;
     }
-    .section-head .lead { color: var(--muted); font-size: 14px; max-width: 480px; }
-
-    /* ── Filters ── */
-    .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
-    .chip {
-      background: var(--raised);
-      border: 1px solid var(--border);
+    .section-head h2 em {
+      font-style: italic;
+      color: var(--gold);
+      font-weight: 400;
+    }
+    .section-head .lead {
       color: var(--muted);
-      padding: 8px 14px;
-      border-radius: 999px;
-      font-size: 13px; font-weight: 600;
+      font-size: 14.5px;
+      line-height: 1.65;
+      max-width: 380px;
+      justify-self: end;
+      text-align: left;
+    }
+    @media (max-width: 720px) {
+      .section-head { grid-template-columns: 1fr; gap: 16px; }
+      .section-head .lead { justify-self: start; }
+    }
+
+    /* ── City filter strip ── */
+    .city-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+      margin-bottom: 18px;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .chip {
+      background: transparent;
+      border: 0;
+      border-right: 1px solid var(--line);
+      color: var(--muted);
+      padding: 14px 22px;
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 400;
+      font-size: 16px;
       cursor: pointer;
-      transition: all .15s;
-      font-family: inherit;
+      transition: color 0.18s, background 0.18s;
+      letter-spacing: -0.005em;
     }
-    .chip:hover { color: var(--text); border-color: var(--accent); }
+    .chip:last-child { border-right: 0; }
+    .chip:hover { color: var(--ink); background: rgba(244, 236, 214, 0.04); }
     .chip.active {
-      background: var(--accent); color: #1a1200;
-      border-color: var(--accent);
-      box-shadow: 0 4px 18px rgba(254,204,2,0.28);
+      color: var(--gold);
+      font-style: italic;
+      background: rgba(254, 204, 2, 0.06);
     }
-    .chip .count { opacity: 0.65; margin-left: 6px; font-weight: 500; }
-    .chip.active .count { opacity: 0.7; color: #1a1200; }
+    .chip .count {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      font-style: normal;
+      letter-spacing: 0.1em;
+      margin-left: 8px;
+      color: var(--faint);
+      vertical-align: middle;
+    }
+    .chip.active .count { color: var(--gold-soft); }
 
     .filter-row {
-      display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center;
-      padding: 12px 14px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      margin-bottom: 22px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      padding: 18px 0 22px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--line);
     }
     .filter-row label {
-      font-size: 12px; color: var(--faint); font-weight: 600;
-      text-transform: uppercase; letter-spacing: 1px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
     }
-    .filter-row select, .filter-row .search {
-      background: var(--raised);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 12px;
+    .filter-row select,
+    .filter-row .search {
+      background: transparent;
+      color: var(--ink);
+      border: 0;
+      border-bottom: 1px solid var(--line-strong);
+      border-radius: 0;
+      padding: 6px 4px;
       font-family: inherit;
-      font-size: 13px;
+      font-size: 14px;
+      font-weight: 500;
     }
-    .filter-row .search { flex: 1; min-width: 180px; }
-    .filter-row .search:focus, .filter-row select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .filter-row select option { background: var(--paper-2); color: var(--ink); }
+    .filter-row .search {
+      flex: 1;
+      min-width: 200px;
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-size: 16px;
+    }
+    .filter-row .search::placeholder {
+      font-style: italic;
+      color: var(--faint);
+    }
+    .filter-row .search:focus,
+    .filter-row select:focus {
+      outline: none;
+      border-bottom-color: var(--gold);
+    }
 
-    /* ── Restaurant grid ── */
+    /* ── Restaurant cards ── */
     .resto-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 0;
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
     }
     .resto {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
+      background: transparent;
+      border: 0;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 26px 26px 24px;
       cursor: pointer;
-      transition: transform .18s, border-color .18s, box-shadow .18s;
+      transition: background 0.2s;
       text-align: left;
       font-family: inherit;
       color: inherit;
-      display: flex; flex-direction: column; gap: 12px;
+      display: flex; flex-direction: column;
       position: relative;
-      overflow: hidden;
     }
-    .resto::before {
+    .resto:hover { background: rgba(244, 236, 214, 0.035); }
+    .resto::after {
       content: "";
-      position: absolute; inset: 0;
-      background: linear-gradient(135deg, transparent 60%, rgba(254,204,2,0.05));
-      pointer-events: none;
+      position: absolute;
+      left: 26px; right: 26px;
+      bottom: 24px;
+      height: 1px;
+      background: transparent;
+      transition: background 0.2s;
     }
-    .resto:hover {
-      transform: translateY(-2px);
-      border-color: var(--accent);
-      box-shadow: 0 12px 30px rgba(0,0,0,0.32), 0 0 0 1px rgba(254,204,2,0.15);
+    .resto:hover::after { background: var(--gold); }
+
+    .resto-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
     }
-    .resto-head { display: flex; align-items: start; justify-content: space-between; gap: 10px; }
-    .resto h3 { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
-    .resto .ko { font-size: 12px; color: var(--faint); margin-top: 2px; font-weight: 500; }
-    .resto .price {
+    .resto-num {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      color: var(--muted);
+      letter-spacing: 0.14em;
       flex-shrink: 0;
-      font-family: "SF Mono", monospace;
-      font-size: 11px; font-weight: 700;
-      background: var(--raised);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 4px 8px;
-      color: var(--accent);
     }
-    .resto .meta { display: flex; flex-wrap: wrap; gap: 6px; font-size: 11px; }
+    .resto-price {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--gold);
+      letter-spacing: 0.14em;
+      flex-shrink: 0;
+    }
+    .resto h3 {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 400;
+      font-size: 24px;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+    }
+    .resto h3 .ko-name {
+      display: block;
+      font-style: italic;
+      font-size: 14.5px;
+      color: var(--muted);
+      font-weight: 300;
+      margin-top: 4px;
+    }
+    .resto-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 12px 0 14px;
+    }
     .tag {
       display: inline-block;
-      padding: 3px 9px;
-      border-radius: 999px;
-      background: rgba(74,144,217,0.14);
-      color: #9ec3ec;
-      border: 1px solid rgba(74,144,217,0.28);
-      font-weight: 600;
+      padding: 3px 8px;
+      border: 1px solid var(--line-strong);
+      border-radius: 0;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9.5px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
     }
-    .tag.must  { background: rgba(254,204,2,0.14); color: var(--accent); border-color: rgba(254,204,2,0.32); }
-    .tag.veg   { background: rgba(34,197,94,0.14); color: #6ee7a3; border-color: rgba(34,197,94,0.32); }
-    .tag.fika  { background: rgba(200,56,90,0.16); color: #ff96ad; border-color: rgba(200,56,90,0.36); }
-    .resto p.desc { color: var(--muted); font-size: 13px; line-height: 1.65; }
-    .resto .footline {
-      display: flex; justify-content: space-between; align-items: center;
-      font-size: 12px; color: var(--faint);
+    .tag.must  { color: var(--gold);   border-color: rgba(254, 204, 2, 0.42); }
+    .tag.veg   { color: var(--pine);   border-color: rgba(111, 179, 138, 0.42); }
+    .tag.fika  { color: var(--berry);  border-color: rgba(210, 74, 106, 0.42); }
+    .tag.frost { color: var(--frost);  border-color: rgba(126, 182, 211, 0.42); }
+    .resto-desc {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.65;
+      flex: 1;
+      margin-bottom: 18px;
     }
-    .stars { color: var(--accent); letter-spacing: 1px; }
+    .resto-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+    .stars { color: var(--gold); letter-spacing: 1.5px; font-size: 11px; }
+    .stars .empty { color: rgba(254, 204, 2, 0.18); }
+    .resto-link {
+      font-family: "Fraunces", serif;
+      font-style: italic;
+      font-size: 13px;
+      letter-spacing: 0;
+      color: var(--ink);
+      text-transform: none;
+    }
+    .resto:hover .resto-link { color: var(--gold); }
 
-    /* ── Modal ── */
-    .modal-back {
-      position: fixed; inset: 0;
-      background: rgba(5,12,22,0.70);
-      backdrop-filter: blur(6px);
-      display: none;
-      align-items: center; justify-content: center;
-      padding: 20px; z-index: 100;
-      animation: fadeIn .2s ease;
+    .empty-state {
+      grid-column: 1 / -1;
+      padding: 48px 28px;
+      text-align: center;
+      color: var(--muted);
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-size: 17px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
     }
-    .modal-back.open { display: flex; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    .modal {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      max-width: 540px; width: 100%;
-      max-height: 86vh; overflow-y: auto;
-      padding: 28px; position: relative;
-      animation: popIn .25s cubic-bezier(.2,.9,.3,1.2);
-    }
-    @keyframes popIn { from { transform: scale(.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-    .modal h3 { font-size: 26px; margin-bottom: 4px; }
-    .modal .ko-sub { color: var(--accent); font-size: 14px; margin-bottom: 12px; font-weight: 600; }
-    .modal .desc-full { color: var(--muted); font-size: 14px; line-height: 1.75; margin-bottom: 18px; }
-    .modal .info-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-      background: var(--raised); border-radius: 10px; padding: 14px;
-      font-size: 13px; margin-bottom: 18px;
-    }
-    .modal .info-grid div span:first-child {
-      display: block; font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 2px;
-    }
-    .modal .signature {
-      background: linear-gradient(135deg, rgba(254,204,2,0.10), rgba(0,106,167,0.12));
-      border: 1px solid rgba(254,204,2,0.25);
-      border-radius: 10px;
-      padding: 14px 16px;
-      margin-bottom: 16px;
-    }
-    .modal .signature h4 {
-      font-size: 12px; color: var(--accent); text-transform: uppercase;
-      letter-spacing: 1px; font-weight: 800; margin-bottom: 6px;
-    }
-    .modal .tip {
-      background: rgba(255,138,61,0.08);
-      border-left: 3px solid var(--warm);
-      padding: 10px 14px;
-      font-size: 13px; color: var(--muted);
-      border-radius: 0 8px 8px 0;
-    }
-    .modal-close {
-      position: absolute; top: 14px; right: 14px;
-      width: 34px; height: 34px;
-      background: var(--raised); border: 1px solid var(--border);
-      border-radius: 50%; color: var(--text);
-      font-size: 18px; cursor: pointer;
-      font-family: inherit;
-      display: flex; align-items: center; justify-content: center;
-      transition: all .15s;
-    }
-    .modal-close:hover { background: var(--berry); border-color: var(--berry); color: #fff; }
 
     /* ── Tabs ── */
     .tabs {
-      display: flex; gap: 6px;
-      background: var(--surface);
-      padding: 6px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      margin-bottom: 24px;
+      display: flex;
+      gap: 0;
       flex-wrap: wrap;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 32px;
     }
     .tab {
-      flex: 1; min-width: 100px;
-      padding: 10px 14px;
-      border: 0; background: transparent;
+      background: transparent;
+      border: 0;
+      border-bottom: 2px solid transparent;
       color: var(--muted);
-      font-family: inherit; font-size: 13px; font-weight: 700;
-      border-radius: 8px;
+      padding: 12px 20px 14px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
       cursor: pointer;
-      transition: all .15s;
+      transition: color 0.18s, border-color 0.18s;
+      margin-bottom: -1px;
     }
-    .tab:hover { color: var(--text); }
+    .tab:hover { color: var(--ink); }
     .tab.active {
-      background: var(--accent); color: #1a1200;
-      box-shadow: 0 2px 10px rgba(254,204,2,0.25);
+      color: var(--gold);
+      border-bottom-color: var(--gold);
     }
-    .tab-panel { display: none; animation: fadeIn .25s ease; }
+    .tab-panel { display: none; animation: fadeIn 0.3s ease; }
     .tab-panel.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
     /* ── Dish cards ── */
     .dish-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 0;
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
     }
     .dish {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px;
-      transition: transform .18s, border-color .18s;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 24px 22px;
+      transition: background 0.2s;
     }
-    .dish:hover { transform: translateY(-2px); border-color: var(--accent); }
-    .dish .emoji { font-size: 32px; line-height: 1; margin-bottom: 8px; }
-    .dish h4 { font-size: 16px; font-weight: 800; }
-    .dish .ko { font-size: 12px; color: var(--accent); font-weight: 600; margin-bottom: 8px; }
-    .dish p { color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .dish:hover { background: rgba(244, 236, 214, 0.035); }
+    .dish-glyph {
+      width: 44px; height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Fraunces", serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: 30px;
+      color: var(--gold);
+      border: 1px solid rgba(254, 204, 2, 0.32);
+      border-radius: 50%;
+      margin-bottom: 14px;
+      letter-spacing: -0.02em;
+    }
+    .dish h4 {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 400;
+      font-size: 21px;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      margin-bottom: 4px;
+    }
+    .dish .ko {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-size: 13.5px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      font-weight: 300;
+    }
+    .dish p {
+      color: var(--muted);
+      font-size: 13.5px;
+      line-height: 1.65;
+    }
     .dish .heat {
-      margin-top: 10px; font-size: 11px; color: var(--faint);
-      display: flex; gap: 4px; align-items: center;
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9.5px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
     }
-    .heat-dots { display: inline-flex; gap: 3px; }
-    .heat-dots b { width: 8px; height: 8px; border-radius: 50%; background: var(--border); display: block; }
-    .heat-dots b.on { background: var(--accent); }
+    .heat-dots {
+      display: inline-flex;
+      gap: 4px;
+    }
+    .heat-dots b {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--line-strong);
+      display: block;
+    }
+    .heat-dots b.on { background: var(--gold); }
+
+    /* ── Itinerary ── */
+    .day-tabs {
+      gap: 0;
+    }
+    .day {
+      display: none;
+      padding: 32px 28px;
+      border: 1px solid var(--line);
+      background: rgba(244, 236, 214, 0.025);
+    }
+    .day.active { display: block; animation: fadeIn 0.3s ease; }
+    .day-head {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 22px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .day-num {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+    .day h3 {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 400;
+      font-size: 28px;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      flex: 1;
+      min-width: 220px;
+    }
+    .day h3 em {
+      font-style: italic;
+      color: var(--gold);
+    }
+    .day .summary {
+      color: var(--muted);
+      font-size: 14px;
+      font-style: italic;
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      max-width: 320px;
+    }
+    .timeline {
+      position: relative;
+      padding-left: 26px;
+    }
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 5px; top: 8px; bottom: 8px;
+      width: 1px;
+      background: linear-gradient(var(--gold) 0%, var(--gold) 35%, var(--line) 100%);
+    }
+    .slot {
+      position: relative;
+      padding-bottom: 22px;
+    }
+    .slot:last-child { padding-bottom: 0; }
+    .slot::before {
+      content: "";
+      position: absolute;
+      left: -25px; top: 7px;
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      background: var(--paper);
+      border: 2px solid var(--gold);
+    }
+    .slot .time {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--gold);
+      letter-spacing: 0.14em;
+      margin-bottom: 4px;
+    }
+    .slot h4 {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 500;
+      font-size: 17px;
+      letter-spacing: -0.005em;
+      margin-bottom: 4px;
+    }
+    .slot p {
+      color: var(--muted);
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
 
     /* ── Etiquette ── */
-    .etiq-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+    .etiq-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 0;
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+    }
     .etiq {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 20px;
-      display: flex; gap: 14px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 24px 26px;
+      display: flex;
+      gap: 18px;
     }
     .etiq .num {
-      flex-shrink: 0; width: 36px; height: 36px;
-      border-radius: 50%;
-      background: rgba(254,204,2,0.15); color: var(--accent);
-      font-weight: 800;
-      display: flex; align-items: center; justify-content: center;
-      border: 1px solid rgba(254,204,2,0.30);
+      flex-shrink: 0;
+      font-family: "Fraunces", serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: 32px;
+      color: var(--gold);
+      line-height: 1;
+      width: 36px;
     }
-    .etiq h4 { font-size: 15px; margin-bottom: 4px; }
-    .etiq p { color: var(--muted); font-size: 13px; }
+    .etiq h4 {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 500;
+      font-size: 16px;
+      letter-spacing: -0.005em;
+      margin-bottom: 6px;
+    }
+    .etiq p {
+      color: var(--muted);
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
 
-    /* ── Phrasebook ── */
+    /* ── Phrasebook (passport-style) ── */
     .phrases {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
+      border: 1px solid var(--line);
+      background: rgba(244, 236, 214, 0.025);
     }
     .phrase {
       display: grid;
-      grid-template-columns: 1fr 1fr auto;
-      gap: 10px;
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--border);
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) auto;
+      gap: 16px;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line);
       align-items: center;
     }
     .phrase:last-child { border-bottom: 0; }
-    .phrase:hover { background: rgba(254,204,2,0.04); }
-    .phrase .sv { font-weight: 700; color: var(--text); font-size: 15px; }
-    .phrase .sv small { color: var(--faint); font-weight: 500; font-size: 12px; display: block; margin-top: 2px; }
-    .phrase .ko { color: var(--muted); font-size: 14px; }
+    .phrase:hover { background: rgba(254, 204, 2, 0.04); }
+    .phrase .sv {
+      font-family: "Fraunces", serif;
+      font-weight: 500;
+      font-size: 18px;
+      letter-spacing: -0.005em;
+      color: var(--ink);
+    }
+    .phrase .sv small {
+      display: block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      color: var(--faint);
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      margin-top: 4px;
+    }
+    .phrase .ko {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: 16px;
+      color: var(--ink-2);
+    }
     .phrase .play {
-      width: 34px; height: 34px;
+      width: 36px; height: 36px;
       border-radius: 50%;
-      background: var(--raised); border: 1px solid var(--border);
-      color: var(--accent);
-      cursor: pointer; font-size: 14px;
-      display: flex; align-items: center; justify-content: center;
-      transition: all .15s; font-family: inherit;
+      background: transparent;
+      border: 1px solid var(--line-strong);
+      color: var(--gold);
+      cursor: pointer;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.18s;
+      font-family: inherit;
     }
-    .phrase .play:hover { background: var(--accent); color: #1a1200; border-color: var(--accent); }
-
-    /* ── Itinerary ── */
-    .day-tabs { margin-bottom: 16px; }
-    .day {
-      display: none;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 22px;
+    .phrase .play:hover {
+      background: var(--gold);
+      color: #1a1200;
+      border-color: var(--gold);
     }
-    .day.active { display: block; animation: fadeIn .25s ease; }
-    .day h3 { font-size: 19px; margin-bottom: 4px; }
-    .day .summary { color: var(--muted); font-size: 13px; margin-bottom: 16px; }
-    .timeline { position: relative; padding-left: 24px; }
-    .timeline::before {
-      content: ""; position: absolute; left: 7px; top: 6px; bottom: 6px;
-      width: 2px; background: linear-gradient(var(--accent), transparent);
+    @media (max-width: 600px) {
+      .phrase {
+        grid-template-columns: 1fr auto;
+        row-gap: 8px;
+      }
+      .phrase .ko { grid-column: 1 / 2; }
+      .phrase .play { grid-row: 1 / 3; align-self: start; }
     }
-    .slot { position: relative; padding-bottom: 16px; }
-    .slot::before {
-      content: ""; position: absolute; left: -22px; top: 5px;
-      width: 12px; height: 12px; border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 0 4px rgba(254,204,2,0.18);
-    }
-    .slot .time { font-size: 12px; color: var(--accent); font-weight: 700; }
-    .slot h4 { font-size: 15px; margin: 2px 0 4px; }
-    .slot p { color: var(--muted); font-size: 13px; }
-
-    /* ── Budget ── */
-    .budget {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 22px;
-    }
-    .budget-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
-    .budget-row label { font-size: 14px; font-weight: 600; }
-    .budget-row .control { flex: 1; min-width: 180px; display: flex; align-items: center; gap: 10px; }
-    .budget-row input[type=range] { flex: 1; accent-color: var(--accent); }
-    .budget-row .val {
-      font-family: "SF Mono", monospace;
-      font-weight: 700; font-size: 14px;
-      color: var(--accent);
-      min-width: 56px; text-align: right;
-    }
-    .budget-out {
-      margin-top: 18px;
-      padding: 18px;
-      background: linear-gradient(135deg, rgba(254,204,2,0.10), rgba(0,106,167,0.14));
-      border: 1px solid rgba(254,204,2,0.25);
-      border-radius: 12px;
-      text-align: center;
-    }
-    .budget-out .total {
-      font-size: 38px; font-weight: 800; letter-spacing: -1px;
-      background: linear-gradient(135deg, var(--sweden-gold), #fff);
-      -webkit-background-clip: text; background-clip: text;
-      color: transparent;
-    }
-    .budget-out .sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
 
     /* ── Quiz ── */
     .quiz {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px;
+      border: 1px solid var(--line);
+      background: rgba(244, 236, 214, 0.025);
+      padding: 32px;
     }
-    .quiz .qprompt { font-weight: 700; font-size: 16px; margin-bottom: 14px; }
-    .quiz .opts { display: grid; gap: 8px; margin-bottom: 14px; }
+    .quiz .qprogress {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 14px;
+    }
+    .quiz .qprompt {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 400;
+      font-size: 22px;
+      line-height: 1.35;
+      letter-spacing: -0.005em;
+      margin-bottom: 22px;
+    }
+    .quiz .opts {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
     .quiz .opt {
       text-align: left;
-      padding: 12px 14px;
-      background: var(--raised);
-      border: 1px solid var(--border);
-      border-radius: 10px;
+      padding: 14px 18px;
+      background: transparent;
+      border: 1px solid var(--line-strong);
+      color: var(--ink);
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-size: 16px;
       cursor: pointer;
-      font-family: inherit;
-      font-size: 14px; color: var(--text);
-      transition: all .15s;
+      transition: all 0.15s;
     }
-    .quiz .opt:hover { border-color: var(--accent); }
-    .quiz .opt.correct { background: rgba(34,197,94,0.18); border-color: #22c55e; color: #d4f7dd; }
-    .quiz .opt.wrong   { background: rgba(200,56,90,0.18); border-color: var(--berry); color: #ffd0db; }
+    .quiz .opt:hover { background: rgba(244, 236, 214, 0.06); border-color: var(--gold); color: var(--gold); }
+    .quiz .opt.correct { background: rgba(111, 179, 138, 0.14); border-color: var(--pine); color: var(--pine); }
+    .quiz .opt.wrong   { background: rgba(210, 74, 106, 0.12); border-color: var(--berry); color: var(--berry); }
+    .quiz .opt:disabled { cursor: default; }
     .quiz .feedback {
-      font-size: 13px; color: var(--muted);
-      padding: 12px 14px; background: var(--raised); border-radius: 10px;
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-size: 15px;
+      color: var(--muted);
+      padding: 14px 18px;
+      border-left: 2px solid var(--gold);
+      background: rgba(254, 204, 2, 0.04);
       display: none;
     }
     .quiz .feedback.show { display: block; }
-    .quiz .progress {
-      font-size: 12px; color: var(--faint);
-      letter-spacing: 1px; text-transform: uppercase; font-weight: 700;
-      margin-bottom: 8px;
-    }
     .quiz-next {
-      margin-top: 12px;
-      padding: 8px 16px;
-      background: var(--accent); color: #1a1200;
-      border: 0; border-radius: 8px;
-      font-weight: 700; cursor: pointer;
-      font-family: inherit;
-      display: none;
+      margin-top: 16px;
     }
-    .quiz-next.show { display: inline-block; }
+
+    /* ── Budget ── */
+    .budget {
+      border: 1px solid var(--line);
+      background: rgba(244, 236, 214, 0.025);
+      padding: 32px;
+    }
+    .budget-row {
+      display: grid;
+      grid-template-columns: minmax(140px, 1fr) minmax(0, 2.4fr) auto;
+      align-items: center;
+      gap: 20px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .budget-row:last-of-type { border-bottom: 0; }
+    .budget-row label {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 400;
+      font-size: 16px;
+    }
+    .budget-row input[type=range] {
+      width: 100%;
+      accent-color: var(--gold);
+    }
+    .budget-row .val {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 500;
+      font-size: 13px;
+      color: var(--gold);
+      letter-spacing: 0.06em;
+      min-width: 64px;
+      text-align: right;
+    }
+    .budget-out {
+      margin-top: 22px;
+      padding: 28px;
+      border: 1px solid rgba(254, 204, 2, 0.36);
+      background: linear-gradient(135deg, rgba(254, 204, 2, 0.06), rgba(126, 182, 211, 0.06));
+      text-align: center;
+    }
+    .budget-out .receipt-kick {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .budget-out .total {
+      font-family: "Fraunces", serif;
+      font-weight: 300;
+      font-size: clamp(40px, 6vw, 62px);
+      letter-spacing: -0.02em;
+      color: var(--gold);
+      line-height: 1;
+    }
+    .budget-out .sub {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-size: 16px;
+      color: var(--ink-2);
+      margin-top: 12px;
+    }
+    @media (max-width: 600px) {
+      .budget { padding: 22px; }
+      .budget-row {
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        gap: 8px 16px;
+      }
+      .budget-row label { grid-column: 1 / 2; }
+      .budget-row .val { grid-column: 2 / 3; grid-row: 1; }
+      .budget-row input[type=range] { grid-column: 1 / 3; grid-row: 2; }
+    }
 
     /* ── Final CTA ── */
     .cta-bottom {
-      margin: 60px 0;
-      padding: 36px 28px;
+      margin: 80px 0 60px;
+      padding: 64px 32px;
       text-align: center;
-      background: linear-gradient(135deg, var(--sweden-blue), #042b4a 70%);
-      border-radius: 18px;
-      border: 1px solid rgba(254,204,2,0.20);
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(600px 300px at 50% 0%, rgba(254, 204, 2, 0.08), transparent 60%),
+        rgba(244, 236, 214, 0.025);
       position: relative;
       overflow: hidden;
     }
-    .cta-bottom::before {
-      content: "";
-      position: absolute; right: -40px; bottom: -60px;
-      width: 200px; height: 200px;
-      background: radial-gradient(circle, var(--sweden-gold), transparent 60%);
-      opacity: 0.25;
+    .cta-bottom .cta-kick {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 18px;
     }
     .cta-bottom h2 {
-      font-family: "Playfair Display", serif;
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: clamp(34px, 5.5vw, 64px);
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+      margin-bottom: 12px;
+    }
+    .cta-bottom h2 em {
       font-style: italic;
-      font-size: clamp(24px, 4vw, 32px);
-      margin-bottom: 10px;
-      position: relative;
+      color: var(--gold);
     }
-    .cta-bottom p { color: rgba(255,255,255,0.78); font-size: 14px; max-width: 480px; margin: 0 auto 18px; position: relative; }
+    .cta-bottom p {
+      color: var(--muted);
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-size: 17px;
+      max-width: 520px;
+      margin: 0 auto 30px;
+    }
 
-    @media (max-width: 480px) {
-      .hero { padding: 56px 0 36px; }
-      h1 { font-size: 32px; }
-      .modal { padding: 22px; }
-      .phrase { grid-template-columns: 1fr auto; }
-      .phrase .ko { grid-column: 1 / -1; }
+    /* ── Modal ── */
+    .modal-back {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 12, 22, 0.78);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 200;
+      animation: fadeBack 0.22s ease;
     }
+    .modal-back.open { display: flex; }
+    @keyframes fadeBack { from { opacity: 0; } to { opacity: 1; } }
+    .modal {
+      background: var(--paper-2);
+      border: 1px solid var(--line-strong);
+      max-width: 580px;
+      width: 100%;
+      max-height: 86vh;
+      overflow-y: auto;
+      padding: 36px 36px 32px;
+      position: relative;
+      animation: popIn 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+    }
+    @keyframes popIn { from { transform: scale(0.96) translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+    .modal-num {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .modal h3 {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 400;
+      font-size: 32px;
+      line-height: 1.08;
+      letter-spacing: -0.015em;
+      margin-bottom: 4px;
+    }
+    .modal .ko-sub {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-weight: 300;
+      color: var(--gold);
+      font-size: 16px;
+      margin-bottom: 16px;
+    }
+    .modal .modal-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .modal .stars-line {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 22px;
+      letter-spacing: 0.06em;
+    }
+    .modal .stars-line .stars { margin-right: 8px; }
+    .modal .signature {
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 16px 0;
+      margin-bottom: 22px;
+    }
+    .modal .signature .label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+    .modal .signature .v {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 400;
+      font-size: 18px;
+      letter-spacing: -0.005em;
+    }
+    .modal .desc-full {
+      color: var(--ink-2);
+      font-size: 15px;
+      line-height: 1.75;
+      margin-bottom: 22px;
+    }
+    .modal .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px 24px;
+      margin-bottom: 22px;
+    }
+    .modal .info-grid div span:first-child {
+      display: block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .modal .info-grid div span:last-child {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-size: 14.5px;
+      color: var(--ink);
+    }
+    .modal .tip {
+      border-left: 2px solid var(--gold);
+      padding: 10px 16px;
+      background: rgba(254, 204, 2, 0.05);
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-size: 14px;
+      color: var(--ink-2);
+      line-height: 1.6;
+    }
+    .modal .tip strong {
+      font-style: normal;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      display: inline-block;
+      margin-right: 8px;
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      width: 36px; height: 36px;
+      background: transparent;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      color: var(--ink);
+      font-size: 18px;
+      cursor: pointer;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.18s;
+    }
+    .modal-close:hover {
+      background: var(--berry);
+      border-color: var(--berry);
+      color: #fff;
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 36px 0 56px;
+      margin-top: 24px;
+    }
+    footer .container {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    footer a {
+      color: var(--muted);
+      transition: color 0.18s;
+    }
+    footer a:hover { color: var(--gold); }
+    footer .footer-links { display: flex; gap: 22px; }
+
+    /* ── Skip link & a11y ── */
     .skip-link {
-      position: absolute; top: -40px; left: 0;
-      background: var(--accent); color: #1a1200;
-      padding: 8px 16px; z-index: 200; font-size: 14px;
-      border-radius: 0 0 12px 0;
+      position: absolute;
+      top: -100px; left: 0;
+      background: var(--gold);
+      color: #1a1200;
+      padding: 8px 16px;
+      z-index: 300;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
     }
     .skip-link:focus { top: 0; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+      html { scroll-behavior: auto; }
+    }
+
+    @media (max-width: 480px) {
+      .container { padding: 0 20px; }
+      .hero { padding: 56px 0 40px; }
+      .modal { padding: 26px 22px 22px; }
+      .modal h3 { font-size: 26px; }
+      section.block { padding: 56px 0 32px; }
+    }
   </style>
 </head>
 <body>
 
   <a href="#main-content" class="skip-link">본문 바로가기</a>
 
-  <nav>
+  <header class="topbar">
     <div class="container">
-      <a href="index.html" class="logo">
+      <a href="../" class="brand">
         <span class="flag" aria-hidden="true"></span>
-        스웨덴 미식<span>.</span>
+        <span class="brand-text">
+          <span class="name">Smaklig <em>Måltid</em></span>
+          <span class="kick">Sweden · Food &amp; Travel</span>
+        </span>
       </a>
-      <div style="display:flex;gap:18px;font-size:14px">
-        <a href="#restaurants" style="color:var(--muted)">맛집</a>
-        <a href="#dishes" style="color:var(--muted)">요리</a>
-        <a href="#tips" style="color:var(--muted)">팁</a>
-      </div>
+      <nav>
+        <a href="#restaurants">Restauranger</a>
+        <a href="#dishes">Mat</a>
+        <a href="#itinerary">Reseplan</a>
+        <a href="#tips">Tips</a>
+        <a href="#budget">Budget</a>
+      </nav>
+      <a href="../" class="back-link">← 인덱스</a>
     </div>
-  </nav>
+  </header>
 
   <main id="main-content">
     <section class="hero">
-      <div class="container hero-inner">
-        <div class="badge"><span class="dot"></span>한국인을 위한 큐레이션 가이드</div>
-        <h1>스웨덴에서 맛보는<br><em>북유럽 미식 여행</em></h1>
-        <p>피카(fika)부터 미트볼, 청어, 시나몬 번까지 — 스톡홀름·예테보리·말뫼의 진짜 맛집을 한국인 입맛 기준으로 골랐습니다.</p>
-        <div class="cta-group">
-          <button class="btn btn-primary" onclick="document.getElementById('restaurants').scrollIntoView({behavior:'smooth'})">
-            맛집 바로 보기 →
+      <div class="container">
+        <div class="hero-stamps">
+          <span class="city">STO · 스톡홀름</span>
+          <span class="city">GOT · 예테보리</span>
+          <span class="city">MAL · 말뫼</span>
+          <span style="margin-left:auto">한국인을 위한 큐레이션 · 2026</span>
+        </div>
+        <h1>
+          <span class="breaker">스웨덴에서 <em>맛보다</em>,</span>
+          <span class="breaker"><em>북유럽</em>의 식탁.</span>
+        </h1>
+        <p class="deck">피카(<em>fika</em>)부터 미트볼, 절인 청어, 시나몬 번까지 — 발트해의 식탁을 한국인 입맛 기준으로 다시 차려놓은 가이드.</p>
+        <p class="lede">스톡홀름·예테보리·말뫼 세 도시의 맛집 24곳, 꼭 먹어봐야 할 16가지 요리, 5일치 미식 코스, 실전 회화와 식사 매너, 그리고 음식 예산 계산기까지. 한 페이지에서 끝나는 식탁용 메모.</p>
+        <div class="hero-cta">
+          <button class="btn primary" onclick="document.getElementById('restaurants').scrollIntoView({behavior:'smooth'})">
+            맛집 바로 보기 <span class="arrow">→</span>
           </button>
-          <button class="btn btn-secondary" onclick="document.getElementById('budget').scrollIntoView({behavior:'smooth'})">
+          <button class="btn" onclick="document.getElementById('budget').scrollIntoView({behavior:'smooth'})">
             예산 계산기
           </button>
         </div>
-        <div class="hero-stats">
-          <div class="stat"><strong>24</strong>큐레이션 맛집</div>
-          <div class="stat"><strong>3</strong>주요 도시</div>
-          <div class="stat"><strong>15+</strong>꼭 먹어야 할 요리</div>
+        <div class="hero-meta">
+          <div class="item"><div class="k">맛집</div><div class="v"><em>24</em></div></div>
+          <div class="item"><div class="k">도시</div><div class="v"><em>3</em></div></div>
+          <div class="item"><div class="k">요리</div><div class="v"><em>16</em></div></div>
+          <div class="item"><div class="k">코스</div><div class="v"><em>5</em><span style="font-size:14px;color:var(--muted);font-style:italic"> 일</span></div></div>
         </div>
       </div>
     </section>
@@ -603,23 +1317,23 @@
 
       <section class="block" id="restaurants">
         <div class="section-head">
-          <div>
-            <div class="section-label">RESTAURANGER · 맛집</div>
-            <h2>도시별 추천 식당</h2>
+          <div class="left">
+            <div class="section-kicker"><span class="num">/ 01</span>RESTAURANGER · 맛집</div>
+            <h2>도시별 <em>추천</em> 식당.</h2>
           </div>
-          <p class="lead">전통 스웨덴 요리부터 미슐랭 별까지. 칩을 눌러 도시·예산·종류로 필터링하세요.</p>
+          <p class="lead">미슐랭 별부터 1882년의 비어홀까지 — 도시·예산·종류로 좁혀 보세요. 카드를 누르면 시그니처 메뉴와 실전 팁이 펼쳐집니다.</p>
         </div>
 
-        <div class="filters" id="cityFilters" role="tablist" aria-label="도시 필터"></div>
+        <div class="city-strip" id="cityFilters" role="tablist" aria-label="도시 필터"></div>
 
         <div class="filter-row">
           <label for="priceFilter">예산</label>
           <select id="priceFilter">
             <option value="all">전체</option>
-            <option value="$">$ (저렴 · 200kr 이하)</option>
-            <option value="$$">$$ (중간 · 200–500kr)</option>
-            <option value="$$$">$$$ (고급 · 500–900kr)</option>
-            <option value="$$$$">$$$$ (파인다이닝 · 900kr+)</option>
+            <option value="$">$ 저렴 · 200kr 이하</option>
+            <option value="$$">$$ 중간 · 200–500kr</option>
+            <option value="$$$">$$$ 고급 · 500–900kr</option>
+            <option value="$$$$">$$$$ 파인다이닝 · 900kr+</option>
           </select>
           <label for="typeFilter">종류</label>
           <select id="typeFilter">
@@ -635,84 +1349,89 @@
         </div>
 
         <div class="resto-grid" id="restoGrid"></div>
-        <p id="emptyState" style="display:none;text-align:center;padding:32px;color:var(--faint)">조건에 맞는 식당이 없어요. 필터를 바꿔보세요.</p>
+        <p id="emptyState" class="empty-state" style="display:none">조건에 맞는 식당이 없어요. 필터를 바꿔 보세요.</p>
       </section>
 
       <section class="block" id="dishes">
         <div class="section-head">
-          <div>
-            <div class="section-label">SVENSK MAT · 요리</div>
-            <h2>꼭 먹어봐야 할 스웨덴 음식</h2>
+          <div class="left">
+            <div class="section-kicker"><span class="num">/ 02</span>SVENSK MAT · 요리</div>
+            <h2>꼭 먹어봐야 할 <em>스웨덴</em> 음식.</h2>
           </div>
-          <p class="lead">한국인이 좋아할 만한 익숙함부터 도전 메뉴까지.</p>
+          <p class="lead">한국인 입맛에 친숙한 메뉴부터 도전 메뉴까지. 첫 글자 이니셜은 스웨덴어 알파벳 그대로.</p>
         </div>
 
         <div class="tabs" role="tablist">
-          <button class="tab active" data-tab="main" role="tab">메인 요리</button>
-          <button class="tab" data-tab="seafood" role="tab">해산물</button>
-          <button class="tab" data-tab="sweet" role="tab">디저트·피카</button>
-          <button class="tab" data-tab="drink" role="tab">음료</button>
+          <button class="tab active" data-tab="main" role="tab">Huvudrätt · 메인</button>
+          <button class="tab" data-tab="seafood" role="tab">Skaldjur · 해산물</button>
+          <button class="tab" data-tab="sweet" role="tab">Fika · 디저트</button>
+          <button class="tab" data-tab="drink" role="tab">Dryck · 음료</button>
         </div>
 
         <div class="tab-panel active" id="panel-main">
           <div class="dish-grid">
-            <div class="dish"><div class="emoji">🍝</div><h4>Köttbullar</h4><div class="ko">셰트불라 · 스웨덴 미트볼</div><p>크림 그레이비 + 으깬 감자 + 링곤베리 잼. 한국 떡갈비 좋아하면 무조건 OK.</p></div>
-            <div class="dish"><div class="emoji">🥘</div><h4>Pyttipanna</h4><div class="ko">퓟티판나 · 스웨덴식 볶음밥</div><p>감자·소시지·양파를 깍둑 썰어 볶고 위에 달걀프라이. 한국 볶음밥 감성.</p></div>
-            <div class="dish"><div class="emoji">🥩</div><h4>Raggmunk</h4><div class="ko">라그문크 · 감자전</div><p>감자전 + 베이컨 + 링곤베리. 김치만 있으면 한국 감자전이라 우길 비주얼.</p></div>
-            <div class="dish"><div class="emoji">🦌</div><h4>Renskav</h4><div class="ko">렌스카브 · 순록 스튜</div><p>북부 라플란드 명물. 부드러운 순록 + 크림 소스 + 으깬 감자.</p></div>
+            <div class="dish"><div class="dish-glyph">K</div><h4>Köttbullar</h4><div class="ko">셰트불라 · 스웨덴 미트볼</div><p>크림 그레이비 + 으깬 감자 + 링곤베리 잼. 한국 떡갈비 좋아하면 무조건 OK.</p></div>
+            <div class="dish"><div class="dish-glyph">P</div><h4>Pyttipanna</h4><div class="ko">퓟티판나 · 스웨덴식 볶음밥</div><p>감자·소시지·양파를 깍둑 썰어 볶고 위에 달걀프라이. 한국 볶음밥 감성.</p></div>
+            <div class="dish"><div class="dish-glyph">R</div><h4>Raggmunk</h4><div class="ko">라그문크 · 감자전</div><p>감자전 + 베이컨 + 링곤베리. 김치만 있으면 한국 감자전이라 우길 비주얼.</p></div>
+            <div class="dish"><div class="dish-glyph">R</div><h4>Renskav</h4><div class="ko">렌스카브 · 순록 스튜</div><p>북부 라플란드 명물. 부드러운 순록 + 크림 소스 + 으깬 감자.</p></div>
           </div>
         </div>
 
         <div class="tab-panel" id="panel-seafood">
           <div class="dish-grid">
-            <div class="dish"><div class="emoji">🐟</div><h4>Gravlax</h4><div class="ko">그라블락스 · 절인 연어</div><p>딜·소금·설탕에 절인 생연어. 머스타드-딜 소스가 핵심. 회 좋아하면 강추.</p></div>
-            <div class="dish"><div class="emoji">🍣</div><h4>Toast Skagen</h4><div class="ko">토스트 스카겐 · 새우 토스트</div><p>구운 빵 위에 새우+마요+딜+캐비어. 와인 한 잔과 환상 페어링.</p></div>
-            <div class="dish"><div class="emoji">🐠</div><h4>Surströmming</h4><div class="ko">수르스트뢰밍 · 발효 청어</div><p>세계에서 가장 냄새나는 음식. 도전자만! 식초·양파와 플랫브레드에 싸 먹기.</p><div class="heat"><span>도전도</span><span class="heat-dots"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b></span></div></div>
-            <div class="dish"><div class="emoji">🦞</div><h4>Skaldjurssoppa</h4><div class="ko">스칼류르스소파 · 해산물 수프</div><p>새우·홍합·랍스터로 끓인 진한 크림 수프. 차가운 북유럽 밤에 최고.</p></div>
+            <div class="dish"><div class="dish-glyph">G</div><h4>Gravlax</h4><div class="ko">그라블락스 · 절인 연어</div><p>딜·소금·설탕에 절인 생연어. 머스타드-딜 소스가 핵심. 회 좋아하면 강추.</p></div>
+            <div class="dish"><div class="dish-glyph">T</div><h4>Toast Skagen</h4><div class="ko">토스트 스카겐 · 새우 토스트</div><p>구운 빵 위에 새우 + 마요 + 딜 + 캐비어. 와인 한 잔과 환상 페어링.</p></div>
+            <div class="dish"><div class="dish-glyph">S</div><h4>Surströmming</h4><div class="ko">수르스트뢰밍 · 발효 청어</div><p>세계에서 가장 냄새나는 음식. 도전자만! 식초·양파와 플랫브레드에 싸 먹기.</p><div class="heat"><span>도전도</span><span class="heat-dots"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b></span></div></div>
+            <div class="dish"><div class="dish-glyph">S</div><h4>Skaldjurssoppa</h4><div class="ko">스칼류르스소파 · 해산물 수프</div><p>새우·홍합·랍스터로 끓인 진한 크림 수프. 차가운 북유럽 밤에 최고.</p></div>
           </div>
         </div>
 
         <div class="tab-panel" id="panel-sweet">
           <div class="dish-grid">
-            <div class="dish"><div class="emoji">🥐</div><h4>Kanelbulle</h4><div class="ko">카넬불레 · 시나몬 번</div><p>10월 4일은 '시나몬 번의 날'. 카르다몸 향이 깊습니다.</p><div class="heat"><span>당도</span><span class="heat-dots"><b class="on"></b><b class="on"></b><b class="on"></b><b></b><b></b></span></div></div>
-            <div class="dish"><div class="emoji">🍰</div><h4>Prinsesstårta</h4><div class="ko">프린세스토르타 · 공주 케이크</div><p>초록 마지팬으로 덮인 크림 케이크. 비주얼·맛 합격.</p><div class="heat"><span>당도</span><span class="heat-dots"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b></b></span></div></div>
-            <div class="dish"><div class="emoji">🫐</div><h4>Semla</h4><div class="ko">셈라 · 카르다몸 크림빵</div><p>아몬드 페이스트+생크림 가득. 사순절(2~3월) 한정.</p><div class="heat"><span>당도</span><span class="heat-dots"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b></b></span></div></div>
-            <div class="dish"><div class="emoji">🍪</div><h4>Chokladboll</h4><div class="ko">초콜라드볼 · 코코넛 초콜릿볼</div><p>오트밀+코코아+버터를 굴려 코코넛에 묻힌 노오븐 디저트.</p></div>
+            <div class="dish"><div class="dish-glyph">K</div><h4>Kanelbulle</h4><div class="ko">카넬불레 · 시나몬 번</div><p>10월 4일은 ‘시나몬 번의 날’. 카르다몸 향이 깊습니다.</p><div class="heat"><span>당도</span><span class="heat-dots"><b class="on"></b><b class="on"></b><b class="on"></b><b></b><b></b></span></div></div>
+            <div class="dish"><div class="dish-glyph">P</div><h4>Prinsesstårta</h4><div class="ko">프린세스토르타 · 공주 케이크</div><p>초록 마지팬으로 덮인 크림 케이크. 비주얼·맛 합격.</p><div class="heat"><span>당도</span><span class="heat-dots"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b></b></span></div></div>
+            <div class="dish"><div class="dish-glyph">S</div><h4>Semla</h4><div class="ko">셈라 · 카르다몸 크림빵</div><p>아몬드 페이스트 + 생크림 가득. 사순절(2~3월) 한정.</p><div class="heat"><span>당도</span><span class="heat-dots"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b></b></span></div></div>
+            <div class="dish"><div class="dish-glyph">C</div><h4>Chokladboll</h4><div class="ko">초콜라드볼 · 코코넛 초콜릿볼</div><p>오트밀 + 코코아 + 버터를 굴려 코코넛에 묻힌 노오븐 디저트.</p></div>
           </div>
         </div>
 
         <div class="tab-panel" id="panel-drink">
           <div class="dish-grid">
-            <div class="dish"><div class="emoji">☕</div><h4>Kaffe (Fika)</h4><div class="ko">피카 커피</div><p>스웨덴은 1인당 커피 소비 세계 2위. 진한 필터 커피가 기본.</p></div>
-            <div class="dish"><div class="emoji">🍷</div><h4>Glögg</h4><div class="ko">글뢰그 · 뱅쇼</div><p>겨울 한정 향신료 와인. 아몬드+건포도와 함께.</p></div>
-            <div class="dish"><div class="emoji">🍺</div><h4>Snaps / Akvavit</h4><div class="ko">스납스 · 약초 증류주</div><p>식사 중 한 모금씩. 'Helan går' 노래 부르며 건배.</p></div>
-            <div class="dish"><div class="emoji">🥤</div><h4>Julmust</h4><div class="ko">율무스트 · 크리스마스 음료</div><p>12월 한정 탄산음료. 호불호 갈리는 약초 향.</p></div>
+            <div class="dish"><div class="dish-glyph">K</div><h4>Kaffe (Fika)</h4><div class="ko">피카 커피</div><p>스웨덴은 1인당 커피 소비 세계 2위. 진한 필터 커피가 기본.</p></div>
+            <div class="dish"><div class="dish-glyph">G</div><h4>Glögg</h4><div class="ko">글뢰그 · 뱅쇼</div><p>겨울 한정 향신료 와인. 아몬드 + 건포도와 함께.</p></div>
+            <div class="dish"><div class="dish-glyph">S</div><h4>Snaps / Akvavit</h4><div class="ko">스납스 · 약초 증류주</div><p>식사 중 한 모금씩. ‘Helan går’ 노래 부르며 건배.</p></div>
+            <div class="dish"><div class="dish-glyph">J</div><h4>Julmust</h4><div class="ko">율무스트 · 크리스마스 음료</div><p>12월 한정 탄산음료. 호불호 갈리는 약초 향.</p></div>
           </div>
         </div>
       </section>
 
-      <section class="block">
+      <section class="block" id="itinerary">
         <div class="section-head">
-          <div>
-            <div class="section-label">RESEPLAN · 여행 일정</div>
-            <h2>5일 미식 여행 추천 코스</h2>
+          <div class="left">
+            <div class="section-kicker"><span class="num">/ 03</span>RESEPLAN · 여행 일정</div>
+            <h2>5일 미식 <em>코스</em>.</h2>
           </div>
-          <p class="lead">아침-피카-점심-피카-저녁의 황금 루틴.</p>
+          <p class="lead">아침 — 피카 — 점심 — 피카 — 저녁의 황금 루틴. 이동 동선까지 짜놓은 5일.</p>
         </div>
 
         <div class="tabs day-tabs" role="tablist">
-          <button class="tab active" data-day="1">DAY 1</button>
-          <button class="tab" data-day="2">DAY 2</button>
-          <button class="tab" data-day="3">DAY 3</button>
-          <button class="tab" data-day="4">DAY 4</button>
-          <button class="tab" data-day="5">DAY 5</button>
+          <button class="tab active" data-day="1">Day 01</button>
+          <button class="tab" data-day="2">Day 02</button>
+          <button class="tab" data-day="3">Day 03</button>
+          <button class="tab" data-day="4">Day 04</button>
+          <button class="tab" data-day="5">Day 05</button>
         </div>
 
         <div class="day active" data-day="1">
-          <h3>스톡홀름 도착 · 감라스탄 산책</h3>
-          <p class="summary">시차 적응하면서 가볍게. 첫 끼는 무조건 미트볼.</p>
+          <div class="day-head">
+            <div>
+              <div class="day-num">DAY 01 · STO</div>
+              <h3>스톡홀름 도착, <em>감라스탄</em> 산책.</h3>
+            </div>
+            <p class="summary">시차 적응하면서 가볍게. 첫 끼는 무조건 미트볼.</p>
+          </div>
           <div class="timeline">
-            <div class="slot"><div class="time">10:00</div><h4>Vete-Katten</h4><p>1928년 오픈한 전설의 카페. 카넬불레+커피로 첫 피카.</p></div>
+            <div class="slot"><div class="time">10:00</div><h4>Vete-Katten</h4><p>1928년 오픈한 전설의 카페. 카넬불레 + 커피로 첫 피카.</p></div>
             <div class="slot"><div class="time">13:00</div><h4>Pelikan</h4><p>쇠데르말름 전통 비어홀. 셰트불라 정석.</p></div>
             <div class="slot"><div class="time">16:00</div><h4>Chokladkoppen</h4><p>감라스탄 광장의 핫초코 카페.</p></div>
             <div class="slot"><div class="time">19:00</div><h4>Tradition</h4><p>전통 스웨덴 가정식. 야손스 프레스텔세 추천.</p></div>
@@ -720,10 +1439,15 @@
         </div>
 
         <div class="day" data-day="2">
-          <h3>해산물 데이</h3>
-          <p class="summary">발트해의 신선함을 그대로.</p>
+          <div class="day-head">
+            <div>
+              <div class="day-num">DAY 02 · STO</div>
+              <h3>해산물 <em>데이</em>.</h3>
+            </div>
+            <p class="summary">발트해의 신선함을 그대로.</p>
+          </div>
           <div class="timeline">
-            <div class="slot"><div class="time">09:00</div><h4>Östermalms Saluhall</h4><p>1888년 식료품 마켓. 굴·새우·캐비어 시식.</p></div>
+            <div class="slot"><div class="time">09:00</div><h4>Östermalms Saluhall</h4><p>1888년 식료품 마켓. 굴 · 새우 · 캐비어 시식.</p></div>
             <div class="slot"><div class="time">12:30</div><h4>Sturehof</h4><p>토스트 스카겐 원조. 와인 한 잔 곁들이기.</p></div>
             <div class="slot"><div class="time">15:00</div><h4>Rosendals Trädgård</h4><p>유르고르덴 섬 유기농 정원 카페. 자연 속 피카.</p></div>
             <div class="slot"><div class="time">19:30</div><h4>B.A.R.</h4><p>그날 잡힌 생선만으로 메뉴.</p></div>
@@ -731,19 +1455,29 @@
         </div>
 
         <div class="day" data-day="3">
-          <h3>예테보리로 이동</h3>
-          <p class="summary">서해안 도시. 해산물의 진짜 수도.</p>
+          <div class="day-head">
+            <div>
+              <div class="day-num">DAY 03 · STO → GOT</div>
+              <h3>예테보리로 <em>이동</em>.</h3>
+            </div>
+            <p class="summary">서해안 도시. 해산물의 진짜 수도.</p>
+          </div>
           <div class="timeline">
             <div class="slot"><div class="time">08:00</div><h4>스톡홀름→예테보리 SJ 고속열차</h4><p>3시간. 차창 밖 호수 풍경.</p></div>
-            <div class="slot"><div class="time">12:00</div><h4>Feskekôrka</h4><p>'생선 교회' — 시장 안 점심.</p></div>
+            <div class="slot"><div class="time">12:00</div><h4>Feskekôrka</h4><p>‘생선 교회’ — 시장 안 점심.</p></div>
             <div class="slot"><div class="time">15:00</div><h4>da Matteo</h4><p>스웨덴 스페셜티 커피의 성지.</p></div>
             <div class="slot"><div class="time">19:00</div><h4>Sjömagasinet</h4><p>옛 항구 창고 미슐랭 별 레스토랑.</p></div>
           </div>
         </div>
 
         <div class="day" data-day="4">
-          <h3>군도 투어 + 채식 도전</h3>
-          <p class="summary">예테보리 군도에서 점심, 도시로 돌아와 저녁.</p>
+          <div class="day-head">
+            <div>
+              <div class="day-num">DAY 04 · GOT</div>
+              <h3>군도 투어 + <em>채식</em> 도전.</h3>
+            </div>
+            <p class="summary">예테보리 군도에서 점심, 도시로 돌아와 저녁.</p>
+          </div>
           <div class="timeline">
             <div class="slot"><div class="time">10:00</div><h4>Styrsö 페리</h4><p>예테보리 군도. 30분 이내 도착.</p></div>
             <div class="slot"><div class="time">13:00</div><h4>Brännö Värdshus</h4><p>섬 식당의 신선한 생선.</p></div>
@@ -752,8 +1486,13 @@
         </div>
 
         <div class="day" data-day="5">
-          <h3>말뫼 · 한국 입맛 회복</h3>
-          <p class="summary">코펜하겐과 다리로 연결된 도시. 마지막은 친숙한 맛.</p>
+          <div class="day-head">
+            <div>
+              <div class="day-num">DAY 05 · GOT → MAL</div>
+              <h3>말뫼 · <em>한국</em> 입맛 회복.</h3>
+            </div>
+            <p class="summary">코펜하겐과 다리로 연결된 도시. 마지막은 친숙한 맛.</p>
+          </div>
           <div class="timeline">
             <div class="slot"><div class="time">10:00</div><h4>Lilla Kafferosteriet</h4><p>로컬 로스터리.</p></div>
             <div class="slot"><div class="time">13:00</div><h4>Bastard</h4><p>육식러를 위한 정육 레스토랑.</p></div>
@@ -764,28 +1503,29 @@
 
       <section class="block" id="tips">
         <div class="section-head">
-          <div>
-            <div class="section-label">TIPS · 식사 매너 & 표현</div>
-            <h2>알아두면 좋은 팁</h2>
+          <div class="left">
+            <div class="section-kicker"><span class="num">/ 04</span>TIPS · 매너 &amp; 표현</div>
+            <h2>알아두면 좋은 <em>실전</em> 팁.</h2>
           </div>
+          <p class="lead">눈을 마주치며 ‘Skål!’ 외치기, 줄 설 때 번호표(kölapp), 그리고 식당에서 살아남는 12개 표현.</p>
         </div>
 
         <div class="tabs" role="tablist">
-          <button class="tab active" data-tab="etiq">매너</button>
-          <button class="tab" data-tab="phrase">표현</button>
-          <button class="tab" data-tab="quiz">퀴즈</button>
+          <button class="tab active" data-tab="etiq">Manér · 매너</button>
+          <button class="tab" data-tab="phrase">Fraser · 표현</button>
+          <button class="tab" data-tab="quiz">Quiz · 퀴즈</button>
         </div>
 
         <div class="tab-panel active" id="panel-etiq">
           <div class="etiq-grid">
-            <div class="etiq"><div class="num">1</div><div><h4>피카(Fika)는 의무</h4><p>커피+달달한 빵을 곁들인 휴식 시간. 하루 2번이 일반적.</p></div></div>
-            <div class="etiq"><div class="num">2</div><div><h4>건배는 눈을 보고</h4><p>"Skål!" 외칠 때 모든 사람과 눈을 맞춰야 합니다.</p></div></div>
-            <div class="etiq"><div class="num">3</div><div><h4>팁은 의무 아님</h4><p>서비스료 포함. 만족하면 5–10% 정도 반올림.</p></div></div>
-            <div class="etiq"><div class="num">4</div><div><h4>예약은 필수</h4><p>인기 식당은 1–2주 전 예약. 워크인은 어렵습니다.</p></div></div>
-            <div class="etiq"><div class="num">5</div><div><h4>줄 서기 = 번호표</h4><p>가게에서는 무조건 번호표(kölapp) 뽑기.</p></div></div>
-            <div class="etiq"><div class="num">6</div><div><h4>현금 거의 안 씀</h4><p>대부분 카드·Swish. 현금 안 받는 가게 많음.</p></div></div>
-            <div class="etiq"><div class="num">7</div><div><h4>식사 인사</h4><p>"Smaklig måltid!" 또는 "Tack för maten!" (식사 후).</p></div></div>
-            <div class="etiq"><div class="num">8</div><div><h4>저녁은 일찍</h4><p>저녁 식사 18–20시. 22시 이후 주방 마감 잦음.</p></div></div>
+            <div class="etiq"><div class="num">01</div><div><h4>피카(Fika)는 의무</h4><p>커피 + 달달한 빵을 곁들인 휴식 시간. 하루 2번이 일반적.</p></div></div>
+            <div class="etiq"><div class="num">02</div><div><h4>건배는 눈을 보고</h4><p>“Skål!” 외칠 때 모든 사람과 눈을 맞춰야 합니다.</p></div></div>
+            <div class="etiq"><div class="num">03</div><div><h4>팁은 의무 아님</h4><p>서비스료 포함. 만족하면 5–10% 정도 반올림.</p></div></div>
+            <div class="etiq"><div class="num">04</div><div><h4>예약은 필수</h4><p>인기 식당은 1–2주 전 예약. 워크인은 어렵습니다.</p></div></div>
+            <div class="etiq"><div class="num">05</div><div><h4>줄 서기 = 번호표</h4><p>가게에서는 무조건 번호표(kölapp) 뽑기.</p></div></div>
+            <div class="etiq"><div class="num">06</div><div><h4>현금 거의 안 씀</h4><p>대부분 카드 · Swish. 현금 안 받는 가게 많음.</p></div></div>
+            <div class="etiq"><div class="num">07</div><div><h4>식사 인사</h4><p>“Smaklig måltid!” 또는 “Tack för maten!” (식사 후).</p></div></div>
+            <div class="etiq"><div class="num">08</div><div><h4>저녁은 일찍</h4><p>저녁 식사 18–20시. 22시 이후 주방 마감 잦음.</p></div></div>
           </div>
         </div>
 
@@ -795,20 +1535,20 @@
 
         <div class="tab-panel" id="panel-quiz">
           <div class="quiz" id="quiz">
-            <div class="progress" id="quizProgress">QUESTION 1 / 5</div>
+            <div class="qprogress" id="quizProgress">QUESTION 01 / 05</div>
             <div class="qprompt" id="qprompt"></div>
             <div class="opts" id="qopts"></div>
             <div class="feedback" id="qfeedback"></div>
-            <button class="quiz-next" id="quizNext">다음 →</button>
+            <button class="btn quiz-next" id="quizNext" style="display:none">다음 <span class="arrow">→</span></button>
           </div>
         </div>
       </section>
 
       <section class="block" id="budget">
         <div class="section-head">
-          <div>
-            <div class="section-label">BUDGET · 예산</div>
-            <h2>음식 예산 계산기</h2>
+          <div class="left">
+            <div class="section-kicker"><span class="num">/ 05</span>BUDGET · 예산</div>
+            <h2>음식 <em>예산</em> 계산기.</h2>
           </div>
           <p class="lead">슬라이더로 조정. 환율은 1 SEK ≈ 130원 기준.</p>
         </div>
@@ -816,23 +1556,27 @@
         <div class="budget">
           <div class="budget-row">
             <label for="days">여행 일수</label>
-            <div class="control"><input type="range" id="days" min="1" max="14" value="5"><span class="val" id="daysVal">5일</span></div>
+            <input type="range" id="days" min="1" max="14" value="5">
+            <span class="val" id="daysVal">5일</span>
           </div>
           <div class="budget-row">
-            <label for="bf">아침 (피카 포함)</label>
-            <div class="control"><input type="range" id="bf" min="50" max="250" step="10" value="120"><span class="val" id="bfVal">120kr</span></div>
+            <label for="bf">아침 (피카)</label>
+            <input type="range" id="bf" min="50" max="250" step="10" value="120">
+            <span class="val" id="bfVal">120kr</span>
           </div>
           <div class="budget-row">
             <label for="lu">점심</label>
-            <div class="control"><input type="range" id="lu" min="100" max="400" step="10" value="180"><span class="val" id="luVal">180kr</span></div>
+            <input type="range" id="lu" min="100" max="400" step="10" value="180">
+            <span class="val" id="luVal">180kr</span>
           </div>
           <div class="budget-row">
             <label for="di">저녁</label>
-            <div class="control"><input type="range" id="di" min="200" max="1500" step="50" value="500"><span class="val" id="diVal">500kr</span></div>
+            <input type="range" id="di" min="200" max="1500" step="50" value="500">
+            <span class="val" id="diVal">500kr</span>
           </div>
 
           <div class="budget-out">
-            <div style="font-size:12px;color:var(--faint);text-transform:uppercase;letter-spacing:1.5px;font-weight:700">총 음식 예산</div>
+            <div class="receipt-kick">총 음식 예산 · Total</div>
             <div class="total" id="totalKr">4,000 kr</div>
             <div class="sub" id="totalKrw">≈ 약 520,000원 (KRW)</div>
           </div>
@@ -840,9 +1584,10 @@
       </section>
 
       <div class="cta-bottom">
-        <h2>Smaklig måltid! · 맛있게 드세요!</h2>
-        <p>이 가이드가 도움이 됐다면 친구에게 공유해 주세요.</p>
-        <button class="btn btn-primary" id="shareBtn">공유하기 ✦</button>
+        <div class="cta-kick">/ 마무리 — Slut</div>
+        <h2>Smaklig <em>måltid!</em><br>맛있게 드세요.</h2>
+        <p>이 가이드가 도움이 됐다면 친구에게 공유해 주세요. 식탁이 한 자리 더 풍성해집니다.</p>
+        <button class="btn primary" id="shareBtn">공유하기 <span class="arrow">↗</span></button>
       </div>
 
     </div>
@@ -857,16 +1602,20 @@
 
   <footer>
     <div class="container">
-      <p>© 2026 스웨덴 미식 가이드 · Made with ♥ for Korean travelers</p>
-      <div style="display:flex;gap:20px">
-        <a href="#restaurants">맛집</a>
-        <a href="#tips">팁</a>
-        <a href="https://visitsweden.com/ko/" target="_blank" rel="noopener">Visit Sweden</a>
+      <span>© 2026 · Vibe Studio · 스웨덴 미식 가이드</span>
+      <div class="footer-links">
+        <a href="../">← Vibe Studio</a>
+        <a href="https://visitsweden.com/ko/" target="_blank" rel="noopener">Visit Sweden ↗</a>
       </div>
     </div>
   </footer>
 
   <script>
+    "use strict";
+
+    /* ============================================================
+       Data — restaurants, phrasebook, quiz
+       ============================================================ */
     const restaurants = [
       { id:1, name:"Pelikan", ko:"펠리칸", city:"스톡홀름", price:"$$", type:"전통", rating:4.6, signature:"Köttbullar med gräddsås (셰트불라)", desc:"1882년 오픈한 쇠데르말름의 전설적 비어홀. 천장 높은 옛 건물에서 먹는 미트볼은 스톡홀름 정석. 한국인 입맛에도 친숙한 그레이비 소스.", address:"Blekingegatan 40, Stockholm", hours:"월–일 12:00–23:00", web:"pelikan.se", tip:"링곤베리 잼 듬뿍 발라 먹기. 한국 김치 같은 역할!", tags:["must"] },
       { id:2, name:"Tradition", ko:"트라디시온", city:"스톡홀름", price:"$$", type:"전통", rating:4.5, signature:"Janssons frestelse (감자 그라탕)", desc:"감라스탄 골목의 작은 전통 식당. 메뉴판이 옛날 스웨덴 가정식 그대로. 야손스 프레스텔세는 한국 감자전 좋아하면 도전.", address:"Österlånggatan 1, Gamla Stan", hours:"화–토 17:00–22:00", tip:"예약 필수. 좌석 12개뿐.", tags:[] },
@@ -917,6 +1666,9 @@
       { q:"10월 4일은 무슨 날?", opts:["미트볼의 날","청어의 날","시나몬 번의 날","피카의 날"], a:2, why:"Kanelbullens dag! 카페마다 카넬불레 할인." }
     ];
 
+    /* ============================================================
+       City filter chips
+       ============================================================ */
     const cities = ["전체", ...new Set(restaurants.map(r => r.city))];
     const cityFilters = document.getElementById("cityFilters");
     let currentCity = "전체", currentPrice = "all", currentType = "all", currentSearch = "";
@@ -925,7 +1677,7 @@
       const btn = document.createElement("button");
       btn.className = "chip" + (city === "전체" ? " active" : "");
       const cnt = city === "전체" ? restaurants.length : restaurants.filter(r => r.city === city).length;
-      btn.innerHTML = `${city} <span class="count">${cnt}</span>`;
+      btn.innerHTML = `${city}<span class="count">${String(cnt).padStart(2, "0")}</span>`;
       btn.addEventListener("click", () => {
         currentCity = city;
         document.querySelectorAll("#cityFilters .chip").forEach(c => c.classList.remove("active"));
@@ -935,13 +1687,22 @@
       cityFilters.appendChild(btn);
     });
 
+    /* ============================================================
+       Restaurant render
+       ============================================================ */
     function tagHtml(tags) {
-      return (tags || []).map(t => {
-        if (t === "must") return '<span class="tag must">⭐ 필수</span>';
-        if (t === "veg")  return '<span class="tag veg">🌱 채식 OK</span>';
-        if (t === "fika") return '<span class="tag fika">☕ 피카</span>';
-        return "";
-      }).join("");
+      const out = [];
+      if (tags) {
+        if (tags.includes("must")) out.push('<span class="tag must">필수</span>');
+        if (tags.includes("veg"))  out.push('<span class="tag veg">채식 OK</span>');
+        if (tags.includes("fika")) out.push('<span class="tag fika">피카</span>');
+      }
+      return out.join("");
+    }
+    function starsHTML(rating) {
+      const full = Math.round(rating);
+      const empty = 5 - full;
+      return `<span class="stars">${"★".repeat(full)}<span class="empty">${"★".repeat(empty)}</span></span>`;
     }
 
     function renderRestaurants() {
@@ -959,19 +1720,24 @@
         return true;
       });
       document.getElementById("emptyState").style.display = filtered.length ? "none" : "block";
-      filtered.forEach(r => {
+      filtered.forEach((r, i) => {
         const card = document.createElement("button");
         card.className = "resto";
+        const num = String(r.id).padStart(2, "0");
         card.innerHTML = `
           <div class="resto-head">
-            <div><h3>${r.name}</h3><div class="ko">${r.ko} · ${r.city}</div></div>
-            <span class="price">${r.price}</span>
+            <span class="resto-num">№ ${num}</span>
+            <span class="resto-price">${r.price}</span>
           </div>
-          <div class="meta"><span class="tag">${r.type}</span>${tagHtml(r.tags)}</div>
-          <p class="desc">${r.desc.substring(0, 80)}${r.desc.length > 80 ? "…" : ""}</p>
-          <div class="footline">
-            <span class="stars">${"★".repeat(Math.round(r.rating))}<span style="color:var(--border)">${"★".repeat(5 - Math.round(r.rating))}</span></span>
-            <span>${r.rating} · 자세히 →</span>
+          <h3>${r.name}<span class="ko-name">${r.ko} · ${r.city}</span></h3>
+          <div class="resto-meta">
+            <span class="tag frost">${r.type}</span>
+            ${tagHtml(r.tags)}
+          </div>
+          <p class="resto-desc">${r.desc.length > 96 ? r.desc.slice(0, 96) + "…" : r.desc}</p>
+          <div class="resto-foot">
+            <span>${starsHTML(r.rating)} <span style="margin-left:8px;color:var(--muted)">${r.rating.toFixed(1)}</span></span>
+            <span class="resto-link">자세히 →</span>
           </div>`;
         card.addEventListener("click", () => openModal(r));
         grid.appendChild(card);
@@ -982,24 +1748,34 @@
     document.getElementById("typeFilter").addEventListener("change", e => { currentType = e.target.value; renderRestaurants(); });
     document.getElementById("searchInput").addEventListener("input", e => { currentSearch = e.target.value; renderRestaurants(); });
 
+    /* ============================================================
+       Modal
+       ============================================================ */
     function openModal(r) {
       const back = document.getElementById("modalBack");
       const body = document.getElementById("modalBody");
+      const num = String(r.id).padStart(2, "0");
       body.innerHTML = `
+        <div class="modal-num">№ ${num} · ${r.city}</div>
         <h3 id="modalTitle">${r.name}</h3>
-        <div class="ko-sub">${r.ko} · ${r.city}</div>
-        <div class="meta" style="display:flex;flex-wrap:wrap;gap:6px">
-          <span class="tag">${r.type}</span><span class="tag">${r.price}</span>${tagHtml(r.tags)}
+        <div class="ko-sub">${r.ko}</div>
+        <div class="modal-meta">
+          <span class="tag frost">${r.type}</span>
+          <span class="tag">${r.price}</span>
+          ${tagHtml(r.tags)}
         </div>
-        <div style="margin:14px 0;color:var(--accent);font-weight:700">${"★".repeat(Math.round(r.rating))} <span style="color:var(--muted);font-weight:500">${r.rating} / 5.0</span></div>
-        <div class="signature"><h4>시그니처 메뉴</h4><p>${r.signature}</p></div>
+        <div class="stars-line">${starsHTML(r.rating)}<span>${r.rating.toFixed(1)} / 5.0</span></div>
+        <div class="signature">
+          <div class="label">시그니처 메뉴 · Signatur</div>
+          <div class="v">${r.signature}</div>
+        </div>
         <p class="desc-full">${r.desc}</p>
         <div class="info-grid">
           <div><span>주소</span><span>${r.address}</span></div>
           <div><span>영업</span><span>${r.hours}</span></div>
           ${r.web ? `<div><span>홈페이지</span><span>${r.web}</span></div>` : ""}
         </div>
-        ${r.tip ? `<div class="tip">💡 <strong>팁:</strong> ${r.tip}</div>` : ""}`;
+        ${r.tip ? `<div class="tip"><strong>Tip</strong> ${r.tip}</div>` : ""}`;
       back.classList.add("open");
       document.body.style.overflow = "hidden";
     }
@@ -1011,6 +1787,9 @@
     document.getElementById("modalBack").addEventListener("click", e => { if (e.target.id === "modalBack") closeModal(); });
     document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
 
+    /* ============================================================
+       Tabs
+       ============================================================ */
     document.querySelectorAll(".tabs").forEach(tabset => {
       tabset.querySelectorAll(".tab").forEach(t => {
         t.addEventListener("click", () => {
@@ -1030,6 +1809,9 @@
       });
     });
 
+    /* ============================================================
+       Phrasebook
+       ============================================================ */
     const phEl = document.getElementById("phrases");
     phrasesData.forEach(p => {
       const row = document.createElement("div");
@@ -1041,24 +1823,32 @@
       row.querySelector(".play").addEventListener("click", () => {
         if ("speechSynthesis" in window) {
           const u = new SpeechSynthesisUtterance(p.sv);
-          u.lang = "sv-SE"; u.rate = 0.85;
+          u.lang = "sv-SE";
+          u.rate = 0.85;
           speechSynthesis.cancel();
           speechSynthesis.speak(u);
-        } else { alert("이 브라우저는 음성 합성을 지원하지 않습니다."); }
+        } else {
+          alert("이 브라우저는 음성 합성을 지원하지 않습니다.");
+        }
       });
       phEl.appendChild(row);
     });
 
+    /* ============================================================
+       Quiz
+       ============================================================ */
     let qIdx = 0, qScore = 0;
+    function pad(n) { return String(n).padStart(2, "0"); }
     function renderQuiz() {
       const q = quizData[qIdx];
-      document.getElementById("quizProgress").textContent = `QUESTION ${qIdx + 1} / ${quizData.length}`;
+      document.getElementById("quizProgress").textContent = `QUESTION ${pad(qIdx + 1)} / ${pad(quizData.length)}`;
       document.getElementById("qprompt").textContent = q.q;
       const opts = document.getElementById("qopts");
       opts.innerHTML = "";
       q.opts.forEach((o, i) => {
         const b = document.createElement("button");
-        b.className = "opt"; b.textContent = o;
+        b.className = "opt";
+        b.textContent = o;
         b.addEventListener("click", () => {
           opts.querySelectorAll(".opt").forEach((el, j) => {
             el.disabled = true;
@@ -1067,14 +1857,14 @@
           });
           if (i === q.a) qScore++;
           const fb = document.getElementById("qfeedback");
-          fb.textContent = (i === q.a ? "✓ 정답! " : "✗ 오답. ") + q.why;
+          fb.textContent = (i === q.a ? "✓ 정답. " : "✗ 오답. ") + q.why;
           fb.classList.add("show");
-          document.getElementById("quizNext").classList.add("show");
+          document.getElementById("quizNext").style.display = "inline-flex";
         });
         opts.appendChild(b);
       });
       document.getElementById("qfeedback").classList.remove("show");
-      document.getElementById("quizNext").classList.remove("show");
+      document.getElementById("quizNext").style.display = "none";
     }
     document.getElementById("quizNext").addEventListener("click", () => {
       qIdx++;
@@ -1082,19 +1872,22 @@
         renderQuiz();
       } else {
         document.getElementById("quiz").innerHTML = `
-          <div class="progress">결과</div>
-          <div class="qprompt">🎉 ${qScore} / ${quizData.length} 정답!</div>
-          <p style="color:var(--muted);font-size:14px;margin-bottom:14px">
-            ${qScore === quizData.length ? "완벽! 스웨덴 미식 박사 인증." :
-              qScore >= 3 ? "훌륭해요. 여행 준비 거의 완료!" :
-              "다시 한번 가이드를 정독해 보세요."}
-          </p>
-          <button class="quiz-next show" onclick="qIdx=0;qScore=0;location.reload()">다시 풀기</button>`;
+          <div class="qprogress">결과 · Resultat</div>
+          <div class="qprompt">${qScore} / ${quizData.length} 정답.</div>
+          <div class="feedback show" style="border-left-color:var(--gold);font-style:italic">
+            ${qScore === quizData.length ? "완벽 — 스웨덴 미식 박사 인증." :
+              qScore >= 3 ? "훌륭해요. 여행 준비 거의 완료." :
+              "한 번 더 가이드를 정독해 보세요."}
+          </div>
+          <button class="btn quiz-next" style="display:inline-flex;margin-top:18px" onclick="qIdx=0;qScore=0;location.reload()">다시 풀기 <span class="arrow">↻</span></button>`;
       }
     });
     renderQuiz();
 
-    const budgetIds = ["days","bf","lu","di"];
+    /* ============================================================
+       Budget calculator
+       ============================================================ */
+    const budgetIds = ["days", "bf", "lu", "di"];
     function fmt(n) { return n.toLocaleString("ko-KR"); }
     function calcBudget() {
       const days = +document.getElementById("days").value;
@@ -1113,6 +1906,9 @@
     budgetIds.forEach(id => document.getElementById(id).addEventListener("input", calcBudget));
     calcBudget();
 
+    /* ============================================================
+       Share
+       ============================================================ */
     document.getElementById("shareBtn").addEventListener("click", async () => {
       const data = { title: "스웨덴 미식 가이드", text: "한국인을 위한 스웨덴 맛집 & 음식 여행 가이드", url: location.href };
       try {
@@ -1122,7 +1918,9 @@
     });
 
     renderRestaurants();
+  </script>
 
+  <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("./sw.js").catch(() => {});
