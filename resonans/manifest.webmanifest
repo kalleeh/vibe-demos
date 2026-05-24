@@ -1,0 +1,16 @@
+{
+  "name": "Resonans — Standing Wave Sketchbook",
+  "short_name": "Resonans",
+  "description": "A calm sketchbook of standing waves. Tap to pluck. Match the mode.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f7f1e0",
+  "theme_color": "#f7f1e0",
+  "lang": "en",
+  "categories": ["games", "education", "music"],
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

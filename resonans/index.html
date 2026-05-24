@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Resonans — A Sketchbook of Standing Waves</title>
+  <meta name="description" content="A calm physics sketchbook. Pluck the string in rhythm. When you match a mode, the line inks itself in.">
+  <meta property="og:title" content="Resonans — A Sketchbook of Standing Waves">
+  <meta property="og:description" content="Tap in rhythm. Build a standing wave. Watch the line ink itself in.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://kalleeh.github.io/vibe-demos/resonans/">
+  <link rel="canonical" href="https://kalleeh.github.io/vibe-demos/resonans/">
+
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#f7f1e0">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Resonans">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --paper:    #f4ecd6;
+      --paper-2:  #ede2c1;
+      --ink:      #2a261d;
+      --ink-soft: #4a4234;
+      --pencil:   rgba(42, 38, 29, 0.78);
+      --bloom:    #c97e60;
+      --bloom-2:  #6b8a76;
+      --line:     rgba(42, 38, 29, 0.16);
+      --muted:    rgba(42, 38, 29, 0.55);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Fraunces", Georgia, serif;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+      touch-action: none;
+    }
+    /* Subtle paper grain via SVG noise */
+    body::before {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.16  0 0 0 0 0.14  0 0 0 0 0.10  0 0 0 0.10 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+      opacity: 0.55;
+      mix-blend-mode: multiply;
+    }
+    /* Faint ruled-paper horizontal lines */
+    body::after {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        repeating-linear-gradient(to bottom,
+          transparent 0, transparent 47px,
+          rgba(42, 38, 29, 0.05) 47px,
+          rgba(42, 38, 29, 0.05) 48px);
+      opacity: 0.7;
+    }
+
+    .stage {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      z-index: 1;
+    }
+    canvas#sketch {
+      flex: 1;
+      width: 100%;
+      display: block;
+      cursor: crosshair;
+    }
+
+    /* ── Topbar (kicker, mode chips, hint) ─────────────────────────── */
+    .topbar {
+      display: flex; align-items: center; gap: 18px;
+      padding: 18px 26px 6px;
+      pointer-events: auto;
+    }
+    .brand {
+      font-family: "Caveat", cursive;
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--ink);
+      transform: rotate(-1.5deg);
+    }
+    .brand em {
+      font-style: italic;
+      color: var(--bloom);
+    }
+    .kicker {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px; letter-spacing: 0.18em;
+      color: var(--muted);
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .spacer { flex: 1; }
+    .modes {
+      display: flex; gap: 6px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+    }
+    .mode-chip {
+      appearance: none;
+      border: none; background: none;
+      padding: 6px 10px;
+      cursor: pointer;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      border-bottom: 1.5px dashed transparent;
+      transition: color 160ms, border-color 160ms;
+    }
+    .mode-chip:hover { color: var(--ink); }
+    .mode-chip.active {
+      color: var(--ink);
+      border-bottom-color: var(--bloom);
+      font-style: italic;
+    }
+    .back {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px; letter-spacing: 0.18em;
+      color: var(--muted);
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 6px 0;
+      border-bottom: 1px dashed var(--line);
+      transition: color 160ms;
+    }
+    .back:hover { color: var(--ink); }
+
+    /* ── Bottom bar (hint, audio toggle, lock indicator) ───────────── */
+    .footer {
+      display: flex; align-items: center; gap: 18px;
+      padding: 8px 26px 22px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px; letter-spacing: 0.16em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .footer .hint {
+      font-family: "Caveat", cursive;
+      font-size: 19px;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--ink-soft);
+      transform: rotate(-0.8deg);
+    }
+    .footer .lock {
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .footer .lock .pip {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--paper-2);
+      border: 1px solid var(--line);
+      transition: background 200ms, box-shadow 200ms;
+    }
+    .footer .lock .pip.lit {
+      background: var(--bloom);
+      box-shadow: 0 0 14px rgba(201, 126, 96, 0.55);
+    }
+    .toggle {
+      appearance: none; border: none; background: none;
+      font-family: inherit; font-size: inherit; letter-spacing: inherit;
+      color: var(--muted); cursor: pointer; padding: 0;
+      border-bottom: 1px dashed var(--line);
+    }
+    .toggle:hover { color: var(--ink); }
+
+    /* ── Notebook overlay text (mode label, hand-written) ──────────── */
+    .label-block {
+      position: absolute; pointer-events: none;
+      top: 80px; right: 38px;
+      font-family: "Caveat", cursive;
+      color: var(--ink-soft);
+      transform: rotate(2deg);
+      text-align: right;
+      line-height: 1.05;
+    }
+    .label-block .n {
+      font-size: clamp(74px, 11vw, 120px);
+      font-weight: 600;
+      color: var(--ink);
+      display: block;
+      letter-spacing: -0.02em;
+    }
+    .label-block .t {
+      font-size: 18px;
+      font-style: italic;
+      color: var(--muted);
+      display: block;
+      margin-top: -10px;
+    }
+
+    /* Reduced motion — calm everything */
+    @media (prefers-reduced-motion: reduce) {
+      .footer .lock .pip.lit { box-shadow: none; }
+    }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 14px 18px 4px; gap: 10px; flex-wrap: wrap; }
+      .footer { padding: 6px 18px 18px; flex-wrap: wrap; gap: 10px; }
+      .label-block { top: 70px; right: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <header class="topbar">
+      <span class="brand"><em>Reso</em>nans</span>
+      <span class="kicker">Sketchbook · Wave Physics</span>
+      <span class="spacer"></span>
+      <nav class="modes" aria-label="Mode selector">
+        <button class="mode-chip active" data-mode="1">n=1</button>
+        <button class="mode-chip"        data-mode="2">n=2</button>
+        <button class="mode-chip"        data-mode="3">n=3</button>
+        <button class="mode-chip"        data-mode="4">n=4</button>
+        <button class="mode-chip"        data-mode="5">n=5</button>
+      </nav>
+      <a class="back" href="../">← Studio</a>
+    </header>
+
+    <canvas id="sketch" aria-label="Vibrating string sketch"></canvas>
+
+    <div class="label-block" aria-hidden="true">
+      <span class="n" id="modeNum">1</span>
+      <span class="t" id="modeName">— first harmonic</span>
+    </div>
+
+    <footer class="footer">
+      <span class="hint" id="hint">tap on the string in rhythm — match the ghost line</span>
+      <span class="spacer" style="flex:1"></span>
+      <span class="lock"><span class="pip" id="lockPip"></span><span id="lockText">searching</span></span>
+      <button class="toggle" id="muteBtn" aria-pressed="false">sound · on</button>
+    </footer>
+  </div>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
+  </script>
+
+  <script>
+    /* ============================================================
+       RESONANS
+       Real 1D wave physics on a fixed-end string. Tap to inject a
+       gaussian pulse at the cursor. Pulses propagate, reflect, and
+       interfere. When the spectral content of the string locks onto
+       a target eigenmode (n=1..5), the pencil line inks itself in
+       and a soft sine tone rises with the lock confidence.
+
+       No score, no timer, no fail. Sketchbook calm.
+       ============================================================ */
+
+    const canvas = document.getElementById("sketch");
+    const ctx = canvas.getContext("2d");
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // ── String state ──────────────────────────────────────────────
+    const N = 220;                  // grid points along string
+    const u  = new Float32Array(N); // displacement
+    const uP = new Float32Array(N); // previous step
+    const uN = new Float32Array(N); // next step
+    const C2 = 0.30;                // wave-speed^2 (kept under CFL = 1)
+    const damping = 0.0028;         // gentle decay
+
+    // Fixed boundaries
+    function step() {
+      for (let i = 1; i < N - 1; i++) {
+        uN[i] = (2 - 2*C2 - damping) * u[i]
+              - (1 - damping) * uP[i]
+              + C2 * (u[i+1] + u[i-1]);
+      }
+      uN[0] = 0; uN[N-1] = 0;
+      uP.set(u); u.set(uN);
+    }
+
+    function pluck(idx, amplitude = 1.0, width = 6) {
+      // Gaussian pulse in displacement, leave velocity field continuous.
+      for (let i = 1; i < N - 1; i++) {
+        const d = i - idx;
+        const g = Math.exp(-(d*d) / (2*width*width));
+        u[i]  += amplitude * g * 0.55;
+        uP[i] += amplitude * g * 0.55; // adds initial velocity ~0
+      }
+    }
+
+    // ── Mode targets ──────────────────────────────────────────────
+    const MODE_NAMES = {
+      1: "first harmonic — fundamental",
+      2: "second harmonic — octave",
+      3: "third harmonic — perfect fifth",
+      4: "fourth harmonic — second octave",
+      5: "fifth harmonic — major third"
+    };
+    let mode = 1;
+
+    // Sine targets sampled to grid (fixed boundaries)
+    function targetShape(n) {
+      const t = new Float32Array(N);
+      for (let i = 0; i < N; i++) {
+        t[i] = Math.sin((n * Math.PI * i) / (N - 1));
+      }
+      return t;
+    }
+    let target = targetShape(mode);
+
+    // Project string onto the n-th sine mode → coefficient.
+    // Standing-wave amplitude in that mode. Use squared sum across modes
+    // as the energy normalizer so the lock score is invariant to scale.
+    function modeEnergies() {
+      // Compute a few modal coefficients via direct sine projection.
+      const coefs = new Float64Array(6); // 1..5
+      let totalE = 1e-9;
+      for (let n = 1; n <= 5; n++) {
+        let c = 0;
+        for (let i = 1; i < N - 1; i++) {
+          c += u[i] * Math.sin((n * Math.PI * i) / (N - 1));
+        }
+        c *= 2 / (N - 1);
+        coefs[n] = c;
+        totalE += c * c;
+      }
+      return { coefs, totalE };
+    }
+
+    // Lock confidence in [0..1]: how much of the string's energy is in
+    // the target mode, smoothed with rolling average.
+    let lockEMA = 0;
+    function updateLock() {
+      const { coefs, totalE } = modeEnergies();
+      const targetE = coefs[mode] * coefs[mode];
+      const purity = targetE / totalE;
+      // Also require that the string be actually moving (ignore 0-everywhere)
+      let amp = 0;
+      for (let i = 0; i < N; i++) amp += Math.abs(u[i]);
+      amp /= N;
+      const alive = Math.min(1, amp / 0.04);
+      const inst = purity * alive;
+      lockEMA += (inst - lockEMA) * 0.06;
+      return { purity, lockEMA, coefs };
+    }
+
+    // ── Audio (Web Audio sine + gentle pluck) ─────────────────────
+    let audioCtx = null;
+    let resOsc = null;       // resonance drone
+    let resGain = null;
+    let muted = false;
+
+    function ensureAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const master = audioCtx.createGain();
+      master.gain.value = 0.65;
+      master.connect(audioCtx.destination);
+
+      // Drone for the locked mode
+      resOsc = audioCtx.createOscillator();
+      resOsc.type = "sine";
+      resGain = audioCtx.createGain();
+      resGain.gain.value = 0;
+      resOsc.connect(resGain).connect(master);
+      resOsc.start();
+    }
+
+    // Map mode 1..5 to a pleasing pentatonic-feeling pitch ladder.
+    const MODE_HZ = { 1: 196.0, 2: 261.6, 3: 329.6, 4: 392.0, 5: 523.3 };
+
+    function setDronePitch() {
+      if (!resOsc) return;
+      resOsc.frequency.exponentialRampToValueAtTime(
+        MODE_HZ[mode],
+        audioCtx.currentTime + 0.25
+      );
+    }
+
+    function pluckSound(amplitude = 0.35) {
+      if (!audioCtx || muted) return;
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      const lp = audioCtx.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.value = 1800;
+      o.type = "triangle";
+      o.frequency.value = MODE_HZ[mode] * 2;
+      g.gain.setValueAtTime(amplitude, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+      o.connect(lp).connect(g).connect(audioCtx.destination);
+      o.start();
+      o.stop(audioCtx.currentTime + 0.62);
+    }
+
+    // ── Sketch rendering ──────────────────────────────────────────
+    let dpr = 1;
+    let stringY = 0;
+    let stringW = 0;
+    let leftX = 0, rightX = 0;
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const r = canvas.getBoundingClientRect();
+      canvas.width  = Math.floor(r.width * dpr);
+      canvas.height = Math.floor(r.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      stringY = r.height * 0.55;
+      const sidePad = Math.max(36, Math.min(r.width, r.height) * 0.08);
+      leftX = sidePad;
+      rightX = r.width - sidePad;
+      stringW = rightX - leftX;
+    }
+    window.addEventListener("resize", resize);
+
+    function gridX(i) { return leftX + (i / (N - 1)) * stringW; }
+
+    // Hand-drawn line: multi-pass jitter strokes for a graphite feel.
+    function strokePath(coords, opts) {
+      const { color, alpha, jitter, passes, lineWidth } = opts;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lineWidth;
+      for (let p = 0; p < passes; p++) {
+        ctx.globalAlpha = alpha * (0.55 + 0.45 * Math.random());
+        ctx.beginPath();
+        for (let i = 0; i < coords.length; i++) {
+          const [x, y] = coords[i];
+          const jx = (Math.random() - 0.5) * jitter;
+          const jy = (Math.random() - 0.5) * jitter;
+          if (i === 0) ctx.moveTo(x + jx, y + jy);
+          else ctx.lineTo(x + jx, y + jy);
+        }
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // Build the displaced curve once per frame
+    const curveCoords = new Array(N);
+    function buildCurve(scaleAmp) {
+      for (let i = 0; i < N; i++) {
+        curveCoords[i] = [gridX(i), stringY - u[i] * scaleAmp];
+      }
+    }
+
+    // Watercolor blooms at antinodes when locked
+    function drawBlooms(lock) {
+      if (lock < 0.18) return;
+      const a = (lock - 0.18) / 0.82;
+      ctx.save();
+      ctx.globalCompositeOperation = "multiply";
+      for (let n = 1; n <= mode; n++) {
+        const xi = (n - 0.5) / mode;
+        const i = Math.floor(xi * (N - 1));
+        const x = gridX(i);
+        const y = stringY - u[i] * 70;
+        const r = 28 + 36 * a + 8 * Math.sin(performance.now() * 0.001 + n);
+        const grd = ctx.createRadialGradient(x, y, 0, x, y, r);
+        grd.addColorStop(0,   `rgba(201, 126, 96, ${0.18 * a})`);
+        grd.addColorStop(0.6, `rgba(201, 126, 96, ${0.06 * a})`);
+        grd.addColorStop(1,   `rgba(201, 126, 96, 0)`);
+        ctx.fillStyle = grd;
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // Ghost target line (faint dashed sine of current mode)
+    function drawTarget() {
+      ctx.save();
+      ctx.strokeStyle = "rgba(107, 138, 118, 0.55)";
+      ctx.setLineDash([1, 6]);
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      const tAmp = 38;
+      for (let i = 0; i < N; i++) {
+        const x = gridX(i);
+        const y = stringY - target[i] * tAmp;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Bird perched on the right peg
+    function drawBird(bobY) {
+      const x = rightX + 4;
+      const y = stringY - 6 + bobY;
+      ctx.save();
+      ctx.translate(x, y);
+      // body
+      ctx.strokeStyle = "rgba(42, 38, 29, 0.85)";
+      ctx.lineWidth = 1.6;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(0, 0); ctx.bezierCurveTo(2, -4, 8, -8, 14, -6);
+      ctx.bezierCurveTo(18, -4, 18, 2, 12, 4);
+      ctx.bezierCurveTo(6, 6, 1, 4, 0, 0);
+      ctx.stroke();
+      // beak
+      ctx.beginPath();
+      ctx.moveTo(15, -4); ctx.lineTo(20, -3); ctx.lineTo(15, -2);
+      ctx.stroke();
+      // eye
+      ctx.fillStyle = "rgba(42, 38, 29, 0.85)";
+      ctx.beginPath(); ctx.arc(13, -4, 0.8, 0, Math.PI * 2); ctx.fill();
+      // legs to peg
+      ctx.beginPath();
+      ctx.moveTo(7, 4); ctx.lineTo(7, 8);
+      ctx.moveTo(11, 4); ctx.lineTo(11, 8);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Pegs at both ends
+    function drawPegs() {
+      ctx.fillStyle = "rgba(42, 38, 29, 0.85)";
+      ctx.beginPath(); ctx.arc(leftX, stringY, 3.4, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(rightX, stringY, 3.4, 0, Math.PI*2); ctx.fill();
+      // Tiny shadow
+      ctx.fillStyle = "rgba(42, 38, 29, 0.18)";
+      ctx.beginPath(); ctx.ellipse(leftX, stringY+5, 4, 1.2, 0, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(rightX, stringY+5, 4, 1.2, 0, 0, Math.PI*2); ctx.fill();
+    }
+
+    // ── Main loop ────────────────────────────────────────────────
+    let lastT = performance.now();
+    function frame(now) {
+      const dt = Math.min(50, now - lastT);
+      lastT = now;
+
+      // Multiple sub-steps for stability and a nicer rhythm
+      const sub = 4;
+      for (let s = 0; s < sub; s++) step();
+
+      const { lockEMA, coefs } = updateLock();
+
+      // Render
+      const r = canvas.getBoundingClientRect();
+      ctx.clearRect(0, 0, r.width, r.height);
+
+      drawTarget();
+      drawBlooms(lockEMA);
+      buildCurve(70);
+
+      // Two strokes: a soft graphite "search" line that's always there,
+      // and an ink-in line whose alpha rises with lock confidence.
+      strokePath(curveCoords, {
+        color: "rgba(42, 38, 29, 0.42)",
+        alpha: 0.55, jitter: reduceMotion ? 0.4 : 1.4,
+        passes: reduceMotion ? 1 : 2, lineWidth: 1.4
+      });
+      const inkAlpha = Math.min(1, Math.max(0, (lockEMA - 0.10) / 0.55));
+      if (inkAlpha > 0.01) {
+        strokePath(curveCoords, {
+          color: "rgba(42, 38, 29, 0.95)",
+          alpha: inkAlpha, jitter: reduceMotion ? 0.2 : 0.7,
+          passes: reduceMotion ? 1 : 3, lineWidth: 2.0
+        });
+      }
+
+      drawPegs();
+
+      // Bird bobs with the right end's neighbour displacement (always 0 at the end itself)
+      const bobIdx = N - 8;
+      drawBird(-u[bobIdx] * 24);
+
+      // Lock pip + drone
+      const pip = document.getElementById("lockPip");
+      const txt = document.getElementById("lockText");
+      if (lockEMA > 0.45) {
+        pip.classList.add("lit");
+        txt.textContent = "locked · n=" + mode;
+      } else if (lockEMA > 0.18) {
+        pip.classList.remove("lit");
+        txt.textContent = "warming · " + Math.round(lockEMA * 100) + "%";
+      } else {
+        pip.classList.remove("lit");
+        txt.textContent = "searching";
+      }
+      if (resGain && audioCtx) {
+        const tgt = muted ? 0 : Math.max(0, (lockEMA - 0.12)) * 0.18;
+        resGain.gain.setTargetAtTime(tgt, audioCtx.currentTime, 0.18);
+      }
+
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+
+    // ── Input ────────────────────────────────────────────────────
+    function pluckAtClient(clientX, clientY) {
+      const r = canvas.getBoundingClientRect();
+      const x = clientX - r.left;
+      const y = clientY - r.top;
+      // Only register taps reasonably close to the string vertical band
+      if (Math.abs(y - stringY) > Math.max(80, r.height * 0.18)) return;
+      const tx = (x - leftX) / stringW;
+      if (tx <= 0.01 || tx >= 0.99) return;
+      const idx = Math.floor(tx * (N - 1));
+      const amp = 0.55 + 0.35 * Math.random();
+      pluck(idx, amp, 5);
+      ensureAudio();
+      pluckSound(0.28);
+      // The first tap also wakes the drone & sets pitch
+      setDronePitch();
+    }
+
+    canvas.addEventListener("pointerdown", e => {
+      e.preventDefault();
+      pluckAtClient(e.clientX, e.clientY);
+    }, { passive: false });
+
+    // Mode chips
+    document.querySelectorAll(".mode-chip").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".mode-chip").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        mode = parseInt(btn.dataset.mode, 10);
+        target = targetShape(mode);
+        document.getElementById("modeNum").textContent = mode;
+        document.getElementById("modeName").textContent = "— " + MODE_NAMES[mode].split("—")[0].trim();
+        lockEMA *= 0.5;
+        if (audioCtx) setDronePitch();
+      });
+    });
+
+    // Mute
+    const muteBtn = document.getElementById("muteBtn");
+    muteBtn.addEventListener("click", () => {
+      muted = !muted;
+      muteBtn.textContent = muted ? "sound · off" : "sound · on";
+      muteBtn.setAttribute("aria-pressed", muted ? "true" : "false");
+    });
+
+    // First-tap helper hint fades after first pluck
+    let everPlucked = false;
+    canvas.addEventListener("pointerdown", () => {
+      if (!everPlucked) {
+        everPlucked = true;
+        document.getElementById("hint").textContent =
+          "find a steady rhythm — the line will fill itself in";
+      }
+    }, { once: false });
+
+    // Init
+    resize();
+    document.getElementById("modeNum").textContent = mode;
+    document.getElementById("modeName").textContent = "— first harmonic";
+  </script>
+</body>
+</html>

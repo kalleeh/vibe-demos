@@ -159,6 +159,16 @@ Sliders for mood / density / palette / grain → a generative editorial cover up
 Click-and-hold pads that play soft generative chords (Web Audio oscillators + reverb). Large concentric circles ripple to the audio. Calming, meditative, very loop-friendly on social.
 - **Slug:** `ambient-synth` · **Scope:** small-medium.
 
+### G1 · Resonans — A Sketchbook of Standing Waves 🟢 shipped → [/resonans/](./resonans/)
+
+Calm physics game in a Nintendo-quiet, hand-drawn-on-cream-paper register. A graphite string is fixed at both ends; the player taps anywhere on it to inject a Gaussian pulse. Pulses propagate, reflect off the boundaries, and interfere. When the player finds the right rhythm and tap location for a chosen mode (n=1..5), the spectral content of the string locks onto that eigenmode — the line "inks itself in" with darker pencil and watercolor blooms appear at the antinodes, and a soft sine drone rises with the lock confidence.
+
+- **Tech:** Self-contained `index.html`. Vanilla Canvas 2D for the sketch, real 1D finite-difference wave equation (~220 nodes, CFL-stable, gentle damping), Web Audio for drone + pluck.
+- **Lock detection:** direct sine-projection onto modes 1..5; lock = (target-mode energy) / (total energy) × (string-is-actually-moving). EMA-smoothed so it doesn't flicker.
+- **Vibe:** Cream paper, ruled lines, Caveat hand-script title, Fraunces body. Multi-pass jittered strokes for graphite feel. A pencil-bird perched on the right peg bobs with the string. No score, no timer, no fail.
+- **Slug:** `resonans`
+- **Scope estimate:** small-medium. Wave sim + hand-drawn rendering is the careful work; everything else is calm UI.
+
 ### W7 · Lagom — A Scrollytelling Essay
 
 Long-form editorial essay on a Swedish concept (lagom, fika, allemansrätten…). Real scroll-driven typography animations, illustration sequences pinned to scroll. Demonstrates editorial chops, not just toys.
