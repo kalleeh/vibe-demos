@@ -1,10 +1,17 @@
 /* intake-companion — minimal offline shell SW */
-const CACHE = "vibe-intake-companion-v3";
+const CACHE = "vibe-intake-companion-v4";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
   // Watercolor herb vignettes (transparent PNG) that float in the page margins.
   "./herb-ginseng.png",
-  "./herb-mugwort.png"
+  "./herb-mugwort.png",
+  // Five most-common 본초 watercolors precached for the formula expansion.
+  // Remaining 15 lazy-load on demand (cache-first via the fetch handler below).
+  "./herbs/insam.jpg",
+  "./herbs/hwanggi.jpg",
+  "./herbs/baekchul.jpg",
+  "./herbs/bokryeong.jpg",
+  "./herbs/gamcho.jpg"
 ];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -19,6 +26,8 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
+  // Skip Anthropic API — never cache live calls.
+  if (new URL(req.url).hostname === "api.anthropic.com") return;
   if (req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html")) {
     e.respondWith(
       fetch(req).then(r => {
