@@ -1263,6 +1263,438 @@
       .modal h3 { font-size: 26px; }
       section.block { padding: 56px 0 32px; }
     }
+
+    /* ============================================================
+       Itinerary planner (Feature 1)
+       ============================================================ */
+    .planner {
+      border: 1px solid var(--line);
+      background: rgba(244, 236, 214, 0.025);
+      padding: 28px;
+    }
+    .planner-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr) auto;
+      gap: 18px;
+      align-items: end;
+    }
+    .planner-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .planner-field label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .planner-field select {
+      background: transparent;
+      color: var(--ink);
+      border: 0;
+      border-bottom: 1px solid var(--line-strong);
+      border-radius: 0;
+      padding: 8px 4px;
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-size: 16px;
+      font-weight: 400;
+    }
+    .planner-field select option { background: var(--paper-2); color: var(--ink); }
+    .planner-field select:focus { outline: none; border-bottom-color: var(--gold); }
+    .planner-cta {
+      display: flex; gap: 12px; flex-wrap: wrap;
+    }
+    .planner-out {
+      margin-top: 32px;
+      display: none;
+    }
+    .planner-out.show { display: block; }
+    .planner-card {
+      border: 1px solid var(--line);
+      background: rgba(244, 236, 214, 0.025);
+      padding: 36px 38px 32px;
+    }
+    .planner-masthead {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding-bottom: 18px;
+      margin-bottom: 22px;
+      border-bottom: 1px solid var(--line);
+    }
+    .planner-masthead .plan-kick {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+    .planner-masthead h3 {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: clamp(28px, 4.4vw, 44px);
+      letter-spacing: -0.015em;
+      line-height: 1.05;
+      flex: 1; min-width: 240px;
+    }
+    .planner-masthead h3 em { font-style: italic; color: var(--gold); font-weight: 400; }
+    .planner-masthead .plan-stamp {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: 1px solid var(--line-strong);
+      padding: 4px 9px;
+    }
+    .planner-deck {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-size: 16px;
+      color: var(--ink-2);
+      max-width: 640px;
+      margin-bottom: 24px;
+    }
+    .plan-timeline { position: relative; padding-left: 26px; }
+    .plan-timeline::before {
+      content: "";
+      position: absolute;
+      left: 5px; top: 8px; bottom: 8px;
+      width: 1px;
+      background: linear-gradient(var(--gold) 0%, var(--gold) 35%, var(--line) 100%);
+    }
+    .plan-slot {
+      position: relative;
+      padding-bottom: 20px;
+    }
+    .plan-slot:last-child { padding-bottom: 0; }
+    .plan-slot::before {
+      content: "";
+      position: absolute;
+      left: -25px; top: 7px;
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      background: var(--paper);
+      border: 2px solid var(--gold);
+    }
+    .plan-slot.transit::before { border-color: var(--frost); }
+    .plan-slot .plan-time {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--gold);
+      letter-spacing: 0.14em;
+      margin-bottom: 4px;
+    }
+    .plan-slot.transit .plan-time { color: var(--frost); }
+    .plan-slot h4 {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 500;
+      font-size: 18px;
+      letter-spacing: -0.005em;
+      margin-bottom: 4px;
+    }
+    .plan-slot h4 em { font-style: italic; color: var(--muted); font-weight: 400; font-size: 14px; margin-left: 8px; }
+    .plan-slot p {
+      color: var(--muted);
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
+    .plan-slot .plan-line {
+      display: inline-block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--frost);
+      border: 1px solid rgba(126, 182, 211, 0.42);
+      padding: 2px 7px;
+      margin-right: 8px;
+    }
+    .plan-slot .plan-walk {
+      display: inline-block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--pine);
+      margin-right: 8px;
+    }
+    .plan-foot {
+      margin-top: 26px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    @media (max-width: 720px) {
+      .planner-row { grid-template-columns: 1fr 1fr; }
+      .planner-cta { grid-column: 1 / -1; }
+    }
+    @media (max-width: 480px) {
+      .planner-row { grid-template-columns: 1fr; }
+      .planner-card { padding: 24px 22px 22px; }
+    }
+
+    /* per-city spread trigger */
+    .city-section {
+      margin: 56px 0 36px;
+      padding: 36px 0 32px;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .city-section .section-kicker { margin-bottom: 12px; }
+    .city-section h3 {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: clamp(28px, 4.6vw, 44px);
+      letter-spacing: -0.015em;
+      line-height: 1.05;
+      margin-bottom: 8px;
+    }
+    .city-section h3 em { font-style: italic; color: var(--gold); font-weight: 400; }
+    .city-section .city-deck {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      color: var(--ink-2);
+      font-size: 16px;
+      max-width: 580px;
+      margin-bottom: 22px;
+    }
+
+    /* ============================================================
+       Print-only spreads (Feature 1 + Feature 2 share the engine)
+       Hidden in screen mode; only one is visible per print job.
+       ============================================================ */
+    .print-only { display: none; }
+
+    .city-spread {
+      padding: 0;
+    }
+    .city-spread .masthead {
+      border-top: 3px solid #000;
+      border-bottom: 1px solid #000;
+      padding: 14px 0 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .city-spread .masthead .lead-kick {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+    }
+    .city-spread .masthead .issue {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .city-spread h1 {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: 56px;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      margin: 14px 0 6px;
+    }
+    .city-spread h1 em { font-style: italic; }
+    .city-spread .deck {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-size: 16px;
+      line-height: 1.4;
+      max-width: 700px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #000;
+      margin-bottom: 18px;
+    }
+    .city-spread .grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 28px;
+    }
+    .city-spread .col-main h2 {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      border-bottom: 1px solid #000;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+    }
+    .city-spread .dishes {
+      column-count: 2;
+      column-gap: 22px;
+      column-rule: 1px solid #999;
+      margin-bottom: 22px;
+    }
+    .city-spread .dishes .item {
+      break-inside: avoid;
+      margin-bottom: 14px;
+    }
+    .city-spread .dishes .item h3 {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 500;
+      font-size: 15px;
+      letter-spacing: -0.005em;
+      margin-bottom: 2px;
+    }
+    .city-spread .dishes .item .ko {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-size: 11px;
+      color: #444;
+      margin-bottom: 4px;
+    }
+    .city-spread .dishes .item p {
+      font-size: 11px;
+      line-height: 1.45;
+    }
+    .city-spread .places .item {
+      padding: 10px 0;
+      border-bottom: 1px solid #000;
+    }
+    .city-spread .places .item:last-child { border-bottom: 0; }
+    .city-spread .places .item h3 {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 500;
+      font-size: 16px;
+      margin-bottom: 2px;
+    }
+    .city-spread .places .item .ko {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-size: 11px;
+      color: #444;
+      margin-bottom: 4px;
+    }
+    .city-spread .places .item .sig {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9.5px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .city-spread .places .item p { font-size: 11px; line-height: 1.45; }
+    .city-spread .col-side h2 {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      border-bottom: 1px solid #000;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+    }
+    .city-spread .phrasebook {
+      border: 1px solid #000;
+      padding: 12px 14px;
+      margin-bottom: 18px;
+    }
+    .city-spread .phrasebook .row {
+      padding: 6px 0;
+      border-bottom: 1px dashed #999;
+    }
+    .city-spread .phrasebook .row:last-child { border-bottom: 0; }
+    .city-spread .phrasebook .sv {
+      font-family: "Fraunces", serif;
+      font-weight: 500;
+      font-size: 13px;
+    }
+    .city-spread .phrasebook .sv small {
+      display: block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      color: #555;
+      letter-spacing: 0.06em;
+    }
+    .city-spread .phrasebook .ko {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-size: 11px;
+      color: #333;
+    }
+    .city-spread .colophon {
+      margin-top: 22px;
+      padding-top: 10px;
+      border-top: 1px solid #000;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* Print rules — only the active spread renders */
+    @media print {
+      @page { size: A4; margin: 14mm; }
+      html, body { background: #fff !important; color: #000 !important; }
+      body::before, body::after { display: none !important; }
+
+      /* Hide everything by default; targeted reveals re-enable specific subtrees. */
+      .topbar, footer, .skip-link, .modal-back,
+      main > .hero, .cta-bottom,
+      #restaurants, #dishes, #itinerary, #tips, #budget, #city-spreads { display: none !important; }
+      .container { max-width: none !important; padding: 0 !important; }
+
+      /* Default: hide both print spreads + planner; per-mode rules below re-show one. */
+      #planner-section { display: none !important; }
+      .print-only { display: none !important; }
+
+      /* ── PRINT-PLAN mode ── show only the planner output ── */
+      body.print-plan #planner-section,
+      body.print-plan #planner-section .planner,
+      body.print-plan #planner-section .planner-out,
+      body.print-plan #planner-section .planner-out * { display: revert !important; }
+      body.print-plan #planner-section .section-head,
+      body.print-plan #planner-section .planner-row,
+      body.print-plan #planner-section .planner-cta,
+      body.print-plan #planner-section .planner-deck { display: none !important; }
+      body.print-plan main, body.print-plan #main-content,
+      body.print-plan .container { display: block !important; }
+      body.print-plan #planner-section .planner {
+        border: 0 !important; background: #fff !important; padding: 0 !important;
+      }
+      body.print-plan .planner-card {
+        border: 0 !important; background: #fff !important; padding: 0 !important; color: #000 !important;
+      }
+      body.print-plan .planner-masthead {
+        border-bottom: 1px solid #000 !important;
+        border-top: 3px solid #000 !important;
+        padding: 12px 0 10px !important;
+      }
+      body.print-plan .planner-masthead .plan-kick,
+      body.print-plan .planner-masthead .plan-stamp { color: #000 !important; border-color: #000 !important; }
+      body.print-plan .planner-masthead h3 em { color: #000 !important; }
+      body.print-plan .planner-deck { color: #333 !important; }
+      body.print-plan .plan-timeline::before { background: #000 !important; }
+      body.print-plan .plan-slot::before {
+        background: #fff !important; border-color: #000 !important;
+      }
+      body.print-plan .plan-slot .plan-time { color: #000 !important; }
+      body.print-plan .plan-slot h4 { color: #000 !important; }
+      body.print-plan .plan-slot h4 em { color: #555 !important; }
+      body.print-plan .plan-slot p { color: #222 !important; }
+      body.print-plan .plan-slot .plan-line {
+        color: #000 !important; border-color: #000 !important;
+      }
+      body.print-plan .plan-slot .plan-walk { color: #444 !important; }
+      body.print-plan .plan-foot { color: #333 !important; border-color: #000 !important; }
+
+      /* ── PRINT-CITY mode ── show only the active editorial spread ── */
+      body.print-city main, body.print-city #main-content,
+      body.print-city .container { display: block !important; }
+      body.print-city .city-spread.active,
+      body.print-city .city-spread.active * { display: revert !important; }
+      body.print-city .city-spread.active { display: block !important; color: #000 !important; }
+    }
   </style>
 </head>
 <body>
@@ -1322,6 +1754,59 @@
     </section>
 
     <div class="container">
+
+      <section class="block" id="planner-section">
+        <div class="section-head">
+          <div class="left">
+            <div class="section-kicker"><span class="num">/ 00</span>RESEPLANERARE · 즉석 여정 짜기</div>
+            <h2>당신만의 <em>하루</em> 식탁.</h2>
+          </div>
+          <p class="lead">도시 · 시간 · 취향만 골라주면 트램·튠넬바나 노선까지 물려서 인쇄 가능한 미식 동선을 짭니다. 종이로 들고 다니세요.</p>
+        </div>
+
+        <div class="planner">
+          <div class="planner-row">
+            <div class="planner-field">
+              <label for="plan-city">도시 · Stad</label>
+              <select id="plan-city">
+                <option value="스톡홀름">Stockholm · 스톡홀름</option>
+                <option value="예테보리">Göteborg · 예테보리</option>
+                <option value="말뫼">Malmö · 말뫼</option>
+              </select>
+            </div>
+            <div class="planner-field">
+              <label for="plan-duration">시간 · Tid</label>
+              <select id="plan-duration">
+                <option value="4h">4시간 · 한나절</option>
+                <option value="1d" selected>1일 · 풀 데이</option>
+                <option value="weekend">주말 · 2일치</option>
+              </select>
+            </div>
+            <div class="planner-field">
+              <label for="plan-constraint">취향 · Önskemål</label>
+              <select id="plan-constraint">
+                <option value="none">제한 없음</option>
+                <option value="veg">채식 (Vegetarian)</option>
+                <option value="kid">아이 동반</option>
+                <option value="drink">술 좋아함</option>
+              </select>
+            </div>
+            <div class="planner-cta">
+              <button class="btn primary" id="planBuild">여정 짜기 <span class="arrow">→</span></button>
+            </div>
+          </div>
+
+          <div class="planner-out" id="planOut">
+            <div class="planner-card" id="planCard">
+              <!-- rendered by JS -->
+            </div>
+            <div class="planner-cta" style="margin-top:18px">
+              <button class="btn" id="planPrint">이 여정 인쇄 <span class="arrow">↓</span></button>
+              <button class="btn" id="planRebuild">다시 짜기 <span class="arrow">↻</span></button>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section class="block" id="restaurants">
         <div class="section-head">
@@ -1590,6 +2075,233 @@
           </div>
         </div>
       </section>
+
+      <section class="block" id="city-spreads">
+        <div class="section-head">
+          <div class="left">
+            <div class="section-kicker"><span class="num">/ 06</span>STADSBREDD · 한 장 스프레드</div>
+            <h2>도시별 <em>편집판</em> 한 장.</h2>
+          </div>
+          <p class="lead">옛 미식면 신문처럼 — 도시 하나를 A4 한 장에 정리해 인쇄합니다. 카페에 펼쳐놓고 손으로 표시하세요.</p>
+        </div>
+
+        <div class="city-section" data-city="스톡홀름">
+          <div class="section-kicker"><span class="num">/ STO</span>스톡홀름 · Stockholm</div>
+          <h3>발트해의 <em>식탁</em>.</h3>
+          <p class="city-deck">감라스탄의 전통 비어홀부터 외스테르말름의 1888년 시장까지. 미트볼·토스트 스카겐·카넬불레의 본진.</p>
+          <button class="btn" data-spread="스톡holm" onclick="printCity('stockholm')">이 도시의 한 장 스프레드 <span class="arrow">↓</span></button>
+        </div>
+
+        <div class="city-section" data-city="예테보리">
+          <div class="section-kicker"><span class="num">/ GOT</span>예테보리 · Göteborg</div>
+          <h3>해산물의 <em>수도</em>.</h3>
+          <p class="city-deck">생선 교회(Feskekôrka)와 항구 창고 미슐랭. 스페셜티 커피의 성지 da Matteo, 그리고 Haga의 자이언트 카넬불레.</p>
+          <button class="btn" onclick="printCity('goteborg')">이 도시의 한 장 스프레드 <span class="arrow">↓</span></button>
+        </div>
+
+        <div class="city-section" data-city="말뫼">
+          <div class="section-kicker"><span class="num">/ MAL</span>말뫼 · Malmö</div>
+          <h3>외레순의 <em>입맛</em>.</h3>
+          <p class="city-deck">코펜하겐과 다리로 연결된 도시. 정육 레스토랑 Bastard, 점심 한 가지만 내는 Saltimporten, 그리고 마지막 밤의 한식.</p>
+          <button class="btn" onclick="printCity('malmo')">이 도시의 한 장 스프레드 <span class="arrow">↓</span></button>
+        </div>
+      </section>
+
+      <!-- Print-only city spreads. Hidden in screen mode; printCity() flips body class. -->
+      <div class="print-only city-spread" id="spread-stockholm">
+        <div class="masthead">
+          <div class="lead-kick">Smaklig Måltid · Stadsbredd № 01</div>
+          <div class="issue">A4 · 한국인 미식 편집판</div>
+        </div>
+        <h1>Stockholm — 스톡홀름의 <em>식탁</em>.</h1>
+        <div class="deck">
+          발트해의 수도. 1882년 비어홀의 미트볼, 1888년 시장의 굴, 1928년 카페의 카넬불레 — 한 도시에서 세 세기를 건너는 한 끼.
+        </div>
+        <div class="grid">
+          <div class="col-main">
+            <h2>Måste Smakas · 꼭 먹어볼 다섯</h2>
+            <div class="dishes">
+              <div class="item"><h3>Köttbullar</h3><div class="ko">셰트불라 · 미트볼</div><p>크림 그레이비 + 으깬 감자 + 링곤베리. Pelikan에서 정석.</p></div>
+              <div class="item"><h3>Toast Skagen</h3><div class="ko">새우 토스트</div><p>Sturehof가 1897년 원조. 와인 한 잔 곁들이기.</p></div>
+              <div class="item"><h3>Kanelbulle</h3><div class="ko">카넬불레 · 시나몬 번</div><p>Vete-Katten의 카르다몸 향. 줄 길면 번호표.</p></div>
+              <div class="item"><h3>Gravlax</h3><div class="ko">그라블락스 · 절인 연어</div><p>딜·소금·설탕 24h 절임. 머스타드-딜 소스 필수.</p></div>
+              <div class="item"><h3>Pyttipanna</h3><div class="ko">퓟티판나 · 스웨덴식 볶음밥</div><p>감자·소시지·양파 + 달걀프라이. 해장용.</p></div>
+            </div>
+            <h2>Restauranger · 꼭 가볼 곳</h2>
+            <div class="places">
+              <div class="item">
+                <h3>Pelikan</h3>
+                <div class="ko">펠리칸 · 쇠데르말름</div>
+                <div class="sig">SIG · Köttbullar med gräddsås</div>
+                <p>1882년 천장 높은 비어홀. 한국인 입맛에도 친숙한 그레이비. T-bana 19 → Skanstull, 도보 3분.</p>
+              </div>
+              <div class="item">
+                <h3>Östermalms Saluhall</h3>
+                <div class="ko">외스테르말름스 살루할</div>
+                <div class="sig">SIG · 굴 · 새우 · 캐비어</div>
+                <p>1888년 식료품 시장. 카운터 좌석에서 한 잔과 굴. T-bana 13/14 → Östermalmstorg.</p>
+              </div>
+              <div class="item">
+                <h3>Vete-Katten</h3>
+                <div class="ko">베테카텐 · 1928</div>
+                <div class="sig">SIG · Kanelbulle</div>
+                <p>긴자 다방 분위기. T-bana 17/18/19 → T-Centralen, 도보 4분.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-side">
+            <h2>Fraser · 식탁 회화</h2>
+            <div class="phrasebook">
+              <div class="row"><div class="sv">Hej!<small>[헤이]</small></div><div class="ko">안녕하세요!</div></div>
+              <div class="row"><div class="sv">En kanelbulle, tack.<small>[엔 카넬불레, 탁]</small></div><div class="ko">시나몬 번 하나 주세요.</div></div>
+              <div class="row"><div class="sv">Notan, tack.<small>[노탄, 탁]</small></div><div class="ko">계산서 주세요.</div></div>
+              <div class="row"><div class="sv">Skål!<small>[스콜]</small></div><div class="ko">건배! (눈 마주치기)</div></div>
+              <div class="row"><div class="sv">Det var jättegott!<small>[데 바르 옛테곳]</small></div><div class="ko">정말 맛있었어요!</div></div>
+            </div>
+            <h2>Tunnelbana · 노선</h2>
+            <div class="phrasebook">
+              <div class="row"><div class="sv">T-bana 13/14 (red)</div><div class="ko">감라스탄 · 외스테르말름</div></div>
+              <div class="row"><div class="sv">T-bana 17/18/19 (green)</div><div class="ko">쇠데르말름 · 중앙역</div></div>
+              <div class="row"><div class="sv">Spårvagn 7</div><div class="ko">유르고르덴(섬) 트램</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="colophon">
+          <span>Smaklig Måltid · 2026</span>
+          <span>kalleeh.github.io/vibe-demos</span>
+          <span>STO · A4 편집판</span>
+        </div>
+      </div>
+
+      <div class="print-only city-spread" id="spread-goteborg">
+        <div class="masthead">
+          <div class="lead-kick">Smaklig Måltid · Stadsbredd № 02</div>
+          <div class="issue">A4 · 한국인 미식 편집판</div>
+        </div>
+        <h1>Göteborg — 예테보리, 해산물의 <em>수도</em>.</h1>
+        <div class="deck">
+          서해안의 항구 도시. 시장은 교회 모양이고, 항구 창고는 미슐랭이며, 카넬불레는 머리만한 사이즈로 나옵니다.
+        </div>
+        <div class="grid">
+          <div class="col-main">
+            <h2>Måste Smakas · 꼭 먹어볼 다섯</h2>
+            <div class="dishes">
+              <div class="item"><h3>Skaldjurssoppa</h3><div class="ko">해산물 수프</div><p>새우·홍합·랍스터 진한 크림 수프.</p></div>
+              <div class="item"><h3>Räkmacka</h3><div class="ko">새우 오픈샌드위치</div><p>Feskekôrka의 점심 단골.</p></div>
+              <div class="item"><h3>Haga Kanelbulle</h3><div class="ko">자이언트 카넬불레</div><p>Café Husaren의 머리만한 빵. 둘이 나눠도 충분.</p></div>
+              <div class="item"><h3>Ostron</h3><div class="ko">서해안 굴</div><p>Bohuslän산. 레몬 한 방울만.</p></div>
+              <div class="item"><h3>Husmanskost</h3><div class="ko">스웨덴 가정식</div><p>Smaka에서 미트볼·청어·라그문크 한 상.</p></div>
+            </div>
+            <h2>Restauranger · 꼭 가볼 곳</h2>
+            <div class="places">
+              <div class="item">
+                <h3>Feskekôrka</h3>
+                <div class="ko">페스케셰르카 · 1874</div>
+                <div class="sig">SIG · 피쉬 수프 · 새우 샌드위치</div>
+                <p>‘생선 교회’. 시장 + 식당 + 관광지. Spårvagn 6/11 → Hagakyrkan, 도보 5분.</p>
+              </div>
+              <div class="item">
+                <h3>Sjömagasinet</h3>
+                <div class="ko">셰마가시네트</div>
+                <div class="sig">SIG · 해산물 플래터 (미슐랭 ★)</div>
+                <p>옛 항구 창고. 노을 시간대 창가석. Spårvagn 3/9 → Klippan.</p>
+              </div>
+              <div class="item">
+                <h3>da Matteo</h3>
+                <div class="ko">다 마테오</div>
+                <div class="sig">SIG · 화이트 쇼콜라드 카넬불레</div>
+                <p>스페셜티 커피의 성지. 자체 로스팅. Magasinsgatan 도보권.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-side">
+            <h2>Fraser · 식탁 회화</h2>
+            <div class="phrasebook">
+              <div class="row"><div class="sv">Hej!<small>[헤이]</small></div><div class="ko">안녕하세요!</div></div>
+              <div class="row"><div class="sv">En räkmacka, tack.<small>[엔 레크마카, 탁]</small></div><div class="ko">새우 샌드위치 하나 주세요.</div></div>
+              <div class="row"><div class="sv">Vatten, tack.<small>[바텐, 탁]</small></div><div class="ko">물 주세요.</div></div>
+              <div class="row"><div class="sv">Är det starkt?<small>[에르 데 스타르크트?]</small></div><div class="ko">매워요?</div></div>
+              <div class="row"><div class="sv">Tack för maten!<small>[탁 푀르 마텐]</small></div><div class="ko">잘 먹었습니다.</div></div>
+            </div>
+            <h2>Spårvagn · 트램 노선</h2>
+            <div class="phrasebook">
+              <div class="row"><div class="sv">Spårvagn 6/11</div><div class="ko">중앙역 ↔ Haga ↔ Linné</div></div>
+              <div class="row"><div class="sv">Spårvagn 3/9</div><div class="ko">Klippan (Sjömagasinet)</div></div>
+              <div class="row"><div class="sv">Styrsöbolaget 페리</div><div class="ko">군도(Skärgården) 30분</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="colophon">
+          <span>Smaklig Måltid · 2026</span>
+          <span>kalleeh.github.io/vibe-demos</span>
+          <span>GOT · A4 편집판</span>
+        </div>
+      </div>
+
+      <div class="print-only city-spread" id="spread-malmo">
+        <div class="masthead">
+          <div class="lead-kick">Smaklig Måltid · Stadsbredd № 03</div>
+          <div class="issue">A4 · 한국인 미식 편집판</div>
+        </div>
+        <h1>Malmö — 외레순의 <em>입맛</em>.</h1>
+        <div class="deck">
+          코펜하겐과 다리로 연결된 도시. 작지만 야무진 미식 신세대 — 정육, 점심 한 메뉴, 그리고 마지막 밤을 위한 한식.
+        </div>
+        <div class="grid">
+          <div class="col-main">
+            <h2>Måste Smakas · 꼭 먹어볼 다섯</h2>
+            <div class="dishes">
+              <div class="item"><h3>Dry-aged Stek</h3><div class="ko">숙성 스테이크</div><p>Bastard의 노세-투-테일 정육.</p></div>
+              <div class="item"><h3>Dagens Lunch</h3><div class="ko">오늘의 점심</div><p>Saltimporten — 매일 한 메뉴, 직장인 단골.</p></div>
+              <div class="item"><h3>Sill</h3><div class="ko">절인 청어</div><p>겨자·딜·양파 세 종류. 감자와 함께.</p></div>
+              <div class="item"><h3>Spettkaka</h3><div class="ko">스코네 지역 케이크</div><p>탑 모양 머랭. 결혼식 단골.</p></div>
+              <div class="item"><h3>Bibimbap</h3><div class="ko">비빔밥</div><p>Arirang — 마지막 밤 위장 회복.</p></div>
+            </div>
+            <h2>Restauranger · 꼭 가볼 곳</h2>
+            <div class="places">
+              <div class="item">
+                <h3>Bastard</h3>
+                <div class="ko">바스타드</div>
+                <div class="sig">SIG · 숙성 스테이크 · Smörgåsbord</div>
+                <p>육식러 천국. Buss 3/4 → Gustav Adolfs torg, 도보 4분.</p>
+              </div>
+              <div class="item">
+                <h3>Saltimporten</h3>
+                <div class="ko">살팀포르텐</div>
+                <div class="sig">SIG · Dagens Lunch (점심만)</div>
+                <p>옛 소금창고 → 점심 식당. 인스타로 메뉴 미리 확인. Buss 2 → Hjälmarekajen.</p>
+              </div>
+              <div class="item">
+                <h3>Lilla Kafferosteriet</h3>
+                <div class="ko">릴라 카페로스테리에트</div>
+                <div class="sig">SIG · 홈로스팅 · 와플</div>
+                <p>중세 골목의 다락방 카페. 중앙역 도보 8분.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-side">
+            <h2>Fraser · 식탁 회화</h2>
+            <div class="phrasebook">
+              <div class="row"><div class="sv">Hej!<small>[헤이]</small></div><div class="ko">안녕하세요!</div></div>
+              <div class="row"><div class="sv">En kaffe, tack.<small>[엔 카페, 탁]</small></div><div class="ko">커피 한 잔 주세요.</div></div>
+              <div class="row"><div class="sv">Hur mycket kostar det?<small>[후르 뮈케트 코스타르 데]</small></div><div class="ko">얼마예요?</div></div>
+              <div class="row"><div class="sv">Jag har bokat bord.<small>[야 하르 보카트 보르드]</small></div><div class="ko">예약했습니다.</div></div>
+              <div class="row"><div class="sv">Smaklig måltid!<small>[스마클리그 몰티드]</small></div><div class="ko">맛있게 드세요!</div></div>
+            </div>
+            <h2>Buss · 시내 버스</h2>
+            <div class="phrasebook">
+              <div class="row"><div class="sv">Buss 2</div><div class="ko">중앙역 ↔ 항구</div></div>
+              <div class="row"><div class="sv">Buss 3/4</div><div class="ko">중앙역 ↔ 구시가</div></div>
+              <div class="row"><div class="sv">Øresundståg</div><div class="ko">코펜하겐 35분 (다리)</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="colophon">
+          <span>Smaklig Måltid · 2026</span>
+          <span>kalleeh.github.io/vibe-demos</span>
+          <span>MAL · A4 편집판</span>
+        </div>
+      </div>
 
       <div class="cta-bottom">
         <div class="cta-kick">/ 마무리 — Slut</div>
@@ -1926,6 +2638,237 @@
     });
 
     renderRestaurants();
+
+    /* ============================================================
+       Itinerary planner (Feature 1)
+       ============================================================ */
+    // Realistic transit lines per city — kept short and editorial.
+    const transitLines = {
+      "스톡홀름": {
+        intro: "T-bana 13/14 (red) · 17/18/19 (green), Spårvagn 7 (Djurgården)",
+        opening: { line: "T-bana 17 → T-Centralen", walk: "도보 4분" },
+        toLunch: { line: "T-bana 19 → Skanstull", walk: "도보 3분" },
+        toFika:  { line: "Spårvagn 7 → Nordiska Museet/Vasa", walk: "도보 5분" },
+        toDinner:{ line: "T-bana 13 → Östermalmstorg", walk: "도보 2분" },
+        nightcap:{ line: "T-bana 17 → Slussen", walk: "도보 6분" }
+      },
+      "예테보리": {
+        intro: "Spårvagn 6/11 (Haga · Linné), 3/9 (Klippan), Styrsöbolaget 페리",
+        opening: { line: "Spårvagn 6 → Hagakyrkan", walk: "도보 5분" },
+        toLunch: { line: "Spårvagn 11 → Brunnsparken", walk: "도보 3분" },
+        toFika:  { line: "도보 (Magasinsgatan)", walk: "도보 7분" },
+        toDinner:{ line: "Spårvagn 3/9 → Klippan", walk: "도보 4분" },
+        nightcap:{ line: "Spårvagn 6 → Järntorget", walk: "도보 5분" }
+      },
+      "말뫼": {
+        intro: "Buss 2/3/4, Øresundståg (코펜하겐 35분)",
+        opening: { line: "Buss 2 → Triangeln", walk: "도보 4분" },
+        toLunch: { line: "Buss 2 → Hjälmarekajen", walk: "도보 3분" },
+        toFika:  { line: "도보 (Lilla Torg)", walk: "도보 6분" },
+        toDinner:{ line: "Buss 3/4 → Gustav Adolfs torg", walk: "도보 4분" },
+        nightcap:{ line: "도보 (Möllevången)", walk: "도보 8분" }
+      }
+    };
+
+    // Pick city restaurants by a fit-for-slot heuristic.
+    function pickByCity(city, fn) {
+      return restaurants.filter(r => r.city === city).filter(fn);
+    }
+
+    function buildPlan(city, duration, constraint) {
+      const t = transitLines[city];
+      const isVeg  = constraint === "veg";
+      const isKid  = constraint === "kid";
+      const isDrnk = constraint === "drink";
+
+      // Helper: pick first match by predicate, fall back to any restaurant.
+      function pick(preds) {
+        for (const p of preds) {
+          const hit = pickByCity(city, p)[0];
+          if (hit) return hit;
+        }
+        return pickByCity(city, () => true)[0];
+      }
+
+      // Slot 1 — fika morning
+      const morningFika = pick([
+        r => r.type === "피카" && (!isVeg || r.tags?.includes("veg") || true), // fika is plant-friendly
+        r => r.type === "피카",
+        r => r.tags?.includes("fika")
+      ]);
+
+      // Slot 2 — lunch
+      const lunch = pick([
+        r => isVeg ? (r.tags?.includes("veg")) : (r.type === "전통" || r.type === "해산물"),
+        r => isKid ? (r.type === "전통" || r.type === "피카") : (r.type === "전통"),
+        r => r.type !== "파인다이닝"
+      ]);
+
+      // Slot 3 — afternoon fika / market
+      const afternoon = pick([
+        r => r.type === "해산물" && r.name.toLowerCase().includes("salu"),
+        r => r.type === "피카" && r.id !== morningFika.id,
+        r => r.tags?.includes("fika")
+      ]);
+
+      // Slot 4 — dinner
+      const dinner = pick([
+        r => isDrnk ? (r.type !== "피카" && (r.price === "$$$" || r.price === "$$$$")) : null,
+        r => isVeg ? (r.tags?.includes("veg") && r.type !== "피카") : null,
+        r => isKid ? (r.type === "전통" && r.price !== "$$$$") : null,
+        r => r.type === "파인다이닝",
+        r => r.type !== "피카" && r.id !== lunch.id
+      ].filter(Boolean));
+
+      // Slot 5 — nightcap (only if drink-leaning or weekend)
+      const nightcap = pick([
+        r => isDrnk ? r.signature.toLowerCase().includes("칵") || r.name.toLowerCase().includes("tjoget") : null,
+        r => r.type === "전통" && r.id !== dinner.id && r.id !== lunch.id,
+        r => r.id !== dinner.id
+      ].filter(Boolean));
+
+      // Build slots based on duration
+      const slots = [];
+
+      if (duration === "4h") {
+        // Half day — fika + lunch + one extra
+        slots.push({ time: "09:30", type: "transit", title: "출발 — 첫 트램", note: t.intro, line: t.opening.line, walk: t.opening.walk });
+        slots.push({ time: "10:00", title: morningFika.name, ko: morningFika.ko, body: `첫 피카. ${morningFika.signature}.`, dur: "60분" });
+        slots.push({ time: "11:15", type: "transit", line: t.toLunch.line, walk: t.toLunch.walk });
+        slots.push({ time: "11:45", title: lunch.name, ko: lunch.ko, body: `점심. ${lunch.signature}. ${lunch.tip || ""}`.trim(), dur: "75분" });
+        slots.push({ time: "13:15", type: "transit", line: t.toFika.line, walk: t.toFika.walk });
+        slots.push({ time: "13:45", title: afternoon.name, ko: afternoon.ko, body: `${afternoon.type} · ${afternoon.signature}.`, dur: "45분" });
+        slots.push({ time: "14:30", title: "마무리", body: "체크포인트. 호텔로 돌아가거나 다른 동선 이어가기." });
+        return { city, duration, constraint, slots, intro: t.intro };
+      }
+
+      if (duration === "1d") {
+        slots.push({ time: "08:30", type: "transit", title: "출발 — 첫 트램", note: t.intro, line: t.opening.line, walk: t.opening.walk });
+        slots.push({ time: "09:00", title: morningFika.name, ko: morningFika.ko, body: `${morningFika.signature}. ${isKid ? "아이 의자 가능 · 따뜻한 코코아 옵션." : "첫 피카로 시작."}`, dur: "60분" });
+        slots.push({ time: "10:15", type: "transit", line: t.toLunch.line, walk: t.toLunch.walk });
+        slots.push({ time: "10:45", title: "산책 + 시장 구경", body: `${city === "스톡홀름" ? "감라스탄 · Stortorget 광장." : city === "예테보리" ? "Haga 거리 · 자갈길 산책." : "Lilla Torg · 구시가 광장."}`, dur: "75분" });
+        slots.push({ time: "12:15", title: lunch.name, ko: lunch.ko, body: `점심. ${lunch.signature}. ${lunch.tip || ""}`.trim(), dur: "90분" });
+        slots.push({ time: "14:00", type: "transit", line: t.toFika.line, walk: t.toFika.walk });
+        slots.push({ time: "14:30", title: afternoon.name, ko: afternoon.ko, body: `오후 피카 — ${afternoon.signature}.`, dur: "60분" });
+        slots.push({ time: "16:00", title: "박물관 · 산책", body: `${city === "스톡홀름" ? "Vasamuseet 또는 Fotografiska." : city === "예테보리" ? "Universeum 또는 Slottsskogen 공원." : "Malmöhus 성 또는 해변 Ribersborg."}`, dur: "120분" });
+        slots.push({ time: "18:30", type: "transit", line: t.toDinner.line, walk: t.toDinner.walk });
+        slots.push({ time: "19:00", title: dinner.name, ko: dinner.ko, body: `저녁. ${dinner.signature}. ${isDrnk ? "와인 페어링 가능." : isVeg ? "채식 코스 가능 — 미리 알리세요." : isKid ? "키즈 메뉴 또는 작은 포션 요청 가능." : ""}`.trim(), dur: "120분" });
+        if (isDrnk) {
+          slots.push({ time: "21:30", type: "transit", line: t.nightcap.line, walk: t.nightcap.walk });
+          slots.push({ time: "22:00", title: nightcap.name, ko: nightcap.ko, body: `나이트캡 — ${nightcap.signature}. Snaps 한 잔으로 마무리.`, dur: "60분" });
+        } else {
+          slots.push({ time: "21:15", title: "마무리 — 호텔 복귀", body: "T-bana / Spårvagn 막차는 자정 전후. 도보 가능 거리면 야경 산책 추천." });
+        }
+        return { city, duration, constraint, slots, intro: t.intro };
+      }
+
+      // weekend — Day 1 + Day 2 morning
+      slots.push({ time: "DAY 1 · 토요일", type: "header" });
+      slots.push({ time: "09:00", type: "transit", line: t.opening.line, walk: t.opening.walk });
+      slots.push({ time: "09:30", title: morningFika.name, ko: morningFika.ko, body: `${morningFika.signature}. 첫 피카.`, dur: "60분" });
+      slots.push({ time: "11:00", title: "산책", body: `${city === "스톡홀름" ? "감라스탄 · 왕궁 가드 교대." : city === "예테보리" ? "Haga · da Matteo 동네." : "Lilla Torg · Möllevången."}`, dur: "60분" });
+      slots.push({ time: "12:30", type: "transit", line: t.toLunch.line, walk: t.toLunch.walk });
+      slots.push({ time: "13:00", title: lunch.name, ko: lunch.ko, body: `점심. ${lunch.signature}.`, dur: "90분" });
+      slots.push({ time: "15:00", title: afternoon.name, ko: afternoon.ko, body: `오후 피카 — ${afternoon.signature}.`, dur: "60분" });
+      slots.push({ time: "19:00", title: dinner.name, ko: dinner.ko, body: `저녁. ${dinner.signature}.`, dur: "120분" });
+      if (isDrnk) {
+        slots.push({ time: "22:00", title: nightcap.name, ko: nightcap.ko, body: `나이트캡 — ${nightcap.signature}.`, dur: "60분" });
+      }
+      slots.push({ time: "DAY 2 · 일요일", type: "header" });
+      slots.push({ time: "10:00", type: "transit", line: t.toFika.line, walk: t.toFika.walk });
+      slots.push({ time: "10:30", title: "Brunch · 늦은 피카", body: "주말은 brunch 문화. 11시까지 여유 있는 카페가 많습니다.", dur: "75분" });
+      slots.push({ time: "12:30", title: "마지막 점심", body: `${lunch.name === dinner.name ? afternoon.name : lunch.name} 또는 길거리 핫도그(Sibylla).`, dur: "60분" });
+      slots.push({ time: "14:00", title: "마무리", body: "기차/공항 이동 전 마지막 카넬불레 한 입." });
+      return { city, duration, constraint, slots, intro: t.intro };
+    }
+
+    function renderPlan(plan) {
+      const constraintLabel = {
+        none: "제한 없음", veg: "Vegetarian · 채식", kid: "아이 동반", drink: "술 좋아함"
+      }[plan.constraint];
+      const durationLabel = { "4h": "4시간 · 한나절", "1d": "1일 · 풀 데이", "weekend": "주말 · 2일치" }[plan.duration];
+
+      const stamps = `<span class="plan-stamp">${plan.city.toUpperCase()}</span><span class="plan-stamp">${durationLabel}</span><span class="plan-stamp">${constraintLabel}</span>`;
+
+      const slotsHtml = plan.slots.map(s => {
+        if (s.type === "header") {
+          return `<div class="plan-slot" style="padding-bottom:8px"><div class="plan-time" style="color:var(--ink-2);font-size:12px">${s.time}</div></div>`;
+        }
+        if (s.type === "transit") {
+          return `<div class="plan-slot transit">
+            <div class="plan-time">${s.time}</div>
+            <h4>${s.title || "이동"}</h4>
+            <p>
+              <span class="plan-line">${s.line}</span>
+              ${s.walk ? `<span class="plan-walk">↳ ${s.walk}</span>` : ""}
+              ${s.note ? `<br><span style="color:var(--faint);font-size:12.5px">${s.note}</span>` : ""}
+            </p>
+          </div>`;
+        }
+        return `<div class="plan-slot">
+          <div class="plan-time">${s.time}${s.dur ? ` · ${s.dur}` : ""}</div>
+          <h4>${s.title}${s.ko ? ` <em>· ${s.ko}</em>` : ""}</h4>
+          <p>${s.body || ""}</p>
+        </div>`;
+      }).join("");
+
+      return `
+        <div class="planner-masthead">
+          <div>
+            <div class="plan-kick">RESEPLAN · 즉석 여정</div>
+            <h3>${plan.city}의 <em>식탁</em> 한 판.</h3>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">${stamps}</div>
+        </div>
+        <p class="planner-deck">${plan.intro} — 트램·튠넬바나·도보 시간이 모두 표시되어 있습니다. 인쇄해서 들고 다니세요.</p>
+        <div class="plan-timeline">${slotsHtml}</div>
+        <div class="plan-foot">Smaklig måltid! · 맛있게 드세요. — 시간은 권장값. 주말·휴일에는 30분씩 여유를 두세요.</div>
+      `;
+    }
+
+    function buildAndShowPlan() {
+      const city = document.getElementById("plan-city").value;
+      const duration = document.getElementById("plan-duration").value;
+      const constraint = document.getElementById("plan-constraint").value;
+      const plan = buildPlan(city, duration, constraint);
+      document.getElementById("planCard").innerHTML = renderPlan(plan);
+      document.getElementById("planOut").classList.add("show");
+      // Smooth scroll to output
+      setTimeout(() => {
+        document.getElementById("planOut").scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 50);
+    }
+
+    document.getElementById("planBuild").addEventListener("click", buildAndShowPlan);
+    document.getElementById("planRebuild").addEventListener("click", buildAndShowPlan);
+
+    document.getElementById("planPrint").addEventListener("click", () => {
+      document.body.classList.add("print-plan");
+      // Defer so the class lands before the print dialog opens.
+      setTimeout(() => {
+        window.print();
+      }, 50);
+    });
+
+    // Cleanup print body classes after the print dialog closes.
+    window.addEventListener("afterprint", () => {
+      document.body.classList.remove("print-plan", "print-city");
+      document.querySelectorAll(".city-spread.active").forEach(el => el.classList.remove("active"));
+    });
+
+    /* ============================================================
+       Per-city editorial spread (Feature 2)
+       ============================================================ */
+    function printCity(slug) {
+      // Mark the active spread, set body class for print rules, fire print.
+      document.querySelectorAll(".city-spread").forEach(el => el.classList.remove("active"));
+      const target = document.getElementById("spread-" + slug);
+      if (!target) return;
+      target.classList.add("active");
+      document.body.classList.add("print-city");
+      setTimeout(() => window.print(), 50);
+    }
+    window.printCity = printCity;
   </script>
 
   <script>
