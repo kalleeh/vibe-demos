@@ -627,8 +627,7 @@
     <div class="blurb" id="aiBlurb"></div>
     <div class="controls">
       <div class="seg" role="tablist" aria-label="Model">
-        <button data-model="claude-opus-4-7" class="active">Opus 4.7</button>
-        <button data-model="claude-sonnet-4-6">Sonnet 4.6</button>
+        <button data-model="claude-sonnet-4-6" class="active">Sonnet 4.6</button>
         <button data-model="claude-haiku-4-5">Haiku 4.5</button>
       </div>
       <button class="mode-toggle" id="modeToggle">Use my own key →</button>
@@ -1150,7 +1149,7 @@
     const keyErr     = document.getElementById("keyErr");
 
     let currentCity = null;
-    let currentModel = "claude-opus-4-7";
+    let currentModel = "claude-sonnet-4-6";
     let liveMode = false;
 
     const KEY_STORAGE = "vibe.live-globe.key";

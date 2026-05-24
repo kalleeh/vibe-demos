@@ -809,8 +809,7 @@ footer.bottom {
   <div class="controls">
     <span class="mode-pill" id="mode-pill"><span class="dot"></span><span id="mode-pill-text">데모 모드</span></span>
     <div class="model-toggle" id="model-toggle">
-      <button data-model="claude-opus-4-7" class="active">Opus 4.7</button>
-      <button data-model="claude-sonnet-4-6">Sonnet 4.6</button>
+      <button data-model="claude-sonnet-4-6" class="active">Sonnet 4.6</button>
       <button data-model="claude-haiku-4-5">Haiku 4.5</button>
     </div>
     <div class="grow"></div>
@@ -1061,7 +1060,7 @@ const state = {
   qIndex: 0,
   scores: { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 },
   axisConf: {}, // EI, SN, TF, JP — 0..1 confidence after test
-  model: localStorage.getItem(MODEL_STORAGE) || "claude-opus-4-7"
+  model: localStorage.getItem(MODEL_STORAGE) || "claude-sonnet-4-6"
 };
 
 const $  = sel => document.querySelector(sel);
@@ -1230,7 +1229,7 @@ function renderResultHTML(r) {
     ? `<span class="pill">12-Q TEST</span>`
     : (r.fromCanned
         ? `<span class="pill demo">DEMO</span>`
-        : `<span class="pill">CLAUDE · ${escapeHTML(r.modelLabel || "Opus 4.7")}</span>`);
+        : `<span class="pill">CLAUDE · ${escapeHTML(r.modelLabel || "Sonnet 4.6")}</span>`);
 
   return `
     <div class="result">
