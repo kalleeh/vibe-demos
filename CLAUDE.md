@@ -148,6 +148,58 @@ Prefer the streaming endpoint (`stream: true`, SSE) for any demo where the outpu
 - Email alerts at $1 / $3 / $5 thresholds.
 - Rotate the key immediately if anything looks off.
 
+## Domain-tuned system prompts
+
+Generic prompts produce generic output. Every AI demo aims at a specific audience — a 한의사, a KOGAS engineer, a Korean traveller in Stockholm — and a generic "you are an assistant" prompt will read as obviously foreign to that audience. **Before shipping any AI demo, do a one-shot research pass to embed real domain knowledge into the system prompt**, then never re-do that research on subsequent runs.
+
+This is where most of the perceived quality lives. A weak prompt on Opus will lose to a strong prompt on Haiku.
+
+### When to do this pass
+
+- The demo has a **single named audience** with vocabulary, conventions, or canon that an outsider would get wrong (clinical, legal, religious, regional, technical sub-specialty).
+- The demo will be shown to **someone in that audience**. They will spot generic AI-translated language in seconds.
+- The demo produces **structured output you cannot easily eyeball-correct** (clinical brief, legal summary, formula recommendation, engineering risk assessment).
+
+If the demo is purely aesthetic (a flame shader, a particle text effect), skip this — there's no domain to tune for.
+
+### The methodology
+
+1. **Identify the audience precisely.** Not "Korean speakers" — "a working 한의사 trained at a Korean 한의과대학". Not "engineers" — "a KOGAS pipeline integrity engineer reading a Korean-language risk twin". Specificity is everything; the prompt's voice should make sense to *that one person*.
+
+2. **Spawn a research agent (Explore or general-purpose) with a tight, audience-anchored brief.** Tell it which sources to prefer (Korean canon, not translated Chinese; primary sources, not Wikipedia; current Korean clinical guidelines, not US ones). Tell it what NOT to bring back (generic Western analogues, hedged "consider consulting" tone).
+
+3. **Extract these artefacts from the research:**
+   - **Canonical vocabulary** — the named patterns / categories / objects an expert would commit to. Include the writing system the audience reads in (한글 + 한자 where it disambiguates, not Romanization).
+   - **Canonical references** — the works, formulas, codes, standards, dashboards, datasets the audience cites. Surface 5-30 named items the model can pick from.
+   - **Errors-to-avoid list** — the 8-15 specific ways an outsider model will get this wrong. This is the most under-rated section; it does more work than the positive list.
+   - **One worked exemplar** — a single fully-traced reasoning + output for a canonical case. The model uses this to calibrate voice, not to copy.
+
+4. **Compose the prompt with XML tags** (Anthropic best practice for structured prompts). Use these tags as the spine, in order:
+   - `<role>` — anchor identity precisely. Include what they are AND what they are NOT (예: "you are a 한의사, NOT a TCM 中醫 practitioner"). Negative anchoring blocks the most common drift.
+   - `<voice>` — tone, hedging policy, naming conventions, language priority.
+   - `<reasoning_order>` — explicit numbered steps the model takes silently before producing output. Forces domain-correct reasoning shape.
+   - `<canonical_*>` — the vocabulary and reference lists from step 3. Tell the model to stay within these (or clearly state when it needs to combine two).
+   - `<errors_to_avoid>` — numbered list, each one specific and actionable. "Do NOT use TCM-translated English as the primary voice." Not "be culturally appropriate."
+   - `<output_constraints>` — counts, formats, length limits.
+   - `<output_schema>` — the JSON shape (or markdown shape) it must produce. Include field-level guidance inline.
+   - `<exemplar>` — one calibrated input + reasoning trace + output. Mark the trace as silent so the model doesn't echo it.
+
+5. **Match the schema to existing rendering code.** If the demo already has a stable JSON shape (canned briefs, rendering templates), the new prompt's `<output_schema>` MUST match exactly — otherwise live mode renders broken. Check rendering before changing schema.
+
+6. **Calibrate against the canned outputs.** The hand-crafted canned briefs are your ground truth. The live-mode output should read like one of them — same voice, same depth, same naming conventions. If it doesn't, tighten the `<voice>` and `<errors_to_avoid>` sections, not the canned briefs.
+
+### Anti-patterns
+
+- **Skipping the research pass and writing the prompt from training-data memory.** This produces plausible-sounding generic output that the target audience immediately rejects.
+- **One huge unstructured prompt.** XML tags exist because Claude follows structured instructions far more reliably than prose walls.
+- **Positive-only guidance.** "Be authentic" without an errors-to-avoid list lets the model drift. Tell it specifically what wrong looks like.
+- **Re-running the research every session.** The point is to do it once and embed the results. Subsequent edits tune the prompt; they don't re-research.
+- **Romanizing or translating the canon.** If the audience reads 한글, the canonical lists stay in 한글. If they read 漢字, keep the 漢字. Translation drains authenticity.
+
+### Reference implementation
+
+`intake-companion/index.html` — `callClaude()`'s `sys` variable is the canonical worked example. Read it before tuning any new AI demo's prompt.
+
 ## Loading states and async UX
 
 Every demo that does background work — LLM call, OCR, 3D asset load, audio analysis, speech recognition — must show **visible motion** while it works. Static "Loading…" text is forbidden; it makes the demo feel broken even when it isn't.
