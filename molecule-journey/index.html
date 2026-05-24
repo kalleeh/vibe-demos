@@ -814,34 +814,58 @@
 
       // Tanker hull
       const tanker = new THREE.Group();
-      const hullMat = new THREE.MeshStandardMaterial({ color: 0x14181f, roughness: 0.85, metalness: 0.3 });
+      const hullMat = new THREE.MeshStandardMaterial({ color: 0x2a3140, roughness: 0.85, metalness: 0.3 });
+      const hullDarkMat = new THREE.MeshStandardMaterial({ color: 0x171c26, roughness: 0.9, metalness: 0.25 });
       const hull = new THREE.Mesh(new THREE.BoxGeometry(14, 1.4, 2.4), hullMat);
       hull.position.y = -1.4;
       tanker.add(hull);
-      // Hull bottom (tapered)
-      const keel = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 0.0, 1.6, 96, 4, true), hullMat);
-      keel.rotation.z = Math.PI / 2;
-      keel.scale.set(1, 1, 7);
-      keel.position.set(0, -2.5, 0);
-      // Use a long box keel instead — simpler
-      const keelBox = new THREE.Mesh(new THREE.BoxGeometry(13.2, 0.8, 1.8), hullMat);
+      // Hull bottom (tapered) — darker waterline boot
+      const keelBox = new THREE.Mesh(new THREE.BoxGeometry(13.2, 0.8, 1.8), hullDarkMat);
       keelBox.position.y = -2.4;
       tanker.add(keelBox);
 
-      // Four Moss-type spherical LNG tanks
+      // Main deck (so the LNG tanks visibly sit on the ship)
+      const deckMat = new THREE.MeshStandardMaterial({ color: 0xb04a2f, roughness: 0.7, metalness: 0.15 });
+      const deck = new THREE.Mesh(new THREE.BoxGeometry(13.6, 0.18, 2.5), deckMat);
+      deck.position.y = -0.6;
+      tanker.add(deck);
+      // Deck rails (low fore-aft kerbs)
+      for (let s = -1; s <= 1; s += 2) {
+        const kerb = new THREE.Mesh(
+          new THREE.BoxGeometry(13.6, 0.08, 0.06),
+          new THREE.MeshStandardMaterial({ color: 0x5a3020, roughness: 0.85 })
+        );
+        kerb.position.set(0, -0.45, s * 1.2);
+        tanker.add(kerb);
+      }
+      // Bow wedge
+      const bow = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.4, 2.4), hullMat);
+      bow.position.set(-7.5, -1.4, 0);
+      bow.scale.set(1, 1, 0.6);
+      tanker.add(bow);
+
+      // Four Moss-type spherical LNG tanks (half-buried in deck cradles)
       const sphMat = new THREE.MeshStandardMaterial({ color: 0xf2efe6, roughness: 0.55, metalness: 0.15 });
+      const cradleMat = new THREE.MeshStandardMaterial({ color: 0x6e6a64, metalness: 0.55, roughness: 0.55 });
       for (let i = 0; i < 4; i++) {
         const s = new THREE.Mesh(new THREE.SphereGeometry(1.05, 96, 64), sphMat);
-        s.position.set(-4.5 + i * 3.0, 0.05, 0);
+        s.position.set(-4.5 + i * 3.0, 0.4, 0);
         tanker.add(s);
-        // Cradle band
+        // Equatorial band
         const band = new THREE.Mesh(
           new THREE.TorusGeometry(1.06, 0.06, 24, 96),
-          new THREE.MeshStandardMaterial({ color: 0x8a847a, metalness: 0.5, roughness: 0.5 })
+          cradleMat
         );
         band.rotation.x = Math.PI / 2;
         band.position.copy(s.position);
         tanker.add(band);
+        // Cradle skirt under sphere — gives it a base to sit on
+        const skirt = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.95, 1.05, 0.7, 48, 1, true),
+          cradleMat
+        );
+        skirt.position.set(s.position.x, -0.25, 0);
+        tanker.add(skirt);
       }
 
       // Bridge tower (aft)
@@ -1656,9 +1680,9 @@
         products: 0, starsOpacity: 0.4
       },
       { // 1 — Tanker dawn.
-        bg: 0x1a1018, fog: 0.018, ambient: 0.55,
+        bg: 0x1a1018, fog: 0.012, ambient: 0.7,
         keyColor: 0xffae7a, rimColor: 0xff7a4a, rimI: 1.8,
-        cam: v(2, 4, 16), look: v(0, -0.5, -2),
+        cam: v(-2, 1.6, 9.5), look: v(2, -0.4, -2),
         scenes: { tanker:1, cryo:0, regas:0, pipeline:0, kitchen:0, combustion:0 },
         heroVis: 0,
         // Marker: emerges from tanker bow, follows the loading arm to the pier
