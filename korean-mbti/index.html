@@ -751,7 +751,7 @@ footer.bottom {
 <div class="tabs" role="tablist">
   <button class="tab active" data-mode="test" role="tab">
     빠른 테스트
-    <span class="meta">12 questions</span>
+    <span class="meta">12문항 · 약 2분 · 빠른 진단</span>
   </button>
   <button class="tab" data-mode="ai" role="tab">
     AI 깊이 읽기
@@ -764,10 +764,11 @@ footer.bottom {
 
   <div id="test-intro">
     <div class="intro-card">
-      <h2>12개의 짧은 질문으로 16유형 중 하나로</h2>
+      <h2>12문항으로 잡는 빠른 인상 · 간이검사</h2>
       <p>한국 MBTI 문화에서 굳어진 별명까지 함께 나옵니다 — 잔망 루피, 곰돌이 푸, 인싸 끝판왕 같은 톤으로.
-      각 축(E/I, S/N, T/F, J/P)은 3문항씩 측정합니다.</p>
-      <p>결과는 즉시 공유 가능한 카드로 정리됩니다. 더 깊은 분석은 위 탭의 <em>AI 깊이 읽기</em>에서.</p>
+      각 축(E/I, S/N, T/F, J/P)은 3문항씩, 강제선택으로 측정합니다.</p>
+      <p>정식 검사(어세스타 Form M, 93문항)와는 다릅니다. 본 검사는 빠른 인상을 잡기 위한 12문항 간이검사이며,
+      진짜 깊이 읽기는 위 탭의 <em>AI 깊이 읽기</em>에서.</p>
       <div class="stat-row">
         <div class="stat"><span class="n">12</span><span class="l">questions</span></div>
         <div class="stat"><span class="n">16</span><span class="l">types</span></div>
@@ -856,9 +857,9 @@ const QUESTIONS = [
   { axis: "EI", prompt: "주말 저녁 일정이 비었을 때, 더 가까운 쪽은?",
     a: { letter: "E", text: "친구·동료를 만나러 나가서 충전한다." },
     b: { letter: "I", text: "혼자 시간을 보내며 충전한다." } },
-  { axis: "EI", prompt: "처음 만나는 사람들과의 자리에서, 본인은?",
-    a: { letter: "E", text: "먼저 말을 걸고 분위기를 만든다." },
-    b: { letter: "I", text: "누군가 먼저 말 걸어주길 기다린다." } },
+  { axis: "EI", prompt: "하루 종일 사람들과 부대낀 뒤, 본인의 상태는?",
+    a: { letter: "E", text: "대화의 여운으로 기분이 들떠 있다." },
+    b: { letter: "I", text: "기 빨려서 혼자만의 시간이 절실하다." } },
   { axis: "EI", prompt: "회의·모임에서 의견이 떠오를 때?",
     a: { letter: "E", text: "생각나는 대로 입 밖으로 꺼낸다." },
     b: { letter: "I", text: "머릿속에서 정리한 뒤에 말한다." } },
@@ -867,17 +868,17 @@ const QUESTIONS = [
   { axis: "SN", prompt: "처음 가는 카페에 들어섰을 때, 먼저 보이는 것?",
     a: { letter: "S", text: "메뉴, 가격, 좌석 같은 사실 정보." },
     b: { letter: "N", text: "공간의 분위기와 그 카페가 주는 느낌." } },
-  { axis: "SN", prompt: "영화를 본 직후의 머릿속은?",
-    a: { letter: "S", text: "줄거리와 장면이 또렷하게 남아있다." },
-    b: { letter: "N", text: "감독이 던지려 한 의미와 상징을 곱씹는다." } },
+  { axis: "SN", prompt: "길을 설명할 때, 본인 스타일은?",
+    a: { letter: "S", text: "몇 미터 가서 어느 건물 끼고 우회전, 식으로 구체적으로." },
+    b: { letter: "N", text: "전체적인 방향과 큰 랜드마크 위주로." } },
   { axis: "SN", prompt: "새로운 일을 시작할 때, 먼저 찾는 것은?",
     a: { letter: "S", text: "검증된 방법, 비슷한 사례, 매뉴얼." },
     b: { letter: "N", text: "새로운 아이디어와 가능성." } },
 
   // T / F
-  { axis: "TF", prompt: "친구가 고민을 털어놓을 때, 먼저 나오는 반응?",
-    a: { letter: "T", text: "문제를 정리하고 해결책을 제안한다." },
-    b: { letter: "F", text: "우선 공감하고 마음을 알아준다." } },
+  { axis: "TF", prompt: "친구의 이야기에 본인이 동의하지 않을 때?",
+    a: { letter: "T", text: "불편해도 솔직히 다른 의견을 말한다." },
+    b: { letter: "F", text: "우선 분위기를 지키고, 말은 아껴둔다." } },
   { axis: "TF", prompt: "결정을 내릴 때, 우선 두는 기준?",
     a: { letter: "T", text: "객관적 사실과 효율성." },
     b: { letter: "F", text: "사람들의 관계와 감정." } },
@@ -892,9 +893,9 @@ const QUESTIONS = [
   { axis: "JP", prompt: "마감 있는 일을 처리하는 패턴?",
     a: { letter: "J", text: "미리 끝내놓고 마음을 비운다." },
     b: { letter: "P", text: "마감 직전에 몰입해서 단숨에 끝낸다." } },
-  { axis: "JP", prompt: "본인 책상이나 방의 평소 상태?",
-    a: { letter: "J", text: "정돈되어 있어야 마음이 편하다." },
-    b: { letter: "P", text: "어지러워도 어디에 뭐가 있는지 안다." } }
+  { axis: "JP", prompt: "잡혀 있던 약속이 갑자기 바뀌면?",
+    a: { letter: "J", text: "바뀐 김에 다시 정리해놔야 마음이 편하다." },
+    b: { letter: "P", text: "오히려 새로운 흐름이 생겨서 반갑다." } }
 ];
 
 const AXIS_LABELS = {
@@ -913,7 +914,7 @@ const TYPES = {
   INTP: { nickname: "논리술사 · 호기심 많은 공돌이형",
           one_liner: "왜? 라는 질문이 멈추질 않는다. 분석은 즐거움, 잡담은 피로.",
           vibes: ["호기심", "분석러", "사색가"] },
-  ENTJ: { nickname: "지휘관 · 추진력의 끝판왕",
+  ENTJ: { nickname: "통솔자 · 추진력의 끝판왕",
           one_liner: "목표가 보이면 바로 움직인다. 비효율을 견디지 못하는 행동파.",
           vibes: ["추진력", "리더십", "효율 우선"] },
   ENTP: { nickname: "변론가 · 토론광·아이디어 뱅크",
@@ -946,10 +947,10 @@ const TYPES = {
   ISTP: { nickname: "맥가이버 · 만능 재주꾼",
           one_liner: "직접 손으로 풀어낸다. 말은 적게, 결과는 분명하게.",
           vibes: ["손재주", "쿨한 거리", "현장형"] },
-  ISFP: { nickname: "잔잔한 예술가 · 호기심 많은 감성러",
+  ISFP: { nickname: "호기심 많은 예술가 · 잔잔한 감성러",
           one_liner: "미적·감각적 결이 섬세하다. 강요 받는 순간 조용히 사라진다.",
           vibes: ["감성", "심미", "자유로운"] },
-  ESTP: { nickname: "행동가 · 모험을 즐기는 사업가",
+  ESTP: { nickname: "모험을 즐기는 사업가 · 현장형 행동파",
           one_liner: "일단 해보고 다음을 결정한다. 위험·기회 둘 다에 민감.",
           vibes: ["즉각적", "스릴러브", "현실 감각"] },
   ESFP: { nickname: "분위기 메이커 · 자유로운 영혼",
@@ -984,7 +985,7 @@ const CANNED = [
     matches: ["계획", "효율", "해야", "끝내", "성과", "목표"],
     result: {
       type: "ENTJ",
-      nickname_ko: "지휘관 · 추진력의 끝판왕",
+      nickname_ko: "통솔자 · 추진력의 끝판왕",
       one_liner_ko: "목표가 보이면 바로 움직이는, 비효율을 견디지 못하는 행동파.",
       axes: [
         { axis: "E/I", lean: "E", confidence: 70,
@@ -1408,7 +1409,7 @@ You are a Korean MBTI culture interpreter. You read free-form Korean text — di
 정확히 이 16개 안에서만 type을 골라라. nickname_ko도 아래 별명들 중에서 골라라:
 - INTJ — 전략가 · 마스터플랜의 사람
 - INTP — 논리술사 · 호기심 많은 공돌이형
-- ENTJ — 지휘관 · 추진력의 끝판왕
+- ENTJ — 통솔자 · 추진력의 끝판왕
 - ENTP — 변론가 · 토론광·아이디어 뱅크
 - INFJ — 선의의 옹호자 · 조용한 통찰가
 - INFP — 잔망 루피 · 따뜻하고 몽글몽글한 사색가
@@ -1419,30 +1420,36 @@ You are a Korean MBTI culture interpreter. You read free-form Korean text — di
 - ESTJ — 엄격한 관리자 · 현실 운영자
 - ESFJ — 친목왕 · 사교형 외교관
 - ISTP — 맥가이버 · 만능 재주꾼
-- ISFP — 잔잔한 예술가 · 호기심 많은 감성러
-- ESTP — 행동가 · 모험을 즐기는 사업가
+- ISFP — 호기심 많은 예술가 · 잔잔한 감성러
+- ESTP — 모험을 즐기는 사업가 · 현장형 행동파
 - ESFP — 분위기 메이커 · 자유로운 영혼
 </canonical_types>
 
 <errors_to_avoid>
-1. Do NOT translate the result into Western "you are an introvert" cliché. 한국 MBTI 문화 별명·톤을 살려라.
-2. Do NOT hedge with "확실하진 않지만". 한 유형으로 commit하고 보조 유형은 별도 필드로.
-3. Do NOT romanize Korean. 모든 산문은 한글.
-4. Do NOT invent new MBTI types or 5번째 축. 16개 안에서만.
-5. Do NOT moralize about "MBTI is just a test". 사용자가 알고 있다.
-6. Do NOT quote the writer's text verbatim for more than 12자 in any single quote. 짧은 인용으로 단서만 보여줘라.
-7. Do NOT pad with generic personality descriptions. 글에서 실제로 읽힌 단서에서 출발해라.
-8. Do NOT give equal weight to all 4 axes. 명확한 축은 confidence를 80+로, 모호한 축은 50-65로 — 정직하게.
-9. Do NOT output markdown fences or commentary. STRICT JSON only.
-10. Do NOT exceed length limits in <output_constraints>.
-11. Do NOT ignore Korean cultural cues — ㅋㅋ·ㅎㅎ 빈도, 반말/존댓말, 이모티콘 사용 등은 톤 단서다.
+1. 번역체 금지. "당신은 ~한 사람입니다" 같은 영어식 직역체를 쓰지 마라. 한국 MBTI 문화의 자연스러운 어조 — "~하는 편이고, ~할 때 ~한 모습이 보여요" — 로. 반말/존댓말은 본문 내내 일관되게.
+2. 로마자 표기 금지. MBTI 같은 약어 외 인명·개념은 한글(필요 시 한자 병기). "Introversion" 같은 영어 단어 본문에 노출 금지.
+3. 사회적 바람직성 자동 보정 금지. F가 T보다 따뜻하다 / N이 S보다 통찰력 있다 식의 가치 위계를 절대 깔지 마라. 각 축은 *방향성*이지 *우열*이 아니다.
+4. 유형 결정론 금지. "ENFP니까 무조건 ~", "INTJ는 절대 ~" 같은 단정 금지. "~한 경향이 보인다 / ~한 결이 짙다" 식의 경향성 표현.
+5. 카톡 콘텐츠 톤 금지. "이 유형은 천재예요!", "당신과 잘 맞는 궁합은~" 식의 가벼운 별자리 농담 톤 금지. 진단 톤 유지.
+6. 간이검사 한계 인지. 본 글 분석은 인상이지 확정이 아니라는 점을 reading_ko 어딘가에서 자연스럽게 인정 가능. 사용자가 "어, 나는 J 같은데?"라고 반박할 여지를 열어둘 것.
+7. 연령/생활양식 가정 금지. 학교, 회식, 음주, 동아리 같은 특정 연령대 전제 단어를 결과 본문에 넣지 마라. 직장인/학생/주부/은퇴자 모두 읽을 수 있게.
+8. 축 누수 주의. S/N과 T/F를 헷갈리지 마라. "감독의 의도를 곱씹는다"는 N이지 F가 아니다. "공감한다"는 F이지 N이 아니다. evidence_ko를 쓸 때 어떤 축의 신호인지 정확히 짚을 것.
+9. 확신도 인플레이션 금지. confidence는 95를 절대 넘지 않게. 한 축이 명확하면 80~88, 모호하면 55~68 범위. 모든 축이 90+면 검사가 가짜처럼 보인다.
+10. 한국 밈 별명은 그대로. 잔망 루피, 곰돌이 푸, 인싸 끝판왕, 청렴결백한 공무원형은 절대 영어로 풀거나 표준화하지 마라.
+11. 정식 검사와 동급 취급 금지. 어세스타 Form M 같은 정식 검사는 별도이고, 본 분석은 "글에서 읽은 인상" 위치임을 잊지 마라.
+12. 혈액형 성격론 톤 금지. "A형은~" 같은 의사과학적 단정 톤이 묻어나면 신뢰가 무너진다. 본질 단정이 아닌 행동 패턴 기술 톤.
+13. Do NOT hedge with "확실하진 않지만". 한 유형으로 commit하고 보조 유형은 별도 필드로 표현.
+14. Do NOT invent new MBTI types or 5번째 축. 16개 안에서만.
+15. Do NOT quote the writer's text verbatim for more than 12자. 짧은 인용으로 단서만.
+16. Do NOT output markdown fences or commentary. STRICT JSON only.
+17. 한국 문화 신호 활용 — ㅋㅋ·ㅎㅎ 빈도, 반말/존댓말, 이모티콘 사용 등은 톤 단서다.
 </errors_to_avoid>
 
 <output_constraints>
 - type: exactly 4 letters from canonical_types
 - nickname_ko: from canonical_types (정확히 그 별명, 또는 그 별명의 짧은 부분)
 - one_liner_ko: 한 문장, 25-40자
-- axes: 정확히 4개 (axis 값은 "E/I", "S/N", "T/F", "J/P"). 각 confidence는 50-95 정수. evidence_ko는 1-2 문장.
+- axes: 정확히 4개 (axis 값은 "E/I", "S/N", "T/F", "J/P"). 각 confidence는 55-95 정수, 단 95를 넘지 말 것. 명확하면 80-88, 모호하면 55-68. evidence_ko는 1-2 문장.
 - secondary_type: type은 4 letters. reasoning_ko는 한 문장.
 - reading_ko: 3-4 문장. 글에서 읽힌 구체 단서를 짧게 인용 가능 (12자 이내).
 - vibes_ko: 정확히 3개. 각 4-10자 형용사구.
