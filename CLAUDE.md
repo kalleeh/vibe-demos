@@ -94,6 +94,3 @@ Do not enable workflows, custom domains, or branch-protection rules without the 
 - Do not force-push `main` unless the user asks.
 - Do not edit `index.html` styling without preserving the editorial grammar described above.
 
-## Sister repo
-
-The `kalleeh/continuum` repo is unrelated and hosts the production Continuum iOS marketing site. Do not confuse the two — the user has explicitly separated demo work into this repo so Continuum can stay stable.
