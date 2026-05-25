@@ -1605,53 +1605,670 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
     }
+
+    /* ─────────────────────────────────────────────────────────
+       App shell · v2 — left rail + topbar + welcome + palette + toasts
+       ───────────────────────────────────────────────────────── */
+    .frame.shell {
+      display: grid;
+      grid-template-columns: 232px minmax(0, 1fr);
+      gap: 0;
+      max-width: 1320px;
+      padding: 0 22px;
+      align-items: start;
+    }
+    @media (max-width: 880px) {
+      .frame.shell { grid-template-columns: 1fr; padding: 0 16px; }
+    }
+
+    /* Left rail */
+    .rail {
+      position: sticky;
+      top: 0;
+      align-self: start;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: 22px 14px 22px 0;
+      border-right: 1px solid var(--line);
+      overflow-y: auto;
+    }
+    @media (max-width: 880px) {
+      .rail {
+        position: relative;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+        padding: 14px 0;
+        flex-direction: row;
+        gap: 8px;
+        overflow-x: auto;
+        overflow-y: hidden;
+      }
+    }
+    .rail .mark {
+      display: flex; align-items: center; gap: 11px;
+      text-decoration: none; color: var(--ink);
+      padding: 6px 10px 18px;
+      flex-shrink: 0;
+    }
+    .rail .mark .stamp {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: var(--paper-2);
+      border: 1px solid var(--line);
+      position: relative;
+      flex-shrink: 0;
+    }
+    .rail .mark .stamp::before, .rail .mark .stamp::after {
+      content: ""; position: absolute; background: var(--accent);
+    }
+    .rail .mark .stamp::before {
+      left: 50%; top: 6px; bottom: 6px; width: 2px; transform: translateX(-50%);
+    }
+    .rail .mark .stamp::after {
+      top: 50%; left: 6px; right: 6px; height: 2px; transform: translateY(-50%);
+    }
+    .rail .mark .name {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: 16px;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+    }
+    .rail .mark .name em { font-style: italic; color: var(--accent); font-weight: 400; }
+    .rail .mark .name .sub {
+      display: block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 8.5px;
+      letter-spacing: 1.4px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    @media (max-width: 880px) {
+      .rail .mark { padding: 0 6px 0 0; border-right: 1px solid var(--line); }
+    }
+
+    .rail-group {
+      display: flex; flex-direction: column;
+      gap: 1px;
+      padding: 8px 0;
+    }
+    .rail-group + .rail-group { border-top: 1px solid var(--line-2); }
+    .rail-group .group-label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--faint);
+      padding: 6px 12px 8px;
+    }
+    @media (max-width: 880px) {
+      .rail-group {
+        flex-direction: row;
+        padding: 0;
+      }
+      .rail-group + .rail-group { border-top: none; border-left: 1px solid var(--line-2); padding-left: 8px; margin-left: 4px; }
+      .rail-group .group-label { display: none; }
+    }
+    .rail-btn {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 9px 12px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--ink-2);
+      cursor: pointer;
+      border-radius: 5px;
+      font-family: "Inter", sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: -0.005em;
+      text-align: left;
+      transition: background .2s, color .2s;
+      white-space: nowrap;
+    }
+    .rail-btn .num {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      color: var(--faint);
+      letter-spacing: 1px;
+      flex-shrink: 0;
+      min-width: 18px;
+    }
+    .rail-btn:hover { background: rgba(255,255,255,0.45); color: var(--ink); }
+    .rail-btn.active {
+      background: var(--ink);
+      color: var(--paper);
+    }
+    .rail-btn.active .num { color: var(--paper-3); }
+    .rail-btn .badge-dot {
+      margin-left: auto;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      align-self: center;
+      display: none;
+    }
+    .rail-btn.has-attention .badge-dot { display: block; }
+
+    /* Workspace column */
+    .work-col { min-width: 0; }
+
+    /* Top bar — replaces hero on every panel */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 18;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 14px 22px;
+      background:
+        linear-gradient(rgba(243,238,226,0.94), rgba(243,238,226,0.94)),
+        var(--paper);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+    }
+    .topbar .crumb {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .topbar .crumb strong { color: var(--ink); font-weight: 500; }
+    .topbar .spacer { flex: 1 1 auto; }
+    .topbar .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.8px;
+      color: var(--ink-2);
+      background: rgba(255,255,255,0.45);
+      cursor: default;
+      transition: background .2s, border-color .2s;
+    }
+    .topbar .chip.action { cursor: pointer; }
+    .topbar .chip.action:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .topbar .chip.action:hover .led { box-shadow: none; }
+    .topbar .chip .led {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--celadon-2);
+      box-shadow: 0 0 0 0 rgba(123,168,154,0.55);
+    }
+    .topbar .chip .led.live { animation: pulse 2.4s ease-out infinite; }
+    .topbar .chip .led.warn { background: var(--warn); }
+    .topbar .chip .led.idle { background: var(--faint); box-shadow: none; }
+    .topbar .chip kbd {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9.5px;
+      padding: 1px 5px;
+      background: rgba(255,255,255,0.6);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      color: var(--ink);
+    }
+    .topbar .chip.urgent { border-color: rgba(176,74,47,0.4); color: var(--accent); background: rgba(176,74,47,0.06); }
+    .topbar .chip.warn   { border-color: rgba(184,122,28,0.4); color: var(--warn); background: rgba(184,122,28,0.07); }
+
+    /* Welcome overlay (first-run + reopenable) */
+    .welcome-scrim {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(20,17,13,0.55);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      padding: 24px;
+      animation: fadeIn .3s ease-out;
+    }
+    .welcome-scrim.open { display: flex; }
+    .welcome {
+      max-width: 640px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 36px 36px 28px;
+      box-shadow: 0 24px 80px rgba(20,17,13,0.25);
+      position: relative;
+    }
+    .welcome .eyebrow {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .welcome .eyebrow::before {
+      content: ""; width: 24px; height: 1px; background: var(--ink);
+    }
+    .welcome h2 {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: clamp(26px, 4vw, 34px);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: 14px;
+    }
+    .welcome h2 em { font-style: italic; color: var(--accent); font-weight: 400; }
+    .welcome .deck {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: 17px;
+      line-height: 1.5;
+      color: var(--ink-2);
+      margin-bottom: 22px;
+    }
+    .welcome .deck strong { font-style: normal; color: var(--ink); font-weight: 500; }
+    .welcome .demo-list {
+      list-style: none;
+      padding: 14px 18px;
+      margin-bottom: 22px;
+      background: rgba(255,255,255,0.45);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--celadon);
+      border-radius: 6px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px;
+      font-size: 13px;
+      color: var(--ink-2);
+    }
+    .welcome .demo-list li::before {
+      content: "▸ ";
+      color: var(--celadon-2);
+      font-family: "JetBrains Mono", monospace;
+    }
+    @media (max-width: 540px) {
+      .welcome .demo-list { grid-template-columns: 1fr; }
+      .welcome { padding: 24px 22px; }
+    }
+    .welcome .actions {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .welcome .actions .btn { flex: 1 1 auto; justify-content: center; }
+    .welcome .footer-row {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 16px; flex-wrap: wrap;
+      padding-top: 18px;
+      border-top: 1px solid var(--line-2);
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .welcome .dont-show {
+      display: inline-flex; align-items: center; gap: 8px;
+      cursor: pointer;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--ink-2);
+    }
+    .welcome .dont-show input { accent-color: var(--accent); }
+    .welcome .close-x {
+      position: absolute; top: 16px; right: 16px;
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--line); border-radius: 4px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 16px;
+      cursor: pointer;
+      transition: background .2s, color .2s;
+    }
+    .welcome .close-x:hover { background: var(--ink); color: var(--paper); }
+
+    /* Cmd+K palette */
+    .palette-scrim {
+      position: fixed;
+      inset: 0;
+      z-index: 95;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      background: rgba(20,17,13,0.4);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      padding: 12vh 24px 24px;
+    }
+    .palette-scrim.open { display: flex; animation: fadeIn .15s ease-out; }
+    .palette {
+      width: 100%;
+      max-width: 580px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      box-shadow: 0 24px 80px rgba(20,17,13,0.3);
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      max-height: 70vh;
+    }
+    .palette-input-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .palette-input-row .icon {
+      width: 14px; height: 14px;
+      color: var(--muted);
+    }
+    .palette input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-family: "Inter", sans-serif;
+      font-size: 16px;
+      color: var(--ink);
+      outline: none;
+    }
+    .palette input::placeholder { color: var(--faint); font-style: italic; }
+    .palette-results {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 0;
+    }
+    .palette-section-label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--faint);
+      padding: 10px 18px 6px;
+    }
+    .palette-item {
+      display: grid;
+      grid-template-columns: 22px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 9px 18px;
+      cursor: pointer;
+      transition: background .15s;
+      border-left: 2px solid transparent;
+    }
+    .palette-item:hover, .palette-item.sel {
+      background: rgba(255,255,255,0.55);
+      border-left-color: var(--accent);
+    }
+    .palette-item .glyph {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--celadon-2);
+      text-align: center;
+    }
+    .palette-item .label {
+      font-size: 13px;
+      color: var(--ink);
+      line-height: 1.3;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .palette-item .label .meta {
+      display: block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 1px;
+      letter-spacing: 0.3px;
+    }
+    .palette-item .kind {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .palette-empty {
+      padding: 32px 18px;
+      text-align: center;
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .palette-foot {
+      padding: 9px 18px;
+      border-top: 1px solid var(--line);
+      display: flex; gap: 16px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9.5px;
+      letter-spacing: 0.7px;
+      color: var(--faint);
+      text-transform: uppercase;
+    }
+    .palette-foot kbd {
+      padding: 1px 5px;
+      background: rgba(255,255,255,0.6);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      color: var(--ink-2);
+    }
+
+    /* Toasts */
+    .toast-tray {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      z-index: 70;
+      display: flex; flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+      max-width: calc(100vw - 48px);
+    }
+    .toast {
+      pointer-events: auto;
+      background: var(--ink);
+      color: var(--paper);
+      border-radius: 6px;
+      padding: 12px 14px;
+      box-shadow: 0 12px 36px rgba(20,17,13,0.25);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      max-width: 360px;
+      animation: toastIn .25s cubic-bezier(.2,.8,.2,1);
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .toast .tag {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--celadon);
+      background: rgba(123,168,154,0.18);
+      padding: 2px 6px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .toast .text {
+      font-size: 13px;
+      line-height: 1.35;
+      flex: 1;
+    }
+    .toast .text strong { color: var(--paper); font-weight: 600; }
+    .toast .go {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--paper);
+      border: 1px solid rgba(243,238,226,0.4);
+      background: transparent;
+      padding: 4px 9px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .toast .go:hover { background: rgba(243,238,226,0.15); }
+
+    /* Hide the legacy outer shell when shell-v2 is on. Per-panel
+       headings, blurbs, and badges stay — they're the working
+       context inside the workspace column. Demo strips are hidden
+       (still in DOM so seedAll() can click them programmatically). */
+    body.shell-v2 > div.frame:not(.shell),
+    body.shell-v2 header.app,
+    body.shell-v2 .hero,
+    body.shell-v2 nav.tabs,
+    body.shell-v2 .sync-strip,
+    body.shell-v2 .demo-strip {
+      display: none !important;
+    }
+    body.shell-v2 .panel { padding: 28px 22px 80px; }
+    body.shell-v2 .panel-head {
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+      gap: 12px;
+    }
+    body.shell-v2 .panel-head h3 {
+      font-size: clamp(22px, 3vw, 30px);
+    }
+    body.shell-v2 .panel-blurb {
+      font-size: 16px;
+      margin-bottom: 24px;
+    }
+    /* Mobile rail collapses to scrollable horizontal strip with chips */
+    @media (max-width: 880px) {
+      body.shell-v2 .rail-btn { padding: 7px 10px; font-size: 12px; }
+      body.shell-v2 .rail-btn .num { display: none; }
+      body.shell-v2 .topbar { padding: 10px 16px; gap: 8px; }
+      body.shell-v2 .topbar .crumb { font-size: 9px; }
+    }
   </style>
 </head>
-<body>
+<body class="shell-v2">
 
-  <div class="frame">
+  <!-- ── Welcome overlay (first-run + reopenable via 시연 pill) ── -->
+  <div class="welcome-scrim" id="welcome-scrim" role="dialog" aria-labelledby="welcome-title" aria-modal="true">
+    <div class="welcome">
+      <button type="button" class="close-x" id="welcome-close" aria-label="닫기">×</button>
+      <div class="eyebrow">Vibe Studio · Demo</div>
+      <h2 id="welcome-title">한방병원 <em>행정</em>의 하루를,<br>한 페이지에 담았습니다.</h2>
+      <p class="deck">
+        이건 <strong>둘러보기용 데모</strong>예요. 실제 <strong>행정원장</strong>의 하루 — KCD 코드 정비, 자보·HIRA 청구, 연말정산, 의무기록 보존, 면허·인증평가 — 를 <strong>이 한 페이지 안에서</strong> 처리하는 시뮬레이션입니다.
+        모든 처리는 <strong>이 브라우저 안</strong>에서만 일어나고, 환자 정보는 <strong>밖으로 나가지 않습니다</strong>.
+      </p>
+      <ul class="demo-list">
+        <li>오늘 — 마감·이어할 작업</li>
+        <li>KCD-8 진단코드 정비</li>
+        <li>자보 EDI 청구·지급 정산</li>
+        <li>연말정산 사전검증</li>
+        <li>HIRA 비급여 반기보고</li>
+        <li>의무기록 보존 감사</li>
+        <li>코드 통합검색</li>
+        <li>AI 코딩 어시스트</li>
+        <li>면허·자격 갱신 트래커</li>
+        <li>인증평가 체크리스트</li>
+      </ul>
+      <div class="actions">
+        <button type="button" class="btn" id="welcome-seed">▶ 샘플 데이터로 둘러보기</button>
+        <button type="button" class="btn secondary" id="welcome-blank">빈 상태로 시작</button>
+      </div>
+      <div class="footer-row">
+        <label class="dont-show">
+          <input type="checkbox" id="welcome-dontshow"> 다시 보지 않기
+        </label>
+        <span>언제든지 상단 <strong style="color:var(--ink)">시연</strong> 칩에서 다시 열 수 있습니다 · <kbd style="font-family:'JetBrains Mono',monospace;font-size:9.5px;padding:1px 5px;background:rgba(255,255,255,0.6);border:1px solid var(--line);border-radius:3px;color:var(--ink)">⌘K</kbd> 로 빠른 이동</span>
+      </div>
+    </div>
+  </div>
 
-    <header class="app">
+  <!-- ── Cmd+K palette ── -->
+  <div class="palette-scrim" id="palette-scrim" role="dialog" aria-modal="true">
+    <div class="palette" id="palette">
+      <div class="palette-input-row">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="palette-input" placeholder="이동 · 검색 · 시연 — 무엇이든 입력하세요" autocomplete="off">
+      </div>
+      <div class="palette-results" id="palette-results"></div>
+      <div class="palette-foot">
+        <span><kbd>↑</kbd> <kbd>↓</kbd> 이동</span>
+        <span><kbd>⏎</kbd> 선택</span>
+        <span><kbd>esc</kbd> 닫기</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Toast tray ── -->
+  <div class="toast-tray" id="toast-tray" aria-live="polite" aria-atomic="false"></div>
+
+  <div class="frame shell">
+
+    <!-- ── Left rail · grouped nav ── -->
+    <aside class="rail" id="rail" aria-label="섹션 선택">
       <a class="mark" href="../">
         <span class="stamp" aria-hidden="true"></span>
-        <h1>한방병원 <em>행정 도구함</em>
-          <span class="sub">CLINIC ADMIN TOOLKIT · 2026 EDITION</span>
-        </h1>
+        <span class="name">한방병원 <em>행정</em>
+          <span class="sub">CLINIC ADMIN · 2026</span>
+        </span>
       </a>
-      <span class="privacy-pill">
-        <span class="dot"></span>
-        모든 처리 — 브라우저 내부에서만
-      </span>
-    </header>
 
-    <section class="hero">
-      <div class="eyebrow">행정원 / 09 도구 · 1 대시보드</div>
-      <h2>오늘 할 일을 <em>먼저</em>, 코드를 <em>정비</em>하고,<br>청구서를 <em>맞춰보고</em>, 마감을 <em>지켜드립니다</em>.</h2>
-      <p class="deck">
-        하루를 <strong>오늘 탭</strong>에서 시작하세요 — 다가오는 마감, 면허 만료, 이어할 작업이 한눈에. 거기서 KCD-8 정비, 자보 EDI 정산, 연말정산 검증, HIRA 비급여 보고, 보존 감사, 코드 검색, AI 코딩 어시스트, 면허·인증평가 관리까지 — <strong>모두 이 페이지 안에서</strong> 처리합니다. 환자 정보는 외부로 전송되지 않습니다.
-      </p>
-    </section>
+      <div class="rail-group">
+        <span class="group-label">시작</span>
+        <button class="rail-btn active" data-panel="tab-today"><span class="num">00</span><span>오늘</span><span class="badge-dot"></span></button>
+      </div>
+      <div class="rail-group">
+        <span class="group-label">청구·코드</span>
+        <button class="rail-btn" data-panel="tab-kcd"><span class="num">01</span><span>KCD-8 정비</span><span class="badge-dot"></span></button>
+        <button class="rail-btn" data-panel="tab-jabo"><span class="num">02</span><span>자보 정산</span><span class="badge-dot"></span></button>
+        <button class="rail-btn" data-panel="tab-search"><span class="num">06</span><span>코드 검색</span><span class="badge-dot"></span></button>
+        <button class="rail-btn" data-panel="tab-ai"><span class="num">07</span><span>AI 코딩 어시스트</span><span class="badge-dot"></span></button>
+      </div>
+      <div class="rail-group">
+        <span class="group-label">보고·감사</span>
+        <button class="rail-btn" data-panel="tab-yearend"><span class="num">03</span><span>연말정산 검증</span><span class="badge-dot"></span></button>
+        <button class="rail-btn" data-panel="tab-bigeup"><span class="num">04</span><span>비급여 반기보고</span><span class="badge-dot"></span></button>
+        <button class="rail-btn" data-panel="tab-retention"><span class="num">05</span><span>보존 감사</span><span class="badge-dot"></span></button>
+      </div>
+      <div class="rail-group">
+        <span class="group-label">조직·인증</span>
+        <button class="rail-btn" data-panel="tab-license"><span class="num">08</span><span>면허·자격 갱신</span><span class="badge-dot"></span></button>
+        <button class="rail-btn" data-panel="tab-accred"><span class="num">09</span><span>인증평가</span><span class="badge-dot"></span></button>
+      </div>
+    </aside>
 
-    <nav class="tabs" id="tabnav" role="tablist" aria-label="도구 선택">
-      <button class="tab-btn active" data-panel="tab-today"      role="tab"><span class="num">00</span><span>오늘</span></button>
-      <button class="tab-btn"        data-panel="tab-kcd"        role="tab"><span class="num">01</span><span>KCD-8 정비</span></button>
-      <button class="tab-btn"        data-panel="tab-jabo"       role="tab"><span class="num">02</span><span>자보 청구·지급 정산</span></button>
-      <button class="tab-btn"        data-panel="tab-yearend"    role="tab"><span class="num">03</span><span>연말정산 사전검증</span></button>
-      <button class="tab-btn"        data-panel="tab-bigeup"     role="tab"><span class="num">04</span><span>비급여 반기보고</span></button>
-      <button class="tab-btn"        data-panel="tab-retention"  role="tab"><span class="num">05</span><span>보존 감사</span></button>
-      <button class="tab-btn"        data-panel="tab-search"     role="tab"><span class="num">06</span><span>코드 검색</span></button>
-      <button class="tab-btn"        data-panel="tab-ai"         role="tab"><span class="num">07</span><span>AI 코딩 어시스트</span></button>
-      <button class="tab-btn"        data-panel="tab-license"    role="tab"><span class="num">08</span><span>면허·자격 갱신</span></button>
-      <button class="tab-btn"        data-panel="tab-accred"     role="tab"><span class="num">09</span><span>인증평가 체크리스트</span></button>
-    </nav>
+    <div class="work-col">
 
-    <div class="sync-strip" id="sync-strip">
-      <span class="group"><span class="led idle" id="sync-led"></span><span id="sync-msg">로컬 저장 — 모든 작업은 이 브라우저에만 보관됩니다.</span></span>
-      <span class="group" id="sync-broadcast" style="display:none"><span class="led live"></span><span>다른 탭에서 작업 중</span></span>
-      <span class="spacer"></span>
-      <span class="group" id="sync-saved" style="display:none">마지막 저장 <strong id="sync-when">—</strong></span>
-      <button class="wipe-btn" id="wipe-all" title="이 브라우저에서 모든 입력·기록을 지웁니다">전체 초기화</button>
-    </div>
+      <!-- ── Top bar (replaces hero on every panel) ── -->
+      <div class="topbar" id="topbar">
+        <span class="crumb"><strong id="crumb-section">시작</strong> · <span id="crumb-tab">오늘</span></span>
+        <span class="spacer"></span>
+        <span class="chip" id="topbar-due" style="display:none"><span class="led warn"></span><span id="topbar-due-text">—</span></span>
+        <span class="chip" id="topbar-sync"><span class="led idle" id="sync-led"></span><span id="sync-msg">로컬 저장 — 모든 작업은 이 브라우저에만</span></span>
+        <span class="chip action" id="topbar-demo" title="둘러보기 다시 열기">▶ 시연</span>
+        <span class="chip action" id="topbar-cmdk" title="명령 팔레트 (⌘K · Ctrl+K)"><span style="font-size:11px">⌕</span> <kbd>⌘K</kbd></span>
+      </div>
+
+      <!-- Legacy outer shell removed — replaced by left rail + topbar above.
+           Hidden DOM nodes kept so SyncStatus + wipe-all keep working. -->
+      <div style="display:none">
+        <span id="sync-broadcast"><span class="led live"></span></span>
+        <span id="sync-saved">마지막 저장 <strong id="sync-when">—</strong></span>
+        <button id="wipe-all" title="이 브라우저에서 모든 입력·기록을 지웁니다">전체 초기화</button>
+      </div>
 
     <!-- ─────────────────────────────────────────── -->
     <!-- Tab 0 — 오늘 / Today dashboard -->
@@ -2381,6 +2998,7 @@
       </div>
     </footer>
 
+    </div><!-- /.work-col -->
   </div>
 
   <script>
@@ -2578,8 +3196,10 @@
       MAX: 50,
       push(tag, text, meta = {}) {
         const items = Store.get("activity", []);
-        items.unshift({ at: Date.now(), tag, text, meta });
+        const entry = { at: Date.now(), tag, text, meta };
+        items.unshift(entry);
         Store.set("activity", items.slice(0, this.MAX));
+        return entry;
       },
       recent(n = 10) { return Store.get("activity", []).slice(0, n); },
       clear() { Store.remove("activity"); }
@@ -2663,28 +3283,45 @@
     /* ─────────────────────────────────────────────────────────
        Tab navigation
        ───────────────────────────────────────────────────────── */
+    /* Tab metadata used by rail, palette, crumb */
+    const TABS = [
+      { id: "tab-today",     num: "00", label: "오늘",                section: "시작",      glyph: "◐" },
+      { id: "tab-kcd",       num: "01", label: "KCD-8 정비",          section: "청구·코드", glyph: "K" },
+      { id: "tab-jabo",      num: "02", label: "자보 정산",            section: "청구·코드", glyph: "J" },
+      { id: "tab-search",    num: "06", label: "코드 검색",            section: "청구·코드", glyph: "Q" },
+      { id: "tab-ai",        num: "07", label: "AI 코딩 어시스트",     section: "청구·코드", glyph: "A" },
+      { id: "tab-yearend",   num: "03", label: "연말정산 검증",         section: "보고·감사", glyph: "Y" },
+      { id: "tab-bigeup",    num: "04", label: "비급여 반기보고",       section: "보고·감사", glyph: "B" },
+      { id: "tab-retention", num: "05", label: "보존 감사",            section: "보고·감사", glyph: "R" },
+      { id: "tab-license",   num: "08", label: "면허·자격 갱신",       section: "조직·인증", glyph: "L" },
+      { id: "tab-accred",    num: "09", label: "인증평가",             section: "조직·인증", glyph: "C" }
+    ];
+    const TAB_BY_ID = Object.fromEntries(TABS.map(t => [t.id, t]));
+
     function activateTab(panelId) {
-      const btn = $(`.tab-btn[data-panel="${panelId}"]`);
       const panel = $("#" + panelId);
-      if (!btn || !panel) return;
-      $$(".tab-btn").forEach(b => b.classList.remove("active"));
+      if (!panel) return;
+      $$(".tab-btn, .rail-btn").forEach(b => b.classList.remove("active"));
       $$(".panel").forEach(p => p.classList.remove("active"));
-      btn.classList.add("active");
+      $$(`.tab-btn[data-panel="${panelId}"], .rail-btn[data-panel="${panelId}"]`).forEach(b => b.classList.add("active"));
       panel.classList.add("active");
       Store.set("ui.activeTab", panelId);
-      const tabs = $("#tabnav");
-      if (tabs && window.scrollY > tabs.offsetTop) {
-        window.scrollTo({ top: tabs.offsetTop - 4, behavior: "smooth" });
+      const meta = TAB_BY_ID[panelId];
+      if (meta) {
+        const cs = $("#crumb-section"); if (cs) cs.textContent = meta.section;
+        const ct = $("#crumb-tab");     if (ct) ct.textContent = meta.label;
       }
+      window.scrollTo({ top: 0, behavior: "smooth" });
       EventBus.emit("tab:activated", panelId);
     }
-    $$(".tab-btn").forEach(btn => {
+    $$(".tab-btn, .rail-btn").forEach(btn => {
       btn.addEventListener("click", () => activateTab(btn.dataset.panel));
     });
     /* Restore last-viewed tab on load */
     {
       const saved = Store.get("ui.activeTab");
-      if (saved && $(`.tab-btn[data-panel="${saved}"]`)) activateTab(saved);
+      if (saved && TAB_BY_ID[saved]) activateTab(saved);
+      else activateTab("tab-today");
     }
     /* Wipe-all button */
     $("#wipe-all")?.addEventListener("click", () => {
@@ -2696,6 +3333,292 @@
     /* Sync-status periodic refresh */
     setInterval(() => SyncStatus.refresh(), 30000);
     SyncStatus.refresh();
+
+    /* ─────────────────────────────────────────────────────────
+       Toast tray — surfaces ActivityLog as transient notifications
+       so cross-tab activity is felt, not hunted for.
+       ───────────────────────────────────────────────────────── */
+    const Toast = (() => {
+      const tray = $("#toast-tray");
+      const TAG_LABEL = {
+        kcd: "KCD", jabo: "자보", yearend: "연말", bigeup: "비급여",
+        retention: "보존", search: "검색", ai: "AI",
+        license: "면허", accred: "인증", system: "시스템"
+      };
+      function show({ tag, html, link, ttl = 4500 }) {
+        if (!tray) return;
+        const el = document.createElement("div");
+        el.className = "toast";
+        const goBtn = link ? `<button class="go" data-link="${link}">보기 →</button>` : "";
+        el.innerHTML = `<span class="tag">${TAG_LABEL[tag] || tag || "·"}</span><span class="text">${html}</span>${goBtn}`;
+        tray.appendChild(el);
+        const remove = () => { el.style.transition = "opacity .25s, transform .25s"; el.style.opacity = "0"; el.style.transform = "translateY(8px)"; setTimeout(() => el.remove(), 250); };
+        const t = setTimeout(remove, ttl);
+        if (link) el.querySelector(".go").addEventListener("click", () => { clearTimeout(t); remove(); activateTab(link); });
+      }
+      // Subscribe to ActivityLog events (skip noisy ones)
+      EventBus.on("activity:push", entry => {
+        if (!entry) return;
+        if (entry.tag === "system" && entry.text === "전체 초기화") return;
+        const meta = TAB_BY_ID[`tab-${entry.tag === "yearend" ? "yearend" : entry.tag}`];
+        const link = meta ? meta.id : null;
+        show({ tag: entry.tag, html: entry.text, link });
+      });
+      return { show };
+    })();
+
+    /* Patch ActivityLog.push to emit so toasts hear it.
+       (ActivityLog is defined earlier; this wrap stays compatible.) */
+    (function patchActivity() {
+      const orig = ActivityLog.push;
+      ActivityLog.push = function (tag, text, ctx) {
+        const entry = orig.call(this, tag, text, ctx);
+        EventBus.emit("activity:push", entry || { tag, text, at: Date.now() });
+        return entry;
+      };
+    })();
+
+    /* ─────────────────────────────────────────────────────────
+       Welcome overlay — first-run + reopenable via 시연 chip.
+       Includes "샘플 데이터로 둘러보기" which seeds every tab
+       at once so the dashboard, charts, license tracker, accred
+       all come alive in one click.
+       ───────────────────────────────────────────────────────── */
+    const WELCOMED_KEY = "ui.welcomed";
+    function openWelcome() {
+      const scrim = $("#welcome-scrim");
+      if (!scrim) return;
+      scrim.classList.add("open");
+      $("#welcome-dontshow").checked = !!Store.get(WELCOMED_KEY);
+    }
+    function closeWelcome(markSeen) {
+      const scrim = $("#welcome-scrim");
+      if (!scrim) return;
+      scrim.classList.remove("open");
+      if (markSeen || $("#welcome-dontshow").checked) Store.set(WELCOMED_KEY, true);
+    }
+    $("#welcome-close")?.addEventListener("click", () => closeWelcome(false));
+    $("#welcome-blank")?.addEventListener("click", () => closeWelcome(true));
+    $("#welcome-scrim")?.addEventListener("click", e => {
+      if (e.target.id === "welcome-scrim") closeWelcome(false);
+    });
+    $("#topbar-demo")?.addEventListener("click", openWelcome);
+    /* Open welcome on first visit */
+    if (!Store.get(WELCOMED_KEY)) {
+      // Defer until DATA loads so seed button works on first click
+      EventBus.on("app:ready", () => { setTimeout(openWelcome, 350); });
+    }
+
+    /* Seed-all — fills every tool tab with sample state in one shot. */
+    function seedAll() {
+      // Tab 1 — trigger sample-kcd's run-kcd action
+      try { $('[data-action="run-kcd"]')?.click(); } catch {}
+      // Tab 2 — sample jabo case
+      try { $('[data-action="run-jabo"]')?.click(); } catch {}
+      // Tab 3 — yearend
+      try { $('[data-action="run-ye"]')?.click(); } catch {}
+      // Tab 4 — bigeup
+      try { $('[data-action="run-bigeup"]')?.click(); } catch {}
+      // Tab 5 — retention
+      try { $('[data-action="run-ret"]')?.click(); } catch {}
+      // Tab 6 — search
+      try { $('[data-action="run-search"]')?.click(); } catch {}
+      // Tab 7 — AI canned demo
+      try { $('[data-action="run-ai"]')?.click(); } catch {}
+      // Tab 8 — sample 5 staff
+      try { $("#lic-sample")?.click(); } catch {}
+      // Tab 9 — pre-check ~40% of accred items
+      try {
+        const accred = Store.get("accred.checked", {});
+        if (typeof ACCRED_ITEMS !== "undefined") {
+          const all = ACCRED_ITEMS.flatMap(c => c.items);
+          const n = Math.floor(all.length * 0.4);
+          for (let i = 0; i < n; i++) accred[all[i].id] = true;
+          Store.set("accred.checked", accred);
+        }
+      } catch {}
+      // Land on dashboard so the user sees the result
+      activateTab("tab-today");
+      Toast.show({ tag: "system", html: "<strong>모든 탭에 샘플 데이터가 채워졌습니다.</strong> 좌측 메뉴에서 둘러보세요." });
+    }
+    $("#welcome-seed")?.addEventListener("click", () => {
+      seedAll();
+      closeWelcome(true);
+    });
+
+    /* ─────────────────────────────────────────────────────────
+       Cmd+K command palette — fuzzy search across tabs,
+       saved 자보 cases, licenses, accred items, KCD codes,
+       and demo commands. Net new "verb layer" of the app.
+       ───────────────────────────────────────────────────────── */
+    const Palette = (() => {
+      const scrim = $("#palette-scrim");
+      const input = $("#palette-input");
+      const results = $("#palette-results");
+      let items = [];
+      let sel = 0;
+      function buildItems(query) {
+        const q = (query || "").trim().toLowerCase();
+        const out = [];
+        // Tabs
+        for (const t of TABS) {
+          if (!q || t.label.toLowerCase().includes(q) || t.section.toLowerCase().includes(q) || t.num.includes(q)) {
+            out.push({ kind: "이동", glyph: t.glyph, label: t.label, meta: `${t.section} · ${t.num}`, run: () => activateTab(t.id) });
+          }
+        }
+        // Demo commands
+        const cmds = [
+          { label: "샘플 데이터로 둘러보기", meta: "모든 탭을 한 번에 채우기", run: seedAll, glyph: "▶" },
+          { label: "둘러보기 안내 다시 보기", meta: "환영 화면 열기", run: openWelcome, glyph: "?" },
+          { label: ".ics 캘린더 내려받기", meta: "오늘 탭의 마감을 캘린더로", run: () => { activateTab("tab-today"); setTimeout(() => $("#dday-ics")?.click(), 300); }, glyph: "↓" },
+          { label: "전체 초기화", meta: "이 브라우저의 저장 상태 삭제", run: () => $("#wipe-all")?.click(), glyph: "⌫" }
+        ];
+        for (const c of cmds) {
+          if (!q || c.label.toLowerCase().includes(q) || (c.meta || "").toLowerCase().includes(q)) {
+            out.push({ kind: "명령", ...c });
+          }
+        }
+        // KCD codes (search ko/code) — only when query present
+        if (q && q.length >= 2 && DATA.kcd?.codes) {
+          const matches = DATA.kcd.codes.filter(c =>
+            c.code?.toLowerCase().includes(q) || c.name?.toLowerCase().includes(q)
+          ).slice(0, 6);
+          for (const c of matches) {
+            out.push({ kind: "KCD", glyph: "K", label: c.name, meta: c.code, run: () => { activateTab("tab-search"); setTimeout(() => EventBus.emit("search:query", c.code), 200); } });
+          }
+        }
+        // Saved 자보 cases
+        const jhist = Store.get("jabo.history", []) || [];
+        for (const j of jhist.slice(-8).reverse()) {
+          const cap = `${j.name || "—"} · ${j.insurer || "—"} · ${j.claimNo || "—"}`;
+          if (!q || cap.toLowerCase().includes(q)) {
+            out.push({ kind: "자보", glyph: "J", label: cap, meta: `${j.date || ""} · ${j.itemCount || 0}건`, run: () => activateTab("tab-jabo") });
+          }
+        }
+        // Licenses
+        const lics = Store.get("license.list", []) || [];
+        for (const l of lics) {
+          const cap = `${l.name || "—"} · ${l.role || ""}`;
+          if (!q || cap.toLowerCase().includes(q)) {
+            out.push({ kind: "면허", glyph: "L", label: cap, meta: `만료 ${l.expiry || "—"}`, run: () => activateTab("tab-license") });
+          }
+        }
+        // Accreditation items
+        if (q && q.length >= 2 && typeof ACCRED_ITEMS !== "undefined") {
+          for (const cat of ACCRED_ITEMS) {
+            for (const it of cat.items) {
+              if (it.label.toLowerCase().includes(q)) {
+                out.push({ kind: "인증", glyph: "C", label: it.label, meta: cat.title, run: () => activateTab("tab-accred") });
+              }
+            }
+          }
+        }
+        return out.slice(0, 40);
+      }
+      function render() {
+        if (!items.length) {
+          results.innerHTML = `<div class="palette-empty">검색 결과가 없습니다.</div>`;
+          return;
+        }
+        // Group by kind
+        const groups = {};
+        items.forEach((it, i) => { (groups[it.kind] = groups[it.kind] || []).push({ it, i }); });
+        let html = "";
+        const order = ["이동", "명령", "KCD", "자보", "면허", "인증"];
+        for (const k of order) {
+          if (!groups[k]) continue;
+          html += `<div class="palette-section-label">${k}</div>`;
+          for (const { it, i } of groups[k]) {
+            html += `<div class="palette-item ${i === sel ? "sel" : ""}" data-i="${i}">
+              <span class="glyph">${it.glyph || "·"}</span>
+              <span class="label">${it.label}${it.meta ? `<span class="meta">${it.meta}</span>` : ""}</span>
+              <span class="kind">${it.kind}</span>
+            </div>`;
+          }
+        }
+        results.innerHTML = html;
+        results.querySelectorAll(".palette-item").forEach(el => {
+          el.addEventListener("click", () => { run(parseInt(el.dataset.i, 10)); });
+        });
+        const selEl = results.querySelector(".palette-item.sel");
+        if (selEl) selEl.scrollIntoView({ block: "nearest" });
+      }
+      function refresh(q) {
+        items = buildItems(q);
+        if (sel >= items.length) sel = 0;
+        render();
+      }
+      function open() {
+        scrim.classList.add("open");
+        input.value = "";
+        sel = 0;
+        refresh("");
+        setTimeout(() => input.focus(), 30);
+      }
+      function close() { scrim.classList.remove("open"); }
+      function run(i) {
+        const it = items[i];
+        if (!it) return;
+        close();
+        try { it.run(); } catch (e) { console.error(e); }
+      }
+      input?.addEventListener("input", e => { sel = 0; refresh(e.target.value); });
+      input?.addEventListener("keydown", e => {
+        if (e.key === "ArrowDown") { e.preventDefault(); sel = Math.min(items.length - 1, sel + 1); render(); }
+        else if (e.key === "ArrowUp") { e.preventDefault(); sel = Math.max(0, sel - 1); render(); }
+        else if (e.key === "Enter") { e.preventDefault(); run(sel); }
+        else if (e.key === "Escape") { e.preventDefault(); close(); }
+      });
+      scrim?.addEventListener("click", e => { if (e.target.id === "palette-scrim") close(); });
+      document.addEventListener("keydown", e => {
+        const isK = (e.key === "k" || e.key === "K");
+        if (isK && (e.metaKey || e.ctrlKey)) {
+          e.preventDefault();
+          if (scrim.classList.contains("open")) close(); else open();
+        }
+      });
+      $("#topbar-cmdk")?.addEventListener("click", open);
+      return { open, close, refresh };
+    })();
+
+    /* Topbar · today date + due-this-week chip */
+    (function topbarLive() {
+      function refreshDue() {
+        const days = (iso) => {
+          const t = new Date(iso + "T09:00:00").getTime();
+          return Math.ceil((t - Date.now()) / 86400000);
+        };
+        const Y = new Date().getFullYear();
+        const fixed = [
+          { title: "HIRA 비급여 반기보고", date: `${Y}-03-31` },
+          { title: "HIRA 비급여 반기보고", date: `${Y}-09-30` },
+          { title: "국세청 의료비 일괄제출", date: `${Y+1}-01-15` },
+          { title: "한의사 면허신고", date: `${Y}-04-30` }
+        ];
+        const lics = Store.get("license.list", []) || [];
+        for (const l of lics) {
+          if (l.expiry) fixed.push({ title: `${l.name} 면허 만료`, date: l.expiry });
+        }
+        const upcoming = fixed
+          .map(d => ({ ...d, d: days(d.date) }))
+          .filter(d => d.d >= 0 && d.d <= 14)
+          .sort((a, b) => a.d - b.d);
+        const chip = $("#topbar-due");
+        const text = $("#topbar-due-text");
+        if (!chip) return;
+        if (!upcoming.length) { chip.style.display = "none"; return; }
+        const next = upcoming[0];
+        text.innerHTML = `D-${next.d} · ${next.title}`;
+        chip.style.display = "inline-flex";
+        chip.classList.toggle("urgent", next.d <= 3);
+        chip.classList.toggle("warn", next.d > 3);
+        chip.style.cursor = "pointer";
+        chip.onclick = () => activateTab("tab-today");
+      }
+      EventBus.on("store:license.list", refreshDue);
+      EventBus.on("app:ready", refreshDue);
+      setInterval(refreshDue, 60000);
+    })();
 
     /* ─────────────────────────────────────────────────────────
        Boot — load data, then wire each tab
@@ -2719,6 +3642,7 @@
       initTab8();
       initTab9();
       initTab0();
+      EventBus.emit("app:ready", true);
     }).catch(err => console.error("Data load failed:", err));
 
     /* ─────────────────────────────────────────────────────────
