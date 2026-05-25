@@ -944,83 +944,6 @@
     });
     document.getElementById("restartBtn").addEventListener("click", startGame);
 
-    // ── Physics tuner panel ─────────────────────────────────────────
-    // Each entry is a slider for one PHYS knob: [min, max, step, hint].
-    const TUNER_SCHEMA = {
-      GRAVITY_AIR:   { min: 200,  max: 2000, step: 10,   label: "gravity · air",   hint: "downward pull while flying. higher = bird drops faster" },
-      LIFT_K:        { min: 0.0,  max: 3.5,  step: 0.05, label: "lift · per speed", hint: "how much forward speed becomes upward lift" },
-      LIFT_VMIN:     { min: 0,    max: 500,  step: 5,    label: "lift · stall speed", hint: "below this forward speed, lift fades to zero" },
-      MIN_SINK:      { min: 0,    max: 800,  step: 5,    label: "min · sink rate",  hint: "guaranteed downward accel — bird must always come down" },
-      FALL_TERMINAL: { min: 200,  max: 1500, step: 10,   label: "fall · terminal",  hint: "soft cap on free-fall speed when not diving" },
-      PITCH_BIAS:    { min: 0,    max: 4000, step: 25,   label: "pitch · dive bias", hint: "extra downward force when you tap-and-hold mid-air" },
-      DRAG_AIR:      { min: 0,    max: 0.30, step: 0.005, label: "drag · air",      hint: "horizontal damping while airborne" },
-      GRAVITY_SURF:  { min: 200,  max: 2400, step: 10,   label: "gravity · surf",   hint: "pull along the slope while surfing the hills" },
-    };
-    const tunerEl = document.getElementById("tuner");
-    const tuneBtn = document.getElementById("tuneBtn");
-    const tuneCopyBtn = document.getElementById("tuneCopy");
-    const tuneResetBtn = document.getElementById("tuneReset");
-    const tuneCloseBtn = document.getElementById("tuneClose");
-    const tuneRows = document.getElementById("tuneRows");
-    function fmt(k, v) {
-      const s = TUNER_SCHEMA[k].step;
-      return s < 1 ? v.toFixed(s < 0.05 ? 3 : 2) : Math.round(v).toString();
-    }
-    function buildTuner() {
-      tuneRows.innerHTML = "";
-      for (const k of Object.keys(TUNER_SCHEMA)) {
-        const s = TUNER_SCHEMA[k];
-        const row = document.createElement("div");
-        row.className = "row";
-        row.innerHTML =
-          `<label>${s.label}</label>` +
-          `<span class="v" data-v="${k}">${fmt(k, PHYS[k])}</span>` +
-          `<input type="range" min="${s.min}" max="${s.max}" step="${s.step}" value="${PHYS[k]}" data-k="${k}">` +
-          `<span class="hint">${s.hint}</span>`;
-        tuneRows.appendChild(row);
-        const slider = row.querySelector("input");
-        const display = row.querySelector(".v");
-        slider.addEventListener("input", () => {
-          const val = parseFloat(slider.value);
-          PHYS[k] = val;
-          display.textContent = fmt(k, val);
-          try { localStorage.setItem("sketchwings.phys", JSON.stringify(PHYS)); } catch {}
-        });
-      }
-    }
-    buildTuner();
-    tuneBtn.addEventListener("click", () => {
-      const live = tunerEl.classList.toggle("live");
-      tunerEl.setAttribute("aria-hidden", live ? "false" : "true");
-      tuneBtn.setAttribute("aria-pressed", live ? "true" : "false");
-    });
-    tuneCloseBtn.addEventListener("click", () => {
-      tunerEl.classList.remove("live");
-      tunerEl.setAttribute("aria-hidden", "true");
-      tuneBtn.setAttribute("aria-pressed", "false");
-    });
-    tuneResetBtn.addEventListener("click", () => {
-      Object.assign(PHYS, PHYS_DEFAULTS);
-      try { localStorage.removeItem("sketchwings.phys"); } catch {}
-      buildTuner();
-    });
-    tuneCopyBtn.addEventListener("click", async () => {
-      const lines = Object.keys(PHYS_DEFAULTS).map(k => `  ${k}: ${PHYS[k]},`).join("\n");
-      const text = `const PHYS = {\n${lines}\n};`;
-      try {
-        await navigator.clipboard.writeText(text);
-        const orig = tuneCopyBtn.textContent;
-        tuneCopyBtn.textContent = "copied!";
-        setTimeout(() => { tuneCopyBtn.textContent = orig; }, 1100);
-      } catch {
-        // Fallback: select the text in a textarea
-        const ta = document.createElement("textarea");
-        ta.value = text; document.body.appendChild(ta); ta.select();
-        try { document.execCommand("copy"); } catch {}
-        ta.remove();
-      }
-    });
-
     // Keyboard alt — space/up = pitch down, mirrors tap
     window.addEventListener("keydown", e => {
       if (e.repeat) return;
@@ -1059,6 +982,83 @@
     } catch {}
     const STALL_ANGLE_DEG  = 55;  // landing angle above this = bonk
     const PERFECT_ANGLE_DEG = 12; // launch within this angle of slope tangent = perfect
+
+    // ── Physics tuner panel ─────────────────────────────────────────
+    // Each entry is a slider for one PHYS knob: [min, max, step, hint].
+    // Wired here (after PHYS is declared) so it can read defaults.
+    const TUNER_SCHEMA = {
+      GRAVITY_AIR:   { min: 200,  max: 2000, step: 10,   label: "gravity · air",   hint: "downward pull while flying. higher = bird drops faster" },
+      LIFT_K:        { min: 0.0,  max: 3.5,  step: 0.05, label: "lift · per speed", hint: "how much forward speed becomes upward lift" },
+      LIFT_VMIN:     { min: 0,    max: 500,  step: 5,    label: "lift · stall speed", hint: "below this forward speed, lift fades to zero" },
+      MIN_SINK:      { min: 0,    max: 800,  step: 5,    label: "min · sink rate",  hint: "guaranteed downward accel — bird must always come down" },
+      FALL_TERMINAL: { min: 200,  max: 1500, step: 10,   label: "fall · terminal",  hint: "soft cap on free-fall speed when not diving" },
+      PITCH_BIAS:    { min: 0,    max: 4000, step: 25,   label: "pitch · dive bias", hint: "extra downward force when you tap-and-hold mid-air" },
+      DRAG_AIR:      { min: 0,    max: 0.30, step: 0.005, label: "drag · air",      hint: "horizontal damping while airborne" },
+      GRAVITY_SURF:  { min: 200,  max: 2400, step: 10,   label: "gravity · surf",   hint: "pull along the slope while surfing the hills" },
+    };
+    const tunerEl = document.getElementById("tuner");
+    const tuneBtn = document.getElementById("tuneBtn");
+    const tuneCopyBtn = document.getElementById("tuneCopy");
+    const tuneResetBtn = document.getElementById("tuneReset");
+    const tuneCloseBtn = document.getElementById("tuneClose");
+    const tuneRows = document.getElementById("tuneRows");
+    function fmtTuner(k, v) {
+      const s = TUNER_SCHEMA[k].step;
+      return s < 1 ? v.toFixed(s < 0.05 ? 3 : 2) : Math.round(v).toString();
+    }
+    function buildTuner() {
+      tuneRows.innerHTML = "";
+      for (const k of Object.keys(TUNER_SCHEMA)) {
+        const s = TUNER_SCHEMA[k];
+        const row = document.createElement("div");
+        row.className = "row";
+        row.innerHTML =
+          `<label>${s.label}</label>` +
+          `<span class="v" data-v="${k}">${fmtTuner(k, PHYS[k])}</span>` +
+          `<input type="range" min="${s.min}" max="${s.max}" step="${s.step}" value="${PHYS[k]}" data-k="${k}">` +
+          `<span class="hint">${s.hint}</span>`;
+        tuneRows.appendChild(row);
+        const slider = row.querySelector("input");
+        const display = row.querySelector(".v");
+        slider.addEventListener("input", () => {
+          const val = parseFloat(slider.value);
+          PHYS[k] = val;
+          display.textContent = fmtTuner(k, val);
+          try { localStorage.setItem("sketchwings.phys", JSON.stringify(PHYS)); } catch {}
+        });
+      }
+    }
+    buildTuner();
+    tuneBtn.addEventListener("click", () => {
+      const live = tunerEl.classList.toggle("live");
+      tunerEl.setAttribute("aria-hidden", live ? "false" : "true");
+      tuneBtn.setAttribute("aria-pressed", live ? "true" : "false");
+    });
+    tuneCloseBtn.addEventListener("click", () => {
+      tunerEl.classList.remove("live");
+      tunerEl.setAttribute("aria-hidden", "true");
+      tuneBtn.setAttribute("aria-pressed", "false");
+    });
+    tuneResetBtn.addEventListener("click", () => {
+      Object.assign(PHYS, PHYS_DEFAULTS);
+      try { localStorage.removeItem("sketchwings.phys"); } catch {}
+      buildTuner();
+    });
+    tuneCopyBtn.addEventListener("click", async () => {
+      const lines = Object.keys(PHYS_DEFAULTS).map(k => `  ${k}: ${PHYS[k]},`).join("\n");
+      const text = `const PHYS = {\n${lines}\n};`;
+      try {
+        await navigator.clipboard.writeText(text);
+        const orig = tuneCopyBtn.textContent;
+        tuneCopyBtn.textContent = "copied!";
+        setTimeout(() => { tuneCopyBtn.textContent = orig; }, 1100);
+      } catch {
+        const ta = document.createElement("textarea");
+        ta.value = text; document.body.appendChild(ta); ta.select();
+        try { document.execCommand("copy"); } catch {}
+        ta.remove();
+      }
+    });
 
     function physicsStep(dt) {
       if (G.gameOver) return;
