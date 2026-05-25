@@ -856,9 +856,10 @@
     // surfing still has the satisfying weight of going downhill — a real
     // 1100 px/s² in the air made the bird hit the ground in <1 second.
     const GRAVITY_SURF = 1100;    // px/s² along the slope tangent
-    const GRAVITY_AIR  = 380;     // px/s² applied while airborne
-    const LIFT_K       = 1.10;    // forward speed → upward lift (px/s² per px/s)
-    const LIFT_VMIN    = 200;     // below this forward speed, lift fades out
+    const GRAVITY_AIR  = 360;     // px/s² applied while airborne
+    const LIFT_K       = 1.60;    // forward speed → upward lift (px/s² per px/s)
+    const LIFT_VMIN    = 180;     // below this forward speed, lift fades out
+    const FALL_TERMINAL = 260;    // unpressed-glide max downward speed (soft cap)
     const PITCH_BIAS   = 1500;    // extra downward when tap-held
     const DRAG_AIR     = 0.06;    // per-second velocity damping while airborne (was 0.18)
     const STALL_ANGLE_DEG  = 55;  // landing angle above this = bonk
@@ -967,6 +968,13 @@
         // Air drag — only on horizontal so altitude isn't bled away
         const dragK = Math.exp(-DRAG_AIR * dt);
         G.vx *= dragK;
+        // Soft terminal-velocity clamp: when NOT diving, the bird should
+        // *glide*, not free-fall. Without this, accumulated downward vy
+        // grows unbounded between hills and the bird "rains" down even
+        // when the player is doing nothing wrong.
+        if (!G.pitchDown && G.vy > FALL_TERMINAL) {
+          G.vy = FALL_TERMINAL + (G.vy - FALL_TERMINAL) * Math.exp(-2.0 * dt);
+        }
       }
 
       // Cap horizontal velocity for sanity (preserves sign)
@@ -1171,17 +1179,36 @@
       // Mid hill silhouette — slightly closer, faster, just above horizon
       drawParallaxBand(ASSETS.midHill,  camX, 0.16, baseY * 0.96, 0.30, p.name === "night" ? 0.22 : 0.48);
 
-      // Image-based clouds — only when not night, well up in the sky
+      // Image-based clouds — only when not night, well up in the sky.
+      // Tile each cloud across a wide period (3× viewport) and fade the
+      // sprite at its left/right edges, so clouds never pop in or out
+      // at the screen border. Each cloud is drawn at every wrap so as
+      // one fades out on the right another fades in on the left.
       if (p.name !== "night" && ASSETS.cloud.ready) {
         const img = ASSETS.cloud.img;
+        const tileW = Math.max(viewW * 3, 1800);
+        const fadeMargin = 220;
         ctx.globalCompositeOperation = "multiply";
         for (const c of G.clouds) {
-          const screenX = (c.x - camX * c.speed) % (viewW + 400);
-          const sx = screenX < -200 ? screenX + viewW + 400 : screenX;
           const w = c.w * 1.6;
           const h = w * (img.height / img.width);
-          ctx.globalAlpha = 0.45;
-          ctx.drawImage(img, sx, Math.min(c.y, baseY * 0.45) - h * 0.5, w, h);
+          const cy = Math.min(c.y, baseY * 0.45) - h * 0.5;
+          const base = c.x - camX * c.speed;
+          const off = ((base % tileW) + tileW) % tileW;
+          for (let cx = off - tileW; cx < viewW + tileW; cx += tileW) {
+            // cx is the sprite's LEFT edge on screen.
+            const right = cx + w;
+            if (right < -fadeMargin || cx > viewW + fadeMargin) continue;
+            // Fade in across the leftmost fadeMargin and out across the
+            // rightmost fadeMargin of the visible band.
+            let fade = 1;
+            if (cx < 0) fade = Math.min(fade, 1 + cx / fadeMargin);
+            if (right > viewW) fade = Math.min(fade, 1 - (right - viewW) / fadeMargin);
+            fade = Math.max(0, Math.min(1, fade));
+            if (fade <= 0) continue;
+            ctx.globalAlpha = 0.45 * fade;
+            ctx.drawImage(img, cx, cy, w, h);
+          }
         }
       }
       ctx.restore();
