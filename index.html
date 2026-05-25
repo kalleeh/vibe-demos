@@ -291,10 +291,10 @@
     }
     .work {
       display: grid;
-      grid-template-columns: 56px 1fr auto auto;
-      align-items: end;
-      gap: 24px;
-      padding: 30px 0;
+      grid-template-columns: 56px 1fr auto 200px auto;
+      align-items: center;
+      gap: 28px;
+      padding: 22px 0;
       border-top: 1px solid var(--line);
       color: inherit;
       text-decoration: none;
@@ -311,7 +311,7 @@
     .work .title {
       font-family: "Fraunces", serif;
       font-weight: 300;
-      font-size: clamp(34px, 6vw, 64px);
+      font-size: clamp(30px, 5vw, 52px);
       line-height: 1;
       letter-spacing: -0.025em;
       transition: transform .35s cubic-bezier(.2,.8,.2,1);
@@ -327,6 +327,30 @@
       max-width: 220px;
       line-height: 1.7;
     }
+    /* Thumbnail tile — always visible, swaps tone on row hover/focus */
+    .work .thumb {
+      width: 200px;
+      aspect-ratio: 16 / 10;
+      overflow: hidden;
+      border-radius: 3px;
+      background: var(--paper-2);
+      box-shadow:
+        0 1px 0 rgba(20,17,13,0.04),
+        0 14px 32px -16px rgba(20,17,13,0.18),
+        inset 0 0 0 1px rgba(20,17,13,0.08);
+      position: relative;
+      isolation: isolate;
+    }
+    .work .thumb img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: saturate(0.8);
+      transition: filter .4s cubic-bezier(.2,.8,.2,1),
+                  transform .6s cubic-bezier(.2,.8,.2,1);
+      transform: scale(1.001); /* hairline anti-jitter on subpixel transforms */
+    }
     .work .year {
       font-family: "JetBrains Mono", monospace;
       font-size: 13px;
@@ -334,7 +358,7 @@
     }
     .work .arrow {
       position: absolute;
-      right: 0;
+      right: -28px;
       top: 50%;
       transform: translate(20px, -50%) rotate(-45deg);
       opacity: 0;
@@ -345,7 +369,11 @@
     }
     .work:hover { padding-left: 22px; }
     .work:hover .title { color: var(--accent); }
+    .work:hover .thumb img { filter: saturate(1); transform: scale(1.04); }
     .work:hover .arrow { opacity: 1; transform: translate(0, -50%) rotate(0); }
+    .work:focus-visible { outline: none; padding-left: 22px; }
+    .work:focus-visible .title { color: var(--accent); }
+    .work:focus-visible .thumb img { filter: saturate(1); transform: scale(1.04); }
 
     .work[data-status="soon"] {
       pointer-events: none;
@@ -363,58 +391,25 @@
       font-style: normal;
     }
 
-    /* ── Hover preview that follows cursor ── */
-    .preview {
-      position: fixed;
-      pointer-events: none;
-      width: 320px;
-      height: 200px;
-      background: var(--paper-2);
-      border: 1px solid var(--line);
-      border-radius: 4px;
-      overflow: hidden;
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(0.94);
-      transition: opacity .25s, transform .25s cubic-bezier(.2,.8,.2,1);
-      z-index: 50;
-      box-shadow: 0 18px 60px rgba(20,17,13,0.18), 0 0 0 1px rgba(20,17,13,0.04);
-    }
-    .preview.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-    .preview .pv-inner {
-      width: 100%; height: 100%;
-      position: relative;
-      overflow: hidden;
-      background: var(--paper-2);
-    }
-    .preview .pv-inner img {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0;
-      transition: opacity .35s cubic-bezier(.2,.8,.2,1);
-    }
-    .preview .pv-inner img.active { opacity: 1; }
-    .preview .pv-inner span {
-      position: absolute;
-      left: 14px;
-      bottom: 12px;
-      font-family: "Fraunces", serif;
-      font-style: italic;
-      font-size: 22px;
-      color: #fff8e7;
-      text-shadow: 0 2px 14px rgba(0,0,0,0.55);
-      letter-spacing: -0.01em;
-    }
-
-    @media (max-width: 700px) {
+    /* Mid-width: drop tags + year, keep thumb */
+    @media (max-width: 960px) {
       .work {
-        grid-template-columns: 32px 1fr;
-        gap: 12px;
+        grid-template-columns: 40px 1fr 132px;
+        gap: 18px;
+        padding: 18px 0;
       }
       .work .tags, .work .year { display: none; }
-      .preview { display: none; }
+      .work .thumb { width: 132px; }
+    }
+    /* Phone: keep thumb, smaller */
+    @media (max-width: 560px) {
+      .work {
+        grid-template-columns: 28px 1fr 96px;
+        gap: 14px;
+        padding: 16px 0;
+      }
+      .work .title { font-size: clamp(22px, 6vw, 30px); }
+      .work .thumb { width: 96px; aspect-ratio: 4 / 3; }
     }
 
     /* Section divider — sparse watercolor marks on transparent background.
@@ -578,66 +573,74 @@
         <div class="count">Index / 08 entries</div>
       </header>
 
-      <a class="work" href="./sweden-food-guide/" data-preview="sweden">
+      <a class="work" href="./sweden-food-guide/">
         <span class="num">01</span>
         <span class="title">Svensk <em>Mat</em></span>
         <span class="tags">Editorial<br>Interactive guide<br>Korean / Swedish</span>
+        <span class="thumb"><img src="./thumbs/sweden.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async"></span>
         <span class="year">2026</span>
         <span class="arrow">→</span>
       </a>
 
-      <a class="work" href="./molecule-journey/" data-preview="molecule">
+      <a class="work" href="./molecule-journey/">
         <span class="num">02</span>
         <span class="title">가스의 <em>여정</em></span>
         <span class="tags">Scrollytelling<br>Three.js · WebGL<br>Korean primary</span>
+        <span class="thumb"><img src="./thumbs/molecule.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async"></span>
         <span class="year">2026</span>
         <span class="arrow">→</span>
       </a>
 
-      <a class="work" href="./live-globe/" data-preview="globe">
+      <a class="work" href="./live-globe/">
         <span class="num">03</span>
         <span class="title">Live <em>Globe</em></span>
         <span class="tags">3D real-time<br>Seoul ⇄ Stockholm<br>AI · live data</span>
+        <span class="thumb"><img src="./thumbs/globe.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async"></span>
         <span class="year">2026</span>
         <span class="arrow">→</span>
       </a>
 
-      <a class="work" href="./intake-companion/" data-preview="intake">
+      <a class="work" href="./intake-companion/">
         <span class="num">04</span>
         <span class="title">Intake <em>Companion</em></span>
         <span class="tags">한방 · 진료 동반자<br>Voice · AI<br>Clinical brief</span>
+        <span class="thumb"><img src="./thumbs/intake.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async"></span>
         <span class="year">2026</span>
         <span class="arrow">→</span>
       </a>
 
-      <a class="work" href="./korean-mbti/" data-preview="mbti">
+      <a class="work" href="./korean-mbti/">
         <span class="num">05</span>
         <span class="title">MBTI <em>16</em>유형</span>
         <span class="tags">Korean MBTI · 별명<br>Test · AI deep-read<br>Free-text inference</span>
+        <span class="thumb"><img src="./thumbs/mbti.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async"></span>
         <span class="year">2026</span>
         <span class="arrow">→</span>
       </a>
 
-      <a class="work" href="./resonans/" data-preview="resonans">
+      <a class="work" href="./resonans/">
         <span class="num">06</span>
         <span class="title">Reso<em>nans</em></span>
         <span class="tags">Wave physics sketchbook<br>Tap-in-rhythm game<br>Calm · meditative</span>
+        <span class="thumb"><img src="./thumbs/resonans.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async"></span>
         <span class="year">2026</span>
         <span class="arrow">→</span>
       </a>
 
-      <a class="work" href="./clinic-admin/" data-preview="clinic-admin">
+      <a class="work" href="./clinic-admin/">
         <span class="num">07</span>
         <span class="title">Clinic <em>Admin</em></span>
         <span class="tags">한방병원 행정원장<br>카메라·OCR·음성·공유<br>좌측레일 · ⌘K · 시연 투어</span>
+        <span class="thumb"><img src="./thumbs/clinic-admin.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async"></span>
         <span class="year">2026</span>
         <span class="arrow">→</span>
       </a>
 
-      <a class="work" href="./tinywings/" data-preview="tinywings">
+      <a class="work" href="./tinywings/">
         <span class="num">08</span>
         <span class="title">Sketch<em>wings</em></span>
         <span class="tags">Pencil hills · glide<br>One-tap arcade<br>Day-into-night cycle</span>
+        <span class="thumb"><img src="./tinywings/assets/hero-mood.webp" alt="" width="1280" height="720" loading="lazy" decoding="async"></span>
         <span class="year">2026</span>
         <span class="arrow">→</span>
       </a>
@@ -687,20 +690,6 @@
 
   </div>
 
-  <div class="preview" id="preview" aria-hidden="true">
-    <div class="pv-inner">
-      <img data-thumb="sweden" src="./thumbs/sweden.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async">
-      <img data-thumb="molecule" src="./thumbs/molecule.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async">
-      <img data-thumb="globe" src="./thumbs/globe.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async">
-      <img data-thumb="intake" src="./thumbs/intake.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async">
-      <img data-thumb="mbti" src="./thumbs/mbti.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async">
-      <img data-thumb="resonans" src="./thumbs/resonans.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async">
-      <img data-thumb="clinic-admin" src="./thumbs/clinic-admin.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async">
-      <img data-thumb="tinywings" src="./thumbs/paper-texture.jpg" alt="" width="1280" height="720" loading="lazy" decoding="async">
-      <span id="previewLabel">—</span>
-    </div>
-  </div>
-
   <script>
     // Clock — Stockholm time, monospace ticker in the status pill
     function updateClock() {
@@ -713,44 +702,6 @@
     }
     updateClock();
     setInterval(updateClock, 30000);
-
-    // Cursor-following preview
-    const preview = document.getElementById("preview");
-    const previewLabel = document.getElementById("previewLabel");
-    const previewThumbs = preview.querySelectorAll("img[data-thumb]");
-    const labels = {
-      sweden: "Svensk Mat",
-      molecule: "가스의 여정",
-      globe: "Live Globe",
-      intake: "Intake Companion",
-      mbti: "MBTI 16유형",
-      resonans: "Resonans",
-      "clinic-admin": "행정 도구함",
-      tinywings: "Sketchwings"
-    };
-    let activeWork = null;
-
-    document.querySelectorAll(".work[data-preview]").forEach(w => {
-      w.addEventListener("mouseenter", () => {
-        activeWork = w;
-        const slug = w.dataset.preview;
-        previewLabel.textContent = labels[slug] || "View";
-        previewThumbs.forEach(t => t.classList.toggle("active", t.dataset.thumb === slug));
-        preview.classList.add("show");
-      });
-      w.addEventListener("mouseleave", () => {
-        if (activeWork === w) {
-          activeWork = null;
-          preview.classList.remove("show");
-        }
-      });
-    });
-
-    document.addEventListener("mousemove", (e) => {
-      if (!activeWork) return;
-      preview.style.left = e.clientX + "px";
-      preview.style.top  = e.clientY + "px";
-    });
 
     // Subtle parallax on hero on scroll
     const hero = document.querySelector(".hero h1");
