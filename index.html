@@ -417,27 +417,20 @@
       .preview { display: none; }
     }
 
-    /* Section divider — washes through the page edge-to-edge, fades on every side.
-       Reads as a watermark band, not a placed image. */
+    /* Section divider — sparse watercolor marks on transparent background.
+       The image *is* the divider; no surrounding rules. */
     .divider {
       display: block;
       width: 100%;
-      max-width: 880px;
-      height: 56px;
-      object-fit: cover;
-      object-position: center 50%;
-      margin: 48px auto 24px;
-      opacity: 0.55;
-      mix-blend-mode: multiply;
-      filter: saturate(0.7);
-      -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 80%);
-              mask-image: radial-gradient(ellipse at center, #000 30%, transparent 80%);
+      max-width: 720px;
+      height: auto;
+      margin: 64px auto;
+      opacity: 0.85;
     }
 
     /* ── About / Process ── */
     .about {
-      padding: 80px 0 56px;
-      border-top: 1px solid var(--line);
+      padding: 40px 0 56px;
       display: grid;
       grid-template-columns: 1fr 2fr;
       gap: 80px;
@@ -650,7 +643,7 @@
       </a>
     </section>
 
-    <img class="divider" src="./thumbs/divider.jpg" alt="" width="2240" height="960" loading="lazy" decoding="async" aria-hidden="true">
+    <img class="divider" src="./thumbs/divider.png" alt="" width="1536" height="640" loading="lazy" decoding="async" aria-hidden="true">
 
     <section class="about" id="about">
       <div>
