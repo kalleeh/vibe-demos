@@ -1217,15 +1217,12 @@
       // Boost meter UI
       document.getElementById("boostFill").style.width = (G.boost * 100).toFixed(1) + "%";
 
-      // Stop condition: bird velocity falls below threshold AND is on
-      // the slope at very low speed — basically "the flight is over".
-      if (!G.airborne && G.vx < 50) {
-        if (G.vx < 12) {
-          G.stuckMs += dt * 1000;
-          if (G.stuckMs > 600) endRun("the wind has settled");
-        } else {
-          G.stuckMs = 0;
-        }
+      // End-of-flight: speed magnitude (not vx) so airborne stalls and
+      // wedge-in-valley flickers also trip the stop.
+      const speed = Math.sqrt(G.vx * G.vx + G.vy * G.vy);
+      if (speed < 60) {
+        G.stuckMs += dt * 1000;
+        if (G.stuckMs > 800) endRun("the wind has settled");
       } else {
         G.stuckMs = 0;
       }
