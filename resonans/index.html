@@ -294,7 +294,7 @@
     <div class="scene-label" id="sceneLabel" aria-hidden="true">Chladni 진동판 — n=2,3</div>
 
     <footer class="footer">
-      <span class="hint" id="hint">tap on the string in rhythm — match the ghost line</span>
+      <span class="hint" id="hint">tap on the string with the beat dot — match the ghost line</span>
       <span class="spacer" style="flex:1"></span>
       <span class="lock"><span class="pip" id="lockPip"></span><span id="lockText">searching</span></span>
       <button class="toggle" id="muteBtn" aria-pressed="false">sound · on</button>
@@ -408,6 +408,8 @@
     let lockEMA = 0;
     let targetCoefEMA = 0;   // smoothed magnitude of the target-mode coefficient
     let lastCoefs = null;     // shared with the spectral bar renderer
+    let sustainedFrames = 0; // consecutive frames above lock threshold
+    let latchUntil = 0;       // ms timestamp; while now < latchUntil, treat as "still locked"
     function updateLock() {
       const { coefs } = modeEnergies();
       lastCoefs = coefs;
@@ -424,10 +426,13 @@
       // 0 → equal, 1 → target is ≥3x its rival.
       const dominance = Math.min(1, Math.max(0, (targetMag / rivalMag - 1) / 2));
       // Require the string to actually be moving so a still string
-      // doesn't accidentally read as "locked"
-      const alive = Math.min(1, targetMag / 0.06);
+      // doesn't accidentally read as "locked". Floor lowered from 0.06
+      // → 0.04 so quiet, well-shaped plucks register sooner.
+      const alive = Math.min(1, targetMag / 0.04);
       const inst = dominance * alive;
-      lockEMA += (inst - lockEMA) * 0.06;
+      // EMA at 0.10 (was 0.06) — half-life ~7 frames, so a brief good
+      // rhythm is felt within ~0.25s instead of vanishing into smoothing.
+      lockEMA += (inst - lockEMA) * 0.10;
       targetCoefEMA += (targetMag - targetCoefEMA) * 0.08;
       return { lockEMA, coefs, targetMag };
     }
@@ -466,6 +471,23 @@
 
     // Map mode 1..5 to a pleasing pentatonic-feeling pitch ladder.
     const MODE_HZ = { 1: 196.0, 2: 261.6, 3: 329.6, 4: 392.0, 5: 523.3 };
+
+    // Resonant period of the simulation, in ms. Time for a wave pulse
+    // to traverse the string twice (round trip). At 60fps with 4 sub
+    // steps per frame and c² = 0.30, n=1 ≈ 3.3s, n=5 ≈ 0.67s.
+    function modePeriodMs(n) {
+      const cWave = Math.sqrt(C2);
+      const stepsPerTraversal = (N - 1) / cWave;
+      const framesPerPeriod = (2 * stepsPerTraversal) / 4 / n;
+      return framesPerPeriod * (1000 / 60);
+    }
+    // One-line player hint: how often to tap, in seconds.
+    function tempoHint(n) {
+      const sec = modePeriodMs(n) / 1000;
+      if (sec >= 1.2) return `tap every ~${sec.toFixed(1)}s — slow and steady`;
+      if (sec >= 0.7) return `tap every ~${sec.toFixed(1)}s — medium beat`;
+      return `tap every ~${sec.toFixed(2)}s — quick, rhythmic`;
+    }
 
     function setDronePitch() {
       if (!resOsc) return;
@@ -715,7 +737,9 @@
     // line can literally lay over the ghost when the shape locks in.
     // A small floor keeps the ghost visible before the first pluck.
     function drawTarget(curveAmp) {
-      const tAmp = curveAmp * (Math.max(0.18, targetCoefEMA * 1.6));
+      // Floor raised 0.18 → 0.45 so the ghost is clearly visible BEFORE
+      // the player has built any energy — they can see what to aim for.
+      const tAmp = curveAmp * (Math.max(0.45, targetCoefEMA * 1.6));
       // Sign: lock onto the sign of the current target coefficient so
       // the ghost flips with the player's pluck instead of fighting it.
       const sign = targetCoefEMA > 1e-4
@@ -769,6 +793,73 @@
       ctx.beginPath();
       ctx.moveTo(7, 4); ctx.lineTo(7, 8);
       ctx.moveTo(11, 4); ctx.lineTo(11, 8);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Tempo cue — a pulsing graphite dot above the string that beats at
+    // the resonant period of the active mode. Gives the player a clear
+    // visual rhythm to tap with. Renders only in the 1D string scene.
+    function drawTempoCue(now) {
+      const periodMs = modePeriodMs(mode);
+      // Phase in [0..1) over the resonance period.
+      const phase = ((now % periodMs) / periodMs);
+      // Sharp beat curve: bright pulse on downbeat, fading to dim.
+      // exp(-k * phase) gives a clean decay shape.
+      const pulse = Math.exp(-3.5 * phase);
+      const x = leftX + 18;
+      const y = stringY - 56;
+      ctx.save();
+      // Faint period bar — a dashed arc that fills as the period elapses
+      ctx.strokeStyle = "rgba(42, 38, 29, 0.22)";
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([2, 4]);
+      ctx.beginPath();
+      ctx.arc(x, y, 14, -Math.PI / 2, -Math.PI / 2 + phase * Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // The pulsing dot itself
+      const r = 4 + 5 * pulse;
+      const a = 0.30 + 0.55 * pulse;
+      ctx.fillStyle = `rgba(201, 126, 96, ${a.toFixed(3)})`;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+      // Hand-written "beat" caption, fades on each pulse
+      ctx.fillStyle = `rgba(42, 38, 29, ${(0.40 + 0.20 * pulse).toFixed(3)})`;
+      ctx.font = '13px "Caveat", cursive';
+      ctx.textBaseline = "middle";
+      ctx.fillText("beat", x + 22, y);
+      ctx.restore();
+    }
+
+    // Rival-leak counter-shape — Tier D. Draws the dominant non-target
+    // mode as a faint dashed sine, scaled by its actual coefficient. The
+    // player sees what is fighting their target instead of just a number
+    // on a chart. Skipped if no rival has any energy.
+    function drawRivalLeak(curveAmp) {
+      if (!lastCoefs) return;
+      let rivalN = 0, rivalC = 0;
+      for (let n = 1; n <= 5; n++) {
+        if (n === mode) continue;
+        const m = Math.abs(lastCoefs[n]);
+        if (m > rivalC) { rivalC = m; rivalN = n; }
+      }
+      if (rivalN === 0 || rivalC < 0.02) return;
+      const sign = Math.sign(lastCoefs[rivalN]) || 1;
+      // Render small — 70% the height of the live curve at that coef —
+      // and grayer than the green ghost so it reads as "interference".
+      const tAmp = curveAmp * rivalC * 1.2;
+      ctx.save();
+      ctx.strokeStyle = "rgba(160, 120, 100, 0.35)";
+      ctx.setLineDash([2, 5]);
+      ctx.lineWidth = 1.1;
+      ctx.beginPath();
+      for (let i = 0; i < N; i++) {
+        const x = gridX(i);
+        const y = stringY - sign * Math.sin((rivalN * Math.PI * i) / (N - 1)) * tAmp;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
       ctx.stroke();
       ctx.restore();
     }
@@ -1032,7 +1123,9 @@
       } else {
         const curveAmp = 70;
         drawTarget(curveAmp);
+        drawRivalLeak(curveAmp);
         drawBlooms(lockEMA);
+        drawTempoCue(now);
         buildCurve(curveAmp);
 
         // Two strokes: a soft graphite "search" line that's always there,
@@ -1042,7 +1135,11 @@
           alpha: 0.55, jitter: reduceMotion ? 0.4 : 1.4,
           passes: reduceMotion ? 1 : 2, lineWidth: 1.4
         });
-        const inkAlpha = Math.min(1, Math.max(0, (lockEMA - 0.08) / 0.40));
+        // Ink alpha rises with lock; while latched (Tier E) we hold it
+        // near full so the player gets a clear "I did it" beat instead
+        // of seeing the line dissolve as energy decays.
+        const baseInk = Math.min(1, Math.max(0, (lockEMA - 0.06) / 0.20));
+        const inkAlpha = (now < latchUntil) ? Math.max(baseInk, 0.85) : baseInk;
         if (inkAlpha > 0.01) {
           strokePath(curveCoords, {
             color: "rgba(42, 38, 29, 0.95)",
@@ -1062,21 +1159,38 @@
       // "purity meter" no matter which view you're in.
       drawSpectrum();
 
-      // Lock pip + drone
+      // Lock pip + drone. Threshold dropped 0.35 → 0.25 so the metric's
+      // achievable ceiling (~0.42 for a perfect standing wave) sits well
+      // above "locked" instead of barely scraping over it.
       const pip = document.getElementById("lockPip");
       const txt = document.getElementById("lockText");
-      if (lockEMA > 0.35) {
+      // Tier E — sustained-lock celebration: once the player has held
+      // a real lock for ~1.5s, latch the "locked" state for a moment so
+      // the line stays visibly inked-in even as energy decays. Resets
+      // when lockEMA drops below the warming floor.
+      if (lockEMA > 0.25) {
+        sustainedFrames++;
+        if (sustainedFrames > 90 /* ~1.5s @ 60fps */) latchUntil = now + 1500;
+      } else if (lockEMA < 0.10) {
+        sustainedFrames = 0;
+      }
+      const latched = now < latchUntil;
+      if (lockEMA > 0.25 || latched) {
         pip.classList.add("lit");
-        txt.textContent = "locked · n=" + mode;
-      } else if (lockEMA > 0.12) {
+        txt.textContent = latched && lockEMA <= 0.25
+          ? "holding · n=" + mode
+          : "locked · n=" + mode;
+      } else if (lockEMA > 0.10) {
         pip.classList.remove("lit");
-        txt.textContent = "warming · " + Math.round(lockEMA * 100) + "%";
+        // Map [0.10, 0.25] → 0..100% so progress is visible.
+        const pct = Math.round(((lockEMA - 0.10) / 0.15) * 100);
+        txt.textContent = "warming · " + pct + "%";
       } else {
         pip.classList.remove("lit");
         txt.textContent = "searching";
       }
       if (resGain && audioCtx) {
-        const tgt = muted ? 0 : Math.max(0, (lockEMA - 0.12)) * 0.18;
+        const tgt = muted ? 0 : Math.max(0, (lockEMA - 0.10)) * 0.22;
         resGain.gain.setTargetAtTime(tgt, audioCtx.currentTime, 0.18);
       }
 
@@ -1141,6 +1255,11 @@
       document.getElementById("modeNum").textContent = mode;
       document.getElementById("modeName").textContent =
         "— " + (MODE_NAMES[mode] || "").split("—")[0].trim();
+      // Tier F — show the player the actual rhythm that wins this mode.
+      // Voice mode has its own hint; don't overwrite it.
+      if (!voiceMode) {
+        document.getElementById("hint").textContent = tempoHint(mode);
+      }
     }
 
     document.querySelectorAll(".mode-chip[data-mode]").forEach(btn => {
@@ -1156,7 +1275,10 @@
         target = targetShape(mode);
         syncModeUI();
         lockEMA *= 0.5;
-        targetCoefEMA = 0;
+        // Do NOT reset targetCoefEMA — keeping a non-zero floor lets
+        // the ghost line stay visible while the player switches modes.
+        sustainedFrames = 0;
+        latchUntil = 0;
         if (audioCtx) setDronePitch();
       });
     });
@@ -1205,14 +1327,14 @@
       muteBtn.setAttribute("aria-pressed", muted ? "true" : "false");
     });
 
-    // First-tap helper hint fades after first pluck
+    // First-tap helper hint switches to the per-mode rhythm hint after
+    // the player has plucked at least once. Voice mode keeps its own.
     let everPlucked = false;
     canvas.addEventListener("pointerdown", () => {
       if (!everPlucked) {
         everPlucked = true;
         if (!voiceMode) {
-          document.getElementById("hint").textContent =
-            "find a steady rhythm — the line will fill itself in";
+          document.getElementById("hint").textContent = tempoHint(mode);
         }
       }
     }, { once: false });
@@ -1221,6 +1343,8 @@
     resize();
     document.getElementById("modeNum").textContent = mode;
     document.getElementById("modeName").textContent = "— first harmonic";
+    document.getElementById("hint").textContent =
+      "tap on the string with the beat dot — match the ghost line";
   </script>
 </body>
 </html>
