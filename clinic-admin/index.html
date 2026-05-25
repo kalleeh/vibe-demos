@@ -2238,9 +2238,164 @@
     /* Mobile rail collapses to scrollable horizontal strip with chips */
     @media (max-width: 880px) {
       body.shell-v2 .rail-btn { padding: 7px 10px; font-size: 12px; }
-      body.shell-v2 .rail-btn .num { display: none; }
       body.shell-v2 .topbar { padding: 10px 16px; gap: 8px; }
       body.shell-v2 .topbar .crumb { font-size: 9px; }
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       Mobile features · camera, OCR, mic, share, lightbox
+       ───────────────────────────────────────────────────────── */
+    .icon-btn {
+      width: 34px; height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.5);
+      border-radius: 5px;
+      cursor: pointer;
+      color: var(--ink-2);
+      flex-shrink: 0;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .icon-btn:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .icon-btn.recording {
+      background: var(--accent);
+      color: var(--paper);
+      border-color: var(--accent);
+      animation: micPulse 1.2s ease-out infinite;
+    }
+    @keyframes micPulse {
+      0%   { box-shadow: 0 0 0 0 rgba(176,74,47,0.55); }
+      70%  { box-shadow: 0 0 0 10px rgba(176,74,47,0); }
+      100% { box-shadow: 0 0 0 0 rgba(176,74,47,0); }
+    }
+    .icon-btn svg { width: 16px; height: 16px; }
+    .icon-btn input[type=file] { display: none; }
+
+    /* Attachment thumbnail row (used on license rows + jabo cases) */
+    .attach-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .attach-thumb {
+      position: relative;
+      width: 44px; height: 44px;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: var(--paper-2);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .attach-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .attach-thumb .x {
+      position: absolute;
+      top: 2px; right: 2px;
+      width: 16px; height: 16px;
+      background: rgba(20,17,13,0.7);
+      color: var(--paper);
+      border-radius: 50%;
+      font-size: 10px;
+      line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+    .attach-thumb:hover .x { opacity: 1; }
+    .attach-add {
+      width: 44px; height: 44px;
+      border: 1.5px dashed rgba(20,17,13,0.25);
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--muted);
+      background: transparent;
+      flex-shrink: 0;
+    }
+    .attach-add:hover { border-color: var(--accent); color: var(--accent); }
+    .attach-add input[type=file] { display: none; }
+    .attach-add svg { width: 18px; height: 18px; }
+
+    /* Lightbox for full-size attachment view */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(20,17,13,0.85);
+      padding: 24px;
+      cursor: zoom-out;
+    }
+    .lightbox.open { display: flex; animation: fadeIn .2s ease-out; }
+    .lightbox img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .lightbox .close-x {
+      position: absolute;
+      top: 18px; right: 18px;
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(243,238,226,0.15);
+      border: 1px solid rgba(243,238,226,0.3);
+      border-radius: 5px;
+      color: var(--paper);
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    /* OCR shimmer overlay */
+    .ocr-shimmer {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 11px;
+      border-radius: 999px;
+      background: rgba(123,168,154,0.15);
+      border: 1px solid rgba(123,168,154,0.3);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.6px;
+      color: var(--celadon-2);
+      margin-left: 8px;
+    }
+    .ocr-shimmer .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--celadon-2);
+      animation: pulse 1.2s ease-out infinite;
+    }
+    .ocr-shimmer.success { color: var(--ok); border-color: rgba(74,122,79,0.4); background: rgba(74,122,79,0.1); }
+    .ocr-shimmer.fail { color: var(--accent); border-color: rgba(176,74,47,0.4); background: rgba(176,74,47,0.1); }
+
+    /* AI textarea with mic */
+    .ai-textarea-wrap {
+      position: relative;
+    }
+    .ai-textarea-wrap .icon-btn.mic {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      z-index: 2;
+    }
+    .ai-textarea-wrap textarea { padding-right: 56px; }
+
+    /* Share button row */
+    .share-row {
+      display: inline-flex;
+      gap: 6px;
+      flex-wrap: wrap;
     }
   </style>
 </head>
@@ -2299,6 +2454,12 @@
 
   <!-- ── Toast tray ── -->
   <div class="toast-tray" id="toast-tray" aria-live="polite" aria-atomic="false"></div>
+
+  <!-- ── Lightbox for full-size attachment view ── -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="첨부 이미지 보기">
+    <button type="button" class="close-x" id="lightbox-close" aria-label="닫기">×</button>
+    <img id="lightbox-img" alt="">
+  </div>
 
   <div class="frame shell">
 
@@ -2415,6 +2576,7 @@
             <div class="summary">캘린더로 내려받아 일정 앱에 넣어두세요.</div>
             <div class="actions">
               <button class="btn secondary" id="dday-ics">.ics 캘린더 <span class="arrow">↓</span></button>
+              <button class="btn secondary" id="dday-share">공유 <span class="arrow">↗</span></button>
             </div>
           </div>
         </div>
@@ -2939,7 +3101,12 @@
         <div class="card">
           <h4><span class="step">01</span> 진료 메모 입력</h4>
           <div class="ai-input">
-            <textarea id="ai-input" placeholder="예) 60세 남자, 3주 전 추돌사고 후 경부·요부 통증. 회전시 우측 어깨 방사통. SLR 양성. 침술·부항·추나 시술 예정."></textarea>
+            <div class="ai-textarea-wrap">
+              <textarea id="ai-input" placeholder="예) 60세 남자, 3주 전 추돌사고 후 경부·요부 통증. 회전시 우측 어깨 방사통. SLR 양성. 침술·부항·추나 시술 예정."></textarea>
+              <button type="button" class="icon-btn mic" id="ai-mic" aria-label="음성 입력 시작" title="음성 입력 (한국어)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              </button>
+            </div>
             <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;">
               <div class="model-toggle" id="ai-model">
                 <button data-model="claude-opus-4-7" class="active">Opus 4.7</button>
@@ -3026,6 +3193,7 @@
           <div class="summary" id="lic-summary">총 0명 · 만료 임박 0명</div>
           <div class="actions">
             <button class="btn secondary" id="lic-ics">만료일 .ics <span class="arrow">↓</span></button>
+            <button class="btn secondary" id="lic-share">공유 <span class="arrow">↗</span></button>
             <button class="btn secondary" id="lic-sample">샘플 5명 채우기</button>
           </div>
         </div>
@@ -3057,6 +3225,7 @@
           <div class="summary" id="accred-summary"><strong>0</strong> / 0 항목 완료 — 0%</div>
           <div class="actions">
             <button class="btn secondary" id="accred-print">PDF 출력 <span class="arrow">↓</span></button>
+            <button class="btn secondary" id="accred-share">공유 <span class="arrow">↗</span></button>
             <button class="btn secondary" id="accred-reset">초기화</button>
           </div>
         </div>
@@ -3478,6 +3647,268 @@
         return entry;
       };
     })();
+
+    /* ─────────────────────────────────────────────────────────
+       Mobile features — camera, OCR, voice, share, haptics, lightbox.
+       Phone is the actual UX target for a 행정원장 walking the
+       hospital floor. Files (license photos, accident photos)
+       go into IndexedDB so they don't blow the 5MB localStorage cap.
+       ───────────────────────────────────────────────────────── */
+
+    // ── Haptic feedback (Android Chrome / supported devices) ──
+    const Haptic = {
+      tap()  { try { navigator.vibrate?.(8); } catch {} },
+      save() { try { navigator.vibrate?.([6, 30, 12]); } catch {} },
+      warn() { try { navigator.vibrate?.([18, 50, 18, 50, 18]); } catch {} },
+      del()  { try { navigator.vibrate?.(20); } catch {} }
+    };
+
+    // ── Camera capture: file → downscaled JPEG dataURL (≤800px, q=0.6) ──
+    const Camera = {
+      async capture(file) {
+        if (!file) return null;
+        const blob = await new Promise((res, rej) => {
+          const r = new FileReader();
+          r.onload = () => res(r.result);
+          r.onerror = rej;
+          r.readAsDataURL(file);
+        });
+        const img = await new Promise((res, rej) => {
+          const i = new Image();
+          i.onload = () => res(i);
+          i.onerror = rej;
+          i.src = blob;
+        });
+        const max = 800;
+        let { width: w, height: h } = img;
+        if (w > max || h > max) {
+          const k = Math.min(max / w, max / h);
+          w = Math.round(w * k); h = Math.round(h * k);
+        }
+        const c = document.createElement("canvas");
+        c.width = w; c.height = h;
+        c.getContext("2d").drawImage(img, 0, 0, w, h);
+        return c.toDataURL("image/jpeg", 0.6);
+      }
+    };
+
+    // ── IndexedDB attachment store (binary lives outside localStorage) ──
+    const Attachments = (() => {
+      const DB = "vibe-clinic-admin";
+      const STORE = "attachments";
+      let dbp = null;
+      function open() {
+        if (dbp) return dbp;
+        dbp = new Promise((res, rej) => {
+          const r = indexedDB.open(DB, 1);
+          r.onupgradeneeded = () => {
+            const db = r.result;
+            if (!db.objectStoreNames.contains(STORE)) {
+              db.createObjectStore(STORE, { keyPath: "id" });
+            }
+          };
+          r.onsuccess = () => res(r.result);
+          r.onerror   = () => rej(r.error);
+        });
+        return dbp;
+      }
+      async function tx(mode) {
+        const db = await open();
+        return db.transaction(STORE, mode).objectStore(STORE);
+      }
+      async function put(rec) {
+        const s = await tx("readwrite");
+        return new Promise((res, rej) => {
+          const r = s.put(rec);
+          r.onsuccess = () => res(rec);
+          r.onerror   = () => rej(r.error);
+        });
+      }
+      async function getByOwner(owner) {
+        const s = await tx("readonly");
+        return new Promise((res, rej) => {
+          const r = s.getAll();
+          r.onsuccess = () => res(r.result.filter(x => x.owner === owner)
+            .sort((a, b) => a.at - b.at));
+          r.onerror   = () => rej(r.error);
+        });
+      }
+      async function del(id) {
+        const s = await tx("readwrite");
+        return new Promise((res, rej) => {
+          const r = s.delete(id);
+          r.onsuccess = () => res(true);
+          r.onerror   = () => rej(r.error);
+        });
+      }
+      return { put, getByOwner, del };
+    })();
+
+    // ── Lightbox ──
+    const Lightbox = {
+      open(src) {
+        const sc = $("#lightbox");
+        const im = $("#lightbox-img");
+        if (!sc || !im) return;
+        im.src = src;
+        sc.classList.add("open");
+      },
+      close() { $("#lightbox")?.classList.remove("open"); }
+    };
+    $("#lightbox-close")?.addEventListener("click", Lightbox.close);
+    $("#lightbox")?.addEventListener("click", e => {
+      if (e.target.id === "lightbox") Lightbox.close();
+    });
+
+    // ── OCR via Tesseract.js (lazy-loaded from CDN) ──
+    const OCR = (() => {
+      let loadingP = null;
+      function load() {
+        if (window.Tesseract) return Promise.resolve(window.Tesseract);
+        if (loadingP) return loadingP;
+        loadingP = new Promise((res, rej) => {
+          const s = document.createElement("script");
+          s.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+          s.onload  = () => res(window.Tesseract);
+          s.onerror = () => rej(new Error("Tesseract.js 로드 실패"));
+          document.head.appendChild(s);
+        });
+        return loadingP;
+      }
+      // Korean expiry-date heuristics — pull "YYYY-MM-DD", "YYYY.MM.DD",
+      // "YYYY년 M월 D일", or labeled "유효기간 …".
+      function extractExpiry(text) {
+        if (!text) return null;
+        const norm = text.replace(/\s+/g, " ").replace(/[ㆍ·]/g, ".");
+        const candidates = [];
+        const reAny = /(20\d{2})[.\-/년]\s?(\d{1,2})[.\-/월]\s?(\d{1,2})/g;
+        let m;
+        while ((m = reAny.exec(norm)) !== null) {
+          const [_, y, mo, d] = m;
+          const ymd = `${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+          candidates.push({ date: ymd, score: 0, src: m[0] });
+        }
+        for (const c of candidates) {
+          const idx = norm.indexOf(c.src);
+          const ctx = norm.slice(Math.max(0, idx - 14), idx).toLowerCase();
+          if (/유효|만료|expir|valid/.test(ctx)) c.score += 10;
+          if (/발급|issue/.test(ctx)) c.score -= 4;
+          // Prefer future dates over past
+          if (new Date(c.date) > new Date()) c.score += 1;
+        }
+        candidates.sort((a, b) => b.score - a.score);
+        return candidates[0]?.date || null;
+      }
+      async function run(dataUrl, onProgress) {
+        const T = await load();
+        const { data } = await T.recognize(dataUrl, "kor+eng", {
+          logger: m => onProgress?.(m)
+        });
+        return { text: data.text || "", expiry: extractExpiry(data.text) };
+      }
+      return { run, extractExpiry };
+    })();
+
+    // ── Voice dictation (webkitSpeechRecognition · ko-KR) ──
+    const Voice = (() => {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      let active = null;
+      function supported() { return !!SR; }
+      function toggle(textarea, btn) {
+        if (!SR) {
+          alert("이 브라우저는 음성 입력을 지원하지 않습니다 (Chrome/Edge 권장).");
+          return;
+        }
+        if (active) { active.stop(); return; }
+        const r = new SR();
+        r.lang = "ko-KR";
+        r.interimResults = true;
+        r.continuous = true;
+        const baseValue = textarea.value;
+        const baseLen = baseValue.length;
+        const sep = baseValue && !/\s$/.test(baseValue) ? " " : "";
+        let finalText = "";
+        r.onresult = (e) => {
+          let interim = "";
+          for (let i = e.resultIndex; i < e.results.length; i++) {
+            const tx = e.results[i][0].transcript;
+            if (e.results[i].isFinal) finalText += tx;
+            else interim += tx;
+          }
+          textarea.value = baseValue + sep + finalText + interim;
+          textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+          // Trigger input event for persistence binding
+          textarea.dispatchEvent(new Event("input", { bubbles: true }));
+        };
+        r.onerror = (e) => {
+          console.warn("Voice err", e.error);
+          stop();
+        };
+        r.onend = () => stop();
+        function stop() {
+          active = null;
+          btn?.classList.remove("recording");
+          btn?.setAttribute("aria-label", "음성 입력 시작");
+          Haptic.tap();
+        }
+        active = r;
+        btn?.classList.add("recording");
+        btn?.setAttribute("aria-label", "음성 입력 중지");
+        Haptic.tap();
+        try { r.start(); } catch {}
+      }
+      return { toggle, supported };
+    })();
+
+    // ── Share API with clipboard fallback ──
+    const Share = (() => {
+      async function send({ title, text, url, file }) {
+        const data = {};
+        if (title) data.title = title;
+        if (text)  data.text  = text;
+        if (url)   data.url   = url;
+        if (file && navigator.canShare?.({ files: [file] })) data.files = [file];
+        if (navigator.share) {
+          try {
+            await navigator.share(data);
+            Haptic.tap();
+            return { ok: true, via: "share" };
+          } catch (err) {
+            if (err.name === "AbortError") return { ok: false, via: "share", aborted: true };
+          }
+        }
+        // Clipboard fallback
+        const composed = [title, text, url].filter(Boolean).join("\n");
+        try {
+          await navigator.clipboard.writeText(composed);
+          Toast.show({ tag: "system", html: "클립보드에 복사되었습니다." });
+          Haptic.tap();
+          return { ok: true, via: "clipboard" };
+        } catch {
+          Toast.show({ tag: "system", html: "공유에 실패했습니다." });
+          return { ok: false, via: "none" };
+        }
+      }
+      return { send };
+    })();
+
+    // ── Generic camera-button factory (license rows etc.) ──
+    function bindCameraButton(btn, onCaptured) {
+      const input = btn.querySelector("input[type=file]");
+      if (!input) return;
+      input.addEventListener("change", async () => {
+        const f = input.files?.[0];
+        if (!f) return;
+        try {
+          const dataUrl = await Camera.capture(f);
+          await onCaptured(dataUrl, f);
+        } catch (err) {
+          console.error(err);
+          Toast.show({ tag: "system", html: `사진 처리 실패 — ${err.message}` });
+        }
+        input.value = "";
+      });
+    }
 
     /* ─────────────────────────────────────────────────────────
        Welcome overlay — first-run + reopenable via 시연 chip.
@@ -4245,6 +4676,7 @@
         ActivityLog.push("jabo",
           `자보 정산표 — ${name || pid} · ${insurer} · 청구 ${fmtKRW(totals.claimed)}원 · 삭감 ${fmtKRW(cutTotal)}원`,
           { pid, insurer });
+        Haptic.save();
 
         const rows = items.map(it => {
           const claimed = it.price * it.qty;
@@ -5184,6 +5616,19 @@
         ActivityLog.push("system", "마감 캘린더 .ics 내려받음", {});
       });
 
+      // Share dashboard summary — text snapshot of upcoming deadlines
+      $("#dday-share")?.addEventListener("click", async () => {
+        const list = loadDeadlines();
+        const lines = list.slice(0, 8).map(d => {
+          const ds = daysUntil(d.date);
+          const tag = ds < 0 ? `D+${-ds}` : `D-${ds}`;
+          return `• ${tag} · ${d.date} · ${d.title}`;
+        });
+        const text = `[한방병원 행정] 다가오는 마감\n${lines.join("\n")}\n\n— ${todayISO()} 기준`;
+        await Share.send({ title: "행정 마감 — 다가오는 일정", text });
+        ActivityLog.push("system", "다가오는 마감 공유", {});
+      });
+
       // Live re-render when any tab updates state
       ["activity", "jabo.history", "retention.lastAudit", "kcd.lastSummary",
        "license.list", "accred.checked", "bigeup.tariff", "jabo.draft.items"
@@ -5427,6 +5872,16 @@ JSON: { kcd: [{code, name, conf 0-1, ref}], uCode: {code,name,conf,ref}, jabo: [
         $("#ai-input").value = sample;
         runCanned(sample);
       });
+
+      // Voice dictation (ko-KR) — fills textarea live as 행정원장 dictates
+      const micBtn = $("#ai-mic");
+      if (micBtn) {
+        if (!Voice.supported()) {
+          micBtn.style.display = "none";
+        } else {
+          micBtn.addEventListener("click", () => Voice.toggle($("#ai-input"), micBtn));
+        }
+      }
     }
 
     /* ─────────────────────────────────────────────────────────
@@ -5455,9 +5910,14 @@ JSON: { kcd: [{code, name, conf 0-1, ref}], uCode: {code,name,conf,ref}, jabo: [
               <span class="lic-role">${lic.role}</span>
               <span class="lic-name">${lic.name}
                 <span class="lic-meta">면허 ${lic.expiry || "—"} · 보수교육 ${lic.cme || "—"}</span>
+                <span class="attach-row" data-attach-row data-owner="${lic.id}"></span>
               </span>
               <span class="lic-due">${note}</span>
               <span class="lic-actions">
+                <label class="icon-btn" data-act="cam" data-id="${lic.id}" title="면허증 촬영 · OCR로 만료일 추출" aria-label="면허증 촬영">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  <input type="file" accept="image/*" capture="environment">
+                </label>
                 <button data-id="${lic.id}" data-act="edit" title="수정">✎</button>
                 <button data-id="${lic.id}" data-act="del" title="삭제">×</button>
               </span>
@@ -5466,13 +5926,14 @@ JSON: { kcd: [{code, name, conf 0-1, ref}], uCode: {code,name,conf,ref}, jabo: [
         $("#lic-list").innerHTML = html;
         $("#lic-summary").textContent = `총 ${list.length}명 · 만료 임박 ${imminent}명`;
 
-        $$("#lic-list .lic-actions button").forEach(b => {
+        $$("#lic-list .lic-actions > button").forEach(b => {
           b.addEventListener("click", () => {
             const id = b.dataset.id;
             if (b.dataset.act === "del") {
               if (!confirm("이 직원을 삭제하시겠습니까?")) return;
               Store.set("license.list", list.filter(x => x.id !== id));
               ActivityLog.push("license", "면허 직원 삭제", {});
+              Haptic.del();
               renderList();
             } else if (b.dataset.act === "edit") {
               const lic = list.find(x => x.id === id);
@@ -5483,22 +5944,105 @@ JSON: { kcd: [{code, name, conf 0-1, ref}], uCode: {code,name,conf,ref}, jabo: [
               Store.set("license.list", list.filter(x => x.id !== id));
               renderList();
               $("#lic-name").focus();
+              Haptic.tap();
             }
           });
         });
+
+        // ── Camera buttons + OCR per row ──
+        $$("#lic-list .icon-btn[data-act=cam]").forEach(btn => {
+          const ownerId = btn.dataset.id;
+          const row = btn.closest(".lic");
+          bindCameraButton(btn, async (dataUrl) => {
+            const att = {
+              id: "att-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
+              owner: ownerId, kind: "license", at: Date.now(), data: dataUrl
+            };
+            await Attachments.put(att);
+            Haptic.save();
+
+            // Run OCR with shimmer feedback
+            const dueEl = row.querySelector(".lic-due");
+            const shim = document.createElement("span");
+            shim.className = "ocr-shimmer";
+            shim.innerHTML = `<span class="dot"></span>OCR 분석 중…`;
+            dueEl.appendChild(shim);
+            try {
+              const { expiry, text } = await OCR.run(dataUrl, m => {
+                if (m.status && m.progress != null) {
+                  const pct = Math.round(m.progress * 100);
+                  shim.innerHTML = `<span class="dot"></span>${m.status} ${pct}%`;
+                }
+              });
+              if (expiry) {
+                shim.classList.add("success");
+                shim.innerHTML = `✓ 만료일 ${expiry} 자동입력`;
+                const list2 = Store.get("license.list", []);
+                const target = list2.find(x => x.id === ownerId);
+                if (target) {
+                  target.expiry = expiry;
+                  Store.set("license.list", list2);
+                  ActivityLog.push("license", `OCR — ${target.name} 만료일 ${expiry}`, {});
+                }
+                setTimeout(() => shim.remove(), 2500);
+              } else {
+                shim.classList.add("fail");
+                shim.innerHTML = `× 만료일 인식 실패`;
+                setTimeout(() => shim.remove(), 2500);
+              }
+            } catch (err) {
+              console.error(err);
+              shim.classList.add("fail");
+              shim.innerHTML = `× OCR 실패`;
+              setTimeout(() => shim.remove(), 2500);
+            }
+            // Re-render attachments thumbs for this row
+            renderAttachments(ownerId);
+          });
+        });
+
+        // ── Render existing attachments (async) ──
+        $$("#lic-list [data-attach-row]").forEach(el => {
+          renderAttachments(el.dataset.owner);
+        });
       };
+
+      async function renderAttachments(ownerId) {
+        const row = $(`#lic-list [data-attach-row][data-owner="${ownerId}"]`);
+        if (!row) return;
+        const atts = await Attachments.getByOwner(ownerId);
+        if (!atts.length) { row.innerHTML = ""; return; }
+        row.innerHTML = atts.map(a => `
+          <span class="attach-thumb" data-att="${a.id}">
+            <img src="${a.data}" alt="첨부 사진">
+            <span class="x" data-att="${a.id}" title="삭제">×</span>
+          </span>
+        `).join("");
+        row.querySelectorAll(".attach-thumb img").forEach((img, i) => {
+          img.addEventListener("click", () => Lightbox.open(atts[i].data));
+        });
+        row.querySelectorAll(".attach-thumb .x").forEach(x => {
+          x.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            await Attachments.del(x.dataset.att);
+            Haptic.del();
+            renderAttachments(ownerId);
+          });
+        });
+      }
 
       $("#lic-add-btn").addEventListener("click", () => {
         const role = $("#lic-role").value;
         const name = $("#lic-name").value.trim();
         const expiry = $("#lic-expiry").value;
         const cme = $("#lic-cme").value;
-        if (!name) { alert("이름을 입력해주세요."); return; }
+        if (!name) { Haptic.warn(); alert("이름을 입력해주세요."); return; }
         const list = Store.get("license.list", []);
         list.push({ id: "lic-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
           role, name, expiry, cme });
         Store.set("license.list", list);
         ActivityLog.push("license", `직원 추가 — ${role} ${name}`, {});
+        Haptic.save();
         $("#lic-name").value = "";
         $("#lic-expiry").value = "";
         $("#lic-cme").value = "";
@@ -5560,6 +6104,19 @@ JSON: { kcd: [{code, name, conf 0-1, ref}], uCode: {code,name,conf,ref}, jabo: [
         ActivityLog.push("license", "면허 만료 캘린더 .ics 내려받음", {});
       });
 
+      $("#lic-share")?.addEventListener("click", async () => {
+        const list = Store.get("license.list", []);
+        if (!list.length) { alert("등록된 직원이 없습니다."); return; }
+        const lines = list.map(l => {
+          const expDays = daysUntil(l.expiry);
+          const tag = expDays == null ? "—" : (expDays < 0 ? `D+${-expDays}` : `D-${expDays}`);
+          return `• ${l.role} ${l.name} · 면허 ${l.expiry || "—"} (${tag}) · 보수교육 ${l.cme || "—"}`;
+        });
+        const text = `[한방병원 면허·자격 명부]\n${lines.join("\n")}\n\n— ${todayISO()} 기준`;
+        await Share.send({ title: "면허·자격 명부", text });
+        ActivityLog.push("license", "면허 명부 공유", {});
+      });
+
       EventBus.on("store:license.list", renderList);
       renderList();
     }
@@ -5618,11 +6175,24 @@ JSON: { kcd: [{code, name, conf 0-1, ref}], uCode: {code,name,conf,ref}, jabo: [
         ActivityLog.push("accred", "인증평가 PDF 출력", {});
         window.print();
       });
+      $("#accred-share")?.addEventListener("click", async () => {
+        const allItems = cats.map(c => c.items).flat();
+        const doneTotal = allItems.filter(it => checked[it.id]).length;
+        const pct = allItems.length ? Math.round((doneTotal / allItems.length) * 100) : 0;
+        const lines = cats.map(cat => {
+          const cdone = cat.items.filter(it => checked[it.id]).length;
+          return `• ${cat.title} — ${cdone} / ${cat.items.length}`;
+        });
+        const text = `[한방병원 인증평가 진행률]\n진행: ${doneTotal} / ${allItems.length} (${pct}%)\n\n${lines.join("\n")}\n\n— ${todayISO()} 기준`;
+        await Share.send({ title: "인증평가 자체점검 진행률", text });
+        ActivityLog.push("accred", "인증평가 진행률 공유", {});
+      });
       $("#accred-reset").addEventListener("click", () => {
         if (!confirm("체크리스트를 초기화하시겠습니까?")) return;
         Store.remove("accred.checked");
         for (const k in checked) delete checked[k];
         ActivityLog.push("accred", "인증평가 초기화", {});
+        Haptic.del();
         render();
       });
 
