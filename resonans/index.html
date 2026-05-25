@@ -294,7 +294,7 @@
     <div class="scene-label" id="sceneLabel" aria-hidden="true">Chladni 진동판 — n=2,3</div>
 
     <footer class="footer">
-      <span class="hint" id="hint">tap on the string with the beat dot — match the ghost line</span>
+      <span class="hint" id="hint">tap on the ↓ marks with the beat dot — the line will fill in</span>
       <span class="spacer" style="flex:1"></span>
       <span class="lock"><span class="pip" id="lockPip"></span><span id="lockText">searching</span></span>
       <button class="toggle" id="muteBtn" aria-pressed="false">sound · on</button>
@@ -489,9 +489,10 @@
     // One-line player hint: how often to tap, in seconds.
     function tempoHint(n) {
       const sec = modePeriodMs(n) / 1000;
-      if (sec >= 1.2) return `tap every ~${sec.toFixed(1)}s — slow and steady`;
-      if (sec >= 0.7) return `tap every ~${sec.toFixed(1)}s — medium beat`;
-      return `tap every ~${sec.toFixed(2)}s — quick, rhythmic`;
+      const where = n === 1 ? "near the middle" : `on the ${n} ↓ marks`;
+      if (sec >= 1.2) return `tap ${where} every ~${sec.toFixed(1)}s — slow and steady`;
+      if (sec >= 0.7) return `tap ${where} every ~${sec.toFixed(1)}s — medium beat`;
+      return `tap ${where} every ~${sec.toFixed(2)}s — quick, rhythmic`;
     }
 
     function setDronePitch() {
@@ -802,6 +803,34 @@
       ctx.moveTo(7, 4); ctx.lineTo(7, 8);
       ctx.moveTo(11, 4); ctx.lineTo(11, 8);
       ctx.stroke();
+      ctx.restore();
+    }
+
+    // Antinode hints — subtle dashed verticals at each (k-0.5)/n on the
+    // string showing the player WHERE to tap for the active mode. A
+    // small "↓" arrow above each marks the spot. Without this, picking
+    // the right tempo doesn't help — every mode has nodes where taps
+    // can't excite that mode at all (physically correct but invisible).
+    function drawAntinodeHints() {
+      ctx.save();
+      ctx.strokeStyle = "rgba(201, 126, 96, 0.32)";
+      ctx.lineWidth = 1.0;
+      ctx.setLineDash([2, 5]);
+      ctx.fillStyle = "rgba(201, 126, 96, 0.55)";
+      ctx.font = '13px "Caveat", cursive';
+      ctx.textAlign = "center";
+      for (let k = 1; k <= mode; k++) {
+        const xRel = (k - 0.5) / mode;
+        const x = leftX + xRel * stringW;
+        // Vertical dashed line ±28 px around the string
+        ctx.beginPath();
+        ctx.moveTo(x, stringY - 28);
+        ctx.lineTo(x, stringY + 28);
+        ctx.stroke();
+        // Small "↓" cap above so it reads as a target
+        ctx.fillText("↓", x, stringY - 34);
+      }
+      ctx.setLineDash([]);
       ctx.restore();
     }
 
@@ -1129,10 +1158,11 @@
       if (scene === "chladni") {
         drawChladni(now, dt);
       } else {
-        // curveAmp scales modal displacement (peak |u| ~1-3 in resonance)
-        // to pixels. 90 reads bold without clipping at typical viewport
-        // heights; the wave equation is already stable beyond this.
+        // curveAmp scales modal displacement (peak |u| ~1.5-2 in resonance
+        // with the calibrated pluck) to pixels. 90 reads bold without
+        // clipping at typical viewport heights.
         const curveAmp = 90;
+        drawAntinodeHints();
         drawTarget(curveAmp);
         drawRivalLeak(curveAmp);
         drawBlooms(lockEMA);
@@ -1241,14 +1271,19 @@
       const tx = (x - leftX) / stringW;
       if (tx <= 0.01 || tx >= 0.99) return;
       const idx = Math.floor(tx * (N - 1));
-      // Amplitude calibrated to the velocity-kick pluck: a single tap
-      // should ripple visibly without blowing the wave off-screen, and
-      // resonant tapping should still climb cleanly. Old 0.55-0.90 range
-      // landed at peak |u|≈3-5 in one tap; halved to 0.25-0.45 keeps
-      // a single kick in the ~1-1.5 range and saturates around 2 on
-      // resonance — same range our sim validated as readable.
-      const amp = 0.25 + 0.20 * Math.random();
-      pluck(idx, amp, 5);
+      // Amplitude + width calibrated to the velocity-kick pluck. Two
+      // tightly-coupled choices:
+      //   width=22 — the OLD width=5 was a near-impulse: modal energy
+      //   spread almost equally across n=1..5, so the lock metric saw
+      //   constant rivals fighting the target. width=22 puts ~60% of
+      //   energy in n=1, ~25% in n=3, drop-off after that — clean
+      //   single-mode coupling.
+      //   amp=0.04-0.06 — wider gaussian deposits more total energy per
+      //   tap, so we drop the per-tap amplitude. This keeps single-tap
+      //   peak |u| around 0.7 (~65 px) and resonant saturation near
+      //   1.8 (~165 px) — bold but never off-screen.
+      const amp = 0.04 + 0.02 * Math.random();
+      pluck(idx, amp, 22);
       ensureAudio();
       pluckSound(0.28);
       // The first tap also wakes the drone & sets pitch
@@ -1363,7 +1398,7 @@
     document.getElementById("modeNum").textContent = mode;
     document.getElementById("modeName").textContent = "— first harmonic";
     document.getElementById("hint").textContent =
-      "tap on the string with the beat dot — match the ghost line";
+      "tap on the ↓ marks with the beat dot — the line will fill in";
   </script>
 </body>
 </html>
