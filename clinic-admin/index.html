@@ -311,6 +311,53 @@
     }
     .panel-blurb em { color: var(--accent); font-style: italic; }
 
+    .demo-strip {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 14px 18px;
+      margin: -8px 0 22px;
+      background: rgba(255,255,255,0.45);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px;
+    }
+    .demo-strip .demo-label {
+      flex: 1 1 auto;
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-size: 14px;
+      color: var(--ink-2);
+      line-height: 1.4;
+    }
+    .demo-strip .demo-label strong {
+      font-style: normal;
+      font-family: "Inter", sans-serif;
+      font-weight: 500;
+      color: var(--ink);
+    }
+    .demo-strip .demo-cta {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--paper);
+      background: var(--ink);
+      border: 1px solid var(--ink);
+      border-radius: 5px;
+      padding: 9px 16px;
+      cursor: pointer;
+      transition: background .2s, transform .15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .demo-strip .demo-cta:hover { background: var(--accent); border-color: var(--accent); }
+    .demo-strip .demo-cta:active { transform: scale(0.98); }
+    .demo-strip .demo-cta .play { font-size: 9px; }
+
     /* ── Two-column workspace layout ── */
     .work {
       display: grid;
@@ -993,6 +1040,10 @@
       <p class="panel-blurb">
         KCD-9가 2026년 1월부터 시행되었습니다. 환자 진단코드 엑셀을 올리시면 <em>1:1 자동매핑</em>, <em>분할(1:N) 후보 제시</em>, <em>통합·신설·삭제</em>까지 분류해드립니다.
       </p>
+      <div class="demo-strip">
+        <span class="demo-label">처음이신가요? <strong>한방 다빈도 8건</strong>이 들어 있는 가상의 환자 대장으로 결과 화면을 미리 보실 수 있습니다.</span>
+        <button type="button" class="demo-cta" data-action="run-kcd"><span class="play">▶</span> 샘플로 시연</button>
+      </div>
 
       <div class="work">
         <div class="card">
@@ -1053,6 +1104,10 @@
       <p class="panel-blurb">
         교통사고 환자의 <em>상병코드</em>와 시행한 <em>한방 행위</em>를 선택하면, 일자별 청구액과 총액을 자동 계산하고 청구서를 엑셀로 내려받을 수 있습니다.
       </p>
+      <div class="demo-strip">
+        <span class="demo-label"><strong>경추·요추 염좌</strong> 통원 환자 케이스 — 침술·부항·추나·약침이 자동으로 채워집니다.</span>
+        <button type="button" class="demo-cta" data-action="run-jabo"><span class="play">▶</span> 샘플 케이스로 시연</button>
+      </div>
 
       <div class="work">
         <div class="card">
@@ -1131,6 +1186,10 @@
       <p class="panel-blurb">
         병의원 내부 진료 기록을 올리면, 홈택스 의료비 자료제출 서식의 <em>표준 CSV</em>로 변환합니다. 사업자등록번호만 입력하시면 끝.
       </p>
+      <div class="demo-strip">
+        <span class="demo-label">3명 환자 · <strong>5건 진료</strong>의 가상 데이터로 NTS 표준 자료가 어떻게 생성되는지 확인해보세요.</span>
+        <button type="button" class="demo-cta" data-action="run-ye"><span class="play">▶</span> 샘플로 시연</button>
+      </div>
 
       <div class="work">
         <div class="card">
@@ -1217,6 +1276,10 @@
       <p class="panel-blurb">
         HIRA에 매년 제출하는 <em>비급여 항목별 단가</em> 공개 자료. 한방 항목은 이미 골라드렸으니, 우리 병원 단가만 채우시면 됩니다.
       </p>
+      <div class="demo-strip">
+        <span class="demo-label">병원 정보와 <strong>30개 항목</strong>의 표본 단가를 자동으로 채워, 검증·제출 자료가 어떻게 만들어지는지 보여드립니다.</span>
+        <button type="button" class="demo-cta" data-action="run-bigeup"><span class="play">▶</span> 샘플로 시연</button>
+      </div>
 
       <div class="work">
         <div class="card">
@@ -1305,6 +1368,10 @@
       <p class="panel-blurb">
         기록 종류별 법정 보존기간이 다릅니다 — <em>진료기록부 10년</em>, <em>처방전 2년</em>, <em>방사선 5년</em>… 기록 대장을 올리면 만료 임박·만료 초과·분류 오류를 한 번에 표시합니다.
       </p>
+      <div class="demo-strip">
+        <span class="demo-label"><strong>9건 가상 기록</strong> — 만료 초과부터 정상 보존까지 다양한 케이스로 감사 보고서를 미리 보실 수 있습니다.</span>
+        <button type="button" class="demo-cta" data-action="run-ret"><span class="play">▶</span> 샘플로 시연</button>
+      </div>
 
       <div class="work">
         <div class="card">
@@ -1389,6 +1456,10 @@
       <p class="panel-blurb">
         진단명·시술명·항목명을 한 번에 검색합니다. <em>한글</em>·<em>한자 코드</em>·<em>초성</em>까지 인식합니다.
       </p>
+      <div class="demo-strip">
+        <span class="demo-label">예시 검색어 — <strong>"요통"</strong> 한 번에 KCD-9 진단·자보 수가·비급여 어디서 쓰이는지 보여드립니다.</span>
+        <button type="button" class="demo-cta" data-action="run-search"><span class="play">▶</span> 예시 검색어로 시연</button>
+      </div>
 
       <div class="search-hero">
         <input id="search-input" type="search" placeholder="요통 · 추나 · BC0001 · ㅇㅈㅍ…" autocomplete="off">
@@ -1717,19 +1788,29 @@
         downloadXLSX(lastResult.rows, `KCD9_매핑_${todayISO()}.xlsx`, "KCD9 매핑");
       });
 
+      const sampleKcdData = [
+        { 환자번호: "P-2025-0042", 진료일자: "2025-12-10", 진단명: "요통",          KCD8코드: "M54.5", 비고: "" },
+        { 환자번호: "P-2025-0042", 진료일자: "2025-12-12", 진단명: "경부통",        KCD8코드: "M54.2", 비고: "" },
+        { 환자번호: "P-2025-0085", 진료일자: "2025-12-15", 진단명: "오십견",        KCD8코드: "M75.0", 비고: "" },
+        { 환자번호: "P-2025-0085", 진료일자: "2025-12-17", 진단명: "긴장성 두통",   KCD8코드: "G44.2", 비고: "" },
+        { 환자번호: "P-2025-0091", 진료일자: "2025-12-20", 진단명: "요추 염좌",     KCD8코드: "S33.5", 비고: "교통사고" },
+        { 환자번호: "P-2025-0091", 진료일자: "2025-12-20", 진단명: "경추 염좌",     KCD8코드: "S13.4", 비고: "교통사고" },
+        { 환자번호: "P-2025-0103", 진료일자: "2025-12-23", 진단명: "위염 NOS",      KCD8코드: "K29.7", 비고: "" },
+        { 환자번호: "P-2025-0117", 진료일자: "2025-12-26", 진단명: "기능성 소화불량", KCD8코드: "K30",   비고: "" }
+      ];
+
       $('[data-action="sample-kcd"]').addEventListener("click", (e) => {
         e.stopPropagation();
-        const sample = [
-          { 환자번호: "P-2025-0042", 진료일자: "2025-12-10", 진단명: "요통",          KCD8코드: "M54.5", 비고: "" },
-          { 환자번호: "P-2025-0042", 진료일자: "2025-12-12", 진단명: "경부통",        KCD8코드: "M54.2", 비고: "" },
-          { 환자번호: "P-2025-0085", 진료일자: "2025-12-15", 진단명: "오십견",        KCD8코드: "M75.0", 비고: "" },
-          { 환자번호: "P-2025-0085", 진료일자: "2025-12-17", 진단명: "긴장성 두통",   KCD8코드: "G44.2", 비고: "" },
-          { 환자번호: "P-2025-0091", 진료일자: "2025-12-20", 진단명: "요추 염좌",     KCD8코드: "S33.5", 비고: "교통사고" },
-          { 환자번호: "P-2025-0091", 진료일자: "2025-12-20", 진단명: "경추 염좌",     KCD8코드: "S13.4", 비고: "교통사고" },
-          { 환자번호: "P-2025-0103", 진료일자: "2025-12-23", 진단명: "위염 NOS",      KCD8코드: "K29.7", 비고: "" },
-          { 환자번호: "P-2025-0117", 진료일자: "2025-12-26", 진단명: "기능성 소화불량", KCD8코드: "K30",   비고: "" }
-        ];
-        downloadXLSX(sample, "샘플_KCD8_진단대장.xlsx", "샘플");
+        downloadXLSX(sampleKcdData, "샘플_KCD8_진단대장.xlsx", "샘플");
+      });
+
+      $('[data-action="run-kcd"]').addEventListener("click", () => {
+        setStatus($("#kcd-status"), null, "샘플 데이터 8건 처리 중…");
+        const result = transform(sampleKcdData);
+        lastResult = result;
+        renderResult(result);
+        setStatus($("#kcd-status"), null,
+          `샘플 ${result.rows.length}건을 KCD-9로 변환했습니다 — '검토필요'·'재코딩' 등 다양한 케이스를 한 번에 보실 수 있습니다.`);
       });
     }
 
@@ -1893,6 +1974,30 @@
       $("#jabo-date").value = today;
       $("#jabo-accident").value = today;
       renderItems();
+
+      $('[data-action="run-jabo"]').addEventListener("click", () => {
+        $("#jabo-name").value = "박지훈";
+        $("#jabo-pid").value = "2026-0142";
+        const accidentDate = new Date(today);
+        accidentDate.setDate(accidentDate.getDate() - 3);
+        $("#jabo-accident").value = accidentDate.toISOString().slice(0, 10);
+        $("#jabo-date").value = today;
+        dxSel.value = "S134"; // 경추 염좌
+        items.length = 0;
+        // 5일 통원 — 침술 5회, 부항 3회, 추나 2회, 약침 2회, 진찰료 등
+        ["40011", "40031", "41001", "41001", "41001", "41001", "41001",
+         "41021", "41021", "41021", "47011", "47011", "40301", "40301",
+         "42011", "42011"].forEach(code => {
+          const def = itemsByCode.get(code);
+          if (!def) return;
+          const existing = items.find(x => x.code === code);
+          if (existing) existing.qty++;
+          else items.push({ ...def, qty: 1 });
+        });
+        renderItems();
+        setStatus($("#jabo-status"), null,
+          "샘플 케이스 — 경추 염좌 통원 환자, 5일치 한방 행위로 청구액이 계산되었습니다.");
+      });
     }
 
     /* ─────────────────────────────────────────────────────────
@@ -1980,16 +2085,27 @@
         downloadCSV(lastRows, `의료비_${biz}_${todayISO().replace(/-/g, "")}.csv`);
       });
 
+      const sampleYeData = [
+        { 환자성명: "김민지", 주민등록번호: "880314-2123456", 진료일자: "2025-04-08", 본인부담금: 12000, 비급여금액: 38000 },
+        { 환자성명: "김민지", 주민등록번호: "880314-2123456", 진료일자: "2025-04-15", 본인부담금: 12000, 비급여금액: 0     },
+        { 환자성명: "박지훈", 주민등록번호: "750822-1234567", 진료일자: "2025-06-02", 본인부담금: 18000, 비급여금액: 80000 },
+        { 환자성명: "박지훈", 주민등록번호: "750822-1234567", 진료일자: "2025-06-09", 본인부담금: 9000,  비급여금액: 0     },
+        { 환자성명: "이서윤", 주민등록번호: "920506-2654321", 진료일자: "2025-08-21", 본인부담금: 15000, 비급여금액: 120000 }
+      ];
+
       $('[data-action="sample-ye"]').addEventListener("click", (e) => {
         e.stopPropagation();
-        const sample = [
-          { 환자성명: "김민지", 주민등록번호: "880314-2123456", 진료일자: "2025-04-08", 본인부담금: 12000, 비급여금액: 38000 },
-          { 환자성명: "김민지", 주민등록번호: "880314-2123456", 진료일자: "2025-04-15", 본인부담금: 12000, 비급여금액: 0     },
-          { 환자성명: "박지훈", 주민등록번호: "750822-1234567", 진료일자: "2025-06-02", 본인부담금: 18000, 비급여금액: 80000 },
-          { 환자성명: "박지훈", 주민등록번호: "750822-1234567", 진료일자: "2025-06-09", 본인부담금: 9000,  비급여금액: 0     },
-          { 환자성명: "이서윤", 주민등록번호: "920506-2654321", 진료일자: "2025-08-21", 본인부담금: 15000, 비급여금액: 120000 }
-        ];
-        downloadXLSX(sample, "샘플_진료기록_2025.xlsx", "샘플");
+        downloadXLSX(sampleYeData, "샘플_진료기록_2025.xlsx", "샘플");
+      });
+
+      $('[data-action="run-ye"]').addEventListener("click", () => {
+        if (!$("#ye-biz").value.trim()) $("#ye-biz").value = "123-45-67890";
+        if (!$("#ye-clinic").value.trim()) $("#ye-clinic").value = "한솔 한방병원";
+        const result = transform(sampleYeData);
+        lastRows = result;
+        render(result);
+        setStatus($("#ye-status"), null,
+          "샘플 환자 3명 · 5건 진료 — 주민등록번호가 자동으로 마스킹되어 NTS 표준 자료가 만들어졌습니다.");
       });
     }
 
@@ -2055,7 +2171,7 @@
         $("#bg-summary").innerHTML = `완료 <strong>${done}</strong> · 미입력 <strong>${empty}</strong> · 오류 <strong>${errs}</strong>`;
       };
 
-      $("#bg-prefill").addEventListener("click", () => {
+      const fillPrefill = () => {
         for (const it of state) {
           it.min_input = it.min;
           it.max_input = it.max;
@@ -2063,6 +2179,17 @@
         }
         render();
         updateSummary();
+      };
+
+      $("#bg-prefill").addEventListener("click", fillPrefill);
+
+      $('[data-action="run-bigeup"]').addEventListener("click", () => {
+        if (!$("#bg-ykiho").value.trim()) $("#bg-ykiho").value = "11000123";
+        if (!$("#bg-clinic").value.trim()) $("#bg-clinic").value = "한솔 한방병원";
+        if (!$("#bg-date").value) $("#bg-date").value = todayISO();
+        fillPrefill();
+        setStatus($("#bg-status"), null,
+          "30개 한방 비급여 항목에 표본 단가가 채워졌습니다 — 검증 결과와 제출 자료를 내려받아 확인해보세요.");
       });
 
       $("#bg-ykiho").addEventListener("input", updateSummary);
@@ -2260,20 +2387,32 @@
         downloadXLSX(lastRows, `의무기록_보존감사_${todayISO()}.xlsx`, "보존 감사");
       });
 
+      const sampleRetData = [
+        { 기록ID: "REC-2014-0001", 기록종류: "진료기록부", 환자번호: "P-2014-0042", 작성일자: "2014-03-14", 상태: "active" },
+        { 기록ID: "REC-2014-0002", 기록종류: "처방전",     환자번호: "P-2014-0042", 작성일자: "2014-03-14", 상태: "active" },
+        { 기록ID: "REC-2020-0098", 기록종류: "방사선기록", 환자번호: "P-2020-0098", 작성일자: "2020-08-22", 상태: "archived" },
+        { 기록ID: "REC-2021-0204", 기록종류: "검사기록",   환자번호: "P-2021-0204", 작성일자: "2021-11-04", 상태: "archived" },
+        { 기록ID: "REC-2022-0411", 기록종류: "진단서부본", 환자번호: "P-2022-0411", 작성일자: "2022-12-01", 상태: "archived" },
+        { 기록ID: "REC-2024-0512", 기록종류: "수술기록",   환자번호: "P-2024-0512", 작성일자: "2024-05-18", 상태: "active" },
+        { 기록ID: "REC-2025-0789", 기록종류: "환자명부",   환자번호: "P-2025-0789", 작성일자: "2025-09-30", 상태: "active" },
+        { 기록ID: "REC-2025-0790", 기록종류: "차트",       환자번호: "P-2025-0790", 작성일자: "2025-10-01", 상태: "active" },
+        { 기록ID: "REC-2026-0011", 기록종류: "간호기록부", 환자번호: "P-2026-0011", 작성일자: "2026-02-14", 상태: "active" }
+      ];
+
       $('[data-action="sample-ret"]').addEventListener("click", (e) => {
         e.stopPropagation();
-        const sample = [
-          { 기록ID: "REC-2014-0001", 기록종류: "진료기록부", 환자번호: "P-2014-0042", 작성일자: "2014-03-14", 상태: "active" },
-          { 기록ID: "REC-2014-0002", 기록종류: "처방전",     환자번호: "P-2014-0042", 작성일자: "2014-03-14", 상태: "active" },
-          { 기록ID: "REC-2020-0098", 기록종류: "방사선기록", 환자번호: "P-2020-0098", 작성일자: "2020-08-22", 상태: "archived" },
-          { 기록ID: "REC-2021-0204", 기록종류: "검사기록",   환자번호: "P-2021-0204", 작성일자: "2021-11-04", 상태: "archived" },
-          { 기록ID: "REC-2022-0411", 기록종류: "진단서부본", 환자번호: "P-2022-0411", 작성일자: "2022-12-01", 상태: "archived" },
-          { 기록ID: "REC-2024-0512", 기록종류: "수술기록",   환자번호: "P-2024-0512", 작성일자: "2024-05-18", 상태: "active" },
-          { 기록ID: "REC-2025-0789", 기록종류: "환자명부",   환자번호: "P-2025-0789", 작성일자: "2025-09-30", 상태: "active" },
-          { 기록ID: "REC-2025-0790", 기록종류: "차트",       환자번호: "P-2025-0790", 작성일자: "2025-10-01", 상태: "active" },
-          { 기록ID: "REC-2026-0011", 기록종류: "간호기록부", 환자번호: "P-2026-0011", 작성일자: "2026-02-14", 상태: "active" }
-        ];
-        downloadXLSX(sample, "샘플_의무기록_대장.xlsx", "샘플");
+        downloadXLSX(sampleRetData, "샘플_의무기록_대장.xlsx", "샘플");
+      });
+
+      $('[data-action="run-ret"]').addEventListener("click", () => {
+        const result = transform(sampleRetData);
+        lastRows = result.rows.map(({_kind, ...rest}) => rest);
+        render(result);
+        const urgent = result.stats.over + result.stats.bad;
+        setStatus($("#ret-status"), urgent > 0 ? "warn" : null,
+          urgent > 0
+            ? `샘플 9건 — ${urgent}건의 즉시 조치 항목이 있습니다 (만료 초과·분류 오류).`
+            : "샘플 9건 모두 정상 보존 또는 모니터링 단계입니다.");
       });
     }
 
@@ -2397,6 +2536,15 @@
           기준일: r.ref_date
         }));
         downloadXLSX(rows, `통합검색_${input.value.trim()}_${todayISO()}.xlsx`, "검색결과");
+      });
+
+      $('[data-action="run-search"]').addEventListener("click", () => {
+        $$(".filter-chip").forEach(c => c.classList.remove("active"));
+        $('.filter-chip[data-source="all"]').classList.add("active");
+        activeFilter = "all";
+        input.value = "요통";
+        input.focus();
+        render("요통");
       });
     }
   </script>
