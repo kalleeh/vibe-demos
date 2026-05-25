@@ -554,7 +554,15 @@
         ink:  "rgba(42, 38, 29, 0.85)",
         ink2: "rgba(42, 38, 29, 0.55)",
         bloom:"rgba(201, 126, 96, 0.70)",
-        sun:  { x: 0.18, color: "rgba(232, 168, 110, 0.65)" }
+        sun:  { x: 0.18, color: "rgba(232, 168, 110, 0.65)" },
+        // Watercolor greens for the hill — top is grass-light, bottom is
+        // shadow. Listed top→bottom; rendered with multiply blend.
+        hill: {
+          top:    "rgba(166, 184, 122, 0.62)",
+          mid:    "rgba(118, 148, 96, 0.55)",
+          bottom: "rgba(82, 110, 78, 0.50)",
+          dapple: "rgba(94, 122, 78, 0.30)"
+        }
       },
       { // noon
         name: "noon",
@@ -562,7 +570,13 @@
         ink:  "rgba(42, 38, 29, 0.85)",
         ink2: "rgba(42, 38, 29, 0.50)",
         bloom:"rgba(107, 138, 118, 0.70)",
-        sun:  { x: 0.5,  color: "rgba(244, 223, 168, 0.55)" }
+        sun:  { x: 0.5,  color: "rgba(244, 223, 168, 0.55)" },
+        hill: {
+          top:    "rgba(154, 184, 116, 0.65)",
+          mid:    "rgba(102, 142, 90, 0.58)",
+          bottom: "rgba(64, 100, 70, 0.52)",
+          dapple: "rgba(86, 124, 70, 0.32)"
+        }
       },
       { // dusk
         name: "dusk",
@@ -570,7 +584,13 @@
         ink:  "rgba(42, 38, 29, 0.90)",
         ink2: "rgba(80, 50, 50, 0.55)",
         bloom:"rgba(201, 96, 80, 0.78)",
-        sun:  { x: 0.78, color: "rgba(212, 122, 95, 0.70)" }
+        sun:  { x: 0.78, color: "rgba(212, 122, 95, 0.70)" },
+        hill: {
+          top:    "rgba(150, 132, 110, 0.62)",
+          mid:    "rgba(110, 102, 96, 0.58)",
+          bottom: "rgba(70, 78, 86, 0.55)",
+          dapple: "rgba(96, 82, 80, 0.32)"
+        }
       },
       { // night
         name: "night",
@@ -578,7 +598,13 @@
         ink:  "rgba(42, 38, 29, 0.95)",
         ink2: "rgba(60, 60, 80, 0.65)",
         bloom:"rgba(170, 200, 240, 0.72)",
-        sun:  { x: 0.85, color: "rgba(220, 222, 240, 0.55)" }
+        sun:  { x: 0.85, color: "rgba(220, 222, 240, 0.55)" },
+        hill: {
+          top:    "rgba(82, 102, 110, 0.60)",
+          mid:    "rgba(60, 78, 92, 0.62)",
+          bottom: "rgba(38, 50, 68, 0.62)",
+          dapple: "rgba(50, 70, 88, 0.34)"
+        }
       },
     ];
 
@@ -856,9 +882,15 @@
     // surfing still has the satisfying weight of going downhill — a real
     // 1100 px/s² in the air made the bird hit the ground in <1 second.
     const GRAVITY_SURF = 1100;    // px/s² along the slope tangent
-    const GRAVITY_AIR  = 360;     // px/s² applied while airborne
-    const LIFT_K       = 1.60;    // forward speed → upward lift (px/s² per px/s)
+    const GRAVITY_AIR  = 420;     // px/s² applied while airborne
+    const LIFT_K       = 1.20;    // forward speed → upward lift (px/s² per px/s)
     const LIFT_VMIN    = 180;     // below this forward speed, lift fades out
+    // Lift can NEVER exceed (gravity − MIN_SINK). This guarantees the
+    // bird always descends — even at very high speed after a ramp boost,
+    // net acceleration is at least MIN_SINK downward, so a bird that
+    // has gained altitude will eventually come back to the hills.
+    const MIN_SINK     = 90;
+    const LIFT_MAX     = GRAVITY_AIR - MIN_SINK;
     const FALL_TERMINAL = 260;    // unpressed-glide max downward speed (soft cap)
     const PITCH_BIAS   = 1500;    // extra downward when tap-held
     const DRAG_AIR     = 0.06;    // per-second velocity damping while airborne (was 0.18)
@@ -961,8 +993,11 @@
         G.airborne = true;
         G.vy += GRAVITY_AIR * dt;
         // Lift: faster forward = more lift, fading out near stall speed.
+        // Hard cap on lift acceleration so it can never exceed gravity —
+        // otherwise a fast bird climbs forever and never comes down.
         const liftScale = Math.max(0, Math.min(1, (Math.abs(G.vx) - LIFT_VMIN) / 400));
-        G.vy -= LIFT_K * Math.abs(G.vx) * liftScale * dt;
+        const liftAccel = Math.min(LIFT_MAX, LIFT_K * Math.abs(G.vx) * liftScale);
+        G.vy -= liftAccel * dt;
         // Pitch-down in mid-air: extra downward force (a "dive")
         if (G.pitchDown) G.vy += PITCH_BIAS * 0.55 * dt;
         // Air drag — only on horizontal so altitude isn't bled away
@@ -1110,9 +1145,22 @@
       ctx.fillStyle = grd;
       ctx.fillRect(0, 0, viewW, baseY + 4);
 
-      // Sun / moon
-      const sunX = viewW * p.sun.x;
-      const sunY = baseY * 0.30;
+      // Sun / moon — drifts across the sky as the day progresses.
+      // Each palette gets a shifted arc segment so dawn = low east,
+      // noon = high overhead, dusk = low west, night = moonrise east.
+      // dayFrac is 0→1 across the current palette's duration.
+      const dayFrac = Math.max(0, Math.min(1,
+        (performance.now() - G.dayStartT) / G.dayDurMs));
+      const arc = {
+        dawn:  { x0: 0.05, x1: 0.42, y0: 0.62, y1: 0.28 },
+        noon:  { x0: 0.32, x1: 0.72, y0: 0.22, y1: 0.22 },
+        dusk:  { x0: 0.58, x1: 0.95, y0: 0.30, y1: 0.66 },
+        night: { x0: 0.10, x1: 0.92, y0: 0.55, y1: 0.32 },
+      }[p.name] || { x0: p.sun.x, x1: p.sun.x, y0: 0.30, y1: 0.30 };
+      // Smoothstep so the sun decelerates near the horizon.
+      const ease = dayFrac * dayFrac * (3 - 2 * dayFrac);
+      const sunX = viewW * (arc.x0 + (arc.x1 - arc.x0) * ease);
+      const sunY = baseY * (arc.y0 + (arc.y1 - arc.y0) * ease);
       const sunR = 36 + (p.name === "night" ? -8 : 0);
       const sg = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, sunR);
       sg.addColorStop(0, p.sun.color);
@@ -1214,43 +1262,105 @@
       ctx.restore();
     }
 
-    // Hand-drawn hill: sample terrain across visible range, multi-pass
-    // jitter the resulting polyline like resonans's strokePath.
+    // Hand-drawn hill with a watercolor green fill. The painted fill is
+    // built in three layers under a clip(): a top-to-bottom green wash
+    // (light grass → deep shadow), a few darker dapples that suggest
+    // foliage, and a ragged inked top edge that reads as a brush stroke
+    // rather than a clean curve. Multi-pass strokePath jitter is kept.
     function drawTerrain(camX) {
       const p = pal();
-      const stepPx = 4;       // sample every 4 screen pixels
+      const hill = p.hill;
+      const stepPx = 4;
       const samples = Math.ceil(viewW / stepPx) + 4;
-      // Build path
       const xs = new Array(samples), ys = new Array(samples);
       for (let i = 0; i < samples; i++) {
         const sx = i * stepPx;
         const wx = sx + camX;
-        const wy = G.terrain.h(wx);
         xs[i] = sx;
-        ys[i] = baseY + wy;
+        ys[i] = baseY + G.terrain.h(wx);
       }
 
-      // Soft fill underneath — slight cream-darker than paper to read
-      // as "ground".
+      // Build a closed path matching the hill silhouette + screen bottom.
+      const buildHillPath = (jitter) => {
+        ctx.beginPath();
+        ctx.moveTo(0, viewH + 4);
+        for (let i = 0; i < samples; i++) {
+          const j = jitter ? (G.jrand() - 0.5) * jitter : 0;
+          ctx.lineTo(xs[i], ys[i] + j);
+        }
+        ctx.lineTo(viewW + 4, viewH + 4);
+        ctx.closePath();
+      };
+
+      // ── Watercolor fill under a hill clip ──────────────────────────
       ctx.save();
-      ctx.fillStyle = "rgba(237, 226, 193, 0.55)";
+      buildHillPath(0);
+      ctx.clip();
+
+      // Vertical green gradient wash (multiply so paper grain shows).
+      ctx.globalCompositeOperation = "multiply";
+      let yTop = Infinity, yBot = -Infinity;
+      for (let i = 0; i < samples; i++) {
+        if (ys[i] < yTop) yTop = ys[i];
+        if (ys[i] > yBot) yBot = ys[i];
+      }
+      const wash = ctx.createLinearGradient(0, yTop, 0, viewH);
+      wash.addColorStop(0.00, hill.top);
+      wash.addColorStop(0.45, hill.mid);
+      wash.addColorStop(1.00, hill.bottom);
+      ctx.fillStyle = wash;
+      ctx.fillRect(0, yTop - 4, viewW, viewH - yTop + 8);
+
+      // Dapples — soft radial blooms scattered across the hill, scrolling
+      // with the camera so they feel like foliage on the terrain rather
+      // than overlay. Use a deterministic per-camera seed so they don't
+      // shimmer between frames.
+      const seedRand = mulberry32(((camX | 0) ^ G.seed) >>> 0);
+      const dappleCount = reduceMotion ? 0 : 14;
+      for (let d = 0; d < dappleCount; d++) {
+        const fx = seedRand() * viewW;
+        // anchor each dapple slightly below the silhouette at fx
+        const idx = Math.max(0, Math.min(samples - 1, Math.floor(fx / stepPx)));
+        const surfaceY = ys[idx];
+        const dy = surfaceY + 8 + seedRand() * (viewH - surfaceY) * 0.7;
+        const dr = 18 + seedRand() * 36;
+        const dg = ctx.createRadialGradient(fx, dy, 0, fx, dy, dr);
+        dg.addColorStop(0, hill.dapple);
+        dg.addColorStop(1, hill.dapple.replace(/[\d.]+\)$/, "0)"));
+        ctx.fillStyle = dg;
+        ctx.beginPath(); ctx.arc(fx, dy, dr, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+
+      // ── Ragged painted edge ────────────────────────────────────────
+      // A second softer fill that overshoots the silhouette by a few px
+      // with heavy jitter, drawn UNDER the ink line. This gives the wet-
+      // brush "fringe" you see on real watercolor where the pigment sits
+      // proud of the pencil sketch.
+      ctx.save();
+      ctx.globalCompositeOperation = "multiply";
+      ctx.fillStyle = hill.top.replace(/[\d.]+\)$/, "0.28)");
+      const fringeJitter = reduceMotion ? 0 : 2.6;
       ctx.beginPath();
       ctx.moveTo(0, viewH + 4);
-      for (let i = 0; i < samples; i++) ctx.lineTo(xs[i], ys[i]);
+      for (let i = 0; i < samples; i++) {
+        const j = (G.jrand() - 0.5) * fringeJitter;
+        ctx.lineTo(xs[i], ys[i] + j - 1);
+      }
       ctx.lineTo(viewW + 4, viewH + 4);
       ctx.closePath();
       ctx.fill();
       ctx.restore();
 
-      // Multi-pass graphite outline — same trick as resonans's strokePath
+      // ── Multi-pass graphite outline (the inked top edge) ────────────
       const passes = reduceMotion ? 1 : 3;
       ctx.save();
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
       ctx.strokeStyle = p.ink;
-      ctx.lineWidth = 1.6;
+      ctx.lineWidth = 1.8;
       for (let pp = 0; pp < passes; pp++) {
-        ctx.globalAlpha = 0.50 + 0.40 * G.jrand();
+        ctx.globalAlpha = 0.55 + 0.40 * G.jrand();
         ctx.beginPath();
         const j = reduceMotion ? 0 : 1.4;
         for (let i = 0; i < samples; i++) {
@@ -1263,8 +1373,7 @@
       }
       ctx.globalAlpha = 1;
 
-      // Soft hatch on the slope — a light dashed under-line ~6 px below
-      // the surface, fading. Adds graphite shading without filling the hill.
+      // Hatched shadow line just under the ridge, fades with depth.
       ctx.strokeStyle = p.ink2;
       ctx.lineWidth = 1.0;
       ctx.setLineDash([3, 6]);
