@@ -350,12 +350,17 @@
     }
 
     function pluck(idx, amplitude = 1.0, width = 6) {
-      // Gaussian pulse in displacement, leave velocity field continuous.
+      // Gaussian VELOCITY kick. Adding to u but NOT uP means the next
+      // step sees finite-diff velocity (u - uP) ≠ 0 — so we're injecting
+      // momentum, not a static displacement. With u and uP both bumped
+      // by the same amount (the previous design), every pluck started
+      // with zero velocity and could only weakly couple into standing
+      // modes. With the velocity kick, energy accumulates cleanly when
+      // taps are timed at the resonant period.
       for (let i = 1; i < N - 1; i++) {
         const d = i - idx;
         const g = Math.exp(-(d*d) / (2*width*width));
-        u[i]  += amplitude * g * 0.55;
-        uP[i] += amplitude * g * 0.55; // adds initial velocity ~0
+        u[i] += amplitude * g * 0.55;
       }
     }
 
@@ -711,15 +716,18 @@
 
     // Watercolor blooms at antinodes when locked
     function drawBlooms(lock) {
-      if (lock < 0.18) return;
-      const a = (lock - 0.18) / 0.82;
+      // Threshold lifted from 0.18 → 0.15 so blooms start to bleed in
+      // just before the pip lights at 0.25 — gives a "warming" visual
+      // cue on the page itself, not just in the footer.
+      if (lock < 0.15) return;
+      const a = Math.min(1, (lock - 0.15) / 0.30);
       ctx.save();
       ctx.globalCompositeOperation = "multiply";
       for (let n = 1; n <= mode; n++) {
         const xi = (n - 0.5) / mode;
         const i = Math.floor(xi * (N - 1));
         const x = gridX(i);
-        const y = stringY - u[i] * 70;
+        const y = stringY - u[i] * 90;
         const r = 28 + 36 * a + 8 * Math.sin(performance.now() * 0.001 + n);
         const grd = ctx.createRadialGradient(x, y, 0, x, y, r);
         grd.addColorStop(0,   `rgba(201, 126, 96, ${0.18 * a})`);
@@ -1121,7 +1129,10 @@
       if (scene === "chladni") {
         drawChladni(now, dt);
       } else {
-        const curveAmp = 70;
+        // curveAmp scales modal displacement (peak |u| ~1-3 in resonance)
+        // to pixels. 90 reads bold without clipping at typical viewport
+        // heights; the wave equation is already stable beyond this.
+        const curveAmp = 90;
         drawTarget(curveAmp);
         drawRivalLeak(curveAmp);
         drawBlooms(lockEMA);
