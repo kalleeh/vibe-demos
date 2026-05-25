@@ -1570,52 +1570,205 @@
     // Bird sprite — pencil-style egg body, single wing, beak, eye.
     // Drawn at a screen position; angle reflects flight vector when
     // airborne, slope tangent when surfing.
+    // Tiny Wings-style bird. Plump body with peach breast, pale-blue back,
+    // orange beak, painted watercolor fill under a hand-drawn ink line.
     function drawBird(sx, sy, angle, isFlapping, perfect, boosting) {
       ctx.save();
       ctx.translate(sx, sy);
       ctx.rotate(angle);
-      // Soft graphite body
       const p = pal();
       // Bloom halo on perfect launch / boost
       if (perfect || boosting) {
-        const r = 30 + (perfect ? 8 : 0) + (boosting ? 4 : 0);
+        const r = 32 + (perfect ? 10 : 0) + (boosting ? 5 : 0);
         const grd = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
-        grd.addColorStop(0, "rgba(201, 126, 96, 0.28)");
+        grd.addColorStop(0, "rgba(232, 168, 110, 0.32)");
         grd.addColorStop(1, "rgba(201, 126, 96, 0)");
         ctx.fillStyle = grd;
         ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI*2); ctx.fill();
       }
-      // Body (rounded rect-ish shape, hand-drawn outline)
+      // Palette (slightly desaturated at night so the bird reads in the cool sky)
+      const isNight = p.name === "night";
+      const C = {
+        belly:  isNight ? "rgba(238, 222, 198, 0.92)" : "rgba(248, 232, 206, 0.95)",
+        breast: isNight ? "rgba(196, 130, 102, 0.88)" : "rgba(228, 152, 110, 0.92)",
+        back:   isNight ? "rgba(110, 132, 156, 0.92)" : "rgba(146, 178, 198, 0.92)",
+        crown:  isNight ? "rgba(80,  100, 130, 0.95)" : "rgba(108, 144, 170, 0.95)",
+        wing:   isNight ? "rgba(70,  92,  120, 0.95)" : "rgba(96,  130, 156, 0.95)",
+        beak:   "rgba(232, 142, 70, 0.95)",
+        beakDk: "rgba(186, 96,  46, 0.95)",
+        ink:    p.ink
+      };
+      ctx.lineCap = "round"; ctx.lineJoin = "round";
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = C.ink;
+
+      // ── Tail (drawn first so body overlaps base) ──────────────
+      ctx.fillStyle = C.wing;
+      ctx.beginPath();
+      ctx.moveTo(-13, -2);
+      ctx.lineTo(-21, -5);
+      ctx.lineTo(-19, -1);
+      ctx.lineTo(-22, 2);
+      ctx.lineTo(-19, 4);
+      ctx.lineTo(-13, 3);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+
+      // ── Body silhouette: plump teardrop, pointier in front ────
+      ctx.beginPath();
+      ctx.moveTo(-13, -1);
+      ctx.bezierCurveTo(-14, -10,  -2, -13,  10, -10);  // back
+      ctx.bezierCurveTo( 16, -8,   17,  -3,  16,  0);   // upper face
+      ctx.bezierCurveTo( 17,  4,   12,  10,   2, 11);   // belly front
+      ctx.bezierCurveTo(-8,  11,  -14,   6, -13,  3);   // belly back
+      ctx.closePath();
+      // Belly fill (cream)
+      ctx.fillStyle = C.belly; ctx.fill();
+
+      // Back/crown wash — clip to body, paint upper third
+      ctx.save();
+      ctx.clip();
+      ctx.fillStyle = C.back;
+      ctx.fillRect(-15, -14, 34, 9);
+      // Crown — darker cap on the head
+      ctx.fillStyle = C.crown;
+      ctx.beginPath();
+      ctx.moveTo(2, -11);
+      ctx.bezierCurveTo(8, -13, 14, -10, 16, -5);
+      ctx.lineTo(16, -2);
+      ctx.lineTo(2, -2);
+      ctx.closePath();
+      ctx.fill();
+      // Breast blush — a peachy patch on the chin/throat
+      ctx.fillStyle = C.breast;
+      ctx.beginPath();
+      ctx.ellipse(7, 4, 7, 5, -0.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // Body outline on top of the washes
+      ctx.beginPath();
+      ctx.moveTo(-13, -1);
+      ctx.bezierCurveTo(-14, -10,  -2, -13,  10, -10);
+      ctx.bezierCurveTo( 16, -8,   17,  -3,  16,  0);
+      ctx.bezierCurveTo( 17,  4,   12,  10,   2, 11);
+      ctx.bezierCurveTo(-8,  11,  -14,   6, -13,  3);
+      ctx.closePath();
+      ctx.stroke();
+
+      // ── Beak (open triangle, dark lower mandible) ─────────────
+      ctx.fillStyle = C.beak;
+      ctx.beginPath();
+      ctx.moveTo(15, -2); ctx.lineTo(23, 0); ctx.lineTo(15, 1);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = C.beakDk;
+      ctx.beginPath();
+      ctx.moveTo(15, 1); ctx.lineTo(22, 1); ctx.lineTo(15, 3);
+      ctx.closePath();
+      ctx.fill();
+
+      // ── Eye: white sclera + dark pupil + tiny highlight ───────
+      ctx.fillStyle = "rgba(248, 240, 218, 0.95)";
+      ctx.beginPath(); ctx.arc(11, -5, 2.0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = C.ink; ctx.lineWidth = 1.0; ctx.stroke();
+      ctx.fillStyle = C.ink;
+      ctx.beginPath(); ctx.arc(11.4, -5, 1.1, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "rgba(255, 250, 235, 0.95)";
+      ctx.beginPath(); ctx.arc(11.8, -5.4, 0.4, 0, Math.PI * 2); ctx.fill();
+
+      // ── Wing: sweeps with flap phase. Two-tone: upper feather
+      //    plate over a slightly lighter underwing. ──────────────
+      const wingPhase = G._wingPhase || 0;
+      const flapY = isFlapping ? Math.sin(wingPhase) * 4 : -1;
+      const flapTip = isFlapping ? Math.cos(wingPhase) * 3 : 0;
+      ctx.lineWidth = 1.5;
+      // Underwing
+      ctx.fillStyle = C.back;
+      ctx.beginPath();
+      ctx.moveTo(-4, -2);
+      ctx.bezierCurveTo(-2, -7 + flapY, 6, -8 + flapY, 9, -3);
+      ctx.bezierCurveTo(6, -1, -1, -1, -4, -2);
+      ctx.closePath();
+      ctx.fill();
+      // Wing plate
+      ctx.fillStyle = C.wing;
+      ctx.beginPath();
+      ctx.moveTo(-2, -3);
+      ctx.bezierCurveTo(-1, -10 + flapY, 8, -11 + flapY + flapTip, 10, -4);
+      ctx.bezierCurveTo(7, -3, 1, -3, -2, -3);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = C.ink;
+      ctx.stroke();
+      // Two feather ticks
+      ctx.beginPath();
+      ctx.moveTo(2, -7 + flapY);  ctx.lineTo(4, -3);
+      ctx.moveTo(5, -8 + flapY);  ctx.lineTo(7, -3);
+      ctx.lineWidth = 1.0;
+      ctx.stroke();
+
+      // Foot tucked back (visible only when surfing)
+      if (!isFlapping) {
+        ctx.strokeStyle = C.beakDk; ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(-2, 10); ctx.lineTo(-4, 13);
+        ctx.moveTo(-4, 13); ctx.lineTo(-6, 13);
+        ctx.moveTo(-4, 13); ctx.lineTo(-3, 14);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    // Pinned indicator when the bird is off-screen (above, below, or far
+    // ahead/behind the camera). Shows a chevron at the nearest edge plus
+    // an altitude readout in meters so the player can keep track.
+    function drawOffscreenIndicator(sx, sy) {
+      const margin = 22;
+      const inX = sx >= margin && sx <= viewW - margin;
+      const inY = sy >= margin && sy <= viewH - margin;
+      if (inX && inY) return;
+      // Altitude in meters above the hill baseline. by is positive-down,
+      // so a negative by means above baseline.
+      const altM = Math.max(0, Math.round(-G.by / 14));
+      const px = Math.max(margin, Math.min(viewW - margin, sx));
+      const py = Math.max(margin, Math.min(viewH - margin, sy));
+      // Pick chevron rotation based on which edge clamped us
+      let dir = 0; // 0=up, 1=right, 2=down, 3=left
+      if (sy < margin) dir = 0;
+      else if (sy > viewH - margin) dir = 2;
+      else if (sx < margin) dir = 3;
+      else if (sx > viewW - margin) dir = 1;
+      const p = pal();
+      ctx.save();
+      ctx.translate(px, py);
+      // Soft cream backing wafer so the chevron reads on any band
+      ctx.fillStyle = "rgba(244, 236, 214, 0.78)";
       ctx.strokeStyle = p.ink;
-      ctx.fillStyle = "rgba(244, 236, 214, 0.85)";
-      ctx.lineWidth = 1.6;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      // Chevron pointing in the off-screen direction
+      ctx.save();
+      ctx.rotate(dir * Math.PI / 2);
+      ctx.strokeStyle = p.ink; ctx.lineWidth = 2.0;
       ctx.lineCap = "round"; ctx.lineJoin = "round";
       ctx.beginPath();
-      // Bezier-ish egg
-      ctx.moveTo(-12, 0);
-      ctx.bezierCurveTo(-12, -10, 14, -10, 14, 0);
-      ctx.bezierCurveTo(14, 9, -12, 9, -12, 0);
-      ctx.fill();
+      ctx.moveTo(-5, 2); ctx.lineTo(0, -5); ctx.lineTo(5, 2);
       ctx.stroke();
-      // Beak
-      ctx.beginPath();
-      ctx.moveTo(13, -1); ctx.lineTo(20, 0); ctx.lineTo(13, 2);
-      ctx.fillStyle = p.ink; ctx.fill();
-      // Eye
-      ctx.beginPath(); ctx.arc(8, -3, 1.1, 0, Math.PI*2); ctx.fillStyle = p.ink; ctx.fill();
-      // Wing — flaps when airborne. Use a phase var on G for animation.
-      const wingPhase = G._wingPhase || 0;
-      const wingY = isFlapping ? Math.sin(wingPhase) * 5 : 0;
-      ctx.beginPath();
-      ctx.moveTo(-2, -1);
-      ctx.bezierCurveTo(-6, -8 + wingY, 6, -10 + wingY, 8, -2);
-      ctx.bezierCurveTo(4, -2, -2, -2, -2, -1);
-      ctx.fillStyle = "rgba(42, 38, 29, 0.78)";
-      ctx.fill();
-      // Tiny tail tick
-      ctx.beginPath();
-      ctx.moveTo(-12, -2); ctx.lineTo(-16, -4); ctx.moveTo(-12, 2); ctx.lineTo(-16, 4);
-      ctx.strokeStyle = p.ink; ctx.lineWidth = 1.2; ctx.stroke();
+      ctx.restore();
+      // Altitude label, placed inward of the wafer
+      ctx.font = "500 12px 'Caveat', cursive";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = p.ink;
+      const label = altM + "m ↑";
+      const tw = ctx.measureText(label).width;
+      let tx = 18, ty = 0, ta = "left";
+      if (dir === 1) { tx = -18 - tw; ta = "left"; ty = 0; }
+      if (dir === 3) { tx = 18; ta = "left"; }
+      if (dir === 0) { tx = 0 - tw / 2; ty = 22; }
+      if (dir === 2) { tx = 0 - tw / 2; ty = -22; }
+      ctx.fillText(label, tx, ty);
       ctx.restore();
     }
 
@@ -1698,6 +1851,7 @@
       drawTrail();
 
       drawBird(sx, sy, angle, G.airborne, G.perfectLaunch, G.boostingNow);
+      drawOffscreenIndicator(sx, sy);
 
       // Perfect-launch sparkle decays after one second
       if (G.perfectLaunch && performance.now() - (G._perfectAt || 0) > 60) {
