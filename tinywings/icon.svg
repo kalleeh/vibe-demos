@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="12" fill="#f4ecd6"/>
+  <!-- rolling hills -->
+  <path d="M2 50 C 14 38, 22 54, 32 44 S 50 36, 62 50 L 62 62 L 2 62 Z"
+        fill="#ede2c1" stroke="#2a261d" stroke-width="1.6"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- horizon line accent -->
+  <path d="M2 50 C 14 38, 22 54, 32 44 S 50 36, 62 50"
+        fill="none" stroke="#2a261d" stroke-width="2.2"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- gliding bird -->
+  <path d="M14 22 q 6 -6 12 0 q 6 -6 12 0"
+        fill="none" stroke="#2a261d" stroke-width="2.4"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- sun bloom -->
+  <circle cx="50" cy="18" r="5.5" fill="#c97e60" opacity="0.8"/>
+</svg>

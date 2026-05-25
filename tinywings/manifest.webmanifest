@@ -1,0 +1,16 @@
+{
+  "name": "Sketchwings — A Glide Across Pencil Hills",
+  "short_name": "Sketchwings",
+  "description": "A pencil-bird glides across rolling cream-paper hills. Tap to dive on the downslope, release to soar.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#f4ecd6",
+  "theme_color": "#f4ecd6",
+  "lang": "en",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

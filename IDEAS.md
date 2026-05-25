@@ -169,6 +169,14 @@ Calm physics game in a Nintendo-quiet, hand-drawn-on-cream-paper register. A gra
 - **Slug:** `resonans`
 - **Scope estimate:** small-medium. Wave sim + hand-drawn rendering is the careful work; everything else is calm UI.
 
+### G2 · Sketchwings — A Glide Across Pencil Hills 🟢 shipped → [/tinywings/](./tinywings/)
+
+Tiny Wings reimagined in the cream-paper / graphite register of Resonans. A pencil-bird glides over rolling hand-drawn hills; tap on the downslope to dive (gain speed), release on the upslope to launch (gain air). Procedural sum-of-sines terrain, a slow day-into-night palette cycle that bookends each run, and a boost meter that recharges with airtime.
+
+- **Tech:** Self-contained `index.html`. Vanilla Canvas 2D, multi-pass jitter strokes for the pencil feel. Mulberry32-seeded RNG so each "day" is deterministic. Analytic slope from the sum-of-sines so the bird surfs the curve cleanly.
+- **Loop:** One-tap dive / release, perfect-launch detection (slope-aligned exit at peak speed), boost mid-air, day-into-night ends the run when full night falls. localStorage best distance + perfect-launch counter.
+- **Slug:** `tinywings` · **Scope:** small-medium. Shipped same session as the Resonans tuning pass.
+
 ### W7 · Lagom — A Scrollytelling Essay
 
 Long-form editorial essay on a Swedish concept (lagom, fika, allemansrätten…). Real scroll-driven typography animations, illustration sequences pinned to scroll. Demonstrates editorial chops, not just toys.

@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Sketchwings — A Glide Across Pencil Hills</title>
+  <meta name="description" content="A pencil-bird glides across rolling cream-paper hills. Tap to dive on the downslope, release to soar. One day, one flight.">
+  <meta property="og:title" content="Sketchwings — A Glide Across Pencil Hills">
+  <meta property="og:description" content="Tap on the downslope. Soar through the dawn into the night. A sketchbook glider.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://kalleeh.github.io/vibe-demos/tinywings/">
+  <link rel="canonical" href="https://kalleeh.github.io/vibe-demos/tinywings/">
+
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#f4ecd6">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Sketchwings">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --paper:    #f4ecd6;
+      --paper-2:  #ede2c1;
+      --ink:      #2a261d;
+      --ink-soft: #4a4234;
+      --bloom:    #c97e60;
+      --bloom-2:  #6b8a76;
+      --line:     rgba(42, 38, 29, 0.16);
+      --muted:    rgba(42, 38, 29, 0.55);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Fraunces", Georgia, serif;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+      touch-action: none;
+    }
+    /* Paper grain (matches resonans) */
+    body::before {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.16  0 0 0 0 0.14  0 0 0 0 0.10  0 0 0 0.10 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+      opacity: 0.55;
+      mix-blend-mode: multiply;
+    }
+    /* Ruled lines */
+    body::after {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        repeating-linear-gradient(to bottom,
+          transparent 0, transparent 47px,
+          rgba(42, 38, 29, 0.05) 47px,
+          rgba(42, 38, 29, 0.05) 48px);
+      opacity: 0.7;
+    }
+
+    .stage {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      z-index: 1;
+    }
+    canvas#sky {
+      flex: 1;
+      width: 100%;
+      display: block;
+      cursor: pointer;
+    }
+
+    /* Topbar */
+    .topbar {
+      display: flex; align-items: center; gap: 14px;
+      padding: 18px 26px 6px;
+      pointer-events: auto;
+      flex-wrap: wrap;
+    }
+    .brand {
+      font-family: "Caveat", cursive;
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--ink);
+      transform: rotate(-1.5deg);
+    }
+    .brand em { font-style: italic; color: var(--bloom); }
+    .kicker {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px; letter-spacing: 0.18em;
+      color: var(--muted); text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .spacer { flex: 1; }
+    .stat {
+      display: inline-flex; align-items: baseline; gap: 6px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px; letter-spacing: 0.1em;
+      color: var(--muted); text-transform: uppercase;
+      padding: 4px 10px;
+      border: 1px dashed var(--line);
+      border-radius: 14px;
+    }
+    .stat .v { color: var(--ink); font-style: normal; font-size: 13px; }
+    .stat .l { font-size: 10px; }
+    .stat.ev { border-color: rgba(201,126,96,0.5); color: var(--bloom); }
+    .stat.ev .v { color: var(--bloom); }
+    .back {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px; letter-spacing: 0.18em;
+      color: var(--muted); text-transform: uppercase;
+      text-decoration: none;
+      padding: 6px 0;
+      border-bottom: 1px dashed var(--line);
+      transition: color 160ms;
+    }
+    .back:hover { color: var(--ink); }
+
+    /* Footer */
+    .footer {
+      display: flex; align-items: center; gap: 18px;
+      padding: 8px 26px 22px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px; letter-spacing: 0.16em;
+      color: var(--muted); text-transform: uppercase;
+    }
+    .footer .hint {
+      font-family: "Caveat", cursive;
+      font-size: 19px; letter-spacing: 0;
+      text-transform: none;
+      color: var(--ink-soft);
+      transform: rotate(-0.8deg);
+    }
+    .toggle {
+      appearance: none; border: none; background: none;
+      font-family: inherit; font-size: inherit; letter-spacing: inherit;
+      color: var(--muted); cursor: pointer; padding: 0;
+      border-bottom: 1px dashed var(--line);
+    }
+    .toggle:hover { color: var(--ink); }
+
+    /* Boost meter */
+    .boost-wrap {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .boost {
+      width: 90px; height: 6px;
+      background: rgba(42,38,29,0.10);
+      border: 1px dashed var(--line);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    .boost .fill {
+      height: 100%; width: 0%;
+      background: var(--bloom);
+      transition: width 120ms linear;
+      box-shadow: 0 0 8px rgba(201,126,96,0.6);
+    }
+
+    /* Day chip */
+    .day-chip {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px; letter-spacing: 0.16em;
+      color: var(--muted); text-transform: uppercase;
+      padding: 4px 10px;
+      border: 1px dashed var(--line);
+      border-radius: 14px;
+    }
+    .day-chip .ph { color: var(--ink); font-style: italic; }
+
+    /* Game-over panel — appears centered, fades in */
+    .end-panel {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%) rotate(-1deg);
+      background: var(--paper);
+      border: 1px dashed var(--ink-soft);
+      padding: 22px 28px;
+      font-family: "Caveat", cursive;
+      color: var(--ink);
+      text-align: center;
+      pointer-events: auto;
+      box-shadow: 0 12px 30px rgba(42,38,29,0.12);
+      opacity: 0;
+      transition: opacity 280ms;
+      pointer-events: none;
+      max-width: min(440px, 86vw);
+    }
+    .end-panel.live { opacity: 1; pointer-events: auto; }
+    .end-panel h2 { font-family: "Fraunces", serif; font-style: italic; font-weight: 400; font-size: 28px; margin: 0 0 6px; }
+    .end-panel .sub { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; margin-bottom: 12px; }
+    .end-panel .lines { font-size: 19px; line-height: 1.45; color: var(--ink-soft); }
+    .end-panel .num { color: var(--bloom); font-style: italic; }
+    .end-panel button {
+      appearance: none; border: 1px dashed var(--ink-soft); background: transparent;
+      font-family: "Caveat", cursive; font-size: 22px; color: var(--ink);
+      padding: 6px 22px; cursor: pointer; margin-top: 14px;
+      transition: background 160ms, color 160ms;
+    }
+    .end-panel button:hover { background: var(--ink); color: var(--paper); }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 14px 18px 4px; gap: 8px; }
+      .footer { padding: 6px 18px 18px; flex-wrap: wrap; gap: 10px; }
+      .stat, .day-chip, .boost-wrap { font-size: 10px; }
+      .boost { width: 64px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .boost .fill { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <header class="topbar">
+      <span class="brand"><em>Sketch</em>wings</span>
+      <span class="kicker">Glider · Pencil Hills</span>
+      <span class="spacer"></span>
+      <span class="day-chip">DAY <span class="ph" id="dayNum">1</span></span>
+      <span class="stat" id="distStat"><span class="l">DIST</span><span class="v" id="distV">0</span><span class="l">m</span></span>
+      <span class="stat ev" id="bestStat"><span class="l">BEST</span><span class="v" id="bestV">0</span><span class="l">m</span></span>
+      <a class="back" href="../">← Studio</a>
+    </header>
+
+    <canvas id="sky" aria-label="Pencil hills glider"></canvas>
+
+    <footer class="footer">
+      <span class="hint" id="hint">tap and hold on a downslope — release to soar</span>
+      <span class="spacer" style="flex:1"></span>
+      <span class="boost-wrap"><span>BOOST</span><span class="boost"><span class="fill" id="boostFill"></span></span></span>
+      <button class="toggle" id="muteBtn" aria-pressed="false">sound · on</button>
+    </footer>
+
+    <div class="end-panel" id="endPanel">
+      <h2>the day ends</h2>
+      <div class="sub">DAY <span id="endDay">1</span> COMPLETE</div>
+      <div class="lines">
+        you flew <span class="num" id="endDist">0</span> m<br>
+        with <span class="num" id="endPerfect">0</span> perfect launches<br>
+        <span id="endNewBest" style="display:none">— a new best —</span>
+      </div>
+      <button id="restartBtn">begin again</button>
+    </div>
+  </div>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
+  </script>
+
+  <script>
+    /* ============================================================
+       SKETCHWINGS
+       Pencil-bird glider over procedurally-generated rolling hills.
+
+       Physics:
+       - Hills are a sum of sines, deterministic per "day" via a seed.
+       - The bird is a point mass with gravity; tap-and-hold pitches
+         it nose down to gain speed on a downslope (+gravity bias).
+       - Releasing on the upslope converts speed into airborne lift.
+       - When airborne the bird drifts on a slow-decay velocity; when
+         the bird touches the hill, slope tangent + speed determine if
+         it surfs (low-angle landing) or stalls (high-angle landing).
+       - Boost meter recharges with airtime; tapping while airborne
+         consumes boost for an extra forward burst.
+
+       Day cycle:
+       - Each "day" lasts ~45s of in-game flight time. When it expires
+         the sky transitions and a new day begins, with a new seed,
+         palette, and hill profile.
+       - 4 palettes cycle: dawn → noon → dusk → night.
+
+       Aesthetic:
+       - Cream paper, hand-drawn hills with multi-pass jitter strokes,
+         pencil bird sprite, soft watercolor sky bands.
+       ============================================================ */
+
+    const canvas = document.getElementById("sky");
+    const ctx = canvas.getContext("2d");
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // ── Palettes for day cycle ────────────────────────────────────
+    // Each palette is paper, two sky bands, hill ink, and bloom accent.
+    // The paper tint changes subtly so dusk and night don't fight the
+    // page background — we blend toward the canvas, keeping the body
+    // background as the constant.
+    const PALETTES = [
+      { // dawn
+        name: "dawn",
+        sky:  ["rgba(245, 215, 187, 0.40)", "rgba(238, 198, 170, 0.18)"],
+        ink:  "rgba(42, 38, 29, 0.85)",
+        ink2: "rgba(42, 38, 29, 0.55)",
+        bloom:"rgba(201, 126, 96, 0.70)",
+        sun:  { x: 0.18, color: "rgba(232, 168, 110, 0.65)" }
+      },
+      { // noon
+        name: "noon",
+        sky:  ["rgba(206, 220, 217, 0.30)", "rgba(214, 226, 220, 0.10)"],
+        ink:  "rgba(42, 38, 29, 0.85)",
+        ink2: "rgba(42, 38, 29, 0.50)",
+        bloom:"rgba(107, 138, 118, 0.70)",
+        sun:  { x: 0.5,  color: "rgba(244, 223, 168, 0.55)" }
+      },
+      { // dusk
+        name: "dusk",
+        sky:  ["rgba(216, 161, 145, 0.45)", "rgba(180, 130, 132, 0.22)"],
+        ink:  "rgba(42, 38, 29, 0.90)",
+        ink2: "rgba(80, 50, 50, 0.55)",
+        bloom:"rgba(201, 96, 80, 0.78)",
+        sun:  { x: 0.78, color: "rgba(212, 122, 95, 0.70)" }
+      },
+      { // night
+        name: "night",
+        sky:  ["rgba(70, 78, 96, 0.50)", "rgba(50, 60, 80, 0.28)"],
+        ink:  "rgba(42, 38, 29, 0.95)",
+        ink2: "rgba(60, 60, 80, 0.65)",
+        bloom:"rgba(170, 200, 240, 0.72)",
+        sun:  { x: 0.85, color: "rgba(220, 222, 240, 0.55)" }
+      },
+    ];
+
+    // ── Seeded RNG ────────────────────────────────────────────────
+    // Mulberry32 — fast, deterministic, good enough for terrain seeds.
+    function mulberry32(a) {
+      return function() {
+        a |= 0; a = a + 0x6D2B79F5 | 0;
+        let t = Math.imul(a ^ a >>> 15, 1 | a);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+
+    // ── Terrain ───────────────────────────────────────────────────
+    // y(x) = baseY + Σ Aᵢ sin(ωᵢ x + φᵢ). Deterministic per-day.
+    // We sample on demand: terrain is infinite, only the visible window
+    // is drawn. Cache per-x is unnecessary at this scale (≤2k samples
+    // visible at a time, function is ~10 multiply-adds).
+    function buildTerrain(seed) {
+      const rng = mulberry32(seed);
+      // 4 stacked sines: a low-frequency rolling layer, a mid layer for
+      // crests, and a couple of small features for visual interest.
+      const layers = [
+        { A: 110 + rng() * 50, omega: 0.0028 + rng() * 0.0010, phi: rng() * Math.PI * 2 },
+        { A:  55 + rng() * 25, omega: 0.0072 + rng() * 0.0015, phi: rng() * Math.PI * 2 },
+        { A:  22 + rng() * 12, omega: 0.0190 + rng() * 0.0050, phi: rng() * Math.PI * 2 },
+        { A:   9 + rng() *  5, omega: 0.0470 + rng() * 0.0120, phi: rng() * Math.PI * 2 },
+      ];
+      return {
+        layers,
+        // Returns world-y of the hill at world-x (positive y = down).
+        // Caller decides how to compose with screen baseline.
+        h(x) {
+          let y = 0;
+          for (const L of layers) y += L.A * Math.sin(L.omega * x + L.phi);
+          return y;
+        },
+        // Slope dy/dx
+        slope(x) {
+          let dy = 0;
+          for (const L of layers) dy += L.A * L.omega * Math.cos(L.omega * x + L.phi);
+          return dy;
+        }
+      };
+    }
+
+    // ── Game state ────────────────────────────────────────────────
+    const G = {
+      // World
+      day: 1,
+      seed: 1,
+      terrain: null,
+      paletteIdx: 0,
+      dayStartT: 0,
+      dayDurMs: 45_000,
+      transitioning: false,   // brief sky cross-fade between days
+      transitionEnd: 0,
+
+      // Bird
+      bx: 200,                // world-x
+      by: 0,                  // world-y (above hill, smaller is higher)
+      vx: 320,                // px/s
+      vy: 0,                  // px/s (positive = down)
+      airborne: true,
+      onSlope: false,
+      pitchDown: false,       // tap-held → pitch nose down
+      perfectLaunch: false,   // visual flag right after a great release
+
+      // Boost
+      boost: 0,               // 0..1
+      boostingNow: false,
+
+      // Score
+      perfectCount: 0,
+      bestDist: 0,
+      flightStartX: 200,
+      gameOver: false,
+      muted: false,
+
+      // Visual jitter rng (separate so jitter doesn't desync determinism)
+      jrand: Math.random,
+
+      // Stars (night) and clouds (other days)
+      stars: [],
+      clouds: [],
+    };
+    try {
+      const stored = parseInt(localStorage.getItem("vibe.tinywings.best") || "0", 10);
+      if (Number.isFinite(stored) && stored > 0) G.bestDist = stored;
+    } catch (e) {}
+
+    // ── Audio (web audio, gentle) ────────────────────────────────
+    let audio = null;
+    function ensureAudio() {
+      if (!audio) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        const ctx = new Ctx();
+        const master = ctx.createGain(); master.gain.value = 0.4;
+        master.connect(ctx.destination);
+        audio = { ctx, master };
+      }
+      if (audio.ctx.state === "suspended") audio.ctx.resume().catch(()=>{});
+    }
+    function blip(freq, dur = 0.12, type = "sine", gain = 0.18) {
+      if (!audio || G.muted) return;
+      const t = audio.ctx.currentTime;
+      const o = audio.ctx.createOscillator();
+      const g = audio.ctx.createGain();
+      o.type = type; o.frequency.value = freq;
+      g.gain.setValueAtTime(gain, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      o.connect(g); g.connect(audio.master);
+      o.start(); o.stop(t + dur + 0.02);
+    }
+
+    // ── Setup new day ────────────────────────────────────────────
+    function newDay(dayN) {
+      G.day = dayN;
+      G.seed = 0xA1B2C3 ^ (dayN * 2654435761) | 0;
+      G.terrain = buildTerrain(G.seed);
+      G.paletteIdx = (dayN - 1) % PALETTES.length;
+      G.dayStartT = performance.now();
+      G.transitioning = false;
+
+      // Stars only at night
+      G.stars.length = 0;
+      if (PALETTES[G.paletteIdx].name === "night") {
+        const r = mulberry32(G.seed ^ 0x9999);
+        for (let i = 0; i < 60; i++) {
+          G.stars.push({ x: r(), y: r() * 0.5, r: 0.6 + r() * 1.0 });
+        }
+      }
+      // Clouds for non-night palettes
+      G.clouds.length = 0;
+      if (PALETTES[G.paletteIdx].name !== "night") {
+        const r = mulberry32(G.seed ^ 0x7777);
+        const count = 4 + Math.floor(r() * 4);
+        for (let i = 0; i < count; i++) {
+          G.clouds.push({
+            x: r() * 4000 + i * 600,
+            y: 60 + r() * 90,
+            w: 80 + r() * 120,
+            speed: 0.04 + r() * 0.04,
+          });
+        }
+      }
+      document.getElementById("dayNum").textContent = String(dayN);
+    }
+
+    function startGame() {
+      G.bx = 200;
+      G.vx = 320; G.vy = 0;
+      G.airborne = true;
+      G.onSlope = false;
+      G.pitchDown = false;
+      G.perfectLaunch = false;
+      G.boost = 0;
+      G.perfectCount = 0;
+      G.flightStartX = 200;
+      G.gameOver = false;
+      newDay(1);
+      // Place bird above the hill at start
+      G.by = -260;
+      const ep = document.getElementById("endPanel");
+      ep.classList.remove("live");
+    }
+
+    // ── Resize ───────────────────────────────────────────────────
+    let dpr = 1, viewW = 0, viewH = 0, baseY = 0;
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const r = canvas.getBoundingClientRect();
+      canvas.width  = Math.floor(r.width * dpr);
+      canvas.height = Math.floor(r.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      viewW = r.width;
+      viewH = r.height;
+      baseY = r.height * 0.72; // hill horizon line
+    }
+    window.addEventListener("resize", resize);
+
+    // ── Input ────────────────────────────────────────────────────
+    canvas.addEventListener("pointerdown", e => {
+      e.preventDefault();
+      ensureAudio();
+      if (G.gameOver) return;
+      G.pitchDown = true;
+      // Mid-air tap-press also consumes boost if available
+      if (G.airborne && G.boost > 0.18) {
+        G.boostingNow = true;
+        // Forward kick — preserves direction sign of vx
+        const dir = Math.sign(G.vx) || 1;
+        G.vx += dir * 220;
+        G.boost = Math.max(0, G.boost - 0.32);
+        blip(680, 0.14, "triangle", 0.16);
+      }
+    }, { passive: false });
+    canvas.addEventListener("pointerup", () => {
+      G.pitchDown = false;
+      G.boostingNow = false;
+    });
+    canvas.addEventListener("pointercancel", () => {
+      G.pitchDown = false;
+      G.boostingNow = false;
+    });
+    document.getElementById("muteBtn").addEventListener("click", e => {
+      G.muted = !G.muted;
+      e.currentTarget.textContent = G.muted ? "sound · off" : "sound · on";
+      e.currentTarget.setAttribute("aria-pressed", G.muted ? "true" : "false");
+    });
+    document.getElementById("restartBtn").addEventListener("click", startGame);
+
+    // Keyboard alt — space/up = pitch down, mirrors tap
+    window.addEventListener("keydown", e => {
+      if (e.repeat) return;
+      if (e.code === "Space" || e.code === "ArrowDown") {
+        G.pitchDown = true;
+        if (G.gameOver) startGame();
+      }
+    });
+    window.addEventListener("keyup", e => {
+      if (e.code === "Space" || e.code === "ArrowDown") G.pitchDown = false;
+    });
+
+    // ── Physics tick ──────────────────────────────────────────────
+    const GRAVITY = 1100;        // px/s²
+    const PITCH_BIAS = 1500;     // extra downward when tap-held
+    const DRAG_AIR = 0.18;       // per-second velocity damping while airborne
+    const SURF_TANGENT_FACTOR = 8.6; // converts slope*speed into curve following
+    const STALL_ANGLE_DEG = 55;  // landing angle above this = bonk
+    const PERFECT_ANGLE_DEG = 12; // launch within this angle of slope tangent = perfect
+
+    function physicsStep(dt) {
+      if (G.gameOver) return;
+
+      const t = G.terrain;
+      // Slope at current x — note "y down" means positive slope = downhill
+      const slope = t.slope(G.bx);
+      const slopeAngle = Math.atan(slope); // radians; positive = going down
+
+      // Hill height at the bird's x, in world-y. The hill at bx is
+      // baseY + h(bx) (we add h to baseY since positive h = lower screen
+      // y because we INVERT later for display). Internally we keep
+      // by relative to baseY: by < 0 means above baseline.
+      const hY = t.h(G.bx);
+      const hillSurfaceY = hY; // bird coordinate space: surface at y=h
+
+      // ── Airborne vs surfing ───────────────────────────────────
+      // The bird "surfs" when its by ≈ hillSurfaceY AND it isn't moving
+      // upward away from the slope. Otherwise it's airborne.
+      const eps = 1.5;
+      const wasAirborne = G.airborne;
+
+      if (G.by >= hillSurfaceY - eps) {
+        // On or below the surface — push back up to surface and surf
+        G.by = hillSurfaceY;
+        G.airborne = false;
+        // Tangent velocity along the slope: the bird can't go "into" the
+        // hill, so we project the velocity onto the slope tangent. The
+        // tangent vector is (1, slope) — normalized.
+        const tlen = Math.sqrt(1 + slope * slope);
+        const tx = 1 / tlen, ty = slope / tlen;
+        // Current speed vector projection magnitude
+        const projMag = G.vx * tx + G.vy * ty;
+        // Apply gravity along the slope (gravity component along tangent)
+        // along-slope = g * sin(angle) = g * slope / sqrt(1+slope²)
+        const gAlong = GRAVITY * (slope / tlen);
+        // While tap-held on a downslope, pitch bias adds energy
+        const pitchAdd = (G.pitchDown && slope > 0) ? PITCH_BIAS * (slope / tlen) * dt : 0;
+        const newProj = projMag + gAlong * dt + pitchAdd;
+        // Reconstruct velocity from new projection
+        G.vx = newProj * tx;
+        G.vy = newProj * ty;
+
+        // Detect launch: if next position's slope curves up sharper than
+        // the bird's velocity vector, the bird leaves the surface.
+        // Approximate by checking if slope is decreasing (heading from
+        // downhill to upslope crest) and forward speed is high enough.
+        const slopeNext = t.slope(G.bx + Math.max(20, G.vx * dt * 2));
+        if (slope > 0.02 && slopeNext < slope - 0.01 && G.vx > 220) {
+          // Player about to crest — fine, stay surfing for one more step
+        }
+        if (slope < -0.01 && G.vy < 0 && Math.abs(G.vx) > 280) {
+          // Heading uphill with upward velocity — natural launch.
+          G.airborne = true;
+          // Perfect launch: slope tangent angle close to bird's angle AND
+          // released (not pitch-held) right at the crest.
+          const releasedAtCrest = !G.pitchDown && Math.abs(slope) < 0.08;
+          if (releasedAtCrest) {
+            G.perfectLaunch = true;
+            G.perfectCount++;
+            G.boost = Math.min(1, G.boost + 0.35);
+            blip(440, 0.20, "sine", 0.16);
+            blip(660, 0.18, "sine", 0.10);
+          } else {
+            G.perfectLaunch = false;
+          }
+        }
+      } else {
+        // Airborne — gravity, light drag
+        G.airborne = true;
+        G.vy += GRAVITY * dt;
+        // Pitch-down in mid-air: extra downward force (a "dive")
+        if (G.pitchDown) G.vy += PITCH_BIAS * 0.45 * dt;
+        // Air drag (small)
+        const dragK = Math.exp(-DRAG_AIR * dt);
+        G.vx *= dragK;
+        G.vy *= dragK;
+      }
+
+      // Cap horizontal velocity for sanity (preserves sign)
+      const VMAX = 1100;
+      if (G.vx > VMAX) G.vx = VMAX;
+      if (G.vx < -VMAX) G.vx = -VMAX;
+      // Cap vertical velocity to avoid tunneling through hills
+      if (G.vy >  900) G.vy =  900;
+      if (G.vy < -1300) G.vy = -1300;
+
+      // Integrate position
+      G.bx += G.vx * dt;
+      G.by += G.vy * dt;
+
+      // Stall — if landing angle (vy/vx) too steep on collision, lose speed
+      if (wasAirborne && !G.airborne) {
+        const landingAngle = Math.atan2(G.vy, Math.max(1, Math.abs(G.vx)));
+        const slopeAng = Math.atan(slope);
+        const relAngleDeg = Math.abs((landingAngle - slopeAng) * 180 / Math.PI);
+        if (relAngleDeg > STALL_ANGLE_DEG) {
+          // Hard landing — take a speed hit
+          G.vx *= 0.45;
+          G.vy = 0;
+          blip(140, 0.18, "sawtooth", 0.10);
+        } else {
+          // Soft landing
+          if (relAngleDeg < PERFECT_ANGLE_DEG) {
+            G.boost = Math.min(1, G.boost + 0.10);
+            blip(520, 0.10, "sine", 0.08);
+          }
+        }
+      }
+
+      // Boost recharges with airtime (small)
+      if (G.airborne) G.boost = Math.min(1, G.boost + 0.05 * dt);
+
+      // Boost meter UI
+      document.getElementById("boostFill").style.width = (G.boost * 100).toFixed(1) + "%";
+
+      // Stop condition: bird velocity falls below threshold AND is on
+      // the slope at very low speed — basically "the flight is over".
+      if (!G.airborne && Math.abs(G.vx) < 50) {
+        G.vx *= 0.96;
+        if (Math.abs(G.vx) < 8) endRun("you came to rest");
+      }
+
+      // Day timer
+      if (!G.transitioning) {
+        const elapsed = performance.now() - G.dayStartT;
+        if (elapsed > G.dayDurMs) {
+          G.transitioning = true;
+          G.transitionEnd = performance.now() + 1200;
+          blip(330, 0.6, "sine", 0.10);
+        }
+      } else if (performance.now() > G.transitionEnd) {
+        // Move to next day, keep flight going
+        const newPaletteIdx = (G.paletteIdx + 1) % PALETTES.length;
+        const nextDay = G.day + 1;
+        G.dayStartT = performance.now();
+        G.transitioning = false;
+        G.day = nextDay;
+        G.seed = 0xA1B2C3 ^ (nextDay * 2654435761) | 0;
+        G.terrain = buildTerrain(G.seed);
+        G.paletteIdx = newPaletteIdx;
+        // Stars / clouds
+        G.stars.length = 0;
+        G.clouds.length = 0;
+        if (PALETTES[G.paletteIdx].name === "night") {
+          const r = mulberry32(G.seed ^ 0x9999);
+          for (let i = 0; i < 60; i++) G.stars.push({ x: r(), y: r() * 0.5, r: 0.6 + r() * 1.0 });
+        } else {
+          const r = mulberry32(G.seed ^ 0x7777);
+          const count = 4 + Math.floor(r() * 4);
+          for (let i = 0; i < count; i++) G.clouds.push({ x: r() * 4000 + G.bx + i * 600, y: 60 + r() * 90, w: 80 + r() * 120, speed: 0.04 + r() * 0.04 });
+        }
+        document.getElementById("dayNum").textContent = String(nextDay);
+      }
+
+      // Distance and best
+      const distM = Math.max(0, Math.floor((G.bx - 200) / 14));
+      document.getElementById("distV").textContent = String(distM);
+      if (distM > G.bestDist) {
+        G.bestDist = distM;
+        try { localStorage.setItem("vibe.tinywings.best", String(distM)); } catch (e) {}
+        document.getElementById("bestV").textContent = String(distM);
+      }
+    }
+
+    function endRun(reason) {
+      G.gameOver = true;
+      const distM = Math.max(0, Math.floor((G.bx - 200) / 14));
+      const newBest = distM >= G.bestDist;
+      document.getElementById("endDist").textContent = String(distM);
+      document.getElementById("endPerfect").textContent = String(G.perfectCount);
+      document.getElementById("endDay").textContent = String(G.day);
+      document.getElementById("endNewBest").style.display = newBest ? "" : "none";
+      document.getElementById("endPanel").classList.add("live");
+    }
+
+    // ── Rendering ─────────────────────────────────────────────────
+    function pal() { return PALETTES[G.paletteIdx]; }
+
+    // World→screen: camera follows the bird with a soft lead.
+    function worldToScreen() {
+      const camX = G.bx - viewW * 0.32;
+      // by is positive-down with 0 at the baseline; we want lower y on
+      // screen for higher altitude. Sign-flip: screenY = baseY + by.
+      return { camX, baseY };
+    }
+
+    function drawSky() {
+      const p = pal();
+      // Use linear gradient over the upper portion of the canvas; we
+      // intentionally let the paper tint show through both colors.
+      const h = baseY + 60;
+      const grd = ctx.createLinearGradient(0, 0, 0, h);
+      grd.addColorStop(0, p.sky[0]);
+      grd.addColorStop(0.7, p.sky[1]);
+      grd.addColorStop(1, "rgba(244, 236, 214, 0)");
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, viewW, h);
+
+      // Sun / moon
+      const sunX = viewW * p.sun.x;
+      const sunY = baseY * 0.30;
+      const sunR = 36 + (p.name === "night" ? -8 : 0);
+      const sg = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, sunR);
+      sg.addColorStop(0, p.sun.color);
+      sg.addColorStop(1, p.sun.color.replace(/[\d.]+\)$/, "0)"));
+      ctx.fillStyle = sg;
+      ctx.beginPath(); ctx.arc(sunX, sunY, sunR, 0, Math.PI * 2); ctx.fill();
+
+      // Stars (night)
+      if (p.name === "night") {
+        ctx.fillStyle = "rgba(232, 226, 200, 0.85)";
+        for (const s of G.stars) {
+          const x = s.x * viewW;
+          const y = s.y * baseY * 0.6 + 20;
+          ctx.beginPath(); ctx.arc(x, y, s.r, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+    }
+
+    function drawClouds(camX) {
+      const p = pal();
+      if (p.name === "night") return;
+      ctx.save();
+      ctx.strokeStyle = p.ink2;
+      ctx.lineWidth = 1.2;
+      for (const c of G.clouds) {
+        // Parallax — clouds move slower than camera (background)
+        const screenX = (c.x - camX * c.speed) % (viewW + 400);
+        const sx = screenX < -200 ? screenX + viewW + 400 : screenX;
+        const cy = c.y;
+        const w = c.w;
+        // Three overlapping arcs = sketch cloud
+        ctx.beginPath();
+        ctx.arc(sx,         cy,       w*0.32, Math.PI, 0, false);
+        ctx.arc(sx + w*0.30, cy - 6,  w*0.28, Math.PI, 0, false);
+        ctx.arc(sx + w*0.60, cy + 2,  w*0.30, Math.PI, 0, false);
+        ctx.lineTo(sx, cy);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // Hand-drawn hill: sample terrain across visible range, multi-pass
+    // jitter the resulting polyline like resonans's strokePath.
+    function drawTerrain(camX) {
+      const p = pal();
+      const stepPx = 4;       // sample every 4 screen pixels
+      const samples = Math.ceil(viewW / stepPx) + 4;
+      // Build path
+      const xs = new Array(samples), ys = new Array(samples);
+      for (let i = 0; i < samples; i++) {
+        const sx = i * stepPx;
+        const wx = sx + camX;
+        const wy = G.terrain.h(wx);
+        xs[i] = sx;
+        ys[i] = baseY + wy;
+      }
+
+      // Soft fill underneath — slight cream-darker than paper to read
+      // as "ground".
+      ctx.save();
+      ctx.fillStyle = "rgba(237, 226, 193, 0.55)";
+      ctx.beginPath();
+      ctx.moveTo(0, viewH + 4);
+      for (let i = 0; i < samples; i++) ctx.lineTo(xs[i], ys[i]);
+      ctx.lineTo(viewW + 4, viewH + 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      // Multi-pass graphite outline — same trick as resonans's strokePath
+      const passes = reduceMotion ? 1 : 3;
+      ctx.save();
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = p.ink;
+      ctx.lineWidth = 1.6;
+      for (let pp = 0; pp < passes; pp++) {
+        ctx.globalAlpha = 0.50 + 0.40 * G.jrand();
+        ctx.beginPath();
+        const j = reduceMotion ? 0 : 1.4;
+        for (let i = 0; i < samples; i++) {
+          const jx = (G.jrand() - 0.5) * j;
+          const jy = (G.jrand() - 0.5) * j;
+          if (i === 0) ctx.moveTo(xs[i] + jx, ys[i] + jy);
+          else ctx.lineTo(xs[i] + jx, ys[i] + jy);
+        }
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      // Soft hatch on the slope — a light dashed under-line ~6 px below
+      // the surface, fading. Adds graphite shading without filling the hill.
+      ctx.strokeStyle = p.ink2;
+      ctx.lineWidth = 1.0;
+      ctx.setLineDash([3, 6]);
+      ctx.beginPath();
+      for (let i = 0; i < samples; i++) {
+        if (i === 0) ctx.moveTo(xs[i], ys[i] + 6);
+        else ctx.lineTo(xs[i], ys[i] + 6);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+
+    // Bird sprite — pencil-style egg body, single wing, beak, eye.
+    // Drawn at a screen position; angle reflects flight vector when
+    // airborne, slope tangent when surfing.
+    function drawBird(sx, sy, angle, isFlapping, perfect, boosting) {
+      ctx.save();
+      ctx.translate(sx, sy);
+      ctx.rotate(angle);
+      // Soft graphite body
+      const p = pal();
+      // Bloom halo on perfect launch / boost
+      if (perfect || boosting) {
+        const r = 30 + (perfect ? 8 : 0) + (boosting ? 4 : 0);
+        const grd = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
+        grd.addColorStop(0, "rgba(201, 126, 96, 0.28)");
+        grd.addColorStop(1, "rgba(201, 126, 96, 0)");
+        ctx.fillStyle = grd;
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI*2); ctx.fill();
+      }
+      // Body (rounded rect-ish shape, hand-drawn outline)
+      ctx.strokeStyle = p.ink;
+      ctx.fillStyle = "rgba(244, 236, 214, 0.85)";
+      ctx.lineWidth = 1.6;
+      ctx.lineCap = "round"; ctx.lineJoin = "round";
+      ctx.beginPath();
+      // Bezier-ish egg
+      ctx.moveTo(-12, 0);
+      ctx.bezierCurveTo(-12, -10, 14, -10, 14, 0);
+      ctx.bezierCurveTo(14, 9, -12, 9, -12, 0);
+      ctx.fill();
+      ctx.stroke();
+      // Beak
+      ctx.beginPath();
+      ctx.moveTo(13, -1); ctx.lineTo(20, 0); ctx.lineTo(13, 2);
+      ctx.fillStyle = p.ink; ctx.fill();
+      // Eye
+      ctx.beginPath(); ctx.arc(8, -3, 1.1, 0, Math.PI*2); ctx.fillStyle = p.ink; ctx.fill();
+      // Wing — flaps when airborne. Use a phase var on G for animation.
+      const wingPhase = G._wingPhase || 0;
+      const wingY = isFlapping ? Math.sin(wingPhase) * 5 : 0;
+      ctx.beginPath();
+      ctx.moveTo(-2, -1);
+      ctx.bezierCurveTo(-6, -8 + wingY, 6, -10 + wingY, 8, -2);
+      ctx.bezierCurveTo(4, -2, -2, -2, -2, -1);
+      ctx.fillStyle = "rgba(42, 38, 29, 0.78)";
+      ctx.fill();
+      // Tiny tail tick
+      ctx.beginPath();
+      ctx.moveTo(-12, -2); ctx.lineTo(-16, -4); ctx.moveTo(-12, 2); ctx.lineTo(-16, 4);
+      ctx.strokeStyle = p.ink; ctx.lineWidth = 1.2; ctx.stroke();
+      ctx.restore();
+    }
+
+    // Trailing pencil streak when the bird is fast (boost or dive)
+    const trail = []; // ring buffer of recent positions
+    function pushTrail(sx, sy) {
+      trail.push({ x: sx, y: sy, t: performance.now() });
+      if (trail.length > 28) trail.shift();
+    }
+    function drawTrail() {
+      if (trail.length < 4) return;
+      const now = performance.now();
+      ctx.save();
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = "rgba(42, 38, 29, 0.45)";
+      const passes = reduceMotion ? 1 : 2;
+      for (let pp = 0; pp < passes; pp++) {
+        ctx.beginPath();
+        for (let i = 0; i < trail.length - 1; i++) {
+          const a = trail[i], b = trail[i+1];
+          const age = (now - a.t) / 600;
+          if (age > 1) continue;
+          ctx.globalAlpha = (1 - age) * 0.55 * (0.6 + 0.4 * G.jrand());
+          ctx.lineWidth = (1 - age) * 1.4 + 0.4;
+          ctx.beginPath();
+          ctx.moveTo(a.x + (G.jrand()-0.5)*0.8, a.y + (G.jrand()-0.5)*0.8);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+      }
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
+    // Day-transition wash: white-ish flash then color settle
+    function drawTransitionOverlay() {
+      if (!G.transitioning) return;
+      const t = (performance.now() - (G.transitionEnd - 1200)) / 1200;
+      const alpha = (t < 0.5 ? t * 2 : (1 - t) * 2) * 0.55;
+      ctx.fillStyle = `rgba(244, 236, 214, ${alpha.toFixed(3)})`;
+      ctx.fillRect(0, 0, viewW, viewH);
+    }
+
+    // ── Main loop ─────────────────────────────────────────────────
+    let lastT = performance.now();
+    function frame(now) {
+      const dt = Math.min(0.040, (now - lastT) / 1000);
+      lastT = now;
+      // Wing flap phase advances faster while airborne or boosting
+      G._wingPhase = (G._wingPhase || 0) + dt * (G.airborne ? 18 : 6);
+
+      // Tick physics (clamped sub-steps for stability at low fps)
+      const sub = Math.max(1, Math.ceil(dt / 0.016));
+      const dts = dt / sub;
+      for (let i = 0; i < sub; i++) physicsStep(dts);
+
+      // Render
+      ctx.clearRect(0, 0, viewW, viewH);
+      drawSky();
+      const { camX } = worldToScreen();
+      drawClouds(camX);
+      drawTerrain(camX);
+
+      // Bird in screen-space
+      const sx = G.bx - camX;
+      const sy = baseY + G.by;
+      // Angle: airborne uses velocity, surfing uses slope
+      let angle;
+      if (G.airborne) {
+        angle = Math.atan2(G.vy, Math.max(40, G.vx));
+      } else {
+        angle = Math.atan(G.terrain.slope(G.bx));
+      }
+      // Clamp angle so the bird doesn't fully invert visually
+      angle = Math.max(-1.2, Math.min(1.2, angle));
+
+      // Trail when fast (boost or steep dive)
+      if (G.boostingNow || G.vy > 380) pushTrail(sx, sy);
+      drawTrail();
+
+      drawBird(sx, sy, angle, G.airborne, G.perfectLaunch, G.boostingNow);
+
+      // Perfect-launch sparkle decays after one second
+      if (G.perfectLaunch && performance.now() - (G._perfectAt || 0) > 60) {
+        G._perfectAt = performance.now();
+      }
+
+      drawTransitionOverlay();
+
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+
+    // Init
+    resize();
+    document.getElementById("bestV").textContent = String(G.bestDist || 0);
+    startGame();
+  </script>
+</body>
+</html>
