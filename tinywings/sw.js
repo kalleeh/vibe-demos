@@ -1,6 +1,16 @@
 /* sketchwings — minimal offline shell SW */
-const CACHE = "vibe-tinywings-v1";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
+const CACHE = "vibe-tinywings-v2";
+const SHELL = [
+  "./",
+  "./index.html",
+  "./manifest.webmanifest",
+  "./icon.svg",
+  "./assets/far-ridges.webp",
+  "./assets/mid-hill.webp",
+  "./assets/cloud.webp",
+  "./assets/bird.webp",
+  "./assets/hero-mood.webp",
+];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });

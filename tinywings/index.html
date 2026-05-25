@@ -182,6 +182,92 @@
     }
     .day-chip .ph { color: var(--ink); font-style: italic; }
 
+    /* Intro panel — quiet synopsis with hero mood image */
+    .intro-panel {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(880px, 92vw);
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      gap: 28px;
+      padding: 26px;
+      background: rgba(244, 236, 214, 0.94);
+      border: 1px dashed var(--ink-soft);
+      box-shadow: 0 18px 44px rgba(42,38,29,0.14);
+      pointer-events: auto;
+      opacity: 1;
+      transition: opacity 280ms;
+      z-index: 5;
+      backdrop-filter: blur(2px);
+    }
+    .intro-panel.gone { opacity: 0; pointer-events: none; }
+    .intro-panel .hero {
+      width: 100%; height: auto;
+      display: block;
+      border: 1px dashed var(--line);
+      mix-blend-mode: multiply;
+      transform: rotate(-0.4deg);
+    }
+    .intro-panel .copy { display: flex; flex-direction: column; gap: 12px; }
+    .intro-panel .kicker {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px; letter-spacing: 0.18em;
+      color: var(--muted); text-transform: uppercase;
+    }
+    .intro-panel h1 {
+      font-family: "Fraunces", serif;
+      font-weight: 300;
+      font-size: clamp(22px, 2.4vw, 30px);
+      line-height: 1.18;
+      margin: 0;
+      color: var(--ink);
+    }
+    .intro-panel h1 em {
+      font-style: italic;
+      color: var(--bloom);
+    }
+    .intro-panel p {
+      font-family: "Fraunces", serif;
+      font-size: 15px; line-height: 1.55;
+      color: var(--ink-soft);
+      margin: 0;
+    }
+    .intro-panel p em { font-style: italic; color: var(--ink); }
+    .intro-panel button {
+      align-self: flex-start;
+      appearance: none; border: 1px dashed var(--ink-soft);
+      background: transparent;
+      font-family: "Caveat", cursive;
+      font-size: 22px;
+      color: var(--ink);
+      padding: 6px 22px;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: background 160ms, color 160ms;
+    }
+    .intro-panel button:hover { background: var(--ink); color: var(--paper); }
+    .intro-panel .legend {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px; letter-spacing: 0.16em;
+      color: var(--muted); text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .intro-panel .legend .key {
+      color: var(--ink);
+      border: 1px dashed var(--line);
+      padding: 1px 6px;
+      margin-right: 5px;
+    }
+    @media (max-width: 720px) {
+      .intro-panel {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        padding: 18px;
+      }
+    }
+
     /* Game-over panel — appears centered, fades in */
     .end-panel {
       position: absolute;
@@ -238,6 +324,25 @@
     </header>
 
     <canvas id="sky" aria-label="Pencil hills glider"></canvas>
+
+    <div class="intro-panel" id="introPanel">
+      <img class="hero" src="./assets/hero-mood.webp" alt="" width="1280" height="720" decoding="async">
+      <div class="copy">
+        <div class="kicker">A Quiet Glide · 단 한 번의 비행</div>
+        <h1>One bird, <em>a few hills</em>, and the slow turn of a day.</h1>
+        <p>
+          Tap and hold on a <em>downslope</em> to dive — release on the rising crest to launch.
+          Each day is a new seed of rolling pencil hills; flight ends when night fully falls,
+          or the bird comes to rest. There is no score worth chasing — only the <em>arc</em>.
+        </p>
+        <button id="beginBtn" type="button">begin the day →</button>
+        <div class="legend">
+          <span><span class="key">tap</span> dive on the down</span>
+          <span><span class="key">release</span> launch on the up</span>
+          <span><span class="key">tap mid-air</span> spend boost</span>
+        </div>
+      </div>
+    </div>
 
     <footer class="footer">
       <span class="hint" id="hint">tap and hold on a downslope — release to soar</span>
@@ -296,6 +401,22 @@
     const canvas = document.getElementById("sky");
     const ctx = canvas.getContext("2d");
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // ── Image assets (parallax + sprites) ────────────────────────
+    // Each entry exposes .img once loaded, .ready after onload fires.
+    function loadImg(src) {
+      const o = { img: new Image(), ready: false };
+      o.img.decoding = "async";
+      o.img.onload = () => { o.ready = true; };
+      o.img.src = src;
+      return o;
+    }
+    const ASSETS = {
+      farRidges: loadImg("./assets/far-ridges.webp"),
+      midHill:   loadImg("./assets/mid-hill.webp"),
+      cloud:     loadImg("./assets/cloud.webp"),
+      bird:      loadImg("./assets/bird.webp"),
+    };
 
     // ── Palettes for day cycle ────────────────────────────────────
     // Each palette is paper, two sky bands, hill ink, and bloom accent.
@@ -410,6 +531,8 @@
       // Score
       perfectCount: 0,
       bestDist: 0,
+      maxDistM: 0,             // greatest distance reached this run
+      stuckMs: 0,              // time spent at near-zero speed on slope
       flightStartX: 200,
       gameOver: false,
       muted: false,
@@ -452,10 +575,35 @@
     }
 
     // ── Setup new day ────────────────────────────────────────────
+    // Try a few candidate seeds and pick the one whose terrain at the
+    // bird's spawn x has a friendly *downhill* slope. Without this the
+    // first frame can hand the player a wall and the bird stalls
+    // immediately, which is the bug we hit in the first ship.
+    function chooseFriendlySeed(dayN) {
+      const candidates = 6;
+      let best = null, bestScore = -Infinity;
+      for (let i = 0; i < candidates; i++) {
+        const s = (0xA1B2C3 ^ ((dayN * 2654435761) ^ (i * 0x9E3779B1))) | 0;
+        const t = buildTerrain(s);
+        // Sample slope across the spawn window; positive = downhill (good).
+        // We weight the very start most heavily — that's where you spawn.
+        const samples = [
+          { x: 200, w: 3.0 },
+          { x: 320, w: 2.0 },
+          { x: 480, w: 1.0 },
+          { x: 700, w: 0.6 },
+        ];
+        let score = 0;
+        for (const sp of samples) score += sp.w * t.slope(sp.x);
+        if (score > bestScore) { bestScore = score; best = { seed: s, terrain: t }; }
+      }
+      return best;
+    }
     function newDay(dayN) {
       G.day = dayN;
-      G.seed = 0xA1B2C3 ^ (dayN * 2654435761) | 0;
-      G.terrain = buildTerrain(G.seed);
+      const pick = chooseFriendlySeed(dayN);
+      G.seed = pick.seed;
+      G.terrain = pick.terrain;
       G.paletteIdx = (dayN - 1) % PALETTES.length;
       G.dayStartT = performance.now();
       G.transitioning = false;
@@ -487,18 +635,23 @@
 
     function startGame() {
       G.bx = 200;
-      G.vx = 320; G.vy = 0;
+      G.vx = 420; G.vy = 60;       // forward and gently dropping
       G.airborne = true;
       G.onSlope = false;
       G.pitchDown = false;
       G.perfectLaunch = false;
       G.boost = 0;
       G.perfectCount = 0;
+      G.maxDistM = 0;
+      G.stuckMs = 0;
       G.flightStartX = 200;
       G.gameOver = false;
       newDay(1);
-      // Place bird above the hill at start
-      G.by = -260;
+      // Place bird just above the hill surface at the spawn x, with a
+      // slight downward tilt. Spawning high and falling far meant the
+      // bird's downward velocity got cancelled out projecting onto an
+      // uphill tangent — landing close-and-forward avoids that.
+      G.by = G.terrain.h(G.bx) - 80;
       const ep = document.getElementById("endPanel");
       ep.classList.remove("live");
     }
@@ -605,8 +758,14 @@
         const gAlong = GRAVITY * (slope / tlen);
         // While tap-held on a downslope, pitch bias adds energy
         const pitchAdd = (G.pitchDown && slope > 0) ? PITCH_BIAS * (slope / tlen) * dt : 0;
-        const newProj = projMag + gAlong * dt + pitchAdd;
-        // Reconstruct velocity from new projection
+        // Mild rolling friction proportional to speed — prevents perpetual
+        // motion on shallow slopes and brings the bird to rest naturally.
+        const roll = -0.18 * projMag * dt;
+        // The bird is a one-way glider — it never reverses on the surface.
+        // Clamp projection ≥ 0 so even a steep uphill stalls the bird
+        // forward (or to a halt) instead of flipping it backwards.
+        let newProj = Math.max(0, projMag + gAlong * dt + pitchAdd + roll);
+        // Reconstruct velocity from new projection (always forward)
         G.vx = newProj * tx;
         G.vy = newProj * ty;
 
@@ -685,9 +844,15 @@
 
       // Stop condition: bird velocity falls below threshold AND is on
       // the slope at very low speed — basically "the flight is over".
-      if (!G.airborne && Math.abs(G.vx) < 50) {
-        G.vx *= 0.96;
-        if (Math.abs(G.vx) < 8) endRun("you came to rest");
+      if (!G.airborne && G.vx < 50) {
+        if (G.vx < 12) {
+          G.stuckMs += dt * 1000;
+          if (G.stuckMs > 600) endRun("the wind has settled");
+        } else {
+          G.stuckMs = 0;
+        }
+      } else {
+        G.stuckMs = 0;
       }
 
       // Day timer
@@ -705,8 +870,9 @@
         G.dayStartT = performance.now();
         G.transitioning = false;
         G.day = nextDay;
-        G.seed = 0xA1B2C3 ^ (nextDay * 2654435761) | 0;
-        G.terrain = buildTerrain(G.seed);
+        // Carry the bird across day boundaries — keep current terrain so
+        // the slope under the bird doesn't snap. Reseeding mid-flight
+        // would teleport the surface and stall the run.
         G.paletteIdx = newPaletteIdx;
         // Stars / clouds
         G.stars.length = 0;
@@ -722,24 +888,29 @@
         document.getElementById("dayNum").textContent = String(nextDay);
       }
 
-      // Distance and best
-      const distM = Math.max(0, Math.floor((G.bx - 200) / 14));
-      document.getElementById("distV").textContent = String(distM);
-      if (distM > G.bestDist) {
-        G.bestDist = distM;
-        try { localStorage.setItem("vibe.tinywings.best", String(distM)); } catch (e) {}
-        document.getElementById("bestV").textContent = String(distM);
+      // Distance and best — use the bird's max-x reached this run, not
+      // current-x, so a backsliding hill never steals progress on the HUD.
+      const reachedM = Math.max(0, Math.floor((G.bx - 200) / 14));
+      if (reachedM > G.maxDistM) G.maxDistM = reachedM;
+      document.getElementById("distV").textContent = String(G.maxDistM);
+      if (G.maxDistM > G.bestDist) {
+        G.bestDist = G.maxDistM;
+        try { localStorage.setItem("vibe.tinywings.best", String(G.bestDist)); } catch (e) {}
+        document.getElementById("bestV").textContent = String(G.bestDist);
       }
     }
 
     function endRun(reason) {
+      if (G.gameOver) return;
       G.gameOver = true;
-      const distM = Math.max(0, Math.floor((G.bx - 200) / 14));
-      const newBest = distM >= G.bestDist;
+      const distM = G.maxDistM;
+      const newBest = distM >= G.bestDist && distM > 0;
       document.getElementById("endDist").textContent = String(distM);
       document.getElementById("endPerfect").textContent = String(G.perfectCount);
       document.getElementById("endDay").textContent = String(G.day);
       document.getElementById("endNewBest").style.display = newBest ? "" : "none";
+      const sub = document.querySelector("#endPanel .sub");
+      if (sub && reason) sub.textContent = reason.toUpperCase();
       document.getElementById("endPanel").classList.add("live");
     }
 
@@ -787,27 +958,53 @@
       }
     }
 
-    function drawClouds(camX) {
-      const p = pal();
-      if (p.name === "night") return;
+    // Tile a wide horizontal sprite across the screen, scrolling with
+    // a parallax factor. yFrac places the sprite vertically (0..1 of the
+    // canvas height); heightFrac scales the sprite to a fraction of canvas
+    // height while preserving aspect ratio.
+    function drawParallaxBand(asset, camX, parallax, yFrac, heightFrac, alpha) {
+      if (!asset.ready) return;
+      const img = asset.img;
+      const drawH = viewH * heightFrac;
+      const drawW = drawH * (img.width / img.height);
+      const yTop = viewH * yFrac - drawH * 0.5;
+      // World-space scrolled offset; mod by drawW so it tiles seamlessly.
+      const off = ((camX * parallax) % drawW + drawW) % drawW;
       ctx.save();
-      ctx.strokeStyle = p.ink2;
-      ctx.lineWidth = 1.2;
-      for (const c of G.clouds) {
-        // Parallax — clouds move slower than camera (background)
-        const screenX = (c.x - camX * c.speed) % (viewW + 400);
-        const sx = screenX < -200 ? screenX + viewW + 400 : screenX;
-        const cy = c.y;
-        const w = c.w;
-        // Three overlapping arcs = sketch cloud
-        ctx.beginPath();
-        ctx.arc(sx,         cy,       w*0.32, Math.PI, 0, false);
-        ctx.arc(sx + w*0.30, cy - 6,  w*0.28, Math.PI, 0, false);
-        ctx.arc(sx + w*0.60, cy + 2,  w*0.30, Math.PI, 0, false);
-        ctx.lineTo(sx, cy);
-        ctx.stroke();
+      ctx.globalAlpha = alpha;
+      // Multiply blend lets the cream paper show through the sprite's
+      // own cream paper and only the graphite remains.
+      ctx.globalCompositeOperation = "multiply";
+      // Start from -off so the band scrolls right-to-left as the bird
+      // moves forward. Draw enough copies to span the viewport.
+      for (let x = -off; x < viewW + drawW; x += drawW) {
+        ctx.drawImage(img, x, yTop, drawW, drawH);
       }
       ctx.restore();
+    }
+
+    function drawClouds(camX) {
+      const p = pal();
+      // Far ridge silhouette — sits right above the hill horizon, very slow scroll
+      drawParallaxBand(ASSETS.farRidges, camX, 0.06, 0.66, 0.30, p.name === "night" ? 0.25 : 0.55);
+      // Mid hill silhouette — closer, faster scroll, slightly more present
+      drawParallaxBand(ASSETS.midHill,  camX, 0.18, 0.70, 0.34, p.name === "night" ? 0.28 : 0.62);
+
+      // Image-based clouds — only when not night
+      if (p.name !== "night" && ASSETS.cloud.ready) {
+        const img = ASSETS.cloud.img;
+        ctx.save();
+        ctx.globalCompositeOperation = "multiply";
+        for (const c of G.clouds) {
+          const screenX = (c.x - camX * c.speed) % (viewW + 400);
+          const sx = screenX < -200 ? screenX + viewW + 400 : screenX;
+          const w = c.w * 1.6;
+          const h = w * (img.height / img.width);
+          ctx.globalAlpha = 0.55;
+          ctx.drawImage(img, sx, c.y - h * 0.5, w, h);
+        }
+        ctx.restore();
+      }
     }
 
     // Hand-drawn hill: sample terrain across visible range, multi-pass
@@ -1020,7 +1217,25 @@
     // Init
     resize();
     document.getElementById("bestV").textContent = String(G.bestDist || 0);
+    // Spin up the world but pause physics behind the intro panel until
+    // the player commits with a tap. This also lets the hero image and
+    // parallax assets finish loading before the first bird-flight frame.
+    G.gameOver = true;
     startGame();
+    G.gameOver = true; // re-pause: startGame clears the flag
+    const intro = document.getElementById("introPanel");
+    function dismissIntro() {
+      ensureAudio();
+      intro.classList.add("gone");
+      // Restart fresh after preview so the bird begins from a known state.
+      startGame();
+    }
+    document.getElementById("beginBtn").addEventListener("click", dismissIntro);
+    // Also accept tap-anywhere on the canvas as "begin" while the panel
+    // is up — a phone player won't notice a button.
+    canvas.addEventListener("pointerdown", () => {
+      if (!intro.classList.contains("gone")) dismissIntro();
+    }, true);
   </script>
 </body>
 </html>
