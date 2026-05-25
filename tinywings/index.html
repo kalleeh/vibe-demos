@@ -882,16 +882,16 @@
     // surfing still has the satisfying weight of going downhill — a real
     // 1100 px/s² in the air made the bird hit the ground in <1 second.
     const GRAVITY_SURF = 1100;    // px/s² along the slope tangent
-    const GRAVITY_AIR  = 420;     // px/s² applied while airborne
-    const LIFT_K       = 1.20;    // forward speed → upward lift (px/s² per px/s)
+    const GRAVITY_AIR  = 720;     // px/s² applied while airborne
+    const LIFT_K       = 1.10;    // forward speed → upward lift (px/s² per px/s)
     const LIFT_VMIN    = 180;     // below this forward speed, lift fades out
     // Lift can NEVER exceed (gravity − MIN_SINK). This guarantees the
     // bird always descends — even at very high speed after a ramp boost,
     // net acceleration is at least MIN_SINK downward, so a bird that
     // has gained altitude will eventually come back to the hills.
-    const MIN_SINK     = 90;
+    const MIN_SINK     = 220;
     const LIFT_MAX     = GRAVITY_AIR - MIN_SINK;
-    const FALL_TERMINAL = 260;    // unpressed-glide max downward speed (soft cap)
+    const FALL_TERMINAL = 540;    // unpressed-glide max downward speed (soft cap)
     const PITCH_BIAS   = 1500;    // extra downward when tap-held
     const DRAG_AIR     = 0.06;    // per-second velocity damping while airborne (was 0.18)
     const STALL_ANGLE_DEG  = 55;  // landing angle above this = bonk
@@ -1262,48 +1262,60 @@
       ctx.restore();
     }
 
-    // Hand-drawn hill with a watercolor green fill. The painted fill is
-    // built in three layers under a clip(): a top-to-bottom green wash
-    // (light grass → deep shadow), a few darker dapples that suggest
-    // foliage, and a ragged inked top edge that reads as a brush stroke
-    // rather than a clean curve. Multi-pass strokePath jitter is kept.
+    // Hand-drawn hill with a watercolor green fill. All painted-fill
+    // randomness is anchored to WORLD-x (not frame time), so the paint
+    // doesn't shimmer as the camera moves. The wash is intentionally
+    // uneven near the ridge — sometimes flush, sometimes pulled inward
+    // by 4–14 px — to read as wet-on-paper pigment. Multi-pass jitter
+    // is preserved on the ink line because that's the pencil grammar.
+    //
+    // Stable noise: a small sum of sines of WORLD-x. Same x always
+    // returns the same value; the camera scrolls the noise without
+    // re-randomizing it.
+    function paintNoise(wx, k) {
+      // 2 octaves, returns roughly [-1, 1].
+      return (
+        Math.sin(wx * 0.013 + k) +
+        Math.sin(wx * 0.041 + k * 1.7 + 1.3) * 0.6
+      ) / 1.6;
+    }
     function drawTerrain(camX) {
       const p = pal();
       const hill = p.hill;
       const stepPx = 4;
       const samples = Math.ceil(viewW / stepPx) + 4;
       const xs = new Array(samples), ys = new Array(samples);
+      const wxs = new Array(samples);
       for (let i = 0; i < samples; i++) {
         const sx = i * stepPx;
         const wx = sx + camX;
         xs[i] = sx;
+        wxs[i] = wx;
         ys[i] = baseY + G.terrain.h(wx);
       }
 
-      // Build a closed path matching the hill silhouette + screen bottom.
-      const buildHillPath = (jitter) => {
-        ctx.beginPath();
-        ctx.moveTo(0, viewH + 4);
-        for (let i = 0; i < samples; i++) {
-          const j = jitter ? (G.jrand() - 0.5) * jitter : 0;
-          ctx.lineTo(xs[i], ys[i] + j);
-        }
-        ctx.lineTo(viewW + 4, viewH + 4);
-        ctx.closePath();
-      };
-
-      // ── Watercolor fill under a hill clip ──────────────────────────
+      // ── Inset wash inside an irregular ridge ───────────────────────
+      // Build a clip path that sits BELOW the silhouette by a stable
+      // noise amount — so the green pigment recedes from the inked
+      // edge in places and creeps up in others. Pure cream paper
+      // shows in the receded patches.
       ctx.save();
-      buildHillPath(0);
+      ctx.beginPath();
+      ctx.moveTo(0, viewH + 4);
+      for (let i = 0; i < samples; i++) {
+        // 0..1 inset; pulled down 0–14 px from the ridge.
+        const n = (paintNoise(wxs[i], 0.7) + 1) * 0.5;
+        const inset = n * 14;
+        ctx.lineTo(xs[i], ys[i] + inset);
+      }
+      ctx.lineTo(viewW + 4, viewH + 4);
+      ctx.closePath();
       ctx.clip();
 
       // Vertical green gradient wash (multiply so paper grain shows).
       ctx.globalCompositeOperation = "multiply";
-      let yTop = Infinity, yBot = -Infinity;
-      for (let i = 0; i < samples; i++) {
-        if (ys[i] < yTop) yTop = ys[i];
-        if (ys[i] > yBot) yBot = ys[i];
-      }
+      let yTop = Infinity;
+      for (let i = 0; i < samples; i++) if (ys[i] < yTop) yTop = ys[i];
       const wash = ctx.createLinearGradient(0, yTop, 0, viewH);
       wash.addColorStop(0.00, hill.top);
       wash.addColorStop(0.45, hill.mid);
@@ -1311,41 +1323,44 @@
       ctx.fillStyle = wash;
       ctx.fillRect(0, yTop - 4, viewW, viewH - yTop + 8);
 
-      // Dapples — soft radial blooms scattered across the hill, scrolling
-      // with the camera so they feel like foliage on the terrain rather
-      // than overlay. Use a deterministic per-camera seed so they don't
-      // shimmer between frames.
-      const seedRand = mulberry32(((camX | 0) ^ G.seed) >>> 0);
-      const dappleCount = reduceMotion ? 0 : 14;
-      for (let d = 0; d < dappleCount; d++) {
-        const fx = seedRand() * viewW;
-        // anchor each dapple slightly below the silhouette at fx
-        const idx = Math.max(0, Math.min(samples - 1, Math.floor(fx / stepPx)));
-        const surfaceY = ys[idx];
-        const dy = surfaceY + 8 + seedRand() * (viewH - surfaceY) * 0.7;
-        const dr = 18 + seedRand() * 36;
-        const dg = ctx.createRadialGradient(fx, dy, 0, fx, dy, dr);
-        dg.addColorStop(0, hill.dapple);
-        dg.addColorStop(1, hill.dapple.replace(/[\d.]+\)$/, "0)"));
-        ctx.fillStyle = dg;
-        ctx.beginPath(); ctx.arc(fx, dy, dr, 0, Math.PI * 2); ctx.fill();
+      // Dapples — soft foliage blooms anchored to WORLD-x at fixed
+      // intervals so they don't reposition every frame. Each dapple
+      // uses a per-bucket seeded RNG so its position/size is stable.
+      if (!reduceMotion) {
+        const dappleStep = 110;             // every 110 world-px
+        const wxStart = Math.floor(camX / dappleStep) * dappleStep - dappleStep;
+        const wxEnd = camX + viewW + dappleStep;
+        for (let wx = wxStart; wx <= wxEnd; wx += dappleStep) {
+          // Stable per-bucket RNG (seeded by world-x bucket).
+          const r = mulberry32(((wx | 0) * 0x9E3779B1 ^ G.seed) >>> 0);
+          const fx = (wx - camX) + (r() - 0.5) * dappleStep;
+          if (fx < -60 || fx > viewW + 60) continue;
+          const idx = Math.max(0, Math.min(samples - 1, Math.floor(fx / stepPx)));
+          const surfaceY = ys[idx];
+          const dy = surfaceY + 12 + r() * (viewH - surfaceY) * 0.7;
+          const dr = 22 + r() * 38;
+          const dg = ctx.createRadialGradient(fx, dy, 0, fx, dy, dr);
+          dg.addColorStop(0, hill.dapple);
+          dg.addColorStop(1, hill.dapple.replace(/[\d.]+\)$/, "0)"));
+          ctx.fillStyle = dg;
+          ctx.beginPath(); ctx.arc(fx, dy, dr, 0, Math.PI * 2); ctx.fill();
+        }
       }
       ctx.restore();
 
-      // ── Ragged painted edge ────────────────────────────────────────
-      // A second softer fill that overshoots the silhouette by a few px
-      // with heavy jitter, drawn UNDER the ink line. This gives the wet-
-      // brush "fringe" you see on real watercolor where the pigment sits
-      // proud of the pencil sketch.
+      // ── Painted fringe (also stable, also uneven) ──────────────────
+      // A second translucent pass that sits BELOW the ridge by a
+      // different noise pattern, with patches that occasionally lap
+      // up against (or just past) the inked edge. Drawn under the ink.
       ctx.save();
       ctx.globalCompositeOperation = "multiply";
-      ctx.fillStyle = hill.top.replace(/[\d.]+\)$/, "0.28)");
-      const fringeJitter = reduceMotion ? 0 : 2.6;
+      ctx.fillStyle = hill.top.replace(/[\d.]+\)$/, "0.30)");
       ctx.beginPath();
       ctx.moveTo(0, viewH + 4);
       for (let i = 0; i < samples; i++) {
-        const j = (G.jrand() - 0.5) * fringeJitter;
-        ctx.lineTo(xs[i], ys[i] + j - 1);
+        const n = paintNoise(wxs[i], 2.3); // [-1..1]
+        const offset = -1 + n * 3.5;       // mostly inside the ridge
+        ctx.lineTo(xs[i], ys[i] + offset);
       }
       ctx.lineTo(viewW + 4, viewH + 4);
       ctx.closePath();
