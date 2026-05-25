@@ -346,7 +346,10 @@
     }
     .rotate-hint button:hover { background: var(--ink); color: var(--paper); }
 
-    /* Game-over panel — appears centered, fades in */
+    /* Game-over panel — appears centered, fades in.
+       z-index 6 so it sits above the now-absolutely-positioned canvas
+       (z-index 1) and the topbar/footer (z-index 3). Without this it
+       gets buried under the canvas and the restart button is unclickable. */
     .end-panel {
       position: absolute;
       left: 50%; top: 50%;
@@ -363,6 +366,7 @@
       transition: opacity 280ms;
       pointer-events: none;
       max-width: min(440px, 86vw);
+      z-index: 6;
     }
     .end-panel.live { opacity: 1; pointer-events: auto; }
     .end-panel h2 { font-family: "Fraunces", serif; font-style: italic; font-weight: 400; font-size: 28px; margin: 0 0 6px; }
