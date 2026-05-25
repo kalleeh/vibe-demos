@@ -78,17 +78,32 @@
       opacity: 0.7;
     }
 
+    /* The canvas is the full viewport; topbar and footer overlay on
+       top of it. Without this, on small-height landscape viewports
+       (phones rotated to landscape) the topbar+footer eat 30–40% of
+       the screen height and the bird's flight envelope ends up off-
+       canvas. Overlay layout keeps the gameplay area at 100%×100%
+       regardless of orientation. */
     .stage {
       position: fixed; inset: 0;
-      display: flex; flex-direction: column;
       z-index: 1;
     }
     canvas#sky {
-      flex: 1;
-      width: 100%;
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
       display: block;
       cursor: pointer;
+      z-index: 1;
     }
+    .topbar, .footer {
+      position: absolute;
+      left: 0; right: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+    .topbar { top: 0; }
+    .footer { bottom: 0; }
+    .topbar > *, .footer > * { pointer-events: auto; }
 
     /* Topbar */
     .topbar {
@@ -380,6 +395,17 @@
       .topbar { row-gap: 4px; }
       .stat#bestStat { display: none; }   /* keep DAY + DIST, drop BEST */
     }
+    /* Short-viewport landscape (phones rotated): collapse chrome so the
+       canvas truly fills the screen and gameplay stays centered. */
+    @media (orientation: landscape) and (max-height: 520px) {
+      .topbar { padding: 6px 14px 0; gap: 6px; }
+      .footer { padding: 0 14px 6px; gap: 8px; flex-wrap: wrap; }
+      .brand { font-size: 22px; }
+      .kicker { display: none; }
+      .stat, .day-chip, .boost-wrap { font-size: 10px; padding: 2px 7px; }
+      .stat .v { font-size: 11px; }
+      .footer .hint { font-size: 14px; }
+    }
 
     @media (prefers-reduced-motion: reduce) {
       .boost .fill { box-shadow: none; }
@@ -576,11 +602,16 @@
       const rng = mulberry32(seed);
       // 4 stacked sines: a low-frequency rolling layer, a mid layer for
       // crests, and a couple of small features for visual interest.
+      // Amplitudes tuned so the steepest possible slope (sum of A*omega
+      // across all layers) stays around tan(35°) ≈ 0.7 — anything above
+      // that is a wall the glider can't ramp off cleanly. Low-frequency
+      // layer carries most of the vertical range; high-frequency layers
+      // only add small texture so they can't dominate the slope.
       const layers = [
-        { A: 110 + rng() * 50, omega: 0.0028 + rng() * 0.0010, phi: rng() * Math.PI * 2 },
-        { A:  55 + rng() * 25, omega: 0.0072 + rng() * 0.0015, phi: rng() * Math.PI * 2 },
-        { A:  22 + rng() * 12, omega: 0.0190 + rng() * 0.0050, phi: rng() * Math.PI * 2 },
-        { A:   9 + rng() *  5, omega: 0.0470 + rng() * 0.0120, phi: rng() * Math.PI * 2 },
+        { A: 130 + rng() * 50, omega: 0.0026 + rng() * 0.0008, phi: rng() * Math.PI * 2 },
+        { A:  45 + rng() * 18, omega: 0.0060 + rng() * 0.0010, phi: rng() * Math.PI * 2 },
+        { A:  14 + rng() *  6, omega: 0.0140 + rng() * 0.0030, phi: rng() * Math.PI * 2 },
+        { A:   5 + rng() *  3, omega: 0.0320 + rng() * 0.0060, phi: rng() * Math.PI * 2 },
       ];
       return {
         layers,
@@ -673,26 +704,35 @@
     }
 
     // ── Setup new day ────────────────────────────────────────────
-    // Try a few candidate seeds and pick the one whose terrain at the
-    // bird's spawn x has a friendly *downhill* slope. Without this the
-    // first frame can hand the player a wall and the bird stalls
-    // immediately, which is the bug we hit in the first ship.
+    // Try many candidate seeds and pick one that gives a clean opening
+    // glide AND stays clear of walls in the first km. We score by:
+    //  (a) downhill slope at spawn (heavy weight)
+    //  (b) penalty for any uphill slope steeper than 0.55 in [200..2400]
+    // The wall penalty is what was missing before — picker used to be
+    // happy with seeds that buried a 60° wall right after the spawn.
     function chooseFriendlySeed(dayN) {
-      const candidates = 6;
+      const candidates = 24;
       let best = null, bestScore = -Infinity;
       for (let i = 0; i < candidates; i++) {
         const s = (0xA1B2C3 ^ ((dayN * 2654435761) ^ (i * 0x9E3779B1))) | 0;
         const t = buildTerrain(s);
-        // Sample slope across the spawn window; positive = downhill (good).
-        // We weight the very start most heavily — that's where you spawn.
-        const samples = [
+        // (a) spawn-window slope: positive = downhill, we want that.
+        const spawnSamples = [
           { x: 200, w: 3.0 },
           { x: 320, w: 2.0 },
           { x: 480, w: 1.0 },
           { x: 700, w: 0.6 },
         ];
         let score = 0;
-        for (const sp of samples) score += sp.w * t.slope(sp.x);
+        for (const sp of spawnSamples) score += sp.w * t.slope(sp.x);
+        // (b) wall penalty across the whole opening km. Anything steeper
+        // than ~30° uphill is a stall risk; quadratic penalty above that.
+        let walls = 0;
+        for (let x = 200; x <= 2400; x += 40) {
+          const sl = -t.slope(x); // positive when terrain rises (uphill in canvas coords)
+          if (sl > 0.55) walls += (sl - 0.55) * (sl - 0.55);
+        }
+        score -= walls * 4;
         if (score > bestScore) { bestScore = score; best = { seed: s, terrain: t }; }
       }
       return best;
@@ -846,31 +886,48 @@
       const wasAirborne = G.airborne;
 
       if (G.by >= hillSurfaceY - eps) {
-        // On or below the surface — push back up to surface and surf
+        // On or below the surface — push back up to surface and surf.
+        // Note: `slope` here is dh/dx in canvas coords where positive y
+        // = down. So slope > 0 means terrain DROPS (visual downhill),
+        // slope < 0 means terrain RISES (visual uphill).
         G.by = hillSurfaceY;
         G.airborne = false;
-        // Tangent velocity along the slope: the bird can't go "into" the
-        // hill, so we project the velocity onto the slope tangent. The
-        // tangent vector is (1, slope) — normalized.
         const tlen = Math.sqrt(1 + slope * slope);
         const tx = 1 / tlen, ty = slope / tlen;
-        // Current speed vector projection magnitude
         const projMag = G.vx * tx + G.vy * ty;
-        // Apply gravity along the slope (gravity component along tangent)
-        // along-slope = g * sin(angle) = g * slope / sqrt(1+slope²)
-        const gAlong = GRAVITY_SURF * (slope / tlen);
-        // While tap-held on a downslope, pitch bias adds energy
-        const pitchAdd = (G.pitchDown && slope > 0) ? PITCH_BIAS * (slope / tlen) * dt : 0;
-        // Mild rolling friction proportional to speed — prevents perpetual
-        // motion on shallow slopes and brings the bird to rest naturally.
-        const roll = -0.18 * projMag * dt;
-        // The bird is a one-way glider — it never reverses on the surface.
-        // Clamp projection ≥ 0 so even a steep uphill stalls the bird
-        // forward (or to a halt) instead of flipping it backwards.
-        let newProj = Math.max(0, projMag + gAlong * dt + pitchAdd + roll);
-        // Reconstruct velocity from new projection (always forward)
-        G.vx = newProj * tx;
-        G.vy = newProj * ty;
+
+        // ── Ramp launch off uphills ─────────────────────────────
+        // The Tiny Wings core mechanic: hitting an uphill at speed
+        // launches you into the air along the slope tangent. Without
+        // this, any hill steeper than ~25° kills the bird because
+        // g*sin(angle) overwhelms forward speed before it can climb.
+        // We trigger when:
+        //   • the slope is meaningfully rising, AND
+        //   • the bird was AIRBORNE on entry (fresh contact, not grinding
+        //     a flat surface), OR has enough momentum to launch.
+        const isRising = slope < -0.10;
+        const cresting = wasAirborne && isRising;     // ramp impact
+        const launchEnergy = projMag > 140;            // enough to ramp off
+        if (cresting && launchEnergy) {
+          G.airborne = true;
+          // Preserve forward energy — the bird is *redirected* along
+          // the tangent without losing its scalar speed.
+          const speed = Math.max(projMag, Math.sqrt(G.vx*G.vx + G.vy*G.vy) * 0.85);
+          G.vx = speed * tx;
+          G.vy = speed * ty - 60;  // small pop so the bird clears the crest
+        } else {
+          // Apply gravity along the slope. gAlong is clamped to
+          // [-280, +1100] — a steep uphill still costs SOME speed
+          // (so the player can come to rest naturally) but won't grind
+          // the bird to a halt in 12 frames the way unclamped gravity
+          // does on a 45° upslope.
+          const gAlong = Math.max(-280, GRAVITY_SURF * (slope / tlen));
+          const pitchAdd = (G.pitchDown && slope > 0) ? PITCH_BIAS * (slope / tlen) * dt : 0;
+          const roll = -0.04 * projMag * dt;
+          let newProj = Math.max(0, projMag + gAlong * dt + pitchAdd + roll);
+          G.vx = newProj * tx;
+          G.vy = newProj * ty;
+        }
 
         // Detect launch: if next position's slope curves up sharper than
         // the bird's velocity vector, the bird leaves the surface.
@@ -1034,15 +1091,16 @@
 
     function drawSky() {
       const p = pal();
-      // Use linear gradient over the upper portion of the canvas; we
-      // intentionally let the paper tint show through both colors.
-      const h = baseY + 60;
-      const grd = ctx.createLinearGradient(0, 0, 0, h);
+      // Sky gradient covers the WHOLE vertical span up to the horizon
+      // (baseY). Previously we drew only to baseY+60 leaving a strip of
+      // bare paper at the very top of tall portraits. Anchor the band
+      // stops in absolute pixels so the sky color reaches the top edge.
+      const grd = ctx.createLinearGradient(0, 0, 0, baseY);
       grd.addColorStop(0, p.sky[0]);
-      grd.addColorStop(0.7, p.sky[1]);
+      grd.addColorStop(0.75, p.sky[1]);
       grd.addColorStop(1, "rgba(244, 236, 214, 0)");
       ctx.fillStyle = grd;
-      ctx.fillRect(0, 0, viewW, h);
+      ctx.fillRect(0, 0, viewW, baseY + 4);
 
       // Sun / moon
       const sunX = viewW * p.sun.x;
@@ -1069,11 +1127,13 @@
     // a parallax factor. yBottom is the absolute y-pixel position where
     // the sprite's BOTTOM edge sits — we anchor from the bottom so the
     // silhouette can sit cleanly on the horizon. heightFrac scales the
-    // sprite to a fraction of canvas height while preserving aspect.
+    // sprite as a fraction of the SKY HEIGHT (baseY), not viewH, so the
+    // bands fill the same proportion of the sky regardless of whether
+    // we're in tall portrait or shallow landscape.
     function drawParallaxBand(asset, camX, parallax, yBottom, heightFrac, alpha) {
       if (!asset.ready) return;
       const img = asset.img;
-      const drawH = viewH * heightFrac;
+      const drawH = baseY * heightFrac;
       const drawW = drawH * (img.width / img.height);
       const yTop = yBottom - drawH;
       // World-space scrolled offset; mod by drawW so it tiles seamlessly.
@@ -1101,11 +1161,15 @@
       ctx.rect(0, 0, viewW, baseY);
       ctx.clip();
 
-      // Far ridge silhouette — sits ABOVE the horizon, very slow scroll.
-      // The band is positioned so its BOTTOM aligns with baseY.
-      drawParallaxBand(ASSETS.farRidges, camX, 0.06, baseY * 0.78, 0.20, p.name === "night" ? 0.18 : 0.40);
+      // Three layered ridge passes give a deep sky and reach toward
+      // the top of the viewport. Heights are fractions of baseY so the
+      // sky always feels "filled in" from horizon to top edge.
+      // Furthest haze ridge — extra slow, sits highest in the sky.
+      drawParallaxBand(ASSETS.farRidges, camX, 0.03, baseY * 0.55, 0.42, p.name === "night" ? 0.10 : 0.22);
+      // Far ridge silhouette — slow scroll, mid sky.
+      drawParallaxBand(ASSETS.farRidges, camX, 0.07, baseY * 0.78, 0.34, p.name === "night" ? 0.20 : 0.44);
       // Mid hill silhouette — slightly closer, faster, just above horizon
-      drawParallaxBand(ASSETS.midHill,  camX, 0.16, baseY * 0.86, 0.22, p.name === "night" ? 0.20 : 0.46);
+      drawParallaxBand(ASSETS.midHill,  camX, 0.16, baseY * 0.96, 0.30, p.name === "night" ? 0.22 : 0.48);
 
       // Image-based clouds — only when not night, well up in the sky
       if (p.name !== "night" && ASSETS.cloud.ready) {

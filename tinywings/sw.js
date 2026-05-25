@@ -1,5 +1,5 @@
 /* sketchwings — minimal offline shell SW */
-const CACHE = "vibe-tinywings-v3";
+const CACHE = "vibe-tinywings-v4";
 const SHELL = [
   "./",
   "./index.html",
