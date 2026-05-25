@@ -2406,22 +2406,17 @@
     <div class="welcome">
       <button type="button" class="close-x" id="welcome-close" aria-label="닫기">×</button>
       <div class="eyebrow">Vibe Studio · Demo</div>
-      <h2 id="welcome-title">한방병원 <em>행정</em>의 하루를,<br>한 페이지에 담았습니다.</h2>
+      <h2 id="welcome-title">엑셀과 포스트잇으로 하던 일,<br>여기서 <em>한 번에</em> 끝냅니다.</h2>
       <p class="deck">
-        이건 <strong>둘러보기용 데모</strong>예요. 실제 <strong>행정원장</strong>의 하루 — KCD 코드 정비, 자보·HIRA 청구, 연말정산, 의무기록 보존, 면허·인증평가 — 를 <strong>이 한 페이지 안에서</strong> 처리하는 시뮬레이션입니다.
-        모든 처리는 <strong>이 브라우저 안</strong>에서만 일어나고, 환자 정보는 <strong>밖으로 나가지 않습니다</strong>.
+        매달 반복되는 <strong>자보 청구·삭감 추적</strong>, 반기마다 닥치는 <strong>비급여 보고</strong>, 늘 잊을 뻔하는 <strong>면허 만료일</strong>. 행정원장의 하루를 잡아먹는 그 일들을 <strong>한 페이지</strong>에 묶었습니다. 환자 정보는 이 브라우저 밖으로 한 발짝도 나가지 않습니다.
       </p>
       <ul class="demo-list">
-        <li>오늘 — 마감·이어할 작업</li>
-        <li>KCD-8 진단코드 정비</li>
-        <li>자보 EDI 청구·지급 정산</li>
-        <li>연말정산 사전검증</li>
-        <li>HIRA 비급여 반기보고</li>
-        <li>의무기록 보존 감사</li>
-        <li>코드 통합검색</li>
-        <li>AI 코딩 어시스트</li>
-        <li>면허·자격 갱신 트래커</li>
-        <li>인증평가 체크리스트</li>
+        <li><strong>AI</strong>가 진료 메모를 읽고 <em>코드를 골라줍니다</em> — 30분 → 3분</li>
+        <li><strong>카메라</strong>로 면허증을 찍으면 <em>만료일이 자동입력</em>됩니다</li>
+        <li><strong>마감일</strong>이 한 화면에 모이고, 일정앱으로 바로 내려받습니다</li>
+        <li>청구·지급 차이가 한눈에 보여 <em>삭감 사유</em>를 빨리 잡습니다</li>
+        <li>비급여·연말정산 보고 파일을 <em>형식 맞춰</em> 만들어드립니다</li>
+        <li>인증평가 체크리스트는 <em>평소에 조금씩</em>, 진행률 자동 집계</li>
       </ul>
       <div class="actions">
         <button type="button" class="btn" id="welcome-seed">▶ 샘플 데이터로 둘러보기</button>
@@ -2542,29 +2537,29 @@
         </div>
       </div>
       <p class="panel-blurb">
-        반기 보고와 면허 갱신은 <em>잊은 순간</em> 사고가 됩니다. 작업 중이던 자료는 <em>이어서</em> 끝내야 마감이 맞습니다. 이 화면이 그 두 가지를 항상 먼저 보여드립니다.
+        면허 만료, 반기보고 마감, 인증평가 — <em>잊은 순간</em>이 곧 사고입니다. 어제 하다 만 정산표도 다시 찾기 어렵죠. 출근하면 이 화면을 먼저 봐주세요. <em>오늘 챙길 마감</em>과 <em>이어할 작업</em>이 항상 위에 떠 있습니다.
       </p>
 
       <div class="insights" id="today-insights">
         <div class="insight">
           <div class="label">이번 분기 자보 청구</div>
           <div class="num" id="ins-jabo">— <em>건</em></div>
-          <div class="sub" id="ins-jabo-sub">최근 정산 기록 없음</div>
+          <div class="sub" id="ins-jabo-sub">아직 정산 기록 없음 — 자보 탭에서 시작</div>
         </div>
         <div class="insight" id="ins-cut-card">
-          <div class="label">평균 삭감률</div>
+          <div class="label">보험사 평균 삭감률</div>
           <div class="num" id="ins-cut">— <em>%</em></div>
-          <div class="sub" id="ins-cut-sub">정산 1건 이상 필요</div>
+          <div class="sub" id="ins-cut-sub">정산 1건 이상이면 자동 계산</div>
         </div>
         <div class="insight" id="ins-ret-card">
-          <div class="label">만료 초과 기록</div>
+          <div class="label">폐기 시점 지난 기록</div>
           <div class="num" id="ins-ret">—</div>
-          <div class="sub" id="ins-ret-sub">감사 미실행</div>
+          <div class="sub" id="ins-ret-sub">감사 한 번 돌리면 한눈에</div>
         </div>
         <div class="insight" id="ins-accred-card">
-          <div class="label">인증평가 진행</div>
+          <div class="label">인증평가 준비도</div>
           <div class="num" id="ins-accred">— <em>%</em></div>
-          <div class="sub">한국의료기관평가인증원</div>
+          <div class="sub">평소에 조금씩 체크해두면 안 늦습니다</div>
         </div>
       </div>
 
@@ -2605,14 +2600,14 @@
     <section class="panel" id="tab-kcd" role="tabpanel">
       <div class="panel-head">
         <span class="panel-num">01 · 진단코드 정비</span>
-        <h3>KCD-8 <em>코드 정비</em> · EDI 사전검증</h3>
+        <h3>잘못된 진단코드, <em>청구 전</em>에 한 번 더</h3>
         <div class="badges">
           <span class="badge law">통계청 KCD-8 (2021)</span>
           <span class="badge live">HIRA 심사조정 #1 = 상병명 부적합</span>
         </div>
       </div>
       <p class="panel-blurb">
-        EMR에서 뽑은 진단코드 대장을 올리면 — <em>구버전·변형 코드</em>를 KCD-8 표준형으로 정정, <em>중복·동의 진단</em> 정리, <em>한의 U-code 누락</em> 점검까지. HIRA EDI 청구 전에 1차 걸러내는 사전검증 도구입니다.
+        진단코드 하나가 옛날 형식이거나 빠지면 청구가 통째로 반려됩니다. EMR에서 뽑은 진단 대장을 올려두기만 하면 — <em>옛날 코드는 표준형으로</em>, <em>중복은 정리</em>, <em>빠진 한방 보조코드는 표시</em>. 청구 누르기 전 5분의 점검이 한 달 매출을 지킵니다.
       </p>
       <div class="demo-strip">
         <span class="demo-label">처음이신가요? <strong>한방 다빈도 8건</strong>(요통·오십견·염좌 등)으로 정비 결과를 미리 보실 수 있습니다.</span>
@@ -2669,14 +2664,14 @@
     <section class="panel" id="tab-jabo" role="tabpanel">
       <div class="panel-head">
         <span class="panel-num">02 · 자보 EDI 정산</span>
-        <h3>자보 <em>청구 vs 지급</em> 정산표</h3>
+        <h3>보험사가 <em>왜 깎았는지</em>, 한눈에</h3>
         <div class="badges">
           <span class="badge law">국토교통부 고시</span>
           <span class="badge live">HIRA 자보 EDI</span>
         </div>
       </div>
       <p class="panel-blurb">
-        EDI로 청구한 자보 한방진료를 보험사 <em>지급내역서</em>와 대조합니다. 행위별 <em>청구액 vs 지급액</em> 차이, <em>삭감 사유</em>, 보험사·월별 정산표를 한 번에. 매월 자보 매출 마감과 삭감 코드 추적용 도구입니다.
+        교통사고 환자 청구 후 보험사에서 <em>이만큼 못 드린다</em>고 답이 옵니다. 무엇이 왜 깎였는지 한 줄씩 대조하고, 보험사별·달별 추세까지 자동 집계. 같은 사유가 반복되면 <em>다음 달에는 미리 피할 수 있습니다</em>. 자보 매출이 큰 한방병원의 핵심 도구입니다.
       </p>
       <div class="demo-strip">
         <span class="demo-label"><strong>경추·요추 염좌</strong> 통원 케이스 — 침술·부항·추나·약침에 보험사 지급내역과 삭감 사유까지 자동 채움.</span>
@@ -2770,14 +2765,14 @@
     <section class="panel" id="tab-yearend" role="tabpanel">
       <div class="panel-head">
         <span class="panel-num">03 · 연말정산 사전검증</span>
-        <h3>연말정산 <em>의료비</em> 사전검증 · 누락보정</h3>
+        <h3>1월 환자 전화 — "<em>영수증 빠졌어요</em>"</h3>
         <div class="badges">
           <span class="badge law">국세청 의료비 자료제출 표준</span>
           <span class="badge live">매년 1월 7-15일 일괄제출 전</span>
         </div>
       </div>
       <p class="panel-blurb">
-        대부분의 의료비는 <em>홈택스 간소화서비스(PCC)</em>로 자동 반영됩니다. 그러나 <em>현금결제 비급여</em>·<em>간소화 누락</em>·<em>환자 요청 영수증</em>은 직접 제출해야 합니다. EMR 진료기록을 올리면 — 주민등록번호 자릿수, 음수 금액, 환자별 합계 검증을 거쳐 <em>홈택스 일괄제출 형식</em>으로 변환합니다.
+        매년 1월이면 <em>현금결제 비급여</em>·<em>간소화 누락분</em>을 챙겨달라는 환자 전화가 쏟아집니다. 진료기록을 올려두면 — 주민번호 자릿수, 금액 부호, 환자별 합계까지 자동 검증해서 <em>홈택스에 그대로 올리는 파일</em>로 만들어드립니다. 한 명씩 손으로 정리하던 오후 한 나절을 돌려드립니다.
       </p>
       <div class="demo-strip">
         <span class="demo-label">3명 환자 · <strong>5건 진료</strong> — PCC 누락분과 환자 요청분을 합쳐 일괄제출 형식으로 변환하는 흐름을 미리 보실 수 있습니다.</span>
@@ -2860,14 +2855,14 @@
     <section class="panel" id="tab-bigeup" role="tabpanel">
       <div class="panel-head">
         <span class="panel-num">04 · HIRA 비급여 반기보고</span>
-        <h3>비급여 <em>진료비용</em> 반기보고 자료 빌더</h3>
+        <h3>3월·9월 마감, <em>30개 항목</em> 단가만 적으면 됩니다</h3>
         <div class="badges">
           <span class="badge law">의료법 §45조의2</span>
           <span class="badge live">반기 보고 (3월·9월)</span>
         </div>
       </div>
       <p class="panel-blurb">
-        HIRA <em>요양기관업무포털</em>에 반기마다(3월·9월) 보고하는 비급여 단가 공개 자료. 한방 항목 마스터는 이미 골라드렸으니, <em>우리 병원 단가</em>만 입력하시면 — HIRA 보고 서식과 동일한 엑셀로 내려받을 수 있습니다.
+        반기보고 시즌이면 빈 엑셀 양식부터 다시 그리던 일, 이제 안 하셔도 됩니다. <em>한방 항목 30개</em>는 이미 채워져 있고 — <em>우리 병원 단가</em>만 적으면, 심평원에 제출하는 형식 그대로 엑셀로 떨어집니다. 마감 전날 야근이 사라집니다.
       </p>
       <div class="demo-strip">
         <span class="demo-label">병원 정보와 <strong>30개 한방 비급여 항목</strong>의 표본 단가를 자동으로 채워, 검증·보고 파일이 어떻게 만들어지는지 보여드립니다.</span>
@@ -2952,14 +2947,14 @@
     <section class="panel" id="tab-retention" role="tabpanel">
       <div class="panel-head">
         <span class="panel-num">05 · 의무기록 보존</span>
-        <h3>의무기록 <em>보존</em> 감사</h3>
+        <h3>10년·5년·3년·2년 — <em>혼동하기 쉬운</em> 보존기간</h3>
         <div class="badges">
           <span class="badge law">의료법 시행규칙 §15</span>
           <span class="badge live">상시</span>
         </div>
       </div>
       <p class="panel-blurb">
-        기록 종류별 법정 보존기간이 다릅니다 — <em>진료기록부·수술기록 10년</em>, <em>처방전 2년</em>, <em>환자명부·검사·간호·방사선 5년</em>, <em>진단서부본 3년</em>. 기록 대장을 올리면 만료 임박·만료 초과·분류 오류를 한 번에 표시합니다. <em>폐기심의위원회</em>·의료기관 인증평가 대비용으로 활용하세요.
+        의무기록은 종류별로 보존기간이 다릅니다 — <em>진료기록 10년, 처방전 2년, 검사·간호 5년, 진단서부본 3년</em>. 헷갈리면 폐기 시점이 어긋나고, 인증조사에서 바로 지적사항이 됩니다. 기록 대장만 올려두면 <em>만료 임박</em>과 <em>분류 오류</em>를 표로 표시 — 폐기심의위원회 자료가 자동으로 만들어집니다.
       </p>
       <div class="demo-strip">
         <span class="demo-label"><strong>9건 가상 기록</strong> — 만료 초과부터 정상 보존까지 다양한 케이스로 감사 보고서를 미리 보실 수 있습니다.</span>
@@ -3041,13 +3036,13 @@
     <section class="panel" id="tab-search" role="tabpanel">
       <div class="panel-head">
         <span class="panel-num">06 · 통합 코드 검색</span>
-        <h3>한 곳에서 <em>모든 코드</em> · 한방 크로스워크</h3>
+        <h3>"요통" 한 단어로 — <em>진단·수가·비급여</em> 한 화면</h3>
         <div class="badges">
           <span class="badge live">KCD-8 · 자보 · 비급여</span>
         </div>
       </div>
       <p class="panel-blurb">
-        진단명·시술명·항목명을 한 번에 검색합니다. <em>한글</em>·<em>코드</em>·<em>초성</em> 모두 인식. KOICD/HIRA 포털을 대체하는 게 아니라, <em>한방 진단 ↔ 자보 수가 ↔ 비급여</em>를 한 화면에서 묶어 보고 결과를 엑셀로 내려받기 위한 도구입니다.
+        진단·수가·비급여를 매번 따로 찾아 헤매지 않아도 됩니다. <em>한글</em>·<em>코드</em>·<em>ㅇㅌ</em> 같은 초성까지 인식해서 — <em>한방 진단</em>과 그에 묶이는 <em>자보 수가</em>·<em>비급여 항목</em>을 한 화면에 모아드립니다. 결과는 엑셀로 바로 내려받습니다.
       </p>
       <div class="demo-strip">
         <span class="demo-label">예시 검색어 — <strong>"요통"</strong> 하나로 KCD 진단·자보 수가·비급여가 어떻게 묶이는지 보여드립니다.</span>
@@ -3083,17 +3078,17 @@
     <section class="panel" id="tab-ai" role="tabpanel">
       <div class="panel-head">
         <span class="panel-num">07 · AI 코딩 어시스트</span>
-        <h3>진료 메모 → <em>코드 추천</em></h3>
+        <h3>코드 찾는 시간 30분 → <em>3분</em></h3>
         <div class="badges">
           <span class="badge live"><span id="ai-mode-badge">데모 모드</span></span>
-          <span class="badge">Claude Opus 4.7 · Sonnet 4.6 · Haiku 4.5</span>
+          <span class="badge">Claude AI · 한국어 그대로</span>
         </div>
       </div>
       <p class="panel-blurb">
-        한의사·간호사가 적은 <em>진료 메모</em>를 붙여넣으면 — KCD-8 진단코드, 한의 변증 U-code, 자보 수가, 비급여 항목을 함께 추천합니다. 각 코드에는 <em>출처(KOICD·HIRA·자보 고시)</em>가 같이 따라옵니다. 추천일 뿐, 청구 결정은 행정원이 합니다.
+        한의사·간호사가 적은 <em>진료 메모</em>를 그대로 붙여넣거나 <em>음성으로 받아쓰면</em> — AI가 진단코드·자보 수가·비급여 항목을 한꺼번에 골라드립니다. 추천마다 <em>왜 이 코드인지 근거</em>가 함께 나오니, 행정원장은 <em>맞는지 확인만</em> 하면 됩니다. 결정은 사람이, 검색은 AI가.
       </p>
       <div class="demo-strip">
-        <span class="demo-label">처음이신가요? <strong>"교통사고 후 경추·요추 통증"</strong> 메모로 KCD·자보·비급여 추천이 어떻게 묶이는지 미리 보세요.</span>
+        <span class="demo-label">처음이신가요? <strong>"교통사고 후 경추·요추 통증"</strong> 메모로 — 메모 한 줄에서 청구 가능한 코드들이 어떻게 한 번에 나오는지 보여드립니다.</span>
         <button type="button" class="demo-cta" data-action="run-ai"><span class="play">▶</span> 샘플 메모로 시연</button>
       </div>
 
@@ -3116,7 +3111,7 @@
               <button class="btn" id="ai-run">코드 추천 <span class="arrow">→</span></button>
             </div>
             <div class="key-prompt" id="ai-key-prompt">
-              <strong>실시간(라이브) 모드</strong> — 본인의 Anthropic API 키를 붙여넣으면 Claude가 실제로 메모를 분석합니다. 키는 이 브라우저에만 저장되며 절대 외부로 전송되지 않습니다. <a class="small-link" href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer">키 발급 →</a>
+              <strong>진짜 AI로 한 번 써보고 싶으세요?</strong> — Anthropic 키를 붙여넣으면 위에 입력한 메모를 <em>실제 Claude AI</em>가 분석합니다. 키는 이 브라우저에만 저장되고, 환자 메모도 키도 다른 곳으로 보내지 않습니다. <a class="small-link" href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer">키 발급 →</a>
               <div class="key-row">
                 <input id="ai-key" type="password" placeholder="sk-ant-...">
                 <button class="btn secondary" id="ai-key-save">저장 · 라이브 전환</button>
@@ -3133,7 +3128,7 @@
             <div class="placeholder">메모를 입력하고 <em>코드 추천</em>을 누르면 결과가 여기에 표시됩니다.</div>
           </div>
           <p class="caveat">
-            ※ AI 추천은 청구 보장이 아닙니다. EDI 청구 전 <em>KCD-8 정비</em>·<em>자보 정산</em> 탭에서 한 번 더 검증하세요.
+            ※ AI는 <em>찾아드리는 일</em>까지만 합니다. 청구 결정은 행정원의 몫이에요. 실제 청구 전에 <em>코드 정비</em>·<em>자보 정산</em> 탭에서 한 번 더 확인해주세요.
           </p>
         </div>
       </div>
@@ -3145,14 +3140,14 @@
     <section class="panel" id="tab-license" role="tabpanel">
       <div class="panel-head">
         <span class="panel-num">08 · 면허·자격 갱신</span>
-        <h3>면허·<em>보수교육</em> 만료 트래커</h3>
+        <h3>"<em>다음달이 만료</em>예요" — 그 전화, 이제 안 옵니다</h3>
         <div class="badges">
           <span class="badge law">의료법 §25 · §30</span>
           <span class="badge">한의사 3년 · 간호사 3년 · 보수교육 매년</span>
         </div>
       </div>
       <p class="panel-blurb">
-        한의사·간호사·물리치료사 면허 신고와 보수교육 이수는 <em>3년 주기 일제신고</em>입니다. 직원이 늘면 마감일이 흩어지고 — 한 명만 빠져도 행정처분 대상이 됩니다. 직원 명부와 면허 정보를 등록해두면 만료 임박 6개월 전부터 자동 알림합니다.
+        면허·보수교육 마감은 직원마다 다 다른 날짜입니다. 50명이 넘어가면 머리로는 못 외우고, 한 명만 놓쳐도 <em>행정처분</em>이 됩니다. 명부에 한 번 등록해두면 — 6개월 전부터 자동 알림, 면허증 사진을 찍으면 <em>만료일을 자동으로 읽어 입력</em>합니다.
       </p>
 
       <div class="card">
@@ -3210,14 +3205,14 @@
     <section class="panel" id="tab-accred" role="tabpanel">
       <div class="panel-head">
         <span class="panel-num">09 · 인증평가 체크리스트</span>
-        <h3>한방병원 <em>인증평가</em> 자체점검</h3>
+        <h3>인증조사 한 달 전 — 그때 시작하면 <em>늦습니다</em></h3>
         <div class="badges">
           <span class="badge law">한국의료기관평가인증원</span>
           <span class="badge">4년 주기 갱신</span>
         </div>
       </div>
       <p class="panel-blurb">
-        인증조사 한 달 전이 되어서야 시작하면 늦습니다. <em>안전·환자권리·의무기록·감염관리·시설·인사</em> 등 핵심 항목을 평소에 표시해두세요. 진행률은 자동으로 <em>오늘</em> 탭에 반영되며, PDF로도 출력 가능합니다.
+        4년에 한 번 오는 인증평가, 막판에 몰아서 하면 결국 <em>지적사항</em>이 됩니다. <em>안전·환자권리·의무기록·감염관리·시설·인사</em> 항목을 평소에 한 줄씩 체크해두면 — <em>오늘</em> 탭에 진행률이 자동 표시되고, 조사 직전엔 PDF 한 장으로 정리됩니다.
       </p>
 
       <div class="card">
