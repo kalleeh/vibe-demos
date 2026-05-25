@@ -265,9 +265,7 @@
       align-items: baseline;
       justify-content: space-between;
       gap: 24px;
-      padding-bottom: 24px;
-      margin-bottom: 56px;
-      border-bottom: 1px solid var(--line);
+      margin-bottom: 32px;
       flex-wrap: wrap;
     }
     .section-head h2 {
@@ -289,7 +287,7 @@
     /* ── Works index ── */
     .works {
       position: relative;
-      margin-bottom: 0;
+      margin-bottom: 64px;
     }
     .work {
       display: grid;
@@ -303,9 +301,6 @@
       transition: padding-left .35s cubic-bezier(.2,.8,.2,1), color .25s;
       position: relative;
     }
-    /* The section-head's bottom hairline already frames the table top —
-       skip the first row's border so we don't get two adjacent lines. */
-    .work:first-of-type { border-top: none; }
     .work:last-of-type { border-bottom: 1px solid var(--line); }
     .work .num {
       font-family: "JetBrains Mono", monospace;
