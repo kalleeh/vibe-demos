@@ -1234,12 +1234,20 @@
       const r = canvas.getBoundingClientRect();
       const x = clientX - r.left;
       const y = clientY - r.top;
-      // Only register taps reasonably close to the string vertical band
-      if (Math.abs(y - stringY) > Math.max(80, r.height * 0.18)) return;
+      // Generous tap zone — anywhere in roughly the middle 80% of the
+      // canvas counts as "on the string". The previous 80px / 18% band
+      // demanded too much accuracy on small screens.
+      if (Math.abs(y - stringY) > Math.max(200, r.height * 0.40)) return;
       const tx = (x - leftX) / stringW;
       if (tx <= 0.01 || tx >= 0.99) return;
       const idx = Math.floor(tx * (N - 1));
-      const amp = 0.55 + 0.35 * Math.random();
+      // Amplitude calibrated to the velocity-kick pluck: a single tap
+      // should ripple visibly without blowing the wave off-screen, and
+      // resonant tapping should still climb cleanly. Old 0.55-0.90 range
+      // landed at peak |u|≈3-5 in one tap; halved to 0.25-0.45 keeps
+      // a single kick in the ~1-1.5 range and saturates around 2 on
+      // resonance — same range our sim validated as readable.
+      const amp = 0.25 + 0.20 * Math.random();
       pluck(idx, amp, 5);
       ensureAudio();
       pluckSound(0.28);
