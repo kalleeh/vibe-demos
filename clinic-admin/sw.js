@@ -1,5 +1,5 @@
 /* clinic-admin — minimal offline shell SW */
-const CACHE = "vibe-clinic-admin-v6";
+const CACHE = "vibe-clinic-admin-v7";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
   "./data/kcd9.json",

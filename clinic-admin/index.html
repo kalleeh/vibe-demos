@@ -1607,45 +1607,77 @@
     }
 
     /* ─────────────────────────────────────────────────────────
-       App shell · v2 — left rail + topbar + welcome + palette + toasts
+       App shell · v3 — locked viewport, rail+work-col scroll
+       independently, mobile rail = off-canvas drawer with hamburger
        ───────────────────────────────────────────────────────── */
-    .frame.shell {
-      display: grid;
-      grid-template-columns: 232px minmax(0, 1fr);
-      gap: 0;
-      max-width: 1320px;
-      padding: 0 22px;
-      align-items: start;
+    body.shell-v2 {
+      overflow: hidden;
+      height: 100dvh;
     }
-    @media (max-width: 880px) {
-      .frame.shell { grid-template-columns: 1fr; padding: 0 16px; }
+    @supports not (height: 100dvh) {
+      body.shell-v2 { height: 100vh; }
     }
 
-    /* Left rail */
+    .frame.shell {
+      display: grid;
+      grid-template-columns: 240px minmax(0, 1fr);
+      gap: 0;
+      width: 100%;
+      max-width: none;
+      height: 100dvh;
+      height: 100vh;
+      padding: 0;
+      align-items: stretch;
+      position: relative;
+    }
+    @media (max-width: 880px) {
+      .frame.shell { grid-template-columns: 1fr; }
+    }
+
+    /* Left rail — full-height, independently scrollable column */
     .rail {
-      position: sticky;
-      top: 0;
-      align-self: start;
+      grid-column: 1;
+      grid-row: 1;
+      height: 100dvh;
       height: 100vh;
       display: flex;
       flex-direction: column;
       gap: 0;
-      padding: 22px 14px 22px 0;
+      padding: 18px 12px 14px 18px;
       border-right: 1px solid var(--line);
       overflow-y: auto;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.4), rgba(255,255,255,0.15));
+      z-index: 30;
     }
+    /* Mobile: rail becomes off-canvas drawer, sliding in from the left */
     @media (max-width: 880px) {
       .rail {
-        position: relative;
-        height: auto;
-        border-right: none;
-        border-bottom: 1px solid var(--line);
-        padding: 14px 0;
-        flex-direction: row;
-        gap: 8px;
-        overflow-x: auto;
-        overflow-y: hidden;
+        position: fixed;
+        top: 0; left: 0; bottom: 0;
+        width: min(82vw, 320px);
+        max-width: 320px;
+        background: var(--paper);
+        border-right: 1px solid var(--line);
+        box-shadow: 0 0 80px rgba(20,17,13,0.18);
+        transform: translateX(-100%);
+        transition: transform .25s cubic-bezier(.2,.8,.2,1);
+        padding: 18px 16px 18px 18px;
+        z-index: 60;
       }
+      body.rail-open .rail { transform: translateX(0); }
+    }
+    .rail-scrim {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(20,17,13,0.5);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      z-index: 55;
+    }
+    @media (max-width: 880px) {
+      body.rail-open .rail-scrim { display: block; animation: fadeIn .2s ease-out; }
     }
     .rail .mark {
       display: flex; align-items: center; gap: 11px;
@@ -1705,14 +1737,27 @@
       color: var(--faint);
       padding: 6px 12px 8px;
     }
+    /* Mobile drawer keeps the vertical layout — it's a real menu, not a strip */
     @media (max-width: 880px) {
-      .rail-group {
-        flex-direction: row;
-        padding: 0;
-      }
-      .rail-group + .rail-group { border-top: none; border-left: 1px solid var(--line-2); padding-left: 8px; margin-left: 4px; }
-      .rail-group .group-label { display: none; }
+      .rail-group { padding: 6px 0; }
+      .rail-group .group-label { padding: 4px 12px 6px; }
     }
+    .rail-foot {
+      margin-top: auto;
+      padding-top: 14px;
+      border-top: 1px solid var(--line-2);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .rail-foot .rail-btn {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      padding: 7px 12px;
+    }
+    .rail-foot .rail-btn:hover { color: var(--ink); }
     .rail-btn {
       display: flex;
       align-items: baseline;
@@ -1756,25 +1801,65 @@
     }
     .rail-btn.has-attention .badge-dot { display: block; }
 
-    /* Workspace column */
-    .work-col { min-width: 0; }
+    /* Workspace column — independently scrollable, fills viewport height */
+    .work-col {
+      grid-column: 2;
+      grid-row: 1;
+      min-width: 0;
+      height: 100dvh;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    @media (max-width: 880px) {
+      .work-col { grid-column: 1; }
+    }
+    .work-scroll {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 0 22px;
+      max-width: 1100px;
+      width: 100%;
+      align-self: center;
+    }
+    @media (max-width: 880px) {
+      .work-scroll { padding: 0 16px; }
+    }
 
-    /* Top bar — replaces hero on every panel */
+    /* Top bar — fixed at top of work-col, doesn't scroll with content */
     .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 18;
+      flex-shrink: 0;
       display: flex;
       align-items: center;
-      gap: 14px;
-      flex-wrap: wrap;
-      padding: 14px 22px;
-      background:
-        linear-gradient(rgba(243,238,226,0.94), rgba(243,238,226,0.94)),
-        var(--paper);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      gap: 12px;
+      flex-wrap: nowrap;
+      padding: 12px 22px;
+      background: var(--paper-2);
       border-bottom: 1px solid var(--line);
+      z-index: 20;
+      overflow-x: auto;
+    }
+    .topbar::-webkit-scrollbar { display: none; }
+    .topbar .hamburger {
+      display: none;
+      width: 32px; height: 32px;
+      border: 1px solid var(--line);
+      background: transparent;
+      border-radius: 5px;
+      cursor: pointer;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink);
+      transition: background .15s;
+    }
+    .topbar .hamburger:hover { background: var(--ink); color: var(--paper); }
+    .topbar .hamburger svg { width: 16px; height: 16px; }
+    @media (max-width: 880px) {
+      .topbar .hamburger { display: inline-flex; }
+      .topbar { padding: 10px 14px; }
     }
     .topbar .crumb {
       font-family: "JetBrains Mono", monospace;
@@ -2137,7 +2222,7 @@
     body.shell-v2 .demo-strip {
       display: none !important;
     }
-    body.shell-v2 .panel { padding: 28px 22px 80px; }
+    body.shell-v2 .panel { padding: 24px 0 60px; }
     body.shell-v2 .panel-head {
       padding-bottom: 14px;
       margin-bottom: 18px;
@@ -2217,6 +2302,9 @@
 
   <div class="frame shell">
 
+    <!-- ── Mobile drawer scrim (covers content when rail-open) ── -->
+    <div class="rail-scrim" id="rail-scrim" aria-hidden="true"></div>
+
     <!-- ── Left rail · grouped nav ── -->
     <aside class="rail" id="rail" aria-label="섹션 선택">
       <a class="mark" href="../">
@@ -2248,17 +2336,25 @@
         <button class="rail-btn" data-panel="tab-license"><span class="num">08</span><span>면허·자격 갱신</span><span class="badge-dot"></span></button>
         <button class="rail-btn" data-panel="tab-accred"><span class="num">09</span><span>인증평가</span><span class="badge-dot"></span></button>
       </div>
+
+      <div class="rail-foot">
+        <button class="rail-btn" id="rail-info">ⓘ 정보 · 출처</button>
+        <button class="rail-btn" id="rail-demo">▶ 둘러보기 다시 열기</button>
+        <button class="rail-btn" id="rail-cmdk">⌕ 명령 팔레트 ⌘K</button>
+      </div>
     </aside>
 
     <div class="work-col">
 
-      <!-- ── Top bar (replaces hero on every panel) ── -->
+      <!-- ── Top bar — sticks to top of workspace, doesn't scroll with content ── -->
       <div class="topbar" id="topbar">
+        <button class="hamburger" id="hamburger" aria-label="메뉴 열기">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
         <span class="crumb"><strong id="crumb-section">시작</strong> · <span id="crumb-tab">오늘</span></span>
         <span class="spacer"></span>
         <span class="chip" id="topbar-due" style="display:none"><span class="led warn"></span><span id="topbar-due-text">—</span></span>
-        <span class="chip" id="topbar-sync"><span class="led idle" id="sync-led"></span><span id="sync-msg">로컬 저장 — 모든 작업은 이 브라우저에만</span></span>
-        <span class="chip action" id="topbar-demo" title="둘러보기 다시 열기">▶ 시연</span>
+        <span class="chip" id="topbar-sync"><span class="led idle" id="sync-led"></span><span id="sync-msg">로컬 저장</span></span>
         <span class="chip action" id="topbar-cmdk" title="명령 팔레트 (⌘K · Ctrl+K)"><span style="font-size:11px">⌕</span> <kbd>⌘K</kbd></span>
       </div>
 
@@ -2269,6 +2365,8 @@
         <span id="sync-saved">마지막 저장 <strong id="sync-when">—</strong></span>
         <button id="wipe-all" title="이 브라우저에서 모든 입력·기록을 지웁니다">전체 초기화</button>
       </div>
+
+      <div class="work-scroll" id="work-scroll">
 
     <!-- ─────────────────────────────────────────── -->
     <!-- Tab 0 — 오늘 / Today dashboard -->
@@ -2972,33 +3070,36 @@
       </div>
     </section>
 
-    <footer class="app">
-      <div class="row">
-        <div>
-          <h5>출처 / 근거</h5>
-          <p>
-            KCD-8 — 통계청 8차 개정 (시행 2021-01-01, 일부개정 반영) · <a href="https://www.koicd.kr" target="_blank" rel="noopener noreferrer">koicd.kr</a><br>
-            자보 진료수가 · EDI 심사 — 국토교통부 고시 · HIRA 자보 EDI · <a href="https://www.law.go.kr" target="_blank" rel="noopener noreferrer">law.go.kr</a> · <a href="https://biz.hira.or.kr" target="_blank" rel="noopener noreferrer">biz.hira.or.kr</a><br>
-            의료비 자료제출 — 국세청 홈택스 표준 (PCC 간소화 제외분) · <a href="https://www.hometax.go.kr" target="_blank" rel="noopener noreferrer">hometax.go.kr</a><br>
-            비급여 반기보고 — 의료법 §45조의2, HIRA 요양기관업무포털 · <a href="https://biz.hira.or.kr" target="_blank" rel="noopener noreferrer">biz.hira.or.kr</a><br>
-            의무기록 보존 — 의료법 시행규칙 §15 · <a href="https://www.law.go.kr" target="_blank" rel="noopener noreferrer">law.go.kr</a>
-          </p>
-        </div>
-        <div>
-          <h5>안내</h5>
-          <p>
-            본 도구는 행정 보조용이며, 최종 청구·제출 전 원본 고시·매뉴얼을 반드시 확인하십시오.<br><br>
-            모든 처리는 브라우저 내에서만 이루어지며, 환자정보·주민등록번호 등은 외부로 전송되지 않습니다.
-          </p>
-        </div>
-      </div>
-      <div class="colophon">
-        <span>© MMXXVI · Vibe Studio · Set in Fraunces &amp; Inter</span>
-        <span><a href="../">← 작품집으로 돌아가기</a></span>
-      </div>
-    </footer>
-
+      </div><!-- /.work-scroll -->
     </div><!-- /.work-col -->
+  </div>
+
+  <!-- ── Info modal — replaces the page footer ── -->
+  <div class="welcome-scrim" id="info-scrim" role="dialog" aria-modal="true" aria-labelledby="info-title">
+    <div class="welcome">
+      <button type="button" class="close-x" id="info-close" aria-label="닫기">×</button>
+      <div class="eyebrow">정보 · 출처</div>
+      <h2 id="info-title">출처 · <em>안내</em></h2>
+      <div class="info-section">
+        <h5 style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">출처 / 근거</h5>
+        <p style="font-size:13px;line-height:1.7;color:var(--ink-2);margin-bottom:18px">
+          KCD-8 — 통계청 8차 개정 (시행 2021-01-01, 일부개정 반영) · <a class="small-link" href="https://www.koicd.kr" target="_blank" rel="noopener noreferrer">koicd.kr</a><br>
+          자보 진료수가 · EDI 심사 — 국토교통부 고시 · HIRA 자보 EDI · <a class="small-link" href="https://www.law.go.kr" target="_blank" rel="noopener noreferrer">law.go.kr</a> · <a class="small-link" href="https://biz.hira.or.kr" target="_blank" rel="noopener noreferrer">biz.hira.or.kr</a><br>
+          의료비 자료제출 — 국세청 홈택스 표준 (PCC 간소화 제외분) · <a class="small-link" href="https://www.hometax.go.kr" target="_blank" rel="noopener noreferrer">hometax.go.kr</a><br>
+          비급여 반기보고 — 의료법 §45조의2, HIRA 요양기관업무포털 · <a class="small-link" href="https://biz.hira.or.kr" target="_blank" rel="noopener noreferrer">biz.hira.or.kr</a><br>
+          의무기록 보존 — 의료법 시행규칙 §15 · <a class="small-link" href="https://www.law.go.kr" target="_blank" rel="noopener noreferrer">law.go.kr</a>
+        </p>
+        <h5 style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">안내</h5>
+        <p style="font-size:13px;line-height:1.6;color:var(--ink-2);margin-bottom:18px">
+          본 도구는 행정 보조용이며, 최종 청구·제출 전 원본 고시·매뉴얼을 반드시 확인하십시오.<br>
+          모든 처리는 브라우저 내에서만 이루어지며, 환자정보·주민등록번호 등은 외부로 전송되지 않습니다.
+        </p>
+      </div>
+      <div class="footer-row">
+        <span>© MMXXVI · Vibe Studio · Set in Fraunces &amp; Inter</span>
+        <a class="small-link" href="../">← 작품집으로 돌아가기</a>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -3403,6 +3504,37 @@
       if (e.target.id === "welcome-scrim") closeWelcome(false);
     });
     $("#topbar-demo")?.addEventListener("click", openWelcome);
+    $("#rail-demo")?.addEventListener("click", () => { closeRail(); openWelcome(); });
+    /* Info modal */
+    function openInfo() { $("#info-scrim")?.classList.add("open"); }
+    function closeInfo() { $("#info-scrim")?.classList.remove("open"); }
+    $("#rail-info")?.addEventListener("click", () => { closeRail(); openInfo(); });
+    $("#info-close")?.addEventListener("click", closeInfo);
+    $("#info-scrim")?.addEventListener("click", e => { if (e.target.id === "info-scrim") closeInfo(); });
+    /* Hamburger / off-canvas drawer */
+    function openRail()  { document.body.classList.add("rail-open"); }
+    function closeRail() { document.body.classList.remove("rail-open"); }
+    $("#hamburger")?.addEventListener("click", () => {
+      document.body.classList.contains("rail-open") ? closeRail() : openRail();
+    });
+    $("#rail-scrim")?.addEventListener("click", closeRail);
+    /* Auto-close drawer when a section is picked on mobile */
+    EventBus.on("tab:activated", () => {
+      if (window.innerWidth <= 880) closeRail();
+    });
+    /* Esc closes drawer + modals */
+    document.addEventListener("keydown", e => {
+      if (e.key !== "Escape") return;
+      if (document.body.classList.contains("rail-open")) closeRail();
+      else if ($("#info-scrim")?.classList.contains("open")) closeInfo();
+      else if ($("#welcome-scrim")?.classList.contains("open")) closeWelcome(false);
+    });
+    /* Rail-foot Cmd+K trigger */
+    $("#rail-cmdk")?.addEventListener("click", () => {
+      closeRail();
+      // Palette opens itself on next tick
+      setTimeout(() => Palette.open(), 50);
+    });
     /* Open welcome on first visit */
     if (!Store.get(WELCOMED_KEY)) {
       // Defer until DATA loads so seed button works on first click
