@@ -733,6 +733,53 @@
     }
     .item-row .remove-btn:hover { background: var(--accent); color: var(--paper); border-color: var(--accent); }
 
+    /* Reconciliation row variant — tighter columns to fit paid + cut + reason */
+    .item-row.recon {
+      grid-template-columns: auto minmax(140px, 1fr) auto auto auto auto auto auto;
+      gap: 8px;
+      font-size: 12px;
+      padding: 8px 10px;
+    }
+    .item-row.recon .price-display { min-width: 72px; font-size: 11px; }
+    .item-row.recon .price-display.warn { color: var(--accent); font-weight: 600; }
+    .item-row.recon .paid-unit {
+      width: 76px;
+      padding: 5px 7px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      text-align: right;
+      background: var(--paper);
+    }
+    .item-row.recon .cut-reason {
+      max-width: 150px;
+      padding: 5px 6px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      font-size: 11px;
+      background: var(--paper);
+      color: var(--ink-2);
+    }
+    @media (max-width: 760px) {
+      .item-row.recon {
+        grid-template-columns: auto 1fr auto auto;
+        grid-template-areas:
+          "code  name      qty    remove"
+          "claim claim     paid   paid"
+          "cut   cut       reason reason";
+        row-gap: 6px;
+      }
+      .item-row.recon .code-tag { grid-area: code; }
+      .item-row.recon .name { grid-area: name; }
+      .item-row.recon .qty { grid-area: qty; }
+      .item-row.recon .remove-btn { grid-area: remove; }
+      .item-row.recon .price-display:nth-of-type(1) { grid-area: claim; text-align: left; }
+      .item-row.recon .paid-unit { grid-area: paid; width: 100%; }
+      .item-row.recon .price-display:nth-of-type(2) { grid-area: cut; text-align: left; }
+      .item-row.recon .cut-reason { grid-area: reason; max-width: 100%; }
+    }
+
     .item-search {
       position: relative;
       margin-top: 12px;
@@ -1011,38 +1058,38 @@
 
     <section class="hero">
       <div class="eyebrow">행정원 / 06 도구</div>
-      <h2>코드를 옮기고, <em>청구서</em>를 짜고,<br>보존 기한을 <em>지켜드립니다</em>.</h2>
+      <h2>코드를 <em>정비</em>하고, 청구서를 <em>맞춰보고</em>,<br>보존 기한을 <em>지켜드립니다</em>.</h2>
       <p class="deck">
-        엑셀 한 장을 올리면 — KCD-9 매핑, 자보 한방 수가 견적, 연말정산 의료비 자료, HIRA 비급여 공개 자료, 의무기록 보존 감사, 그리고 통합 코드 검색까지 — <strong>모두 이 페이지 안에서</strong> 처리합니다. 환자 정보는 외부로 전송되지 않습니다.
+        엑셀 한 장을 올리면 — KCD-8 코드 정비, 자보 EDI 청구·지급 정산, 연말정산 의료비 사전검증, HIRA 비급여 반기 보고, 의무기록 보존 감사, 그리고 통합 코드 검색까지 — <strong>모두 이 페이지 안에서</strong> 처리합니다. 환자 정보는 외부로 전송되지 않습니다.
       </p>
     </section>
 
     <nav class="tabs" id="tabnav" role="tablist" aria-label="도구 선택">
-      <button class="tab-btn active" data-panel="tab-kcd"        role="tab"><span class="num">01</span><span>KCD-9 매핑</span></button>
-      <button class="tab-btn"        data-panel="tab-jabo"       role="tab"><span class="num">02</span><span>자보 견적기</span></button>
-      <button class="tab-btn"        data-panel="tab-yearend"    role="tab"><span class="num">03</span><span>연말정산 의료비</span></button>
-      <button class="tab-btn"        data-panel="tab-bigeup"     role="tab"><span class="num">04</span><span>비급여 공개</span></button>
+      <button class="tab-btn active" data-panel="tab-kcd"        role="tab"><span class="num">01</span><span>KCD-8 정비</span></button>
+      <button class="tab-btn"        data-panel="tab-jabo"       role="tab"><span class="num">02</span><span>자보 청구·지급 정산</span></button>
+      <button class="tab-btn"        data-panel="tab-yearend"    role="tab"><span class="num">03</span><span>연말정산 사전검증</span></button>
+      <button class="tab-btn"        data-panel="tab-bigeup"     role="tab"><span class="num">04</span><span>비급여 반기보고</span></button>
       <button class="tab-btn"        data-panel="tab-retention"  role="tab"><span class="num">05</span><span>보존 감사</span></button>
       <button class="tab-btn"        data-panel="tab-search"     role="tab"><span class="num">06</span><span>코드 검색</span></button>
     </nav>
 
     <!-- ─────────────────────────────────────────── -->
-    <!-- Tab 1 — KCD-8 → KCD-9 매핑 -->
+    <!-- Tab 1 — KCD-8 진단코드 정비 -->
     <!-- ─────────────────────────────────────────── -->
     <section class="panel active" id="tab-kcd" role="tabpanel">
       <div class="panel-head">
-        <span class="panel-num">01 · 진단코드 마이그레이션</span>
-        <h3>KCD-8을 <em>KCD-9</em>로 옮겨드립니다</h3>
+        <span class="panel-num">01 · 진단코드 정비</span>
+        <h3>KCD-8 <em>코드 정비</em> · EDI 사전검증</h3>
         <div class="badges">
-          <span class="badge live">데이터 기준일 2026-01-01</span>
-          <span class="badge law">통계청 9차 개정</span>
+          <span class="badge law">통계청 KCD-8 (2021)</span>
+          <span class="badge live">HIRA 심사조정 #1 = 상병명 부적합</span>
         </div>
       </div>
       <p class="panel-blurb">
-        KCD-9가 2026년 1월부터 시행되었습니다. 환자 진단코드 엑셀을 올리시면 <em>1:1 자동매핑</em>, <em>분할(1:N) 후보 제시</em>, <em>통합·신설·삭제</em>까지 분류해드립니다.
+        EMR에서 뽑은 진단코드 대장을 올리면 — <em>구버전·변형 코드</em>를 KCD-8 표준형으로 정정, <em>중복·동의 진단</em> 정리, <em>한의 U-code 누락</em> 점검까지. HIRA EDI 청구 전에 1차 걸러내는 사전검증 도구입니다.
       </p>
       <div class="demo-strip">
-        <span class="demo-label">처음이신가요? <strong>한방 다빈도 8건</strong>이 들어 있는 가상의 환자 대장으로 결과 화면을 미리 보실 수 있습니다.</span>
+        <span class="demo-label">처음이신가요? <strong>한방 다빈도 8건</strong>(요통·오십견·염좌 등)으로 정비 결과를 미리 보실 수 있습니다.</span>
         <button type="button" class="demo-cta" data-action="run-kcd"><span class="play">▶</span> 샘플로 시연</button>
       </div>
 
@@ -1065,10 +1112,10 @@
           </label>
           <div class="schema">
             <span class="label">필요한 컬럼 (헤더 1행)</span>
-            <code>환자번호</code> · <code>진료일자</code> · <code>진단명</code> · <code>KCD8코드</code> · <code>비고</code>
+            <code>환자번호</code> · <code>진료일자</code> · <code>진단명</code> · <code>KCD코드</code> · <code>비고</code>
           </div>
           <p class="caveat">
-            ※ 본 도구는 한방 다빈도 ~70개 코드의 발췌 매핑입니다. 매핑되지 않은 코드는 KOICD 신구대조표에서 확인해주세요.
+            ※ 본 도구는 한방 다빈도 ~70개 KCD-8 코드의 발췌 마스터입니다. 마스터에 없는 코드는 <a class="small-link" href="https://www.koicd.kr" target="_blank" rel="noopener noreferrer">KOICD</a>에서 직접 확인해주세요. 한의 변증(U20-U99)은 양방 진단(M/G/K…)과 함께 입력되어야 EDI 청구가 통과합니다.
           </p>
         </div>
 
@@ -1091,28 +1138,28 @@
     </section>
 
     <!-- ─────────────────────────────────────────── -->
-    <!-- Tab 2 — 자보 한방 수가 견적기 -->
+    <!-- Tab 2 — 자보 EDI 청구·지급 정산 -->
     <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-jabo" role="tabpanel">
       <div class="panel-head">
-        <span class="panel-num">02 · 자동차보험 청구</span>
-        <h3>자보 <em>한방 수가</em> 견적기</h3>
+        <span class="panel-num">02 · 자보 EDI 정산</span>
+        <h3>자보 <em>청구 vs 지급</em> 정산표</h3>
         <div class="badges">
           <span class="badge law">국토교통부 고시</span>
-          <span class="badge live">2026-04-01 기준</span>
+          <span class="badge live">HIRA 자보 EDI</span>
         </div>
       </div>
       <p class="panel-blurb">
-        교통사고 환자의 <em>상병코드</em>와 시행한 <em>한방 행위</em>를 선택하면, 일자별 청구액과 총액을 자동 계산하고 청구서를 엑셀로 내려받을 수 있습니다.
+        EDI로 청구한 자보 한방진료를 보험사 <em>지급내역서</em>와 대조합니다. 행위별 <em>청구액 vs 지급액</em> 차이, <em>삭감 사유</em>, 보험사·월별 정산표를 한 번에. 매월 자보 매출 마감과 삭감 코드 추적용 도구입니다.
       </p>
       <div class="demo-strip">
-        <span class="demo-label"><strong>경추·요추 염좌</strong> 통원 환자 케이스 — 침술·부항·추나·약침이 자동으로 채워집니다.</span>
+        <span class="demo-label"><strong>경추·요추 염좌</strong> 통원 케이스 — 침술·부항·추나·약침에 보험사 지급내역과 삭감 사유까지 자동 채움.</span>
         <button type="button" class="demo-cta" data-action="run-jabo"><span class="play">▶</span> 샘플 케이스로 시연</button>
       </div>
 
       <div class="work">
         <div class="card">
-          <h4><span class="step">01</span> 환자 · 상병 정보</h4>
+          <h4><span class="step">01</span> 환자 · 청구 정보</h4>
           <div class="form-grid">
             <div class="field">
               <label>환자명</label>
@@ -1121,6 +1168,25 @@
             <div class="field">
               <label>환자번호</label>
               <input id="jabo-pid" type="text" placeholder="2026-0142">
+            </div>
+            <div class="field">
+              <label>보험사</label>
+              <select id="jabo-insurer">
+                <option value="">— 선택 —</option>
+                <option value="DB">DB손해보험</option>
+                <option value="삼성">삼성화재</option>
+                <option value="현대">현대해상</option>
+                <option value="KB">KB손해보험</option>
+                <option value="메리츠">메리츠화재</option>
+                <option value="한화">한화손해보험</option>
+                <option value="롯데">롯데손해보험</option>
+                <option value="흥국">흥국화재</option>
+                <option value="기타">기타</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>접수번호</label>
+              <input id="jabo-claim" type="text" placeholder="DB-2026-0421-1234">
             </div>
             <div class="field">
               <label>사고일자</label>
@@ -1136,7 +1202,7 @@
             </div>
           </div>
 
-          <h4 style="margin-top: 24px;"><span class="step">02</span> 한방 행위 추가</h4>
+          <h4 style="margin-top: 24px;"><span class="step">02</span> 행위·지급내역 입력</h4>
           <div class="item-search">
             <input type="text" id="jabo-search" placeholder="시술 검색 — 예: 침술, 부항, 추나, 약침…">
             <div class="item-search-results" id="jabo-search-results"></div>
@@ -1144,51 +1210,51 @@
           <div class="items" id="jabo-items"></div>
 
           <div class="total-strip">
-            <span class="label">총 청구액 (자보)</span>
-            <span class="value"><em id="jabo-total-num">0</em> 원</span>
+            <span class="label">청구 vs 지급</span>
+            <span class="value">청구 <em id="jabo-total-num">0</em> · 지급 <em id="jabo-paid-num">0</em> · 삭감 <em id="jabo-cut-num">0</em> 원</span>
           </div>
         </div>
 
         <div class="card">
-          <h4><span class="step">03</span> 청구서 생성</h4>
+          <h4><span class="step">03</span> 정산표 생성</h4>
           <div id="jabo-status" class="status-line" style="display:none"></div>
           <div class="result-toolbar">
             <div class="summary" id="jabo-summary">
-              <strong>0건</strong> 행위 · <strong>0원</strong>
+              <strong>0건</strong> 행위 · 청구 <strong>0원</strong> · 지급 <strong>0원</strong> · 삭감률 <strong>0%</strong>
             </div>
             <div class="actions">
               <button class="btn" id="jabo-download" disabled>
-                XLSX 청구서 <span class="arrow">↓</span>
+                정산표 XLSX <span class="arrow">↓</span>
               </button>
             </div>
           </div>
           <div class="result" id="jabo-preview">
-            <div class="empty-state">행위를 추가하면 여기에 청구서 미리보기가 표시됩니다.</div>
+            <div class="empty-state">행위와 지급내역을 입력하면 정산표가 표시됩니다.</div>
           </div>
           <p class="caveat">
-            ※ 발행 시점의 국토교통부 고시 본문 (<a class="small-link" href="https://www.law.go.kr" target="_blank" rel="noopener noreferrer">law.go.kr</a>) 별표를 반드시 대조하십시오. 본 도구는 데모 시연용 발췌본입니다.
+            ※ 삭감 사유 코드는 HIRA 심사조정 사유표 발췌본입니다. 정확한 사유는 보험사 지급내역서·HIRA 심사결과통보서를 우선 확인하세요.
           </p>
         </div>
       </div>
     </section>
 
     <!-- ─────────────────────────────────────────── -->
-    <!-- Tab 3 — 연말정산 의료비 자료 빌더 -->
+    <!-- Tab 3 — 연말정산 의료비 사전검증 / 누락보정 -->
     <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-yearend" role="tabpanel">
       <div class="panel-head">
-        <span class="panel-num">03 · NTS 의료비 자료제출</span>
-        <h3>연말정산 <em>의료비</em> 자료 빌더</h3>
+        <span class="panel-num">03 · 연말정산 사전검증</span>
+        <h3>연말정산 <em>의료비</em> 사전검증 · 누락보정</h3>
         <div class="badges">
-          <span class="badge law">국세청 표준 서식</span>
-          <span class="badge live">2026 귀속분 마감 2027-01-XX</span>
+          <span class="badge law">국세청 의료비 자료제출 표준</span>
+          <span class="badge live">매년 1월 7-15일 일괄제출 전</span>
         </div>
       </div>
       <p class="panel-blurb">
-        병의원 내부 진료 기록을 올리면, 홈택스 의료비 자료제출 서식의 <em>표준 CSV</em>로 변환합니다. 사업자등록번호만 입력하시면 끝.
+        대부분의 의료비는 <em>홈택스 간소화서비스(PCC)</em>로 자동 반영됩니다. 그러나 <em>현금결제 비급여</em>·<em>간소화 누락</em>·<em>환자 요청 영수증</em>은 직접 제출해야 합니다. EMR 진료기록을 올리면 — 주민등록번호 자릿수, 음수 금액, 환자별 합계 검증을 거쳐 <em>홈택스 일괄제출 형식</em>으로 변환합니다.
       </p>
       <div class="demo-strip">
-        <span class="demo-label">3명 환자 · <strong>5건 진료</strong>의 가상 데이터로 NTS 표준 자료가 어떻게 생성되는지 확인해보세요.</span>
+        <span class="demo-label">3명 환자 · <strong>5건 진료</strong> — PCC 누락분과 환자 요청분을 합쳐 일괄제출 형식으로 변환하는 흐름을 미리 보실 수 있습니다.</span>
         <button type="button" class="demo-cta" data-action="run-ye"><span class="play">▶</span> 샘플로 시연</button>
       </div>
 
@@ -1240,12 +1306,12 @@
             <code>환자성명</code> · <code>주민등록번호</code> · <code>진료일자</code> · <code>본인부담금</code> · <code>비급여금액</code>
           </div>
           <p class="caveat">
-            주민등록번호는 본 페이지에서만 처리되며, 제출은 사업자가 홈택스에서 직접 합니다.
+            주민등록번호는 본 페이지에서만 처리·자동 마스킹되며, 실제 일괄제출은 사업자가 홈택스 의료비 자료제출 메뉴에서 직접 수행합니다.
           </p>
         </div>
 
         <div class="card">
-          <h4><span class="step">03</span> NTS 표준 자료</h4>
+          <h4><span class="step">03</span> 홈택스 일괄제출 표준</h4>
           <div id="ye-status" class="status-line" style="display:none"></div>
           <div class="result-toolbar" id="ye-toolbar" style="display:none">
             <div class="summary" id="ye-summary"></div>
@@ -1256,29 +1322,29 @@
             </div>
           </div>
           <div class="result" id="ye-result">
-            <div class="empty-state">진료 기록을 올리면 NTS 표준 자료가 생성됩니다.</div>
+            <div class="empty-state">진료 기록을 올리면 검증 결과와 홈택스 표준 자료가 생성됩니다.</div>
           </div>
         </div>
       </div>
     </section>
 
     <!-- ─────────────────────────────────────────── -->
-    <!-- Tab 4 — 비급여 진료비용 공개 -->
+    <!-- Tab 4 — HIRA 비급여 반기보고 -->
     <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-bigeup" role="tabpanel">
       <div class="panel-head">
-        <span class="panel-num">04 · HIRA 비급여 공개</span>
-        <h3>비급여 <em>진료비용</em> 공개 자료 빌더</h3>
+        <span class="panel-num">04 · HIRA 비급여 반기보고</span>
+        <h3>비급여 <em>진료비용</em> 반기보고 자료 빌더</h3>
         <div class="badges">
           <span class="badge law">의료법 §45조의2</span>
-          <span class="badge live">2026 제출분</span>
+          <span class="badge live">반기 보고 (3월·9월)</span>
         </div>
       </div>
       <p class="panel-blurb">
-        HIRA에 매년 제출하는 <em>비급여 항목별 단가</em> 공개 자료. 한방 항목은 이미 골라드렸으니, 우리 병원 단가만 채우시면 됩니다.
+        HIRA <em>요양기관업무포털</em>에 반기마다(3월·9월) 보고하는 비급여 단가 공개 자료. 한방 항목 마스터는 이미 골라드렸으니, <em>우리 병원 단가</em>만 입력하시면 — HIRA 보고 서식과 동일한 엑셀로 내려받을 수 있습니다.
       </p>
       <div class="demo-strip">
-        <span class="demo-label">병원 정보와 <strong>30개 항목</strong>의 표본 단가를 자동으로 채워, 검증·제출 자료가 어떻게 만들어지는지 보여드립니다.</span>
+        <span class="demo-label">병원 정보와 <strong>30개 한방 비급여 항목</strong>의 표본 단가를 자동으로 채워, 검증·보고 파일이 어떻게 만들어지는지 보여드립니다.</span>
         <button type="button" class="demo-cta" data-action="run-bigeup"><span class="play">▶</span> 샘플로 시연</button>
       </div>
 
@@ -1302,7 +1368,7 @@
 
           <h4 style="margin-top: 18px;"><span class="step">02</span> 한방 비급여 항목 단가</h4>
           <p class="caveat" style="margin-top:0">
-            HIRA 비급여 코드 마스터에서 한방 항목 ~30개를 발췌했습니다. <em>최저금액</em>·<em>최고금액</em>·<em>중간금액</em>을 입력하면 자동 검증됩니다.
+            HIRA 비급여 코드 마스터에서 한방 항목 ~30개를 발췌했습니다. 병원급은 <em>최저</em>·<em>최고</em>·<em>중간금액</em>을 모두 입력합니다 (의원급은 단일가). 입력값은 자동으로 검증됩니다.
           </p>
           <div class="result" style="max-height: 460px; margin-top: 12px;">
             <table id="bg-table">
@@ -1322,7 +1388,7 @@
         </div>
 
         <div class="card">
-          <h4><span class="step">03</span> 검증 · 제출 자료</h4>
+          <h4><span class="step">03</span> 검증 · HIRA 보고용 자료</h4>
           <div id="bg-status" class="status-line" style="display:none"></div>
           <div class="audit-summary" id="bg-summary-strip">
             <div class="audit-stat">
@@ -1348,7 +1414,7 @@
             </div>
           </div>
           <p class="caveat">
-            검증 규칙 — 최저 ≤ 중간 ≤ 최고. 빈 항목은 제출 파일에서 자동 제외됩니다.
+            검증 규칙 — 최저 ≤ 중간 ≤ 최고. 빈 항목은 보고 파일에서 자동 제외됩니다. 실제 보고는 <a class="small-link" href="https://biz.hira.or.kr" target="_blank" rel="noopener noreferrer">요양기관업무포털</a>에서 진행하십시오.
           </p>
         </div>
       </div>
@@ -1367,7 +1433,7 @@
         </div>
       </div>
       <p class="panel-blurb">
-        기록 종류별 법정 보존기간이 다릅니다 — <em>진료기록부 10년</em>, <em>처방전 2년</em>, <em>방사선 5년</em>… 기록 대장을 올리면 만료 임박·만료 초과·분류 오류를 한 번에 표시합니다.
+        기록 종류별 법정 보존기간이 다릅니다 — <em>진료기록부·수술기록 10년</em>, <em>처방전 2년</em>, <em>환자명부·검사·간호·방사선 5년</em>, <em>진단서부본 3년</em>. 기록 대장을 올리면 만료 임박·만료 초과·분류 오류를 한 번에 표시합니다. <em>폐기심의위원회</em>·의료기관 인증평가 대비용으로 활용하세요.
       </p>
       <div class="demo-strip">
         <span class="demo-label"><strong>9건 가상 기록</strong> — 만료 초과부터 정상 보존까지 다양한 케이스로 감사 보고서를 미리 보실 수 있습니다.</span>
@@ -1449,16 +1515,16 @@
     <section class="panel" id="tab-search" role="tabpanel">
       <div class="panel-head">
         <span class="panel-num">06 · 통합 코드 검색</span>
-        <h3>한 곳에서 <em>모든 코드</em></h3>
+        <h3>한 곳에서 <em>모든 코드</em> · 한방 크로스워크</h3>
         <div class="badges">
-          <span class="badge live">KCD-9 · 자보 · 비급여</span>
+          <span class="badge live">KCD-8 · 자보 · 비급여</span>
         </div>
       </div>
       <p class="panel-blurb">
-        진단명·시술명·항목명을 한 번에 검색합니다. <em>한글</em>·<em>한자 코드</em>·<em>초성</em>까지 인식합니다.
+        진단명·시술명·항목명을 한 번에 검색합니다. <em>한글</em>·<em>코드</em>·<em>초성</em> 모두 인식. KOICD/HIRA 포털을 대체하는 게 아니라, <em>한방 진단 ↔ 자보 수가 ↔ 비급여</em>를 한 화면에서 묶어 보고 결과를 엑셀로 내려받기 위한 도구입니다.
       </p>
       <div class="demo-strip">
-        <span class="demo-label">예시 검색어 — <strong>"요통"</strong> 한 번에 KCD-9 진단·자보 수가·비급여 어디서 쓰이는지 보여드립니다.</span>
+        <span class="demo-label">예시 검색어 — <strong>"요통"</strong> 하나로 KCD 진단·자보 수가·비급여가 어떻게 묶이는지 보여드립니다.</span>
         <button type="button" class="demo-cta" data-action="run-search"><span class="play">▶</span> 예시 검색어로 시연</button>
       </div>
 
@@ -1466,7 +1532,7 @@
         <input id="search-input" type="search" placeholder="요통 · 추나 · BC0001 · ㅇㅈㅍ…" autocomplete="off">
         <div class="search-filters">
           <button class="filter-chip active" data-source="all">전체</button>
-          <button class="filter-chip" data-source="kcd">KCD-9 진단</button>
+          <button class="filter-chip" data-source="kcd">KCD 진단</button>
           <button class="filter-chip" data-source="jabo">자보 수가</button>
           <button class="filter-chip" data-source="bigeup">비급여</button>
         </div>
@@ -1490,10 +1556,10 @@
         <div>
           <h5>출처 / 근거</h5>
           <p>
-            KCD-9 — 통계청 9차 개정 (효력 2026-01-01) · <a href="https://www.koicd.kr" target="_blank" rel="noopener noreferrer">koicd.kr</a><br>
-            자동차보험 진료수가 — 국토교통부 고시 · <a href="https://www.law.go.kr" target="_blank" rel="noopener noreferrer">law.go.kr</a><br>
-            의료비 자료제출 — 국세청 홈택스 표준 서식 · <a href="https://www.hometax.go.kr" target="_blank" rel="noopener noreferrer">hometax.go.kr</a><br>
-            비급여 공개 — 의료법 §45조의2, HIRA · <a href="https://opendata.hira.or.kr" target="_blank" rel="noopener noreferrer">opendata.hira.or.kr</a><br>
+            KCD-8 — 통계청 8차 개정 (시행 2021-01-01, 일부개정 반영) · <a href="https://www.koicd.kr" target="_blank" rel="noopener noreferrer">koicd.kr</a><br>
+            자보 진료수가 · EDI 심사 — 국토교통부 고시 · HIRA 자보 EDI · <a href="https://www.law.go.kr" target="_blank" rel="noopener noreferrer">law.go.kr</a> · <a href="https://biz.hira.or.kr" target="_blank" rel="noopener noreferrer">biz.hira.or.kr</a><br>
+            의료비 자료제출 — 국세청 홈택스 표준 (PCC 간소화 제외분) · <a href="https://www.hometax.go.kr" target="_blank" rel="noopener noreferrer">hometax.go.kr</a><br>
+            비급여 반기보고 — 의료법 §45조의2, HIRA 요양기관업무포털 · <a href="https://biz.hira.or.kr" target="_blank" rel="noopener noreferrer">biz.hira.or.kr</a><br>
             의무기록 보존 — 의료법 시행규칙 §15 · <a href="https://www.law.go.kr" target="_blank" rel="noopener noreferrer">law.go.kr</a>
           </p>
         </div>
@@ -1670,7 +1736,7 @@
     }).catch(err => console.error("Data load failed:", err));
 
     /* ─────────────────────────────────────────────────────────
-       Tab 1 — KCD-8 → KCD-9 매핑
+       Tab 1 — KCD-8 진단코드 정비
        ───────────────────────────────────────────────────────── */
     function initTab1() {
       let lastResult = null;
@@ -1680,42 +1746,103 @@
         for (const m of DATA.kcd.mappings) {
           map.set(m.kcd8.replace(/\./g, ""), m);
           map.set(m.kcd8, m);
+          map.set(m.kcd9.replace(/\./g, ""), m);
+          map.set(m.kcd9, m);
         }
         return map;
       };
       const idx = buildIndex();
 
+      // 한의 변증 U-codes (KCD-8 U20-U99 block) trigger an EDI dual-coding warning
+      // when used solo without a paired 양방 진단 (M/G/K/F/...).
+      const isUCode = (c) => /^U[2-9]\d/i.test(c.replace(/\./g, ""));
+
       const transform = (rows) => {
         const out = [];
-        const counters = { unchanged: 0, recoded: 0, split: 0, merged: 0, missing: 0 };
+        const counters = { clean: 0, normalized: 0, ambiguous: 0, deduped: 0, ucode_solo: 0, missing: 0 };
+        // Patient → list of codes (for U-code pairing check + dedup)
+        const byPatient = new Map();
         for (const row of rows) {
-          const k8 = String(row["KCD8코드"] || row["KCD코드"] || row["코드"] || "").trim();
+          const pid = String(row["환자번호"] || "").trim();
+          const code = String(row["KCD코드"] || row["KCD8코드"] || row["코드"] || "").trim();
+          if (!byPatient.has(pid)) byPatient.set(pid, []);
+          byPatient.get(pid).push(code.replace(/\./g, ""));
+        }
+
+        const seen = new Map(); // patient+date+code → already saw
+
+        for (const row of rows) {
+          const pid = String(row["환자번호"] || "").trim();
+          const date = String(row["진료일자"] || "").trim();
+          const codeRaw = String(row["KCD코드"] || row["KCD8코드"] || row["코드"] || "").trim();
           const dx = String(row["진단명"] || row["상병명"] || "").trim();
-          const k8norm = k8.replace(/\./g, "");
-          const hit = idx.get(k8) || idx.get(k8norm);
-          let k9 = "", type = "missing", note = "매핑 데이터 없음 — KOICD 신구대조표 확인 필요";
+          const codeNorm = codeRaw.replace(/\./g, "");
+          const hit = idx.get(codeRaw) || idx.get(codeNorm);
+
+          let standardCode = codeRaw, action = "missing", note = "마스터 미수록 — KOICD 직접 확인", category = "—";
+
+          // Dedup check — same patient + same date + same standardized code
+          const dedupKey = `${pid}|${date}|${codeNorm}`;
+          if (seen.has(dedupKey)) {
+            action = "deduped";
+            note = "동일 환자·일자·진단 중복 — 1건으로 통합 권고";
+            standardCode = codeRaw;
+            counters.deduped++;
+            out.push({
+              "환자번호": pid, "진료일자": date, "진단명": dx,
+              "입력코드": codeRaw, "표준코드": standardCode,
+              "정비결과": action, "비고": (row["비고"] ? row["비고"] + " · " : "") + note,
+              "_kind": "warn"
+            });
+            continue;
+          }
+          seen.set(dedupKey, true);
+
           if (hit) {
-            k9 = hit.kcd9;
-            type = hit.type;
-            if (type === "split" && hit.candidates) {
-              note = "후보 다수 — 검토필요: " + hit.candidates.join(" / ");
-            } else if (type === "merged") {
-              note = "통합 매핑";
-            } else if (type === "recoded") {
-              note = "포맷 변경 (점 제거)";
-            } else if (type === "unchanged") {
-              note = "변경 없음";
+            standardCode = hit.kcd8 || codeRaw;
+            category = hit.category || "—";
+            if (hit.type === "split") {
+              action = "ambiguous";
+              note = "세분류 후보: " + (hit.candidates || []).join(" / ");
+              counters.ambiguous++;
+            } else if (hit.type === "recoded") {
+              action = "normalized";
+              note = "마침표 정리(.→없음) — EDI 청구 형식";
+              counters.normalized++;
+            } else if (hit.type === "merged") {
+              action = "normalized";
+              note = "구버전 코드 → 현행 표준형으로 정리";
+              counters.normalized++;
+            } else {
+              action = "clean";
+              note = "현행 표준형 — EDI 청구 가능";
+              counters.clean++;
+            }
+          } else {
+            counters.missing++;
+          }
+
+          // U-code solo check — 한의 변증을 단독으로 입력한 경우 (양방 진단 없음)
+          if (isUCode(codeNorm)) {
+            const others = (byPatient.get(pid) || []).filter(c => c !== codeNorm);
+            const hasWesternPair = others.some(c => /^[A-TVZ]/i.test(c) && !/^U/i.test(c));
+            if (!hasWesternPair) {
+              action = "ucode_solo";
+              note = "한의 변증 단독 — 양방 진단(M/G/K…) 동반코딩 필요";
+              counters.ucode_solo++;
+              counters[hit ? (hit.type === "unchanged" ? "clean" : hit.type) : "missing"]--;
             }
           }
-          counters[type] = (counters[type] || 0) + 1;
+
           out.push({
-            "환자번호":   row["환자번호"]   || "",
-            "진료일자":   row["진료일자"]   || "",
-            "진단명":     dx,
-            "KCD8코드":   k8,
-            "KCD9코드":   k9,
-            "매핑상태":   type,
-            "비고":       (row["비고"] ? row["비고"] + " · " : "") + note
+            "환자번호": pid, "진료일자": date, "진단명": dx,
+            "입력코드": codeRaw, "표준코드": standardCode,
+            "정비결과": action,
+            "비고": (row["비고"] ? row["비고"] + " · " : "") + note,
+            "_kind": action === "clean" ? "ok"
+                    : action === "normalized" ? "ok"
+                    : action === "missing" ? "err"
+                    : "warn"
           });
         }
         return { rows: out, counters };
@@ -1724,39 +1851,43 @@
       const renderResult = (result) => {
         const { rows, counters } = result;
         const total = rows.length;
+        const okCount = (counters.clean || 0) + (counters.normalized || 0);
+        const reviewCount = (counters.ambiguous || 0) + (counters.deduped || 0) + (counters.ucode_solo || 0);
         $("#kcd-summary").innerHTML =
-          `<strong>${total}건</strong> 처리됨 · ` +
-          `자동매핑 <strong>${(counters.unchanged || 0) + (counters.recoded || 0) + (counters.merged || 0)}건</strong> · ` +
-          `검토필요 <strong>${counters.split || 0}건</strong> · ` +
-          `매핑없음 <strong>${counters.missing || 0}건</strong>`;
+          `<strong>${total}건</strong> 검토 · ` +
+          `정상 <strong>${okCount}건</strong> · ` +
+          `검토필요 <strong>${reviewCount}건</strong> · ` +
+          `미수록 <strong>${counters.missing || 0}건</strong>`;
         $("#kcd-toolbar").style.display = "flex";
         $("#kcd-download").disabled = false;
+
+        const labelMap = {
+          clean:      ["정상",       "ok"],
+          normalized: ["형식정리",   "ok"],
+          ambiguous:  ["세분류 검토", "warn"],
+          deduped:    ["중복",       "warn"],
+          ucode_solo: ["U-code 단독", "warn"],
+          missing:    ["미수록",     "err"]
+        };
 
         const html = `
           <table>
             <thead>
               <tr>
                 <th>환자번호</th><th>진료일자</th><th>진단명</th>
-                <th class="code">KCD-8</th><th class="code">KCD-9</th>
-                <th>상태</th><th>비고</th>
+                <th class="code">입력</th><th class="code">표준형</th>
+                <th>결과</th><th>비고</th>
               </tr>
             </thead>
             <tbody>
               ${rows.map(r => {
-                const cls = r.매핑상태 === "missing" ? "err"
-                          : r.매핑상태 === "split"   ? "warn"
-                          : "ok";
-                const label = r.매핑상태 === "missing" ? "매핑없음"
-                            : r.매핑상태 === "split"   ? "검토필요"
-                            : r.매핑상태 === "merged"  ? "통합"
-                            : r.매핑상태 === "recoded" ? "재코딩"
-                            : "변경없음";
+                const [label, cls] = labelMap[r.정비결과] || ["—", "ok"];
                 return `<tr>
                   <td>${r.환자번호}</td>
                   <td class="code">${r.진료일자}</td>
                   <td>${r.진단명 || "—"}</td>
-                  <td class="code">${r.KCD8코드 || "—"}</td>
-                  <td class="code">${r.KCD9코드 || "—"}</td>
+                  <td class="code">${r.입력코드 || "—"}</td>
+                  <td class="code">${r.표준코드 || "—"}</td>
                   <td><span class="pill ${cls}">${label}</span></td>
                   <td>${r.비고}</td>
                 </tr>`;
@@ -1778,7 +1909,7 @@
           lastResult = result;
           renderResult(result);
           setStatus($("#kcd-status"), null,
-            `${result.rows.length}건의 진단을 KCD-9로 변환했습니다.`);
+            `${result.rows.length}건 정비 완료 — EDI 청구 전 검토필요·미수록 항목을 우선 확인하세요.`);
         } catch (err) {
           setStatus($("#kcd-status"), "err", "파일을 읽지 못했습니다 — 형식 확인 필요.");
         }
@@ -1786,40 +1917,55 @@
 
       $("#kcd-download").addEventListener("click", () => {
         if (!lastResult) return;
-        downloadXLSX(lastResult.rows, `KCD9_매핑_${todayISO()}.xlsx`, "KCD9 매핑");
+        const exportRows = lastResult.rows.map(({ _kind, ...rest }) => rest);
+        downloadXLSX(exportRows, `KCD_정비_${todayISO()}.xlsx`, "KCD 정비");
       });
 
       const sampleKcdData = [
-        { 환자번호: "P-2025-0042", 진료일자: "2025-12-10", 진단명: "요통",          KCD8코드: "M54.5", 비고: "" },
-        { 환자번호: "P-2025-0042", 진료일자: "2025-12-12", 진단명: "경부통",        KCD8코드: "M54.2", 비고: "" },
-        { 환자번호: "P-2025-0085", 진료일자: "2025-12-15", 진단명: "오십견",        KCD8코드: "M75.0", 비고: "" },
-        { 환자번호: "P-2025-0085", 진료일자: "2025-12-17", 진단명: "긴장성 두통",   KCD8코드: "G44.2", 비고: "" },
-        { 환자번호: "P-2025-0091", 진료일자: "2025-12-20", 진단명: "요추 염좌",     KCD8코드: "S33.5", 비고: "교통사고" },
-        { 환자번호: "P-2025-0091", 진료일자: "2025-12-20", 진단명: "경추 염좌",     KCD8코드: "S13.4", 비고: "교통사고" },
-        { 환자번호: "P-2025-0103", 진료일자: "2025-12-23", 진단명: "위염 NOS",      KCD8코드: "K29.7", 비고: "" },
-        { 환자번호: "P-2025-0117", 진료일자: "2025-12-26", 진단명: "기능성 소화불량", KCD8코드: "K30",   비고: "" }
+        { 환자번호: "P-2025-0042", 진료일자: "2025-12-10", 진단명: "요통",          KCD코드: "M54.5", 비고: "" },
+        { 환자번호: "P-2025-0042", 진료일자: "2025-12-10", 진단명: "요통",          KCD코드: "M54.5", 비고: "이중 입력" },
+        { 환자번호: "P-2025-0042", 진료일자: "2025-12-12", 진단명: "경부통",        KCD코드: "M54.2", 비고: "" },
+        { 환자번호: "P-2025-0085", 진료일자: "2025-12-15", 진단명: "오십견",        KCD코드: "M75.0", 비고: "" },
+        { 환자번호: "P-2025-0085", 진료일자: "2025-12-17", 진단명: "긴장성 두통",   KCD코드: "G44.2", 비고: "" },
+        { 환자번호: "P-2025-0091", 진료일자: "2025-12-20", 진단명: "요추 염좌",     KCD코드: "S33.5", 비고: "교통사고" },
+        { 환자번호: "P-2025-0091", 진료일자: "2025-12-20", 진단명: "경추 염좌",     KCD코드: "S13.4", 비고: "교통사고" },
+        { 환자번호: "P-2025-0103", 진료일자: "2025-12-23", 진단명: "위염 NOS",      KCD코드: "K29.7", 비고: "" },
+        { 환자번호: "P-2025-0117", 진료일자: "2025-12-26", 진단명: "노권상",        KCD코드: "U68.0", 비고: "한의 변증 단독" }
       ];
 
       $('[data-action="sample-kcd"]').addEventListener("click", (e) => {
         e.stopPropagation();
-        downloadXLSX(sampleKcdData, "샘플_KCD8_진단대장.xlsx", "샘플");
+        downloadXLSX(sampleKcdData, "샘플_KCD_진단대장.xlsx", "샘플");
       });
 
       $('[data-action="run-kcd"]').addEventListener("click", () => {
-        setStatus($("#kcd-status"), null, "샘플 데이터 8건 처리 중…");
+        setStatus($("#kcd-status"), null, "샘플 데이터 9건 정비 중…");
         const result = transform(sampleKcdData);
         lastResult = result;
         renderResult(result);
         setStatus($("#kcd-status"), null,
-          `샘플 ${result.rows.length}건을 KCD-9로 변환했습니다 — '검토필요'·'재코딩' 등 다양한 케이스를 한 번에 보실 수 있습니다.`);
+          `샘플 ${result.rows.length}건 정비 완료 — 중복·세분류·U-code 단독·미수록 등 EDI 청구 전 검토 케이스를 한 번에 보실 수 있습니다.`);
       });
     }
 
     /* ─────────────────────────────────────────────────────────
-       Tab 2 — 자보 한방 수가 견적기
+       Tab 2 — 자보 EDI 청구·지급 정산
        ───────────────────────────────────────────────────────── */
     function initTab2() {
-      const items = []; // {code, name, qty, unit, price, category}
+      const items = []; // {code, name, qty, unit, price, category, paid, cutCode}
+      // HIRA 심사조정 사유 발췌 — 자보 한방진료 빈출 사유
+      const CUT_REASONS = [
+        { code: "",     label: "— 삭감 없음 —" },
+        { code: "C001", label: "C001 · 진찰료 산정기준 위반" },
+        { code: "C012", label: "C012 · 동일 부위 동일 시술 중복 산정" },
+        { code: "C034", label: "C034 · 의학적 필요성 미흡 (자보)" },
+        { code: "C047", label: "C047 · 첩약·약침 횟수 초과" },
+        { code: "C055", label: "C055 · 추나 인정기준 미충족" },
+        { code: "C061", label: "C061 · 상병코드와 시술 부위 불일치" },
+        { code: "C078", label: "C078 · 통원기간 합리적 범위 초과" },
+        { code: "C091", label: "C091 · 산정 단가 오류" },
+        { code: "C099", label: "C099 · 기타 — 자료 추가 제출 후 재심사" }
+      ];
       const dxSel = $("#jabo-dx");
       DATA.jabo.diagnosis_examples.forEach(d => {
         const opt = document.createElement("option");
@@ -1869,7 +2015,8 @@
         if (existing) {
           existing.qty++;
         } else {
-          items.push({ ...def, qty: 1 });
+          // paid defaults to claimed amount; admin overrides as 지급내역서 arrives
+          items.push({ ...def, qty: 1, paid: def.price, cutCode: "" });
         }
         searchEl.value = "";
         resultsEl.classList.remove("show");
@@ -1881,19 +2028,44 @@
         if (!items.length) {
           list.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--muted); font-family: 'Fraunces', serif; font-style: italic; font-size: 14px;">아직 추가된 행위가 없습니다.</div>`;
         } else {
-          list.innerHTML = items.map((it, i) => `
-            <div class="item-row" data-i="${i}">
+          list.innerHTML = items.map((it, i) => {
+            const claimed = it.price * it.qty;
+            const paid = (typeof it.paid === "number" ? it.paid : claimed) * it.qty;
+            const cut = claimed - paid;
+            const cutCls = cut > 0 ? "warn" : "ok";
+            const cutOpts = CUT_REASONS.map(r =>
+              `<option value="${r.code}"${r.code === it.cutCode ? " selected" : ""}>${r.label}</option>`
+            ).join("");
+            return `
+            <div class="item-row recon" data-i="${i}">
               <span class="code-tag">${it.code}</span>
               <span class="name">${it.name} <span style="color: var(--faint); font-size: 11px; margin-left: 4px;">${it.category}</span></span>
-              <input type="number" class="qty" min="1" max="999" value="${it.qty}" data-i="${i}" aria-label="횟수">
-              <span class="price-display">${fmtKRW(it.price * it.qty)}</span>
+              <input type="number" class="qty" min="1" max="999" value="${it.qty}" data-i="${i}" aria-label="횟수" title="횟수">
+              <span class="price-display">청구 ${fmtKRW(claimed)}</span>
+              <input type="number" class="paid-unit" min="0" value="${it.paid}" data-i="${i}" aria-label="지급단가" title="지급 단가 (보험사 지급내역서 기준)" placeholder="${it.price}">
+              <span class="price-display ${cutCls}" style="${cut > 0 ? 'color:var(--accent)' : ''}">${cut > 0 ? '−' + fmtKRW(cut) : '0'}</span>
+              <select class="cut-reason" data-i="${i}" title="삭감 사유">${cutOpts}</select>
               <button class="remove-btn" data-i="${i}" aria-label="삭제">×</button>
-            </div>
-          `).join("");
+            </div>`;
+          }).join("");
           list.querySelectorAll(".qty").forEach(input => {
             input.addEventListener("input", e => {
               const i = +e.target.dataset.i;
               items[i].qty = Math.max(1, +e.target.value || 1);
+              renderItems();
+            });
+          });
+          list.querySelectorAll(".paid-unit").forEach(input => {
+            input.addEventListener("input", e => {
+              const i = +e.target.dataset.i;
+              items[i].paid = Math.max(0, +e.target.value || 0);
+              renderItems();
+            });
+          });
+          list.querySelectorAll(".cut-reason").forEach(sel => {
+            sel.addEventListener("change", e => {
+              const i = +e.target.dataset.i;
+              items[i].cutCode = e.target.value;
               renderItems();
             });
           });
@@ -1904,28 +2076,58 @@
             });
           });
         }
-        const total = items.reduce((s, it) => s + it.price * it.qty, 0);
-        $("#jabo-total-num").textContent = fmtKRW(total);
-        $("#jabo-summary").innerHTML = `<strong>${items.length}건</strong> 행위 · <strong>${fmtKRW(total)}원</strong>`;
+        const totals = items.reduce((acc, it) => {
+          const claimed = it.price * it.qty;
+          const paid = (typeof it.paid === "number" ? it.paid : it.price) * it.qty;
+          acc.claimed += claimed;
+          acc.paid += paid;
+          return acc;
+        }, { claimed: 0, paid: 0 });
+        const cutTotal = totals.claimed - totals.paid;
+        const cutPct = totals.claimed > 0 ? Math.round((cutTotal / totals.claimed) * 1000) / 10 : 0;
+        $("#jabo-total-num").textContent = fmtKRW(totals.claimed);
+        $("#jabo-paid-num").textContent = fmtKRW(totals.paid);
+        $("#jabo-cut-num").textContent = fmtKRW(cutTotal);
+        $("#jabo-summary").innerHTML =
+          `<strong>${items.length}건</strong> 행위 · 청구 <strong>${fmtKRW(totals.claimed)}원</strong> · 지급 <strong>${fmtKRW(totals.paid)}원</strong> · 삭감률 <strong>${cutPct}%</strong>`;
         $("#jabo-download").disabled = items.length === 0;
 
         // preview table
         if (!items.length) {
-          $("#jabo-preview").innerHTML = `<div class="empty-state">행위를 추가하면 여기에 청구서 미리보기가 표시됩니다.</div>`;
+          $("#jabo-preview").innerHTML = `<div class="empty-state">행위와 지급내역을 입력하면 정산표가 표시됩니다.</div>`;
         } else {
-          const dxOpt = dxSel.options[dxSel.selectedIndex];
           $("#jabo-preview").innerHTML = `
             <table>
-              <thead><tr><th class="code">코드</th><th>행위명</th><th>단가</th><th>횟수</th><th>소계</th></tr></thead>
+              <thead><tr>
+                <th class="code">코드</th><th>행위명</th>
+                <th class="code">단가</th><th class="code">횟수</th>
+                <th class="code">청구액</th><th class="code">지급액</th>
+                <th class="code">삭감</th><th>삭감사유</th>
+              </tr></thead>
               <tbody>
-                ${items.map(it => `<tr>
-                  <td class="code">${it.code}</td>
-                  <td>${it.name}</td>
-                  <td class="code" style="text-align:right">${fmtKRW(it.price)}</td>
-                  <td class="code" style="text-align:right">${it.qty}</td>
-                  <td class="code" style="text-align:right"><strong>${fmtKRW(it.price * it.qty)}</strong></td>
-                </tr>`).join("")}
-                <tr style="background: var(--paper-2)"><td colspan="4" style="text-align:right; font-weight:600">총 청구액</td><td class="code" style="text-align:right; font-weight:700">${fmtKRW(total)}원</td></tr>
+                ${items.map(it => {
+                  const claimed = it.price * it.qty;
+                  const paid = (typeof it.paid === "number" ? it.paid : it.price) * it.qty;
+                  const cut = claimed - paid;
+                  const reason = CUT_REASONS.find(r => r.code === it.cutCode)?.label || "—";
+                  return `<tr>
+                    <td class="code">${it.code}</td>
+                    <td>${it.name}</td>
+                    <td class="code" style="text-align:right">${fmtKRW(it.price)}</td>
+                    <td class="code" style="text-align:right">${it.qty}</td>
+                    <td class="code" style="text-align:right">${fmtKRW(claimed)}</td>
+                    <td class="code" style="text-align:right">${fmtKRW(paid)}</td>
+                    <td class="code" style="text-align:right${cut > 0 ? '; color:var(--accent); font-weight:600' : ''}">${cut > 0 ? '−' + fmtKRW(cut) : '0'}</td>
+                    <td style="font-size: 11px; color: var(--ink-2)">${cut > 0 ? reason : "—"}</td>
+                  </tr>`;
+                }).join("")}
+                <tr style="background: var(--paper-2); font-weight: 600">
+                  <td colspan="4" style="text-align:right">합계</td>
+                  <td class="code" style="text-align:right">${fmtKRW(totals.claimed)}</td>
+                  <td class="code" style="text-align:right">${fmtKRW(totals.paid)}</td>
+                  <td class="code" style="text-align:right; color:var(--accent)">${cutTotal > 0 ? '−' + fmtKRW(cutTotal) : '0'}</td>
+                  <td>삭감률 ${cutPct}%</td>
+                </tr>
               </tbody>
             </table>`;
         }
@@ -1940,34 +2142,54 @@
       $("#jabo-download").addEventListener("click", () => {
         const name = $("#jabo-name").value || "—";
         const pid = $("#jabo-pid").value || "—";
+        const insurer = $("#jabo-insurer").value || "—";
+        const claimNo = $("#jabo-claim").value || "—";
         const accident = $("#jabo-accident").value || "—";
         const date = $("#jabo-date").value || todayISO();
         const dx = dxSel.value;
         const dxName = DATA.jabo.diagnosis_examples.find(d => d.code === dx)?.name || "";
-        const total = items.reduce((s, it) => s + it.price * it.qty, 0);
+        const totals = items.reduce((acc, it) => {
+          acc.claimed += it.price * it.qty;
+          acc.paid += (typeof it.paid === "number" ? it.paid : it.price) * it.qty;
+          return acc;
+        }, { claimed: 0, paid: 0 });
+        const cutTotal = totals.claimed - totals.paid;
 
-        const rows = items.map(it => ({
-          "환자명":      name,
-          "환자번호":    pid,
-          "사고일자":    accident,
-          "진료일자":    date,
-          "주상병코드":  dx,
-          "주상병명":    dxName,
-          "행위코드":    it.code,
-          "행위명":      it.name,
-          "분류":        it.category,
-          "단가":        it.price,
-          "단위":        it.unit,
-          "횟수":        it.qty,
-          "소계":        it.price * it.qty
-        }));
-        rows.push({
-          "환자명": "", "환자번호": "", "사고일자": "", "진료일자": "",
-          "주상병코드": "", "주상병명": "",
-          "행위코드": "", "행위명": "총 청구액",
-          "분류": "", "단가": "", "단위": "", "횟수": "", "소계": total
+        const rows = items.map(it => {
+          const claimed = it.price * it.qty;
+          const paid = (typeof it.paid === "number" ? it.paid : it.price) * it.qty;
+          const cut = claimed - paid;
+          return {
+            "환자명":      name,
+            "환자번호":    pid,
+            "보험사":      insurer,
+            "접수번호":    claimNo,
+            "사고일자":    accident,
+            "진료일자":    date,
+            "주상병코드":  dx,
+            "주상병명":    dxName,
+            "행위코드":    it.code,
+            "행위명":      it.name,
+            "분류":        it.category,
+            "고시단가":    it.price,
+            "단위":        it.unit,
+            "횟수":        it.qty,
+            "청구액":      claimed,
+            "지급액":      paid,
+            "삭감액":      cut,
+            "삭감사유":    cut > 0 ? (CUT_REASONS.find(r => r.code === it.cutCode)?.label || "사유미입력") : ""
+          };
         });
-        downloadXLSX(rows, `자보청구서_${pid}_${date}.xlsx`, "자보청구");
+        rows.push({
+          "환자명": "", "환자번호": "", "보험사": "", "접수번호": "",
+          "사고일자": "", "진료일자": "",
+          "주상병코드": "", "주상병명": "",
+          "행위코드": "", "행위명": "합계",
+          "분류": "", "고시단가": "", "단위": "", "횟수": "",
+          "청구액": totals.claimed, "지급액": totals.paid, "삭감액": cutTotal,
+          "삭감사유": ""
+        });
+        downloadXLSX(rows, `자보정산_${pid}_${date}.xlsx`, "자보 정산");
       });
 
       // initial render
@@ -1979,13 +2201,15 @@
       $('[data-action="run-jabo"]').addEventListener("click", () => {
         $("#jabo-name").value = "박지훈";
         $("#jabo-pid").value = "2026-0142";
+        $("#jabo-insurer").value = "DB";
+        $("#jabo-claim").value = "DB-2026-0421-1234";
         const accidentDate = new Date(today);
         accidentDate.setDate(accidentDate.getDate() - 3);
         $("#jabo-accident").value = accidentDate.toISOString().slice(0, 10);
         $("#jabo-date").value = today;
         dxSel.value = "S134"; // 경추 염좌
         items.length = 0;
-        // 5일 통원 — 침술 5회, 부항 3회, 추나 2회, 약침 2회, 진찰료 등
+        // 5일 통원 — realistic case with partial cuts mirroring HIRA 자보 심사 patterns
         ["40011", "40031", "41001", "41001", "41001", "41001", "41001",
          "41021", "41021", "41021", "47011", "47011", "40301", "40301",
          "42011", "42011"].forEach(code => {
@@ -1993,11 +2217,26 @@
           if (!def) return;
           const existing = items.find(x => x.code === code);
           if (existing) existing.qty++;
-          else items.push({ ...def, qty: 1 });
+          else items.push({ ...def, qty: 1, paid: def.price, cutCode: "" });
+        });
+        // Realistic 삭감 pattern: 약침 횟수 일부 삭감, 추나 단가 조정
+        items.forEach(it => {
+          if (it.code === "40301") {
+            // 약침 2회 중 1회만 인정 — 단가 절반으로 표현
+            it.paid = Math.round(it.price * 0.5);
+            it.cutCode = "C047";
+          } else if (it.code === "47011") {
+            // 추나 단가 일부 조정
+            it.paid = Math.round(it.price * 0.85);
+            it.cutCode = "C055";
+          } else {
+            it.paid = it.price;
+            it.cutCode = "";
+          }
         });
         renderItems();
         setStatus($("#jabo-status"), null,
-          "샘플 케이스 — 경추 염좌 통원 환자, 5일치 한방 행위로 청구액이 계산되었습니다.");
+          "샘플 케이스 — 경추 염좌 통원 5일분, DB손해보험 지급내역 반영. 약침·추나에 부분 삭감(C047·C055)이 들어간 실전 정산 예시입니다.");
       });
     }
 
@@ -2074,7 +2313,7 @@
           const result = transform(rows);
           lastRows = result;
           render(result);
-          setStatus($("#ye-status"), null, `${result.length}건의 의료비 기록을 NTS 표준 자료로 변환했습니다. 주민등록번호는 마스킹되어 보관됩니다.`);
+          setStatus($("#ye-status"), null, `${result.length}건 검증 완료 · 홈택스 일괄제출 표준으로 변환했습니다. 주민등록번호는 자동 마스킹됩니다.`);
         } catch (err) {
           setStatus($("#ye-status"), "err", "파일을 읽지 못했습니다.");
         }
@@ -2106,7 +2345,7 @@
         lastRows = result;
         render(result);
         setStatus($("#ye-status"), null,
-          "샘플 환자 3명 · 5건 진료 — 주민등록번호가 자동으로 마스킹되어 NTS 표준 자료가 만들어졌습니다.");
+          "샘플 환자 3명 · 5건 진료 — PCC 미반영 비급여를 포함한 데이터로 일괄제출 사전검증을 마쳤습니다. 주민등록번호는 자동 마스킹.");
       });
     }
 
@@ -2165,7 +2404,7 @@
             `검증 오류 ${errs}건 — 최저 ≤ 중간 ≤ 최고 규칙을 확인하세요.`);
         } else if (done > 0) {
           setStatus($("#bg-status"), null,
-            `${done}개 항목 입력 완료 · 제출 자료 생성 가능.`);
+            `${done}개 항목 입력 완료 · HIRA 반기보고 자료 생성 가능.`);
         } else {
           $("#bg-status").style.display = "none";
         }
@@ -2190,7 +2429,7 @@
         if (!$("#bg-date").value) $("#bg-date").value = todayISO();
         fillPrefill();
         setStatus($("#bg-status"), null,
-          "30개 한방 비급여 항목에 표본 단가가 채워졌습니다 — 검증 결과와 제출 자료를 내려받아 확인해보세요.");
+          "30개 한방 비급여 항목에 표본 단가가 채워졌습니다 — 검증 결과와 HIRA 반기보고용 엑셀을 내려받아 확인해보세요.");
       });
 
       $("#bg-ykiho").addEventListener("input", updateSummary);
@@ -2216,7 +2455,7 @@
             "변경구분":       "신규"
           };
         });
-        downloadXLSX(rows, `비급여공개_${ykiho}_${date}.xlsx`, "비급여 공개");
+        downloadXLSX(rows, `HIRA비급여_반기보고_${ykiho}_${date}.xlsx`, "비급여 반기보고");
       });
 
       // init date
@@ -2428,12 +2667,12 @@
       const all = [
         ...DATA.kcd.mappings.map(m => ({
           source: "kcd",
-          source_label: "KCD-9",
-          code: m.kcd9,
-          alt_code: m.kcd8,
+          source_label: "KCD",
+          code: m.kcd8,
+          alt_code: m.kcd9 !== m.kcd8 ? m.kcd9 : "",
           name: m.name,
           category: m.category,
-          extra: m.type === "split" ? `후보: ${(m.candidates || []).join(" / ")}` : "",
+          extra: m.type === "split" ? `세분류: ${(m.candidates || []).join(" / ")}` : "",
           ref_date: DATA.kcd.effective_date
         })),
         ...DATA.jabo.items.map(it => ({

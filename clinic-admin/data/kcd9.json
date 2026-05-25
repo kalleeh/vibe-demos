@@ -1,9 +1,8 @@
 {
-  "source": "한국표준질병·사인분류 (KCD-9, 통계청 고시 9차 개정)",
+  "source": "한국표준질병·사인분류 (KCD-8, 통계청 고시 제2020-175호)",
   "source_url": "https://www.koicd.kr",
-  "effective_date": "2026-01-01",
-  "previous": "KCD-8 (2020 revision)",
-  "note": "본 표는 한방의원·한방병원 다빈도 진단을 중심으로 발췌한 KCD-8 ↔ KCD-9 매핑 샘플입니다. 전체 코드는 KOICD 신구대조표 참조.",
+  "effective_date": "2021-01-01",
+  "note": "본 표는 한방의원·한방병원 다빈도 진단 ~70개의 KCD-8 마스터 발췌입니다. 'kcd8' 컬럼은 입력 가능한 변형 코드(마침표 포함/제외, 구버전 등), 'kcd9' 컬럼은 EDI 청구용 표준형. 두 값이 다르면 정비 대상.",
   "subset": "한방 다빈도 (HIRA 통계 기반)",
   "mappings": [
     { "kcd8": "M54.5", "kcd9": "M54.50", "name": "요통",                       "type": "split",     "candidates": ["M54.50 요통(상세불명)", "M54.51 요추부 통증"], "category": "근골격" },
