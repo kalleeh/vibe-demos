@@ -410,6 +410,71 @@
     @media (prefers-reduced-motion: reduce) {
       .boost .fill { box-shadow: none; }
     }
+
+    /* ── Physics tuner panel — slides in from the right ─────────── */
+    .tuner {
+      position: absolute;
+      top: 12px; right: 12px;
+      width: min(340px, 92vw);
+      max-height: calc(100vh - 24px);
+      overflow-y: auto;
+      background: rgba(244, 236, 214, 0.97);
+      border: 1px dashed var(--ink-soft);
+      box-shadow: 0 14px 36px rgba(42,38,29,0.16);
+      padding: 14px 16px 12px;
+      z-index: 7;
+      pointer-events: auto;
+      transform: translateX(110%);
+      opacity: 0;
+      transition: transform 220ms ease, opacity 220ms ease;
+      backdrop-filter: blur(2px);
+    }
+    .tuner.live { transform: translateX(0); opacity: 1; }
+    .tuner header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .tuner header .kicker {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px; letter-spacing: 0.18em;
+      color: var(--muted); text-transform: uppercase;
+    }
+    .tuner header .x {
+      appearance: none; border: none; background: none;
+      font-family: "Caveat", cursive; font-size: 26px; line-height: 1;
+      color: var(--ink-soft); cursor: pointer; padding: 0 4px;
+    }
+    .tuner .lede {
+      font-family: "Fraunces", serif; font-size: 13px; line-height: 1.4;
+      color: var(--ink-soft); margin: 0 0 10px;
+    }
+    .tuner .lede em { color: var(--bloom); font-style: italic; }
+    .tuner .rows { display: flex; flex-direction: column; gap: 10px; }
+    .tuner .row { display: grid; grid-template-columns: 1fr auto; row-gap: 4px; }
+    .tuner .row label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px; letter-spacing: 0.10em;
+      color: var(--ink); text-transform: uppercase;
+    }
+    .tuner .row .v {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px; color: var(--bloom); justify-self: end;
+    }
+    .tuner .row .hint {
+      grid-column: 1 / -1;
+      font-family: "Fraunces", serif; font-size: 11px; line-height: 1.3;
+      color: var(--muted); margin-top: -2px;
+    }
+    .tuner .row input[type=range] {
+      grid-column: 1 / -1;
+      width: 100%; accent-color: var(--bloom);
+    }
+    .tuner footer {
+      display: flex; gap: 10px; justify-content: flex-end;
+      margin-top: 12px; padding-top: 10px;
+      border-top: 1px dashed var(--line);
+    }
+    .tuner footer .toggle { font-size: 12px; }
   </style>
 </head>
 <body>
@@ -465,8 +530,22 @@
       <span class="hint" id="hint">tap and hold on a downslope — release to soar</span>
       <span class="spacer" style="flex:1"></span>
       <span class="boost-wrap"><span>BOOST</span><span class="boost"><span class="fill" id="boostFill"></span></span></span>
+      <button class="toggle" id="tuneBtn" aria-pressed="false" title="Tweak physics">tune · physics</button>
       <button class="toggle" id="muteBtn" aria-pressed="false">sound · on</button>
     </footer>
+
+    <aside class="tuner" id="tuner" aria-hidden="true">
+      <header>
+        <span class="kicker">PHYSICS · LIVE</span>
+        <button class="x" id="tuneClose" aria-label="Close">×</button>
+      </header>
+      <p class="lede">drag a slider — feels apply immediately. <em>copy</em> dumps the current values for me to paste.</p>
+      <div class="rows" id="tuneRows"></div>
+      <footer>
+        <button class="toggle" id="tuneCopy">copy values</button>
+        <button class="toggle" id="tuneReset">reset defaults</button>
+      </footer>
+    </aside>
 
     <div class="end-panel" id="endPanel">
       <h2>the day ends</h2>
@@ -865,6 +944,83 @@
     });
     document.getElementById("restartBtn").addEventListener("click", startGame);
 
+    // ── Physics tuner panel ─────────────────────────────────────────
+    // Each entry is a slider for one PHYS knob: [min, max, step, hint].
+    const TUNER_SCHEMA = {
+      GRAVITY_AIR:   { min: 200,  max: 2000, step: 10,   label: "gravity · air",   hint: "downward pull while flying. higher = bird drops faster" },
+      LIFT_K:        { min: 0.0,  max: 3.5,  step: 0.05, label: "lift · per speed", hint: "how much forward speed becomes upward lift" },
+      LIFT_VMIN:     { min: 0,    max: 500,  step: 5,    label: "lift · stall speed", hint: "below this forward speed, lift fades to zero" },
+      MIN_SINK:      { min: 0,    max: 800,  step: 5,    label: "min · sink rate",  hint: "guaranteed downward accel — bird must always come down" },
+      FALL_TERMINAL: { min: 200,  max: 1500, step: 10,   label: "fall · terminal",  hint: "soft cap on free-fall speed when not diving" },
+      PITCH_BIAS:    { min: 0,    max: 4000, step: 25,   label: "pitch · dive bias", hint: "extra downward force when you tap-and-hold mid-air" },
+      DRAG_AIR:      { min: 0,    max: 0.30, step: 0.005, label: "drag · air",      hint: "horizontal damping while airborne" },
+      GRAVITY_SURF:  { min: 200,  max: 2400, step: 10,   label: "gravity · surf",   hint: "pull along the slope while surfing the hills" },
+    };
+    const tunerEl = document.getElementById("tuner");
+    const tuneBtn = document.getElementById("tuneBtn");
+    const tuneCopyBtn = document.getElementById("tuneCopy");
+    const tuneResetBtn = document.getElementById("tuneReset");
+    const tuneCloseBtn = document.getElementById("tuneClose");
+    const tuneRows = document.getElementById("tuneRows");
+    function fmt(k, v) {
+      const s = TUNER_SCHEMA[k].step;
+      return s < 1 ? v.toFixed(s < 0.05 ? 3 : 2) : Math.round(v).toString();
+    }
+    function buildTuner() {
+      tuneRows.innerHTML = "";
+      for (const k of Object.keys(TUNER_SCHEMA)) {
+        const s = TUNER_SCHEMA[k];
+        const row = document.createElement("div");
+        row.className = "row";
+        row.innerHTML =
+          `<label>${s.label}</label>` +
+          `<span class="v" data-v="${k}">${fmt(k, PHYS[k])}</span>` +
+          `<input type="range" min="${s.min}" max="${s.max}" step="${s.step}" value="${PHYS[k]}" data-k="${k}">` +
+          `<span class="hint">${s.hint}</span>`;
+        tuneRows.appendChild(row);
+        const slider = row.querySelector("input");
+        const display = row.querySelector(".v");
+        slider.addEventListener("input", () => {
+          const val = parseFloat(slider.value);
+          PHYS[k] = val;
+          display.textContent = fmt(k, val);
+          try { localStorage.setItem("sketchwings.phys", JSON.stringify(PHYS)); } catch {}
+        });
+      }
+    }
+    buildTuner();
+    tuneBtn.addEventListener("click", () => {
+      const live = tunerEl.classList.toggle("live");
+      tunerEl.setAttribute("aria-hidden", live ? "false" : "true");
+      tuneBtn.setAttribute("aria-pressed", live ? "true" : "false");
+    });
+    tuneCloseBtn.addEventListener("click", () => {
+      tunerEl.classList.remove("live");
+      tunerEl.setAttribute("aria-hidden", "true");
+      tuneBtn.setAttribute("aria-pressed", "false");
+    });
+    tuneResetBtn.addEventListener("click", () => {
+      Object.assign(PHYS, PHYS_DEFAULTS);
+      try { localStorage.removeItem("sketchwings.phys"); } catch {}
+      buildTuner();
+    });
+    tuneCopyBtn.addEventListener("click", async () => {
+      const lines = Object.keys(PHYS_DEFAULTS).map(k => `  ${k}: ${PHYS[k]},`).join("\n");
+      const text = `const PHYS = {\n${lines}\n};`;
+      try {
+        await navigator.clipboard.writeText(text);
+        const orig = tuneCopyBtn.textContent;
+        tuneCopyBtn.textContent = "copied!";
+        setTimeout(() => { tuneCopyBtn.textContent = orig; }, 1100);
+      } catch {
+        // Fallback: select the text in a textarea
+        const ta = document.createElement("textarea");
+        ta.value = text; document.body.appendChild(ta); ta.select();
+        try { document.execCommand("copy"); } catch {}
+        ta.remove();
+      }
+    });
+
     // Keyboard alt — space/up = pitch down, mirrors tap
     window.addEventListener("keydown", e => {
       if (e.repeat) return;
@@ -881,19 +1037,26 @@
     // Gravity values are split so airborne flight is glider-light while
     // surfing still has the satisfying weight of going downhill — a real
     // 1100 px/s² in the air made the bird hit the ground in <1 second.
-    const GRAVITY_SURF = 1100;    // px/s² along the slope tangent
-    const GRAVITY_AIR  = 720;     // px/s² applied while airborne
-    const LIFT_K       = 1.10;    // forward speed → upward lift (px/s² per px/s)
-    const LIFT_VMIN    = 180;     // below this forward speed, lift fades out
-    // Lift can NEVER exceed (gravity − MIN_SINK). This guarantees the
-    // bird always descends — even at very high speed after a ramp boost,
-    // net acceleration is at least MIN_SINK downward, so a bird that
-    // has gained altitude will eventually come back to the hills.
-    const MIN_SINK     = 220;
-    const LIFT_MAX     = GRAVITY_AIR - MIN_SINK;
-    const FALL_TERMINAL = 540;    // unpressed-glide max downward speed (soft cap)
-    const PITCH_BIAS   = 1500;    // extra downward when tap-held
-    const DRAG_AIR     = 0.06;    // per-second velocity damping while airborne (was 0.18)
+    // Physics tuning — all knobs that affect the "feel" of flight, in
+    // one mutable object so the in-game tuning panel can rewrite them
+    // live. The MIN_SINK invariant (lift never exceeds gravity by more
+    // than gravity−MIN_SINK) is enforced at use-site so it survives
+    // arbitrary slider tweaks.
+    const PHYS_DEFAULTS = {
+      GRAVITY_SURF:  1100,  // px/s² along the slope tangent (surfing)
+      GRAVITY_AIR:    720,  // px/s² applied while airborne
+      LIFT_K:        1.10,  // forward speed → upward lift (per px/s)
+      LIFT_VMIN:      180,  // below this forward speed, lift fades out
+      MIN_SINK:       220,  // net downward accel guaranteed at any speed
+      FALL_TERMINAL:  540,  // unpressed-glide max downward speed (soft cap)
+      PITCH_BIAS:    1500,  // extra downward when tap-held
+      DRAG_AIR:      0.06,  // per-second velocity damping while airborne
+    };
+    const PHYS = Object.assign({}, PHYS_DEFAULTS);
+    try {
+      const saved = JSON.parse(localStorage.getItem("sketchwings.phys") || "{}");
+      for (const k in PHYS_DEFAULTS) if (typeof saved[k] === "number") PHYS[k] = saved[k];
+    } catch {}
     const STALL_ANGLE_DEG  = 55;  // landing angle above this = bonk
     const PERFECT_ANGLE_DEG = 12; // launch within this angle of slope tangent = perfect
 
@@ -954,8 +1117,8 @@
           // (so the player can come to rest naturally) but won't grind
           // the bird to a halt in 12 frames the way unclamped gravity
           // does on a 45° upslope.
-          const gAlong = Math.max(-280, GRAVITY_SURF * (slope / tlen));
-          const pitchAdd = (G.pitchDown && slope > 0) ? PITCH_BIAS * (slope / tlen) * dt : 0;
+          const gAlong = Math.max(-280, PHYS.GRAVITY_SURF * (slope / tlen));
+          const pitchAdd = (G.pitchDown && slope > 0) ? PHYS.PITCH_BIAS * (slope / tlen) * dt : 0;
           const roll = -0.04 * projMag * dt;
           let newProj = Math.max(0, projMag + gAlong * dt + pitchAdd + roll);
           G.vx = newProj * tx;
@@ -991,24 +1154,25 @@
         // Lift is proportional to forward speed (a glider only flies if
         // it's moving), capped so we don't get rocket behaviour.
         G.airborne = true;
-        G.vy += GRAVITY_AIR * dt;
+        G.vy += PHYS.GRAVITY_AIR * dt;
         // Lift: faster forward = more lift, fading out near stall speed.
         // Hard cap on lift acceleration so it can never exceed gravity —
         // otherwise a fast bird climbs forever and never comes down.
-        const liftScale = Math.max(0, Math.min(1, (Math.abs(G.vx) - LIFT_VMIN) / 400));
-        const liftAccel = Math.min(LIFT_MAX, LIFT_K * Math.abs(G.vx) * liftScale);
+        const liftMax = Math.max(0, PHYS.GRAVITY_AIR - PHYS.MIN_SINK);
+        const liftScale = Math.max(0, Math.min(1, (Math.abs(G.vx) - PHYS.LIFT_VMIN) / 400));
+        const liftAccel = Math.min(liftMax, PHYS.LIFT_K * Math.abs(G.vx) * liftScale);
         G.vy -= liftAccel * dt;
         // Pitch-down in mid-air: extra downward force (a "dive")
-        if (G.pitchDown) G.vy += PITCH_BIAS * 0.55 * dt;
+        if (G.pitchDown) G.vy += PHYS.PITCH_BIAS * 0.55 * dt;
         // Air drag — only on horizontal so altitude isn't bled away
-        const dragK = Math.exp(-DRAG_AIR * dt);
+        const dragK = Math.exp(-PHYS.DRAG_AIR * dt);
         G.vx *= dragK;
         // Soft terminal-velocity clamp: when NOT diving, the bird should
         // *glide*, not free-fall. Without this, accumulated downward vy
         // grows unbounded between hills and the bird "rains" down even
         // when the player is doing nothing wrong.
-        if (!G.pitchDown && G.vy > FALL_TERMINAL) {
-          G.vy = FALL_TERMINAL + (G.vy - FALL_TERMINAL) * Math.exp(-2.0 * dt);
+        if (!G.pitchDown && G.vy > PHYS.FALL_TERMINAL) {
+          G.vy = PHYS.FALL_TERMINAL + (G.vy - PHYS.FALL_TERMINAL) * Math.exp(-2.0 * dt);
         }
       }
 
