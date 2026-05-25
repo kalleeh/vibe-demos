@@ -46,6 +46,17 @@
       -webkit-font-smoothing: antialiased;
       overscroll-behavior: none;
       touch-action: none;
+      /* Block long-press text selection, callouts, and accidental copy
+         menus while the player is holding to dive. */
+      -webkit-user-select: none;
+              user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-user-drag: none;
+    }
+    .stage, canvas#sky, .footer, .topbar, .intro-panel .copy, .end-panel {
+      -webkit-user-select: none;
+              user-select: none;
+      -webkit-touch-callout: none;
     }
     /* Paper grain (matches resonans) */
     body::before {
@@ -268,6 +279,58 @@
       }
     }
 
+    /* Rotate-for-landscape hint, only shown in narrow-portrait viewports */
+    .rotate-hint {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(360px, 92vw);
+      padding: 22px 24px;
+      background: rgba(244, 236, 214, 0.94);
+      border: 1px dashed var(--ink-soft);
+      box-shadow: 0 18px 44px rgba(42,38,29,0.14);
+      z-index: 6;
+      pointer-events: auto;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      text-align: center;
+      backdrop-filter: blur(2px);
+    }
+    .rotate-hint.live { display: flex; }
+    .rotate-hint .phone-glyph {
+      color: var(--ink-soft);
+      animation: rotate-cue 2.4s ease-in-out infinite;
+    }
+    @keyframes rotate-cue {
+      0%, 35%   { transform: rotate(0deg); }
+      55%, 75%  { transform: rotate(-90deg); }
+      100%      { transform: rotate(0deg); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .rotate-hint .phone-glyph { animation: none; transform: rotate(-30deg); }
+    }
+    .rotate-hint .kicker {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px; letter-spacing: 0.18em;
+      color: var(--muted); text-transform: uppercase;
+    }
+    .rotate-hint p {
+      font-family: "Fraunces", serif;
+      font-size: 15px; line-height: 1.5;
+      color: var(--ink-soft);
+      margin: 0;
+    }
+    .rotate-hint p em { font-style: italic; color: var(--ink); }
+    .rotate-hint button {
+      appearance: none; border: 1px dashed var(--ink-soft); background: transparent;
+      font-family: "Caveat", cursive; font-size: 19px; color: var(--ink);
+      padding: 6px 18px; cursor: pointer;
+      transition: background 160ms, color 160ms;
+    }
+    .rotate-hint button:hover { background: var(--ink); color: var(--paper); }
+
     /* Game-over panel — appears centered, fades in */
     .end-panel {
       position: absolute;
@@ -300,10 +363,22 @@
     .end-panel button:hover { background: var(--ink); color: var(--paper); }
 
     @media (max-width: 640px) {
-      .topbar { padding: 14px 18px 4px; gap: 8px; }
-      .footer { padding: 6px 18px 18px; flex-wrap: wrap; gap: 10px; }
-      .stat, .day-chip, .boost-wrap { font-size: 10px; }
-      .boost { width: 64px; }
+      .topbar { padding: 12px 14px 2px; gap: 6px; }
+      .footer { padding: 4px 14px 14px; flex-wrap: wrap; gap: 8px; }
+      .stat, .day-chip, .boost-wrap { font-size: 10px; padding: 3px 8px; }
+      .stat .v { font-size: 11px; }
+      .boost { width: 56px; }
+      .brand { font-size: clamp(22px, 5.4vw, 30px); }
+      .kicker { display: none; }
+      .back { font-size: 10px; }
+      .footer .hint { font-size: 16px; }
+    }
+    /* Portrait-only tightening — bird game uses canvas full-area, but
+       we still want the chrome to stay tidy when the screen is taller
+       than wide. */
+    @media (orientation: portrait) and (max-width: 640px) {
+      .topbar { row-gap: 4px; }
+      .stat#bestStat { display: none; }   /* keep DAY + DIST, drop BEST */
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -324,6 +399,22 @@
     </header>
 
     <canvas id="sky" aria-label="Pencil hills glider"></canvas>
+
+    <div class="rotate-hint" id="rotateHint" aria-hidden="true">
+      <div class="phone-glyph" aria-hidden="true">
+        <svg viewBox="0 0 64 80" width="64" height="80">
+          <rect x="6" y="2" width="52" height="76" rx="6" fill="none" stroke="currentColor" stroke-width="1.6" />
+          <line x1="20" y1="68" x2="44" y2="68" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          <path d="M 20 30 q 12 -10 24 0" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+          <path d="M 38 26 l 6 4 l -6 4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+      <div class="rotate-msg">
+        <span class="kicker">Best in landscape</span>
+        <p>turn your phone sideways for the full <em>glide</em> — or play this way, it works fine.</p>
+        <button id="dismissRotate" type="button">play in portrait →</button>
+      </div>
+    </div>
 
     <div class="intro-panel" id="introPanel">
       <img class="hero" src="./assets/hero-mood.webp" alt="" width="1280" height="720" decoding="async">
@@ -369,6 +460,13 @@
         navigator.serviceWorker.register("./sw.js").catch(() => {});
       });
     }
+    // Block iOS / Android long-press menus and text selection on the
+    // canvas. user-select: none is not enough on iOS Safari — we also
+    // need to swallow contextmenu, selectstart, and the "magnifier".
+    document.addEventListener("contextmenu", e => e.preventDefault());
+    document.addEventListener("selectstart", e => e.preventDefault());
+    document.addEventListener("dragstart", e => e.preventDefault());
+    document.addEventListener("gesturestart", e => e.preventDefault());
   </script>
 
   <script>
@@ -714,11 +812,16 @@
     });
 
     // ── Physics tick ──────────────────────────────────────────────
-    const GRAVITY = 1100;        // px/s²
-    const PITCH_BIAS = 1500;     // extra downward when tap-held
-    const DRAG_AIR = 0.18;       // per-second velocity damping while airborne
-    const SURF_TANGENT_FACTOR = 8.6; // converts slope*speed into curve following
-    const STALL_ANGLE_DEG = 55;  // landing angle above this = bonk
+    // Gravity values are split so airborne flight is glider-light while
+    // surfing still has the satisfying weight of going downhill — a real
+    // 1100 px/s² in the air made the bird hit the ground in <1 second.
+    const GRAVITY_SURF = 1100;    // px/s² along the slope tangent
+    const GRAVITY_AIR  = 380;     // px/s² applied while airborne
+    const LIFT_K       = 1.10;    // forward speed → upward lift (px/s² per px/s)
+    const LIFT_VMIN    = 200;     // below this forward speed, lift fades out
+    const PITCH_BIAS   = 1500;    // extra downward when tap-held
+    const DRAG_AIR     = 0.06;    // per-second velocity damping while airborne (was 0.18)
+    const STALL_ANGLE_DEG  = 55;  // landing angle above this = bonk
     const PERFECT_ANGLE_DEG = 12; // launch within this angle of slope tangent = perfect
 
     function physicsStep(dt) {
@@ -755,7 +858,7 @@
         const projMag = G.vx * tx + G.vy * ty;
         // Apply gravity along the slope (gravity component along tangent)
         // along-slope = g * sin(angle) = g * slope / sqrt(1+slope²)
-        const gAlong = GRAVITY * (slope / tlen);
+        const gAlong = GRAVITY_SURF * (slope / tlen);
         // While tap-held on a downslope, pitch bias adds energy
         const pitchAdd = (G.pitchDown && slope > 0) ? PITCH_BIAS * (slope / tlen) * dt : 0;
         // Mild rolling friction proportional to speed — prevents perpetual
@@ -794,15 +897,19 @@
           }
         }
       } else {
-        // Airborne — gravity, light drag
+        // Airborne — light gravity + forward-speed lift = real glider feel.
+        // Lift is proportional to forward speed (a glider only flies if
+        // it's moving), capped so we don't get rocket behaviour.
         G.airborne = true;
-        G.vy += GRAVITY * dt;
+        G.vy += GRAVITY_AIR * dt;
+        // Lift: faster forward = more lift, fading out near stall speed.
+        const liftScale = Math.max(0, Math.min(1, (Math.abs(G.vx) - LIFT_VMIN) / 400));
+        G.vy -= LIFT_K * Math.abs(G.vx) * liftScale * dt;
         // Pitch-down in mid-air: extra downward force (a "dive")
-        if (G.pitchDown) G.vy += PITCH_BIAS * 0.45 * dt;
-        // Air drag (small)
+        if (G.pitchDown) G.vy += PITCH_BIAS * 0.55 * dt;
+        // Air drag — only on horizontal so altitude isn't bled away
         const dragK = Math.exp(-DRAG_AIR * dt);
         G.vx *= dragK;
-        G.vy *= dragK;
       }
 
       // Cap horizontal velocity for sanity (preserves sign)
@@ -959,15 +1066,16 @@
     }
 
     // Tile a wide horizontal sprite across the screen, scrolling with
-    // a parallax factor. yFrac places the sprite vertically (0..1 of the
-    // canvas height); heightFrac scales the sprite to a fraction of canvas
-    // height while preserving aspect ratio.
-    function drawParallaxBand(asset, camX, parallax, yFrac, heightFrac, alpha) {
+    // a parallax factor. yBottom is the absolute y-pixel position where
+    // the sprite's BOTTOM edge sits — we anchor from the bottom so the
+    // silhouette can sit cleanly on the horizon. heightFrac scales the
+    // sprite to a fraction of canvas height while preserving aspect.
+    function drawParallaxBand(asset, camX, parallax, yBottom, heightFrac, alpha) {
       if (!asset.ready) return;
       const img = asset.img;
       const drawH = viewH * heightFrac;
       const drawW = drawH * (img.width / img.height);
-      const yTop = viewH * yFrac - drawH * 0.5;
+      const yTop = yBottom - drawH;
       // World-space scrolled offset; mod by drawW so it tiles seamlessly.
       const off = ((camX * parallax) % drawW + drawW) % drawW;
       ctx.save();
@@ -975,8 +1083,6 @@
       // Multiply blend lets the cream paper show through the sprite's
       // own cream paper and only the graphite remains.
       ctx.globalCompositeOperation = "multiply";
-      // Start from -off so the band scrolls right-to-left as the bird
-      // moves forward. Draw enough copies to span the viewport.
       for (let x = -off; x < viewW + drawW; x += drawW) {
         ctx.drawImage(img, x, yTop, drawW, drawH);
       }
@@ -985,26 +1091,36 @@
 
     function drawClouds(camX) {
       const p = pal();
-      // Far ridge silhouette — sits right above the hill horizon, very slow scroll
-      drawParallaxBand(ASSETS.farRidges, camX, 0.06, 0.66, 0.30, p.name === "night" ? 0.25 : 0.55);
-      // Mid hill silhouette — closer, faster scroll, slightly more present
-      drawParallaxBand(ASSETS.midHill,  camX, 0.18, 0.70, 0.34, p.name === "night" ? 0.28 : 0.62);
 
-      // Image-based clouds — only when not night
+      // Clip parallax bands so they live strictly above the horizon
+      // (baseY) — without this clip, the wide pencil sprites bleed
+      // their lower silhouette into where the procedural hill lives
+      // and you see "two horizons stacked".
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, 0, viewW, baseY);
+      ctx.clip();
+
+      // Far ridge silhouette — sits ABOVE the horizon, very slow scroll.
+      // The band is positioned so its BOTTOM aligns with baseY.
+      drawParallaxBand(ASSETS.farRidges, camX, 0.06, baseY * 0.78, 0.20, p.name === "night" ? 0.18 : 0.40);
+      // Mid hill silhouette — slightly closer, faster, just above horizon
+      drawParallaxBand(ASSETS.midHill,  camX, 0.16, baseY * 0.86, 0.22, p.name === "night" ? 0.20 : 0.46);
+
+      // Image-based clouds — only when not night, well up in the sky
       if (p.name !== "night" && ASSETS.cloud.ready) {
         const img = ASSETS.cloud.img;
-        ctx.save();
         ctx.globalCompositeOperation = "multiply";
         for (const c of G.clouds) {
           const screenX = (c.x - camX * c.speed) % (viewW + 400);
           const sx = screenX < -200 ? screenX + viewW + 400 : screenX;
           const w = c.w * 1.6;
           const h = w * (img.height / img.width);
-          ctx.globalAlpha = 0.55;
-          ctx.drawImage(img, sx, c.y - h * 0.5, w, h);
+          ctx.globalAlpha = 0.45;
+          ctx.drawImage(img, sx, Math.min(c.y, baseY * 0.45) - h * 0.5, w, h);
         }
-        ctx.restore();
       }
+      ctx.restore();
     }
 
     // Hand-drawn hill: sample terrain across visible range, multi-pass
@@ -1236,6 +1352,29 @@
     canvas.addEventListener("pointerdown", () => {
       if (!intro.classList.contains("gone")) dismissIntro();
     }, true);
+
+    // Rotate-hint: shown once, only in portrait on narrow screens.
+    // Auto-dismisses if the user rotates to landscape; otherwise the
+    // "play in portrait →" button accepts it.
+    const rotateHint = document.getElementById("rotateHint");
+    let rotateAcknowledged = false;
+    try { rotateAcknowledged = localStorage.getItem("vibe.tinywings.rotate.ack") === "1"; } catch (e) {}
+    function isNarrowPortrait() {
+      return window.matchMedia("(orientation: portrait)").matches && window.innerWidth < 720;
+    }
+    function maybeShowRotate() {
+      if (rotateAcknowledged) return;
+      if (isNarrowPortrait()) rotateHint.classList.add("live");
+      else rotateHint.classList.remove("live");
+    }
+    document.getElementById("dismissRotate").addEventListener("click", () => {
+      rotateAcknowledged = true;
+      try { localStorage.setItem("vibe.tinywings.rotate.ack", "1"); } catch (e) {}
+      rotateHint.classList.remove("live");
+    });
+    window.addEventListener("orientationchange", maybeShowRotate);
+    window.addEventListener("resize", maybeShowRotate);
+    maybeShowRotate();
   </script>
 </body>
 </html>
