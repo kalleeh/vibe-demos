@@ -1034,6 +1034,574 @@
       border-left: 2px solid var(--line);
     }
 
+    /* ── Sync-status strip (under tabs) ── */
+    .sync-strip {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 8px 14px;
+      margin-top: 0;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      border-bottom: 1px solid var(--line-2);
+      background: rgba(255,255,255,0.25);
+    }
+    .sync-strip .group {
+      display: inline-flex; align-items: center; gap: 7px;
+    }
+    .sync-strip .led {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--celadon-2);
+      box-shadow: 0 0 0 0 rgba(123,168,154,0.45);
+    }
+    .sync-strip .led.live { animation: pulse 2.4s ease-out infinite; }
+    .sync-strip .led.warn { background: var(--warn); }
+    .sync-strip .led.idle { background: var(--faint); box-shadow: none; }
+    .sync-strip strong { color: var(--ink); font-weight: 600; }
+    .sync-strip .spacer { flex: 1; }
+    .sync-strip .wipe-btn {
+      background: transparent;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 4px 9px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--ink-2);
+      cursor: pointer;
+    }
+    .sync-strip .wipe-btn:hover {
+      background: var(--accent);
+      color: var(--paper);
+      border-color: var(--accent);
+    }
+
+    /* ── Dashboard (Tab 00) ── */
+    .dash-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 880px) {
+      .dash-grid { grid-template-columns: 1fr; gap: 20px; }
+    }
+    .dday-list {
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .dday {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 14px;
+      align-items: center;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      border-left: 3px solid var(--celadon);
+      cursor: pointer;
+      transition: background .2s, transform .15s;
+    }
+    .dday:hover { background: rgba(255,255,255,0.8); transform: translateX(2px); }
+    .dday.warn { border-left-color: var(--warn); }
+    .dday.urgent { border-left-color: var(--accent); background: rgba(176,74,47,0.06); }
+    .dday.over   { border-left-color: var(--accent); opacity: 0.55; }
+    .dday .dnum {
+      font-family: "Fraunces", serif;
+      font-weight: 300;
+      font-size: 28px;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+      min-width: 60px;
+      text-align: center;
+    }
+    .dday.urgent .dnum { color: var(--accent); }
+    .dday .dnum em { font-style: italic; color: var(--muted); font-size: 14px; font-weight: 400; }
+    .dday .dbody .dtitle {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 400;
+      font-size: 16px;
+      color: var(--ink);
+      margin-bottom: 2px;
+    }
+    .dday .dbody .dmeta {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+    }
+    .dday .arrow {
+      font-family: "JetBrains Mono", monospace;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .dday:hover .arrow { color: var(--accent); }
+
+    /* Activity feed */
+    .act-feed {
+      display: flex; flex-direction: column; gap: 0;
+      max-height: 380px; overflow-y: auto;
+    }
+    .act-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: baseline;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line-2);
+      font-size: 12px;
+    }
+    .act-row:last-child { border-bottom: none; }
+    .act-row .act-when {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: var(--faint);
+      letter-spacing: 0.5px;
+      min-width: 64px;
+    }
+    .act-row .act-text { color: var(--ink-2); line-height: 1.4; }
+    .act-row .act-text strong { color: var(--ink); font-weight: 500; }
+    .act-row .act-tag {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--celadon-2);
+      background: rgba(123,168,154,0.13);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    .act-empty {
+      padding: 28px 0;
+      text-align: center;
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* Resume work cards */
+    .resume-list { display: flex; flex-direction: column; gap: 8px; }
+    .resume {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.4);
+      border: 1px solid var(--line-2);
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background .2s;
+    }
+    .resume:hover { background: rgba(255,255,255,0.7); border-color: var(--ink-2); }
+    .resume .label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .resume .who { color: var(--ink); }
+    .resume .when {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: var(--faint);
+    }
+    .resume .empty { color: var(--faint); font-style: italic; font-family: "Fraunces", serif; }
+
+    /* Insight cards (Tab 00) */
+    .insights {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+    .insight {
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      border-top: 2px solid var(--celadon);
+    }
+    .insight.warn { border-top-color: var(--warn); }
+    .insight.err  { border-top-color: var(--accent); }
+    .insight .label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .insight .num {
+      font-family: "Fraunces", serif;
+      font-size: 24px;
+      font-weight: 300;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+    .insight .num em { font-style: italic; font-size: 12px; color: var(--muted); font-weight: 400; }
+    .insight .sub {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      color: var(--muted);
+      margin-top: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    /* AI assist panel (Tab 07) */
+    .ai-shell {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+    @media (max-width: 880px) {
+      .ai-shell { grid-template-columns: 1fr; }
+    }
+    .ai-input textarea {
+      width: 100%;
+      min-height: 240px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.7);
+      font-family: "Inter", "Noto Serif KR", sans-serif;
+      font-size: 14px;
+      line-height: 1.55;
+      resize: vertical;
+      color: var(--ink);
+    }
+    .ai-input textarea:focus { outline: none; border-color: var(--accent); }
+    .model-toggle {
+      display: inline-flex;
+      gap: 0;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .model-toggle button {
+      padding: 8px 14px;
+      background: transparent;
+      border: none;
+      border-right: 1px solid var(--line);
+      cursor: pointer;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.8px;
+      color: var(--ink-2);
+    }
+    .model-toggle button:last-child { border-right: none; }
+    .model-toggle button.active { background: var(--ink); color: var(--paper); }
+    .model-toggle button:hover:not(.active) { background: var(--paper-2); }
+    .ai-mode-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: rgba(123,168,154,0.15);
+      color: var(--celadon-2);
+      margin-left: 10px;
+    }
+    .ai-mode-pill.live {
+      background: rgba(176,74,47,0.10);
+      color: var(--accent);
+    }
+    .ai-output {
+      min-height: 240px;
+      padding: 18px 20px;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--ink);
+      position: relative;
+    }
+    .ai-output .placeholder {
+      font-style: italic;
+      color: var(--muted);
+      text-align: center;
+      padding: 60px 0;
+    }
+    .ai-output h5 {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 14px 0 6px;
+      font-weight: 500;
+    }
+    .ai-output h5:first-child { margin-top: 0; }
+    .ai-output .code-list { display: flex; flex-direction: column; gap: 6px; }
+    .ai-output .code-list .row {
+      display: grid;
+      grid-template-columns: 100px 1fr auto;
+      gap: 10px;
+      font-family: "Inter", sans-serif;
+      font-size: 13px;
+      align-items: baseline;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--line-2);
+    }
+    .ai-output .code-list .row:last-child { border-bottom: none; }
+    .ai-output .code-list .row code {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      background: rgba(123,168,154,0.13);
+      color: var(--celadon-2);
+      padding: 2px 7px;
+      border-radius: 3px;
+      width: fit-content;
+    }
+    .ai-output .code-list .row .conf {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+    }
+    .ai-output .citation {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: var(--faint);
+      margin-top: 2px;
+    }
+    .ai-shimmer {
+      display: inline-block;
+      width: 100%;
+      background: linear-gradient(90deg, transparent, rgba(176,74,47,0.18), transparent);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      height: 14px; border-radius: 3px;
+      margin-bottom: 8px;
+    }
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .key-prompt {
+      padding: 14px 16px;
+      background: rgba(176,74,47,0.06);
+      border: 1px dashed rgba(176,74,47,0.3);
+      border-radius: 6px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--ink-2);
+    }
+    .key-prompt .key-row {
+      display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;
+    }
+    .key-prompt input[type="password"] {
+      flex: 1 1 200px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      background: rgba(255,255,255,0.7);
+    }
+
+    /* License tracker (Tab 08) */
+    .lic-list { display: flex; flex-direction: column; gap: 10px; }
+    .lic {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      gap: 14px;
+      align-items: center;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.5);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      border-left: 3px solid var(--celadon);
+    }
+    .lic.warn { border-left-color: var(--warn); }
+    .lic.urgent { border-left-color: var(--accent); }
+    .lic .lic-role {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      width: 70px;
+    }
+    .lic .lic-name {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-size: 15px;
+      color: var(--ink);
+    }
+    .lic .lic-name .lic-meta {
+      display: block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px;
+      letter-spacing: 0.3px;
+    }
+    .lic .lic-due {
+      font-family: "Fraunces", serif;
+      font-size: 18px;
+      color: var(--ink);
+      font-weight: 300;
+      letter-spacing: -0.01em;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .lic.urgent .lic-due { color: var(--accent); }
+    .lic .lic-due em { font-style: italic; color: var(--muted); font-size: 11px; font-weight: 400; }
+    .lic .lic-actions { display: flex; gap: 4px; }
+    .lic .lic-actions button {
+      width: 24px; height: 24px;
+      background: transparent;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 12px;
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 0;
+    }
+    .lic .lic-actions button:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .lic-add {
+      display: grid;
+      grid-template-columns: 100px 1fr 130px 130px auto;
+      gap: 8px;
+      align-items: end;
+      margin-top: 14px;
+      padding: 14px;
+      background: rgba(255,255,255,0.4);
+      border: 1px dashed var(--line);
+      border-radius: 6px;
+    }
+    @media (max-width: 720px) {
+      .lic-add { grid-template-columns: 1fr 1fr; }
+      .lic-add button { grid-column: 1/-1; }
+    }
+
+    /* Accreditation checklist (Tab 09) */
+    .accred-cats { display: flex; flex-direction: column; gap: 18px; }
+    .accred-cat {
+      background: rgba(255,255,255,0.5);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .accred-cat-head {
+      padding: 12px 16px;
+      background: var(--paper-2);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+    }
+    .accred-cat-head .ch {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 400;
+      font-size: 16px;
+    }
+    .accred-cat-head .ch em { font-style: italic; color: var(--accent); }
+    .accred-cat-head .pct {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: var(--muted);
+    }
+    .accred-cat-head .pct strong { color: var(--ink); font-weight: 600; }
+    .accred-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      padding: 10px 16px;
+      align-items: start;
+      border-bottom: 1px solid var(--line-2);
+      cursor: pointer;
+    }
+    .accred-item:last-child { border-bottom: none; }
+    .accred-item:hover { background: rgba(255,255,255,0.4); }
+    .accred-item .check {
+      width: 18px; height: 18px;
+      border: 1.5px solid var(--line);
+      border-radius: 4px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      background: rgba(255,255,255,0.7);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: transparent;
+    }
+    .accred-item.done .check {
+      background: var(--celadon-2);
+      border-color: var(--celadon-2);
+      color: var(--paper);
+    }
+    .accred-item .body { font-size: 13px; line-height: 1.45; }
+    .accred-item.done .body { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line); }
+    .accred-item .body .item-meta {
+      display: block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px;
+      letter-spacing: 0.4px;
+    }
+    .accred-item .accred-link {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--celadon-2);
+      text-decoration: none;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 1px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .accred-item .accred-link:hover { color: var(--accent); border-color: var(--accent); }
+    .accred-progress {
+      height: 4px;
+      background: var(--paper-3);
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 18px 0 24px;
+    }
+    .accred-progress .bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--celadon), var(--celadon-2));
+      transition: width .4s cubic-bezier(.2,.8,.2,1);
+    }
+
+    /* Print stylesheet — collapse interactive UI, render printable summary */
+    @media print {
+      header.app .privacy-pill, .tabs, .sync-strip, .demo-strip,
+      .drop, .drop-actions, .item-search, .btn, .ghost, .filter-chip,
+      .ai-input .model-toggle, .key-prompt, .wipe-btn { display: none !important; }
+      body { background: white !important; color: black !important; }
+      body::before { display: none !important; }
+      .panel { display: block !important; page-break-after: always; padding: 0 0 24px; }
+      .panel-head, .panel-blurb { color: black !important; }
+      .card { background: white !important; border: 1px solid #ccc !important; box-shadow: none !important; }
+      .card::before { display: none !important; }
+      table { font-size: 10px; }
+      th { background: #eee !important; color: black !important; }
+      tbody tr:hover { background: white !important; }
+      .frame { max-width: none; padding: 12px; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
     }
@@ -1057,26 +1625,107 @@
     </header>
 
     <section class="hero">
-      <div class="eyebrow">행정원 / 06 도구</div>
-      <h2>코드를 <em>정비</em>하고, 청구서를 <em>맞춰보고</em>,<br>보존 기한을 <em>지켜드립니다</em>.</h2>
+      <div class="eyebrow">행정원 / 09 도구 · 1 대시보드</div>
+      <h2>오늘 할 일을 <em>먼저</em>, 코드를 <em>정비</em>하고,<br>청구서를 <em>맞춰보고</em>, 마감을 <em>지켜드립니다</em>.</h2>
       <p class="deck">
-        엑셀 한 장을 올리면 — KCD-8 코드 정비, 자보 EDI 청구·지급 정산, 연말정산 의료비 사전검증, HIRA 비급여 반기 보고, 의무기록 보존 감사, 그리고 통합 코드 검색까지 — <strong>모두 이 페이지 안에서</strong> 처리합니다. 환자 정보는 외부로 전송되지 않습니다.
+        하루를 <strong>오늘 탭</strong>에서 시작하세요 — 다가오는 마감, 면허 만료, 이어할 작업이 한눈에. 거기서 KCD-8 정비, 자보 EDI 정산, 연말정산 검증, HIRA 비급여 보고, 보존 감사, 코드 검색, AI 코딩 어시스트, 면허·인증평가 관리까지 — <strong>모두 이 페이지 안에서</strong> 처리합니다. 환자 정보는 외부로 전송되지 않습니다.
       </p>
     </section>
 
     <nav class="tabs" id="tabnav" role="tablist" aria-label="도구 선택">
-      <button class="tab-btn active" data-panel="tab-kcd"        role="tab"><span class="num">01</span><span>KCD-8 정비</span></button>
+      <button class="tab-btn active" data-panel="tab-today"      role="tab"><span class="num">00</span><span>오늘</span></button>
+      <button class="tab-btn"        data-panel="tab-kcd"        role="tab"><span class="num">01</span><span>KCD-8 정비</span></button>
       <button class="tab-btn"        data-panel="tab-jabo"       role="tab"><span class="num">02</span><span>자보 청구·지급 정산</span></button>
       <button class="tab-btn"        data-panel="tab-yearend"    role="tab"><span class="num">03</span><span>연말정산 사전검증</span></button>
       <button class="tab-btn"        data-panel="tab-bigeup"     role="tab"><span class="num">04</span><span>비급여 반기보고</span></button>
       <button class="tab-btn"        data-panel="tab-retention"  role="tab"><span class="num">05</span><span>보존 감사</span></button>
       <button class="tab-btn"        data-panel="tab-search"     role="tab"><span class="num">06</span><span>코드 검색</span></button>
+      <button class="tab-btn"        data-panel="tab-ai"         role="tab"><span class="num">07</span><span>AI 코딩 어시스트</span></button>
+      <button class="tab-btn"        data-panel="tab-license"    role="tab"><span class="num">08</span><span>면허·자격 갱신</span></button>
+      <button class="tab-btn"        data-panel="tab-accred"     role="tab"><span class="num">09</span><span>인증평가 체크리스트</span></button>
     </nav>
+
+    <div class="sync-strip" id="sync-strip">
+      <span class="group"><span class="led idle" id="sync-led"></span><span id="sync-msg">로컬 저장 — 모든 작업은 이 브라우저에만 보관됩니다.</span></span>
+      <span class="group" id="sync-broadcast" style="display:none"><span class="led live"></span><span>다른 탭에서 작업 중</span></span>
+      <span class="spacer"></span>
+      <span class="group" id="sync-saved" style="display:none">마지막 저장 <strong id="sync-when">—</strong></span>
+      <button class="wipe-btn" id="wipe-all" title="이 브라우저에서 모든 입력·기록을 지웁니다">전체 초기화</button>
+    </div>
+
+    <!-- ─────────────────────────────────────────── -->
+    <!-- Tab 0 — 오늘 / Today dashboard -->
+    <!-- ─────────────────────────────────────────── -->
+    <section class="panel active" id="tab-today" role="tabpanel">
+      <div class="panel-head">
+        <span class="panel-num">00 · 오늘</span>
+        <h3>오늘의 <em>행정실</em></h3>
+        <div class="badges">
+          <span class="badge live" id="today-date">—</span>
+          <span class="badge">다가오는 마감 · 이어할 작업</span>
+        </div>
+      </div>
+      <p class="panel-blurb">
+        반기 보고와 면허 갱신은 <em>잊은 순간</em> 사고가 됩니다. 작업 중이던 자료는 <em>이어서</em> 끝내야 마감이 맞습니다. 이 화면이 그 두 가지를 항상 먼저 보여드립니다.
+      </p>
+
+      <div class="insights" id="today-insights">
+        <div class="insight">
+          <div class="label">이번 분기 자보 청구</div>
+          <div class="num" id="ins-jabo">— <em>건</em></div>
+          <div class="sub" id="ins-jabo-sub">최근 정산 기록 없음</div>
+        </div>
+        <div class="insight" id="ins-cut-card">
+          <div class="label">평균 삭감률</div>
+          <div class="num" id="ins-cut">— <em>%</em></div>
+          <div class="sub" id="ins-cut-sub">정산 1건 이상 필요</div>
+        </div>
+        <div class="insight" id="ins-ret-card">
+          <div class="label">만료 초과 기록</div>
+          <div class="num" id="ins-ret">—</div>
+          <div class="sub" id="ins-ret-sub">감사 미실행</div>
+        </div>
+        <div class="insight" id="ins-accred-card">
+          <div class="label">인증평가 진행</div>
+          <div class="num" id="ins-accred">— <em>%</em></div>
+          <div class="sub">한국의료기관평가인증원</div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="card">
+          <h4><span class="step">01</span> 다가오는 마감</h4>
+          <div class="dday-list" id="dday-list"></div>
+          <div class="result-toolbar" style="margin-top:18px; margin-bottom:0">
+            <div class="summary">캘린더로 내려받아 일정 앱에 넣어두세요.</div>
+            <div class="actions">
+              <button class="btn secondary" id="dday-ics">.ics 캘린더 <span class="arrow">↓</span></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4><span class="step">02</span> 작업 이어하기</h4>
+          <div class="resume-list" id="resume-list">
+            <div class="resume"><span class="empty">아직 진행 중인 작업이 없습니다.</span></div>
+          </div>
+
+          <h4 style="margin-top:24px"><span class="step">03</span> 최근 활동</h4>
+          <div class="act-feed" id="act-feed">
+            <div class="act-empty">최근 활동이 없습니다.</div>
+          </div>
+        </div>
+      </div>
+
+      <p class="caveat" style="margin-top:24px">
+        ※ 모든 데이터는 <em>이 브라우저</em>에만 저장됩니다. 다른 브라우저·기기에서는 보이지 않으며, 로그아웃·시크릿창 종료시 사라질 수 있습니다. 같은 브라우저에서 여러 탭을 열어두면 자동으로 동기화됩니다.
+      </p>
+    </section>
 
     <!-- ─────────────────────────────────────────── -->
     <!-- Tab 1 — KCD-8 진단코드 정비 -->
     <!-- ─────────────────────────────────────────── -->
-    <section class="panel active" id="tab-kcd" role="tabpanel">
+    <section class="panel" id="tab-kcd" role="tabpanel">
       <div class="panel-head">
         <span class="panel-num">01 · 진단코드 정비</span>
         <h3>KCD-8 <em>코드 정비</em> · EDI 사전검증</h3>
@@ -1551,6 +2200,161 @@
       </div>
     </section>
 
+    <!-- ─────────────────────────────────────────── -->
+    <!-- Tab 7 — AI 코딩 어시스트 -->
+    <!-- ─────────────────────────────────────────── -->
+    <section class="panel" id="tab-ai" role="tabpanel">
+      <div class="panel-head">
+        <span class="panel-num">07 · AI 코딩 어시스트</span>
+        <h3>진료 메모 → <em>코드 추천</em></h3>
+        <div class="badges">
+          <span class="badge live"><span id="ai-mode-badge">데모 모드</span></span>
+          <span class="badge">Claude Opus 4.7 · Sonnet 4.6 · Haiku 4.5</span>
+        </div>
+      </div>
+      <p class="panel-blurb">
+        한의사·간호사가 적은 <em>진료 메모</em>를 붙여넣으면 — KCD-8 진단코드, 한의 변증 U-code, 자보 수가, 비급여 항목을 함께 추천합니다. 각 코드에는 <em>출처(KOICD·HIRA·자보 고시)</em>가 같이 따라옵니다. 추천일 뿐, 청구 결정은 행정원이 합니다.
+      </p>
+      <div class="demo-strip">
+        <span class="demo-label">처음이신가요? <strong>"교통사고 후 경추·요추 통증"</strong> 메모로 KCD·자보·비급여 추천이 어떻게 묶이는지 미리 보세요.</span>
+        <button type="button" class="demo-cta" data-action="run-ai"><span class="play">▶</span> 샘플 메모로 시연</button>
+      </div>
+
+      <div class="ai-shell">
+        <div class="card">
+          <h4><span class="step">01</span> 진료 메모 입력</h4>
+          <div class="ai-input">
+            <textarea id="ai-input" placeholder="예) 60세 남자, 3주 전 추돌사고 후 경부·요부 통증. 회전시 우측 어깨 방사통. SLR 양성. 침술·부항·추나 시술 예정."></textarea>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;">
+              <div class="model-toggle" id="ai-model">
+                <button data-model="claude-opus-4-7" class="active">Opus 4.7</button>
+                <button data-model="claude-sonnet-4-6">Sonnet 4.6</button>
+                <button data-model="claude-haiku-4-5">Haiku 4.5</button>
+              </div>
+              <button class="btn" id="ai-run">코드 추천 <span class="arrow">→</span></button>
+            </div>
+            <div class="key-prompt" id="ai-key-prompt">
+              <strong>실시간(라이브) 모드</strong> — 본인의 Anthropic API 키를 붙여넣으면 Claude가 실제로 메모를 분석합니다. 키는 이 브라우저에만 저장되며 절대 외부로 전송되지 않습니다. <a class="small-link" href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer">키 발급 →</a>
+              <div class="key-row">
+                <input id="ai-key" type="password" placeholder="sk-ant-...">
+                <button class="btn secondary" id="ai-key-save">저장 · 라이브 전환</button>
+                <button class="btn secondary" id="ai-key-paste">📋 붙여넣기</button>
+                <button class="btn secondary" id="ai-key-forget" style="display:none">키 삭제</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4><span class="step">02</span> 추천 결과 <span id="ai-mode-pill" class="ai-mode-pill">데모 모드</span></h4>
+          <div class="ai-output" id="ai-output">
+            <div class="placeholder">메모를 입력하고 <em>코드 추천</em>을 누르면 결과가 여기에 표시됩니다.</div>
+          </div>
+          <p class="caveat">
+            ※ AI 추천은 청구 보장이 아닙니다. EDI 청구 전 <em>KCD-8 정비</em>·<em>자보 정산</em> 탭에서 한 번 더 검증하세요.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────── -->
+    <!-- Tab 8 — 면허·자격 갱신 트래커 -->
+    <!-- ─────────────────────────────────────────── -->
+    <section class="panel" id="tab-license" role="tabpanel">
+      <div class="panel-head">
+        <span class="panel-num">08 · 면허·자격 갱신</span>
+        <h3>면허·<em>보수교육</em> 만료 트래커</h3>
+        <div class="badges">
+          <span class="badge law">의료법 §25 · §30</span>
+          <span class="badge">한의사 3년 · 간호사 3년 · 보수교육 매년</span>
+        </div>
+      </div>
+      <p class="panel-blurb">
+        한의사·간호사·물리치료사 면허 신고와 보수교육 이수는 <em>3년 주기 일제신고</em>입니다. 직원이 늘면 마감일이 흩어지고 — 한 명만 빠져도 행정처분 대상이 됩니다. 직원 명부와 면허 정보를 등록해두면 만료 임박 6개월 전부터 자동 알림합니다.
+      </p>
+
+      <div class="card">
+        <h4><span class="step">01</span> 직원 면허 명부</h4>
+        <div class="lic-list" id="lic-list">
+          <!-- populated by JS -->
+        </div>
+
+        <h4 style="margin-top:24px"><span class="step">02</span> 직원 추가</h4>
+        <div class="lic-add">
+          <div class="field">
+            <label>역할</label>
+            <select id="lic-role">
+              <option value="한의사">한의사</option>
+              <option value="간호사">간호사</option>
+              <option value="물리치료사">물리치료사</option>
+              <option value="간호조무사">간호조무사</option>
+              <option value="원무">원무·행정</option>
+              <option value="기타">기타</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>이름</label>
+            <input id="lic-name" type="text" placeholder="홍길동">
+          </div>
+          <div class="field">
+            <label>면허 만료일</label>
+            <input id="lic-expiry" type="date">
+          </div>
+          <div class="field">
+            <label>보수교육 마감</label>
+            <input id="lic-cme" type="date">
+          </div>
+          <button class="btn" id="lic-add-btn">추가</button>
+        </div>
+
+        <div class="result-toolbar" style="margin-top:18px">
+          <div class="summary" id="lic-summary">총 0명 · 만료 임박 0명</div>
+          <div class="actions">
+            <button class="btn secondary" id="lic-ics">만료일 .ics <span class="arrow">↓</span></button>
+            <button class="btn secondary" id="lic-sample">샘플 5명 채우기</button>
+          </div>
+        </div>
+
+        <p class="caveat">
+          ※ 면허 신고는 <a class="small-link" href="https://license.kma.org" target="_blank" rel="noopener noreferrer">대한의사협회 면허신고센터</a> · 한의사는 <a class="small-link" href="https://license.akom.org" target="_blank" rel="noopener noreferrer">대한한의사협회</a>를 통해 진행됩니다. 보수교육 이수증은 각 협회 시스템에 보관됩니다.
+        </p>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────── -->
+    <!-- Tab 9 — 인증평가 체크리스트 -->
+    <!-- ─────────────────────────────────────────── -->
+    <section class="panel" id="tab-accred" role="tabpanel">
+      <div class="panel-head">
+        <span class="panel-num">09 · 인증평가 체크리스트</span>
+        <h3>한방병원 <em>인증평가</em> 자체점검</h3>
+        <div class="badges">
+          <span class="badge law">한국의료기관평가인증원</span>
+          <span class="badge">4년 주기 갱신</span>
+        </div>
+      </div>
+      <p class="panel-blurb">
+        인증조사 한 달 전이 되어서야 시작하면 늦습니다. <em>안전·환자권리·의무기록·감염관리·시설·인사</em> 등 핵심 항목을 평소에 표시해두세요. 진행률은 자동으로 <em>오늘</em> 탭에 반영되며, PDF로도 출력 가능합니다.
+      </p>
+
+      <div class="card">
+        <div class="result-toolbar" style="margin-bottom:0">
+          <div class="summary" id="accred-summary"><strong>0</strong> / 0 항목 완료 — 0%</div>
+          <div class="actions">
+            <button class="btn secondary" id="accred-print">PDF 출력 <span class="arrow">↓</span></button>
+            <button class="btn secondary" id="accred-reset">초기화</button>
+          </div>
+        </div>
+        <div class="accred-progress"><div class="bar" id="accred-bar" style="width:0%"></div></div>
+        <div class="accred-cats" id="accred-cats">
+          <!-- populated by JS -->
+        </div>
+        <p class="caveat" style="margin-top:18px">
+          ※ 본 체크리스트는 한방병원 인증조사 항목을 압축·요약한 것입니다. 실제 조사 항목은 <a class="small-link" href="https://www.koiha.or.kr" target="_blank" rel="noopener noreferrer">한국의료기관평가인증원</a> 최신 매뉴얼을 우선합니다.
+        </p>
+      </div>
+    </section>
+
     <footer class="app">
       <div class="row">
         <div>
@@ -1699,21 +2503,199 @@
     }
 
     /* ─────────────────────────────────────────────────────────
+       Foundation — Store + EventBus + ActivityLog + SyncStatus
+       Backend-free state layer. localStorage holds per-tool
+       state under namespaced keys; BroadcastChannel + the
+       'storage' window event keep multiple browser tabs in sync.
+       ───────────────────────────────────────────────────────── */
+    const NS = "vibe.clinic-admin";
+    const Store = {
+      get(key, fallback = null) {
+        try {
+          const raw = localStorage.getItem(`${NS}.${key}`);
+          return raw == null ? fallback : JSON.parse(raw);
+        } catch { return fallback; }
+      },
+      set(key, value) {
+        try {
+          localStorage.setItem(`${NS}.${key}`, JSON.stringify(value));
+          SyncStatus.touch();
+          EventBus.emit(`store:${key}`, value);
+        } catch (e) { console.warn("Store.set failed", e); }
+      },
+      remove(key) {
+        try { localStorage.removeItem(`${NS}.${key}`); } catch {}
+        EventBus.emit(`store:${key}`, null);
+      },
+      keys() {
+        const out = [];
+        const prefix = `${NS}.`;
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith(prefix)) out.push(k.slice(prefix.length));
+        }
+        return out;
+      },
+      wipeAll() {
+        for (const k of this.keys()) localStorage.removeItem(`${NS}.${k}`);
+        EventBus.emit("store:wiped", null);
+      }
+    };
+
+    const EventBus = (() => {
+      const handlers = new Map();
+      let bc = null;
+      try { bc = new BroadcastChannel(`${NS}.bus`); } catch {}
+      const emitLocal = (ev, data) => {
+        const list = handlers.get(ev) || [];
+        for (const fn of list) { try { fn(data); } catch (e) { console.error(e); } }
+        const wild = handlers.get("*") || [];
+        for (const fn of wild) { try { fn(ev, data); } catch (e) { console.error(e); } }
+      };
+      if (bc) bc.onmessage = (e) => {
+        emitLocal(e.data?.ev, e.data?.data);
+        SyncStatus.peer();
+      };
+      window.addEventListener("storage", (e) => {
+        if (!e.key || !e.key.startsWith(`${NS}.`)) return;
+        const key = e.key.slice(NS.length + 1);
+        try { emitLocal(`store:${key}`, e.newValue ? JSON.parse(e.newValue) : null); } catch {}
+        SyncStatus.peer();
+      });
+      return {
+        on(ev, fn) {
+          if (!handlers.has(ev)) handlers.set(ev, []);
+          handlers.get(ev).push(fn);
+        },
+        emit(ev, data) {
+          emitLocal(ev, data);
+          if (bc) try { bc.postMessage({ ev, data }); } catch {}
+        }
+      };
+    })();
+
+    const ActivityLog = {
+      MAX: 50,
+      push(tag, text, meta = {}) {
+        const items = Store.get("activity", []);
+        items.unshift({ at: Date.now(), tag, text, meta });
+        Store.set("activity", items.slice(0, this.MAX));
+      },
+      recent(n = 10) { return Store.get("activity", []).slice(0, n); },
+      clear() { Store.remove("activity"); }
+    };
+
+    const SyncStatus = (() => {
+      let peerTimer = null;
+      const tickEls = () => {
+        const led = $("#sync-led");
+        const msg = $("#sync-msg");
+        const saved = $("#sync-saved");
+        const when = $("#sync-when");
+        const last = Store.get("__lastSave");
+        if (last && saved && when) {
+          saved.style.display = "inline-flex";
+          when.textContent = relTime(last);
+        }
+        if (led) {
+          led.classList.remove("idle");
+          led.classList.add("live");
+        }
+        if (msg) msg.textContent = "로컬 저장 — 자동으로 이 브라우저에 보관됩니다.";
+      };
+      return {
+        touch() {
+          try { localStorage.setItem(`${NS}.__lastSave`, JSON.stringify(Date.now())); } catch {}
+          tickEls();
+        },
+        peer() {
+          const ind = $("#sync-broadcast");
+          if (ind) ind.style.display = "inline-flex";
+          clearTimeout(peerTimer);
+          peerTimer = setTimeout(() => { if (ind) ind.style.display = "none"; }, 4000);
+        },
+        refresh: tickEls
+      };
+    })();
+
+    function relTime(ts) {
+      if (!ts) return "—";
+      const diff = Math.floor((Date.now() - ts) / 1000);
+      if (diff < 5) return "방금";
+      if (diff < 60) return `${diff}초 전`;
+      if (diff < 3600) return `${Math.floor(diff/60)}분 전`;
+      if (diff < 86400) return `${Math.floor(diff/3600)}시간 전`;
+      return `${Math.floor(diff/86400)}일 전`;
+    }
+
+    function daysUntil(dateISO) {
+      if (!dateISO) return null;
+      const d = new Date(dateISO + (dateISO.length === 10 ? "T00:00:00" : ""));
+      if (isNaN(d)) return null;
+      const ms = d - new Date();
+      return Math.ceil(ms / 86400000);
+    }
+
+    function debounce(fn, ms = 250) {
+      let t;
+      return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+    }
+
+    /* Auto-bind a form input to a Store key so values persist across reloads
+       and sync across tabs. Restores on page load. */
+    function bindPersist(selectorOrEl, key, opts = {}) {
+      const el = typeof selectorOrEl === "string" ? $(selectorOrEl) : selectorOrEl;
+      if (!el) return;
+      const fullKey = opts.namespace ? `${opts.namespace}.${key}` : key;
+      const stored = Store.get(fullKey);
+      if (stored != null && el.type !== "file") el.value = stored;
+      const handler = debounce(() => {
+        Store.set(fullKey, el.value);
+        if (opts.onChange) opts.onChange(el.value);
+      }, 300);
+      el.addEventListener("input", handler);
+      el.addEventListener("change", handler);
+      EventBus.on(`store:${fullKey}`, (v) => {
+        if (v != null && el.value !== v && document.activeElement !== el) el.value = v;
+      });
+    }
+
+    /* ─────────────────────────────────────────────────────────
        Tab navigation
        ───────────────────────────────────────────────────────── */
+    function activateTab(panelId) {
+      const btn = $(`.tab-btn[data-panel="${panelId}"]`);
+      const panel = $("#" + panelId);
+      if (!btn || !panel) return;
+      $$(".tab-btn").forEach(b => b.classList.remove("active"));
+      $$(".panel").forEach(p => p.classList.remove("active"));
+      btn.classList.add("active");
+      panel.classList.add("active");
+      Store.set("ui.activeTab", panelId);
+      const tabs = $("#tabnav");
+      if (tabs && window.scrollY > tabs.offsetTop) {
+        window.scrollTo({ top: tabs.offsetTop - 4, behavior: "smooth" });
+      }
+      EventBus.emit("tab:activated", panelId);
+    }
     $$(".tab-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        $$(".tab-btn").forEach(b => b.classList.remove("active"));
-        $$(".panel").forEach(p => p.classList.remove("active"));
-        btn.classList.add("active");
-        $("#" + btn.dataset.panel).classList.add("active");
-        // scroll panel into view if needed
-        const tabs = $("#tabnav");
-        if (window.scrollY > tabs.offsetTop) {
-          window.scrollTo({ top: tabs.offsetTop - 4, behavior: "smooth" });
-        }
-      });
+      btn.addEventListener("click", () => activateTab(btn.dataset.panel));
     });
+    /* Restore last-viewed tab on load */
+    {
+      const saved = Store.get("ui.activeTab");
+      if (saved && $(`.tab-btn[data-panel="${saved}"]`)) activateTab(saved);
+    }
+    /* Wipe-all button */
+    $("#wipe-all")?.addEventListener("click", () => {
+      if (!confirm("이 브라우저에 저장된 모든 입력·기록·면허·체크리스트를 삭제합니다.\n\n계속하시겠습니까?")) return;
+      Store.wipeAll();
+      ActivityLog.push("system", "전체 초기화", {});
+      location.reload();
+    });
+    /* Sync-status periodic refresh */
+    setInterval(() => SyncStatus.refresh(), 30000);
+    SyncStatus.refresh();
 
     /* ─────────────────────────────────────────────────────────
        Boot — load data, then wire each tab
@@ -1733,6 +2715,10 @@
       initTab4();
       initTab5();
       initTab6();
+      initTab7();
+      initTab8();
+      initTab9();
+      initTab0();
     }).catch(err => console.error("Data load failed:", err));
 
     /* ─────────────────────────────────────────────────────────
@@ -1882,19 +2868,44 @@
             <tbody>
               ${rows.map(r => {
                 const [label, cls] = labelMap[r.정비결과] || ["—", "ok"];
+                const isMissing = r.정비결과 === "missing";
+                const labelCell = isMissing
+                  ? `<td><button type="button" class="pill ${cls}" data-search="${(r.입력코드 || r.진단명 || "").replace(/"/g, "&quot;")}" title="통합검색에서 확인">${label} →</button></td>`
+                  : `<td><span class="pill ${cls}">${label}</span></td>`;
                 return `<tr>
                   <td>${r.환자번호}</td>
                   <td class="code">${r.진료일자}</td>
                   <td>${r.진단명 || "—"}</td>
                   <td class="code">${r.입력코드 || "—"}</td>
                   <td class="code">${r.표준코드 || "—"}</td>
-                  <td><span class="pill ${cls}">${label}</span></td>
+                  ${labelCell}
                   <td>${r.비고}</td>
                 </tr>`;
               }).join("")}
             </tbody>
           </table>`;
         $("#kcd-result").innerHTML = html;
+        // Wire 미수록 pill → cross-tab search
+        $("#kcd-result").querySelectorAll("button[data-search]").forEach(btn => {
+          btn.style.cursor = "pointer";
+          btn.addEventListener("click", () => {
+            const q = btn.getAttribute("data-search");
+            EventBus.emit("search:query", q);
+            ActivityLog.push("kcd", `미수록 코드 통합검색 — "${q}"`, {});
+          });
+        });
+      };
+
+      const persistKcd = (result) => {
+        const summary = {
+          total: result.rows.length,
+          ok: (result.counters.clean || 0) + (result.counters.normalized || 0),
+          review: (result.counters.ambiguous || 0) + (result.counters.deduped || 0) + (result.counters.ucode_solo || 0),
+          missing: result.counters.missing || 0,
+          missingCodes: result.rows.filter(r => r.정비결과 === "missing").map(r => r.입력코드).slice(0, 50),
+          at: Date.now()
+        };
+        Store.set("kcd.lastSummary", summary);
       };
 
       bindDrop("drop-kcd", async (file) => {
@@ -1908,6 +2919,8 @@
           const result = transform(rows);
           lastResult = result;
           renderResult(result);
+          persistKcd(result);
+          ActivityLog.push("kcd", `KCD 정비 — ${result.rows.length}건 검토`, { file: file.name });
           setStatus($("#kcd-status"), null,
             `${result.rows.length}건 정비 완료 — EDI 청구 전 검토필요·미수록 항목을 우선 확인하세요.`);
         } catch (err) {
@@ -1919,6 +2932,7 @@
         if (!lastResult) return;
         const exportRows = lastResult.rows.map(({ _kind, ...rest }) => rest);
         downloadXLSX(exportRows, `KCD_정비_${todayISO()}.xlsx`, "KCD 정비");
+        ActivityLog.push("kcd", `KCD 정비표 내려받음 (${exportRows.length}건)`, {});
       });
 
       const sampleKcdData = [
@@ -1943,9 +2957,18 @@
         const result = transform(sampleKcdData);
         lastResult = result;
         renderResult(result);
+        persistKcd(result);
+        ActivityLog.push("kcd", `KCD 정비 시연 — ${result.rows.length}건`, { sample: true });
         setStatus($("#kcd-status"), null,
           `샘플 ${result.rows.length}건 정비 완료 — 중복·세분류·U-code 단독·미수록 등 EDI 청구 전 검토 케이스를 한 번에 보실 수 있습니다.`);
       });
+
+      // Restore last summary status if any
+      const lastKcd = Store.get("kcd.lastSummary");
+      if (lastKcd) {
+        setStatus($("#kcd-status"), null,
+          `최근 정비 — ${relTime(lastKcd.at)} · ${lastKcd.total}건 · 미수록 ${lastKcd.missing}건. 새 파일을 올리면 갱신됩니다.`);
+      }
     }
 
     /* ─────────────────────────────────────────────────────────
@@ -2155,6 +3178,18 @@
         }, { claimed: 0, paid: 0 });
         const cutTotal = totals.claimed - totals.paid;
 
+        // Append to history (capped at 100 entries)
+        const history = Store.get("jabo.history", []);
+        history.unshift({
+          at: Date.now(), pid, name, insurer, claimNo, date,
+          claimed: totals.claimed, paid: totals.paid, cut: cutTotal,
+          itemCount: items.length
+        });
+        Store.set("jabo.history", history.slice(0, 100));
+        ActivityLog.push("jabo",
+          `자보 정산표 — ${name || pid} · ${insurer} · 청구 ${fmtKRW(totals.claimed)}원 · 삭감 ${fmtKRW(cutTotal)}원`,
+          { pid, insurer });
+
         const rows = items.map(it => {
           const claimed = it.price * it.qty;
           const paid = (typeof it.paid === "number" ? it.paid : it.price) * it.qty;
@@ -2192,10 +3227,32 @@
         downloadXLSX(rows, `자보정산_${pid}_${date}.xlsx`, "자보 정산");
       });
 
-      // initial render
+      // initial render — restore form state if a draft exists
       const today = todayISO();
       $("#jabo-date").value = today;
       $("#jabo-accident").value = today;
+
+      ["jabo-name", "jabo-pid", "jabo-insurer", "jabo-claim", "jabo-accident", "jabo-date"].forEach(id => {
+        bindPersist("#" + id, "jabo.draft." + id);
+      });
+      bindPersist("#jabo-dx", "jabo.draft.jabo-dx");
+
+      const draftItems = Store.get("jabo.draft.items");
+      if (Array.isArray(draftItems) && draftItems.length) {
+        items.push(...draftItems);
+      }
+
+      const persistDraftItems = debounce(() => {
+        Store.set("jabo.draft.items", items.map(({ code, name, qty, unit, price, category, paid, cutCode }) =>
+          ({ code, name, qty, unit, price, category, paid, cutCode })));
+      }, 500);
+
+      // Observe changes in #jabo-items (rerendered on every mutation) to auto-save the draft
+      const itemsEl = $("#jabo-items");
+      const obs = new MutationObserver(() => persistDraftItems());
+      obs.observe(itemsEl, { childList: true, subtree: true });
+
+      // Initial render (will pick up restored items)
       renderItems();
 
       $('[data-action="run-jabo"]').addEventListener("click", () => {
@@ -2344,9 +3401,13 @@
         const result = transform(sampleYeData);
         lastRows = result;
         render(result);
+        ActivityLog.push("yearend", `연말정산 사전검증 시연 — ${result.length}건`, { sample: true });
         setStatus($("#ye-status"), null,
           "샘플 환자 3명 · 5건 진료 — PCC 미반영 비급여를 포함한 데이터로 일괄제출 사전검증을 마쳤습니다. 주민등록번호는 자동 마스킹.");
       });
+
+      // Persist hospital info fields
+      ["ye-biz", "ye-clinic", "ye-evid", "ye-han"].forEach(id => bindPersist("#" + id, "yearend." + id));
     }
 
     /* ─────────────────────────────────────────────────────────
@@ -2354,9 +3415,23 @@
        ───────────────────────────────────────────────────────── */
     function initTab4() {
       const tbody = $("#bg-tbody");
+      // Restore last-saved tariff if any
+      const savedTariff = Store.get("bigeup.tariff", {});
       const state = DATA.bigeup.items.map(it => ({
-        ...it, min_input: "", max_input: "", med_input: ""
+        ...it,
+        min_input: savedTariff[it.code]?.min ?? "",
+        max_input: savedTariff[it.code]?.max ?? "",
+        med_input: savedTariff[it.code]?.med ?? ""
       }));
+      const persistTariff = debounce(() => {
+        const out = {};
+        for (const it of state) {
+          if (it.min_input || it.max_input || it.med_input) {
+            out[it.code] = { min: it.min_input, max: it.max_input, med: it.med_input };
+          }
+        }
+        Store.set("bigeup.tariff", out);
+      }, 400);
 
       const render = () => {
         tbody.innerHTML = state.map((it, i) => `
@@ -2377,6 +3452,7 @@
                     : "med_input";
             state[i][f] = e.target.value;
             updateSummary();
+            persistTariff();
           });
         });
       };
@@ -2458,10 +3534,19 @@
         downloadXLSX(rows, `HIRA비급여_반기보고_${ykiho}_${date}.xlsx`, "비급여 반기보고");
       });
 
-      // init date
+      // init — restore date + hospital fields, then render
       $("#bg-date").value = todayISO();
+      ["bg-ykiho", "bg-clinic", "bg-date"].forEach(id => bindPersist("#" + id, "bigeup.profile." + id));
       render();
       updateSummary();
+
+      $("#bg-prefill").addEventListener("click", () => {
+        persistTariff();
+        ActivityLog.push("bigeup", "비급여 표본 단가 자동 채움", {});
+      });
+      $("#bg-download").addEventListener("click", () => {
+        ActivityLog.push("bigeup", `HIRA 비급여 반기보고 자료 내려받음`, {});
+      });
     }
 
     /* ─────────────────────────────────────────────────────────
@@ -2598,6 +3683,17 @@
           </table>`;
       };
 
+      const persistRet = (result) => {
+        Store.set("retention.lastAudit", {
+          at: Date.now(),
+          total: result.rows.length,
+          ok: result.stats.ok,
+          soon: result.stats.soon,
+          over: result.stats.over,
+          bad: result.stats.bad
+        });
+      };
+
       bindDrop("drop-ret", async (file) => {
         try {
           setStatus($("#ret-status"), null, `파일을 읽는 중 — ${file.name}`);
@@ -2609,6 +3705,8 @@
           const result = transform(rows);
           lastRows = result.rows.map(({_kind, ...rest}) => rest);
           render(result);
+          persistRet(result);
+          ActivityLog.push("retention", `보존 감사 — ${result.rows.length}건 (만료 ${result.stats.over}, 임박 ${result.stats.soon})`, { file: file.name });
           const urgent = result.stats.over + result.stats.bad;
           if (urgent > 0) {
             setStatus($("#ret-status"), "warn",
@@ -2625,6 +3723,7 @@
       $("#ret-download").addEventListener("click", () => {
         if (!lastRows) return;
         downloadXLSX(lastRows, `의무기록_보존감사_${todayISO()}.xlsx`, "보존 감사");
+        ActivityLog.push("retention", `보존감사 보고서 내려받음 (${lastRows.length}건)`, {});
       });
 
       const sampleRetData = [
@@ -2648,6 +3747,8 @@
         const result = transform(sampleRetData);
         lastRows = result.rows.map(({_kind, ...rest}) => rest);
         render(result);
+        persistRet(result);
+        ActivityLog.push("retention", `보존 감사 시연 — ${result.rows.length}건`, { sample: true });
         const urgent = result.stats.over + result.stats.bad;
         setStatus($("#ret-status"), urgent > 0 ? "warn" : null,
           urgent > 0
@@ -2785,8 +3886,742 @@
         input.value = "요통";
         input.focus();
         render("요통");
+        ActivityLog.push("search", `통합검색 시연 — "요통"`, {});
+      });
+
+      // Cross-tab link: open Tab 6 with a prefilled query
+      EventBus.on("search:query", (q) => {
+        if (!q) return;
+        activateTab("tab-search");
+        $$(".filter-chip").forEach(c => c.classList.remove("active"));
+        $('.filter-chip[data-source="all"]').classList.add("active");
+        activeFilter = "all";
+        input.value = q;
+        input.focus();
+        render(q);
       });
     }
+
+    /* ─────────────────────────────────────────────────────────
+       Tab 0 — 오늘 / Today dashboard
+       Backend-free orchestrator: it reads localStorage from
+       every other tab and computes deadlines + resume cards
+       + insights live, and re-renders on any store change.
+       ───────────────────────────────────────────────────────── */
+    function initTab0() {
+      // Compliance deadlines — Korean Traditional Hospital admin calendar
+      // Recurring twice-yearly / annual due dates per ministry / agency.
+      const NOW = new Date();
+      const Y = NOW.getFullYear();
+      const fixedDeadlines = [
+        { key: "bigeup-h1", title: "HIRA 비급여 반기보고 (상반기)", date: `${Y}-03-31`,
+          link: "tab-bigeup", source: "의료법 §45조의2" },
+        { key: "bigeup-h2", title: "HIRA 비급여 반기보고 (하반기)", date: `${Y}-09-30`,
+          link: "tab-bigeup", source: "의료법 §45조의2" },
+        { key: "yearend",   title: "국세청 의료비 일괄제출", date: `${Y+1}-01-15`,
+          link: "tab-yearend", source: "국세청 홈택스" },
+        { key: "kma-renew", title: "한의사 면허신고 일제신고 (3년주기)", date: `${Y}-04-30`,
+          link: "tab-license", source: "의료법 §25" },
+        { key: "audit",     title: "의무기록 보존 정기 감사 (분기)",
+          date: `${Y}-${String(Math.min(12, (Math.floor((NOW.getMonth())/3) + 1) * 3)).padStart(2, "0")}-30`,
+          link: "tab-retention", source: "의료법 시행규칙 §15" }
+      ];
+
+      // Add license-specific deadlines from license tracker
+      function loadDeadlines() {
+        const list = [...fixedDeadlines];
+        const licenses = Store.get("license.list", []);
+        for (const lic of licenses) {
+          if (lic.expiry) {
+            const d = daysUntil(lic.expiry);
+            if (d != null && d <= 365 && d >= -30) {
+              list.push({
+                key: `lic-${lic.id}-exp`, title: `${lic.role} ${lic.name} — 면허 만료`,
+                date: lic.expiry, link: "tab-license", source: "의료법"
+              });
+            }
+          }
+          if (lic.cme) {
+            const d = daysUntil(lic.cme);
+            if (d != null && d <= 365 && d >= -30) {
+              list.push({
+                key: `lic-${lic.id}-cme`, title: `${lic.role} ${lic.name} — 보수교육 마감`,
+                date: lic.cme, link: "tab-license", source: "보수교육 의무"
+              });
+            }
+          }
+        }
+        // Sort: smallest |days| first, but past-due last
+        list.forEach(d => d.daysLeft = daysUntil(d.date));
+        list.sort((a, b) => {
+          if (a.daysLeft < 0 && b.daysLeft >= 0) return 1;
+          if (b.daysLeft < 0 && a.daysLeft >= 0) return -1;
+          return Math.abs(a.daysLeft) - Math.abs(b.daysLeft);
+        });
+        return list.slice(0, 6);
+      }
+
+      function renderDeadlines() {
+        const list = loadDeadlines();
+        const html = list.map(d => {
+          const days = d.daysLeft;
+          let cls = "", label = "";
+          if (days == null) { cls = ""; label = "—"; }
+          else if (days < 0) { cls = "over"; label = `<em>+${-days}일 초과</em>`; }
+          else if (days === 0) { cls = "urgent"; label = "<em>오늘</em>"; }
+          else if (days <= 14) { cls = "urgent"; label = `${days}<em>일</em>`; }
+          else if (days <= 60) { cls = "warn"; label = `${days}<em>일</em>`; }
+          else { cls = ""; label = `${days}<em>일</em>`; }
+          return `
+            <div class="dday ${cls}" data-link="${d.link}">
+              <div class="dnum">${label}</div>
+              <div class="dbody">
+                <div class="dtitle">${d.title}</div>
+                <div class="dmeta">${d.date} · ${d.source}</div>
+              </div>
+              <div class="arrow">→</div>
+            </div>`;
+        }).join("");
+        $("#dday-list").innerHTML = html || `<div class="empty-state">다가오는 마감이 없습니다.</div>`;
+        $$("#dday-list .dday").forEach(el => {
+          el.addEventListener("click", () => activateTab(el.dataset.link));
+        });
+      }
+
+      function renderResume() {
+        const cards = [];
+        const jabo = Store.get("jabo.draft.items");
+        if (Array.isArray(jabo) && jabo.length) {
+          const name = Store.get("jabo.draft.jabo-name") || Store.get("jabo.draft.jabo-pid") || "환자 미입력";
+          cards.push({ tab: "tab-jabo", label: "자보 정산", who: name + ` · ${jabo.length}개 행위`, when: "" });
+        }
+        const tariff = Store.get("bigeup.tariff", {});
+        const tariffCount = Object.keys(tariff).length;
+        if (tariffCount > 0 && tariffCount < (DATA?.bigeup?.items?.length || 30)) {
+          cards.push({ tab: "tab-bigeup", label: "비급여 반기보고", who: `${tariffCount}개 항목 단가 입력 중`, when: "" });
+        }
+        const lastKcd = Store.get("kcd.lastSummary");
+        if (lastKcd && (lastKcd.missing > 0 || lastKcd.review > 0)) {
+          cards.push({ tab: "tab-kcd", label: "KCD 정비", who: `미수록 ${lastKcd.missing}건 · 검토 ${lastKcd.review}건 남음`, when: relTime(lastKcd.at) });
+        }
+        const lastRet = Store.get("retention.lastAudit");
+        if (lastRet && (lastRet.over > 0 || lastRet.bad > 0)) {
+          cards.push({ tab: "tab-retention", label: "보존 감사", who: `만료 초과 ${lastRet.over}건 · 분류 오류 ${lastRet.bad}건`, when: relTime(lastRet.at) });
+        }
+        if (!cards.length) {
+          $("#resume-list").innerHTML = `<div class="resume"><span class="empty">아직 진행 중인 작업이 없습니다.</span></div>`;
+          return;
+        }
+        $("#resume-list").innerHTML = cards.map(c => `
+          <div class="resume" data-tab="${c.tab}">
+            <span><span class="label">${c.label}</span></span>
+            <span class="who">${c.who}</span>
+            <span class="when">${c.when || "→"}</span>
+          </div>`).join("");
+        $$("#resume-list .resume").forEach(el => {
+          el.addEventListener("click", () => activateTab(el.dataset.tab));
+        });
+      }
+
+      const TAG_LABELS = {
+        kcd: "KCD", jabo: "자보", yearend: "연말정산", bigeup: "비급여",
+        retention: "보존", search: "검색", ai: "AI", license: "면허", accred: "인증", system: "시스템"
+      };
+
+      function renderActivity() {
+        const items = ActivityLog.recent(15);
+        if (!items.length) {
+          $("#act-feed").innerHTML = `<div class="act-empty">최근 활동이 없습니다.</div>`;
+          return;
+        }
+        $("#act-feed").innerHTML = items.map(it => `
+          <div class="act-row">
+            <span class="act-when">${relTime(it.at)}</span>
+            <span class="act-text">${it.text}</span>
+            <span class="act-tag">${TAG_LABELS[it.tag] || it.tag}</span>
+          </div>`).join("");
+      }
+
+      function renderInsights() {
+        // Jabo insights: this quarter's reconciliation
+        const history = Store.get("jabo.history", []);
+        const qStart = new Date(Y, Math.floor(NOW.getMonth()/3)*3, 1).getTime();
+        const thisQ = history.filter(h => h.at >= qStart);
+        if (thisQ.length) {
+          $("#ins-jabo").innerHTML = `${thisQ.length} <em>건</em>`;
+          const totalClaim = thisQ.reduce((s,h) => s + (h.claimed||0), 0);
+          const totalCut = thisQ.reduce((s,h) => s + (h.cut||0), 0);
+          const cutPct = totalClaim ? Math.round((totalCut / totalClaim) * 1000) / 10 : 0;
+          $("#ins-jabo-sub").textContent = `청구 ${fmtKRW(totalClaim)}원`;
+          $("#ins-cut").innerHTML = `${cutPct} <em>%</em>`;
+          $("#ins-cut-sub").textContent = `삭감 ${fmtKRW(totalCut)}원`;
+          if (cutPct > 15) $("#ins-cut-card").classList.add("err");
+          else if (cutPct > 8) $("#ins-cut-card").classList.add("warn");
+        }
+
+        // Retention insights
+        const lastRet = Store.get("retention.lastAudit");
+        if (lastRet) {
+          $("#ins-ret").textContent = lastRet.over;
+          $("#ins-ret-sub").textContent = `${relTime(lastRet.at)} 기준 · 임박 ${lastRet.soon}`;
+          if (lastRet.over > 0) $("#ins-ret-card").classList.add("err");
+          else if (lastRet.soon > 0) $("#ins-ret-card").classList.add("warn");
+        }
+
+        // Accreditation progress
+        const accred = Store.get("accred.checked", {});
+        const all = ACCRED_ITEMS.map(c => c.items).flat();
+        if (all.length) {
+          const done = all.filter(it => accred[it.id]).length;
+          const pct = Math.round((done / all.length) * 100);
+          $("#ins-accred").innerHTML = `${pct} <em>%</em>`;
+          if (pct < 50) $("#ins-accred-card").classList.add("warn");
+          if (pct < 25) $("#ins-accred-card").classList.add("err");
+        }
+      }
+
+      function renderAll() {
+        const date = new Date();
+        const wk = ["일","월","화","수","목","금","토"][date.getDay()];
+        $("#today-date").textContent = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")} (${wk})`;
+        renderDeadlines();
+        renderResume();
+        renderActivity();
+        renderInsights();
+      }
+      renderAll();
+
+      // .ics export — clever no-backend trick: render an iCalendar
+      // file from the deadlines so it can be imported into any
+      // calendar app (Google, Apple, Outlook, Naver) directly.
+      $("#dday-ics").addEventListener("click", () => {
+        const list = loadDeadlines();
+        const pad = n => String(n).padStart(2, "0");
+        const fmt = d => {
+          const dt = new Date(d + "T09:00:00");
+          return `${dt.getFullYear()}${pad(dt.getMonth()+1)}${pad(dt.getDate())}T090000`;
+        };
+        const ics = [
+          "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Vibe Studio//Clinic Admin//KO",
+          "CALSCALE:GREGORIAN", "METHOD:PUBLISH"
+        ];
+        for (const d of list) {
+          ics.push(
+            "BEGIN:VEVENT",
+            `UID:${d.key}-${d.date}@vibe-clinic-admin`,
+            `DTSTAMP:${fmt(todayISO())}Z`,
+            `DTSTART:${fmt(d.date)}`,
+            `DTEND:${fmt(d.date).slice(0,11)}5959`,
+            `SUMMARY:${d.title}`,
+            `DESCRIPTION:${d.source}`,
+            "BEGIN:VALARM", "TRIGGER:-P14D", "ACTION:DISPLAY", `DESCRIPTION:${d.title}`, "END:VALARM",
+            "END:VEVENT"
+          );
+        }
+        ics.push("END:VCALENDAR");
+        const blob = new Blob([ics.join("\r\n")], { type: "text/calendar;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = `clinic_admin_deadlines_${todayISO()}.ics`;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        ActivityLog.push("system", "마감 캘린더 .ics 내려받음", {});
+      });
+
+      // Live re-render when any tab updates state
+      ["activity", "jabo.history", "retention.lastAudit", "kcd.lastSummary",
+       "license.list", "accred.checked", "bigeup.tariff", "jabo.draft.items"
+      ].forEach(k => EventBus.on(`store:${k}`, renderAll));
+      EventBus.on("tab:activated", (id) => { if (id === "tab-today") renderAll(); });
+
+      // Refresh relative times every 30s
+      setInterval(renderAll, 30000);
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       Tab 7 — AI 코딩 어시스트
+       Pastes 진료 메모 → KCD-8 + 자보 + 비급여 추천 with
+       citations. Canned-first; live mode if user pastes
+       Anthropic API key. Streams output.
+       ───────────────────────────────────────────────────────── */
+    function initTab7() {
+      const KEY_STORE = "ai.key";
+      const MODEL_STORE = "ai.model";
+      let model = Store.get(MODEL_STORE) || "claude-opus-4-7";
+      let key = Store.get(KEY_STORE) || "";
+
+      const setMode = (live) => {
+        const pill = $("#ai-mode-pill");
+        const badge = $("#ai-mode-badge");
+        const forgetBtn = $("#ai-key-forget");
+        if (live) {
+          pill.textContent = "라이브";
+          pill.classList.add("live");
+          badge.textContent = "라이브 — Claude 직접 호출";
+          forgetBtn.style.display = "inline-flex";
+        } else {
+          pill.textContent = "데모 모드";
+          pill.classList.remove("live");
+          badge.textContent = "데모 모드";
+          forgetBtn.style.display = "none";
+        }
+      };
+      setMode(!!key);
+
+      // Restore selected model UI
+      $$("#ai-model button").forEach(b => {
+        b.classList.toggle("active", b.dataset.model === model);
+        b.addEventListener("click", () => {
+          $$("#ai-model button").forEach(x => x.classList.remove("active"));
+          b.classList.add("active");
+          model = b.dataset.model;
+          Store.set(MODEL_STORE, model);
+        });
+      });
+
+      $("#ai-key-save").addEventListener("click", () => {
+        const k = $("#ai-key").value.trim();
+        if (!k.startsWith("sk-ant-")) {
+          alert("올바른 Anthropic API 키 형식이 아닙니다 (sk-ant- 로 시작).");
+          return;
+        }
+        Store.set(KEY_STORE, k);
+        key = k;
+        $("#ai-key").value = "";
+        setMode(true);
+        ActivityLog.push("ai", "AI 라이브 모드 전환", {});
+      });
+      $("#ai-key-forget").addEventListener("click", () => {
+        Store.remove(KEY_STORE);
+        key = "";
+        setMode(false);
+      });
+      $("#ai-key-paste").addEventListener("click", async () => {
+        try {
+          const text = await navigator.clipboard.readText();
+          $("#ai-key").value = text.trim();
+        } catch {
+          alert("클립보드 접근 권한이 필요합니다.");
+        }
+      });
+
+      bindPersist("#ai-input", "ai.draft");
+
+      // Canned exemplar — calibrated against KCD/자보/비급여 data files
+      const cannedFor = (note) => {
+        const lower = note.toLowerCase();
+        const isAccident = /사고|추돌|교통|충돌/.test(note);
+        const isNeck = /경[부추]|목/.test(note);
+        const isLumbar = /요[부추]|허리/.test(note);
+        const isShoulder = /어깨|견[관통]/.test(note);
+        const isHeadache = /두통|편두통/.test(note);
+
+        const kcd = [];
+        if (isLumbar && !isAccident) kcd.push({ code: "M54.50", name: "요통(상세불명)", conf: 0.92, ref: "KCD-8 / 통계청 2021" });
+        if (isLumbar && isAccident) kcd.push({ code: "S33.5", name: "요추의 염좌 및 긴장", conf: 0.95, ref: "KCD-8 / 손상편" });
+        if (isNeck && isAccident)   kcd.push({ code: "S13.4", name: "경추의 염좌 및 긴장", conf: 0.96, ref: "KCD-8 / 손상편" });
+        if (isNeck && !isAccident)  kcd.push({ code: "M54.2", name: "경부통", conf: 0.88, ref: "KCD-8" });
+        if (isShoulder)             kcd.push({ code: "M75.1", name: "어깨 회전근개 증후군", conf: 0.78, ref: "KCD-8" });
+        if (isHeadache)             kcd.push({ code: "G44.20", name: "긴장성 두통(만성)", conf: 0.82, ref: "KCD-8" });
+        if (!kcd.length) kcd.push({ code: "M79.1", name: "근육통", conf: 0.55, ref: "KCD-8 / 일반 추정" });
+
+        // U-code (한의 변증) suggestion
+        const uCode = isAccident
+          ? { code: "U68.4", name: "어혈(瘀血)", conf: 0.80, ref: "KCD-8 한의 변증 U편" }
+          : { code: "U68.0", name: "노권상(勞倦傷)", conf: 0.62, ref: "KCD-8 한의 변증 U편" };
+
+        const jabo = [];
+        if (isAccident) {
+          jabo.push({ code: "40031", name: "한방 침술 (4부위 이상)", conf: 0.95, ref: "자보수가 §40031" });
+          jabo.push({ code: "41001", name: "부항술 (건식)", conf: 0.92, ref: "자보수가 §41001" });
+          jabo.push({ code: "47011", name: "추나요법 (단순)", conf: 0.85, ref: "자보수가 §47011" });
+          jabo.push({ code: "40301", name: "약침술 (연속 2회)", conf: 0.78, ref: "자보수가 §40301 · C047 횟수 제한 주의" });
+        } else {
+          jabo.push({ code: "40011", name: "한방 침술 (1-3부위)", conf: 0.85, ref: "자보수가 §40011" });
+          jabo.push({ code: "41001", name: "부항술 (건식)", conf: 0.78, ref: "자보수가 §41001" });
+        }
+
+        const bigeup = isAccident
+          ? [{ code: "BC0001", name: "추나치료 (단순추나)", conf: 0.70, ref: "HIRA 비급여" }]
+          : [{ code: "BC0011", name: "약침치료", conf: 0.65, ref: "HIRA 비급여" }];
+
+        return { kcd, uCode, jabo, bigeup };
+      };
+
+      const renderRecommendation = (rec, opts = {}) => {
+        const lines = [];
+        lines.push(`<h5>KCD-8 진단</h5>`);
+        lines.push(`<div class="code-list">${rec.kcd.map(k => `
+          <div class="row">
+            <code>${k.code}</code>
+            <div>${k.name}<div class="citation">${k.ref}</div></div>
+            <span class="conf">${Math.round(k.conf*100)}%</span>
+          </div>`).join("")}</div>`);
+
+        lines.push(`<h5>한의 변증 (U-code) — 양방 진단과 함께 청구</h5>`);
+        lines.push(`<div class="code-list"><div class="row">
+          <code>${rec.uCode.code}</code>
+          <div>${rec.uCode.name}<div class="citation">${rec.uCode.ref}</div></div>
+          <span class="conf">${Math.round(rec.uCode.conf*100)}%</span>
+        </div></div>`);
+
+        lines.push(`<h5>자보 수가</h5>`);
+        lines.push(`<div class="code-list">${rec.jabo.map(j => `
+          <div class="row">
+            <code>${j.code}</code>
+            <div>${j.name}<div class="citation">${j.ref}</div></div>
+            <span class="conf">${Math.round(j.conf*100)}%</span>
+          </div>`).join("")}</div>`);
+
+        lines.push(`<h5>비급여 (병원 자체 산정)</h5>`);
+        lines.push(`<div class="code-list">${rec.bigeup.map(b => `
+          <div class="row">
+            <code>${b.code}</code>
+            <div>${b.name}<div class="citation">${b.ref}</div></div>
+            <span class="conf">${Math.round(b.conf*100)}%</span>
+          </div>`).join("")}</div>`);
+
+        if (opts.live) {
+          lines.unshift(`<h5 style="color:var(--accent)">라이브 — ${model}</h5>`);
+        }
+
+        $("#ai-output").innerHTML = lines.join("");
+      };
+
+      const runCanned = (note) => {
+        $("#ai-output").innerHTML = `<div class="ai-shimmer"></div><div class="ai-shimmer" style="width:80%"></div><div class="ai-shimmer" style="width:60%"></div>`;
+        setTimeout(() => {
+          const rec = cannedFor(note);
+          renderRecommendation(rec, { live: false });
+          ActivityLog.push("ai", "AI 데모 코드 추천", { len: note.length });
+        }, 700);
+      };
+
+      const runLive = async (note) => {
+        const sys = `<role>
+You are a Korean Traditional Medicine (한방) hospital admin coding assistant.
+You are NOT a clinical diagnostician — your output is a DRAFT for a 행정원 (admin) who will verify against KCD-8, 자보 EDI 고시, and HIRA 비급여 코드 마스터.
+</role>
+<voice>한국어 1차, 코드는 KOICD/HIRA 표준형. 절대 영어 번역 우선 안 함.</voice>
+<reasoning_order>
+1) 사고/외상 단서 추출 (교통사고, 추돌, 낙상…)
+2) 부위 단서 추출 (경부, 요부, 견부…)
+3) 외상 → S-codes, 비외상 → M/G/K-codes 우선
+4) 한의 변증(U-code) 항상 양방 진단과 짝지음
+5) 자보 수가 — 경증/중증, 부위 개수에 따른 코드 선택
+</reasoning_order>
+<errors_to_avoid>
+1) U-code를 단독 추천하지 말 것 — 반드시 양방 진단과 함께
+2) ICD-10 미국식 코드 사용 금지 — KCD-8 (통계청 2021) 사용
+3) 자보 수가는 §40011 (1-3부위) vs §40031 (4부위 이상) 명확히 구분
+4) 약침(40301)은 횟수 제한(C047) 있음 — 추천 시 주의 표시
+5) 비급여 코드는 BC0001~ 형식의 HIRA 마스터 발췌만 사용
+</errors_to_avoid>
+<output_schema>
+JSON: { kcd: [{code, name, conf 0-1, ref}], uCode: {code,name,conf,ref}, jabo: [{code,name,conf,ref}], bigeup: [{code,name,conf,ref}] }
+</output_schema>`;
+        $("#ai-output").innerHTML = `<div class="ai-shimmer"></div><div class="ai-shimmer" style="width:80%"></div><div class="ai-shimmer" style="width:60%"></div>`;
+        try {
+          const res = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-api-key": key,
+              "anthropic-version": "2023-06-01",
+              "anthropic-dangerous-direct-browser-access": "true",
+            },
+            body: JSON.stringify({
+              model, max_tokens: 1200,
+              system: sys,
+              messages: [{ role: "user", content: `진료 메모:\n\n${note}\n\n위 메모에 맞는 KCD/자보/비급여 코드를 추천해주세요. JSON만 응답.` }]
+            })
+          });
+          if (res.status === 401) {
+            Store.remove(KEY_STORE);
+            key = "";
+            setMode(false);
+            $("#ai-output").innerHTML = `<div class="placeholder">키가 거부되었습니다 — 다시 입력해주세요.</div>`;
+            return;
+          }
+          if (!res.ok) throw new Error("API error " + res.status);
+          const data = await res.json();
+          const text = data.content?.[0]?.text || "";
+          const jsonMatch = text.match(/\{[\s\S]*\}/);
+          if (!jsonMatch) throw new Error("응답에 JSON 없음");
+          const rec = JSON.parse(jsonMatch[0]);
+          renderRecommendation(rec, { live: true });
+          ActivityLog.push("ai", `AI 라이브 코드 추천 (${model})`, {});
+        } catch (err) {
+          console.error(err);
+          $("#ai-output").innerHTML = `<div class="placeholder" style="color:var(--accent)">호출 실패 — ${err.message}</div>`;
+        }
+      };
+
+      $("#ai-run").addEventListener("click", () => {
+        const note = $("#ai-input").value.trim();
+        if (!note) {
+          $("#ai-output").innerHTML = `<div class="placeholder">진료 메모를 입력해주세요.</div>`;
+          return;
+        }
+        if (key) runLive(note); else runCanned(note);
+      });
+
+      $('[data-action="run-ai"]').addEventListener("click", () => {
+        const sample = "60세 남자, 3주 전 추돌사고 후 경부·요부 통증 호소. 회전 시 우측 어깨로 방사통. SLR 양성. 침술·부항·추나·약침 시술 예정.";
+        $("#ai-input").value = sample;
+        runCanned(sample);
+      });
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       Tab 8 — 면허·자격 갱신 트래커
+       ───────────────────────────────────────────────────────── */
+    function initTab8() {
+      const renderList = () => {
+        const list = Store.get("license.list", []);
+        if (!list.length) {
+          $("#lic-list").innerHTML = `<div class="empty-state">등록된 직원이 없습니다 — 아래 양식에서 추가하거나 샘플 5명 채우기를 눌러보세요.</div>`;
+          $("#lic-summary").textContent = "총 0명 · 만료 임박 0명";
+          return;
+        }
+        let imminent = 0;
+        const html = list.map(lic => {
+          const expDays = daysUntil(lic.expiry);
+          const cmeDays = daysUntil(lic.cme);
+          const minDays = Math.min(expDays ?? 99999, cmeDays ?? 99999);
+          let cls = "", note = "";
+          if (minDays < 0) { cls = "urgent"; note = `<em>${-minDays}일 초과</em>`; imminent++; }
+          else if (minDays <= 90) { cls = "urgent"; note = `<em>${minDays}일 남음</em>`; imminent++; }
+          else if (minDays <= 180) { cls = "warn"; note = `<em>${minDays}일 남음</em>`; }
+          else if (minDays !== 99999) { note = `<em>${minDays}일 남음</em>`; }
+          return `
+            <div class="lic ${cls}" data-id="${lic.id}">
+              <span class="lic-role">${lic.role}</span>
+              <span class="lic-name">${lic.name}
+                <span class="lic-meta">면허 ${lic.expiry || "—"} · 보수교육 ${lic.cme || "—"}</span>
+              </span>
+              <span class="lic-due">${note}</span>
+              <span class="lic-actions">
+                <button data-id="${lic.id}" data-act="edit" title="수정">✎</button>
+                <button data-id="${lic.id}" data-act="del" title="삭제">×</button>
+              </span>
+            </div>`;
+        }).join("");
+        $("#lic-list").innerHTML = html;
+        $("#lic-summary").textContent = `총 ${list.length}명 · 만료 임박 ${imminent}명`;
+
+        $$("#lic-list .lic-actions button").forEach(b => {
+          b.addEventListener("click", () => {
+            const id = b.dataset.id;
+            if (b.dataset.act === "del") {
+              if (!confirm("이 직원을 삭제하시겠습니까?")) return;
+              Store.set("license.list", list.filter(x => x.id !== id));
+              ActivityLog.push("license", "면허 직원 삭제", {});
+              renderList();
+            } else if (b.dataset.act === "edit") {
+              const lic = list.find(x => x.id === id);
+              $("#lic-role").value = lic.role;
+              $("#lic-name").value = lic.name;
+              $("#lic-expiry").value = lic.expiry || "";
+              $("#lic-cme").value = lic.cme || "";
+              Store.set("license.list", list.filter(x => x.id !== id));
+              renderList();
+              $("#lic-name").focus();
+            }
+          });
+        });
+      };
+
+      $("#lic-add-btn").addEventListener("click", () => {
+        const role = $("#lic-role").value;
+        const name = $("#lic-name").value.trim();
+        const expiry = $("#lic-expiry").value;
+        const cme = $("#lic-cme").value;
+        if (!name) { alert("이름을 입력해주세요."); return; }
+        const list = Store.get("license.list", []);
+        list.push({ id: "lic-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
+          role, name, expiry, cme });
+        Store.set("license.list", list);
+        ActivityLog.push("license", `직원 추가 — ${role} ${name}`, {});
+        $("#lic-name").value = "";
+        $("#lic-expiry").value = "";
+        $("#lic-cme").value = "";
+        renderList();
+      });
+
+      $("#lic-sample").addEventListener("click", () => {
+        const today = new Date();
+        const offset = (m) => {
+          const d = new Date(today); d.setMonth(d.getMonth() + m);
+          return d.toISOString().slice(0, 10);
+        };
+        const sample = [
+          { role: "한의사",     name: "윤지훈", expiry: offset(2),  cme: offset(8) },
+          { role: "한의사",     name: "박서영", expiry: offset(14), cme: offset(-1) },
+          { role: "간호사",     name: "이민하", expiry: offset(5),  cme: offset(11) },
+          { role: "물리치료사", name: "김도현", expiry: offset(22), cme: offset(4) },
+          { role: "간호조무사", name: "최유진", expiry: offset(-2), cme: offset(7) }
+        ].map(x => ({ ...x, id: "lic-sample-" + x.name }));
+        Store.set("license.list", sample);
+        ActivityLog.push("license", "샘플 직원 5명 등록", {});
+        renderList();
+      });
+
+      $("#lic-ics").addEventListener("click", () => {
+        const list = Store.get("license.list", []);
+        if (!list.length) { alert("등록된 직원이 없습니다."); return; }
+        const pad = n => String(n).padStart(2, "0");
+        const fmt = d => {
+          const dt = new Date(d + "T09:00:00");
+          return `${dt.getFullYear()}${pad(dt.getMonth()+1)}${pad(dt.getDate())}T090000`;
+        };
+        const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Vibe Studio//Clinic Admin//KO"];
+        for (const lic of list) {
+          if (lic.expiry) ics.push("BEGIN:VEVENT",
+            `UID:${lic.id}-exp@vibe-clinic-admin`,
+            `DTSTAMP:${fmt(todayISO())}Z`, `DTSTART:${fmt(lic.expiry)}`,
+            `DTEND:${fmt(lic.expiry).slice(0,11)}5959`,
+            `SUMMARY:${lic.role} ${lic.name} — 면허 만료`,
+            "BEGIN:VALARM","TRIGGER:-P30D","ACTION:DISPLAY",
+            `DESCRIPTION:면허 만료 예정`,"END:VALARM",
+            "END:VEVENT");
+          if (lic.cme) ics.push("BEGIN:VEVENT",
+            `UID:${lic.id}-cme@vibe-clinic-admin`,
+            `DTSTAMP:${fmt(todayISO())}Z`, `DTSTART:${fmt(lic.cme)}`,
+            `DTEND:${fmt(lic.cme).slice(0,11)}5959`,
+            `SUMMARY:${lic.role} ${lic.name} — 보수교육 마감`,
+            "BEGIN:VALARM","TRIGGER:-P30D","ACTION:DISPLAY",
+            `DESCRIPTION:보수교육 마감 예정`,"END:VALARM",
+            "END:VEVENT");
+        }
+        ics.push("END:VCALENDAR");
+        const blob = new Blob([ics.join("\r\n")], { type: "text/calendar;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = `licenses_${todayISO()}.ics`;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        ActivityLog.push("license", "면허 만료 캘린더 .ics 내려받음", {});
+      });
+
+      EventBus.on("store:license.list", renderList);
+      renderList();
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       Tab 9 — 인증평가 체크리스트
+       ───────────────────────────────────────────────────────── */
+    function initTab9() {
+      const cats = ACCRED_ITEMS;
+      const checked = Store.get("accred.checked", {});
+
+      const render = () => {
+        const allItems = cats.map(c => c.items).flat();
+        const doneTotal = allItems.filter(it => checked[it.id]).length;
+        const pct = allItems.length ? Math.round((doneTotal / allItems.length) * 100) : 0;
+        $("#accred-summary").innerHTML = `<strong>${doneTotal}</strong> / ${allItems.length} 항목 완료 — ${pct}%`;
+        $("#accred-bar").style.width = pct + "%";
+
+        $("#accred-cats").innerHTML = cats.map(cat => {
+          const cdone = cat.items.filter(it => checked[it.id]).length;
+          const cpct = Math.round((cdone / cat.items.length) * 100);
+          return `
+            <div class="accred-cat">
+              <div class="accred-cat-head">
+                <div class="ch">${cat.title.replace(/\((.+?)\)/, '<em>$1</em>')}</div>
+                <div class="pct"><strong>${cdone}</strong> / ${cat.items.length} · ${cpct}%</div>
+              </div>
+              ${cat.items.map(it => `
+                <div class="accred-item ${checked[it.id] ? "done" : ""}" data-id="${it.id}">
+                  <span class="check">${checked[it.id] ? "✓" : ""}</span>
+                  <div class="body">${it.label}<span class="item-meta">${it.meta || ""}</span></div>
+                  ${it.linkTab ? `<a class="accred-link" href="#" data-link="${it.linkTab}">바로가기 →</a>` : ""}
+                </div>`).join("")}
+            </div>`;
+        }).join("");
+
+        $$(".accred-item").forEach(el => {
+          el.addEventListener("click", e => {
+            if (e.target.classList.contains("accred-link")) return;
+            const id = el.dataset.id;
+            checked[id] = !checked[id];
+            Store.set("accred.checked", checked);
+            ActivityLog.push("accred", `인증평가 항목 ${checked[id] ? "체크" : "해제"}`, { id });
+            render();
+          });
+        });
+        $$(".accred-link").forEach(a => {
+          a.addEventListener("click", e => {
+            e.preventDefault(); e.stopPropagation();
+            activateTab(a.dataset.link);
+          });
+        });
+      };
+
+      $("#accred-print").addEventListener("click", () => {
+        ActivityLog.push("accred", "인증평가 PDF 출력", {});
+        window.print();
+      });
+      $("#accred-reset").addEventListener("click", () => {
+        if (!confirm("체크리스트를 초기화하시겠습니까?")) return;
+        Store.remove("accred.checked");
+        for (const k in checked) delete checked[k];
+        ActivityLog.push("accred", "인증평가 초기화", {});
+        render();
+      });
+
+      EventBus.on("store:accred.checked", (v) => {
+        Object.keys(checked).forEach(k => delete checked[k]);
+        Object.assign(checked, v || {});
+        render();
+      });
+
+      render();
+    }
+
+    /* ─────────────────────────────────────────────────────────
+       Accreditation checklist data — Korean Hospital Accreditation
+       (한국의료기관평가인증원, 한방병원 조사 항목 압축본 ~25항목)
+       ───────────────────────────────────────────────────────── */
+    const ACCRED_ITEMS = [
+      { title: "안전·질 (Safety)", items: [
+        { id: "sa1", label: "환자 확인 절차 표준화 (이름·생년월일 2중 확인)", meta: "조사장: 외래·입원 모두" },
+        { id: "sa2", label: "낙상 위험 평가 도구 사용 및 기록", meta: "입원환자 24시간 이내" },
+        { id: "sa3", label: "응급 카트·약품 점검대장 매주 작성", meta: "주 1회 이상" }
+      ]},
+      { title: "환자권리·의사결정 (Patient Rights)", items: [
+        { id: "pr1", label: "환자 권리·의무 게시 및 동의서 비치", meta: "외래·병동 게시" },
+        { id: "pr2", label: "비급여 사전동의서 (자보·연말정산 관련 비급여 포함)", meta: "의료법 §45조의2", linkTab: "tab-bigeup" },
+        { id: "pr3", label: "개인정보 처리방침 게시 (홈페이지 + 원내)", meta: "개인정보보호법" }
+      ]},
+      { title: "의무기록 (Medical Records)", items: [
+        { id: "mr1", label: "진료기록부 보존기간 준수 (10년)", meta: "의료법 시행규칙 §15", linkTab: "tab-retention" },
+        { id: "mr2", label: "처방전 사본 2년 보존", meta: "의료법 시행규칙 §15" },
+        { id: "mr3", label: "기록부 폐기심의위원회 운영 규정", meta: "분기 1회 이상", linkTab: "tab-retention" },
+        { id: "mr4", label: "KCD-8 진단코드 정확도 분기 점검", meta: "EDI 청구 정합성", linkTab: "tab-kcd" }
+      ]},
+      { title: "감염관리 (Infection Control)", items: [
+        { id: "ic1", label: "침구·부항 멸균 SOP 및 감염관리 일지", meta: "한방 특화" },
+        { id: "ic2", label: "의료폐기물 처리 (전용 용기·인계서)", meta: "폐기물관리법" },
+        { id: "ic3", label: "직원 손위생 캠페인 (분기 교육)", meta: "WHO 5 Moments" }
+      ]},
+      { title: "시설·장비 (Facilities)", items: [
+        { id: "fa1", label: "응급 산소·자동제세동기 점검대장", meta: "주 1회" },
+        { id: "fa2", label: "한약 조제실 청결·온습도 기록", meta: "한약 GMP 준용" },
+        { id: "fa3", label: "환기 시설 (외래·병동) 정기 점검", meta: "분기 1회" }
+      ]},
+      { title: "인사·교육 (HR)", items: [
+        { id: "hr1", label: "한의사·간호사 면허 신고 및 보수교육 이수 관리", meta: "3년 주기 일제신고", linkTab: "tab-license" },
+        { id: "hr2", label: "신규 입사자 오리엔테이션 기록 (감염관리·환자안전)", meta: "입사 후 7일 이내" },
+        { id: "hr3", label: "직원 폭언·폭력 예방 교육 (의료기관 내)", meta: "연 1회 이상" }
+      ]},
+      { title: "행정·청구 (Admin)", items: [
+        { id: "ad1", label: "자보 EDI 청구·삭감 분석 월별 정리", meta: "삭감률 모니터링", linkTab: "tab-jabo" },
+        { id: "ad2", label: "HIRA 비급여 반기보고 마감 준수 (3월·9월)", meta: "의료법 §45조의2", linkTab: "tab-bigeup" },
+        { id: "ad3", label: "국세청 의료비 일괄제출 사전검증 (1월)", meta: "PCC 누락분 보정", linkTab: "tab-yearend" },
+        { id: "ad4", label: "외부감사 또는 내부 행정점검 분기 1회", meta: "행정 자체 점검" }
+      ]}
+    ];
   </script>
 
   <script>
