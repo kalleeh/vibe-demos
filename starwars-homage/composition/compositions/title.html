@@ -1,0 +1,12 @@
+<template id="scene-title-template">
+  <div data-composition-id="scene-title" data-width="1920" data-height="1080" style="position:relative;width:100%;height:100%;background:#000;">
+    <div id="title-stub" class="clip" data-start="0" data-duration="1" data-track-index="0" style="width:100%;height:100%;"></div>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.from("#title-stub", { opacity: 0, duration: 0.1, ease: "none" }, 0);
+      window.__timelines["scene-title"] = tl;
+    </script>
+  </div>
+</template>

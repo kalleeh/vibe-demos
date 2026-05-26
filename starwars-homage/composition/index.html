@@ -3,29 +3,91 @@
   <head>
     <meta charset="utf-8" />
     <title>A New Hope — vibe-demos</title>
+    <style>
+      @font-face {
+        font-family: "Star Jedi";
+        src: url("./fonts/star-jedi.woff2") format("woff2");
+        font-display: block;
+      }
+      body {
+        margin: 0;
+        background: #0a0a0a;
+      }
+    </style>
   </head>
   <body>
-    <div data-composition-id="root" data-start="0" data-duration="2" data-width="1920" data-height="1080">
+    <div data-composition-id="root" data-start="0" data-duration="38" data-width="1920" data-height="1080">
+      <!-- Scene 1: Crawl (0 → 14) -->
       <div
-        id="placeholder"
+        id="scene-crawl"
+        data-composition-id="scene-crawl"
+        data-composition-src="compositions/crawl.html"
+        data-start="0"
+        data-duration="14"
+        data-track-index="1"
+      ></div>
+
+      <!-- Scene 2: Sunset (14 → 22) -->
+      <div
+        id="scene-sunset"
+        data-composition-id="scene-sunset"
+        data-composition-src="compositions/sunset.html"
+        data-start="14"
+        data-duration="8"
+        data-track-index="2"
+      ></div>
+
+      <!-- Scene 3: Launch (22 → 28) -->
+      <div
+        id="scene-launch"
+        data-composition-id="scene-launch"
+        data-composition-src="compositions/launch.html"
+        data-start="22"
+        data-duration="6"
+        data-track-index="3"
+      ></div>
+
+      <!-- Scene 4: Trench (28 → 36) -->
+      <div
+        id="scene-trench"
+        data-composition-id="scene-trench"
+        data-composition-src="compositions/trench.html"
+        data-start="28"
+        data-duration="8"
+        data-track-index="4"
+      ></div>
+
+      <!-- Title card (36 → 38) -->
+      <div
+        id="scene-title"
+        data-composition-id="scene-title"
+        data-composition-src="compositions/title.html"
+        data-start="36"
+        data-duration="2"
+        data-track-index="5"
+      ></div>
+
+      <!-- Black overlay for crossfades -->
+      <div
+        id="fader"
         class="clip"
         data-start="0"
-        data-duration="2"
-        data-track-index="0"
-        style="width:100%;height:100%;background:#000;color:#FFE81F;display:flex;align-items:center;justify-content:center;font-family:system-ui;font-size:96px;"
-      >
-        Hello, galaxy.
-      </div>
-      <style>
-        body {
-          margin: 0;
-        }
-      </style>
+        data-duration="38"
+        data-track-index="9"
+        style="position:absolute;inset:0;background:#000;pointer-events:none;opacity:0;"
+      ></div>
+
       <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
       <script>
         window.__timelines = window.__timelines || {};
         const tl = gsap.timeline({ paused: true });
-        tl.from("#placeholder", { opacity: 0, duration: 0.4, ease: "power2.out" }, 0);
+
+        const boundaries = [14, 22, 28, 36];
+        for (const b of boundaries) {
+          tl.to("#fader", { opacity: 1, duration: 0.4, ease: "power2.in", overwrite: "auto" }, b - 0.4);
+          tl.to("#fader", { opacity: 0, duration: 0.4, ease: "power2.out", overwrite: "auto" }, b + 0.05);
+        }
+
         window.__timelines["root"] = tl;
       </script>
     </div>
