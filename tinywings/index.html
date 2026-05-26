@@ -1164,7 +1164,10 @@
         const isRising = slope < -0.10;
         const cresting = wasAirborne && isRising;     // ramp impact
         const launchEnergy = projMag > 140;            // enough to ramp off
-        if (cresting && launchEnergy) {
+        // Pitch-held = wings tucked = stays glued to the surface, even on
+        // a ramp. This is the Tiny Wings "if you don't release, you don't
+        // launch" rule and the reason holding-forever can't farm energy.
+        if (cresting && launchEnergy && !G.pitchDown) {
           G.airborne = true;
           // Preserve forward energy — the bird is *redirected* along
           // the tangent without losing its scalar speed.
@@ -1178,7 +1181,17 @@
           // the bird to a halt in 12 frames the way unclamped gravity
           // does on a 45° upslope.
           const gAlong = Math.max(-280, PHYS.GRAVITY_SURF * (slope / tlen));
-          const pitchAdd = (G.pitchDown && slope > 0) ? PHYS.PITCH_BIAS * (slope / tlen) * dt : 0;
+          // Pitch-down on the slope. Asymmetric on purpose: on a downhill
+          // (slope > 0) holding boosts you ~1×, on an uphill (slope < 0)
+          // it brakes you ~2.5× — you're plowing your beak into rising
+          // ground, not riding over it. Without the brake multiplier the
+          // dive-launch loop is energy-positive and "hold forever" wins.
+          let pitchAdd = 0;
+          if (G.pitchDown) {
+            const sNorm = slope / tlen; // [-~0.7 .. +~0.7]
+            const brake = sNorm < 0 ? 2.5 : 1.0;
+            pitchAdd = PHYS.PITCH_BIAS * sNorm * brake * dt;
+          }
           const roll = -0.04 * projMag * dt;
           let newProj = Math.max(0, projMag + gAlong * dt + pitchAdd + roll);
           G.vx = newProj * tx;
@@ -1193,8 +1206,9 @@
         if (slope > 0.02 && slopeNext < slope - 0.01 && G.vx > 220) {
           // Player about to crest — fine, stay surfing for one more step
         }
-        if (slope < -0.01 && G.vy < 0 && Math.abs(G.vx) > 280) {
+        if (slope < -0.01 && G.vy < 0 && Math.abs(G.vx) > 280 && !G.pitchDown) {
           // Heading uphill with upward velocity — natural launch.
+          // Holding pitch keeps the bird glued to the slope.
           G.airborne = true;
           // Perfect launch: slope tangent angle close to bird's angle AND
           // released (not pitch-held) right at the crest.
@@ -1218,9 +1232,15 @@
         // Lift: faster forward = more lift, fading out near stall speed.
         // Hard cap on lift acceleration so it can never exceed gravity —
         // otherwise a fast bird climbs forever and never comes down.
+        // When pitch-down is held the wings tuck in (a dive): lift drops
+        // to zero, NOT just "less than gravity". Holding through a launch
+        // used to keep generating lift on top of the dive force, which
+        // turned the dive-launch-glide loop into free perpetual energy.
         const liftMax = Math.max(0, PHYS.GRAVITY_AIR - PHYS.MIN_SINK);
         const liftScale = Math.max(0, Math.min(1, (Math.abs(G.vx) - PHYS.LIFT_VMIN) / 400));
-        const liftAccel = Math.min(liftMax, PHYS.LIFT_K * Math.abs(G.vx) * liftScale);
+        const liftAccel = G.pitchDown
+          ? 0
+          : Math.min(liftMax, PHYS.LIFT_K * Math.abs(G.vx) * liftScale);
         G.vy -= liftAccel * dt;
         // Pitch-down in mid-air: extra downward force (a "dive")
         if (G.pitchDown) G.vy += PHYS.PITCH_BIAS * 0.55 * dt;
