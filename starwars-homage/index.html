@@ -101,11 +101,15 @@
         box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.5);
       }
       body[data-state="playing"] .player {
+        position: fixed;
+        inset: 0;
         width: 100vw;
         height: 100dvh;
         max-width: none;
+        aspect-ratio: auto;
         border-radius: 0;
         box-shadow: none;
+        z-index: 100;
       }
 
       video {
@@ -195,32 +199,34 @@
         <p class="eyebrow">vibe-demos · 09</p>
         <h1>A New <em>Hope</em></h1>
         <p class="lede">A 38-second cinematic homage in four beats — opening crawl, binary sunset, X-wing launch, trench run.</p>
+      </article>
 
-        <div class="player">
-          <video
-            id="film"
-            preload="metadata"
-            playsinline
-            controls
-            data-show="false"
-            poster="poster.jpg"
-          >
-            <source src="film.mp4" type="video/mp4" />
-          </video>
+      <div class="player">
+        <video
+          id="film"
+          preload="metadata"
+          playsinline
+          controls
+          data-show="false"
+          poster="poster.jpg"
+        >
+          <source src="film.mp4" type="video/mp4" />
+        </video>
 
-          <div class="poster">
-            <button class="play-btn" id="play-btn" type="button" aria-label="Play film">
-              ▶ Play film
-            </button>
-          </div>
-
-          <div class="ended-overlay">
-            <button class="replay-btn" id="replay-btn" type="button" aria-label="Replay film">
-              ↻ Replay
-            </button>
-          </div>
+        <div class="poster">
+          <button class="play-btn" id="play-btn" type="button" aria-label="Play film">
+            ▶ Play film
+          </button>
         </div>
 
+        <div class="ended-overlay">
+          <button class="replay-btn" id="replay-btn" type="button" aria-label="Replay film">
+            ↻ Replay
+          </button>
+        </div>
+      </div>
+
+      <article class="card meta-card">
         <p class="meta">
           made with <a href="https://github.com/anthropics/claude-code" rel="noopener">HyperFrames</a> · <a href="../">back to works</a>
         </p>
