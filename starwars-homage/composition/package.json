@@ -1,0 +1,15 @@
+{
+  "name": "starwars-homage-composition",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "preview": "hyperframes preview",
+    "render": "hyperframes render --output ../film.mp4 --quality medium",
+    "lint": "hyperframes lint",
+    "inspect": "hyperframes inspect"
+  },
+  "devDependencies": {
+    "hyperframes": "^0.6.0"
+  }
+}
