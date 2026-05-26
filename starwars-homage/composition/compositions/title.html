@@ -1,12 +1,72 @@
 <template id="scene-title-template">
-  <div data-composition-id="scene-title" data-width="1920" data-height="1080" style="position:relative;width:100%;height:100%;background:#000;">
-    <div id="title-stub" class="clip" data-start="0" data-duration="1" data-track-index="0" style="width:100%;height:100%;"></div>
+  <div data-composition-id="scene-title" data-width="1920" data-height="1080"
+       style="position:relative;width:100%;height:100%;overflow:hidden;background:#000;">
+
+    <!-- Sparse starfield -->
+    <svg id="title-stars" class="clip" data-start="0" data-duration="2" data-track-index="0"
+         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+         style="position:absolute;inset:0;width:100%;height:100%;"></svg>
+
+    <!-- Main title block -->
+    <div id="title-block" class="clip" data-start="0" data-duration="2" data-track-index="1"
+         data-layout-allow-overflow
+         style="position:absolute;inset:0;display:flex;flex-direction:column;
+                align-items:center;justify-content:center;text-align:center;
+                font-family:'Star Jedi','Times New Roman',serif;color:#FFE81F;
+                opacity:0;">
+      <div style="font-size:42px;letter-spacing:0.32em;margin-bottom:0.7em;">EPISODE IV</div>
+      <div id="title-headline" style="font-size:140px;letter-spacing:0.06em;line-height:1;">A NEW HOPE</div>
+      <div style="font-family:'Helvetica Neue','Arial',sans-serif;color:#9FE9FF;
+                  font-size:22px;letter-spacing:0.32em;margin-top:1.4em;text-transform:uppercase;
+                  opacity:0.7;">A vibe-demos homage</div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <script>
-      window.__timelines = window.__timelines || {};
-      const tl = gsap.timeline({ paused: true });
-      tl.from("#title-stub", { opacity: 0, duration: 0.1, ease: "none" }, 0);
-      window.__timelines["scene-title"] = tl;
+      (function () {
+        function mulberry32(seed) {
+          return function () {
+            let t = (seed += 0x6d2b79f5);
+            t = Math.imul(t ^ (t >>> 15), t | 1);
+            t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+          };
+        }
+        const rnd = mulberry32(0xdeadbeef);
+        const svg = document.getElementById("title-stars");
+        const ns = "http://www.w3.org/2000/svg";
+        for (let i = 0; i < 110; i++) {
+          const c = document.createElementNS(ns, "circle");
+          c.setAttribute("cx", (rnd() * 1920).toFixed(1));
+          c.setAttribute("cy", (rnd() * 1080).toFixed(1));
+          const r = rnd();
+          c.setAttribute("r", (0.5 + r * 1.2).toFixed(2));
+          c.setAttribute("fill", "#F5F5F5");
+          c.setAttribute("opacity", (0.35 + r * 0.45).toFixed(2));
+          svg.appendChild(c);
+        }
+
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+
+        tl.fromTo("#title-stars", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 0);
+
+        // Title rises from below, fades in
+        tl.fromTo("#title-block",
+          { opacity: 0, y: 40 },
+          { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" }, 0.1);
+
+        // Headline subtle scale-in feels regal
+        tl.fromTo("#title-headline",
+          { letterSpacing: "0.18em", scale: 0.96, transformOrigin: "50% 50%" },
+          { letterSpacing: "0.06em", scale: 1.0, duration: 1.0, ease: "power2.out" }, 0.1);
+
+        // Final fade-out (the only allowed exit — final scene)
+        tl.to("#title-block", { opacity: 0, duration: 0.5, ease: "power2.in" }, 1.5);
+        tl.to("#title-stars", { opacity: 0, duration: 0.5, ease: "power2.in" }, 1.5);
+
+        window.__timelines["scene-title"] = tl;
+      })();
     </script>
   </div>
 </template>
