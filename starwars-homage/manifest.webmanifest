@@ -1,0 +1,19 @@
+{
+  "name": "A New Hope — an homage",
+  "short_name": "A New Hope",
+  "description": "A 38-second cinematic homage to A New Hope, made with HyperFrames.",
+  "lang": "en",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

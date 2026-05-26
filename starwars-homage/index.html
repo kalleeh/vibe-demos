@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>A New Hope — an homage · vibe-demos</title>
+
+    <link rel="icon" type="image/svg+xml" href="icon.svg" />
+    <link rel="apple-touch-icon" href="icon.svg" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="A New Hope" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,600&family=JetBrains+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --paper: #efe9dc;
+        --ink: #1a1a1a;
+        --accent: #b04a2f;
+        --void: #0a0a0a;
+        --crawl: #ffe81f;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: "Fraunces", Georgia, serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      body[data-state="playing"],
+      body[data-state="ended"] {
+        background: var(--void);
+      }
+
+      .stage {
+        position: relative;
+        width: 100%;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        transition: background 0.4s ease;
+      }
+
+      .card {
+        max-width: 960px;
+        width: 100%;
+        text-align: center;
+      }
+      body[data-state="playing"] .card {
+        display: none;
+      }
+
+      .eyebrow {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #6b6b6b;
+      }
+      h1 {
+        font-family: "Fraunces", serif;
+        font-weight: 600;
+        font-size: clamp(48px, 9vw, 120px);
+        margin: 12px 0 0;
+        line-height: 0.95;
+      }
+      h1 em {
+        color: var(--accent);
+      }
+      .lede {
+        max-width: 560px;
+        margin: 16px auto 28px;
+        font-size: clamp(15px, 1.6vw, 18px);
+        line-height: 1.55;
+        color: #444;
+      }
+
+      .player {
+        position: relative;
+        width: min(960px, 100%);
+        aspect-ratio: 16 / 9;
+        margin: 0 auto;
+        background: var(--void);
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.5);
+      }
+      body[data-state="playing"] .player {
+        width: 100vw;
+        height: 100dvh;
+        max-width: none;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: var(--void);
+      }
+      video[data-show="false"] {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .poster {
+        position: absolute;
+        inset: 0;
+        background: var(--void) center/cover no-repeat;
+        background-image: url("poster.jpg");
+        display: grid;
+        place-items: center;
+      }
+      body[data-state="playing"] .poster {
+        display: none;
+      }
+
+      .play-btn,
+      .replay-btn {
+        appearance: none;
+        border: 0;
+        background: rgba(0, 0, 0, 0.55);
+        color: var(--crawl);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 14px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        padding: 18px 28px;
+        border-radius: 999px;
+        cursor: pointer;
+        backdrop-filter: blur(6px);
+        transition: transform 0.2s ease, background 0.2s ease;
+      }
+      .play-btn:hover,
+      .replay-btn:hover {
+        transform: translateY(-1px);
+        background: rgba(0, 0, 0, 0.75);
+      }
+
+      .ended-overlay {
+        position: absolute;
+        inset: 0;
+        display: none;
+        place-items: center;
+        background: rgba(0, 0, 0, 0.6);
+      }
+      body[data-state="ended"] .ended-overlay {
+        display: grid;
+      }
+
+      .meta {
+        margin-top: 28px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #6b6b6b;
+      }
+      .meta a {
+        color: inherit;
+        text-decoration: none;
+        border-bottom: 1px solid currentColor;
+      }
+      .meta a:hover {
+        color: var(--accent);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .play-btn::after {
+          content: " (reduced motion)";
+          opacity: 0.7;
+        }
+      }
+    </style>
+  </head>
+  <body data-state="idle">
+    <main class="stage">
+      <article class="card">
+        <p class="eyebrow">vibe-demos · 09</p>
+        <h1>A New <em>Hope</em></h1>
+        <p class="lede">A 38-second cinematic homage in four beats — opening crawl, binary sunset, X-wing launch, trench run.</p>
+
+        <div class="player">
+          <video
+            id="film"
+            preload="metadata"
+            playsinline
+            controls
+            data-show="false"
+            poster="poster.jpg"
+          >
+            <source src="film.mp4" type="video/mp4" />
+          </video>
+
+          <audio id="audio" src="audio.mp3" preload="metadata"></audio>
+
+          <div class="poster">
+            <button class="play-btn" id="play-btn" type="button" aria-label="Play film">
+              ▶ Play film
+            </button>
+          </div>
+
+          <div class="ended-overlay">
+            <button class="replay-btn" id="replay-btn" type="button" aria-label="Replay film">
+              ↻ Replay
+            </button>
+          </div>
+        </div>
+
+        <p class="meta">
+          made with <a href="https://github.com/anthropics/claude-code" rel="noopener">HyperFrames</a> · <a href="../">back to works</a>
+        </p>
+      </article>
+    </main>
+
+    <script>
+      const body = document.body;
+      const video = document.getElementById("film");
+      const audio = document.getElementById("audio");
+      const playBtn = document.getElementById("play-btn");
+      const replayBtn = document.getElementById("replay-btn");
+
+      function play() {
+        body.dataset.state = "playing";
+        video.dataset.show = "true";
+        video.currentTime = 0;
+        video.play().catch(() => {
+          body.dataset.state = "idle";
+          video.dataset.show = "false";
+        });
+        if (audio) {
+          audio.currentTime = 0;
+          audio.volume = 0.7;
+          audio.play().catch(() => {});
+        }
+      }
+      playBtn.addEventListener("click", play);
+      replayBtn.addEventListener("click", play);
+      video.addEventListener("ended", () => {
+        body.dataset.state = "ended";
+        if (audio) audio.pause();
+      });
+
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./sw.js").catch(() => {});
+        });
+      }
+    </script>
+  </body>
+</html>
