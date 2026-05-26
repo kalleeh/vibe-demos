@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <title>Sketchwings — A Glide Across Pencil Hills</title>
   <meta name="description" content="A pencil-bird glides across rolling cream-paper hills. Tap to dive on the downslope, release to soar. One day, one flight.">
   <meta property="og:title" content="Sketchwings — A Glide Across Pencil Hills">
@@ -87,6 +87,7 @@
     .stage {
       position: fixed; inset: 0;
       z-index: 1;
+      touch-action: none;
     }
     canvas#sky {
       position: absolute; inset: 0;
@@ -94,6 +95,17 @@
       display: block;
       cursor: pointer;
       z-index: 1;
+      /* touch-action does not inherit — set here explicitly so pinch-
+         zoom and double-tap-zoom never fire while the player is holding
+         to dive. Also kill the focus outline so click-drag never paints
+         a selection rectangle on the canvas. */
+      touch-action: none;
+      outline: none;
+      -webkit-user-drag: none;
+    }
+    /* Floating UI surfaces still need taps but should never zoom. */
+    .topbar, .footer, .intro-panel, .end-panel, .tuner, .rotate-hint {
+      touch-action: manipulation;
     }
     .topbar, .footer {
       position: absolute;
@@ -575,7 +587,21 @@
     document.addEventListener("contextmenu", e => e.preventDefault());
     document.addEventListener("selectstart", e => e.preventDefault());
     document.addEventListener("dragstart", e => e.preventDefault());
-    document.addEventListener("gesturestart", e => e.preventDefault());
+    // iOS Safari pinch-zoom fires gesturestart/change/end. Block all three.
+    document.addEventListener("gesturestart",  e => e.preventDefault());
+    document.addEventListener("gesturechange", e => e.preventDefault());
+    document.addEventListener("gestureend",    e => e.preventDefault());
+    // Desktop ctrl/cmd+wheel and trackpad pinch both fire wheel with
+    // ctrlKey=true. Swallow them so the page never zooms while playing.
+    window.addEventListener("wheel", e => {
+      if (e.ctrlKey) e.preventDefault();
+    }, { passive: false });
+    // Double-click on the canvas would otherwise drop a text caret /
+    // selection; suppress it.
+    document.addEventListener("dblclick", e => {
+      if (e.target && e.target.closest && e.target.closest("canvas#sky"))
+        e.preventDefault();
+    });
   </script>
 
   <script>
