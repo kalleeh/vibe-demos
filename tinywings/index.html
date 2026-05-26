@@ -330,6 +330,107 @@
       }
     }
 
+    /* Install help — folds into the intro copy column. Hidden when the
+       page is already running standalone. */
+    .install-help { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+    .install-help.is-installed { display: none; }
+    .install-toggle {
+      align-self: flex-start;
+      appearance: none; border: none; background: none;
+      font-family: "Caveat", cursive; font-size: 18px;
+      color: var(--ink-soft);
+      cursor: pointer; padding: 0;
+      border-bottom: 1px dashed var(--line);
+      transition: color 160ms;
+    }
+    .install-toggle:hover { color: var(--ink); }
+    .install-toggle .arrow { display: inline-block; transition: transform 220ms ease-out; }
+    .install-help.open .install-toggle .arrow { transform: rotate(90deg); }
+    .install-body {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px 12px 12px;
+      border: 1px dashed var(--line);
+      background: rgba(244, 236, 214, 0.55);
+      transform: rotate(-0.2deg);
+    }
+    .install-help.open .install-body { display: flex; }
+    .install-tabs {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    }
+    .install-tabs button {
+      appearance: none; border: 1px dashed var(--line); background: transparent;
+      color: var(--muted); cursor: pointer;
+      padding: 3px 9px; border-radius: 12px;
+      font-family: inherit; font-size: inherit; letter-spacing: inherit; text-transform: inherit;
+      transition: color 160ms, border-color 160ms;
+    }
+    .install-tabs button:hover { color: var(--ink); }
+    .install-tabs button.active {
+      color: var(--ink); border-color: var(--ink-soft); background: rgba(244, 236, 214, 0.7);
+    }
+    .install-pane { display: none; flex-direction: column; gap: 8px; }
+    .install-pane.active { display: flex; }
+    .install-steps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .install-step {
+      display: flex; flex-direction: column; gap: 4px;
+      font-family: "Fraunces", serif;
+      font-size: 12px; line-height: 1.4;
+      color: var(--ink-soft);
+    }
+    .install-step .num {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px; letter-spacing: 0.16em; color: var(--muted); text-transform: uppercase;
+    }
+    .install-step strong { color: var(--ink); font-weight: 500; }
+    .install-step svg.phone {
+      width: 100%; height: auto; display: block;
+      max-height: 110px;
+    }
+    .install-step svg.phone .body { fill: rgba(244, 236, 214, 0.6); stroke: var(--ink); stroke-width: 1.4; }
+    .install-step svg.phone .screen { fill: rgba(255, 252, 244, 0.85); stroke: var(--line); stroke-width: 1; }
+    .install-step svg.phone .ui { fill: none; stroke: var(--ink-soft); stroke-width: 1; stroke-linecap: round; }
+    .install-step svg.phone .glyph { fill: none; stroke: var(--ink); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+    .install-step svg.phone .accent { fill: none; stroke: var(--bloom); stroke-width: 1.6; stroke-linecap: round; }
+    .install-step svg.phone .accent-fill { fill: var(--bloom); }
+    .install-step svg.phone .ring {
+      fill: none; stroke: var(--bloom); stroke-width: 1; opacity: 0.5;
+      stroke-dasharray: 3 3;
+    }
+    .install-cta-row {
+      display: flex; gap: 8px; align-items: center;
+      padding: 6px 0 2px;
+    }
+    .install-cta-row button {
+      appearance: none; border: 1px dashed var(--ink-soft); background: transparent;
+      font-family: "Caveat", cursive; font-size: 18px;
+      color: var(--ink); cursor: pointer; padding: 3px 14px;
+      transition: background 160ms, color 160ms;
+    }
+    .install-cta-row button:hover { background: var(--ink); color: var(--paper); }
+    .install-cta-row .note {
+      font-family: "Fraunces", serif; font-size: 11px;
+      color: var(--muted); font-style: italic;
+    }
+    .install-note {
+      font-family: "Fraunces", serif; font-size: 11px;
+      line-height: 1.5; color: var(--muted);
+      border-top: 1px dashed var(--line);
+      padding-top: 8px;
+    }
+    .install-note strong { color: var(--ink-soft); font-weight: 500; }
+    @media (max-width: 540px) {
+      .install-steps { grid-template-columns: 1fr; }
+      .install-step svg.phone { max-height: 130px; }
+    }
+
     /* Rotate-for-landscape hint, only shown in narrow-portrait viewports */
     .rotate-hint {
       position: absolute;
@@ -565,6 +666,202 @@
           <span><span class="key">tap</span> dive on the down</span>
           <span><span class="key">release</span> launch on the up</span>
           <span><span class="key">tap mid-air</span> spend boost</span>
+        </div>
+
+        <!-- ── Install-as-app accordion. Hidden when running standalone. ── -->
+        <div class="install-help" id="installHelp">
+          <button class="install-toggle" type="button" id="installToggle" aria-expanded="false" aria-controls="installBody">
+            <span class="arrow">▸</span> add to home screen — fly offline
+          </button>
+          <div class="install-body" id="installBody" role="region" aria-label="install instructions">
+            <div class="install-tabs" role="tablist">
+              <button type="button" data-install-tab="ios" class="active" role="tab">iPhone · iPad</button>
+              <button type="button" data-install-tab="android" role="tab">Android</button>
+              <button type="button" data-install-tab="desktop" role="tab">Desktop</button>
+            </div>
+
+            <!-- iOS Safari -->
+            <div class="install-pane active" data-install-pane="ios">
+              <div class="install-steps">
+                <div class="install-step">
+                  <span class="num">01 · open in safari</span>
+                  <svg class="phone" viewBox="0 0 120 160" aria-hidden="true">
+                    <rect class="body" x="14" y="6" width="92" height="148" rx="14"/>
+                    <rect class="screen" x="20" y="20" width="80" height="120" rx="3"/>
+                    <path class="ui" d="M28 30 L92 30 M28 40 L78 40"/>
+                    <path class="ui" d="M28 60 L92 60 M28 70 L88 70 M28 80 L92 80 M28 90 L82 90"/>
+                    <rect x="38" y="125" width="44" height="11" rx="2" class="ui"/>
+                    <g transform="translate(54, 127)">
+                      <rect class="accent" x="0" y="3" width="12" height="8" rx="1.2"/>
+                      <path class="accent" d="M6 7 L6 0 M3 3 L6 0 L9 3"/>
+                    </g>
+                    <circle cx="60" cy="131" r="11" class="ring"/>
+                  </svg>
+                  <p>tap the <strong>share</strong> button (square with ↑) at the bottom.</p>
+                </div>
+                <div class="install-step">
+                  <span class="num">02 · pick from menu</span>
+                  <svg class="phone" viewBox="0 0 120 160" aria-hidden="true">
+                    <rect class="body" x="14" y="6" width="92" height="148" rx="14"/>
+                    <rect class="screen" x="20" y="20" width="80" height="120" rx="3"/>
+                    <rect x="26" y="50" width="68" height="14" rx="2" class="ui"/>
+                    <rect x="26" y="68" width="68" height="14" rx="2" class="ui"/>
+                    <rect x="26" y="86" width="68" height="14" rx="2" class="accent"/>
+                    <g transform="translate(30, 90)">
+                      <rect class="accent" x="0" y="2" width="6" height="6" rx="0.8"/>
+                      <path class="accent" d="M3 5 L3 0 M1 1 L3 0 L5 1"/>
+                    </g>
+                    <text x="42" y="97" font-family="Fraunces, serif" font-size="6" fill="#c97e60" font-style="italic" font-weight="500">add to home screen</text>
+                    <rect x="26" y="104" width="68" height="14" rx="2" class="ui"/>
+                  </svg>
+                  <p>scroll, then tap <strong>"add to home screen"</strong>.</p>
+                </div>
+                <div class="install-step">
+                  <span class="num">03 · confirm</span>
+                  <svg class="phone" viewBox="0 0 120 160" aria-hidden="true">
+                    <rect class="body" x="14" y="6" width="92" height="148" rx="14"/>
+                    <rect class="screen" x="20" y="20" width="80" height="120" rx="3"/>
+                    <g class="ui">
+                      <rect x="28" y="34" width="14" height="14" rx="3"/>
+                      <rect x="48" y="34" width="14" height="14" rx="3"/>
+                      <rect x="68" y="34" width="14" height="14" rx="3"/>
+                      <rect x="48" y="54" width="14" height="14" rx="3"/>
+                      <rect x="68" y="54" width="14" height="14" rx="3"/>
+                    </g>
+                    <rect x="28" y="54" width="14" height="14" rx="3" class="accent" stroke-width="1.8"/>
+                    <text x="35" y="64" text-anchor="middle" font-family="Caveat, cursive" font-size="9" fill="#c97e60" font-weight="600">SW</text>
+                    <circle cx="35" cy="61" r="11" class="ring"/>
+                    <path class="ui" d="M28 86 L92 86 M28 96 L80 96"/>
+                  </svg>
+                  <p>tap <strong>add</strong>. a sketchwings bird lands on your home screen.</p>
+                </div>
+              </div>
+              <div class="install-note">
+                <strong>note</strong> — on iOS this only works in <strong>Safari</strong>. Chrome and other browsers don't show the menu item.
+              </div>
+            </div>
+
+            <!-- Android Chrome -->
+            <div class="install-pane" data-install-pane="android">
+              <div class="install-cta-row" id="installNativeRow" style="display:none">
+                <button type="button" id="installNativeBtn">↓ install now</button>
+                <span class="note">one-tap install available</span>
+              </div>
+              <div class="install-steps">
+                <div class="install-step">
+                  <span class="num">01 · open menu</span>
+                  <svg class="phone" viewBox="0 0 120 160" aria-hidden="true">
+                    <rect class="body" x="14" y="6" width="92" height="148" rx="14"/>
+                    <rect class="screen" x="20" y="20" width="80" height="120" rx="3"/>
+                    <path class="ui" d="M28 30 L82 30"/>
+                    <g class="accent-fill">
+                      <circle cx="92" cy="28" r="1.6"/>
+                      <circle cx="92" cy="32" r="1.6"/>
+                      <circle cx="92" cy="36" r="1.6"/>
+                    </g>
+                    <circle cx="92" cy="32" r="9" class="ring"/>
+                    <path class="ui" d="M28 60 L92 60 M28 70 L88 70 M28 80 L92 80 M28 90 L82 90"/>
+                  </svg>
+                  <p>tap <strong>⋮</strong> (three dots, top-right).</p>
+                </div>
+                <div class="install-step">
+                  <span class="num">02 · install app</span>
+                  <svg class="phone" viewBox="0 0 120 160" aria-hidden="true">
+                    <rect class="body" x="14" y="6" width="92" height="148" rx="14"/>
+                    <rect class="screen" x="20" y="20" width="80" height="120" rx="3"/>
+                    <rect x="26" y="40" width="68" height="13" rx="2" class="ui"/>
+                    <rect x="26" y="56" width="68" height="13" rx="2" class="accent"/>
+                    <text x="42" y="65" font-family="Fraunces, serif" font-size="6" fill="#c97e60" font-style="italic" font-weight="500">install app</text>
+                    <g transform="translate(30, 60)">
+                      <path class="accent" d="M3 0 L3 5 M1 3 L3 5 L5 3 M0 6 L6 6"/>
+                    </g>
+                    <rect x="26" y="72" width="68" height="13" rx="2" class="ui"/>
+                    <rect x="26" y="88" width="68" height="13" rx="2" class="ui"/>
+                  </svg>
+                  <p>pick <strong>"install app"</strong> or <strong>"add to home screen"</strong>.</p>
+                </div>
+                <div class="install-step">
+                  <span class="num">03 · done</span>
+                  <svg class="phone" viewBox="0 0 120 160" aria-hidden="true">
+                    <rect class="body" x="14" y="6" width="92" height="148" rx="14"/>
+                    <rect class="screen" x="20" y="20" width="80" height="120" rx="3"/>
+                    <g class="ui">
+                      <rect x="28" y="34" width="14" height="14" rx="3"/>
+                      <rect x="48" y="34" width="14" height="14" rx="3"/>
+                      <rect x="68" y="34" width="14" height="14" rx="3"/>
+                      <rect x="48" y="54" width="14" height="14" rx="3"/>
+                      <rect x="68" y="54" width="14" height="14" rx="3"/>
+                    </g>
+                    <rect x="28" y="54" width="14" height="14" rx="3" class="accent" stroke-width="1.8"/>
+                    <text x="35" y="64" text-anchor="middle" font-family="Caveat, cursive" font-size="9" fill="#c97e60" font-weight="600">SW</text>
+                    <circle cx="35" cy="61" r="11" class="ring"/>
+                    <path class="ui" d="M28 86 L92 86 M28 96 L80 96"/>
+                  </svg>
+                  <p>opens like an app — full-screen, no chrome, even offline.</p>
+                </div>
+              </div>
+              <div class="install-note">
+                <strong>note</strong> — works in Chrome, Edge, Samsung Internet. If the auto-install button shows up, that's the fastest way.
+              </div>
+            </div>
+
+            <!-- Desktop -->
+            <div class="install-pane" data-install-pane="desktop">
+              <div class="install-cta-row" id="installNativeRowDesktop" style="display:none">
+                <button type="button" id="installNativeBtnDesktop">↓ install now</button>
+                <span class="note">one-click install available</span>
+              </div>
+              <div class="install-steps">
+                <div class="install-step">
+                  <span class="num">01 · address bar</span>
+                  <svg class="phone" viewBox="0 0 200 110" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
+                    <rect class="body" x="6" y="8" width="188" height="94" rx="6"/>
+                    <rect class="screen" x="12" y="14" width="176" height="82" rx="3"/>
+                    <rect x="18" y="20" width="160" height="14" rx="7" class="ui"/>
+                    <text x="26" y="29" font-family="JetBrains Mono, monospace" font-size="6" fill="#2a261d">kalleeh.github.io/vibe-demos/tinywings/</text>
+                    <g transform="translate(168, 23)">
+                      <rect class="accent" x="0" y="0" width="8" height="8" rx="1.2"/>
+                      <path class="accent" d="M4 6 L4 1 M2 3 L4 1 L6 3"/>
+                    </g>
+                    <circle cx="172" cy="27" r="9" class="ring"/>
+                    <path class="ui" d="M22 50 L178 50 M22 60 L160 60 M22 70 L170 70 M22 80 L150 80"/>
+                  </svg>
+                  <p>click the <strong>↓ install</strong> icon at the right end of the address bar.</p>
+                </div>
+                <div class="install-step">
+                  <span class="num">02 · confirm dialog</span>
+                  <svg class="phone" viewBox="0 0 200 110" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
+                    <rect class="body" x="6" y="8" width="188" height="94" rx="6"/>
+                    <rect class="screen" x="12" y="14" width="176" height="82" rx="3"/>
+                    <rect x="60" y="32" width="80" height="48" rx="3" fill="rgba(255,252,244,0.92)" stroke="#2a261d" stroke-width="1"/>
+                    <text x="100" y="46" text-anchor="middle" font-family="Fraunces, serif" font-size="8" fill="#2a261d" font-style="italic">install sketchwings?</text>
+                    <rect x="68" y="58" width="32" height="13" rx="2" fill="#c97e60"/>
+                    <text x="84" y="67" text-anchor="middle" font-family="Inter, sans-serif" font-size="6" fill="#f4ecd6" font-weight="600">install</text>
+                    <rect x="106" y="58" width="32" height="13" rx="2" fill="none" stroke="#2a261d" stroke-width="1"/>
+                    <text x="122" y="67" text-anchor="middle" font-family="Inter, sans-serif" font-size="6" fill="#2a261d">cancel</text>
+                  </svg>
+                  <p>click <strong>install</strong> in the dialog.</p>
+                </div>
+                <div class="install-step">
+                  <span class="num">03 · own window</span>
+                  <svg class="phone" viewBox="0 0 200 110" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
+                    <rect class="body" x="20" y="20" width="160" height="80" rx="6"/>
+                    <rect class="screen" x="26" y="26" width="148" height="68" rx="3"/>
+                    <text x="100" y="50" text-anchor="middle" font-family="Fraunces, serif" font-size="11" font-style="italic" fill="#2a261d">sketchwings</text>
+                    <text x="100" y="64" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.5" fill="#6b6457">A QUIET GLIDE · 2026</text>
+                    <path class="ui" d="M40 75 L160 75"/>
+                    <path class="ui" d="M40 82 L130 82"/>
+                    <circle cx="172" cy="32" r="8" class="ring"/>
+                    <text x="172" y="34" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#c97e60" font-weight="600">✦</text>
+                  </svg>
+                  <p>opens in its own window — launchable from your dock or taskbar.</p>
+                </div>
+              </div>
+              <div class="install-note">
+                <strong>note</strong> — works in Chrome, Edge, and Brave on macOS / Windows / Linux. Safari on macOS doesn't currently show this option.
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -2036,6 +2333,75 @@
     canvas.addEventListener("pointerdown", () => {
       if (!intro.classList.contains("gone")) dismissIntro();
     }, true);
+
+    // ── Install help ─────────────────────────────────────────────
+    // Folds into the intro. Hide entirely if already running standalone.
+    (function setupInstall() {
+      const help = document.getElementById("installHelp");
+      const toggle = document.getElementById("installToggle");
+      const isStandalone = () =>
+        (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+        window.navigator.standalone === true;
+      if (isStandalone()) {
+        help.classList.add("is-installed");
+        return;
+      }
+      // Capture the install prompt where supported (Android/desktop Chrome,
+      // Edge, Brave). Reveals the one-tap CTA in the matching pane.
+      let deferredPrompt = null;
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const a = document.getElementById("installNativeRow");
+        const d = document.getElementById("installNativeRowDesktop");
+        if (a) a.style.display = "flex";
+        if (d) d.style.display = "flex";
+      });
+      window.addEventListener("appinstalled", () => {
+        deferredPrompt = null;
+        help.classList.add("is-installed");
+      });
+
+      toggle.addEventListener("click", () => {
+        const open = help.classList.toggle("open");
+        toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+
+      // Tab switching
+      function selectTab(name) {
+        document.querySelectorAll("#installHelp [data-install-tab]").forEach(b => {
+          b.classList.toggle("active", b.dataset.installTab === name);
+        });
+        document.querySelectorAll("#installHelp [data-install-pane]").forEach(p => {
+          p.classList.toggle("active", p.dataset.installPane === name);
+        });
+      }
+      document.querySelectorAll("#installHelp [data-install-tab]").forEach(b => {
+        b.addEventListener("click", () => selectTab(b.dataset.installTab));
+      });
+
+      // UA-aware default tab
+      const ua = navigator.userAgent || "";
+      const isiOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+      const isAndroid = /Android/.test(ua);
+      if (isiOS) selectTab("ios");
+      else if (isAndroid) selectTab("android");
+      else selectTab("desktop");
+
+      // One-tap install
+      async function triggerNative() {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        try { await deferredPrompt.userChoice; } catch (e) {}
+        deferredPrompt = null;
+        const a = document.getElementById("installNativeRow");
+        const d = document.getElementById("installNativeRowDesktop");
+        if (a) a.style.display = "none";
+        if (d) d.style.display = "none";
+      }
+      document.getElementById("installNativeBtn")?.addEventListener("click", triggerNative);
+      document.getElementById("installNativeBtnDesktop")?.addEventListener("click", triggerNative);
+    })();
 
     // Rotate-hint: shown once, only in portrait on narrow screens.
     // Auto-dismisses if the user rotates to landscape; otherwise the
