@@ -1,12 +1,116 @@
 <template id="scene-sunset-template">
-  <div data-composition-id="scene-sunset" data-width="1920" data-height="1080" style="position:relative;width:100%;height:100%;background:#000;">
-    <div id="sunset-stub" class="clip" data-start="0" data-duration="1" data-track-index="0" style="width:100%;height:100%;"></div>
+  <div data-composition-id="scene-sunset" data-width="1920" data-height="1080"
+       style="position:relative;width:100%;height:100%;overflow:hidden;background:#1a0a0e;">
+
+    <!-- Sky gradient backdrop -->
+    <div id="sunset-sky" class="clip" data-start="0" data-duration="8" data-track-index="0"
+         style="position:absolute;inset:0;
+                background:linear-gradient(180deg,
+                  #2a0e1a 0%,
+                  #6e2417 28%,
+                  #c45627 55%,
+                  #FFB347 76%,
+                  #FFD27A 92%,
+                  #f4d49a 100%);">
+    </div>
+
+    <!-- Heat haze band over horizon -->
+    <div id="sunset-haze" class="clip" data-start="0" data-duration="8" data-track-index="1"
+         style="position:absolute;left:0;right:0;top:62%;height:14%;
+                background:radial-gradient(ellipse at 50% 50%,
+                  rgba(255,210,140,0.45) 0%,
+                  rgba(255,180,90,0.18) 50%,
+                  rgba(255,180,90,0) 100%);
+                filter:blur(6px);mix-blend-mode:screen;opacity:0.85;"></div>
+
+    <!-- Twin suns SVG layer -->
+    <svg id="sunset-suns" class="clip" data-start="0" data-duration="8" data-track-index="2"
+         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+         style="position:absolute;inset:0;width:100%;height:100%;">
+      <defs>
+        <radialGradient id="sun-a" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"  stop-color="#FFF4D6" />
+          <stop offset="55%" stop-color="#FFD27A" />
+          <stop offset="100%" stop-color="#FFB347" stop-opacity="0" />
+        </radialGradient>
+        <radialGradient id="sun-b" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"  stop-color="#FFE6C0" />
+          <stop offset="60%" stop-color="#FFB57A" />
+          <stop offset="100%" stop-color="#c45627" stop-opacity="0" />
+        </radialGradient>
+        <radialGradient id="sun-glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"  stop-color="#FFD27A" stop-opacity="0.55" />
+          <stop offset="100%" stop-color="#FFB347" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+
+      <!-- Atmospheric glow behind suns (descends behind dunes) -->
+      <circle id="sun-glow-a" cx="980" cy="700" r="380" fill="url(#sun-glow)" data-layout-allow-overflow />
+      <circle id="sun-glow-b" cx="1080" cy="730" r="280" fill="url(#sun-glow)" opacity="0.7" data-layout-allow-overflow />
+
+      <!-- Big sun -->
+      <circle id="sun-a-disc" cx="980" cy="700" r="150" fill="url(#sun-a)" />
+      <!-- Smaller companion sun, tucked behind -->
+      <circle id="sun-b-disc" cx="1080" cy="730" r="92" fill="url(#sun-b)" />
+    </svg>
+
+    <!-- Horizon dunes silhouette -->
+    <svg id="sunset-dunes" class="clip" data-start="0" data-duration="8" data-track-index="3"
+         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+         style="position:absolute;inset:0;width:100%;height:100%;">
+      <!-- Far dune layer -->
+      <path d="M0,780 C220,760 380,800 580,790 C780,780 940,750 1180,760 C1420,770 1620,790 1920,780 L1920,1080 L0,1080 Z"
+            fill="#3a1a18" opacity="0.85"/>
+      <!-- Near dune layer -->
+      <path d="M0,860 C260,830 460,890 720,880 C980,870 1180,840 1420,860 C1660,880 1820,870 1920,870 L1920,1080 L0,1080 Z"
+            fill="#1f0d10"/>
+    </svg>
+
+    <!-- Lone figure silhouette (Luke) -->
+    <svg id="sunset-figure" class="clip" data-start="0" data-duration="8" data-track-index="4"
+         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+         style="position:absolute;inset:0;width:100%;height:100%;">
+      <g transform="translate(820 820)" fill="#0A0A0A">
+        <!-- head -->
+        <ellipse cx="0" cy="0" rx="14" ry="18"/>
+        <!-- torso (poncho) -->
+        <path d="M -36,18 L 36,18 L 28,90 L -28,90 Z"/>
+        <!-- legs -->
+        <rect x="-14" y="90" width="10" height="46"/>
+        <rect x="4"   y="90" width="10" height="46"/>
+        <!-- gentle wind flick on poncho hem (animated via CSS) -->
+      </g>
+    </svg>
+
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <script>
-      window.__timelines = window.__timelines || {};
-      const tl = gsap.timeline({ paused: true });
-      tl.from("#sunset-stub", { opacity: 0, duration: 0.1, ease: "none" }, 0);
-      window.__timelines["scene-sunset"] = tl;
+      (function () {
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+
+        // Whole scene fades up out of black (the root crossfade also covers this).
+        tl.fromTo("#sunset-sky",   { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 0);
+        tl.fromTo("#sunset-haze",  { opacity: 0 }, { opacity: 0.85, duration: 1.0, ease: "power2.out" }, 0.2);
+        tl.fromTo("#sunset-suns",  { opacity: 0 }, { opacity: 1, duration: 0.8, ease: "power2.out" }, 0.3);
+        tl.fromTo("#sunset-dunes", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power2.out" }, 0.4);
+        tl.fromTo("#sunset-figure",{ opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }, 0.6);
+
+        // Sun descent: large sun lowers ~60px, smaller drifts behind it
+        tl.to("#sun-a-disc",   { attr: { cy: 760 }, duration: 8, ease: "power1.in" }, 0);
+        tl.to("#sun-glow-a",   { attr: { cy: 760 }, duration: 8, ease: "power1.in" }, 0);
+        tl.to("#sun-b-disc",   { attr: { cy: 800, cx: 1060 }, duration: 8, ease: "power1.in" }, 0);
+        tl.to("#sun-glow-b",   { attr: { cy: 800, cx: 1060 }, duration: 8, ease: "power1.in" }, 0);
+
+        // Slow heat-haze breathing (after fade-in completes)
+        tl.to("#sunset-haze", { opacity: 0.55, duration: 3.2, ease: "sine.inOut", yoyo: true, repeat: 1, overwrite: "auto" }, 1.4);
+
+        // Gradual sky deepen: shift overall scene toward warmer/darker as suns lower
+        tl.fromTo("#sunset-sky",
+          { filter: "brightness(1.05) saturate(1.0)" },
+          { filter: "brightness(0.85) saturate(1.15)", duration: 8, ease: "power1.inOut" }, 0);
+
+        window.__timelines["scene-sunset"] = tl;
+      })();
     </script>
   </div>
 </template>
