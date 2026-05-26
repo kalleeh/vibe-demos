@@ -1339,10 +1339,24 @@
       e.currentTarget.textContent = G.muted ? "sound · off" : "sound · on";
       e.currentTarget.setAttribute("aria-pressed", G.muted ? "true" : "false");
     });
-    document.getElementById("restartBtn").addEventListener("click", startGame);
+    // Restart wiring uses pointerup + stopPropagation, NOT click. On
+    // mobile, click fires ~300 ms after pointerup; in that gap the
+    // canvas's own pointerdown handler can prevent-default the touch
+    // sequence and the click never reaches the button. Listening on
+    // pointerup directly fires immediately and reliably.
+    function wireRestart(el, fn) {
+      const handler = e => {
+        e.preventDefault();
+        e.stopPropagation();
+        fn();
+      };
+      el.addEventListener("pointerup", handler);
+      el.addEventListener("click", handler); // fallback for keyboard / a11y
+    }
+    wireRestart(document.getElementById("restartBtn"), startGame);
     // Manual restart button in the footer — escape hatch when end-game
     // detection misses a stuck state. Always wins; no confirmation.
-    document.getElementById("manualRestartBtn").addEventListener("click", () => {
+    wireRestart(document.getElementById("manualRestartBtn"), () => {
       // Force gameOver so endRun()'s guard doesn't re-fire mid-restart
       G.gameOver = true;
       startGame();
@@ -1665,30 +1679,35 @@
       // Boost meter UI
       document.getElementById("boostFill").style.width = (G.boost * 100).toFixed(1) + "%";
 
-      // End-of-flight detection. Two independent triggers — either ends
-      // the run — so oscillating crashes that keep speed > threshold
-      // can't farm forever like they used to:
+      // End-of-flight detection. Three independent triggers — any one
+      // ends the run:
       //  (a) low speed for sustained time (classic wedge-in-slope)
       //  (b) no forward progress (maxBx stalls) — catches airborne
       //      stalls and bouncing-in-place even when speed flickers high.
+      //  (c) backsliding — bx actually retreating from the watermark
+      //      means the bird is being pushed back by an uphill it can't
+      //      climb; no point waiting another second to call it.
       const speed = Math.sqrt(G.vx * G.vx + G.vy * G.vy);
-      if (speed < 60) {
+      if (speed < 80) {
         G.stuckMs += dt * 1000;
-        if (G.stuckMs > 800) endRun("the wind has settled");
+        if (G.stuckMs > 600) endRun("the wind has settled");
       } else {
         G.stuckMs = 0;
       }
-      // Forward-progress watchdog: if bx hasn't gained ≥30 px in 1.4 s,
-      // call it. 30 px is small enough not to fire during a high arc
-      // (where airborne vx stays >0) but large enough to catch any
-      // genuinely-pinned bird.
-      if (G.bx > G.stuckCheckBx + 30) {
+      // Forward-progress watchdog: bird must gain ≥60 px (≈4 m) every
+      // 1.0 s, otherwise the run ends. Tight enough to catch a bird
+      // grinding into a wall at vx≈80 (which used to squeak past the
+      // old 30 px / 1.4 s gate).
+      if (G.bx > G.stuckCheckBx + 60) {
         G.stuckCheckBx = G.bx;
         G.noProgressMs = 0;
       } else {
         G.noProgressMs += dt * 1000;
-        if (G.noProgressMs > 1400) endRun("the wind has settled");
+        if (G.noProgressMs > 1000) endRun("the wind has settled");
       }
+      // Backslide trigger: bird is being shoved BACK from its high-water
+      // mark by ≥80 px (≈6 m). That's not "stuck", that's defeated.
+      if (G.bx < G.stuckCheckBx - 80) endRun("the wind has settled");
 
       // Day timer
       if (!G.transitioning) {
