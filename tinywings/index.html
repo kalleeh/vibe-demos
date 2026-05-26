@@ -1530,11 +1530,11 @@
           G.vy = speed * ty - 60;  // small pop so the bird clears the crest
         } else {
           // Apply gravity along the slope. gAlong is clamped to
-          // [-280, +1100] — a steep uphill still costs SOME speed
-          // (so the player can come to rest naturally) but won't grind
-          // the bird to a halt in 12 frames the way unclamped gravity
-          // does on a 45° upslope.
-          const gAlong = Math.max(-280, PHYS.GRAVITY_SURF * (slope / tlen));
+          // [-280, +560] — uphill costs SOME speed (so the player can
+          // come to rest naturally) but won't grind the bird to a halt
+          // in 12 frames; downhill is also capped so a slam-press loop
+          // can't farm unbounded gAlong on every descent.
+          const gAlong = Math.max(-280, Math.min(560, PHYS.GRAVITY_SURF * (slope / tlen)));
           // Pitch-down on the slope. Asymmetric on purpose: on a downhill
           // (slope > 0) holding boosts you ~1×, on an uphill (slope < 0)
           // it brakes you ~2.5× — you're plowing your beak into rising
@@ -1543,14 +1543,19 @@
           let pitchAdd = 0;
           if (G.pitchDown) {
             const sNorm = slope / tlen; // [-~0.7 .. +~0.7]
-            const brake = sNorm < 0 ? 2.5 : 1.0;
+            // Asymmetry: uphill dives brake hard (3.5×), downhill dives
+            // give only a small boost (0.5×). Net across a full hill
+            // cycle this MUST be negative — otherwise slam-pressing
+            // farms perpetual energy. Holding through a downhill is the
+            // SETUP for the launch; the launch itself is what pays out.
+            const brake = sNorm < 0 ? 3.5 : 0.5;
             pitchAdd = PHYS.PITCH_BIAS * sNorm * brake * dt;
           }
-          // Idle surfing bleeds speed faster than tucked surfing. Tiny
-          // Wings' core risk/reward: wings out = drag, wings tucked = glide.
-          // Without the asymmetry a do-nothing player rides downhills
-          // forever on free gAlong energy.
-          const rollK = G.pitchDown ? 0.04 : 0.18;
+          // Even tucked surfing costs SOMETHING, so slam-pressing through
+          // hills can't be cheaper than skilled airborne gliding. Idle
+          // wings-out costs more, preserving the wings-in/wings-out
+          // risk/reward the airborne path also has.
+          const rollK = G.pitchDown ? 0.07 : 0.18;
           const roll = -rollK * projMag * dt;
           let newProj = Math.max(0, projMag + gAlong * dt + pitchAdd + roll);
           G.vx = newProj * tx;
