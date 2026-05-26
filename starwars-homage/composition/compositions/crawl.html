@@ -18,17 +18,19 @@
     <!-- Crawl perspective stage -->
     <div id="crawl-stage" class="clip" data-start="4.6" data-duration="9.4" data-track-index="2"
          data-layout-allow-overflow
-         style="position:absolute;inset:0;perspective:400px;perspective-origin:50% 100%;
+         style="position:absolute;inset:0;perspective:1200px;perspective-origin:50% 35%;
                 overflow:hidden;opacity:0;">
       <div id="crawl-text"
            data-layout-allow-overflow
-           style="position:absolute;left:50%;top:100%;width:1100px;margin-left:-550px;
-                  transform-origin:50% 0%;transform:rotateX(25deg) translateY(0px);
-                  color:#FFE81F;font-family:'Star Jedi','Times New Roman',serif;
-                  text-align:justify;line-height:1.55;font-size:54px;letter-spacing:0.02em;">
+           style="position:absolute;left:50%;top:80%;width:1100px;margin-left:-550px;
+                  transform-origin:50% 0%;transform:rotateX(40deg) translateY(0px);
+                  color:#FFE81F;
+                  font-family:'Arial','Helvetica Neue',sans-serif;
+                  font-weight:700;font-style:normal;
+                  text-align:justify;line-height:1.55;font-size:54px;letter-spacing:0.04em;">
 
-        <div style="text-align:center;font-size:64px;margin-bottom:0.4em;">Episode IV</div>
-        <div style="text-align:center;font-size:96px;margin-bottom:1.6em;letter-spacing:0.06em;">A NEW HOPE</div>
+        <div style="font-family:'Star Jedi','Times New Roman',serif;font-weight:400;text-transform:lowercase;text-align:center;font-size:64px;margin-bottom:0.4em;">Episode IV</div>
+        <div style="font-family:'Star Jedi','Times New Roman',serif;font-weight:400;text-transform:lowercase;text-align:center;font-size:96px;margin-bottom:1.6em;letter-spacing:0.06em;">A NEW HOPE</div>
 
         <p style="margin:0 0 1.2em 0;">It is a period of civil war. Rebel spaceships, striking from a hidden base, have won their first victory against the evil Galactic Empire.</p>
 
@@ -81,10 +83,10 @@
 
         // The crawl scrolls upward through space.
         // Container is positioned at top:100% (just below the visible frame),
-        // we tween translateY from 0 to -2400px so the text rises and recedes.
+        // we tween translateY so the text rises and recedes into the distance.
         tl.fromTo("#crawl-text",
-          { rotateX: 25, y: 0 },
-          { rotateX: 25, y: -2400, duration: 9.0, ease: "none" }, 4.6);
+          { rotateX: 40, y: 0 },
+          { rotateX: 40, y: -2200, duration: 9.4, ease: "none" }, 4.6);
 
         window.__timelines["scene-crawl"] = tl;
       })();
