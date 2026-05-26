@@ -208,8 +208,6 @@
             <source src="film.mp4" type="video/mp4" />
           </video>
 
-          <audio id="audio" src="audio.mp3" preload="metadata"></audio>
-
           <div class="poster">
             <button class="play-btn" id="play-btn" type="button" aria-label="Play film">
               ▶ Play film
@@ -232,7 +230,6 @@
     <script>
       const body = document.body;
       const video = document.getElementById("film");
-      const audio = document.getElementById("audio");
       const playBtn = document.getElementById("play-btn");
       const replayBtn = document.getElementById("replay-btn");
 
@@ -244,17 +241,11 @@
           body.dataset.state = "idle";
           video.dataset.show = "false";
         });
-        if (audio) {
-          audio.currentTime = 0;
-          audio.volume = 0.7;
-          audio.play().catch(() => {});
-        }
       }
       playBtn.addEventListener("click", play);
       replayBtn.addEventListener("click", play);
       video.addEventListener("ended", () => {
         body.dataset.state = "ended";
-        if (audio) audio.pause();
       });
 
       if ("serviceWorker" in navigator) {

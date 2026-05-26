@@ -5,8 +5,7 @@ const SHELL = [
   "./icon.svg",
   "./manifest.webmanifest",
   "./poster.jpg",
-  "./film.mp4",
-  "./audio.mp3"
+  "./film.mp4"
 ];
 
 self.addEventListener("install", (e) => {

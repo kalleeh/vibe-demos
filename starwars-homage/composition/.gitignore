@@ -1,4 +1,5 @@
 node_modules/
 .hyperframes/
+snapshots/
 audio.local.mp3
 *.log
