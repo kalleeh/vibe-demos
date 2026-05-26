@@ -1184,10 +1184,16 @@
     function chooseFriendlySeed(dayN) {
       const candidates = 24;
       let best = null, bestScore = -Infinity;
+      // Target a *mild* downhill at spawn (~0.15), not the steepest one
+      // available. The old picker scored "as positive as possible" which
+      // handed the player a free 500m glide before they touched the
+      // screen. We want enough slope to give the bird forward motion,
+      // but not so much that the opening rewards passivity.
+      const TARGET_SLOPE = 0.15;
       for (let i = 0; i < candidates; i++) {
         const s = (0xA1B2C3 ^ ((dayN * 2654435761) ^ (i * 0x9E3779B1))) | 0;
         const t = buildTerrain(s);
-        // (a) spawn-window slope: positive = downhill, we want that.
+        // (a) spawn-window slope: minimize squared distance from target.
         const spawnSamples = [
           { x: 200, w: 3.0 },
           { x: 320, w: 2.0 },
@@ -1195,7 +1201,10 @@
           { x: 700, w: 0.6 },
         ];
         let score = 0;
-        for (const sp of spawnSamples) score += sp.w * t.slope(sp.x);
+        for (const sp of spawnSamples) {
+          const d = t.slope(sp.x) - TARGET_SLOPE;
+          score -= sp.w * d * d;
+        }
         // (b) wall penalty across the whole opening km. Anything steeper
         // than ~30° uphill is a stall risk; quadratic penalty above that.
         let walls = 0;
@@ -1371,7 +1380,7 @@
       MIN_SINK:       220,  // net downward accel guaranteed at any speed
       FALL_TERMINAL:  540,  // unpressed-glide max downward speed (soft cap)
       PITCH_BIAS:    1500,  // extra downward when tap-held
-      DRAG_AIR:      0.06,  // per-second velocity damping while airborne
+      DRAG_AIR:      0.18,  // per-second velocity damping while airborne
     };
     const PHYS = Object.assign({}, PHYS_DEFAULTS);
     try {
@@ -1505,7 +1514,14 @@
         // Pitch-held = wings tucked = stays glued to the surface, even on
         // a ramp. This is the Tiny Wings "if you don't release, you don't
         // launch" rule and the reason holding-forever can't farm energy.
-        if (cresting && launchEnergy && !G.pitchDown) {
+        // Tiny Wings core decision: ramp launch only fires if the player
+        // recently dived. Without this gate, a never-touched bird auto-
+        // launches off every crest and the central "hold-then-release"
+        // mechanic has no edge over doing nothing. Held now OR released
+        // within 500 ms = "compressed energy is available to spend."
+        const recentlyDived =
+          G.pitchDown || (performance.now() - G.pitchReleasedAt) < 500;
+        if (cresting && launchEnergy && !G.pitchDown && recentlyDived) {
           G.airborne = true;
           // Preserve forward energy — the bird is *redirected* along
           // the tangent without losing its scalar speed.
@@ -1530,7 +1546,12 @@
             const brake = sNorm < 0 ? 2.5 : 1.0;
             pitchAdd = PHYS.PITCH_BIAS * sNorm * brake * dt;
           }
-          const roll = -0.04 * projMag * dt;
+          // Idle surfing bleeds speed faster than tucked surfing. Tiny
+          // Wings' core risk/reward: wings out = drag, wings tucked = glide.
+          // Without the asymmetry a do-nothing player rides downhills
+          // forever on free gAlong energy.
+          const rollK = G.pitchDown ? 0.04 : 0.18;
+          const roll = -rollK * projMag * dt;
           let newProj = Math.max(0, projMag + gAlong * dt + pitchAdd + roll);
           G.vx = newProj * tx;
           G.vy = newProj * ty;
@@ -1544,9 +1565,13 @@
         if (slope > 0.02 && slopeNext < slope - 0.01 && G.vx > 220) {
           // Player about to crest — fine, stay surfing for one more step
         }
-        if (slope < -0.01 && G.vy < 0 && Math.abs(G.vx) > 280 && !G.pitchDown) {
+        const justReleasedForLaunch =
+          (performance.now() - G.pitchReleasedAt) < 500;
+        if (slope < -0.01 && G.vy < 0 && Math.abs(G.vx) > 280 && !G.pitchDown && justReleasedForLaunch) {
           // Heading uphill with upward velocity — natural launch.
-          // Holding pitch keeps the bird glued to the slope.
+          // Gated on a recent dive: the bird only "leaves" the slope when
+          // the player has compressed energy into the surface. Without
+          // this, idle surfing pops free at every crest.
           G.airborne = true;
           // Perfect launch: not just "happens to be airborne at crest",
           // it must be a *fresh release* — the player held through the
@@ -1628,8 +1653,9 @@
         }
       }
 
-      // Boost recharges with airtime (small)
-      if (G.airborne) G.boost = Math.min(1, G.boost + 0.05 * dt);
+      // Boost is earned, not idled into. Soft landings (+0.10) and
+      // perfect releases (+0.35) charge it; passive airtime does not.
+      // Otherwise a do-nothing bird gets a forward kick handed to it.
 
       // Boost meter UI
       document.getElementById("boostFill").style.width = (G.boost * 100).toFixed(1) + "%";
