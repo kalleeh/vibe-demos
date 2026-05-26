@@ -209,6 +209,30 @@
       box-shadow: 0 0 8px rgba(201,126,96,0.6);
     }
 
+    /* Minimap — shows the upcoming terrain ridge so the player can plan
+       their dive timing instead of guessing. Drawn each frame from the
+       same terrain function as the world. */
+    .minimap-wrap {
+      display: inline-flex; align-items: center;
+      padding: 3px 6px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: rgba(244, 236, 214, 0.55);
+      backdrop-filter: blur(2px);
+      transform: rotate(-0.4deg);
+    }
+    .minimap {
+      display: block;
+      width: 160px; height: 28px;
+      image-rendering: optimizeQuality;
+    }
+    @media (max-width: 720px) {
+      .minimap { width: 120px; height: 22px; }
+    }
+    @media (max-height: 520px) and (orientation: landscape) {
+      .minimap { width: 140px; height: 22px; }
+    }
+
     /* Day chip */
     .day-chip {
       font-family: "JetBrains Mono", monospace;
@@ -499,6 +523,9 @@
       <span class="brand"><em>Sketch</em>wings</span>
       <span class="kicker">Glider · Pencil Hills</span>
       <span class="spacer"></span>
+      <span class="minimap-wrap" title="Upcoming terrain — bird marker shows your position and altitude">
+        <canvas class="minimap" id="minimap" width="320" height="56" aria-hidden="true"></canvas>
+      </span>
       <span class="day-chip">DAY <span class="ph" id="dayNum">1</span></span>
       <span class="stat" id="distStat"><span class="l">DIST</span><span class="v" id="distV">0</span><span class="l">m</span></span>
       <span class="stat ev" id="bestStat"><span class="l">BEST</span><span class="v" id="bestV">0</span><span class="l">m</span></span>
@@ -735,18 +762,21 @@
     // visible at a time, function is ~10 multiply-adds).
     function buildTerrain(seed) {
       const rng = mulberry32(seed);
-      // 4 stacked sines: a low-frequency rolling layer, a mid layer for
-      // crests, and a couple of small features for visual interest.
-      // Amplitudes tuned so the steepest possible slope (sum of A*omega
-      // across all layers) stays around tan(35°) ≈ 0.7 — anything above
-      // that is a wall the glider can't ramp off cleanly. Low-frequency
-      // layer carries most of the vertical range; high-frequency layers
-      // only add small texture so they can't dominate the slope.
+      // 3 stacked sines tuned for skill-based dive timing:
+      //  Layer 1 — main rhythm. Wavelength ~1250-1570 px so a hill takes
+      //   ~3-5 s to cross at typical speed (was 6-12 s).
+      //  Layer 2 — crests on top of crests; wavelength ~550-700 px so the
+      //   player has to time dives roughly every 2 s.
+      //  Layer 3 — tiny texture only; small enough that it can't form a
+      //   stuck-crevice on its own.
+      //  Removed: previous high-freq layer (ω≈0.032) which made narrow
+      //   200-px crevices the bird wedged into.
+      // Smaller absolute amplitudes so peaks aren't so tall there's flat
+      // dead-air between them.
       const layers = [
-        { A: 130 + rng() * 50, omega: 0.0026 + rng() * 0.0008, phi: rng() * Math.PI * 2 },
-        { A:  45 + rng() * 18, omega: 0.0060 + rng() * 0.0010, phi: rng() * Math.PI * 2 },
-        { A:  14 + rng() *  6, omega: 0.0140 + rng() * 0.0030, phi: rng() * Math.PI * 2 },
-        { A:   5 + rng() *  3, omega: 0.0320 + rng() * 0.0060, phi: rng() * Math.PI * 2 },
+        { A: 65 + rng() * 25, omega: 0.0044 + rng() * 0.0012, phi: rng() * Math.PI * 2 },
+        { A: 32 + rng() * 14, omega: 0.0080 + rng() * 0.0025, phi: rng() * Math.PI * 2 },
+        { A:  8 + rng() *  6, omega: 0.0200 + rng() * 0.0060, phi: rng() * Math.PI * 2 },
       ];
       return {
         layers,
@@ -1747,6 +1777,79 @@
       ctx.restore();
     }
 
+    // ── Minimap ───────────────────────────────────────────────────
+    // Strip view of the next ~3 km of terrain. Shows the bird's
+    // position so the player can time dives against upcoming crests.
+    const miniCanvas = document.getElementById("minimap");
+    const miniCtx = miniCanvas ? miniCanvas.getContext("2d") : null;
+    function drawMinimap() {
+      if (!miniCtx || !G.terrain) return;
+      const w = miniCanvas.width, h = miniCanvas.height;
+      // World window: a bit behind the bird so they see what they just
+      // crossed too, and ~2400 px ahead to plan dives.
+      const lookBack = 600, lookAhead = 2400;
+      const x0 = G.bx - lookBack;
+      const span = lookBack + lookAhead;
+      const p = pal();
+      miniCtx.clearRect(0, 0, w, h);
+
+      // Backing wash
+      miniCtx.fillStyle = "rgba(244, 236, 214, 0.65)";
+      miniCtx.fillRect(0, 0, w, h);
+
+      // Sample terrain at uniform world-x and convert to mini-px
+      // h(x) is signed; visible range ≈ ±sum(A) ≈ ±170. Map to half
+      // the strip height with a 0.7 padding so peaks don't clip.
+      const cy = h * 0.55;
+      const yScale = (h * 0.5) / 180;
+      miniCtx.beginPath();
+      const samples = w;
+      for (let i = 0; i <= samples; i++) {
+        const x = x0 + (i / samples) * span;
+        const y = cy + G.terrain.h(x) * yScale;
+        if (i === 0) miniCtx.moveTo(i, y);
+        else miniCtx.lineTo(i, y);
+      }
+      miniCtx.lineTo(w, h);
+      miniCtx.lineTo(0, h);
+      miniCtx.closePath();
+      miniCtx.fillStyle = p.hill ? p.hill.mid : "rgba(102, 142, 90, 0.6)";
+      miniCtx.fill();
+
+      // Ridge line on top
+      miniCtx.beginPath();
+      for (let i = 0; i <= samples; i++) {
+        const x = x0 + (i / samples) * span;
+        const y = cy + G.terrain.h(x) * yScale;
+        if (i === 0) miniCtx.moveTo(i, y);
+        else miniCtx.lineTo(i, y);
+      }
+      miniCtx.strokeStyle = p.ink;
+      miniCtx.lineWidth = 1.0;
+      miniCtx.stroke();
+
+      // Bird marker — its world-x maps to lookBack within the strip.
+      const birdSx = (lookBack / span) * w;
+      const birdSy = cy + G.by * yScale;
+      // Tail line to ground beneath bird so altitude is legible
+      miniCtx.beginPath();
+      miniCtx.moveTo(birdSx, birdSy);
+      miniCtx.lineTo(birdSx, cy + G.terrain.h(G.bx) * yScale);
+      miniCtx.strokeStyle = "rgba(201, 126, 96, 0.55)";
+      miniCtx.setLineDash([2, 2]);
+      miniCtx.lineWidth = 1.0;
+      miniCtx.stroke();
+      miniCtx.setLineDash([]);
+      // Bird dot
+      miniCtx.beginPath();
+      miniCtx.arc(birdSx, Math.max(2, Math.min(h - 2, birdSy)), 2.4, 0, Math.PI * 2);
+      miniCtx.fillStyle = "rgba(201, 126, 96, 0.95)";
+      miniCtx.fill();
+      miniCtx.lineWidth = 0.8;
+      miniCtx.strokeStyle = p.ink;
+      miniCtx.stroke();
+    }
+
     // Pinned indicator when the bird is off-screen (above, below, or far
     // ahead/behind the camera). Shows a chevron at the nearest edge plus
     // an altitude readout in meters so the player can keep track.
@@ -1878,6 +1981,7 @@
 
       drawBird(sx, sy, angle, G.airborne, G.perfectLaunch, G.boostingNow);
       drawOffscreenIndicator(sx, sy);
+      drawMinimap();
 
       // Perfect-launch sparkle decays after one second
       if (G.perfectLaunch && performance.now() - (G._perfectAt || 0) > 60) {
