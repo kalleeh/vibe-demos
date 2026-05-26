@@ -88,20 +88,25 @@
       position: fixed; inset: 0;
       z-index: 1;
       touch-action: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* Letterbox bars when the viewport doesn't match the world aspect.
+         Same cream paper as body so the bars are invisible. */
+      background: var(--paper);
     }
     canvas#sky {
-      position: absolute; inset: 0;
-      width: 100%; height: 100%;
+      /* Fixed-aspect playfield. JS picks 16:9 in landscape, 9:16 in
+         portrait, then sizes to fit-inscribed in the viewport so the
+         bird's airspace never reshapes mid-flight. Hill horizon is a
+         fixed fraction of the canvas height, not the viewport height. */
       display: block;
       cursor: pointer;
       z-index: 1;
-      /* touch-action does not inherit — set here explicitly so pinch-
-         zoom and double-tap-zoom never fire while the player is holding
-         to dive. Also kill the focus outline so click-drag never paints
-         a selection rectangle on the canvas. */
       touch-action: none;
       outline: none;
       -webkit-user-drag: none;
+      box-shadow: 0 0 0 1px rgba(42,38,29,0.06);
     }
     /* Floating UI surfaces still need taps but should never zoom. */
     .topbar, .footer, .intro-panel, .end-panel, .tuner, .rotate-hint {
@@ -870,6 +875,7 @@
       <span class="hint" id="hint">tap and hold on a downslope — release to soar</span>
       <span class="spacer" style="flex:1"></span>
       <span class="boost-wrap"><span>BOOST</span><span class="boost"><span class="fill" id="boostFill"></span></span></span>
+      <button class="toggle" id="manualRestartBtn" title="Restart this run if it gets stuck">restart</button>
       <button class="toggle" id="tuneBtn" aria-pressed="false" title="Tweak physics">tune · physics</button>
       <button class="toggle" id="muteBtn" aria-pressed="false">sound · on</button>
     </footer>
@@ -1124,6 +1130,9 @@
       bestDist: 0,
       maxDistM: 0,             // greatest distance reached this run
       stuckMs: 0,              // time spent at near-zero speed on slope
+      noProgressMs: 0,         // time since maxBx last advanced
+      stuckCheckBx: 0,         // bx watermark for noProgressMs
+      pitchReleasedAt: -1e9,   // wall-clock time of most recent pointer-up
       flightStartX: 200,
       gameOver: false,
       muted: false,
@@ -1244,6 +1253,8 @@
       G.perfectCount = 0;
       G.maxDistM = 0;
       G.stuckMs = 0;
+      G.noProgressMs = 0;
+      G.stuckCheckBx = 200;
       G.flightStartX = 200;
       G.gameOver = false;
       newDay(1);
@@ -1260,15 +1271,33 @@
     let dpr = 1, viewW = 0, viewH = 0, baseY = 0;
     function resize() {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const r = canvas.getBoundingClientRect();
-      canvas.width  = Math.floor(r.width * dpr);
-      canvas.height = Math.floor(r.height * dpr);
+      // Pick the world aspect from orientation, not the viewport itself —
+      // tiny viewport tweaks (e.g. iOS URL bar) shouldn't reshape the
+      // playfield mid-flight. Landscape = 16:9, portrait = 9:16.
+      const portrait = window.innerHeight > window.innerWidth;
+      const aspect = portrait ? 9 / 16 : 16 / 9;  // width / height
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      // Fit-inscribed: maximize size while keeping aspect.
+      let cw, ch;
+      if (vw / vh > aspect) {
+        ch = vh;
+        cw = Math.round(ch * aspect);
+      } else {
+        cw = vw;
+        ch = Math.round(cw / aspect);
+      }
+      canvas.style.width  = cw + "px";
+      canvas.style.height = ch + "px";
+      canvas.width  = Math.floor(cw * dpr);
+      canvas.height = Math.floor(ch * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      viewW = r.width;
-      viewH = r.height;
-      baseY = r.height * 0.72; // hill horizon line
+      viewW = cw;
+      viewH = ch;
+      baseY = ch * 0.72; // hill horizon line — fixed fraction of canvas height
     }
     window.addEventListener("resize", resize);
+    window.addEventListener("orientationchange", resize);
 
     // ── Input ────────────────────────────────────────────────────
     canvas.addEventListener("pointerdown", e => {
@@ -1287,10 +1316,12 @@
       }
     }, { passive: false });
     canvas.addEventListener("pointerup", () => {
+      if (G.pitchDown) G.pitchReleasedAt = performance.now();
       G.pitchDown = false;
       G.boostingNow = false;
     });
     canvas.addEventListener("pointercancel", () => {
+      if (G.pitchDown) G.pitchReleasedAt = performance.now();
       G.pitchDown = false;
       G.boostingNow = false;
     });
@@ -1300,6 +1331,13 @@
       e.currentTarget.setAttribute("aria-pressed", G.muted ? "true" : "false");
     });
     document.getElementById("restartBtn").addEventListener("click", startGame);
+    // Manual restart button in the footer — escape hatch when end-game
+    // detection misses a stuck state. Always wins; no confirmation.
+    document.getElementById("manualRestartBtn").addEventListener("click", () => {
+      // Force gameOver so endRun()'s guard doesn't re-fire mid-restart
+      G.gameOver = true;
+      startGame();
+    });
 
     // Keyboard alt — space/up = pitch down, mirrors tap
     window.addEventListener("keydown", e => {
@@ -1310,7 +1348,10 @@
       }
     });
     window.addEventListener("keyup", e => {
-      if (e.code === "Space" || e.code === "ArrowDown") G.pitchDown = false;
+      if (e.code === "Space" || e.code === "ArrowDown") {
+        if (G.pitchDown) G.pitchReleasedAt = performance.now();
+        G.pitchDown = false;
+      }
     });
 
     // ── Physics tick ──────────────────────────────────────────────
@@ -1507,9 +1548,12 @@
           // Heading uphill with upward velocity — natural launch.
           // Holding pitch keeps the bird glued to the slope.
           G.airborne = true;
-          // Perfect launch: slope tangent angle close to bird's angle AND
-          // released (not pitch-held) right at the crest.
-          const releasedAtCrest = !G.pitchDown && Math.abs(slope) < 0.08;
+          // Perfect launch: not just "happens to be airborne at crest",
+          // it must be a *fresh release* — the player held through the
+          // downhill and let go right at the crest. Without this gate,
+          // never touching the screen rewarded one perfect every crest.
+          const justReleased = (performance.now() - G.pitchReleasedAt) < 250;
+          const releasedAtCrest = !G.pitchDown && justReleased && Math.abs(slope) < 0.08;
           if (releasedAtCrest) {
             G.perfectLaunch = true;
             G.perfectCount++;
@@ -1590,14 +1634,29 @@
       // Boost meter UI
       document.getElementById("boostFill").style.width = (G.boost * 100).toFixed(1) + "%";
 
-      // End-of-flight: speed magnitude (not vx) so airborne stalls and
-      // wedge-in-valley flickers also trip the stop.
+      // End-of-flight detection. Two independent triggers — either ends
+      // the run — so oscillating crashes that keep speed > threshold
+      // can't farm forever like they used to:
+      //  (a) low speed for sustained time (classic wedge-in-slope)
+      //  (b) no forward progress (maxBx stalls) — catches airborne
+      //      stalls and bouncing-in-place even when speed flickers high.
       const speed = Math.sqrt(G.vx * G.vx + G.vy * G.vy);
       if (speed < 60) {
         G.stuckMs += dt * 1000;
         if (G.stuckMs > 800) endRun("the wind has settled");
       } else {
         G.stuckMs = 0;
+      }
+      // Forward-progress watchdog: if bx hasn't gained ≥30 px in 1.4 s,
+      // call it. 30 px is small enough not to fire during a high arc
+      // (where airborne vx stays >0) but large enough to catch any
+      // genuinely-pinned bird.
+      if (G.bx > G.stuckCheckBx + 30) {
+        G.stuckCheckBx = G.bx;
+        G.noProgressMs = 0;
+      } else {
+        G.noProgressMs += dt * 1000;
+        if (G.noProgressMs > 1400) endRun("the wind has settled");
       }
 
       // Day timer
