@@ -1,12 +1,93 @@
 <template id="scene-crawl-template">
-  <div data-composition-id="scene-crawl" data-width="1920" data-height="1080" style="position:relative;width:100%;height:100%;background:#000;">
-    <div id="crawl-stub" class="clip" data-start="0" data-duration="1" data-track-index="0" style="width:100%;height:100%;"></div>
+  <div data-composition-id="scene-crawl" data-width="1920" data-height="1080" style="position:relative;width:100%;height:100%;background:#000;overflow:hidden;">
+
+    <!-- Starfield -->
+    <svg id="crawl-stars" class="clip" data-start="0" data-duration="14" data-track-index="0"
+         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+         style="position:absolute;inset:0;width:100%;height:100%;"></svg>
+
+    <!-- Prologue card (blue) -->
+    <div id="crawl-prologue" class="clip" data-start="0" data-duration="5" data-track-index="1"
+         style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+                font-family:'Helvetica Neue','Arial',sans-serif;color:#4BD5EE;
+                font-size:48px;font-weight:300;letter-spacing:0.04em;text-align:center;
+                opacity:0;">
+      A long time ago in a galaxy far,<br/>far away....
+    </div>
+
+    <!-- Crawl perspective stage -->
+    <div id="crawl-stage" class="clip" data-start="4.6" data-duration="9.4" data-track-index="2"
+         data-layout-allow-overflow
+         style="position:absolute;inset:0;perspective:400px;perspective-origin:50% 100%;
+                overflow:hidden;opacity:0;">
+      <div id="crawl-text"
+           data-layout-allow-overflow
+           style="position:absolute;left:50%;top:100%;width:1100px;margin-left:-550px;
+                  transform-origin:50% 0%;transform:rotateX(25deg) translateY(0px);
+                  color:#FFE81F;font-family:'Star Jedi','Times New Roman',serif;
+                  text-align:justify;line-height:1.55;font-size:54px;letter-spacing:0.02em;">
+
+        <div style="text-align:center;font-size:64px;margin-bottom:0.4em;">Episode IV</div>
+        <div style="text-align:center;font-size:96px;margin-bottom:1.6em;letter-spacing:0.06em;">A NEW HOPE</div>
+
+        <p style="margin:0 0 1.2em 0;">It is a period of civil war. Rebel spaceships, striking from a hidden base, have won their first victory against the evil Galactic Empire.</p>
+
+        <p style="margin:0 0 1.2em 0;">During the battle, Rebel spies managed to steal secret plans to the Empire's ultimate weapon, the DEATH STAR, an armored space station with enough power to destroy an entire planet.</p>
+
+        <p style="margin:0 0 1.2em 0;">Pursued by the Empire's sinister agents, Princess Leia races home aboard her starship, custodian of the stolen plans that can save her people and restore freedom to the galaxy....</p>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <script>
-      window.__timelines = window.__timelines || {};
-      const tl = gsap.timeline({ paused: true });
-      tl.from("#crawl-stub", { opacity: 0, duration: 0.1, ease: "none" }, 0);
-      window.__timelines["scene-crawl"] = tl;
+      (function () {
+        // Seeded PRNG — deterministic across renders
+        function mulberry32(seed) {
+          return function () {
+            let t = (seed += 0x6d2b79f5);
+            t = Math.imul(t ^ (t >>> 15), t | 1);
+            t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+          };
+        }
+        const rnd = mulberry32(0xa11ce);
+        const svg = document.getElementById("crawl-stars");
+        const ns = "http://www.w3.org/2000/svg";
+        for (let i = 0; i < 220; i++) {
+          const c = document.createElementNS(ns, "circle");
+          c.setAttribute("cx", (rnd() * 1920).toFixed(1));
+          c.setAttribute("cy", (rnd() * 1080).toFixed(1));
+          const r = rnd();
+          c.setAttribute("r", (0.6 + r * 1.6).toFixed(2));
+          c.setAttribute("fill", "#F5F5F5");
+          c.setAttribute("opacity", (0.45 + r * 0.55).toFixed(2));
+          svg.appendChild(c);
+        }
+
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+
+        // Prologue: fade in, hold, fade out
+        tl.fromTo("#crawl-prologue",
+          { opacity: 0 },
+          { opacity: 1, duration: 1.2, ease: "power2.out" }, 0.6);
+        tl.to("#crawl-prologue",
+          { opacity: 0, duration: 1.0, ease: "power2.in" }, 4.0);
+
+        // Crawl stage fades in as prologue fades out
+        tl.fromTo("#crawl-stage",
+          { opacity: 0 },
+          { opacity: 1, duration: 1.0, ease: "power2.out" }, 4.4);
+
+        // The crawl scrolls upward through space.
+        // Container is positioned at top:100% (just below the visible frame),
+        // we tween translateY from 0 to -2400px so the text rises and recedes.
+        tl.fromTo("#crawl-text",
+          { rotateX: 25, y: 0 },
+          { rotateX: 25, y: -2400, duration: 9.0, ease: "none" }, 4.6);
+
+        window.__timelines["scene-crawl"] = tl;
+      })();
     </script>
   </div>
 </template>
