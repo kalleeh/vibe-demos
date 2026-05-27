@@ -1142,6 +1142,7 @@
       noProgressMs: 0,         // time since maxBx last advanced
       stuckCheckBx: 0,         // bx watermark for noProgressMs
       pitchReleasedAt: -1e9,   // wall-clock time of most recent pointer-up
+      pitchReleasedSlope: 0,   // terrain slope at last release; ramp launch requires this was a downhill
       flightStartX: 200,
       gameOver: false,
       muted: false,
@@ -1275,6 +1276,10 @@
       G.stuckCheckBx = 200;
       G.flightStartX = 200;
       G.gameOver = false;
+      G.pitchReleasedSlope = 0;
+      G.transitioning = false;
+      G.transitionEnd = 0;
+      if (typeof trail !== "undefined") trail.length = 0;
       newDay(1);
       // Place bird just above the hill surface at the spawn x, with a
       // slight downward tilt. Spawning high and falling far meant the
@@ -1331,15 +1336,25 @@
         G.vx += dir * 220;
         G.boost = Math.max(0, G.boost - 0.32);
         blip(680, 0.14, "triangle", 0.16);
+      } else {
+        blip(360, 0.06, "sine", 0.05);
       }
     }, { passive: false });
     canvas.addEventListener("pointerup", () => {
-      if (G.pitchDown) G.pitchReleasedAt = performance.now();
+      if (G.pitchDown) {
+        G.pitchReleasedAt = performance.now();
+        G.pitchReleasedSlope = G.terrain ? G.terrain.slope(G.bx) : 0;
+        if (!G.gameOver) blip(540, 0.05, "sine", 0.04);
+      }
       G.pitchDown = false;
       G.boostingNow = false;
     });
     canvas.addEventListener("pointercancel", () => {
-      if (G.pitchDown) G.pitchReleasedAt = performance.now();
+      if (G.pitchDown) {
+        G.pitchReleasedAt = performance.now();
+        G.pitchReleasedSlope = G.terrain ? G.terrain.slope(G.bx) : 0;
+        if (!G.gameOver) blip(540, 0.05, "sine", 0.04);
+      }
       G.pitchDown = false;
       G.boostingNow = false;
     });
@@ -1387,7 +1402,11 @@
     });
     window.addEventListener("keyup", e => {
       if (e.code === "Space" || e.code === "ArrowDown") {
-        if (G.pitchDown) G.pitchReleasedAt = performance.now();
+        if (G.pitchDown) {
+          G.pitchReleasedAt = performance.now();
+          G.pitchReleasedSlope = G.terrain ? G.terrain.slope(G.bx) : 0;
+          if (!G.gameOver) blip(540, 0.05, "sine", 0.04);
+        }
         G.pitchDown = false;
       }
     });
@@ -1544,12 +1563,14 @@
         // a ramp. This is the Tiny Wings "if you don't release, you don't
         // launch" rule and the reason holding-forever can't farm energy.
         // Tiny Wings core decision: ramp launch only fires if the player
-        // recently dived. Without this gate, a never-touched bird auto-
-        // launches off every crest and the central "hold-then-release"
-        // mechanic has no edge over doing nothing. Held now OR released
-        // within 500 ms = "compressed energy is available to spend."
+        // recently dived a downhill. Without this gate, a never-touched
+        // bird auto-launches off every crest and the central "hold-then-
+        // release" mechanic has no edge over doing nothing. Held now OR
+        // released within 500 ms while the slope under the bird was a
+        // real downhill (>0.05) = "compressed energy is available to spend."
         const recentlyDived =
-          G.pitchDown || (performance.now() - G.pitchReleasedAt) < 500;
+          G.pitchDown ||
+          ((performance.now() - G.pitchReleasedAt) < 500 && G.pitchReleasedSlope > 0.05);
         if (cresting && launchEnergy && !G.pitchDown && recentlyDived) {
           G.airborne = true;
           // Preserve forward energy — the bird is *redirected* along
@@ -1604,7 +1625,7 @@
         // bird should just track the terrain smoothly. Without this
         // threshold every tiny crevice fires a launch and the bird
         // looks like it's bouncing on cobblestones.
-        if (slope < -0.18 && G.vy < 0 && Math.abs(G.vx) > 240 && !G.pitchDown) {
+        if (slope < -0.18 && G.vy < 0 && Math.abs(G.vx) > 240 && !G.pitchDown && !G.airborne) {
           G.airborne = true;
           // Tiny pop just to clear the eps band — NOT scaled, so soft
           // ramps give soft launches naturally via existing vy.
@@ -1614,8 +1635,8 @@
           // it must be a *fresh release* — the player held through the
           // downhill and let go right at the crest. Without this gate,
           // never touching the screen rewarded one perfect every crest.
-          const justReleased = (performance.now() - G.pitchReleasedAt) < 250;
-          const releasedAtCrest = !G.pitchDown && justReleased && Math.abs(slope) < 0.08;
+          const justReleased = (performance.now() - G.pitchReleasedAt) < 400;
+          const releasedAtCrest = !G.pitchDown && justReleased && Math.abs(slope) < 0.15;
           if (releasedAtCrest) {
             G.perfectLaunch = true;
             G.perfectCount++;
@@ -1708,7 +1729,7 @@
       const speed = Math.sqrt(G.vx * G.vx + G.vy * G.vy);
       if (speed < 80) {
         G.stuckMs += dt * 1000;
-        if (G.stuckMs > 600) endRun("the wind has settled");
+        if (G.stuckMs > 1000) endRun("the wind has settled");
       } else {
         G.stuckMs = 0;
       }
@@ -1721,11 +1742,11 @@
         G.noProgressMs = 0;
       } else {
         G.noProgressMs += dt * 1000;
-        if (G.noProgressMs > 1000) endRun("the wind has settled");
+        if (G.noProgressMs > 1000) endRun("out of speed");
       }
       // Backslide trigger: bird is being shoved BACK from its high-water
       // mark by ≥80 px (≈6 m). That's not "stuck", that's defeated.
-      if (G.bx < G.stuckCheckBx - 80) endRun("the wind has settled");
+      if (G.bx < G.stuckCheckBx - 80) endRun("shoved back");
 
       // Day timer
       if (!G.transitioning) {
@@ -2420,7 +2441,7 @@
       angle = Math.max(-1.2, Math.min(1.2, angle));
 
       // Trail when fast (boost or steep dive)
-      if (G.boostingNow || G.vy > 380) pushTrail(sx, sy);
+      if (G.boostingNow || G.vy > 380 || (G.pitchDown && !G.airborne && G.terrain && G.terrain.slope(G.bx) > 0.10)) pushTrail(sx, sy);
       drawTrail();
 
       drawBird(sx, sy, angle, G.airborne, G.perfectLaunch, G.boostingNow);
