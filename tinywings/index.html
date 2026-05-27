@@ -1363,34 +1363,49 @@
       e.currentTarget.textContent = G.muted ? "sound · off" : "sound · on";
       e.currentTarget.setAttribute("aria-pressed", G.muted ? "true" : "false");
     });
-    // Restart wiring is intentionally aggressive — iOS Safari has
-    // a hostile relationship with overlay buttons inside touch-action:
-    // none ancestors. Per-element pointerdown/click listeners would
-    // miss taps on iOS standalone PWA mode. Capture-phase document
-    // listeners fire BEFORE any per-element handler can swallow them.
-    //
-    // Strategy: listen at document, check target.closest, debounce so
-    // the touchend → click cascade fires only once per tap.
+    // Restart needs to work in three environments at once: desktop
+    // browsers (click), mobile browsers (pointerup/touchend), and iOS
+    // standalone PWA mode (where touch events can fragment and only
+    // one of the three may actually fire). Strategy: listen on every
+    // signal at BOTH the document (capture, catches anything) and the
+    // buttons themselves (bubble, catches anything the document misses).
+    // Single shared debounce so the cascade collapses to one restart.
     let _lastRestart = 0;
+    function doRestart(isManual) {
+      const now = performance.now();
+      if (now - _lastRestart < 350) return;
+      _lastRestart = now;
+      if (isManual) G.gameOver = true; // bypass endRun guard
+      startGame();
+    }
     function tryRestart(e) {
       const t = e.target;
       if (!t || !t.closest) return;
       const r = t.closest("#restartBtn");
       const m = t.closest("#manualRestartBtn");
       if (!r && !m) return;
-      const now = performance.now();
-      if (now - _lastRestart < 350) { e.preventDefault(); e.stopPropagation(); return; }
-      _lastRestart = now;
       e.preventDefault();
       e.stopPropagation();
-      if (m) G.gameOver = true; // manual: bypass endRun guard
-      startGame();
+      doRestart(!!m);
     }
-    // touchend is iOS Safari's most reliable tap signal. pointerup is
-    // the modern equivalent. click is the keyboard/a11y fallback.
     document.addEventListener("touchend", tryRestart, true);
     document.addEventListener("pointerup", tryRestart, true);
     document.addEventListener("click", tryRestart, true);
+    // Per-button safety net — direct listeners on the buttons themselves
+    // catch the case where the document-capture path is somehow swallowed
+    // (e.g. iOS PWA edge cases where only `click` fires and the target
+    // chain has been disturbed by intermediate scroll containers).
+    const _restartBtn = document.getElementById("restartBtn");
+    const _manualRestartBtn = document.getElementById("manualRestartBtn");
+    function bindRestart(el, isManual) {
+      if (!el) return;
+      const handler = (e) => { e.preventDefault(); e.stopPropagation(); doRestart(isManual); };
+      el.addEventListener("click", handler);
+      el.addEventListener("touchend", handler, { passive: false });
+      el.addEventListener("pointerup", handler);
+    }
+    bindRestart(_restartBtn, false);
+    bindRestart(_manualRestartBtn, true);
 
     // Keyboard alt — space/up = pitch down, mirrors tap
     window.addEventListener("keydown", e => {
@@ -1726,27 +1741,28 @@
       //  (c) backsliding — bx actually retreating from the watermark
       //      means the bird is being pushed back by an uphill it can't
       //      climb; no point waiting another second to call it.
-      const speed = Math.sqrt(G.vx * G.vx + G.vy * G.vy);
-      if (speed < 80) {
+      // Use FORWARD speed (|vx|), not total speed. A bird bouncing in
+      // place has high vy oscillation that masks zero forward progress
+      // — total speed never dips below the threshold even though the
+      // run is functionally over.
+      const fwd = Math.abs(G.vx);
+      if (fwd < 60) {
         G.stuckMs += dt * 1000;
-        if (G.stuckMs > 1000) endRun("the wind has settled");
+        if (G.stuckMs > 700) endRun("the wind has settled");
       } else {
         G.stuckMs = 0;
       }
-      // Forward-progress watchdog: bird must gain ≥60 px (≈4 m) every
-      // 1.0 s, otherwise the run ends. Tight enough to catch a bird
-      // grinding into a wall at vx≈80 (which used to squeak past the
-      // old 30 px / 1.4 s gate).
-      if (G.bx > G.stuckCheckBx + 60) {
+      // Forward-progress watchdog: bird must gain ≥40 px every 700 ms.
+      if (G.bx > G.stuckCheckBx + 40) {
         G.stuckCheckBx = G.bx;
         G.noProgressMs = 0;
       } else {
         G.noProgressMs += dt * 1000;
-        if (G.noProgressMs > 1000) endRun("out of speed");
+        if (G.noProgressMs > 700) endRun("out of speed");
       }
       // Backslide trigger: bird is being shoved BACK from its high-water
-      // mark by ≥80 px (≈6 m). That's not "stuck", that's defeated.
-      if (G.bx < G.stuckCheckBx - 80) endRun("shoved back");
+      // mark by ≥60 px. That's not "stuck", that's defeated.
+      if (G.bx < G.stuckCheckBx - 60) endRun("shoved back");
 
       // Day timer
       if (!G.transitioning) {
