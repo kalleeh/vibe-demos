@@ -1339,19 +1339,26 @@
       e.currentTarget.textContent = G.muted ? "sound · off" : "sound · on";
       e.currentTarget.setAttribute("aria-pressed", G.muted ? "true" : "false");
     });
-    // Restart wiring uses pointerup + stopPropagation, NOT click. On
-    // mobile, click fires ~300 ms after pointerup; in that gap the
-    // canvas's own pointerdown handler can prevent-default the touch
-    // sequence and the click never reaches the button. Listening on
-    // pointerup directly fires immediately and reliably.
+    // Restart wiring fires on pointerdown (instant on mobile) AND
+    // touchstart (some Android browsers don't fire pointerdown on
+    // overlay buttons reliably). stopPropagation keeps the canvas's
+    // own listeners from re-firing as a "begin dive" tap. click is
+    // kept for keyboard / a11y.
     function wireRestart(el, fn) {
+      let fired = 0;
       const handler = e => {
         e.preventDefault();
         e.stopPropagation();
+        // Debounce — pointerdown + touchstart + click can all fire
+        // for one tap, and we don't want three restarts in a row.
+        const now = performance.now();
+        if (now - fired < 250) return;
+        fired = now;
         fn();
       };
-      el.addEventListener("pointerup", handler);
-      el.addEventListener("click", handler); // fallback for keyboard / a11y
+      el.addEventListener("pointerdown", handler);
+      el.addEventListener("touchstart", handler, { passive: false });
+      el.addEventListener("click", handler);
     }
     wireRestart(document.getElementById("restartBtn"), startGame);
     // Manual restart button in the footer — escape hatch when end-game
@@ -1584,21 +1591,17 @@
         if (slope > 0.02 && slopeNext < slope - 0.01 && G.vx > 220) {
           // Player about to crest — fine, stay surfing for one more step
         }
-        if (slope < -0.01 && G.vy < 0 && Math.abs(G.vx) > 220 && !G.pitchDown) {
-          // Heading uphill with upward velocity — natural launch.
-          // No input gate here: this path doesn't ADD energy, it just
-          // lets the bird leave the surface when geometry already says
-          // it should. The energy-positive ramp-launch case above is
-          // where the recent-dive gate belongs; gating this too made
-          // the bird feel welded to the ground.
+        // Natural launch: only on MEANINGFUL uphills, not the micro-noise
+        // layer. slope < -0.18 ≈ a real ramp (≈10°+); below that the
+        // bird should just track the terrain smoothly. Without this
+        // threshold every tiny crevice fires a launch and the bird
+        // looks like it's bouncing on cobblestones.
+        if (slope < -0.18 && G.vy < 0 && Math.abs(G.vx) > 240 && !G.pitchDown) {
           G.airborne = true;
-          // Without a vy pop the projection keeps the bird perfectly
-          // tangent to the surface and the next frame's surf check
-          // re-grabs it. A small upward kick + lift off the surface
-          // lets the launch actually take effect. Scaled to slope so
-          // gentle crests give gentle pops.
-          G.vy -= 50 + Math.min(120, Math.abs(slope) * 160);
-          G.by -= 4; // clear the eps band so we don't re-grab next frame
+          // Tiny pop just to clear the eps band — NOT scaled, so soft
+          // ramps give soft launches naturally via existing vy.
+          G.vy -= 25;
+          G.by -= 3;
           // Perfect launch: not just "happens to be airborne at crest",
           // it must be a *fresh release* — the player held through the
           // downhill and let go right at the crest. Without this gate,
