@@ -1647,11 +1647,16 @@
           G.vy -= 25;
           G.by -= 3;
           // Perfect launch: not just "happens to be airborne at crest",
-          // it must be a *fresh release* — the player held through the
-          // downhill and let go right at the crest. Without this gate,
-          // never touching the screen rewarded one perfect every crest.
-          const justReleased = (performance.now() - G.pitchReleasedAt) < 400;
-          const releasedAtCrest = !G.pitchDown && justReleased && Math.abs(slope) < 0.15;
+          // it must be a *fresh release on a real downhill* — the
+          // player held through the downhill and let go right before
+          // the ramp. Note: by the time we're in this branch, slope is
+          // already < -0.18 (uphill), so we check the slope at the
+          // moment of RELEASE, not now. Old code checked |slope| < 0.15
+          // at launch time, which is mathematically impossible here
+          // and silently zeroed the perfect counter.
+          const justReleased = (performance.now() - G.pitchReleasedAt) < 350;
+          const releasedOnDownhill = G.pitchReleasedSlope > 0.10;
+          const releasedAtCrest = !G.pitchDown && justReleased && releasedOnDownhill;
           if (releasedAtCrest) {
             G.perfectLaunch = true;
             G.perfectCount++;
