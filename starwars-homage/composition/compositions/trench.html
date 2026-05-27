@@ -1,13 +1,16 @@
 <template id="scene-trench-template">
   <div data-composition-id="scene-trench" data-duration="12" data-width="1920" data-height="1080"
        data-layout-allow-overflow
-       style="position:relative;width:100%;height:100%;overflow:hidden;background:#04060a;perspective:900px;perspective-origin:50% 50%;">
+       style="position:relative;width:100%;height:100%;overflow:hidden;background:#04060a;">
 
-    <!-- Camera-shake wrapper: every visual layer except the final flash sits inside this so
-         turret hits jolt the whole frame uniformly. -->
-    <div id="trench-camera" class="clip" data-start="0" data-duration="12" data-track-index="0"
+    <!-- Camera-shake wrapper. NOT a class="clip" — the framework wraps clips in a div that
+         lacks `transform-style: preserve-3d`, which would collapse the 3D segment stack.
+         The scene root's data-duration already gates the entire scene's visibility.
+         preserve-3d here propagates the 3D context from #trench-stage's perspective wrapper
+         (which lives inside this div) to the segment children. -->
+    <div id="trench-camera"
          data-layout-allow-overflow
-         style="position:absolute;inset:0;overflow:hidden;">
+         style="position:absolute;inset:0;transform-style:preserve-3d;">
 
       <!-- Vanishing-point glow: warm white core (ANH-1977) that grows as we close.
            Smaller radius (~240px) so trench walls read clearly against it. -->
@@ -20,10 +23,12 @@
                     rgba(255,233,200,0) 72%);
                   mix-blend-mode:screen;"></div>
 
-      <!-- Trench: a 3D stack of perspective rings rendered as concentric quads -->
+      <!-- Trench: a 3D stack of perspective rings rendered as concentric quads.
+           Perspective lives on this element directly so the framework's clip wrapper
+           between scene-root and stage can't break the 3D chain. -->
       <div id="trench-stage"
            data-layout-allow-overflow
-           style="position:absolute;inset:0;transform-style:preserve-3d;">
+           style="position:absolute;inset:0;perspective:900px;perspective-origin:50% 50%;transform-style:preserve-3d;">
         <!-- Built dynamically below. -->
       </div>
 
@@ -627,10 +632,14 @@
         // ============================================================
 
         // CAMERA: trench rushes toward viewer — fly through the stack across the full 12s.
+        // Stage starts pushed back (segments far ahead, vanishing point reads), then we glide
+        // forward but STOP short of the perspective plane so segments remain in front of us
+        // and the trench stays visible the whole time. Perspective is 900, so we keep stage z
+        // ≤ ~600 to avoid clipping segments through the camera.
         const totalZ = SEG_LEN * (SEG_COUNT - 6);
         tl.fromTo("#trench-stage",
-          { z: -totalZ * 0.2 },
-          { z: totalZ, duration: 11.0, ease: "power1.in" }, 0);
+          { z: -totalZ * 0.4 },
+          { z: 600, duration: 11.0, ease: "power1.in" }, 0);
 
         // Vanishing-point glow grows brighter as we close — small radius, late peak,
         // capped opacity so trench walls stay readable beneath it.
@@ -698,13 +707,13 @@
         tl.fromTo("#led-3", { opacity: 0.4 }, { opacity: 1.0, duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: 18 }, 0.1);
         tl.fromTo("#led-4", { opacity: 0.6 }, { opacity: 1.0, duration: 1.1, ease: "sine.inOut", yoyo: true, repeat: 10 }, 0.3);
 
-        // Motion streaks — generate ~20 short blips with mulberry32, each ~8-15% of viewport
-        // diagonal (≈ 175-330px) on a 1920×1080 canvas. Reduced from 50 so trench walls read
-        // clearly between streaks. ANH miniature reads as fast small blips, not light-tunnel.
+        // Motion streaks — generate ~8 short blips with mulberry32. Sparse so the trench
+        // architecture reads as the dominant feature; streaks should hint at speed, not
+        // dominate the frame.
         const streakGroup = document.getElementById("trench-streaks-group");
         const SVG_NS = "http://www.w3.org/2000/svg";
         const VPX = 960, VPY = 540;
-        const STREAK_COUNT = 20;
+        const STREAK_COUNT = 8;
         for (let s = 0; s < STREAK_COUNT; s++) {
           // Random angle around 360°, biased away from the cockpit-frame-eaten zones.
           const ang = rndStreak() * Math.PI * 2;
@@ -733,15 +742,15 @@
         const streakNodes = document.querySelectorAll(".streak");
         streakNodes.forEach(function (node, idx) {
           const delay = rndStreak() * 0.6;
-          const dur   = 0.18 + rndStreak() * 0.14;          // 0.18-0.32s lifetime
-          const peakOpacity = 0.30 + rndStreak() * 0.22;    // capped ≤ 0.55
+          const dur   = 0.20 + rndStreak() * 0.14;          // 0.20-0.34s lifetime
+          const peakOpacity = 0.18 + rndStreak() * 0.14;    // dimmer cap so trench dominates
           const peakScale = 1.1 + rndStreak() * 0.4;
           // Total trench window is ~12s; at ~0.25s lifetime we want ~36-46 cycles.
           const repeats = 36 + Math.floor(rndStreak() * 14);
           tl.fromTo(node,
             { opacity: 0, transformOrigin: "960px 540px", scale: 0.2 },
             { opacity: peakOpacity, scale: peakScale, duration: dur, ease: "power2.out",
-              repeat: repeats, repeatDelay: rndStreak() * 0.05 }, delay);
+              repeat: repeats, repeatDelay: 0.05 + rndStreak() * 0.15 }, delay);
         });
 
         // ============================================================
