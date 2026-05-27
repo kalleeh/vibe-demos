@@ -693,16 +693,23 @@
                   <svg class="phone" viewBox="0 0 120 160" aria-hidden="true">
                     <rect class="body" x="14" y="6" width="92" height="148" rx="14"/>
                     <rect class="screen" x="20" y="20" width="80" height="120" rx="3"/>
-                    <path class="ui" d="M28 30 L92 30 M28 40 L78 40"/>
-                    <path class="ui" d="M28 60 L92 60 M28 70 L88 70 M28 80 L92 80 M28 90 L82 90"/>
-                    <rect x="38" y="125" width="44" height="11" rx="2" class="ui"/>
-                    <g transform="translate(54, 127)">
-                      <rect class="accent" x="0" y="3" width="12" height="8" rx="1.2"/>
-                      <path class="accent" d="M6 7 L6 0 M3 3 L6 0 L9 3"/>
+                    <!-- page content -->
+                    <path class="ui" d="M28 36 L92 36 M28 46 L82 46 M28 56 L92 56 M28 66 L74 66 M28 76 L92 76 M28 86 L80 86"/>
+                    <!-- bottom URL pill (modern iOS bottom bar) -->
+                    <rect x="26" y="106" width="68" height="12" rx="6" class="ui"/>
+                    <path class="ui" d="M36 112 L74 112"/>
+                    <!-- bottom tool row: back / forward / SHARE (highlighted) / book / tabs -->
+                    <path class="ui" d="M30 130 L34 126 M30 130 L34 134"/>
+                    <path class="ui" d="M44 126 L48 130 L44 134"/>
+                    <g transform="translate(56, 124)">
+                      <rect class="accent" x="0" y="3" width="10" height="8" rx="1.2"/>
+                      <path class="accent" d="M5 7 L5 0 M2.5 2.5 L5 0 L7.5 2.5"/>
                     </g>
-                    <circle cx="60" cy="131" r="11" class="ring"/>
+                    <rect x="76" y="125" width="8" height="10" rx="1" class="ui"/>
+                    <rect x="88" y="125" width="8" height="10" rx="1" class="ui"/>
+                    <circle cx="61" cy="129" r="10" class="ring"/>
                   </svg>
-                  <p>tap the <strong>share</strong> button (square with ↑) at the bottom.</p>
+                  <p>tap the <strong>share</strong> button (square with ↑) at the bottom — middle of the toolbar.</p>
                 </div>
                 <div class="install-step">
                   <span class="num">02 · pick from menu</span>
@@ -722,23 +729,25 @@
                   <p>scroll, then tap <strong>"add to home screen"</strong>.</p>
                 </div>
                 <div class="install-step">
-                  <span class="num">03 · confirm</span>
+                  <span class="num">03 · name + add</span>
                   <svg class="phone" viewBox="0 0 120 160" aria-hidden="true">
                     <rect class="body" x="14" y="6" width="92" height="148" rx="14"/>
                     <rect class="screen" x="20" y="20" width="80" height="120" rx="3"/>
-                    <g class="ui">
-                      <rect x="28" y="34" width="14" height="14" rx="3"/>
-                      <rect x="48" y="34" width="14" height="14" rx="3"/>
-                      <rect x="68" y="34" width="14" height="14" rx="3"/>
-                      <rect x="48" y="54" width="14" height="14" rx="3"/>
-                      <rect x="68" y="54" width="14" height="14" rx="3"/>
-                    </g>
-                    <rect x="28" y="54" width="14" height="14" rx="3" class="accent" stroke-width="1.8"/>
-                    <text x="35" y="64" text-anchor="middle" font-family="Caveat, cursive" font-size="9" fill="#c97e60" font-weight="600">SW</text>
-                    <circle cx="35" cy="61" r="11" class="ring"/>
-                    <path class="ui" d="M28 86 L92 86 M28 96 L80 96"/>
+                    <!-- "Add to Home Screen" modal sheet at the top -->
+                    <rect x="22" y="26" width="76" height="44" rx="3" fill="#fff" stroke="rgba(42,38,29,0.18)" stroke-width="0.6"/>
+                    <text x="26" y="34" font-family="Inter, sans-serif" font-size="5" fill="#888" font-weight="500">Cancel</text>
+                    <text x="60" y="34" text-anchor="middle" font-family="Inter, sans-serif" font-size="5" fill="#222" font-weight="600">Add to Home Screen</text>
+                    <text x="94" y="34" text-anchor="end" font-family="Inter, sans-serif" font-size="5.5" fill="#c97e60" font-weight="700">Add</text>
+                    <circle cx="92" cy="32" r="8" class="ring"/>
+                    <!-- icon + name field row inside modal -->
+                    <rect x="28" y="42" width="14" height="14" rx="3" class="accent" stroke-width="1.4" fill="rgba(201,126,96,0.14)"/>
+                    <text x="35" y="52" text-anchor="middle" font-family="Caveat, cursive" font-size="8" fill="#c97e60" font-weight="600">SW</text>
+                    <rect x="46" y="44" width="48" height="10" rx="1.5" fill="#f4ecd6" stroke="rgba(42,38,29,0.18)" stroke-width="0.5"/>
+                    <text x="49" y="51" font-family="Inter, sans-serif" font-size="5" fill="#222">sketchwings</text>
+                    <!-- dimmed page below modal -->
+                    <path class="ui" d="M30 86 L92 86 M30 94 L82 94 M30 102 L92 102 M30 110 L74 110" opacity="0.45"/>
                   </svg>
-                  <p>tap <strong>add</strong>. a sketchwings bird lands on your home screen.</p>
+                  <p>tap <strong>add</strong> (top right). a sketchwings bird lands on your home screen.</p>
                 </div>
               </div>
               <div class="install-note">
