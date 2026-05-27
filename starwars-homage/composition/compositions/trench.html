@@ -631,15 +631,16 @@
         //  11.5 —12.0  : Final flash, fade to white then black.
         // ============================================================
 
-        // CAMERA: trench rushes toward viewer — fly through the stack across the full 12s.
-        // Stage starts pushed back (segments far ahead, vanishing point reads), then we glide
-        // forward but STOP short of the perspective plane so segments remain in front of us
-        // and the trench stays visible the whole time. Perspective is 900, so we keep stage z
-        // ≤ ~600 to avoid clipping segments through the camera.
+        // CAMERA: trench rushes toward viewer — constant forward fly-through across the full 11s.
+        // Linear ease so motion is perceptible from frame 1 (not back-loaded). Destination z is
+        // capped at -100 so the FIRST segment never crosses the camera plane (perspective:900) —
+        // segments crossing z>=0 explode to viewport-filling artifacts that read as ghost trails
+        // / "trench fills the screen but doesn't clean up." Range -2200 → -100 = 2100px of travel
+        // over 11s, plenty of perceived motion at this perspective depth.
         const totalZ = SEG_LEN * (SEG_COUNT - 6);
         tl.fromTo("#trench-stage",
-          { z: -totalZ * 0.4 },
-          { z: 600, duration: 11.0, ease: "power1.in" }, 0);
+          { z: -totalZ * 0.5 },
+          { z: -100, duration: 11.0, ease: "none" }, 0);
 
         // Vanishing-point glow grows brighter as we close — small radius, late peak,
         // capped opacity so trench walls stay readable beneath it.
@@ -939,13 +940,10 @@
         // Hard-kill so non-linear seeking after the fade leaves them invisible.
         tl.set("#torpedo-1", { opacity: 0 }, 10.60);
         tl.set("#torpedo-2", { opacity: 0 }, 10.60);
-        // Small white pre-burst on the port — uses the lockflash rect again, larger scale
+        // Hard-kill the lockflash rect well before the explosion bloom begins so the square
+        // white overlay can't ghost behind the round cross-flare bloom-core (t=10.8+).
         tl.set("#trench-lockflash-rect",
-          { attr: { x: 906, y: 486, width: 108, height: 108 }, opacity: 0 }, 10.35);
-        tl.to("#trench-lockflash-rect",
-          { opacity: 1.0, duration: 0.15, ease: "power3.out" }, 10.4);
-        tl.to("#trench-lockflash-rect",
-          { opacity: 0, duration: 0.40, ease: "power2.in" }, 10.55);
+          { opacity: 0, attr: { x: 916, y: 496, width: 88, height: 88 } }, 10.0);
 
         // ============================================================
         // CAMERA SHAKE during final approach — small ramping pulses, increases toward firing.
