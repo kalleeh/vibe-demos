@@ -3,45 +3,80 @@
        data-layout-allow-overflow
        style="position:relative;width:100%;height:100%;overflow:hidden;background:#04060a;perspective:900px;perspective-origin:50% 50%;">
 
-    <!-- Vanishing-point glow -->
+    <!-- Vanishing-point glow: hard cyan-white core that grows as we close -->
     <div id="trench-vp" class="clip" data-start="0" data-duration="8" data-track-index="0"
-         style="position:absolute;left:50%;top:50%;width:600px;height:600px;
+         style="position:absolute;left:50%;top:50%;width:520px;height:520px;
                 transform:translate(-50%,-50%);
-                background:radial-gradient(ellipse at 50% 50%,
-                  rgba(120,150,180,0.30) 0%,
-                  rgba(70,90,120,0.10) 45%,
-                  rgba(0,0,0,0) 80%);"></div>
+                background:radial-gradient(circle at 50% 50%,
+                  #FFFFFF 0%,
+                  #9FE9FF 30%,
+                  rgba(159,233,255,0) 70%);
+                mix-blend-mode:screen;"></div>
 
     <!-- Trench: a 3D stack of perspective rings rendered as concentric quads -->
     <div id="trench-stage" class="clip" data-start="0" data-duration="8" data-track-index="1"
          data-layout-allow-overflow
          style="position:absolute;inset:0;transform-style:preserve-3d;">
       <!-- Floor + walls receding into the distance.
-           Build with a series of segments translated along Z. -->
+           Built dynamically below. -->
     </div>
 
-    <!-- Laser bolts SVG (4 streaks pulsing toward viewer) -->
+    <!-- Motion streaks SVG: thin diagonal cyan lines along the floor converging on VP -->
+    <svg id="trench-streaks" class="clip" data-start="0" data-duration="8" data-track-index="2"
+         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+         style="position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen;pointer-events:none;">
+      <g stroke="#9FE9FF" stroke-width="2" stroke-linecap="round" opacity="0.4">
+        <line class="streak" x1="960" y1="540" x2="120"  y2="980"/>
+        <line class="streak" x1="960" y1="540" x2="380"  y2="1020"/>
+        <line class="streak" x1="960" y1="540" x2="640"  y2="1060"/>
+        <line class="streak" x1="960" y1="540" x2="1280" y2="1060"/>
+        <line class="streak" x1="960" y1="540" x2="1540" y2="1020"/>
+        <line class="streak" x1="960" y1="540" x2="1800" y2="980"/>
+        <line class="streak" x1="960" y1="540" x2="240"  y2="900"/>
+        <line class="streak" x1="960" y1="540" x2="1680" y2="900"/>
+      </g>
+    </svg>
+
+    <!-- Laser bolts SVG (4 streaks pulsing toward viewer). Each is layered: cyan halo + red bolt + white core. -->
     <svg id="trench-lasers" class="clip" data-start="2" data-duration="6" data-track-index="3"
          viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
          style="position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen;">
       <defs>
-        <linearGradient id="laser-grad" x1="0%" y1="50%" x2="100%" y2="50%">
+        <linearGradient id="laser-halo" x1="0%" y1="50%" x2="100%" y2="50%">
+          <stop offset="0%"  stop-color="#9FE9FF" stop-opacity="0"/>
+          <stop offset="60%" stop-color="#9FE9FF" stop-opacity="0.6"/>
+          <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.9"/>
+        </linearGradient>
+        <linearGradient id="laser-bolt" x1="0%" y1="50%" x2="100%" y2="50%">
           <stop offset="0%"  stop-color="#FF3030" stop-opacity="0"/>
-          <stop offset="40%" stop-color="#FF3030" stop-opacity="0.5"/>
+          <stop offset="50%" stop-color="#FF3030" stop-opacity="0.95"/>
+          <stop offset="100%" stop-color="#FFFFFF"/>
+        </linearGradient>
+        <linearGradient id="laser-core" x1="0%" y1="50%" x2="100%" y2="50%">
+          <stop offset="0%"  stop-color="#FFFFFF" stop-opacity="0"/>
+          <stop offset="70%" stop-color="#FFFFFF" stop-opacity="1"/>
           <stop offset="100%" stop-color="#FFFFFF"/>
         </linearGradient>
       </defs>
       <g id="laser-1" transform="translate(960 540)">
-        <rect x="-260" y="-3" width="260" height="6" fill="url(#laser-grad)" rx="3"/>
+        <rect x="-280" y="-9" width="280" height="18" fill="url(#laser-halo)" rx="9"/>
+        <rect x="-260" y="-4" width="260" height="8"  fill="url(#laser-bolt)" rx="4"/>
+        <rect x="-240" y="-1.5" width="240" height="3" fill="url(#laser-core)" rx="1.5"/>
       </g>
       <g id="laser-2" transform="translate(960 540)">
-        <rect x="-260" y="-3" width="260" height="6" fill="url(#laser-grad)" rx="3"/>
+        <rect x="-280" y="-9" width="280" height="18" fill="url(#laser-halo)" rx="9"/>
+        <rect x="-260" y="-4" width="260" height="8"  fill="url(#laser-bolt)" rx="4"/>
+        <rect x="-240" y="-1.5" width="240" height="3" fill="url(#laser-core)" rx="1.5"/>
       </g>
       <g id="laser-3" transform="translate(960 540)">
-        <rect x="-260" y="-3" width="260" height="6" fill="url(#laser-grad)" rx="3"/>
+        <rect x="-280" y="-9" width="280" height="18" fill="url(#laser-halo)" rx="9"/>
+        <rect x="-260" y="-4" width="260" height="8"  fill="url(#laser-bolt)" rx="4"/>
+        <rect x="-240" y="-1.5" width="240" height="3" fill="url(#laser-core)" rx="1.5"/>
       </g>
       <g id="laser-4" transform="translate(960 540)">
-        <rect x="-260" y="-3" width="260" height="6" fill="url(#laser-grad)" rx="3"/>
+        <rect x="-280" y="-9" width="280" height="18" fill="url(#laser-halo)" rx="9"/>
+        <rect x="-260" y="-4" width="260" height="8"  fill="url(#laser-bolt)" rx="4"/>
+        <rect x="-240" y="-1.5" width="240" height="3" fill="url(#laser-core)" rx="1.5"/>
       </g>
     </svg>
 
@@ -49,15 +84,15 @@
     <svg id="trench-hud" class="clip" data-start="0" data-duration="8" data-track-index="4"
          viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
          style="position:absolute;inset:0;width:100%;height:100%;opacity:0;">
-      <g stroke="#9FE9FF" fill="none" stroke-width="1.5" opacity="0.75">
+      <g stroke="#9FE9FF" fill="none" stroke-width="1.5" opacity="0.85">
         <!-- Reticle frame -->
-        <rect x="660" y="320" width="600" height="440" rx="4"/>
+        <rect x="660" y="320" width="600" height="440" rx="0"/>
         <!-- Tick marks -->
         <line x1="660" y1="540" x2="700" y2="540"/>
         <line x1="1220" y1="540" x2="1260" y2="540"/>
         <line x1="960" y1="320" x2="960" y2="360"/>
         <line x1="960" y1="720" x2="960" y2="760"/>
-        <!-- Crosshair box -->
+        <!-- Crosshair box (jitters) -->
         <rect id="trench-target" x="900" y="480" width="120" height="120"/>
         <!-- Corner brackets -->
         <polyline points="900,480 900,460 920,460"/>
@@ -66,10 +101,49 @@
         <polyline points="900,600 900,620 920,620"/>
         <polyline points="1020,620 1020,600"/>
       </g>
-      <g fill="#9FE9FF" font-family="monospace" font-size="20" opacity="0.85" letter-spacing="2">
+
+      <!-- Spinning data widget: top-left -->
+      <g id="hud-widget-tl" transform="translate(220 220)" stroke="#9FE9FF" fill="none" opacity="0.75">
+        <circle r="56" stroke-width="1.2"/>
+        <circle r="42" stroke-width="1" stroke-dasharray="4 6"/>
+        <circle r="28" stroke-width="1"/>
+        <line x1="-56" y1="0" x2="-28" y2="0" stroke-width="1.2"/>
+        <line x1="28"  y1="0" x2="56"  y2="0" stroke-width="1.2"/>
+        <line x1="0" y1="-56" x2="0" y2="-28" stroke-width="1.2"/>
+        <line x1="0" y1="28"  x2="0" y2="56"  stroke-width="1.2"/>
+        <rect x="-4" y="-4" width="8" height="8" fill="#9FE9FF" stroke="none"/>
+      </g>
+
+      <!-- Spinning data widget: top-right -->
+      <g id="hud-widget-tr" transform="translate(1700 220)" stroke="#9FE9FF" fill="none" opacity="0.75">
+        <polygon points="0,-50 43,-25 43,25 0,50 -43,25 -43,-25" stroke-width="1.2"/>
+        <polygon points="0,-30 26,-15 26,15 0,30 -26,15 -26,-15" stroke-width="1" stroke-dasharray="3 5"/>
+        <line x1="-50" y1="0" x2="50"  y2="0" stroke-width="1"/>
+        <line x1="0" y1="-50" x2="0" y2="50" stroke-width="1"/>
+      </g>
+
+      <!-- Spinning data widget: bottom-right (smaller) -->
+      <g id="hud-widget-br" transform="translate(1700 860)" stroke="#9FE9FF" fill="none" opacity="0.75">
+        <circle r="44" stroke-width="1.2"/>
+        <circle r="32" stroke-width="1" stroke-dasharray="2 4"/>
+        <line x1="-44" y1="0" x2="44" y2="0" stroke-width="1"/>
+        <line x1="0" y1="-44" x2="0" y2="44" stroke-width="1"/>
+        <circle r="6" fill="#9FE9FF" stroke="none"/>
+      </g>
+
+      <g fill="#9FE9FF" font-family="monospace" font-size="20" opacity="0.9" letter-spacing="2">
         <text x="660" y="305">EXHAUST PORT — 2M</text>
         <text x="660" y="785">STAY ON TARGET</text>
         <text x="1140" y="785" text-anchor="end">RED FIVE</text>
+      </g>
+
+      <!-- Distance readout: 5 stacked text spans crossfading -->
+      <g font-family="monospace" font-size="22" letter-spacing="2" fill="#9FE9FF">
+        <text x="220" y="860" id="dist-1" opacity="0">DIST: 2.0KM</text>
+        <text x="220" y="860" id="dist-2" opacity="0">DIST: 1.5KM</text>
+        <text x="220" y="860" id="dist-3" opacity="0">DIST: 1.0KM</text>
+        <text x="220" y="860" id="dist-4" opacity="0">DIST: 0.5KM</text>
+        <text x="220" y="860" id="dist-5" opacity="0">DIST: 0.1KM</text>
       </g>
     </svg>
 
@@ -86,6 +160,14 @@
       <!-- Side struts -->
       <path d="M0,140 L120,200 L120,880 L0,920 Z" fill="#0a0a0a" opacity="0.95"/>
       <path d="M1920,140 L1800,200 L1800,880 L1920,920 Z" fill="#0a0a0a" opacity="0.95"/>
+
+      <!-- Instrument panel LED dots along the bottom edge (cyan + amber) -->
+      <g>
+        <circle id="led-1" cx="540"  cy="900" r="8" fill="#9FE9FF" opacity="0.9"/>
+        <circle id="led-2" cx="780"  cy="888" r="8" fill="#FFB347" opacity="0.9"/>
+        <circle id="led-3" cx="1140" cy="888" r="8" fill="#9FE9FF" opacity="0.9"/>
+        <circle id="led-4" cx="1380" cy="900" r="8" fill="#FFB347" opacity="0.9"/>
+      </g>
     </svg>
 
     <!-- Screen flash overlay (just before transition out) -->
@@ -95,57 +177,200 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <script>
       (function () {
-        // Build trench: stack 24 segments along Z. Each segment has floor+walls.
+        // Mulberry32 PRNG — deterministic pseudo-random for greeble placement.
+        function mulberry32(seed) {
+          return function () {
+            seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+            let t = seed;
+            t = Math.imul(t ^ (t >>> 15), t | 1);
+            t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+          };
+        }
+        const rnd = mulberry32(0x5A77E5);
+
+        // Build trench: stack 26 segments along Z. Each segment has floor+walls+greebles.
         const stage = document.getElementById("trench-stage");
         const SEG_LEN = 220;       // virtual depth per segment
         const SEG_COUNT = 26;
+
+        // Towers placed at specific segment indices — boxy structures rising from floor.
+        const towerSegs = new Set([4, 9, 14, 19]);
+
         for (let i = 0; i < SEG_COUNT; i++) {
           const z = -i * SEG_LEN;
           const seg = document.createElement("div");
           seg.className = "trench-seg";
           seg.dataset.idx = i;
-          seg.style.cssText = `
-            position:absolute;left:50%;top:50%;width:1920px;height:1080px;
-            transform:translate(-50%,-50%) translateZ(${z}px);
-            transform-style:preserve-3d;`;
+          seg.style.cssText =
+            "position:absolute;left:50%;top:50%;width:1920px;height:1080px;" +
+            "transform:translate(-50%,-50%) translateZ(" + z + "px);" +
+            "transform-style:preserve-3d;";
 
-          // floor
+          // FLOOR — cel-shaded slab with subtle perspective grid lines
           const floor = document.createElement("div");
-          floor.style.cssText = `
-            position:absolute;left:50%;top:50%;width:1400px;height:${SEG_LEN}px;
-            transform:translate(-50%,0) rotateX(90deg) translateZ(-220px);
-            background:linear-gradient(180deg,#0c1014 0%,#161b22 100%);
-            border-top:2px solid #2a323d;border-bottom:2px solid #2a323d;
-            box-shadow:inset 0 0 60px #050709;`;
-          // left wall
+          floor.style.cssText =
+            "position:absolute;left:50%;top:50%;width:1400px;height:" + SEG_LEN + "px;" +
+            "transform:translate(-50%,0) rotateX(90deg) translateZ(-220px);" +
+            "background:#0a0e14;" +
+            "border-top:1px solid #2a323d;border-bottom:1px solid #2a323d;";
+
+          // 6 thin parallel grid lines along the floor (running with the trench)
+          for (let g = 0; g < 6; g++) {
+            const gline = document.createElement("div");
+            const xPct = 8 + g * 17;
+            gline.style.cssText =
+              "position:absolute;left:" + xPct + "%;top:0;width:1px;height:100%;" +
+              "background:#2a323d;opacity:0.85;";
+            floor.appendChild(gline);
+          }
+
+          // LEFT WALL — three-band cel shading: top #2a323d, middle #1a222c, bottom #0a0e14
           const lw = document.createElement("div");
-          lw.style.cssText = `
-            position:absolute;left:50%;top:50%;width:${SEG_LEN}px;height:1080px;
-            transform:translate(-700px,-50%) rotateY(90deg);
-            background:linear-gradient(90deg,#1a222c 0%,#0a0e14 100%);
-            border-right:2px solid #2a323d;
-            box-shadow:inset 0 0 80px #050709;`;
-          // right wall
+          lw.style.cssText =
+            "position:absolute;left:50%;top:50%;width:" + SEG_LEN + "px;height:1080px;" +
+            "transform:translate(-700px,-50%) rotateY(90deg);" +
+            "background:#1a222c;" +
+            "border-right:1px solid #2a323d;border-left:1px solid #2a323d;";
+
+          const lwTop = document.createElement("div");
+          lwTop.style.cssText =
+            "position:absolute;left:0;top:0;width:100%;height:36%;" +
+            "background:#2a323d;border-bottom:1px solid #2a323d;";
+          const lwBot = document.createElement("div");
+          lwBot.style.cssText =
+            "position:absolute;left:0;bottom:0;width:100%;height:32%;" +
+            "background:#0a0e14;border-top:1px solid #2a323d;";
+          lw.appendChild(lwTop);
+          lw.appendChild(lwBot);
+
+          // RIGHT WALL — same banding, mirrored
           const rw = document.createElement("div");
-          rw.style.cssText = `
-            position:absolute;left:50%;top:50%;width:${SEG_LEN}px;height:1080px;
-            transform:translate(700px,-50%) rotateY(-90deg);
-            background:linear-gradient(270deg,#1a222c 0%,#0a0e14 100%);
-            border-left:2px solid #2a323d;
-            box-shadow:inset 0 0 80px #050709;`;
-          // greeble: a crossbar every other segment, color-shifted slightly
+          rw.style.cssText =
+            "position:absolute;left:50%;top:50%;width:" + SEG_LEN + "px;height:1080px;" +
+            "transform:translate(700px,-50%) rotateY(-90deg);" +
+            "background:#1a222c;" +
+            "border-right:1px solid #2a323d;border-left:1px solid #2a323d;";
+          const rwTop = document.createElement("div");
+          rwTop.style.cssText =
+            "position:absolute;left:0;top:0;width:100%;height:36%;" +
+            "background:#2a323d;border-bottom:1px solid #2a323d;";
+          const rwBot = document.createElement("div");
+          rwBot.style.cssText =
+            "position:absolute;left:0;bottom:0;width:100%;height:32%;" +
+            "background:#0a0e14;border-top:1px solid #2a323d;";
+          rw.appendChild(rwTop);
+          rw.appendChild(rwBot);
+
+          // VERTICAL STRUT — every segment, varied position
+          const strutXL = 6 + Math.floor(rnd() * 80); // % across the wall depth
+          const strutXR = 6 + Math.floor(rnd() * 80);
+          const strutL = document.createElement("div");
+          strutL.style.cssText =
+            "position:absolute;left:" + strutXL + "%;top:8%;width:8px;height:84%;" +
+            "background:#222a36;border-left:1px solid #2a323d;border-right:1px solid #11161d;";
+          const strutR = document.createElement("div");
+          strutR.style.cssText =
+            "position:absolute;left:" + strutXR + "%;top:8%;width:8px;height:84%;" +
+            "background:#222a36;border-left:1px solid #2a323d;border-right:1px solid #11161d;";
+          lw.appendChild(strutL);
+          rw.appendChild(strutR);
+
+          // CROSSBAR — every other segment (the original greeble), with rust accent
           if (i % 2 === 0) {
             const crossL = document.createElement("div");
-            crossL.style.cssText = `
-              position:absolute;left:0;top:36%;width:100%;height:24px;
-              background:#222a36;border-top:1px solid #3b4654;border-bottom:1px solid #1a2028;`;
+            crossL.style.cssText =
+              "position:absolute;left:0;top:36%;width:100%;height:18px;" +
+              "background:#222a36;border-top:1px solid #2a323d;border-bottom:1px solid #11161d;";
             const crossR = document.createElement("div");
-            crossR.style.cssText = `
-              position:absolute;left:0;top:62%;width:100%;height:18px;
-              background:#1d242e;border-top:1px solid #2c3542;`;
+            crossR.style.cssText =
+              "position:absolute;left:0;top:62%;width:100%;height:14px;" +
+              "background:#1d242e;border-top:1px solid #2a323d;border-bottom:1px solid #11161d;";
+
+            // tiny rust-orange panel highlight near the crossbar
+            const rustL = document.createElement("div");
+            rustL.style.cssText =
+              "position:absolute;left:18%;top:38%;width:16px;height:10px;" +
+              "background:#c45627;border:1px solid #2a323d;";
+            const rustR = document.createElement("div");
+            rustR.style.cssText =
+              "position:absolute;left:62%;top:64%;width:16px;height:10px;" +
+              "background:#c45627;border:1px solid #2a323d;";
+
             lw.appendChild(crossL);
+            lw.appendChild(rustL);
             rw.appendChild(crossR);
+            rw.appendChild(rustR);
           }
+
+          // HORIZONTAL DUCT — every 3rd segment
+          if (i % 3 === 0) {
+            const ductL = document.createElement("div");
+            ductL.style.cssText =
+              "position:absolute;left:0;top:48%;width:100%;height:6px;" +
+              "background:#11161d;border-top:1px solid #2a323d;border-bottom:1px solid #2a323d;";
+            const ductR = document.createElement("div");
+            ductR.style.cssText =
+              "position:absolute;left:0;top:52%;width:100%;height:6px;" +
+              "background:#11161d;border-top:1px solid #2a323d;border-bottom:1px solid #2a323d;";
+            lw.appendChild(ductL);
+            rw.appendChild(ductR);
+          }
+
+          // GLOWING SERVICE LIGHT — every 4th segment, alternating cyan/red
+          if (i % 4 === 0) {
+            const lightColor = (i % 8 === 0) ? "#9FE9FF" : "#FF3030";
+            const lightL = document.createElement("div");
+            lightL.style.cssText =
+              "position:absolute;left:46%;top:42%;width:10px;height:6px;" +
+              "background:" + lightColor + ";border:1px solid #2a323d;" +
+              "box-shadow:0 0 12px " + lightColor + ";";
+            const lightR = document.createElement("div");
+            lightR.style.cssText =
+              "position:absolute;left:46%;top:58%;width:10px;height:6px;" +
+              "background:" + lightColor + ";border:1px solid #2a323d;" +
+              "box-shadow:0 0 12px " + lightColor + ";";
+            lw.appendChild(lightL);
+            rw.appendChild(lightR);
+          }
+
+          // BIG TOWER GREEBLES — boxy structures rising from the floor at certain segments
+          if (towerSegs.has(i)) {
+            // Tower lives in 3D inside seg, but rendered as a flat slab on the floor plane.
+            const towerSide = (i % 2 === 0) ? "left" : "right";
+            const towerLR = (towerSide === "left") ? -380 : 380;
+
+            const tower = document.createElement("div");
+            tower.style.cssText =
+              "position:absolute;left:50%;top:50%;width:140px;height:380px;" +
+              "transform:translate(" + (towerLR - 70) + "px," + (-380 + 220) + "px);" +
+              "background:#1a222c;border:1px solid #2a323d;";
+
+            // Three cel bands within the tower
+            const tTop = document.createElement("div");
+            tTop.style.cssText =
+              "position:absolute;left:0;top:0;width:100%;height:30%;" +
+              "background:#2a323d;border-bottom:1px solid #2a323d;";
+            const tBot = document.createElement("div");
+            tBot.style.cssText =
+              "position:absolute;left:0;bottom:0;width:100%;height:34%;" +
+              "background:#0a0e14;border-top:1px solid #2a323d;";
+            const tStripe = document.createElement("div");
+            tStripe.style.cssText =
+              "position:absolute;left:0;top:46%;width:100%;height:6px;" +
+              "background:#c45627;border-top:1px solid #2a323d;border-bottom:1px solid #2a323d;";
+            const tLight = document.createElement("div");
+            tLight.style.cssText =
+              "position:absolute;left:38%;top:62%;width:18px;height:8px;" +
+              "background:#9FE9FF;border:1px solid #2a323d;box-shadow:0 0 14px #9FE9FF;";
+
+            tower.appendChild(tTop);
+            tower.appendChild(tBot);
+            tower.appendChild(tStripe);
+            tower.appendChild(tLight);
+            seg.appendChild(tower);
+          }
+
           seg.appendChild(floor);
           seg.appendChild(lw);
           seg.appendChild(rw);
@@ -155,8 +380,7 @@
         window.__timelines = window.__timelines || {};
         const tl = gsap.timeline({ paused: true });
 
-        // Camera: trench rushes toward viewer.
-        // We tween the entire stage's translateZ to fly through SEG_COUNT segments.
+        // CAMERA: trench rushes toward viewer — fly through the stack.
         const totalZ = SEG_LEN * (SEG_COUNT - 6);
         tl.fromTo("#trench-stage",
           { z: -totalZ * 0.2 },
@@ -164,8 +388,8 @@
 
         // Vanishing-point glow grows brighter as we close
         tl.fromTo("#trench-vp",
-          { opacity: 0.4, scale: 0.8 },
-          { opacity: 1.0, scale: 1.6, duration: 7.0, ease: "power2.in" }, 0);
+          { opacity: 0.5, scale: 0.6 },
+          { opacity: 1.0, scale: 2.1, duration: 7.0, ease: "power2.in" }, 0);
 
         // HUD fades in (red leader's targeting computer)
         tl.fromTo("#trench-hud", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 0.4);
@@ -175,29 +399,62 @@
           { x: -10, y: -6 },
           { x: 12, y: 8, duration: 0.4, ease: "sine.inOut", yoyo: true, repeat: 13 }, 1.0);
 
+        // Spinning HUD widgets — full 360 over the duration of the shot
+        tl.fromTo("#hud-widget-tl",
+          { rotation: 0, transformOrigin: "220px 220px" },
+          { rotation: 360, transformOrigin: "220px 220px", duration: 8, ease: "none" }, 0);
+        tl.fromTo("#hud-widget-tr",
+          { rotation: 0, transformOrigin: "1700px 220px" },
+          { rotation: -360, transformOrigin: "1700px 220px", duration: 8, ease: "none" }, 0);
+        tl.fromTo("#hud-widget-br",
+          { rotation: 0, transformOrigin: "1700px 860px" },
+          { rotation: 360, transformOrigin: "1700px 860px", duration: 8, ease: "none" }, 0);
+
+        // Distance readout — crossfade through 5 pre-rendered values
+        const distSteps = ["#dist-1", "#dist-2", "#dist-3", "#dist-4", "#dist-5"];
+        const distStarts = [0.6, 2.0, 3.4, 4.8, 6.0];
+        const distHolds  = [1.4, 1.4, 1.4, 1.2, 1.4];
+        for (let d = 0; d < distSteps.length; d++) {
+          tl.to(distSteps[d], { opacity: 0.95, duration: 0.25, ease: "power2.out" }, distStarts[d]);
+          tl.to(distSteps[d], { opacity: 0,    duration: 0.25, ease: "power2.in"  }, distStarts[d] + distHolds[d]);
+        }
+
         // Cockpit foreground subtly bobs
         tl.fromTo("#trench-cockpit",
           { y: -4 },
           { y: 4, duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: 10 }, 0);
 
-        // Lasers — 4 streaks, each a dash from screen edge toward vanishing point
+        // Instrument panel LEDs — gently pulse, finite repeats, varied timing
+        tl.fromTo("#led-1", { opacity: 0.4 }, { opacity: 1.0, duration: 0.7, ease: "sine.inOut", yoyo: true, repeat: 10 }, 0);
+        tl.fromTo("#led-2", { opacity: 0.5 }, { opacity: 1.0, duration: 0.9, ease: "sine.inOut", yoyo: true, repeat: 8  }, 0.2);
+        tl.fromTo("#led-3", { opacity: 0.4 }, { opacity: 1.0, duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: 12 }, 0.1);
+        tl.fromTo("#led-4", { opacity: 0.6 }, { opacity: 1.0, duration: 1.1, ease: "sine.inOut", yoyo: true, repeat: 6  }, 0.3);
+
+        // Motion streaks — scale outward from VP, finite repeats
+        const streakRepeats = Math.ceil(7 / 0.6) - 1; // ~11
+        tl.fromTo(".streak",
+          { opacity: 0, transformOrigin: "960px 540px", scale: 0.2 },
+          { opacity: 0.5, scale: 1.4, duration: 0.6, ease: "power2.out",
+            stagger: { each: 0.07, repeat: streakRepeats } }, 0);
+
+        // LASERS — 4 streaks, each layered halo+bolt+core, scale up + drive in then snap out
         const lasers = [
-          { id: "#laser-1", from: { x: -800, y: -140, rotation: 12 },  to: { x: 0, y: 0, rotation: 12 },  delay: 2.2 },
+          { id: "#laser-1", from: { x: -800, y: -140, rotation: 12  }, to: { x: 0, y: 0, rotation: 12  }, delay: 2.2 },
           { id: "#laser-2", from: { x:  900, y:  120, rotation: -10 }, to: { x: 0, y: 0, rotation: -10 }, delay: 2.6 },
-          { id: "#laser-3", from: { x: -700, y:  160, rotation: -8 },  to: { x: 0, y: 0, rotation: -8 },  delay: 3.4 },
-          { id: "#laser-4", from: { x:  820, y: -100, rotation: 14 },  to: { x: 0, y: 0, rotation: 14 },  delay: 4.2 }
+          { id: "#laser-3", from: { x: -700, y:  160, rotation: -8  }, to: { x: 0, y: 0, rotation: -8  }, delay: 3.4 },
+          { id: "#laser-4", from: { x:  820, y: -100, rotation: 14  }, to: { x: 0, y: 0, rotation: 14  }, delay: 4.2 }
         ];
         for (const L of lasers) {
-          tl.set(L.id, { opacity: 0, ...L.from }, 0);
-          tl.to(L.id, { ...L.to, opacity: 1, duration: 0.18, ease: "power2.out" }, L.delay);
+          tl.set(L.id, { opacity: 0, scale: 0.7, ...L.from }, 0);
+          tl.to(L.id, { ...L.to, opacity: 1, scale: 1.2, duration: 0.18, ease: "power2.out" }, L.delay);
           tl.to(L.id, { opacity: 0, scale: 0.6, duration: 0.22, ease: "power2.in" }, L.delay + 0.18);
         }
 
-        // Final shot beat: short white flash as the proton torpedo strikes home
+        // Final beat: hard white flash as the proton torpedo strikes home
         tl.fromTo("#trench-flash",
           { opacity: 0 },
-          { opacity: 0.95, duration: 0.18, ease: "power2.out" }, 6.7);
-        tl.to("#trench-flash", { opacity: 0, duration: 0.6, ease: "power2.in" }, 6.9);
+          { opacity: 0.98, duration: 0.18, ease: "power2.out" }, 6.6);
+        tl.to("#trench-flash", { opacity: 0, duration: 0.7, ease: "power2.in" }, 6.8);
 
         window.__timelines["scene-trench"] = tl;
       })();

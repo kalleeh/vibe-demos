@@ -2,83 +2,214 @@
   <div data-composition-id="scene-sunset" data-width="1920" data-height="1080"
        style="position:relative;width:100%;height:100%;overflow:hidden;background:#1a0a0e;">
 
-    <!-- Sky gradient backdrop -->
-    <div id="sunset-sky" class="clip" data-start="0" data-duration="8" data-track-index="0"
-         style="position:absolute;inset:0;
-                background:linear-gradient(180deg,
-                  #2a0e1a 0%,
-                  #6e2417 28%,
-                  #c45627 55%,
-                  #FFB347 76%,
-                  #FFD27A 92%,
-                  #f4d49a 100%);">
-    </div>
+    <!-- =========================================================
+         SKY: 5-stop banded painterly gradient (Clone Wars cel)
+         ========================================================= -->
+    <svg id="sunset-sky" class="clip" data-start="0" data-duration="8" data-track-index="0"
+         viewBox="0 0 1920 1080" preserveAspectRatio="none"
+         style="position:absolute;inset:0;width:100%;height:100%;">
+      <defs>
+        <!-- 7-stop painterly band (top→bottom). Hard transitions between bands fake
+             posterized cel-paint. Stops are paired close together (e.g. 19/20%) to
+             create a near-flat band edge instead of smooth ramps. -->
+        <linearGradient id="sky-band" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#2a0e1a"/>
+          <stop offset="19%"  stop-color="#2a0e1a"/>
+          <stop offset="20%"  stop-color="#4a1620"/>
+          <stop offset="36%"  stop-color="#6e2417"/>
+          <stop offset="37%"  stop-color="#8a3019"/>
+          <stop offset="55%"  stop-color="#c45627"/>
+          <stop offset="56%"  stop-color="#d96930"/>
+          <stop offset="74%"  stop-color="#FFB347"/>
+          <stop offset="75%"  stop-color="#FFC059"/>
+          <stop offset="92%"  stop-color="#FFD27A"/>
+          <stop offset="100%" stop-color="#f4d49a"/>
+        </linearGradient>
+        <!-- Faint film-grain banding overlay -->
+        <linearGradient id="sky-film" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#000000" stop-opacity="0.18"/>
+          <stop offset="40%"  stop-color="#000000" stop-opacity="0"/>
+          <stop offset="60%"  stop-color="#FFD27A" stop-opacity="0"/>
+          <stop offset="100%" stop-color="#FFB347" stop-opacity="0.08"/>
+        </linearGradient>
+        <!-- Approaching-night blue rim at the very top -->
+        <linearGradient id="sky-night-rim" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"  stop-color="#1a2a55" stop-opacity="0.55"/>
+          <stop offset="40%" stop-color="#1a2a55" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <rect x="0" y="0" width="1920" height="1080" fill="url(#sky-band)"/>
+      <rect x="0" y="0" width="1920" height="1080" fill="url(#sky-film)"/>
+      <rect id="sunset-night-rim" x="0" y="0" width="1920" height="320" fill="url(#sky-night-rim)" opacity="0.35"/>
+    </svg>
 
-    <!-- Heat haze band over horizon -->
-    <div id="sunset-haze" class="clip" data-start="0" data-duration="8" data-track-index="1"
+    <!-- =========================================================
+         WIND DUST: 5 thin streaks drifting across the dune line
+         ========================================================= -->
+    <svg id="sunset-dust" class="clip" data-start="0" data-duration="8" data-track-index="1"
+         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+         style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;">
+      <g fill="none" stroke="#FFD27A" stroke-linecap="round" opacity="0.30">
+        <path class="dust-streak" d="M 200,720 Q 360,716 520,722"  stroke-width="1.2"/>
+        <path class="dust-streak" d="M 760,742 Q 920,738 1080,744" stroke-width="1.0"/>
+        <path class="dust-streak" d="M 1280,712 Q 1440,708 1600,716" stroke-width="1.4"/>
+        <path class="dust-streak" d="M 420,760 Q 580,756 740,762"  stroke-width="0.9"/>
+        <path class="dust-streak" d="M 1080,778 Q 1240,774 1400,780" stroke-width="1.1"/>
+      </g>
+    </svg>
+
+    <!-- =========================================================
+         SUN GLOW HALOS (CSS-blurred SVG circles, behind suns)
+         ========================================================= -->
+    <svg id="sunset-glows" class="clip" data-start="0" data-duration="8" data-track-index="2"
+         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+         data-layout-allow-overflow
+         style="position:absolute;inset:0;width:100%;height:100%;filter:blur(40px);mix-blend-mode:screen;">
+      <defs>
+        <radialGradient id="halo-a" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"  stop-color="#FFD27A" stop-opacity="0.85"/>
+          <stop offset="60%" stop-color="#FFB347" stop-opacity="0.40"/>
+          <stop offset="100%" stop-color="#FFB347" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="halo-b" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"  stop-color="#FFB57A" stop-opacity="0.70"/>
+          <stop offset="100%" stop-color="#c45627" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <circle id="sun-glow-a" cx="980"  cy="700" r="380" fill="url(#halo-a)" data-layout-allow-overflow/>
+      <circle id="sun-glow-b" cx="1080" cy="730" r="280" fill="url(#halo-b)" data-layout-allow-overflow/>
+    </svg>
+
+    <!-- =========================================================
+         TWIN SUNS (hard-stop cel discs)
+         ========================================================= -->
+    <svg id="sunset-suns" class="clip" data-start="0" data-duration="8" data-track-index="3"
+         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+         data-layout-allow-overflow
+         style="position:absolute;inset:0;width:100%;height:100%;">
+      <defs>
+        <!-- HARD stops: white core 0-40%, sharp shift to apricot at 41%, fade out 90-100%. -->
+        <radialGradient id="sun-a" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#FFF4D6"/>
+          <stop offset="40%"  stop-color="#FFF4D6"/>
+          <stop offset="41%"  stop-color="#FFD27A"/>
+          <stop offset="70%"  stop-color="#FFB347"/>
+          <stop offset="90%"  stop-color="#FFB347" stop-opacity="0.55"/>
+          <stop offset="100%" stop-color="#FFB347" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="sun-b" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#FFE6C0"/>
+          <stop offset="50%"  stop-color="#FFE6C0"/>
+          <stop offset="51%"  stop-color="#FFB57A"/>
+          <stop offset="90%"  stop-color="#c45627" stop-opacity="0.4"/>
+          <stop offset="100%" stop-color="#c45627" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <!-- Smaller companion sun, tucked behind primary, lower-right -->
+      <circle id="sun-b-disc" cx="1080" cy="730" r="95" fill="url(#sun-b)" data-layout-allow-overflow/>
+      <!-- Primary sun -->
+      <circle id="sun-a-disc" cx="980"  cy="700" r="150" fill="url(#sun-a)" data-layout-allow-overflow/>
+    </svg>
+
+    <!-- =========================================================
+         HEAT HAZE band over horizon (kept; tightened timing)
+         ========================================================= -->
+    <div id="sunset-haze" class="clip" data-start="0" data-duration="8" data-track-index="4"
          style="position:absolute;left:0;right:0;top:62%;height:14%;
                 background:radial-gradient(ellipse at 50% 50%,
-                  rgba(255,210,140,0.45) 0%,
-                  rgba(255,180,90,0.18) 50%,
+                  rgba(255,210,140,0.50) 0%,
+                  rgba(255,180,90,0.20) 50%,
                   rgba(255,180,90,0) 100%);
                 filter:blur(6px);mix-blend-mode:screen;opacity:0.85;"></div>
 
-    <!-- Twin suns SVG layer -->
-    <svg id="sunset-suns" class="clip" data-start="0" data-duration="8" data-track-index="2"
+    <!-- =========================================================
+         DUNES: 3 layers (back / mid / near). Each is a stacked
+         pair: a flat dark body path + a thin warm rim path on top.
+         ========================================================= -->
+    <svg id="sunset-dunes" class="clip" data-start="0" data-duration="8" data-track-index="5"
          viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
          style="position:absolute;inset:0;width:100%;height:100%;">
-      <defs>
-        <radialGradient id="sun-a" cx="50%" cy="50%" r="50%">
-          <stop offset="0%"  stop-color="#FFF4D6" />
-          <stop offset="55%" stop-color="#FFD27A" />
-          <stop offset="100%" stop-color="#FFB347" stop-opacity="0" />
-        </radialGradient>
-        <radialGradient id="sun-b" cx="50%" cy="50%" r="50%">
-          <stop offset="0%"  stop-color="#FFE6C0" />
-          <stop offset="60%" stop-color="#FFB57A" />
-          <stop offset="100%" stop-color="#c45627" stop-opacity="0" />
-        </radialGradient>
-        <radialGradient id="sun-glow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%"  stop-color="#FFD27A" stop-opacity="0.55" />
-          <stop offset="100%" stop-color="#FFB347" stop-opacity="0" />
-        </radialGradient>
-      </defs>
+      <!-- BACK dune body -->
+      <path d="M0,790 C220,770 380,810 580,800 C780,790 940,762 1180,772 C1420,782 1620,800 1920,792 L1920,1080 L0,1080 Z"
+            fill="#3a1a18"/>
+      <!-- BACK dune warm rim (top edge only) -->
+      <path d="M0,790 C220,770 380,810 580,800 C780,790 940,762 1180,772 C1420,782 1620,800 1920,792"
+            fill="none" stroke="#FFD27A" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>
 
-      <!-- Atmospheric glow behind suns (descends behind dunes) -->
-      <circle id="sun-glow-a" cx="980" cy="700" r="380" fill="url(#sun-glow)" data-layout-allow-overflow />
-      <circle id="sun-glow-b" cx="1080" cy="730" r="280" fill="url(#sun-glow)" opacity="0.7" data-layout-allow-overflow />
+      <!-- MID dune body -->
+      <path d="M0,840 C200,818 420,866 660,852 C880,840 1120,810 1360,832 C1580,852 1760,838 1920,842 L1920,1080 L0,1080 Z"
+            fill="#2a1414"/>
+      <!-- MID dune warm rim -->
+      <path d="M0,840 C200,818 420,866 660,852 C880,840 1120,810 1360,832 C1580,852 1760,838 1920,842"
+            fill="none" stroke="#FFD27A" stroke-width="2.5" stroke-linecap="round" opacity="0.75"/>
 
-      <!-- Big sun -->
-      <circle id="sun-a-disc" cx="980" cy="700" r="150" fill="url(#sun-a)" />
-      <!-- Smaller companion sun, tucked behind -->
-      <circle id="sun-b-disc" cx="1080" cy="730" r="92" fill="url(#sun-b)" />
-    </svg>
-
-    <!-- Horizon dunes silhouette -->
-    <svg id="sunset-dunes" class="clip" data-start="0" data-duration="8" data-track-index="3"
-         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
-         style="position:absolute;inset:0;width:100%;height:100%;">
-      <!-- Far dune layer -->
-      <path d="M0,780 C220,760 380,800 580,790 C780,780 940,750 1180,760 C1420,770 1620,790 1920,780 L1920,1080 L0,1080 Z"
-            fill="#3a1a18" opacity="0.85"/>
-      <!-- Near dune layer -->
-      <path d="M0,860 C260,830 460,890 720,880 C980,870 1180,840 1420,860 C1660,880 1820,870 1920,870 L1920,1080 L0,1080 Z"
+      <!-- NEAR dune body -->
+      <path d="M0,902 C260,872 460,932 720,920 C980,910 1180,880 1420,900 C1660,922 1820,910 1920,910 L1920,1080 L0,1080 Z"
             fill="#1f0d10"/>
+      <!-- NEAR dune warm rim -->
+      <path d="M0,902 C260,872 460,932 720,920 C980,910 1180,880 1420,900 C1660,922 1820,910 1920,910"
+            fill="none" stroke="#FFD27A" stroke-width="3" stroke-linecap="round" opacity="0.65"/>
+      <!-- NEAR dune contour ink (Clone Wars bold silhouette stroke) -->
+      <path d="M0,902 C260,872 460,932 720,920 C980,910 1180,880 1420,900 C1660,922 1820,910 1920,910"
+            fill="none" stroke="#0A0A0A" stroke-width="1.5" stroke-linecap="round" opacity="0.55"/>
     </svg>
 
-    <!-- Lone figure silhouette (Luke) -->
-    <svg id="sunset-figure" class="clip" data-start="0" data-duration="8" data-track-index="4"
+    <!-- =========================================================
+         FIGURE: lone Tatooine farmer silhouette (hooded poncho).
+         Facing the suns, off-center right third, small.
+         ========================================================= -->
+    <svg id="sunset-figure" class="clip" data-start="0" data-duration="8" data-track-index="6"
          viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
          style="position:absolute;inset:0;width:100%;height:100%;">
-      <g transform="translate(820 820)" fill="#0A0A0A">
-        <!-- head -->
-        <ellipse cx="0" cy="0" rx="14" ry="18"/>
-        <!-- torso (poncho) -->
-        <path d="M -36,18 L 36,18 L 28,90 L -28,90 Z"/>
-        <!-- legs -->
-        <rect x="-14" y="90" width="10" height="46"/>
-        <rect x="4"   y="90" width="10" height="46"/>
-        <!-- gentle wind flick on poncho hem (animated via CSS) -->
+      <g transform="translate(1380 838)">
+        <!-- Body fill (hooded poncho silhouette, looser silhouette than stick figure).
+             Reads left-to-right: hood crown, hood drop, shoulder line, poncho flare,
+             hem (animated), legs underneath. Single composite path so the contour
+             stroke wraps the whole silhouette at once. -->
+        <path id="luke-body"
+              d="M -10,-44
+                 C -22,-44 -28,-32 -26,-22
+                 L -30,-6
+                 C -34,4 -34,12 -30,18
+                 L -40,30
+                 C -46,42 -48,58 -44,72
+                 L -38,92
+                 L -28,108
+                 L -22,128
+                 L -10,128
+                 L -8,104
+                 L 8,104
+                 L 10,128
+                 L 22,128
+                 L 28,108
+                 L 38,92
+                 L 44,72
+                 C 48,58 46,42 40,30
+                 L 30,18
+                 C 34,12 34,4 30,-6
+                 L 26,-22
+                 C 28,-32 22,-44 10,-44
+                 L -10,-44 Z"
+              fill="#0A0A0A" stroke="#0A0A0A" stroke-width="1.5" stroke-linejoin="round"/>
+
+        <!-- Hem ripple — overlaid path that GSAP morphs via attr d.
+             Sits just under the poncho hem line. Same fill so the silhouette
+             reads as one shape. -->
+        <path id="luke-hem"
+              d="M -44,72 C -30,76 -14,74 0,76 C 14,78 30,76 44,72 L 46,86 L -46,86 Z"
+              fill="#0A0A0A"/>
+
+        <!-- Warm rim on the top edge (hood crown + shoulders), 1.5px stroke.
+             Cel-style key-light kiss — hard, not soft. -->
+        <path d="M -22,-22
+                 C -28,-32 -22,-44 -10,-44
+                 L 10,-44
+                 C 22,-44 28,-32 22,-22"
+              fill="none" stroke="#FFD27A" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M -34,8 C -28,12 -22,14 -16,14"
+              fill="none" stroke="#FFD27A" stroke-width="1.4" stroke-linecap="round" opacity="0.8"/>
+        <path d="M 16,14 C 22,14 28,12 34,8"
+              fill="none" stroke="#FFD27A" stroke-width="1.4" stroke-linecap="round" opacity="0.8"/>
       </g>
     </svg>
 
@@ -88,26 +219,49 @@
         window.__timelines = window.__timelines || {};
         const tl = gsap.timeline({ paused: true });
 
-        // Whole scene fades up out of black (the root crossfade also covers this).
-        tl.fromTo("#sunset-sky",   { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 0);
-        tl.fromTo("#sunset-haze",  { opacity: 0 }, { opacity: 0.85, duration: 1.0, ease: "power2.out" }, 0.2);
-        tl.fromTo("#sunset-suns",  { opacity: 0 }, { opacity: 1, duration: 0.8, ease: "power2.out" }, 0.3);
-        tl.fromTo("#sunset-dunes", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power2.out" }, 0.4);
-        tl.fromTo("#sunset-figure",{ opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }, 0.6);
+        // ----- Entrance fades (root crossfade also covers; keep gentle) -----
+        tl.fromTo("#sunset-sky",    { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 0);
+        tl.fromTo("#sunset-dust",   { opacity: 0 }, { opacity: 1, duration: 1.2, ease: "power2.out" }, 0.4);
+        tl.fromTo("#sunset-glows",  { opacity: 0 }, { opacity: 1, duration: 0.9, ease: "power2.out" }, 0.2);
+        tl.fromTo("#sunset-suns",   { opacity: 0 }, { opacity: 1, duration: 0.8, ease: "power2.out" }, 0.3);
+        tl.fromTo("#sunset-haze",   { opacity: 0 }, { opacity: 0.85, duration: 1.0, ease: "power2.out" }, 0.2);
+        tl.fromTo("#sunset-dunes",  { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power2.out" }, 0.4);
+        tl.fromTo("#sunset-figure", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }, 0.6);
 
-        // Sun descent: large sun lowers ~60px, smaller drifts behind it
-        tl.to("#sun-a-disc",   { attr: { cy: 760 }, duration: 8, ease: "power1.in" }, 0);
-        tl.to("#sun-glow-a",   { attr: { cy: 760 }, duration: 8, ease: "power1.in" }, 0);
-        tl.to("#sun-b-disc",   { attr: { cy: 800, cx: 1060 }, duration: 8, ease: "power1.in" }, 0);
-        tl.to("#sun-glow-b",   { attr: { cy: 800, cx: 1060 }, duration: 8, ease: "power1.in" }, 0);
+        // ----- Twin sun descent over the full 8s (slow, contemplative) -----
+        tl.to("#sun-a-disc", { attr: { cy: 760 }, duration: 8, ease: "power1.in" }, 0);
+        tl.to("#sun-b-disc", { attr: { cy: 800, cx: 1060 }, duration: 8, ease: "power1.in" }, 0);
+        tl.to("#sun-glow-a", { attr: { cy: 760 }, duration: 8, ease: "power1.in" }, 0);
+        tl.to("#sun-glow-b", { attr: { cy: 800, cx: 1060 }, duration: 8, ease: "power1.in" }, 0);
 
-        // Slow heat-haze breathing (after fade-in completes)
-        tl.to("#sunset-haze", { opacity: 0.55, duration: 3.2, ease: "sine.inOut", yoyo: true, repeat: 1, overwrite: "auto" }, 1.4);
+        // ----- Approaching-night blue rim creeps in as suns descend -----
+        tl.fromTo("#sunset-night-rim",
+          { opacity: 0.20 },
+          { opacity: 0.75, duration: 8, ease: "power1.inOut", overwrite: "auto" }, 0);
 
-        // Gradual sky deepen: shift overall scene toward warmer/darker as suns lower
+        // ----- Heat-haze breathing (after fade-in completes); overwrite the fade -----
+        tl.to("#sunset-haze",
+          { opacity: 0.55, duration: 3.0, ease: "sine.inOut", yoyo: true, repeat: 1, overwrite: "auto" },
+          1.6);
+
+        // ----- Sky deepens slightly toward warmer/darker as suns lower -----
         tl.fromTo("#sunset-sky",
           { filter: "brightness(1.05) saturate(1.0)" },
-          { filter: "brightness(0.85) saturate(1.15)", duration: 8, ease: "power1.inOut" }, 0);
+          { filter: "brightness(0.85) saturate(1.18)", duration: 8, ease: "power1.inOut", overwrite: "auto" }, 0);
+
+        // ----- Wind: 5 dust streaks drift left-ward over the full 8s -----
+        // Each streak gets a slight stagger so they don't move in lockstep.
+        tl.fromTo(".dust-streak",
+          { x: 0,    opacity: 0 },
+          { x: -100, opacity: 0.30, duration: 8, ease: "none",
+            stagger: { each: 0.6, from: "start" }, overwrite: "auto" }, 0);
+
+        // ----- Luke's poncho hem ripples in the wind (subtle, looped finite times).
+        // attr d morph between two close path strings. 4 cycles over 8s = 2s each.
+        tl.to("#luke-hem", {
+          attr: { d: "M -44,72 C -30,80 -14,70 0,78 C 14,82 30,72 44,72 L 46,86 L -46,86 Z" },
+          duration: 1.0, ease: "sine.inOut", yoyo: true, repeat: 7, overwrite: "auto"
+        }, 0.9);
 
         window.__timelines["scene-sunset"] = tl;
       })();

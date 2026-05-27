@@ -1,28 +1,100 @@
 <template id="scene-crawl-template">
-  <div data-composition-id="scene-crawl" data-width="1920" data-height="1080" style="position:relative;width:100%;height:100%;background:#000;overflow:hidden;">
+  <div data-composition-id="scene-crawl" data-width="1920" data-height="1080" style="position:relative;width:100%;height:100%;background:#020210;overflow:hidden;">
 
-    <!-- Starfield -->
-    <svg id="crawl-stars" class="clip" data-start="0" data-duration="14" data-track-index="0"
+    <!-- Painterly nebula sky (Clone Wars-style banded radial gradients) -->
+    <svg id="crawl-sky" class="clip" data-start="0" data-duration="14" data-track-index="0"
          viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
-         style="position:absolute;inset:0;width:100%;height:100%;"></svg>
+         style="position:absolute;inset:0;width:100%;height:100%;filter:blur(38px);">
+      <defs>
+        <radialGradient id="cw-sky-bg" cx="50%" cy="55%" r="80%">
+          <stop offset="0%"  stop-color="#1A1F4A"/>
+          <stop offset="38%" stop-color="#0E1238"/>
+          <stop offset="39%" stop-color="#0E1238"/>
+          <stop offset="70%" stop-color="#06081C"/>
+          <stop offset="100%" stop-color="#020210"/>
+        </radialGradient>
+        <radialGradient id="cw-neb-cyan" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"  stop-color="#5BE7FF" stop-opacity="0.55"/>
+          <stop offset="35%" stop-color="#3FAFD8" stop-opacity="0.40"/>
+          <stop offset="36%" stop-color="#2A6FA8" stop-opacity="0.30"/>
+          <stop offset="75%" stop-color="#163660" stop-opacity="0.10"/>
+          <stop offset="100%" stop-color="#020210" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="cw-neb-magenta" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"  stop-color="#E55BBE" stop-opacity="0.50"/>
+          <stop offset="32%" stop-color="#9A3D9E" stop-opacity="0.35"/>
+          <stop offset="33%" stop-color="#5C2168" stop-opacity="0.28"/>
+          <stop offset="78%" stop-color="#23103A" stop-opacity="0.10"/>
+          <stop offset="100%" stop-color="#020210" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="cw-neb-purple" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"  stop-color="#8C7BFF" stop-opacity="0.45"/>
+          <stop offset="34%" stop-color="#5E4CB6" stop-opacity="0.32"/>
+          <stop offset="35%" stop-color="#3A2D86" stop-opacity="0.25"/>
+          <stop offset="80%" stop-color="#1A1240" stop-opacity="0.10"/>
+          <stop offset="100%" stop-color="#020210" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect x="0" y="0" width="1920" height="1080" fill="url(#cw-sky-bg)"/>
+      <ellipse cx="380"  cy="260" rx="520" ry="280" fill="url(#cw-neb-cyan)"/>
+      <ellipse cx="1520" cy="380" rx="600" ry="320" fill="url(#cw-neb-magenta)"/>
+      <ellipse cx="1100" cy="820" rx="700" ry="340" fill="url(#cw-neb-purple)"/>
+      <ellipse cx="220"  cy="900" rx="420" ry="240" fill="url(#cw-neb-magenta)"/>
+    </svg>
 
-    <!-- Prologue card (blue) -->
-    <div id="crawl-prologue" class="clip" data-start="0" data-duration="5" data-track-index="1"
+    <!-- Star layer (foreground, sharp). Slow horizontal parallax. -->
+    <svg id="crawl-stars" class="clip" data-start="0" data-duration="14" data-track-index="1"
+         data-layout-allow-overflow
+         viewBox="0 0 2200 1080" preserveAspectRatio="xMidYMid slice"
+         style="position:absolute;top:0;left:-140px;width:calc(100% + 280px);height:100%;"></svg>
+
+    <!-- Dust layer (background, slower drift) -->
+    <svg id="crawl-dust" class="clip" data-start="0" data-duration="14" data-track-index="2"
+         data-layout-allow-overflow
+         viewBox="0 0 2200 1080" preserveAspectRatio="xMidYMid slice"
+         style="position:absolute;top:0;left:-140px;width:calc(100% + 280px);height:100%;opacity:0.6;"></svg>
+
+    <!-- Prologue card (blue, cel-shaded) -->
+    <div id="crawl-prologue" class="clip" data-start="0" data-duration="5" data-track-index="3"
+         data-layout-allow-overflow
          style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
                 font-family:'Helvetica Neue','Arial',sans-serif;color:#4BD5EE;
                 font-size:48px;font-weight:300;letter-spacing:0.04em;text-align:center;
+                -webkit-text-stroke:0.5px #0A1A22;
+                filter:drop-shadow(0 0 12px #4BD5EE);
                 opacity:0;">
       A long time ago in a galaxy far,<br/>far away....
     </div>
 
-    <!-- Crawl perspective stage -->
-    <div id="crawl-stage" class="clip" data-start="4.6" data-duration="9.4" data-track-index="2"
+    <!-- Logo flare burst (12-spoke star, hard polygon) -->
+    <svg id="crawl-flare" class="clip" data-start="4.5" data-duration="1.4" data-track-index="4"
          data-layout-allow-overflow
-         style="position:absolute;inset:0;perspective:1200px;perspective-origin:50% 35%;
+         viewBox="-200 -200 400 400"
+         style="position:absolute;left:50%;top:38%;width:900px;height:900px;margin-left:-450px;margin-top:-450px;
+                opacity:0;pointer-events:none;">
+      <defs>
+        <radialGradient id="cw-flare-grad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#FFF4B8" stop-opacity="1"/>
+          <stop offset="22%"  stop-color="#FFE81F" stop-opacity="0.9"/>
+          <stop offset="23%"  stop-color="#FFB347" stop-opacity="0.7"/>
+          <stop offset="55%"  stop-color="#7A4012" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="#020210" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <circle cx="0" cy="0" r="190" fill="url(#cw-flare-grad)"/>
+      <polygon id="cw-flare-spokes"
+               points="0,-190 8,-30 60,-60 30,-8 190,0 30,8 60,60 8,30 0,190 -8,30 -60,60 -30,8 -190,0 -30,-8 -60,-60 -8,-30"
+               fill="#FFE81F" opacity="0.85" stroke="#000" stroke-width="0.8"/>
+    </svg>
+
+    <!-- Crawl perspective stage -->
+    <div id="crawl-stage" class="clip" data-start="4.6" data-duration="9.4" data-track-index="5"
+         data-layout-allow-overflow
+         style="position:absolute;inset:0;perspective:1100px;perspective-origin:50% 30%;
                 overflow:hidden;opacity:0;">
       <div id="crawl-text"
            data-layout-allow-overflow
-           style="position:absolute;left:50%;top:80%;width:1100px;margin-left:-550px;
+           style="position:absolute;left:50%;top:88%;width:1100px;margin-left:-550px;
                   transform-origin:50% 0%;transform:rotateX(40deg) translateY(0px);
                   color:#FFE81F;
                   font-family:'Arial','Helvetica Neue',sans-serif;
@@ -30,7 +102,7 @@
                   text-align:justify;line-height:1.55;font-size:54px;letter-spacing:0.04em;">
 
         <div style="font-family:'Star Jedi','Times New Roman',serif;font-weight:400;text-transform:lowercase;text-align:center;font-size:64px;margin-bottom:0.4em;">Episode IV</div>
-        <div style="font-family:'Star Jedi','Times New Roman',serif;font-weight:400;text-transform:lowercase;text-align:center;font-size:96px;margin-bottom:1.6em;letter-spacing:0.06em;">A NEW HOPE</div>
+        <div style="font-family:'Star Jedi','Times New Roman',serif;font-weight:400;text-transform:lowercase;text-align:center;font-size:118px;margin-bottom:1.6em;letter-spacing:0.06em;line-height:1.05;">A NEW HOPE</div>
 
         <p style="margin:0 0 1.2em 0;">It is a period of civil war. Rebel spaceships, striking from a hidden base, have won their first victory against the evil Galactic Empire.</p>
 
@@ -53,21 +125,74 @@
           };
         }
         const rnd = mulberry32(0xa11ce);
-        const svg = document.getElementById("crawl-stars");
         const ns = "http://www.w3.org/2000/svg";
-        for (let i = 0; i < 220; i++) {
+
+        // ---- Foreground stars (~280) ----
+        const stars = document.getElementById("crawl-stars");
+        const STAR_COUNT = 280;
+        const BRIGHT_COUNT = 24;
+        // Pick which stars get a 4-point cross flare (the brightest 24).
+        const flareSet = new Set();
+        while (flareSet.size < BRIGHT_COUNT) flareSet.add(Math.floor(rnd() * STAR_COUNT));
+
+        for (let i = 0; i < STAR_COUNT; i++) {
+          const cx = rnd() * 2200;
+          const cy = rnd() * 1080;
+          const r  = rnd();
+
+          const g = document.createElementNS(ns, "g");
           const c = document.createElementNS(ns, "circle");
-          c.setAttribute("cx", (rnd() * 1920).toFixed(1));
-          c.setAttribute("cy", (rnd() * 1080).toFixed(1));
-          const r = rnd();
-          c.setAttribute("r", (0.6 + r * 1.6).toFixed(2));
+          c.setAttribute("cx", cx.toFixed(1));
+          c.setAttribute("cy", cy.toFixed(1));
+          c.setAttribute("r", (0.7 + r * 1.8).toFixed(2));
           c.setAttribute("fill", "#F5F5F5");
-          c.setAttribute("opacity", (0.45 + r * 0.55).toFixed(2));
-          svg.appendChild(c);
+          c.setAttribute("stroke", "#000");
+          c.setAttribute("stroke-width", "0.4");
+          c.setAttribute("stroke-opacity", "0.5");
+          c.setAttribute("opacity", (0.55 + r * 0.45).toFixed(2));
+          g.appendChild(c);
+
+          if (flareSet.has(i)) {
+            // 4-point cross flare: two thin crossed rectangles
+            const len = 7 + rnd() * 5;
+            const h = document.createElementNS(ns, "rect");
+            h.setAttribute("x", (cx - len).toFixed(2));
+            h.setAttribute("y", (cy - 0.4).toFixed(2));
+            h.setAttribute("width", (len * 2).toFixed(2));
+            h.setAttribute("height", "0.8");
+            h.setAttribute("fill", "#FFFDF0");
+            h.setAttribute("opacity", "0.85");
+            g.appendChild(h);
+            const v = document.createElementNS(ns, "rect");
+            v.setAttribute("x", (cx - 0.4).toFixed(2));
+            v.setAttribute("y", (cy - len).toFixed(2));
+            v.setAttribute("width", "0.8");
+            v.setAttribute("height", (len * 2).toFixed(2));
+            v.setAttribute("fill", "#FFFDF0");
+            v.setAttribute("opacity", "0.85");
+            g.appendChild(v);
+          }
+          stars.appendChild(g);
+        }
+
+        // ---- Dust layer (~140 sparse dim stars) ----
+        const dust = document.getElementById("crawl-dust");
+        for (let i = 0; i < 140; i++) {
+          const c = document.createElementNS(ns, "circle");
+          c.setAttribute("cx", (rnd() * 2200).toFixed(1));
+          c.setAttribute("cy", (rnd() * 1080).toFixed(1));
+          c.setAttribute("r", (0.4 + rnd() * 0.7).toFixed(2));
+          c.setAttribute("fill", "#B8C4D8");
+          c.setAttribute("opacity", (0.18 + rnd() * 0.22).toFixed(2));
+          dust.appendChild(c);
         }
 
         window.__timelines = window.__timelines || {};
         const tl = gsap.timeline({ paused: true });
+
+        // Parallax drift (entrance-only tween across full 14s)
+        tl.fromTo("#crawl-stars", { x: 0 },     { x: -60, duration: 14, ease: "none" }, 0);
+        tl.fromTo("#crawl-dust",  { x: 0 },     { x: -28, duration: 14, ease: "none" }, 0);
 
         // Prologue: fade in, hold, fade out
         tl.fromTo("#crawl-prologue",
@@ -76,17 +201,27 @@
         tl.to("#crawl-prologue",
           { opacity: 0, duration: 1.0, ease: "power2.in" }, 4.0);
 
+        // Logo flare burst — hard ease, scales from 0 -> 1.4, fades in then out.
+        tl.fromTo("#crawl-flare",
+          { opacity: 0, scale: 0.2 },
+          { opacity: 1, scale: 1.4, duration: 0.4, ease: "power3.out" }, 4.5);
+        tl.to("#crawl-flare",
+          { opacity: 0, scale: 1.6, duration: 0.4, ease: "power2.in" }, 5.0);
+        // Spoke spin during the burst (visual, not exit)
+        tl.fromTo("#cw-flare-spokes",
+          { rotation: 0, transformOrigin: "0px 0px" },
+          { rotation: 30, duration: 0.8, ease: "none" }, 4.5);
+
         // Crawl stage fades in as prologue fades out
         tl.fromTo("#crawl-stage",
           { opacity: 0 },
           { opacity: 1, duration: 1.0, ease: "power2.out" }, 4.4);
 
         // The crawl scrolls upward through space.
-        // Container is positioned at top:100% (just below the visible frame),
-        // we tween translateY so the text rises and recedes into the distance.
+        // rotateX must persist across the whole y-translation tween.
         tl.fromTo("#crawl-text",
           { rotateX: 40, y: 0 },
-          { rotateX: 40, y: -2200, duration: 9.4, ease: "none" }, 4.6);
+          { rotateX: 40, y: -2400, duration: 9.4, ease: "none" }, 4.6);
 
         window.__timelines["scene-crawl"] = tl;
       })();

@@ -3,44 +3,134 @@
        data-layout-allow-overflow
        style="position:relative;width:100%;height:100%;overflow:hidden;background:#03030a;">
 
-    <!-- Deep space backdrop -->
+    <!-- Deep space backdrop: 5-stop radial -->
     <div id="launch-bg" class="clip" data-start="0" data-duration="6" data-track-index="0"
          style="position:absolute;inset:0;
-                background:radial-gradient(ellipse at 50% 60%, #0c1428 0%, #050514 55%, #020208 100%);"></div>
+                background:radial-gradient(ellipse at 50% 60%,
+                  #0c1428 0%,
+                  #060a1c 28%,
+                  #050514 55%,
+                  #020208 80%,
+                  #000000 100%);"></div>
+
+    <!-- Painterly nebula clouds (Clone Wars cosmic backdrop) -->
+    <svg id="launch-nebula" class="clip" data-start="0" data-duration="6" data-track-index="1"
+         data-layout-allow-overflow
+         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+         style="position:absolute;inset:0;width:100%;height:100%;filter:blur(60px);opacity:0.30;">
+      <defs>
+        <radialGradient id="neb-magenta" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#ff5fbf" stop-opacity="0.85"/>
+          <stop offset="35%"  stop-color="#a83a8c" stop-opacity="0.55"/>
+          <stop offset="65%"  stop-color="#3a1a4f" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="#1a0a28" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="neb-teal" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#5fe6dc" stop-opacity="0.75"/>
+          <stop offset="40%"  stop-color="#2a7a90" stop-opacity="0.45"/>
+          <stop offset="75%"  stop-color="#0a2030" stop-opacity="0.20"/>
+          <stop offset="100%" stop-color="#04101c" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <ellipse cx="380"  cy="280" rx="520" ry="280" fill="url(#neb-magenta)" data-layout-allow-overflow/>
+      <ellipse cx="1340" cy="380" rx="600" ry="260" fill="url(#neb-teal)"    data-layout-allow-overflow/>
+    </svg>
 
     <!-- Streaking starfield (parallax) -->
-    <svg id="launch-stars" class="clip" data-start="0" data-duration="6" data-track-index="1"
+    <svg id="launch-stars" class="clip" data-start="0" data-duration="6" data-track-index="2"
          data-layout-allow-overflow
          viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
          style="position:absolute;inset:0;width:100%;height:100%;"></svg>
 
-    <!-- Yavin moon planet horizon -->
-    <svg id="launch-yavin" class="clip" data-start="0" data-duration="6" data-track-index="2"
+    <!-- Yavin gas giant -->
+    <svg id="launch-yavin" class="clip" data-start="0" data-duration="6" data-track-index="3"
          data-layout-allow-overflow
          viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
          style="position:absolute;inset:0;width:100%;height:100%;">
       <defs>
+        <!-- Light side core -->
         <radialGradient id="yavin-grad" cx="35%" cy="40%" r="65%">
-          <stop offset="0%"  stop-color="#7fd99e"/>
-          <stop offset="55%" stop-color="#2f7a4a"/>
+          <stop offset="0%"   stop-color="#a8e8b8"/>
+          <stop offset="30%"  stop-color="#6fc88a"/>
+          <stop offset="60%"  stop-color="#2f7a4a"/>
           <stop offset="100%" stop-color="#0a2818"/>
         </radialGradient>
+        <!-- Cloud band gradients (banded, cel-style) -->
+        <linearGradient id="band-1" x1="0%" y1="50%" x2="100%" y2="50%">
+          <stop offset="0%"   stop-color="#6fc88a" stop-opacity="0"/>
+          <stop offset="25%"  stop-color="#a8e8b8" stop-opacity="0.55"/>
+          <stop offset="50%"  stop-color="#6fc88a" stop-opacity="0.75"/>
+          <stop offset="75%"  stop-color="#2f7a4a" stop-opacity="0.50"/>
+          <stop offset="100%" stop-color="#0a2818" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="band-2" x1="0%" y1="50%" x2="100%" y2="50%">
+          <stop offset="0%"   stop-color="#2f7a4a" stop-opacity="0"/>
+          <stop offset="30%"  stop-color="#2f7a4a" stop-opacity="0.65"/>
+          <stop offset="60%"  stop-color="#0a2818" stop-opacity="0.70"/>
+          <stop offset="100%" stop-color="#0a2818" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="band-3" x1="0%" y1="50%" x2="100%" y2="50%">
+          <stop offset="0%"   stop-color="#6fc88a" stop-opacity="0"/>
+          <stop offset="40%"  stop-color="#a8e8b8" stop-opacity="0.40"/>
+          <stop offset="70%"  stop-color="#6fc88a" stop-opacity="0.55"/>
+          <stop offset="100%" stop-color="#2f7a4a" stop-opacity="0"/>
+        </linearGradient>
+        <!-- Terminator strip -->
+        <linearGradient id="terminator" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stop-color="#ffffff" stop-opacity="0"/>
+          <stop offset="50%"  stop-color="#ffffff" stop-opacity="0.10"/>
+          <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+        </linearGradient>
+        <!-- Clip planet to circle -->
+        <clipPath id="yavin-clip">
+          <circle cx="1500" cy="1500" r="900"/>
+        </clipPath>
       </defs>
-      <circle cx="1500" cy="1500" r="900" fill="url(#yavin-grad)" opacity="0.92" data-layout-allow-overflow/>
-      <ellipse cx="1500" cy="1500" rx="900" ry="900"
-               fill="none" stroke="#9fe9b8" stroke-width="2" opacity="0.18" data-layout-allow-overflow/>
+
+      <!-- Planet base -->
+      <circle cx="1500" cy="1500" r="900" fill="url(#yavin-grad)" opacity="0.95" data-layout-allow-overflow/>
+
+      <!-- Cloud bands clipped to planet -->
+      <g clip-path="url(#yavin-clip)" data-layout-allow-overflow>
+        <ellipse cx="1500" cy="1180" rx="900" ry="22" fill="url(#band-1)" opacity="0.85"/>
+        <ellipse cx="1500" cy="1320" rx="900" ry="34" fill="url(#band-2)" opacity="0.70"/>
+        <ellipse cx="1500" cy="1460" rx="900" ry="18" fill="url(#band-3)" opacity="0.80"/>
+        <ellipse cx="1500" cy="1580" rx="900" ry="40" fill="url(#band-2)" opacity="0.75"/>
+        <ellipse cx="1500" cy="1720" rx="900" ry="26" fill="url(#band-1)" opacity="0.65"/>
+        <ellipse cx="1500" cy="1860" rx="900" ry="32" fill="url(#band-3)" opacity="0.55"/>
+
+        <!-- Hard terminator (cel light/shadow boundary) -->
+        <rect x="1280" y="600" width="60" height="1800" fill="url(#terminator)" opacity="0.8"/>
+        <!-- Shadow side: black ellipse over right 40% -->
+        <ellipse cx="1820" cy="1500" rx="640" ry="900" fill="#000000" opacity="0.32"/>
+      </g>
+
+      <!-- Atmospheric haze ring -->
+      <ellipse cx="1500" cy="1500" rx="912" ry="912"
+               fill="none" stroke="#9fe9b8" stroke-width="1.5" opacity="0.30" data-layout-allow-overflow/>
+      <ellipse cx="1500" cy="1500" rx="924" ry="924"
+               fill="none" stroke="#9fe9b8" stroke-width="1" opacity="0.15" data-layout-allow-overflow/>
     </svg>
 
-    <!-- X-wing flight path -->
-    <svg id="launch-stage" class="clip" data-start="0" data-duration="6" data-track-index="3"
+    <!-- X-wing flight stage -->
+    <svg id="launch-stage" class="clip" data-start="0" data-duration="6" data-track-index="4"
+         data-layout-allow-overflow
          viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
          style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;">
 
       <defs>
-        <!-- Engine glow gradient -->
+        <!-- Engine glow gradient (hard-stop cel) -->
         <radialGradient id="engine-glow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%"  stop-color="#FFFFFF"/>
-          <stop offset="35%" stop-color="#9FE9FF"/>
+          <stop offset="0%"   stop-color="#FFFFFF"/>
+          <stop offset="22%"  stop-color="#FFFFFF" stop-opacity="0.95"/>
+          <stop offset="40%"  stop-color="#9FE9FF"/>
+          <stop offset="70%"  stop-color="#3aa8d8" stop-opacity="0.55"/>
+          <stop offset="100%" stop-color="#9FE9FF" stop-opacity="0"/>
+        </radialGradient>
+        <!-- Engine core (white-hot) -->
+        <radialGradient id="engine-core" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#FFFFFF"/>
+          <stop offset="60%"  stop-color="#FFFFFF" stop-opacity="0.85"/>
           <stop offset="100%" stop-color="#9FE9FF" stop-opacity="0"/>
         </radialGradient>
         <!-- Hidden flight path -->
@@ -48,52 +138,126 @@
               fill="none" stroke="none" />
       </defs>
 
-      <!-- X-Wing group -->
-      <g id="xwing" style="filter:drop-shadow(0 0 6px rgba(159,233,255,0.35));">
-        <!-- Engine glow halos (behind fuselage) -->
-        <g id="xw-engines">
-          <circle cx="-58" cy="-22" r="14" fill="url(#engine-glow)"/>
-          <circle cx="-58" cy="22"  r="14" fill="url(#engine-glow)"/>
-          <circle cx="-58" cy="-2"  r="11" fill="url(#engine-glow)"/>
+      <!-- Engine trail (drawn first so it sits behind ship), 4 streaks per engine -->
+      <g id="xw-trail" data-layout-allow-overflow
+         style="mix-blend-mode:screen;opacity:0;">
+        <ellipse cx="-220" cy="-26" rx="180" ry="2.6" fill="#9FE9FF" opacity="0.55"/>
+        <ellipse cx="-220" cy="-10" rx="180" ry="2.6" fill="#9FE9FF" opacity="0.55"/>
+        <ellipse cx="-220" cy="10"  rx="180" ry="2.6" fill="#9FE9FF" opacity="0.55"/>
+        <ellipse cx="-220" cy="26"  rx="180" ry="2.6" fill="#9FE9FF" opacity="0.55"/>
+        <ellipse cx="-140" cy="0"   rx="100" ry="3.2" fill="#FFFFFF" opacity="0.65"/>
+      </g>
+
+      <!-- X-Wing group (origin at ship nose) -->
+      <g id="xwing" data-layout-allow-overflow
+         style="filter:drop-shadow(0 0 6px rgba(159,233,255,0.35));">
+
+        <!-- Engine glow halos (behind fuselage, 4 engines + central) -->
+        <g id="xw-engines" data-layout-allow-overflow>
+          <!-- Outer glows -->
+          <circle cx="-58" cy="-30" r="16" fill="url(#engine-glow)"/>
+          <circle cx="-58" cy="-12" r="16" fill="url(#engine-glow)"/>
+          <circle cx="-58" cy="12"  r="16" fill="url(#engine-glow)"/>
+          <circle cx="-58" cy="30"  r="16" fill="url(#engine-glow)"/>
+          <!-- Hot cores (small bright cyan flicker) -->
+          <g id="xw-engine-cores">
+            <circle cx="-58" cy="-30" r="5" fill="url(#engine-core)"/>
+            <circle cx="-58" cy="-12" r="5" fill="url(#engine-core)"/>
+            <circle cx="-58" cy="12"  r="5" fill="url(#engine-core)"/>
+            <circle cx="-58" cy="30"  r="5" fill="url(#engine-core)"/>
+          </g>
+        </g>
+
+        <!-- Lens-flare burst (one-shot at peak, anchored to engine cluster) -->
+        <g id="xw-flare" data-layout-allow-overflow style="opacity:0;transform-box:fill-box;">
+          <polygon
+            points="-58,-58 -55,-8 -8,-3 -55,-3 -58,46 -61,-3 -108,-3 -61,-8"
+            fill="#9FE9FF" opacity="0.55"/>
+          <polygon
+            points="-58,-46 -56,-6 -22,-1 -56,-1 -58,38 -60,-1 -94,-1 -60,-6"
+            fill="#FFFFFF" opacity="0.85"
+            transform="rotate(45 -58 0)"/>
+          <circle cx="-58" cy="0" r="14" fill="#FFFFFF" opacity="0.9"/>
         </g>
 
         <!-- Body (rotated so nose points along +x) -->
         <g>
-          <!-- S-foils — closed up for now, but split top/bottom for the silhouette -->
-          <polygon points="-50,-46 22,-12 -50,-30" fill="#d8d2c4" stroke="#5b5448" stroke-width="1"/>
-          <polygon points="-50,46 22,12 -50,30"   fill="#d8d2c4" stroke="#5b5448" stroke-width="1"/>
-          <polygon points="-50,-30 30,-8 -50,-14" fill="#bdb6a6" stroke="#5b5448" stroke-width="1"/>
-          <polygon points="-50,30 30,8  -50,14"   fill="#bdb6a6" stroke="#5b5448" stroke-width="1"/>
+          <!-- S-foils — open X formation, 4 wings tapered with shadow undersides -->
+          <!-- Upper-left wing (back-left, tilted up, shadow side) -->
+          <polygon points="-56,-12 30,-6 22,-46 -56,-44"
+                   fill="#8d8678" stroke="#2a2620" stroke-width="1.6" stroke-linejoin="miter"/>
+          <!-- Upper-right wing (front-left, tilted up, lit) -->
+          <polygon points="-56,-10 30,-4 22,-38 -56,-36"
+                   fill="#d8d2c4" stroke="#2a2620" stroke-width="1.6" stroke-linejoin="miter"/>
+          <!-- Lower-left wing (back-right, tilted down, shadow) -->
+          <polygon points="-56,12 30,6 22,46 -56,44"
+                   fill="#8d8678" stroke="#2a2620" stroke-width="1.6" stroke-linejoin="miter"/>
+          <!-- Lower-right wing (front-right, tilted down, lit) -->
+          <polygon points="-56,10 30,4 22,38 -56,36"
+                   fill="#d8d2c4" stroke="#2a2620" stroke-width="1.6" stroke-linejoin="miter"/>
 
-          <!-- Wingtip cannons -->
-          <rect x="20" y="-50" width="22" height="4" fill="#3a342c"/>
-          <rect x="20" y="46"  width="22" height="4" fill="#3a342c"/>
+          <!-- Wingtip cannons (4 of them) -->
+          <rect x="14" y="-50" width="34" height="3.5" fill="#2a2620" stroke="#0a0806" stroke-width="0.8"/>
+          <rect x="14" y="-40" width="34" height="3.5" fill="#3a342c" stroke="#0a0806" stroke-width="0.8"/>
+          <rect x="14" y="36"  width="34" height="3.5" fill="#3a342c" stroke="#0a0806" stroke-width="0.8"/>
+          <rect x="14" y="46"  width="34" height="3.5" fill="#2a2620" stroke="#0a0806" stroke-width="0.8"/>
 
-          <!-- Fuselage -->
-          <polygon points="-60,-9 36,-7 60,0 36,7 -60,9" fill="#e7e2d6" stroke="#3a342c" stroke-width="1"/>
+          <!-- Red squadron stripes on each wing -->
+          <rect x="-30" y="-42" width="40" height="3" fill="#FF3030" opacity="0.85"/>
+          <rect x="-30" y="-34" width="40" height="3" fill="#FF3030" opacity="0.85"/>
+          <rect x="-30" y="32"  width="40" height="3" fill="#FF3030" opacity="0.85"/>
+          <rect x="-30" y="40"  width="40" height="3" fill="#FF3030" opacity="0.85"/>
+
+          <!-- Fuselage (cigar, narrowing to nose). Lit top, shadow underside -->
+          <polygon points="-60,-10 36,-8 60,0 36,8 -60,10"
+                   fill="#d8d2c4" stroke="#2a2620" stroke-width="1.8" stroke-linejoin="miter"/>
+          <!-- Fuselage shadow band (cel hard line) -->
+          <polygon points="-60,2 36,3 60,0 36,8 -60,10"
+                   fill="#8d8678" stroke="none" opacity="0.95"/>
+          <polygon points="-60,2 36,3 60,0 36,8 -60,10"
+                   fill="none" stroke="#2a2620" stroke-width="1.4"/>
+
           <!-- Cockpit canopy -->
-          <path d="M 8,-6 Q 22,-8 30,0 Q 22,8 8,6 Z" fill="#1a3a52" stroke="#0e2030" stroke-width="0.8"/>
-          <!-- Red stripe -->
-          <rect x="-30" y="-1" width="40" height="2" fill="#FF3030" opacity="0.85"/>
-        </g>
-      </g>
+          <path d="M 6,-7 Q 22,-9 32,0 Q 22,9 6,7 Z"
+                fill="#1a3a52" stroke="#0a1a2a" stroke-width="1.2"/>
+          <!-- Canopy highlight -->
+          <path d="M 10,-5 Q 20,-6 26,-2" fill="none" stroke="#6da5c8" stroke-width="1.2" opacity="0.9"/>
 
-      <!-- Engine trail (drawn separately so it follows ship) -->
-      <g id="xw-trail" style="filter:blur(1px);opacity:0.85;mix-blend-mode:screen;">
-        <ellipse cx="-200" cy="0" rx="180" ry="6" fill="#9FE9FF" opacity="0.22"/>
-        <ellipse cx="-120" cy="0" rx="80"  ry="3" fill="#FFFFFF" opacity="0.55"/>
+          <!-- R2 unit dome on dorsal spine -->
+          <g>
+            <ellipse cx="-12" cy="-9" rx="8" ry="6"
+                     fill="#e7e2d6" stroke="#2a2620" stroke-width="1.2"/>
+            <!-- Quartered blue/white -->
+            <path d="M -20,-9 A 8 6 0 0 1 -4 -9 Z" fill="#3a8dd8" stroke="#2a2620" stroke-width="0.8"/>
+            <rect x="-13" y="-12" width="2" height="3" fill="#FF3030"/>
+          </g>
+
+          <!-- Engine bell rims (dark openings around the glow halos) -->
+          <circle cx="-58" cy="-30" r="8" fill="none" stroke="#2a2620" stroke-width="1.4"/>
+          <circle cx="-58" cy="-12" r="8" fill="none" stroke="#2a2620" stroke-width="1.4"/>
+          <circle cx="-58" cy="12"  r="8" fill="none" stroke="#2a2620" stroke-width="1.4"/>
+          <circle cx="-58" cy="30"  r="8" fill="none" stroke="#2a2620" stroke-width="1.4"/>
+        </g>
       </g>
     </svg>
 
-    <!-- Comms HUD overlay -->
-    <div id="launch-hud" class="clip" data-start="0" data-duration="6" data-track-index="4"
+    <!-- Comms HUD overlay (cel-shaded targeting-computer chip) -->
+    <div id="launch-hud" class="clip" data-start="0" data-duration="6" data-track-index="5"
          data-layout-allow-overflow
          style="position:absolute;left:96px;bottom:120px;width:560px;
                 font-family:'Helvetica Neue','Arial',sans-serif;color:#9FE9FF;
                 font-size:22px;letter-spacing:0.10em;text-transform:uppercase;
-                opacity:0;line-height:1.5;box-sizing:border-box;">
-      <div style="opacity:0.55;font-size:15px;margin-bottom:0.5em;">RED LEADER</div>
-      <div>All wings, report in.</div>
+                opacity:0;line-height:1.45;box-sizing:border-box;
+                background:rgba(10,20,40,0.55);
+                border:1px solid #9FE9FF;
+                padding:18px 28px 20px 28px;">
+      <!-- Bracket corners -->
+      <span style="position:absolute;left:6px;top:4px;font-size:18px;color:#9FE9FF;opacity:0.85;">[</span>
+      <span style="position:absolute;right:6px;top:4px;font-size:18px;color:#9FE9FF;opacity:0.85;">]</span>
+      <span style="position:absolute;left:6px;bottom:4px;font-size:18px;color:#9FE9FF;opacity:0.85;">[</span>
+      <span style="position:absolute;right:6px;bottom:4px;font-size:18px;color:#9FE9FF;opacity:0.85;">]</span>
+      <div style="opacity:0.65;font-size:14px;margin-bottom:0.45em;letter-spacing:0.18em;">RED LEADER</div>
+      <div style="font-size:21px;">All wings, report in.</div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
@@ -102,7 +266,7 @@
       (function () {
         gsap.registerPlugin(MotionPathPlugin);
 
-        // Deterministic starfield (some streaking, some still)
+        // Deterministic starfield
         function mulberry32(seed) {
           return function () {
             let t = (seed += 0x6d2b79f5);
@@ -114,30 +278,65 @@
         const rnd = mulberry32(0x5ca1ab1e);
         const svg = document.getElementById("launch-stars");
         const ns = "http://www.w3.org/2000/svg";
-        for (let i = 0; i < 240; i++) {
-          const c = document.createElementNS(ns, "circle");
-          c.setAttribute("cx", (rnd() * 1920).toFixed(1));
-          c.setAttribute("cy", (rnd() * 1080).toFixed(1));
+
+        // Generate ~280 stars; track brightness so the top ~30 get a cross flare
+        const stars = [];
+        for (let i = 0; i < 280; i++) {
+          const x = rnd() * 1920;
+          const y = rnd() * 1080;
           const r = rnd();
-          c.setAttribute("r", (0.5 + r * 1.4).toFixed(2));
+          const radius = 0.5 + r * 1.6;
+          const opacity = 0.35 + r * 0.6;
+          stars.push({ x: x, y: y, r: radius, o: opacity, b: r });
+          const c = document.createElementNS(ns, "circle");
+          c.setAttribute("cx", x.toFixed(1));
+          c.setAttribute("cy", y.toFixed(1));
+          c.setAttribute("r", radius.toFixed(2));
           c.setAttribute("fill", "#F5F5F5");
-          c.setAttribute("opacity", (0.45 + r * 0.5).toFixed(2));
+          c.setAttribute("opacity", opacity.toFixed(2));
           svg.appendChild(c);
+        }
+        // Top 30 brightest get a 4-point cross flare
+        stars.sort(function (a, b) { return b.b - a.b; });
+        for (let i = 0; i < 30; i++) {
+          const s = stars[i];
+          const len = 4 + s.b * 6;
+          const op = (0.55 + s.b * 0.35).toFixed(2);
+          const h = document.createElementNS(ns, "line");
+          h.setAttribute("x1", (s.x - len).toFixed(1));
+          h.setAttribute("y1", s.y.toFixed(1));
+          h.setAttribute("x2", (s.x + len).toFixed(1));
+          h.setAttribute("y2", s.y.toFixed(1));
+          h.setAttribute("stroke", "#F5F5F5");
+          h.setAttribute("stroke-width", "0.6");
+          h.setAttribute("opacity", op);
+          svg.appendChild(h);
+          const v = document.createElementNS(ns, "line");
+          v.setAttribute("x1", s.x.toFixed(1));
+          v.setAttribute("y1", (s.y - len).toFixed(1));
+          v.setAttribute("x2", s.x.toFixed(1));
+          v.setAttribute("y2", (s.y + len).toFixed(1));
+          v.setAttribute("stroke", "#F5F5F5");
+          v.setAttribute("stroke-width", "0.6");
+          v.setAttribute("opacity", op);
+          svg.appendChild(v);
         }
 
         window.__timelines = window.__timelines || {};
         const tl = gsap.timeline({ paused: true });
 
-        // Initial state
+        // Entrance fades
         tl.fromTo("#launch-bg",     { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0);
+        tl.fromTo("#launch-nebula", { opacity: 0 }, { opacity: 0.30, duration: 1.2, ease: "power2.out" }, 0);
         tl.fromTo("#launch-stars",  { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 0.1);
         tl.fromTo("#launch-yavin",  { opacity: 0 }, { opacity: 1, duration: 1.0, ease: "power2.out" }, 0.2);
 
-        // Subtle camera pan — starfield drifts
-        tl.to("#launch-stars", { x: -120, duration: 6, ease: "none" }, 0);
-        tl.to("#launch-yavin", { x: -40, duration: 6, ease: "none" }, 0);
+        // Camera parallax: starfield drifts -120px over 6s; nebula and Yavin drift slower
+        tl.to("#launch-stars",  { x: -120, duration: 6, ease: "none" }, 0);
+        tl.to("#launch-nebula", { x: -60,  duration: 6, ease: "none" }, 0);
+        tl.to("#launch-yavin",  { x: -40,  duration: 6, ease: "none" }, 0);
 
-        // X-wing flies along the curved path, rotating to align
+        // X-Wing flies along the curved path, rotating to align (origin at nose)
         gsap.set("#xwing", { transformOrigin: "0% 50%" });
         tl.to("#xwing", {
           duration: 4.6,
@@ -150,13 +349,19 @@
           }
         }, 0.6);
 
-        // Engine glow pulses (steady throb)
+        // Engine glow throb (yoyo, finite repeat — 12 half-cycles ≈ 5.4s of pulsing)
         tl.fromTo("#xw-engines",
-          { opacity: 0.7, scale: 0.92, transformOrigin: "-58px 0px" },
-          { opacity: 1.0, scale: 1.08, duration: 0.45, ease: "sine.inOut",
+          { opacity: 0.75, scale: 0.92, transformOrigin: "-58px 0px" },
+          { opacity: 1.0, scale: 1.10, duration: 0.45, ease: "sine.inOut",
             yoyo: true, repeat: 11 }, 0.6);
 
-        // Trail mirrors ship path (re-uses motionpath positions sampled discretely)
+        // Hard cyan flicker on the bright cores every ~0.3s (finite repeat)
+        tl.fromTo("#xw-engine-cores",
+          { opacity: 1.0, scale: 1.0, transformOrigin: "-58px 0px" },
+          { opacity: 0.55, scale: 1.35, duration: 0.15, ease: "steps(1)",
+            yoyo: true, repeat: 35 }, 0.6);
+
+        // Engine trail follows the ship's path
         tl.to("#xw-trail", {
           duration: 4.6,
           ease: "power1.inOut",
@@ -167,11 +372,23 @@
             autoRotate: true
           }
         }, 0.6);
-        tl.fromTo("#xw-trail", { opacity: 0 }, { opacity: 0.85, duration: 0.5, ease: "power2.out" }, 0.6);
-        tl.to("#xw-trail", { opacity: 0, duration: 0.6, ease: "power2.in" }, 5.0);
+        tl.fromTo("#xw-trail",
+          { opacity: 0 },
+          { opacity: 0.6, duration: 0.5, ease: "power2.out" }, 0.7);
+        tl.to("#xw-trail",
+          { opacity: 0, duration: 0.6, ease: "power2.in" }, 5.0);
+
+        // One-shot lens-flare burst at peak (~t=3s), anchored to engine cluster
+        tl.fromTo("#xw-flare",
+          { opacity: 0, scale: 0.0, transformOrigin: "-58px 0px" },
+          { opacity: 1, scale: 1.0, duration: 0.30, ease: "power2.out" }, 3.0);
+        tl.to("#xw-flare",
+          { opacity: 0, scale: 1.4, duration: 0.55, ease: "power2.in" }, 3.30);
 
         // HUD callout fades in
-        tl.fromTo("#launch-hud", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 1.6);
+        tl.fromTo("#launch-hud",
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 1.6);
 
         window.__timelines["scene-launch"] = tl;
       })();

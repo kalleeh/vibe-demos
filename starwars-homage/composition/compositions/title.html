@@ -1,24 +1,63 @@
 <template id="scene-title-template">
   <div data-composition-id="scene-title" data-width="1920" data-height="1080"
-       style="position:relative;width:100%;height:100%;overflow:hidden;background:#000;">
+       style="position:relative;width:100%;height:100%;overflow:hidden;
+              background: radial-gradient(ellipse at 50% 50%, #1a1f2e 0%, #0a0a14 35%, #050508 65%, #000000 100%);">
 
-    <!-- Sparse starfield -->
-    <svg id="title-stars" class="clip" data-start="0" data-duration="2" data-track-index="0"
+    <!-- Cosmic clouds (galactic backdrop) -->
+    <svg id="title-clouds" class="clip" data-start="0" data-duration="2" data-track-index="0"
+         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+         style="position:absolute;inset:0;width:100%;height:100%;filter:blur(60px);opacity:0.55;">
+      <defs>
+        <radialGradient id="cloud-a" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#4BD5EE" stop-opacity="0.55"/>
+          <stop offset="40%" stop-color="#5B6BC8" stop-opacity="0.30"/>
+          <stop offset="75%" stop-color="#8A4FB0" stop-opacity="0.12"/>
+          <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="cloud-b" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#C84FB0" stop-opacity="0.45"/>
+          <stop offset="45%" stop-color="#7A3F9C" stop-opacity="0.22"/>
+          <stop offset="80%" stop-color="#3A2A5C" stop-opacity="0.08"/>
+          <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <ellipse cx="520" cy="380" rx="620" ry="340" fill="url(#cloud-a)"/>
+      <ellipse cx="1480" cy="760" rx="540" ry="300" fill="url(#cloud-b)"/>
+    </svg>
+
+    <!-- Starfield with cross-flares -->
+    <svg id="title-stars" class="clip" data-start="0" data-duration="2" data-track-index="1"
          viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
          style="position:absolute;inset:0;width:100%;height:100%;"></svg>
 
-    <!-- Main title block -->
-    <div id="title-block" class="clip" data-start="0" data-duration="2" data-track-index="1"
+    <!-- 12-spoke yellow burst behind title -->
+    <svg id="title-burst" class="clip" data-start="0" data-duration="2" data-track-index="2"
+         viewBox="-600 -600 1200 1200" preserveAspectRatio="xMidYMid meet"
          data-layout-allow-overflow
-         style="position:absolute;inset:0;display:flex;flex-direction:column;
-                align-items:center;justify-content:center;text-align:center;
-                font-family:'Star Jedi','Times New Roman',serif;color:#FFE81F;
-                opacity:0;">
-      <div style="font-size:42px;letter-spacing:0.32em;margin-bottom:0.7em;text-transform:lowercase;">EPISODE IV</div>
-      <div id="title-headline" style="font-size:140px;letter-spacing:0.06em;line-height:1;text-transform:lowercase;">A NEW HOPE</div>
-      <div style="font-family:'Helvetica Neue','Arial',sans-serif;color:#9FE9FF;
-                  font-size:22px;letter-spacing:0.32em;margin-top:1.4em;text-transform:uppercase;
-                  opacity:0.7;">A vibe-demos homage</div>
+         style="position:absolute;left:50%;top:50%;width:1200px;height:1200px;
+                transform:translate(-50%,-50%) scale(0);transform-origin:50% 50%;
+                opacity:0;pointer-events:none;"></svg>
+
+    <!-- Camera-push wrapper (slow scale 1.0 -> 1.04 lives here) -->
+    <div id="title-camera" class="clip" data-start="0" data-duration="2" data-track-index="3"
+         data-layout-allow-overflow
+         style="position:absolute;inset:0;transform-origin:50% 50%;">
+
+      <!-- Main title block -->
+      <div id="title-block" data-layout-allow-overflow
+           style="position:absolute;inset:0;display:flex;flex-direction:column;
+                  align-items:center;justify-content:center;text-align:center;
+                  font-family:'Star Jedi','Times New Roman',serif;color:#FFE81F;
+                  opacity:0;transform-origin:50% 50%;">
+        <div style="font-size:42px;letter-spacing:0.32em;margin-bottom:0.7em;text-transform:lowercase;
+                    filter: drop-shadow(0 0 12px #FFE81F) drop-shadow(0 0 4px #FFE81F);">EPISODE IV</div>
+        <div id="title-headline"
+             style="font-size:140px;letter-spacing:0.06em;line-height:1;text-transform:lowercase;
+                    filter: drop-shadow(0 0 24px #FFE81F) drop-shadow(0 0 8px #FFE81F);">A NEW HOPE</div>
+        <div style="font-family:'Helvetica Neue','Arial',sans-serif;color:#9FE9FF;
+                    font-size:22px;letter-spacing:0.32em;margin-top:1.4em;text-transform:uppercase;
+                    opacity:0.7;">A vibe-demos homage</div>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
@@ -33,25 +72,106 @@
           };
         }
         const rnd = mulberry32(0xdeadbeef);
-        const svg = document.getElementById("title-stars");
         const ns = "http://www.w3.org/2000/svg";
-        for (let i = 0; i < 110; i++) {
-          const c = document.createElementNS(ns, "circle");
-          c.setAttribute("cx", (rnd() * 1920).toFixed(1));
-          c.setAttribute("cy", (rnd() * 1080).toFixed(1));
+
+        // Build starfield: ~150 stars, ranked by brightness; brightest 20 get cross flares.
+        const svgStars = document.getElementById("title-stars");
+        const stars = [];
+        for (let i = 0; i < 150; i++) {
           const r = rnd();
-          c.setAttribute("r", (0.5 + r * 1.2).toFixed(2));
-          c.setAttribute("fill", "#F5F5F5");
-          c.setAttribute("opacity", (0.35 + r * 0.45).toFixed(2));
-          svg.appendChild(c);
+          stars.push({
+            x: rnd() * 1920,
+            y: rnd() * 1080,
+            r: 0.5 + r * 1.4,
+            o: 0.35 + r * 0.55,
+            b: r // brightness rank
+          });
+        }
+        // Sort by brightness desc; top 20 get flares.
+        const ranked = stars.slice().sort((a, b) => b.b - a.b);
+        const flareSet = new Set(ranked.slice(0, 20));
+
+        for (const s of stars) {
+          if (flareSet.has(s)) {
+            // 4-point cross flare: a group with two thin crossed rects + a core dot.
+            const g = document.createElementNS(ns, "g");
+            g.setAttribute("transform", `translate(${s.x.toFixed(1)} ${s.y.toFixed(1)})`);
+            const len = 14 + s.b * 18;
+            const thick = 0.9;
+            const r1 = document.createElementNS(ns, "rect");
+            r1.setAttribute("x", (-len / 2).toFixed(2));
+            r1.setAttribute("y", (-thick / 2).toFixed(2));
+            r1.setAttribute("width", len.toFixed(2));
+            r1.setAttribute("height", thick.toFixed(2));
+            r1.setAttribute("fill", "#F5F5F5");
+            r1.setAttribute("opacity", "0.9");
+            g.appendChild(r1);
+            const r2 = document.createElementNS(ns, "rect");
+            r2.setAttribute("x", (-thick / 2).toFixed(2));
+            r2.setAttribute("y", (-len / 2).toFixed(2));
+            r2.setAttribute("width", thick.toFixed(2));
+            r2.setAttribute("height", len.toFixed(2));
+            r2.setAttribute("fill", "#F5F5F5");
+            r2.setAttribute("opacity", "0.9");
+            g.appendChild(r2);
+            const core = document.createElementNS(ns, "circle");
+            core.setAttribute("cx", "0");
+            core.setAttribute("cy", "0");
+            core.setAttribute("r", (s.r + 0.4).toFixed(2));
+            core.setAttribute("fill", "#F5F5F5");
+            core.setAttribute("opacity", "0.95");
+            g.appendChild(core);
+            svgStars.appendChild(g);
+          } else {
+            const c = document.createElementNS(ns, "circle");
+            c.setAttribute("cx", s.x.toFixed(1));
+            c.setAttribute("cy", s.y.toFixed(1));
+            c.setAttribute("r", s.r.toFixed(2));
+            c.setAttribute("fill", "#F5F5F5");
+            c.setAttribute("opacity", s.o.toFixed(2));
+            svgStars.appendChild(c);
+          }
+        }
+
+        // 12-spoke star burst behind title.
+        const svgBurst = document.getElementById("title-burst");
+        const spokeLen = 540;
+        const spokeHalf = 14;
+        for (let k = 0; k < 12; k++) {
+          const ang = (k * Math.PI * 2) / 12;
+          const cos = Math.cos(ang), sin = Math.sin(ang);
+          // A thin diamond-ish spoke: tip at (spokeLen, 0), base at (0, +/-spokeHalf), back-tip slightly into center.
+          const pts = [
+            [spokeLen, 0],
+            [40, spokeHalf],
+            [0, 0],
+            [40, -spokeHalf]
+          ].map(([px, py]) => {
+            const rx = px * cos - py * sin;
+            const ry = px * sin + py * cos;
+            return rx.toFixed(1) + "," + ry.toFixed(1);
+          }).join(" ");
+          const poly = document.createElementNS(ns, "polygon");
+          poly.setAttribute("points", pts);
+          poly.setAttribute("fill", "#FFE81F");
+          poly.setAttribute("opacity", "0.3");
+          svgBurst.appendChild(poly);
         }
 
         window.__timelines = window.__timelines || {};
         const tl = gsap.timeline({ paused: true });
 
+        // Cosmic clouds gentle fade-in
+        tl.fromTo("#title-clouds", { opacity: 0 }, { opacity: 0.55, duration: 0.8, ease: "power2.out" }, 0);
+
+        // Stars fade in
         tl.fromTo("#title-stars", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 0);
 
-        // Title rises from below, fades in
+        // Stars subtle parallax drift left
+        tl.to("#title-stars", { x: -30, duration: 2, ease: "none" }, 0);
+        tl.to("#title-clouds", { x: -18, duration: 2, ease: "none" }, 0);
+
+        // Title rises from below, fades in (no scale here — camera wrapper owns scale)
         tl.fromTo("#title-block",
           { opacity: 0, y: 40 },
           { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" }, 0.1);
@@ -61,9 +181,23 @@
           { letterSpacing: "0.18em", scale: 0.96, transformOrigin: "50% 50%" },
           { letterSpacing: "0.06em", scale: 1.0, duration: 1.0, ease: "power2.out" }, 0.1);
 
+        // Star burst: scale 0 -> 1.4 over 0.4s starting at 0.15, then fade to 0 by t=1.0
+        tl.fromTo("#title-burst",
+          { scale: 0, opacity: 0 },
+          { scale: 1.4, opacity: 1, duration: 0.4, ease: "power2.out" }, 0.15);
+        tl.to("#title-burst", { opacity: 0, duration: 0.45, ease: "power2.in" }, 0.55);
+
+        // Slow camera push lives on the wrapper so it doesn't fight title-block tweens.
+        // Runs 0 -> 1.5s (1.0 -> 1.03), then exit takes it 1.03 -> 1.06 in the final 0.5s.
+        tl.fromTo("#title-camera",
+          { scale: 1.0 },
+          { scale: 1.03, duration: 1.5, ease: "none" }, 0);
+
         // Final fade-out (the only allowed exit — final scene)
         tl.to("#title-block", { opacity: 0, duration: 0.5, ease: "power2.in" }, 1.5);
+        tl.to("#title-camera", { scale: 1.06, duration: 0.5, ease: "power2.in" }, 1.5);
         tl.to("#title-stars", { opacity: 0, duration: 0.5, ease: "power2.in" }, 1.5);
+        tl.to("#title-clouds", { opacity: 0, duration: 0.5, ease: "power2.in" }, 1.5);
 
         window.__timelines["scene-title"] = tl;
       })();
