@@ -3,174 +3,316 @@
        data-layout-allow-overflow
        style="position:relative;width:100%;height:100%;overflow:hidden;background:#04060a;perspective:900px;perspective-origin:50% 50%;">
 
-    <!-- Vanishing-point glow: hard cyan-white core that grows as we close -->
-    <div id="trench-vp" class="clip" data-start="0" data-duration="8" data-track-index="0"
-         style="position:absolute;left:50%;top:50%;width:520px;height:520px;
-                transform:translate(-50%,-50%);
-                background:radial-gradient(circle at 50% 50%,
-                  #FFFFFF 0%,
-                  #9FE9FF 30%,
-                  rgba(159,233,255,0) 70%);
-                mix-blend-mode:screen;"></div>
-
-    <!-- Trench: a 3D stack of perspective rings rendered as concentric quads -->
-    <div id="trench-stage" class="clip" data-start="0" data-duration="8" data-track-index="1"
+    <!-- Camera-shake wrapper: every visual layer except the final flash sits inside this so
+         turret hits jolt the whole frame uniformly. -->
+    <div id="trench-camera" class="clip" data-start="0" data-duration="8" data-track-index="0"
          data-layout-allow-overflow
-         style="position:absolute;inset:0;transform-style:preserve-3d;">
-      <!-- Floor + walls receding into the distance.
-           Built dynamically below. -->
+         style="position:absolute;inset:0;overflow:hidden;">
+
+      <!-- Vanishing-point glow: hard cyan-white core that grows as we close -->
+      <div id="trench-vp"
+           style="position:absolute;left:50%;top:50%;width:520px;height:520px;
+                  transform:translate(-50%,-50%);
+                  background:radial-gradient(circle at 50% 50%,
+                    #FFFFFF 0%,
+                    #9FE9FF 30%,
+                    rgba(159,233,255,0) 70%);
+                  mix-blend-mode:screen;"></div>
+
+      <!-- Trench: a 3D stack of perspective rings rendered as concentric quads -->
+      <div id="trench-stage"
+           data-layout-allow-overflow
+           style="position:absolute;inset:0;transform-style:preserve-3d;">
+        <!-- Built dynamically below. -->
+      </div>
+
+      <!-- TIE Fighter pursuit silhouettes — viewer-perspective chase. -->
+      <svg id="trench-ties"
+           viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+           data-layout-allow-overflow
+           style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;">
+        <defs>
+          <!-- TIE Fighter silhouette: central pod + two hex solar panels. -->
+          <symbol id="tie-shape" viewBox="-200 -120 400 240" overflow="visible">
+            <!-- Left wing pylon -->
+            <rect x="-66" y="-3" width="32" height="6" fill="#050810" stroke="#2a323d" stroke-width="0.8"/>
+            <!-- Right wing pylon -->
+            <rect x="34" y="-3" width="32" height="6" fill="#050810" stroke="#2a323d" stroke-width="0.8"/>
+            <!-- Left hex solar panel -->
+            <polygon points="-180,-90 -70,-90 -34,0 -70,90 -180,90 -180,-90"
+                     fill="#050810" stroke="#2a323d" stroke-width="1.2"/>
+            <line x1="-180" y1="-90" x2="-34" y2="0" stroke="#2a323d" stroke-width="0.6" opacity="0.55"/>
+            <line x1="-180" y1="90"  x2="-34" y2="0" stroke="#2a323d" stroke-width="0.6" opacity="0.55"/>
+            <line x1="-126" y1="-90" x2="-126" y2="90" stroke="#2a323d" stroke-width="0.5" opacity="0.5"/>
+            <!-- Right hex solar panel -->
+            <polygon points="180,-90 70,-90 34,0 70,90 180,90 180,-90"
+                     fill="#050810" stroke="#2a323d" stroke-width="1.2"/>
+            <line x1="180" y1="-90" x2="34" y2="0" stroke="#2a323d" stroke-width="0.6" opacity="0.55"/>
+            <line x1="180" y1="90"  x2="34" y2="0" stroke="#2a323d" stroke-width="0.6" opacity="0.55"/>
+            <line x1="126" y1="-90" x2="126" y2="90" stroke="#2a323d" stroke-width="0.5" opacity="0.5"/>
+            <!-- Central pod (octagon) -->
+            <polygon points="-22,-26 22,-26 30,-10 30,10 22,26 -22,26 -30,10 -30,-10"
+                     fill="#050810" stroke="#2a323d" stroke-width="1.4"/>
+            <!-- Cockpit window -->
+            <polygon points="-12,-12 12,-12 16,-4 16,4 12,12 -12,12 -16,4 -16,-4"
+                     fill="#0a0e14" stroke="#2a323d" stroke-width="0.8"/>
+            <!-- Engine glow dots (left + right wing centres) -->
+            <circle class="tie-glow" cx="-105" cy="0" r="3.5" fill="#FF3030" opacity="0.85"/>
+            <circle class="tie-glow" cx="105"  cy="0" r="3.5" fill="#FF3030" opacity="0.85"/>
+          </symbol>
+        </defs>
+
+        <!-- Primary TIE: center, growing from far -->
+        <g id="tie-1" transform="translate(960 540) scale(0.15)" opacity="0">
+          <use href="#tie-shape"/>
+        </g>
+        <!-- Secondary TIE: upper-right, smaller -->
+        <g id="tie-2" transform="translate(1320 360) scale(0.3)" opacity="0">
+          <use href="#tie-shape"/>
+        </g>
+      </svg>
+
+      <!-- Motion streaks SVG: 24+ thin diagonal cyan lines along floor + walls converging on VP -->
+      <svg id="trench-streaks"
+           viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+           style="position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen;pointer-events:none;">
+        <g stroke="#9FE9FF" stroke-width="2" stroke-linecap="round">
+          <!-- Floor streaks -->
+          <line class="streak" x1="960" y1="540" x2="120"  y2="980"/>
+          <line class="streak" x1="960" y1="540" x2="380"  y2="1020"/>
+          <line class="streak" x1="960" y1="540" x2="640"  y2="1060"/>
+          <line class="streak" x1="960" y1="540" x2="1280" y2="1060"/>
+          <line class="streak" x1="960" y1="540" x2="1540" y2="1020"/>
+          <line class="streak" x1="960" y1="540" x2="1800" y2="980"/>
+          <line class="streak" x1="960" y1="540" x2="240"  y2="900"/>
+          <line class="streak" x1="960" y1="540" x2="1680" y2="900"/>
+          <line class="streak" x1="960" y1="540" x2="60"   y2="1040"/>
+          <line class="streak" x1="960" y1="540" x2="1860" y2="1040"/>
+          <line class="streak" x1="960" y1="540" x2="500"  y2="1075"/>
+          <line class="streak" x1="960" y1="540" x2="1420" y2="1075"/>
+          <!-- Left wall streaks -->
+          <line class="streak" x1="960" y1="540" x2="40"   y2="200"/>
+          <line class="streak" x1="960" y1="540" x2="80"   y2="420"/>
+          <line class="streak" x1="960" y1="540" x2="160"  y2="660"/>
+          <line class="streak" x1="960" y1="540" x2="280"  y2="780"/>
+          <line class="streak" x1="960" y1="540" x2="20"   y2="540"/>
+          <line class="streak" x1="960" y1="540" x2="100"  y2="120"/>
+          <!-- Right wall streaks -->
+          <line class="streak" x1="960" y1="540" x2="1880" y2="200"/>
+          <line class="streak" x1="960" y1="540" x2="1840" y2="420"/>
+          <line class="streak" x1="960" y1="540" x2="1760" y2="660"/>
+          <line class="streak" x1="960" y1="540" x2="1640" y2="780"/>
+          <line class="streak" x1="960" y1="540" x2="1900" y2="540"/>
+          <line class="streak" x1="960" y1="540" x2="1820" y2="120"/>
+          <!-- Ceiling-edge streaks -->
+          <line class="streak" x1="960" y1="540" x2="540"  y2="60"/>
+          <line class="streak" x1="960" y1="540" x2="1380" y2="60"/>
+        </g>
+      </svg>
+
+      <!-- Exhaust port — small dark recessed cube at vanishing point. -->
+      <svg id="trench-exhaust"
+           viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+           style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;">
+        <g transform="translate(960 540)">
+          <!-- Outer recessed frame -->
+          <rect x="-22" y="-22" width="44" height="44" fill="#0a0e14" stroke="#2a323d" stroke-width="1.2"/>
+          <!-- Inner shadow rim -->
+          <rect x="-18" y="-18" width="36" height="36" fill="#04060a" stroke="#11161d" stroke-width="0.8"/>
+          <!-- Black inner hole -->
+          <rect id="trench-exhaust-hole" x="-12" y="-12" width="24" height="24" fill="#000000"/>
+          <!-- Red glow halo (faint, ramps up) -->
+          <rect id="trench-exhaust-glow" x="-12" y="-12" width="24" height="24"
+                fill="#FF3030" opacity="0" style="mix-blend-mode:screen;filter:blur(3px);"/>
+        </g>
+      </svg>
+
+      <!-- Laser bolts SVG (4 streaks pulsing toward viewer). Each is layered: cyan halo + red bolt + white core. -->
+      <svg id="trench-lasers"
+           viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+           style="position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen;">
+        <defs>
+          <linearGradient id="laser-halo" x1="0%" y1="50%" x2="100%" y2="50%">
+            <stop offset="0%"  stop-color="#9FE9FF" stop-opacity="0"/>
+            <stop offset="60%" stop-color="#9FE9FF" stop-opacity="0.6"/>
+            <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.9"/>
+          </linearGradient>
+          <linearGradient id="laser-bolt" x1="0%" y1="50%" x2="100%" y2="50%">
+            <stop offset="0%"  stop-color="#FF3030" stop-opacity="0"/>
+            <stop offset="50%" stop-color="#FF3030" stop-opacity="0.95"/>
+            <stop offset="100%" stop-color="#FFFFFF"/>
+          </linearGradient>
+          <linearGradient id="laser-core" x1="0%" y1="50%" x2="100%" y2="50%">
+            <stop offset="0%"  stop-color="#FFFFFF" stop-opacity="0"/>
+            <stop offset="70%" stop-color="#FFFFFF" stop-opacity="1"/>
+            <stop offset="100%" stop-color="#FFFFFF"/>
+          </linearGradient>
+        </defs>
+        <g id="laser-1" transform="translate(960 540)">
+          <rect x="-280" y="-9" width="280" height="18" fill="url(#laser-halo)" rx="9"/>
+          <rect x="-260" y="-4" width="260" height="8"  fill="url(#laser-bolt)" rx="4"/>
+          <rect x="-240" y="-1.5" width="240" height="3" fill="url(#laser-core)" rx="1.5"/>
+        </g>
+        <g id="laser-2" transform="translate(960 540)">
+          <rect x="-280" y="-9" width="280" height="18" fill="url(#laser-halo)" rx="9"/>
+          <rect x="-260" y="-4" width="260" height="8"  fill="url(#laser-bolt)" rx="4"/>
+          <rect x="-240" y="-1.5" width="240" height="3" fill="url(#laser-core)" rx="1.5"/>
+        </g>
+        <g id="laser-3" transform="translate(960 540)">
+          <rect x="-280" y="-9" width="280" height="18" fill="url(#laser-halo)" rx="9"/>
+          <rect x="-260" y="-4" width="260" height="8"  fill="url(#laser-bolt)" rx="4"/>
+          <rect x="-240" y="-1.5" width="240" height="3" fill="url(#laser-core)" rx="1.5"/>
+        </g>
+        <g id="laser-4" transform="translate(960 540)">
+          <rect x="-280" y="-9" width="280" height="18" fill="url(#laser-halo)" rx="9"/>
+          <rect x="-260" y="-4" width="260" height="8"  fill="url(#laser-bolt)" rx="4"/>
+          <rect x="-240" y="-1.5" width="240" height="3" fill="url(#laser-core)" rx="1.5"/>
+        </g>
+      </svg>
+
+      <!-- Targeting computer HUD -->
+      <svg id="trench-hud"
+           viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+           style="position:absolute;inset:0;width:100%;height:100%;opacity:0;">
+        <g stroke="#9FE9FF" fill="none" stroke-width="1.5" opacity="0.85">
+          <!-- Reticle frame -->
+          <rect x="660" y="320" width="600" height="440" rx="0"/>
+          <!-- Tick marks -->
+          <line x1="660" y1="540" x2="700" y2="540"/>
+          <line x1="1220" y1="540" x2="1260" y2="540"/>
+          <line x1="960" y1="320" x2="960" y2="360"/>
+          <line x1="960" y1="720" x2="960" y2="760"/>
+          <!-- Crosshair box (jitters, then snaps to exhaust port) -->
+          <rect id="trench-target" x="900" y="480" width="120" height="120"/>
+          <!-- Corner brackets -->
+          <polyline points="900,480 900,460 920,460"/>
+          <polyline points="1020,460 1000,460 1020,460"/>
+          <polyline points="1000,460 1020,460 1020,480"/>
+          <polyline points="900,600 900,620 920,620"/>
+          <polyline points="1020,620 1020,600"/>
+        </g>
+
+        <!-- Spinning data widget: top-left -->
+        <g id="hud-widget-tl" transform="translate(220 220)" stroke="#9FE9FF" fill="none" opacity="0.75">
+          <circle r="56" stroke-width="1.2"/>
+          <circle r="42" stroke-width="1" stroke-dasharray="4 6"/>
+          <circle r="28" stroke-width="1"/>
+          <line x1="-56" y1="0" x2="-28" y2="0" stroke-width="1.2"/>
+          <line x1="28"  y1="0" x2="56"  y2="0" stroke-width="1.2"/>
+          <line x1="0" y1="-56" x2="0" y2="-28" stroke-width="1.2"/>
+          <line x1="0" y1="28"  x2="0" y2="56"  stroke-width="1.2"/>
+          <rect x="-4" y="-4" width="8" height="8" fill="#9FE9FF" stroke="none"/>
+        </g>
+
+        <!-- Spinning data widget: top-right -->
+        <g id="hud-widget-tr" transform="translate(1700 220)" stroke="#9FE9FF" fill="none" opacity="0.75">
+          <polygon points="0,-50 43,-25 43,25 0,50 -43,25 -43,-25" stroke-width="1.2"/>
+          <polygon points="0,-30 26,-15 26,15 0,30 -26,15 -26,-15" stroke-width="1" stroke-dasharray="3 5"/>
+          <line x1="-50" y1="0" x2="50"  y2="0" stroke-width="1"/>
+          <line x1="0" y1="-50" x2="0" y2="50" stroke-width="1"/>
+        </g>
+
+        <!-- Spinning data widget: bottom-right (smaller) -->
+        <g id="hud-widget-br" transform="translate(1700 860)" stroke="#9FE9FF" fill="none" opacity="0.75">
+          <circle r="44" stroke-width="1.2"/>
+          <circle r="32" stroke-width="1" stroke-dasharray="2 4"/>
+          <line x1="-44" y1="0" x2="44" y2="0" stroke-width="1"/>
+          <line x1="0" y1="-44" x2="0" y2="44" stroke-width="1"/>
+          <circle r="6" fill="#9FE9FF" stroke="none"/>
+        </g>
+
+        <!-- Horizon / pitch indicator: bottom-center, gently sways -->
+        <g id="hud-horizon" transform="translate(960 960)" stroke="#9FE9FF" fill="none" opacity="0.8">
+          <circle r="60" stroke-width="1.2"/>
+          <g id="hud-horizon-tilt">
+            <line x1="-54" y1="0" x2="-22" y2="0" stroke-width="1.6"/>
+            <line x1="22"  y1="0" x2="54"  y2="0" stroke-width="1.6"/>
+            <polygon points="-6,0 0,-7 6,0" fill="#9FE9FF" stroke="none"/>
+            <line x1="-14" y1="6" x2="-8" y2="6" stroke-width="1"/>
+            <line x1="8"   y1="6" x2="14" y2="6" stroke-width="1"/>
+          </g>
+          <line x1="-66" y1="0" x2="-58" y2="0" stroke-width="1"/>
+          <line x1="58"  y1="0" x2="66"  y2="0" stroke-width="1"/>
+          <line x1="0" y1="-66" x2="0" y2="-58" stroke-width="1"/>
+        </g>
+
+        <g fill="#9FE9FF" font-family="monospace" font-size="20" opacity="0.9" letter-spacing="2">
+          <text x="660" y="305">EXHAUST PORT — 2M</text>
+          <text x="660" y="785">STAY ON TARGET</text>
+          <text x="1140" y="785" text-anchor="end">RED FIVE</text>
+        </g>
+
+        <!-- Target lock alert: blinks red near the reticle -->
+        <g id="hud-lock" opacity="0">
+          <text x="960" y="290" text-anchor="middle"
+                fill="#FF3030" font-family="monospace" font-size="22"
+                letter-spacing="3" font-weight="bold">TARGET LOCK ACQUIRED</text>
+          <line x1="780" y1="298" x2="900" y2="298" stroke="#FF3030" stroke-width="1.4"/>
+          <line x1="1020" y1="298" x2="1140" y2="298" stroke="#FF3030" stroke-width="1.4"/>
+        </g>
+
+        <!-- Distance readout: 6 stacked text spans crossfading (last is the 0.0KM red flash) -->
+        <g font-family="monospace" font-size="22" letter-spacing="2" fill="#9FE9FF">
+          <text x="220" y="860" id="dist-1" opacity="0">DIST: 2.0KM</text>
+          <text x="220" y="860" id="dist-2" opacity="0">DIST: 1.5KM</text>
+          <text x="220" y="860" id="dist-3" opacity="0">DIST: 1.0KM</text>
+          <text x="220" y="860" id="dist-4" opacity="0">DIST: 0.5KM</text>
+          <text x="220" y="860" id="dist-5" opacity="0">DIST: 0.1KM</text>
+          <text x="220" y="860" id="dist-6" opacity="0" fill="#FF3030" font-weight="bold">DIST: 0.0KM</text>
+        </g>
+      </svg>
+
+      <!-- Cockpit foreground frame (chromatic-shake duplicate behind for hit punctuation) -->
+      <svg id="trench-cockpit-shadow"
+           viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+           style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;mix-blend-mode:screen;">
+        <path d="M0,0 L1920,0 L1920,140 L1620,210 L1380,250 L1080,260 L840,250 L540,210 L300,180 L0,140 Z"
+              fill="#FF3030" opacity="0.55"/>
+        <path d="M0,1080 L0,920 L240,860 L520,830 L820,820 L1100,820 L1380,830 L1660,860 L1920,920 L1920,1080 Z"
+              fill="#FF3030" opacity="0.55"/>
+        <path d="M0,140 L120,200 L120,880 L0,920 Z" fill="#FF3030" opacity="0.55"/>
+        <path d="M1920,140 L1800,200 L1800,880 L1920,920 Z" fill="#FF3030" opacity="0.55"/>
+      </svg>
+
+      <svg id="trench-cockpit"
+           viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+           style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;">
+        <!-- Top frame -->
+        <path d="M0,0 L1920,0 L1920,140 L1620,210 L1380,250 L1080,260 L840,250 L540,210 L300,180 L0,140 Z"
+              fill="#0a0a0a" opacity="0.95"/>
+        <!-- Bottom frame with thrust ring -->
+        <path d="M0,1080 L0,920 L240,860 L520,830 L820,820 L1100,820 L1380,830 L1660,860 L1920,920 L1920,1080 Z"
+              fill="#0a0a0a" opacity="0.95"/>
+        <!-- Side struts -->
+        <path d="M0,140 L120,200 L120,880 L0,920 Z" fill="#0a0a0a" opacity="0.95"/>
+        <path d="M1920,140 L1800,200 L1800,880 L1920,920 Z" fill="#0a0a0a" opacity="0.95"/>
+
+        <!-- Instrument panel LED dots along the bottom edge (cyan + amber) -->
+        <g>
+          <circle id="led-1" cx="540"  cy="900" r="8" fill="#9FE9FF" opacity="0.9"/>
+          <circle id="led-2" cx="780"  cy="888" r="8" fill="#FFB347" opacity="0.9"/>
+          <circle id="led-3" cx="1140" cy="888" r="8" fill="#9FE9FF" opacity="0.9"/>
+          <circle id="led-4" cx="1380" cy="900" r="8" fill="#FFB347" opacity="0.9"/>
+        </g>
+      </svg>
+
+      <!-- Explosion bloom — banded radial burst growing from VP after the strike. -->
+      <div id="trench-bloom"
+           style="position:absolute;left:50%;top:50%;width:520px;height:520px;
+                  transform:translate(-50%,-50%) scale(0);
+                  background:radial-gradient(circle at 50% 50%,
+                    #FFFFFF 0%,
+                    #FFFFFF 8%,
+                    #FFE81F 22%,
+                    #FFB347 38%,
+                    #FF3030 58%,
+                    rgba(255,48,48,0.4) 78%,
+                    rgba(255,48,48,0) 100%);
+                  mix-blend-mode:screen;opacity:0;pointer-events:none;"></div>
+
     </div>
 
-    <!-- Motion streaks SVG: thin diagonal cyan lines along the floor converging on VP -->
-    <svg id="trench-streaks" class="clip" data-start="0" data-duration="8" data-track-index="2"
-         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
-         style="position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen;pointer-events:none;">
-      <g stroke="#9FE9FF" stroke-width="2" stroke-linecap="round" opacity="0.4">
-        <line class="streak" x1="960" y1="540" x2="120"  y2="980"/>
-        <line class="streak" x1="960" y1="540" x2="380"  y2="1020"/>
-        <line class="streak" x1="960" y1="540" x2="640"  y2="1060"/>
-        <line class="streak" x1="960" y1="540" x2="1280" y2="1060"/>
-        <line class="streak" x1="960" y1="540" x2="1540" y2="1020"/>
-        <line class="streak" x1="960" y1="540" x2="1800" y2="980"/>
-        <line class="streak" x1="960" y1="540" x2="240"  y2="900"/>
-        <line class="streak" x1="960" y1="540" x2="1680" y2="900"/>
-      </g>
-    </svg>
-
-    <!-- Laser bolts SVG (4 streaks pulsing toward viewer). Each is layered: cyan halo + red bolt + white core. -->
-    <svg id="trench-lasers" class="clip" data-start="2" data-duration="6" data-track-index="3"
-         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
-         style="position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen;">
-      <defs>
-        <linearGradient id="laser-halo" x1="0%" y1="50%" x2="100%" y2="50%">
-          <stop offset="0%"  stop-color="#9FE9FF" stop-opacity="0"/>
-          <stop offset="60%" stop-color="#9FE9FF" stop-opacity="0.6"/>
-          <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.9"/>
-        </linearGradient>
-        <linearGradient id="laser-bolt" x1="0%" y1="50%" x2="100%" y2="50%">
-          <stop offset="0%"  stop-color="#FF3030" stop-opacity="0"/>
-          <stop offset="50%" stop-color="#FF3030" stop-opacity="0.95"/>
-          <stop offset="100%" stop-color="#FFFFFF"/>
-        </linearGradient>
-        <linearGradient id="laser-core" x1="0%" y1="50%" x2="100%" y2="50%">
-          <stop offset="0%"  stop-color="#FFFFFF" stop-opacity="0"/>
-          <stop offset="70%" stop-color="#FFFFFF" stop-opacity="1"/>
-          <stop offset="100%" stop-color="#FFFFFF"/>
-        </linearGradient>
-      </defs>
-      <g id="laser-1" transform="translate(960 540)">
-        <rect x="-280" y="-9" width="280" height="18" fill="url(#laser-halo)" rx="9"/>
-        <rect x="-260" y="-4" width="260" height="8"  fill="url(#laser-bolt)" rx="4"/>
-        <rect x="-240" y="-1.5" width="240" height="3" fill="url(#laser-core)" rx="1.5"/>
-      </g>
-      <g id="laser-2" transform="translate(960 540)">
-        <rect x="-280" y="-9" width="280" height="18" fill="url(#laser-halo)" rx="9"/>
-        <rect x="-260" y="-4" width="260" height="8"  fill="url(#laser-bolt)" rx="4"/>
-        <rect x="-240" y="-1.5" width="240" height="3" fill="url(#laser-core)" rx="1.5"/>
-      </g>
-      <g id="laser-3" transform="translate(960 540)">
-        <rect x="-280" y="-9" width="280" height="18" fill="url(#laser-halo)" rx="9"/>
-        <rect x="-260" y="-4" width="260" height="8"  fill="url(#laser-bolt)" rx="4"/>
-        <rect x="-240" y="-1.5" width="240" height="3" fill="url(#laser-core)" rx="1.5"/>
-      </g>
-      <g id="laser-4" transform="translate(960 540)">
-        <rect x="-280" y="-9" width="280" height="18" fill="url(#laser-halo)" rx="9"/>
-        <rect x="-260" y="-4" width="260" height="8"  fill="url(#laser-bolt)" rx="4"/>
-        <rect x="-240" y="-1.5" width="240" height="3" fill="url(#laser-core)" rx="1.5"/>
-      </g>
-    </svg>
-
-    <!-- Targeting computer HUD -->
-    <svg id="trench-hud" class="clip" data-start="0" data-duration="8" data-track-index="4"
-         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
-         style="position:absolute;inset:0;width:100%;height:100%;opacity:0;">
-      <g stroke="#9FE9FF" fill="none" stroke-width="1.5" opacity="0.85">
-        <!-- Reticle frame -->
-        <rect x="660" y="320" width="600" height="440" rx="0"/>
-        <!-- Tick marks -->
-        <line x1="660" y1="540" x2="700" y2="540"/>
-        <line x1="1220" y1="540" x2="1260" y2="540"/>
-        <line x1="960" y1="320" x2="960" y2="360"/>
-        <line x1="960" y1="720" x2="960" y2="760"/>
-        <!-- Crosshair box (jitters) -->
-        <rect id="trench-target" x="900" y="480" width="120" height="120"/>
-        <!-- Corner brackets -->
-        <polyline points="900,480 900,460 920,460"/>
-        <polyline points="1020,460 1000,460 1020,460"/>
-        <polyline points="1000,460 1020,460 1020,480"/>
-        <polyline points="900,600 900,620 920,620"/>
-        <polyline points="1020,620 1020,600"/>
-      </g>
-
-      <!-- Spinning data widget: top-left -->
-      <g id="hud-widget-tl" transform="translate(220 220)" stroke="#9FE9FF" fill="none" opacity="0.75">
-        <circle r="56" stroke-width="1.2"/>
-        <circle r="42" stroke-width="1" stroke-dasharray="4 6"/>
-        <circle r="28" stroke-width="1"/>
-        <line x1="-56" y1="0" x2="-28" y2="0" stroke-width="1.2"/>
-        <line x1="28"  y1="0" x2="56"  y2="0" stroke-width="1.2"/>
-        <line x1="0" y1="-56" x2="0" y2="-28" stroke-width="1.2"/>
-        <line x1="0" y1="28"  x2="0" y2="56"  stroke-width="1.2"/>
-        <rect x="-4" y="-4" width="8" height="8" fill="#9FE9FF" stroke="none"/>
-      </g>
-
-      <!-- Spinning data widget: top-right -->
-      <g id="hud-widget-tr" transform="translate(1700 220)" stroke="#9FE9FF" fill="none" opacity="0.75">
-        <polygon points="0,-50 43,-25 43,25 0,50 -43,25 -43,-25" stroke-width="1.2"/>
-        <polygon points="0,-30 26,-15 26,15 0,30 -26,15 -26,-15" stroke-width="1" stroke-dasharray="3 5"/>
-        <line x1="-50" y1="0" x2="50"  y2="0" stroke-width="1"/>
-        <line x1="0" y1="-50" x2="0" y2="50" stroke-width="1"/>
-      </g>
-
-      <!-- Spinning data widget: bottom-right (smaller) -->
-      <g id="hud-widget-br" transform="translate(1700 860)" stroke="#9FE9FF" fill="none" opacity="0.75">
-        <circle r="44" stroke-width="1.2"/>
-        <circle r="32" stroke-width="1" stroke-dasharray="2 4"/>
-        <line x1="-44" y1="0" x2="44" y2="0" stroke-width="1"/>
-        <line x1="0" y1="-44" x2="0" y2="44" stroke-width="1"/>
-        <circle r="6" fill="#9FE9FF" stroke="none"/>
-      </g>
-
-      <g fill="#9FE9FF" font-family="monospace" font-size="20" opacity="0.9" letter-spacing="2">
-        <text x="660" y="305">EXHAUST PORT — 2M</text>
-        <text x="660" y="785">STAY ON TARGET</text>
-        <text x="1140" y="785" text-anchor="end">RED FIVE</text>
-      </g>
-
-      <!-- Distance readout: 5 stacked text spans crossfading -->
-      <g font-family="monospace" font-size="22" letter-spacing="2" fill="#9FE9FF">
-        <text x="220" y="860" id="dist-1" opacity="0">DIST: 2.0KM</text>
-        <text x="220" y="860" id="dist-2" opacity="0">DIST: 1.5KM</text>
-        <text x="220" y="860" id="dist-3" opacity="0">DIST: 1.0KM</text>
-        <text x="220" y="860" id="dist-4" opacity="0">DIST: 0.5KM</text>
-        <text x="220" y="860" id="dist-5" opacity="0">DIST: 0.1KM</text>
-      </g>
-    </svg>
-
-    <!-- Cockpit foreground frame -->
-    <svg id="trench-cockpit" class="clip" data-start="0" data-duration="8" data-track-index="5"
-         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
-         style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;">
-      <!-- Top frame -->
-      <path d="M0,0 L1920,0 L1920,140 L1620,210 L1380,250 L1080,260 L840,250 L540,210 L300,180 L0,140 Z"
-            fill="#0a0a0a" opacity="0.95"/>
-      <!-- Bottom frame with thrust ring -->
-      <path d="M0,1080 L0,920 L240,860 L520,830 L820,820 L1100,820 L1380,830 L1660,860 L1920,920 L1920,1080 Z"
-            fill="#0a0a0a" opacity="0.95"/>
-      <!-- Side struts -->
-      <path d="M0,140 L120,200 L120,880 L0,920 Z" fill="#0a0a0a" opacity="0.95"/>
-      <path d="M1920,140 L1800,200 L1800,880 L1920,920 Z" fill="#0a0a0a" opacity="0.95"/>
-
-      <!-- Instrument panel LED dots along the bottom edge (cyan + amber) -->
-      <g>
-        <circle id="led-1" cx="540"  cy="900" r="8" fill="#9FE9FF" opacity="0.9"/>
-        <circle id="led-2" cx="780"  cy="888" r="8" fill="#FFB347" opacity="0.9"/>
-        <circle id="led-3" cx="1140" cy="888" r="8" fill="#9FE9FF" opacity="0.9"/>
-        <circle id="led-4" cx="1380" cy="900" r="8" fill="#FFB347" opacity="0.9"/>
-      </g>
-    </svg>
-
-    <!-- Screen flash overlay (just before transition out) -->
+    <!-- Screen flash overlay (just before transition out) — outside camera so shake doesn't pull it. -->
     <div id="trench-flash" class="clip" data-start="6.6" data-duration="1.4" data-track-index="6"
          style="position:absolute;inset:0;background:#FFFFFF;opacity:0;mix-blend-mode:screen;pointer-events:none;"></div>
 
@@ -188,6 +330,7 @@
           };
         }
         const rnd = mulberry32(0x5A77E5);
+        const rndStreak = mulberry32(0xC0FFEE);
 
         // Build trench: stack 26 segments along Z. Each segment has floor+walls+greebles.
         const stage = document.getElementById("trench-stage");
@@ -225,7 +368,7 @@
             floor.appendChild(gline);
           }
 
-          // LEFT WALL — three-band cel shading: top #2a323d, middle #1a222c, bottom #0a0e14
+          // LEFT WALL — three-band cel shading
           const lw = document.createElement("div");
           lw.style.cssText =
             "position:absolute;left:50%;top:50%;width:" + SEG_LEN + "px;height:1080px;" +
@@ -263,7 +406,7 @@
           rw.appendChild(rwBot);
 
           // VERTICAL STRUT — every segment, varied position
-          const strutXL = 6 + Math.floor(rnd() * 80); // % across the wall depth
+          const strutXL = 6 + Math.floor(rnd() * 80);
           const strutXR = 6 + Math.floor(rnd() * 80);
           const strutL = document.createElement("div");
           strutL.style.cssText =
@@ -276,7 +419,7 @@
           lw.appendChild(strutL);
           rw.appendChild(strutR);
 
-          // CROSSBAR — every other segment (the original greeble), with rust accent
+          // CROSSBAR — every other segment, with rust accent
           if (i % 2 === 0) {
             const crossL = document.createElement("div");
             crossL.style.cssText =
@@ -287,7 +430,6 @@
               "position:absolute;left:0;top:62%;width:100%;height:14px;" +
               "background:#1d242e;border-top:1px solid #2a323d;border-bottom:1px solid #11161d;";
 
-            // tiny rust-orange panel highlight near the crossbar
             const rustL = document.createElement("div");
             rustL.style.cssText =
               "position:absolute;left:18%;top:38%;width:16px;height:10px;" +
@@ -334,9 +476,40 @@
             rw.appendChild(lightR);
           }
 
+          // ALCOVE / RECESSED DOORWAY — segments where i % 5 === 2 (so 2, 7, 12, 17, 22),
+          // staggered side selection so they don't always mirror.
+          if (i % 5 === 2) {
+            const alcoveSide = (i % 10 === 2) ? "left" : ((i % 10 === 7) ? "right" : "both");
+            const buildAlcove = function (parent, mirrored) {
+              const xPct = mirrored ? (60 + Math.floor(rnd() * 12)) : (16 + Math.floor(rnd() * 12));
+              const alc = document.createElement("div");
+              alc.style.cssText =
+                "position:absolute;left:" + xPct + "%;top:24%;width:64px;height:52%;" +
+                "background:#04060a;border:1px solid #2a323d;" +
+                "box-shadow:inset 0 0 14px #000000;";
+              const sill = document.createElement("div");
+              sill.style.cssText =
+                "position:absolute;left:0;bottom:0;width:100%;height:8px;" +
+                "background:#11161d;border-top:1px solid #2a323d;";
+              const lintel = document.createElement("div");
+              lintel.style.cssText =
+                "position:absolute;left:0;top:0;width:100%;height:6px;" +
+                "background:#222a36;border-bottom:1px solid #2a323d;";
+              const innerLight = document.createElement("div");
+              innerLight.style.cssText =
+                "position:absolute;left:42%;top:20%;width:6px;height:4px;" +
+                "background:#FF3030;box-shadow:0 0 8px #FF3030;opacity:0.65;";
+              alc.appendChild(lintel);
+              alc.appendChild(sill);
+              alc.appendChild(innerLight);
+              parent.appendChild(alc);
+            };
+            if (alcoveSide === "left" || alcoveSide === "both") buildAlcove(lw, false);
+            if (alcoveSide === "right" || alcoveSide === "both") buildAlcove(rw, true);
+          }
+
           // BIG TOWER GREEBLES — boxy structures rising from the floor at certain segments
           if (towerSegs.has(i)) {
-            // Tower lives in 3D inside seg, but rendered as a flat slab on the floor plane.
             const towerSide = (i % 2 === 0) ? "left" : "right";
             const towerLR = (towerSide === "left") ? -380 : 380;
 
@@ -346,7 +519,6 @@
               "transform:translate(" + (towerLR - 70) + "px," + (-380 + 220) + "px);" +
               "background:#1a222c;border:1px solid #2a323d;";
 
-            // Three cel bands within the tower
             const tTop = document.createElement("div");
             tTop.style.cssText =
               "position:absolute;left:0;top:0;width:100%;height:30%;" +
@@ -394,10 +566,16 @@
         // HUD fades in (red leader's targeting computer)
         tl.fromTo("#trench-hud", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 0.4);
 
-        // Targeting box jitters subtly
+        // Targeting box jitters subtly — early phase
         tl.fromTo("#trench-target",
           { x: -10, y: -6 },
-          { x: 12, y: 8, duration: 0.4, ease: "sine.inOut", yoyo: true, repeat: 13 }, 1.0);
+          { x: 12, y: 8, duration: 0.4, ease: "sine.inOut", yoyo: true, repeat: 11 }, 1.0);
+
+        // At t=6.5 the target box snaps onto the exhaust port (centered on 960,540).
+        // Original rect anchor is x=900,y=480 -> center 960,540, so x/y stays at 0.
+        tl.to("#trench-target",
+          { x: 0, y: 0, attr: { width: 60, height: 60, x: 930, y: 510 },
+            duration: 0.18, ease: "power3.out" }, 6.45);
 
         // Spinning HUD widgets — full 360 over the duration of the shot
         tl.fromTo("#hud-widget-tl",
@@ -410,14 +588,24 @@
           { rotation: 0, transformOrigin: "1700px 860px" },
           { rotation: 360, transformOrigin: "1700px 860px", duration: 8, ease: "none" }, 0);
 
-        // Distance readout — crossfade through 5 pre-rendered values
-        const distSteps = ["#dist-1", "#dist-2", "#dist-3", "#dist-4", "#dist-5"];
-        const distStarts = [0.6, 2.0, 3.4, 4.8, 6.0];
-        const distHolds  = [1.4, 1.4, 1.4, 1.2, 1.4];
+        // Horizon indicator — gentle sway
+        tl.fromTo("#hud-horizon-tilt",
+          { rotation: -6, transformOrigin: "0px 0px" },
+          { rotation: 6, transformOrigin: "0px 0px",
+            duration: 1.6, ease: "sine.inOut", yoyo: true, repeat: 4 }, 0.4);
+
+        // Distance readout — crossfade through 6 pre-rendered values; final is red 0.0KM
+        const distSteps = ["#dist-1", "#dist-2", "#dist-3", "#dist-4", "#dist-5", "#dist-6"];
+        const distStarts = [0.6, 1.8, 3.0, 4.2, 5.2, 6.4];
+        const distHolds  = [1.1, 1.1, 1.1, 0.9, 1.1, 1.4];
         for (let d = 0; d < distSteps.length; d++) {
           tl.to(distSteps[d], { opacity: 0.95, duration: 0.25, ease: "power2.out" }, distStarts[d]);
           tl.to(distSteps[d], { opacity: 0,    duration: 0.25, ease: "power2.in"  }, distStarts[d] + distHolds[d]);
         }
+        // Final 0.0KM — red flash pulse, second visibility hit
+        tl.fromTo("#dist-6",
+          { opacity: 0.4 },
+          { opacity: 1.0, duration: 0.18, ease: "sine.inOut", yoyo: true, repeat: 5 }, 6.5);
 
         // Cockpit foreground subtly bobs
         tl.fromTo("#trench-cockpit",
@@ -430,14 +618,82 @@
         tl.fromTo("#led-3", { opacity: 0.4 }, { opacity: 1.0, duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: 12 }, 0.1);
         tl.fromTo("#led-4", { opacity: 0.6 }, { opacity: 1.0, duration: 1.1, ease: "sine.inOut", yoyo: true, repeat: 6  }, 0.3);
 
-        // Motion streaks — scale outward from VP, finite repeats
-        const streakRepeats = Math.ceil(7 / 0.6) - 1; // ~11
-        tl.fromTo(".streak",
-          { opacity: 0, transformOrigin: "960px 540px", scale: 0.2 },
-          { opacity: 0.5, scale: 1.4, duration: 0.6, ease: "power2.out",
-            stagger: { each: 0.07, repeat: streakRepeats } }, 0);
+        // Motion streaks — scale outward from VP, finite repeats. Per-streak seeded offsets so
+        // they don't all bloom in lock-step.
+        const streakNodes = document.querySelectorAll(".streak");
+        streakNodes.forEach(function (node, idx) {
+          const delay = rndStreak() * 0.45;
+          const dur   = 0.42 + rndStreak() * 0.4;
+          const peakOpacity = 0.3 + rndStreak() * 0.2;
+          const peakScale = 1.2 + rndStreak() * 0.5;
+          const repeats = 8 + Math.floor(rndStreak() * 5);
+          tl.fromTo(node,
+            { opacity: 0, transformOrigin: "960px 540px", scale: 0.18 },
+            { opacity: peakOpacity, scale: peakScale, duration: dur, ease: "power2.out",
+              repeat: repeats, repeatDelay: rndStreak() * 0.15 }, delay);
+        });
 
-        // LASERS — 4 streaks, each layered halo+bolt+core, scale up + drive in then snap out
+        // TIE FIGHTER 1 — appears centered at t=2.5, grows from 0.15 to 0.6 over 3s,
+        // sways horizontally with finite repeats.
+        tl.fromTo("#tie-1",
+          { opacity: 0, transformOrigin: "960px 540px",
+            attr: { transform: "translate(960 540) scale(0.15)" } },
+          { opacity: 1, duration: 0.6, ease: "power2.out", overwrite: "auto" }, 2.5);
+        // Scale the TIE — animate the SVG transform attr in steps so the pursuit reads as approach.
+        tl.to("#tie-1",
+          { attr: { transform: "translate(960 540) scale(0.30)" },
+            duration: 1.5, ease: "power1.in", overwrite: "auto" }, 3.1);
+        tl.to("#tie-1",
+          { attr: { transform: "translate(990 540) scale(0.45)" },
+            duration: 0.8, ease: "power1.inOut" }, 4.0);
+        tl.to("#tie-1",
+          { attr: { transform: "translate(930 540) scale(0.60)" },
+            duration: 0.7, ease: "power1.inOut" }, 4.8);
+        // Fade out as we close on the exhaust port
+        tl.to("#tie-1", { opacity: 0, duration: 0.4, ease: "power2.in" }, 6.2);
+        tl.set("#tie-1", { opacity: 0 }, 6.6);
+        tl.set("#tie-2", { opacity: 0 }, 6.7);
+        // TIE engine pulse (finite, per-element)
+        tl.fromTo("#tie-1 .tie-glow",
+          { opacity: 0.55 },
+          { opacity: 1, duration: 0.5, ease: "sine.inOut", yoyo: true, repeat: 7 }, 2.5);
+
+        // TIE FIGHTER 2 — appears at t=5 in upper-right, smaller scale.
+        tl.set("#tie-2", { opacity: 0,
+          attr: { transform: "translate(1320 360) scale(0.22)" } }, 0);
+        tl.to("#tie-2", { opacity: 0.95, duration: 0.4, ease: "power2.out" }, 5.0);
+        tl.to("#tie-2",
+          { attr: { transform: "translate(1380 380) scale(0.30)" },
+            duration: 0.9, ease: "power1.inOut" }, 5.0);
+        tl.to("#tie-2",
+          { attr: { transform: "translate(1280 350) scale(0.30)" },
+            duration: 0.6, ease: "sine.inOut" }, 5.9);
+        tl.to("#tie-2", { opacity: 0, duration: 0.4, ease: "power2.in" }, 6.3);
+        tl.fromTo("#tie-2 .tie-glow",
+          { opacity: 0.55 },
+          { opacity: 1, duration: 0.4, ease: "sine.inOut", yoyo: true, repeat: 3 }, 5.0);
+
+        // EXHAUST PORT — fades in at t=5.5 dead center, red glow ramps up.
+        tl.fromTo("#trench-exhaust",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.5, ease: "power2.out" }, 5.5);
+        tl.fromTo("#trench-exhaust-glow",
+          { opacity: 0 },
+          { opacity: 0.85, duration: 1.0, ease: "power2.in" }, 5.5);
+        // Exhaust glow pulse — finite, marks "lock"
+        tl.fromTo("#trench-exhaust-hole",
+          { opacity: 1 },
+          { opacity: 0.6, duration: 0.25, ease: "sine.inOut", yoyo: true, repeat: 3 }, 6.0);
+
+        // TARGET LOCK ACQUIRED — appears at t=5.5, blinks (finite).
+        tl.fromTo("#hud-lock",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.25, ease: "power2.out" }, 5.5);
+        tl.fromTo("#hud-lock",
+          { opacity: 1 },
+          { opacity: 0.25, duration: 0.18, ease: "sine.inOut", yoyo: true, repeat: 9 }, 5.8);
+
+        // LASERS — 4 streaks, each layered halo+bolt+core
         const lasers = [
           { id: "#laser-1", from: { x: -800, y: -140, rotation: 12  }, to: { x: 0, y: 0, rotation: 12  }, delay: 2.2 },
           { id: "#laser-2", from: { x:  900, y:  120, rotation: -10 }, to: { x: 0, y: 0, rotation: -10 }, delay: 2.6 },
@@ -450,11 +706,45 @@
           tl.to(L.id, { opacity: 0, scale: 0.6, duration: 0.22, ease: "power2.in" }, L.delay + 0.18);
         }
 
+        // CAMERA SHAKE — at each laser hit (delay + 0.18 = impact moment), jolt the camera
+        // wrapper. translate xy with finite-repeat yoyo — short, sharp, then settled.
+        const shakeOffsets = [
+          { x:  6, y: -4 },
+          { x: -5, y:  5 },
+          { x:  4, y:  6 },
+          { x: -6, y: -3 }
+        ];
+        tl.set("#trench-camera", { x: 0, y: 0 }, 0);
+        tl.set("#trench-cockpit-shadow", { opacity: 0, x: 0, y: 0 }, 0);
+        lasers.forEach(function (L, idx) {
+          const hit = L.delay + 0.16;
+          const off = shakeOffsets[idx];
+          tl.to("#trench-camera",
+            { x: off.x, y: off.y, duration: 0.07, ease: "power2.out", overwrite: "auto" }, hit);
+          tl.to("#trench-camera",
+            { x: -off.x * 0.6, y: -off.y * 0.6, duration: 0.08, ease: "sine.inOut", overwrite: "auto" }, hit + 0.07);
+          tl.to("#trench-camera",
+            { x: 0, y: 0, duration: 0.15, ease: "power2.out", overwrite: "auto" }, hit + 0.15);
+
+          // Chromatic-shadow cockpit duplicate flickers in red on each hit, fades quickly.
+          tl.to("#trench-cockpit-shadow",
+            { opacity: 0.55, x: -3, y: 2, duration: 0.06, ease: "power2.out", overwrite: "auto" }, hit);
+          tl.to("#trench-cockpit-shadow",
+            { opacity: 0, x: 0, y: 0, duration: 0.18, ease: "power2.in", overwrite: "auto" }, hit + 0.08);
+        });
+
         // Final beat: hard white flash as the proton torpedo strikes home
         tl.fromTo("#trench-flash",
           { opacity: 0 },
           { opacity: 0.98, duration: 0.18, ease: "power2.out" }, 6.6);
         tl.to("#trench-flash", { opacity: 0, duration: 0.7, ease: "power2.in" }, 6.8);
+
+        // EXPLOSION BLOOM — banded radial ramp from 0 to 6x scale starting at t=6.7
+        tl.fromTo("#trench-bloom",
+          { opacity: 0, scale: 0, transformOrigin: "50% 50%" },
+          { opacity: 1, scale: 6, duration: 0.8, ease: "power2.out", overwrite: "auto" }, 6.7);
+        tl.to("#trench-bloom",
+          { opacity: 0, duration: 0.7, ease: "power2.in", overwrite: "auto" }, 7.5);
 
         window.__timelines["scene-trench"] = tl;
       })();

@@ -34,28 +34,54 @@
           <stop offset="80%" stop-color="#1A1240" stop-opacity="0.10"/>
           <stop offset="100%" stop-color="#020210" stop-opacity="0"/>
         </radialGradient>
+        <!-- Spiral arm radial gradients (very subtle) -->
+        <radialGradient id="cw-spiral-a" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#9FE9FF" stop-opacity="0.55"/>
+          <stop offset="35%"  stop-color="#6FA8E0" stop-opacity="0.30"/>
+          <stop offset="65%"  stop-color="#9A3D9E" stop-opacity="0.18"/>
+          <stop offset="100%" stop-color="#020210" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="cw-spiral-b" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#E55BBE" stop-opacity="0.45"/>
+          <stop offset="40%"  stop-color="#7A4CB6" stop-opacity="0.25"/>
+          <stop offset="70%"  stop-color="#3A2D86" stop-opacity="0.12"/>
+          <stop offset="100%" stop-color="#020210" stop-opacity="0"/>
+        </radialGradient>
       </defs>
       <rect x="0" y="0" width="1920" height="1080" fill="url(#cw-sky-bg)"/>
+      <!-- Spiral arm suggestion: two long, rotated, low-opacity ellipses -->
+      <g opacity="0.16">
+        <ellipse cx="780" cy="560" rx="1100" ry="180" fill="url(#cw-spiral-a)" transform="rotate(-25 780 560)"/>
+      </g>
+      <g opacity="0.12">
+        <ellipse cx="820" cy="540" rx="900" ry="140" fill="url(#cw-spiral-b)" transform="rotate(-40 820 540)"/>
+      </g>
       <ellipse cx="380"  cy="260" rx="520" ry="280" fill="url(#cw-neb-cyan)"/>
       <ellipse cx="1520" cy="380" rx="600" ry="320" fill="url(#cw-neb-magenta)"/>
       <ellipse cx="1100" cy="820" rx="700" ry="340" fill="url(#cw-neb-purple)"/>
       <ellipse cx="220"  cy="900" rx="420" ry="240" fill="url(#cw-neb-magenta)"/>
     </svg>
 
-    <!-- Star layer (foreground, sharp). Slow horizontal parallax. -->
-    <svg id="crawl-stars" class="clip" data-start="0" data-duration="14" data-track-index="1"
+    <!-- FAR star layer (200 tiny dim stars, slow drift) -->
+    <svg id="crawl-stars-far" class="clip" data-start="0" data-duration="14" data-track-index="1"
+         data-layout-allow-overflow
+         viewBox="0 0 2200 1080" preserveAspectRatio="xMidYMid slice"
+         style="position:absolute;top:0;left:-140px;width:calc(100% + 280px);height:100%;opacity:0.55;"></svg>
+
+    <!-- MID star layer (80 medium stars) -->
+    <svg id="crawl-stars-mid" class="clip" data-start="0" data-duration="14" data-track-index="2"
+         data-layout-allow-overflow
+         viewBox="0 0 2200 1080" preserveAspectRatio="xMidYMid slice"
+         style="position:absolute;top:0;left:-140px;width:calc(100% + 280px);height:100%;opacity:0.85;"></svg>
+
+    <!-- NEAR star layer (30 bright stars w/ flares, fastest drift) -->
+    <svg id="crawl-stars-near" class="clip" data-start="0" data-duration="14" data-track-index="3"
          data-layout-allow-overflow
          viewBox="0 0 2200 1080" preserveAspectRatio="xMidYMid slice"
          style="position:absolute;top:0;left:-140px;width:calc(100% + 280px);height:100%;"></svg>
 
-    <!-- Dust layer (background, slower drift) -->
-    <svg id="crawl-dust" class="clip" data-start="0" data-duration="14" data-track-index="2"
-         data-layout-allow-overflow
-         viewBox="0 0 2200 1080" preserveAspectRatio="xMidYMid slice"
-         style="position:absolute;top:0;left:-140px;width:calc(100% + 280px);height:100%;opacity:0.6;"></svg>
-
     <!-- Prologue card (blue, cel-shaded) -->
-    <div id="crawl-prologue" class="clip" data-start="0" data-duration="5" data-track-index="3"
+    <div id="crawl-prologue" class="clip" data-start="0" data-duration="5" data-track-index="4"
          data-layout-allow-overflow
          style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
                 font-family:'Helvetica Neue','Arial',sans-serif;color:#4BD5EE;
@@ -66,8 +92,8 @@
       A long time ago in a galaxy far,<br/>far away....
     </div>
 
-    <!-- Logo flare burst (12-spoke star, hard polygon) -->
-    <svg id="crawl-flare" class="clip" data-start="4.5" data-duration="1.4" data-track-index="4"
+    <!-- Logo flare burst (12-spoke star + 6-spoke secondary, hard polygon) -->
+    <svg id="crawl-flare" class="clip" data-start="4.5" data-duration="1.4" data-track-index="5"
          data-layout-allow-overflow
          viewBox="-200 -200 400 400"
          style="position:absolute;left:50%;top:38%;width:900px;height:900px;margin-left:-450px;margin-top:-450px;
@@ -82,13 +108,18 @@
         </radialGradient>
       </defs>
       <circle cx="0" cy="0" r="190" fill="url(#cw-flare-grad)"/>
+      <!-- Secondary 6-spoke burst, smaller, rotated 30deg, behind primary -->
+      <polygon id="cw-flare-spokes-bg"
+               points="0,-150 12,-22 60,-32 22,-12 150,0 22,12 60,32 12,22 0,150 -12,22 -60,32 -22,12 -150,0 -22,-12 -60,-32 -12,-22"
+               fill="#FFD27A" opacity="0.40" stroke="#000" stroke-width="0.6"
+               transform="rotate(30)"/>
       <polygon id="cw-flare-spokes"
                points="0,-190 8,-30 60,-60 30,-8 190,0 30,8 60,60 8,30 0,190 -8,30 -60,60 -30,8 -190,0 -30,-8 -60,-60 -8,-30"
-               fill="#FFE81F" opacity="0.85" stroke="#000" stroke-width="0.8"/>
+               fill="#FFE81F" opacity="0.55" stroke="#000" stroke-width="0.8"/>
     </svg>
 
     <!-- Crawl perspective stage -->
-    <div id="crawl-stage" class="clip" data-start="4.6" data-duration="9.4" data-track-index="5"
+    <div id="crawl-stage" class="clip" data-start="4.6" data-duration="9.4" data-track-index="6"
          data-layout-allow-overflow
          style="position:absolute;inset:0;perspective:1100px;perspective-origin:50% 30%;
                 overflow:hidden;opacity:0;">
@@ -99,10 +130,11 @@
                   color:#FFE81F;
                   font-family:'Arial','Helvetica Neue',sans-serif;
                   font-weight:700;font-style:normal;
-                  text-align:justify;line-height:1.55;font-size:54px;letter-spacing:0.04em;">
+                  text-align:justify;line-height:1.55;font-size:54px;letter-spacing:0.025em;
+                  text-shadow:0 0 8px rgba(255,232,31,0.5);">
 
         <div style="font-family:'Star Jedi','Times New Roman',serif;font-weight:400;text-transform:lowercase;text-align:center;font-size:64px;margin-bottom:0.4em;">Episode IV</div>
-        <div style="font-family:'Star Jedi','Times New Roman',serif;font-weight:400;text-transform:lowercase;text-align:center;font-size:118px;margin-bottom:1.6em;letter-spacing:0.06em;line-height:1.05;">A NEW HOPE</div>
+        <div id="crawl-title" style="font-family:'Star Jedi','Times New Roman',serif;font-weight:400;text-transform:lowercase;text-align:center;font-size:130px;margin-bottom:1.6em;letter-spacing:0.06em;line-height:1.05;">A NEW HOPE</div>
 
         <p style="margin:0 0 1.2em 0;">It is a period of civil war. Rebel spaceships, striking from a hidden base, have won their first victory against the evil Galactic Empire.</p>
 
@@ -111,6 +143,24 @@
         <p style="margin:0 0 1.2em 0;">Pursued by the Empire's sinister agents, Princess Leia races home aboard her starship, custodian of the stolen plans that can save her people and restore freedom to the galaxy....</p>
       </div>
     </div>
+
+    <!-- Anamorphic horizontal lens flare across the title -->
+    <svg id="crawl-anamorphic" class="clip" data-start="5.3" data-duration="1.2" data-track-index="7"
+         data-layout-allow-overflow
+         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+         style="position:absolute;inset:0;width:100%;height:100%;
+                mix-blend-mode:screen;filter:blur(20px);
+                opacity:0;pointer-events:none;">
+      <rect x="0" y="486" width="1920" height="6" fill="#FFFFFF"/>
+    </svg>
+
+    <!-- Cinematic vignette (final overlay) -->
+    <div id="crawl-vignette" class="clip" data-start="0" data-duration="14" data-track-index="8"
+         style="position:absolute;inset:0;pointer-events:none;
+                background:radial-gradient(ellipse at center,
+                  rgba(0,0,0,0) 40%,
+                  rgba(0,0,0,0.18) 70%,
+                  rgba(0,0,0,0.45) 100%);"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <script>
@@ -127,101 +177,152 @@
         const rnd = mulberry32(0xa11ce);
         const ns = "http://www.w3.org/2000/svg";
 
-        // ---- Foreground stars (~280) ----
-        const stars = document.getElementById("crawl-stars");
-        const STAR_COUNT = 280;
-        const BRIGHT_COUNT = 24;
-        // Pick which stars get a 4-point cross flare (the brightest 24).
-        const flareSet = new Set();
-        while (flareSet.size < BRIGHT_COUNT) flareSet.add(Math.floor(rnd() * STAR_COUNT));
+        // ---- FAR layer: 200 tiny dim stars ----
+        const far = document.getElementById("crawl-stars-far");
+        for (let i = 0; i < 200; i++) {
+          const c = document.createElementNS(ns, "circle");
+          c.setAttribute("cx", (rnd() * 2200).toFixed(1));
+          c.setAttribute("cy", (rnd() * 1080).toFixed(1));
+          c.setAttribute("r", (0.4 + rnd() * 0.6).toFixed(2));
+          c.setAttribute("fill", "#B8C4D8");
+          c.setAttribute("opacity", (0.20 + rnd() * 0.25).toFixed(2));
+          far.appendChild(c);
+        }
 
-        for (let i = 0; i < STAR_COUNT; i++) {
+        // ---- MID layer: 80 medium stars ----
+        const mid = document.getElementById("crawl-stars-mid");
+        const midStars = [];
+        for (let i = 0; i < 80; i++) {
+          const c = document.createElementNS(ns, "circle");
+          c.setAttribute("cx", (rnd() * 2200).toFixed(1));
+          c.setAttribute("cy", (rnd() * 1080).toFixed(1));
+          c.setAttribute("r", (0.9 + rnd() * 1.1).toFixed(2));
+          c.setAttribute("fill", "#F5F5F5");
+          c.setAttribute("stroke", "#000");
+          c.setAttribute("stroke-width", "0.3");
+          c.setAttribute("stroke-opacity", "0.4");
+          const baseOp = (0.55 + rnd() * 0.35);
+          c.setAttribute("opacity", baseOp.toFixed(2));
+          mid.appendChild(c);
+          midStars.push({ el: c, base: baseOp });
+        }
+
+        // ---- NEAR layer: 30 bright stars w/ 4-point cross flares ----
+        const near = document.getElementById("crawl-stars-near");
+        const nearStars = [];
+        for (let i = 0; i < 30; i++) {
           const cx = rnd() * 2200;
           const cy = rnd() * 1080;
-          const r  = rnd();
+          const r = rnd();
 
           const g = document.createElementNS(ns, "g");
           const c = document.createElementNS(ns, "circle");
           c.setAttribute("cx", cx.toFixed(1));
           c.setAttribute("cy", cy.toFixed(1));
-          c.setAttribute("r", (0.7 + r * 1.8).toFixed(2));
+          c.setAttribute("r", (1.4 + r * 1.6).toFixed(2));
           c.setAttribute("fill", "#F5F5F5");
           c.setAttribute("stroke", "#000");
           c.setAttribute("stroke-width", "0.4");
           c.setAttribute("stroke-opacity", "0.5");
-          c.setAttribute("opacity", (0.55 + r * 0.45).toFixed(2));
+          const baseOp = (0.75 + r * 0.25);
+          c.setAttribute("opacity", baseOp.toFixed(2));
           g.appendChild(c);
 
-          if (flareSet.has(i)) {
-            // 4-point cross flare: two thin crossed rectangles
-            const len = 7 + rnd() * 5;
-            const h = document.createElementNS(ns, "rect");
-            h.setAttribute("x", (cx - len).toFixed(2));
-            h.setAttribute("y", (cy - 0.4).toFixed(2));
-            h.setAttribute("width", (len * 2).toFixed(2));
-            h.setAttribute("height", "0.8");
-            h.setAttribute("fill", "#FFFDF0");
-            h.setAttribute("opacity", "0.85");
-            g.appendChild(h);
-            const v = document.createElementNS(ns, "rect");
-            v.setAttribute("x", (cx - 0.4).toFixed(2));
-            v.setAttribute("y", (cy - len).toFixed(2));
-            v.setAttribute("width", "0.8");
-            v.setAttribute("height", (len * 2).toFixed(2));
-            v.setAttribute("fill", "#FFFDF0");
-            v.setAttribute("opacity", "0.85");
-            g.appendChild(v);
-          }
-          stars.appendChild(g);
-        }
+          // 4-point cross flare
+          const len = 8 + rnd() * 6;
+          const h = document.createElementNS(ns, "rect");
+          h.setAttribute("x", (cx - len).toFixed(2));
+          h.setAttribute("y", (cy - 0.4).toFixed(2));
+          h.setAttribute("width", (len * 2).toFixed(2));
+          h.setAttribute("height", "0.8");
+          h.setAttribute("fill", "#FFFDF0");
+          h.setAttribute("opacity", "0.85");
+          g.appendChild(h);
+          const v = document.createElementNS(ns, "rect");
+          v.setAttribute("x", (cx - 0.4).toFixed(2));
+          v.setAttribute("y", (cy - len).toFixed(2));
+          v.setAttribute("width", "0.8");
+          v.setAttribute("height", (len * 2).toFixed(2));
+          v.setAttribute("fill", "#FFFDF0");
+          v.setAttribute("opacity", "0.85");
+          g.appendChild(v);
 
-        // ---- Dust layer (~140 sparse dim stars) ----
-        const dust = document.getElementById("crawl-dust");
-        for (let i = 0; i < 140; i++) {
-          const c = document.createElementNS(ns, "circle");
-          c.setAttribute("cx", (rnd() * 2200).toFixed(1));
-          c.setAttribute("cy", (rnd() * 1080).toFixed(1));
-          c.setAttribute("r", (0.4 + rnd() * 0.7).toFixed(2));
-          c.setAttribute("fill", "#B8C4D8");
-          c.setAttribute("opacity", (0.18 + rnd() * 0.22).toFixed(2));
-          dust.appendChild(c);
+          near.appendChild(g);
+          nearStars.push({ el: g, base: baseOp });
         }
 
         window.__timelines = window.__timelines || {};
         const tl = gsap.timeline({ paused: true });
 
-        // Parallax drift (entrance-only tween across full 14s)
-        tl.fromTo("#crawl-stars", { x: 0 },     { x: -60, duration: 14, ease: "none" }, 0);
-        tl.fromTo("#crawl-dust",  { x: 0 },     { x: -28, duration: 14, ease: "none" }, 0);
+        // ---- 3-layer parallax drift (entrance-only tweens, full 14s) ----
+        tl.fromTo("#crawl-stars-far",  { x: 0 }, { x: -30,  duration: 14, ease: "none" }, 0);
+        tl.fromTo("#crawl-stars-mid",  { x: 0 }, { x: -80,  duration: 14, ease: "none" }, 0);
+        tl.fromTo("#crawl-stars-near", { x: 0 }, { x: -160, duration: 14, ease: "none" }, 0);
 
-        // Prologue: fade in, hold, fade out
+        // ---- Twinkle: ~30 of the brightest stars pulse opacity gently ----
+        // Use seeded RNG to pick which stars twinkle and assign a varying duration.
+        // VARYING durations: 1.4s, 1.8s, 2.2s, 2.6s — staggered so they don't blink in unison.
+        const TWINKLE_DURS = [1.4, 1.8, 2.2, 2.6];
+        const twinkleCandidates = nearStars.concat(midStars);
+        // Shuffle indices deterministically with the seeded rng.
+        const indices = twinkleCandidates.map((_, i) => i);
+        for (let i = indices.length - 1; i > 0; i--) {
+          const j = Math.floor(rnd() * (i + 1));
+          const tmp = indices[i]; indices[i] = indices[j]; indices[j] = tmp;
+        }
+        const twinkleCount = Math.min(30, twinkleCandidates.length);
+        for (let k = 0; k < twinkleCount; k++) {
+          const star = twinkleCandidates[indices[k]];
+          const dur = TWINKLE_DURS[k % TWINKLE_DURS.length];
+          const repeats = Math.max(0, Math.ceil(14 / dur) - 1);
+          const startOffset = rnd() * dur; // staggered phase
+          const dimTo = Math.max(0.18, star.base * 0.35);
+          // yoyo+repeat to pulse; finite repeat count derived above.
+          tl.to(star.el,
+            { opacity: dimTo, duration: dur / 2, ease: "sine.inOut", yoyo: true, repeat: repeats * 2 + 1 },
+            startOffset);
+        }
+
+        // ---- Prologue: fade in, hold, fade out ----
         tl.fromTo("#crawl-prologue",
           { opacity: 0 },
           { opacity: 1, duration: 1.2, ease: "power2.out" }, 0.6);
         tl.to("#crawl-prologue",
           { opacity: 0, duration: 1.0, ease: "power2.in" }, 4.0);
 
-        // Logo flare burst — hard ease, scales from 0 -> 1.4, fades in then out.
+        // ---- Logo flare burst — hard ease, scales 0.2 -> 1.4, fades in then out. ----
         tl.fromTo("#crawl-flare",
           { opacity: 0, scale: 0.2 },
           { opacity: 1, scale: 1.4, duration: 0.4, ease: "power3.out" }, 4.5);
         tl.to("#crawl-flare",
           { opacity: 0, scale: 1.6, duration: 0.4, ease: "power2.in" }, 5.0);
-        // Spoke spin during the burst (visual, not exit)
+        // Primary spoke spin (fwd)
         tl.fromTo("#cw-flare-spokes",
           { rotation: 0, transformOrigin: "0px 0px" },
           { rotation: 30, duration: 0.8, ease: "none" }, 4.5);
+        // Secondary spoke spin (counter, slower) for double-flare shimmer
+        tl.fromTo("#cw-flare-spokes-bg",
+          { rotation: 30, transformOrigin: "0px 0px" },
+          { rotation: 10, duration: 0.8, ease: "none" }, 4.5);
 
-        // Crawl stage fades in as prologue fades out
+        // ---- Crawl stage fades in as prologue fades out ----
         tl.fromTo("#crawl-stage",
           { opacity: 0 },
           { opacity: 1, duration: 1.0, ease: "power2.out" }, 4.4);
 
-        // The crawl scrolls upward through space.
-        // rotateX must persist across the whole y-translation tween.
+        // ---- Crawl scrolls upward through space.
+        // rotateX must persist across the whole y-translation tween. ----
         tl.fromTo("#crawl-text",
           { rotateX: 40, y: 0 },
           { rotateX: 40, y: -2400, duration: 9.4, ease: "none" }, 4.6);
+
+        // ---- Anamorphic horizontal flare across the title. ----
+        // Fade 0 -> 0.7 -> 0 across 1.2s, peaking as "A NEW HOPE" reads clearly (~5.5s).
+        tl.fromTo("#crawl-anamorphic",
+          { opacity: 0 },
+          { opacity: 0.7, duration: 0.5, ease: "power2.out" }, 5.3);
+        tl.to("#crawl-anamorphic",
+          { opacity: 0, duration: 0.7, ease: "power2.in" }, 5.8);
 
         window.__timelines["scene-crawl"] = tl;
       })();

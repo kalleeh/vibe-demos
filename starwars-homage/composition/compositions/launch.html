@@ -42,8 +42,79 @@
          viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
          style="position:absolute;inset:0;width:100%;height:100%;"></svg>
 
+    <!-- Death Star (deep background, upper-right) -->
+    <svg id="launch-deathstar" class="clip" data-start="1" data-duration="5" data-track-index="3"
+         data-layout-allow-overflow
+         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+         style="position:absolute;inset:0;width:100%;height:100%;opacity:0;">
+      <defs>
+        <!-- Plated metal sphere — radial with hard cel banding via stops -->
+        <radialGradient id="ds-grad" cx="35%" cy="38%" r="65%">
+          <stop offset="0%"    stop-color="#b8bdc4"/>
+          <stop offset="22%"   stop-color="#b8bdc4"/>
+          <stop offset="22.5%" stop-color="#9aa1a9"/>
+          <stop offset="48%"   stop-color="#9aa1a9"/>
+          <stop offset="48.5%" stop-color="#6e7780"/>
+          <stop offset="72%"   stop-color="#6e7780"/>
+          <stop offset="72.5%" stop-color="#3f464d"/>
+          <stop offset="100%"  stop-color="#2c3138"/>
+        </radialGradient>
+        <!-- Light hemisphere clip (left half of the silhouette) -->
+        <clipPath id="ds-light-clip">
+          <rect x="1280" y="-100" width="420" height="800"/>
+        </clipPath>
+        <!-- Whole-disk clip for trench lines + dish indent -->
+        <clipPath id="ds-disk-clip">
+          <circle cx="1700" cy="200" r="240"/>
+        </clipPath>
+      </defs>
+
+      <!-- Faint atmospheric haze ring just outside silhouette -->
+      <circle cx="1700" cy="200" r="248" fill="none" stroke="#9fafd0"
+              stroke-width="1" opacity="0.30" data-layout-allow-overflow/>
+      <circle cx="1700" cy="200" r="256" fill="none" stroke="#9fafd0"
+              stroke-width="0.6" opacity="0.18" data-layout-allow-overflow/>
+
+      <!-- Dark hemisphere base (full silhouette filled with shadow tone) -->
+      <circle cx="1700" cy="200" r="240" fill="#2c3138" data-layout-allow-overflow/>
+
+      <!-- Light hemisphere with gradient (clipped to left half) -->
+      <g clip-path="url(#ds-light-clip)" data-layout-allow-overflow>
+        <circle cx="1700" cy="200" r="240" fill="url(#ds-grad)"/>
+      </g>
+
+      <!-- Hard cel terminator line (sharp vertical-ish boundary) -->
+      <g clip-path="url(#ds-disk-clip)" data-layout-allow-overflow>
+        <!-- Subtle terminator gradient strip to sell hard cel edge -->
+        <rect x="1690" y="-50" width="14" height="500" fill="#1a1d22" opacity="0.55"/>
+        <rect x="1700" y="-50" width="6"  height="500" fill="#0a0c10" opacity="0.65"/>
+
+        <!-- Equatorial trench lines (1-2 thin dark grey horizontals) -->
+        <line x1="1460" y1="200" x2="1940" y2="200"
+              stroke="#1a1d22" stroke-width="1.4" opacity="0.85"/>
+        <line x1="1460" y1="208" x2="1940" y2="208"
+              stroke="#3f464d" stroke-width="0.8" opacity="0.50"/>
+
+        <!-- Superlaser dish: small dark indent in upper-third of lit hemisphere -->
+        <circle cx="1640" cy="130" r="50" fill="#3f464d" opacity="0.95"/>
+        <circle cx="1640" cy="130" r="50" fill="none" stroke="#1a1d22" stroke-width="1.4"/>
+        <circle cx="1640" cy="130" r="38" fill="#2c3138" opacity="0.85"/>
+        <circle cx="1640" cy="130" r="22" fill="#6e7780" opacity="0.55"/>
+        <circle cx="1640" cy="130" r="8"  fill="#1a1d22"/>
+        <!-- Crosshair in the dish -->
+        <line x1="1612" y1="130" x2="1668" y2="130"
+              stroke="#1a1d22" stroke-width="0.8" opacity="0.6"/>
+        <line x1="1640" y1="102" x2="1640" y2="158"
+              stroke="#1a1d22" stroke-width="0.8" opacity="0.6"/>
+      </g>
+
+      <!-- Outer rim stroke (silhouette definition) -->
+      <circle cx="1700" cy="200" r="240" fill="none"
+              stroke="#1a1d22" stroke-width="1.4" opacity="0.85" data-layout-allow-overflow/>
+    </svg>
+
     <!-- Yavin gas giant -->
-    <svg id="launch-yavin" class="clip" data-start="0" data-duration="6" data-track-index="3"
+    <svg id="launch-yavin" class="clip" data-start="0" data-duration="6" data-track-index="4"
          data-layout-allow-overflow
          viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
          style="position:absolute;inset:0;width:100%;height:100%;">
@@ -81,11 +152,23 @@
           <stop offset="50%"  stop-color="#ffffff" stop-opacity="0.10"/>
           <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
         </linearGradient>
+        <!-- Lit-side crescent gradient (bright green limb) -->
+        <linearGradient id="yavin-crescent" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   stop-color="#9fe9b8" stop-opacity="0.95"/>
+          <stop offset="40%"  stop-color="#9fe9b8" stop-opacity="0.55"/>
+          <stop offset="100%" stop-color="#9fe9b8" stop-opacity="0"/>
+        </linearGradient>
         <!-- Clip planet to circle -->
         <clipPath id="yavin-clip">
           <circle cx="1500" cy="1500" r="900"/>
         </clipPath>
       </defs>
+
+      <!-- Distant moons / satellites (behind the planet, peeking near upper-left limb) -->
+      <circle cx="660"  cy="780" r="6"  fill="#404040" opacity="0.95" data-layout-allow-overflow/>
+      <circle cx="660"  cy="780" r="6"  fill="none" stroke="#6a6a6a" stroke-width="0.6" opacity="0.6" data-layout-allow-overflow/>
+      <circle cx="780"  cy="640" r="3.5" fill="#404040" opacity="0.9" data-layout-allow-overflow/>
+      <circle cx="540"  cy="900" r="2.5" fill="#404040" opacity="0.75" data-layout-allow-overflow/>
 
       <!-- Planet base -->
       <circle cx="1500" cy="1500" r="900" fill="url(#yavin-grad)" opacity="0.95" data-layout-allow-overflow/>
@@ -103,6 +186,10 @@
         <rect x="1280" y="600" width="60" height="1800" fill="url(#terminator)" opacity="0.8"/>
         <!-- Shadow side: black ellipse over right 40% -->
         <ellipse cx="1820" cy="1500" rx="640" ry="900" fill="#000000" opacity="0.32"/>
+
+        <!-- Bright lit-side crescent along upper-left limb -->
+        <path d="M 632,1490 A 900 900 0 0 1 1500 600 L 1500 624 A 876 876 0 0 0 656 1490 Z"
+              fill="url(#yavin-crescent)" opacity="0.85"/>
       </g>
 
       <!-- Atmospheric haze ring -->
@@ -112,8 +199,112 @@
                fill="none" stroke="#9fe9b8" stroke-width="1" opacity="0.15" data-layout-allow-overflow/>
     </svg>
 
-    <!-- X-wing flight stage -->
-    <svg id="launch-stage" class="clip" data-start="0" data-duration="6" data-track-index="4"
+    <!-- Anime speed streaks (background, behind ships) -->
+    <svg id="launch-streaks" class="clip" data-start="2" data-duration="2.5" data-track-index="5"
+         data-layout-allow-overflow
+         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+         style="position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen;"></svg>
+
+    <!-- Wingmate X-Wing flight stage (behind lead) -->
+    <svg id="launch-stage-wing" class="clip" data-start="0" data-duration="6" data-track-index="6"
+         data-layout-allow-overflow
+         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+         style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;">
+      <defs>
+        <radialGradient id="engine-glow-w" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#FFFFFF"/>
+          <stop offset="22%"  stop-color="#FFFFFF" stop-opacity="0.95"/>
+          <stop offset="40%"  stop-color="#9FE9FF"/>
+          <stop offset="70%"  stop-color="#3aa8d8" stop-opacity="0.55"/>
+          <stop offset="100%" stop-color="#9FE9FF" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="engine-core-w" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="#FFFFFF"/>
+          <stop offset="60%"  stop-color="#FFFFFF" stop-opacity="0.85"/>
+          <stop offset="100%" stop-color="#9FE9FF" stop-opacity="0"/>
+        </radialGradient>
+        <!-- Wingmate flight path (parallel, offset down + left) -->
+        <path id="xw-path-wing" d="M -300,920 C 220,920 620,820 920,660 C 1220,500 1520,360 2020,220"
+              fill="none" stroke="none" />
+      </defs>
+
+      <!-- Wingmate engine trail -->
+      <g id="xw-trail-wing" data-layout-allow-overflow
+         style="mix-blend-mode:screen;opacity:0;">
+        <ellipse cx="-220" cy="-26" rx="180" ry="2.6" fill="#9FE9FF" opacity="0.45"/>
+        <ellipse cx="-220" cy="-10" rx="180" ry="2.6" fill="#9FE9FF" opacity="0.45"/>
+        <ellipse cx="-220" cy="10"  rx="180" ry="2.6" fill="#9FE9FF" opacity="0.45"/>
+        <ellipse cx="-220" cy="26"  rx="180" ry="2.6" fill="#9FE9FF" opacity="0.45"/>
+        <ellipse cx="-140" cy="0"   rx="100" ry="3.2" fill="#FFFFFF" opacity="0.55"/>
+      </g>
+
+      <!-- Wingmate X-Wing (cloned from lead, scaled 0.7) -->
+      <g id="xwing-wing" data-layout-allow-overflow
+         style="filter:drop-shadow(0 0 5px rgba(159,233,255,0.30));">
+        <g id="xwing-wing-bank">
+          <!-- Engine glows -->
+          <g id="xw-engines-wing" data-layout-allow-overflow>
+            <circle cx="-58" cy="-30" r="16" fill="url(#engine-glow-w)"/>
+            <circle cx="-58" cy="-12" r="16" fill="url(#engine-glow-w)"/>
+            <circle cx="-58" cy="12"  r="16" fill="url(#engine-glow-w)"/>
+            <circle cx="-58" cy="30"  r="16" fill="url(#engine-glow-w)"/>
+            <g id="xw-engine-cores-wing">
+              <circle cx="-58" cy="-30" r="5" fill="url(#engine-core-w)"/>
+              <circle cx="-58" cy="-12" r="5" fill="url(#engine-core-w)"/>
+              <circle cx="-58" cy="12"  r="5" fill="url(#engine-core-w)"/>
+              <circle cx="-58" cy="30"  r="5" fill="url(#engine-core-w)"/>
+            </g>
+          </g>
+
+          <g>
+            <polygon points="-56,-12 30,-6 22,-46 -56,-44"
+                     fill="#8d8678" stroke="#2a2620" stroke-width="1.6" stroke-linejoin="miter"/>
+            <polygon points="-56,-10 30,-4 22,-38 -56,-36"
+                     fill="#d8d2c4" stroke="#2a2620" stroke-width="1.6" stroke-linejoin="miter"/>
+            <polygon points="-56,12 30,6 22,46 -56,44"
+                     fill="#8d8678" stroke="#2a2620" stroke-width="1.6" stroke-linejoin="miter"/>
+            <polygon points="-56,10 30,4 22,38 -56,36"
+                     fill="#d8d2c4" stroke="#2a2620" stroke-width="1.6" stroke-linejoin="miter"/>
+
+            <rect x="14" y="-50" width="34" height="3.5" fill="#2a2620" stroke="#0a0806" stroke-width="0.8"/>
+            <rect x="14" y="-40" width="34" height="3.5" fill="#3a342c" stroke="#0a0806" stroke-width="0.8"/>
+            <rect x="14" y="36"  width="34" height="3.5" fill="#3a342c" stroke="#0a0806" stroke-width="0.8"/>
+            <rect x="14" y="46"  width="34" height="3.5" fill="#2a2620" stroke="#0a0806" stroke-width="0.8"/>
+
+            <rect x="-30" y="-42" width="40" height="3" fill="#FF3030" opacity="0.85"/>
+            <rect x="-30" y="-34" width="40" height="3" fill="#FF3030" opacity="0.85"/>
+            <rect x="-30" y="32"  width="40" height="3" fill="#FF3030" opacity="0.85"/>
+            <rect x="-30" y="40"  width="40" height="3" fill="#FF3030" opacity="0.85"/>
+
+            <polygon points="-60,-10 36,-8 60,0 36,8 -60,10"
+                     fill="#d8d2c4" stroke="#2a2620" stroke-width="1.8" stroke-linejoin="miter"/>
+            <polygon points="-60,2 36,3 60,0 36,8 -60,10"
+                     fill="#8d8678" stroke="none" opacity="0.95"/>
+            <polygon points="-60,2 36,3 60,0 36,8 -60,10"
+                     fill="none" stroke="#2a2620" stroke-width="1.4"/>
+
+            <path d="M 6,-7 Q 22,-9 32,0 Q 22,9 6,7 Z"
+                  fill="#1a3a52" stroke="#0a1a2a" stroke-width="1.2"/>
+            <path d="M 10,-5 Q 20,-6 26,-2" fill="none" stroke="#6da5c8" stroke-width="1.2" opacity="0.9"/>
+
+            <g>
+              <ellipse cx="-12" cy="-9" rx="8" ry="6"
+                       fill="#e7e2d6" stroke="#2a2620" stroke-width="1.2"/>
+              <path d="M -20,-9 A 8 6 0 0 1 -4 -9 Z" fill="#3a8dd8" stroke="#2a2620" stroke-width="0.8"/>
+              <rect x="-13" y="-12" width="2" height="3" fill="#FF3030"/>
+            </g>
+
+            <circle cx="-58" cy="-30" r="8" fill="none" stroke="#2a2620" stroke-width="1.4"/>
+            <circle cx="-58" cy="-12" r="8" fill="none" stroke="#2a2620" stroke-width="1.4"/>
+            <circle cx="-58" cy="12"  r="8" fill="none" stroke="#2a2620" stroke-width="1.4"/>
+            <circle cx="-58" cy="30"  r="8" fill="none" stroke="#2a2620" stroke-width="1.4"/>
+          </g>
+        </g>
+      </g>
+    </svg>
+
+    <!-- X-wing flight stage (lead) -->
+    <svg id="launch-stage" class="clip" data-start="0" data-duration="6" data-track-index="7"
          data-layout-allow-overflow
          viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
          style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;">
@@ -148,101 +339,135 @@
         <ellipse cx="-140" cy="0"   rx="100" ry="3.2" fill="#FFFFFF" opacity="0.65"/>
       </g>
 
-      <!-- X-Wing group (origin at ship nose) -->
-      <g id="xwing" data-layout-allow-overflow
-         style="filter:drop-shadow(0 0 6px rgba(159,233,255,0.35));">
+      <!-- X-Wing group (origin at ship nose). Outer = MotionPath target. Inner #xwing-bank = roll target. -->
+      <g id="xwing" data-layout-allow-overflow>
+        <g id="xwing-bank" data-layout-allow-overflow
+           style="filter:drop-shadow(0 0 6px rgba(159,233,255,0.35));">
 
-        <!-- Engine glow halos (behind fuselage, 4 engines + central) -->
-        <g id="xw-engines" data-layout-allow-overflow>
-          <!-- Outer glows -->
-          <circle cx="-58" cy="-30" r="16" fill="url(#engine-glow)"/>
-          <circle cx="-58" cy="-12" r="16" fill="url(#engine-glow)"/>
-          <circle cx="-58" cy="12"  r="16" fill="url(#engine-glow)"/>
-          <circle cx="-58" cy="30"  r="16" fill="url(#engine-glow)"/>
-          <!-- Hot cores (small bright cyan flicker) -->
-          <g id="xw-engine-cores">
-            <circle cx="-58" cy="-30" r="5" fill="url(#engine-core)"/>
-            <circle cx="-58" cy="-12" r="5" fill="url(#engine-core)"/>
-            <circle cx="-58" cy="12"  r="5" fill="url(#engine-core)"/>
-            <circle cx="-58" cy="30"  r="5" fill="url(#engine-core)"/>
+          <!-- Particle burst at engine ignition (radial cyan, fades out) -->
+          <g id="xw-ignition" data-layout-allow-overflow style="opacity:0;">
+            <circle id="ig-p0" cx="-58" cy="0" r="4.5" fill="#9FE9FF"
+                    stroke="#FFFFFF" stroke-width="0.8"/>
+            <circle id="ig-p1" cx="-58" cy="0" r="4.0" fill="#9FE9FF"
+                    stroke="#FFFFFF" stroke-width="0.8"/>
+            <circle id="ig-p2" cx="-58" cy="0" r="4.5" fill="#FFFFFF"
+                    stroke="#9FE9FF" stroke-width="0.8"/>
+            <circle id="ig-p3" cx="-58" cy="0" r="3.5" fill="#9FE9FF"
+                    stroke="#FFFFFF" stroke-width="0.8"/>
+            <circle id="ig-p4" cx="-58" cy="0" r="4.0" fill="#9FE9FF"
+                    stroke="#FFFFFF" stroke-width="0.8"/>
+            <circle id="ig-p5" cx="-58" cy="0" r="4.5" fill="#FFFFFF"
+                    stroke="#9FE9FF" stroke-width="0.8"/>
+            <circle id="ig-p6" cx="-58" cy="0" r="3.5" fill="#9FE9FF"
+                    stroke="#FFFFFF" stroke-width="0.8"/>
+            <circle id="ig-p7" cx="-58" cy="0" r="4.0" fill="#9FE9FF"
+                    stroke="#FFFFFF" stroke-width="0.8"/>
           </g>
-        </g>
 
-        <!-- Lens-flare burst (one-shot at peak, anchored to engine cluster) -->
-        <g id="xw-flare" data-layout-allow-overflow style="opacity:0;transform-box:fill-box;">
-          <polygon
-            points="-58,-58 -55,-8 -8,-3 -55,-3 -58,46 -61,-3 -108,-3 -61,-8"
-            fill="#9FE9FF" opacity="0.55"/>
-          <polygon
-            points="-58,-46 -56,-6 -22,-1 -56,-1 -58,38 -60,-1 -94,-1 -60,-6"
-            fill="#FFFFFF" opacity="0.85"
-            transform="rotate(45 -58 0)"/>
-          <circle cx="-58" cy="0" r="14" fill="#FFFFFF" opacity="0.9"/>
-        </g>
+          <!-- Engine glow halos (behind fuselage, 4 engines + central) -->
+          <g id="xw-engines" data-layout-allow-overflow>
+            <!-- Outer glows -->
+            <circle cx="-58" cy="-30" r="16" fill="url(#engine-glow)"/>
+            <circle cx="-58" cy="-12" r="16" fill="url(#engine-glow)"/>
+            <circle cx="-58" cy="12"  r="16" fill="url(#engine-glow)"/>
+            <circle cx="-58" cy="30"  r="16" fill="url(#engine-glow)"/>
+            <!-- Hot cores (small bright cyan flicker) -->
+            <g id="xw-engine-cores">
+              <circle cx="-58" cy="-30" r="5" fill="url(#engine-core)"/>
+              <circle cx="-58" cy="-12" r="5" fill="url(#engine-core)"/>
+              <circle cx="-58" cy="12"  r="5" fill="url(#engine-core)"/>
+              <circle cx="-58" cy="30"  r="5" fill="url(#engine-core)"/>
+            </g>
+          </g>
 
-        <!-- Body (rotated so nose points along +x) -->
-        <g>
-          <!-- S-foils — open X formation, 4 wings tapered with shadow undersides -->
-          <!-- Upper-left wing (back-left, tilted up, shadow side) -->
-          <polygon points="-56,-12 30,-6 22,-46 -56,-44"
-                   fill="#8d8678" stroke="#2a2620" stroke-width="1.6" stroke-linejoin="miter"/>
-          <!-- Upper-right wing (front-left, tilted up, lit) -->
-          <polygon points="-56,-10 30,-4 22,-38 -56,-36"
-                   fill="#d8d2c4" stroke="#2a2620" stroke-width="1.6" stroke-linejoin="miter"/>
-          <!-- Lower-left wing (back-right, tilted down, shadow) -->
-          <polygon points="-56,12 30,6 22,46 -56,44"
-                   fill="#8d8678" stroke="#2a2620" stroke-width="1.6" stroke-linejoin="miter"/>
-          <!-- Lower-right wing (front-right, tilted down, lit) -->
-          <polygon points="-56,10 30,4 22,38 -56,36"
-                   fill="#d8d2c4" stroke="#2a2620" stroke-width="1.6" stroke-linejoin="miter"/>
+          <!-- Lens-flare burst (one-shot at peak, anchored to engine cluster) -->
+          <g id="xw-flare" data-layout-allow-overflow style="opacity:0;transform-box:fill-box;">
+            <polygon
+              points="-58,-58 -55,-8 -8,-3 -55,-3 -58,46 -61,-3 -108,-3 -61,-8"
+              fill="#9FE9FF" opacity="0.55"/>
+            <polygon
+              points="-58,-46 -56,-6 -22,-1 -56,-1 -58,38 -60,-1 -94,-1 -60,-6"
+              fill="#FFFFFF" opacity="0.85"
+              transform="rotate(45 -58 0)"/>
+            <circle cx="-58" cy="0" r="14" fill="#FFFFFF" opacity="0.9"/>
+          </g>
 
-          <!-- Wingtip cannons (4 of them) -->
-          <rect x="14" y="-50" width="34" height="3.5" fill="#2a2620" stroke="#0a0806" stroke-width="0.8"/>
-          <rect x="14" y="-40" width="34" height="3.5" fill="#3a342c" stroke="#0a0806" stroke-width="0.8"/>
-          <rect x="14" y="36"  width="34" height="3.5" fill="#3a342c" stroke="#0a0806" stroke-width="0.8"/>
-          <rect x="14" y="46"  width="34" height="3.5" fill="#2a2620" stroke="#0a0806" stroke-width="0.8"/>
-
-          <!-- Red squadron stripes on each wing -->
-          <rect x="-30" y="-42" width="40" height="3" fill="#FF3030" opacity="0.85"/>
-          <rect x="-30" y="-34" width="40" height="3" fill="#FF3030" opacity="0.85"/>
-          <rect x="-30" y="32"  width="40" height="3" fill="#FF3030" opacity="0.85"/>
-          <rect x="-30" y="40"  width="40" height="3" fill="#FF3030" opacity="0.85"/>
-
-          <!-- Fuselage (cigar, narrowing to nose). Lit top, shadow underside -->
-          <polygon points="-60,-10 36,-8 60,0 36,8 -60,10"
-                   fill="#d8d2c4" stroke="#2a2620" stroke-width="1.8" stroke-linejoin="miter"/>
-          <!-- Fuselage shadow band (cel hard line) -->
-          <polygon points="-60,2 36,3 60,0 36,8 -60,10"
-                   fill="#8d8678" stroke="none" opacity="0.95"/>
-          <polygon points="-60,2 36,3 60,0 36,8 -60,10"
-                   fill="none" stroke="#2a2620" stroke-width="1.4"/>
-
-          <!-- Cockpit canopy -->
-          <path d="M 6,-7 Q 22,-9 32,0 Q 22,9 6,7 Z"
-                fill="#1a3a52" stroke="#0a1a2a" stroke-width="1.2"/>
-          <!-- Canopy highlight -->
-          <path d="M 10,-5 Q 20,-6 26,-2" fill="none" stroke="#6da5c8" stroke-width="1.2" opacity="0.9"/>
-
-          <!-- R2 unit dome on dorsal spine -->
+          <!-- Body (rotated so nose points along +x) -->
           <g>
-            <ellipse cx="-12" cy="-9" rx="8" ry="6"
-                     fill="#e7e2d6" stroke="#2a2620" stroke-width="1.2"/>
-            <!-- Quartered blue/white -->
-            <path d="M -20,-9 A 8 6 0 0 1 -4 -9 Z" fill="#3a8dd8" stroke="#2a2620" stroke-width="0.8"/>
-            <rect x="-13" y="-12" width="2" height="3" fill="#FF3030"/>
-          </g>
+            <!-- S-foils — open X formation, 4 wings tapered with shadow undersides -->
+            <polygon points="-56,-12 30,-6 22,-46 -56,-44"
+                     fill="#8d8678" stroke="#2a2620" stroke-width="1.6" stroke-linejoin="miter"/>
+            <polygon points="-56,-10 30,-4 22,-38 -56,-36"
+                     fill="#d8d2c4" stroke="#2a2620" stroke-width="1.6" stroke-linejoin="miter"/>
+            <polygon points="-56,12 30,6 22,46 -56,44"
+                     fill="#8d8678" stroke="#2a2620" stroke-width="1.6" stroke-linejoin="miter"/>
+            <polygon points="-56,10 30,4 22,38 -56,36"
+                     fill="#d8d2c4" stroke="#2a2620" stroke-width="1.6" stroke-linejoin="miter"/>
 
-          <!-- Engine bell rims (dark openings around the glow halos) -->
-          <circle cx="-58" cy="-30" r="8" fill="none" stroke="#2a2620" stroke-width="1.4"/>
-          <circle cx="-58" cy="-12" r="8" fill="none" stroke="#2a2620" stroke-width="1.4"/>
-          <circle cx="-58" cy="12"  r="8" fill="none" stroke="#2a2620" stroke-width="1.4"/>
-          <circle cx="-58" cy="30"  r="8" fill="none" stroke="#2a2620" stroke-width="1.4"/>
+            <!-- Wingtip cannons (4 of them) -->
+            <rect x="14" y="-50" width="34" height="3.5" fill="#2a2620" stroke="#0a0806" stroke-width="0.8"/>
+            <rect x="14" y="-40" width="34" height="3.5" fill="#3a342c" stroke="#0a0806" stroke-width="0.8"/>
+            <rect x="14" y="36"  width="34" height="3.5" fill="#3a342c" stroke="#0a0806" stroke-width="0.8"/>
+            <rect x="14" y="46"  width="34" height="3.5" fill="#2a2620" stroke="#0a0806" stroke-width="0.8"/>
+
+            <!-- Red squadron stripes on each wing -->
+            <rect x="-30" y="-42" width="40" height="3" fill="#FF3030" opacity="0.85"/>
+            <rect x="-30" y="-34" width="40" height="3" fill="#FF3030" opacity="0.85"/>
+            <rect x="-30" y="32"  width="40" height="3" fill="#FF3030" opacity="0.85"/>
+            <rect x="-30" y="40"  width="40" height="3" fill="#FF3030" opacity="0.85"/>
+
+            <!-- Fuselage (cigar, narrowing to nose). Lit top, shadow underside -->
+            <polygon points="-60,-10 36,-8 60,0 36,8 -60,10"
+                     fill="#d8d2c4" stroke="#2a2620" stroke-width="1.8" stroke-linejoin="miter"/>
+            <!-- Fuselage shadow band (cel hard line) -->
+            <polygon points="-60,2 36,3 60,0 36,8 -60,10"
+                     fill="#8d8678" stroke="none" opacity="0.95"/>
+            <polygon points="-60,2 36,3 60,0 36,8 -60,10"
+                     fill="none" stroke="#2a2620" stroke-width="1.4"/>
+
+            <!-- Cockpit canopy -->
+            <path d="M 6,-7 Q 22,-9 32,0 Q 22,9 6,7 Z"
+                  fill="#1a3a52" stroke="#0a1a2a" stroke-width="1.2"/>
+            <!-- Canopy highlight -->
+            <path d="M 10,-5 Q 20,-6 26,-2" fill="none" stroke="#6da5c8" stroke-width="1.2" opacity="0.9"/>
+
+            <!-- R2 unit dome on dorsal spine -->
+            <g>
+              <ellipse cx="-12" cy="-9" rx="8" ry="6"
+                       fill="#e7e2d6" stroke="#2a2620" stroke-width="1.2"/>
+              <!-- Quartered blue/white -->
+              <path d="M -20,-9 A 8 6 0 0 1 -4 -9 Z" fill="#3a8dd8" stroke="#2a2620" stroke-width="0.8"/>
+              <rect x="-13" y="-12" width="2" height="3" fill="#FF3030"/>
+            </g>
+
+            <!-- Engine bell rims (dark openings around the glow halos) -->
+            <circle cx="-58" cy="-30" r="8" fill="none" stroke="#2a2620" stroke-width="1.4"/>
+            <circle cx="-58" cy="-12" r="8" fill="none" stroke="#2a2620" stroke-width="1.4"/>
+            <circle cx="-58" cy="12"  r="8" fill="none" stroke="#2a2620" stroke-width="1.4"/>
+            <circle cx="-58" cy="30"  r="8" fill="none" stroke="#2a2620" stroke-width="1.4"/>
+          </g>
         </g>
       </g>
     </svg>
 
+    <!-- Anamorphic lens flare streak (Death Star reveal moment) -->
+    <div id="launch-lensflare" class="clip" data-start="2" data-duration="0.8" data-track-index="8"
+         data-layout-allow-overflow
+         style="position:absolute;left:-200px;top:50%;width:2400px;height:6px;
+                transform:translateY(-50%);
+                background:linear-gradient(90deg,
+                  rgba(255,255,255,0) 0%,
+                  rgba(255,255,255,0.15) 20%,
+                  rgba(255,255,255,1) 50%,
+                  rgba(255,255,255,0.15) 80%,
+                  rgba(255,255,255,0) 100%);
+                filter:blur(2.5px);
+                mix-blend-mode:screen;
+                opacity:0;
+                pointer-events:none;"></div>
+
     <!-- Comms HUD overlay (cel-shaded targeting-computer chip) -->
-    <div id="launch-hud" class="clip" data-start="0" data-duration="6" data-track-index="5"
+    <div id="launch-hud" class="clip" data-start="0" data-duration="6" data-track-index="9"
          data-layout-allow-overflow
          style="position:absolute;left:96px;bottom:120px;width:560px;
                 font-family:'Helvetica Neue','Arial',sans-serif;color:#9FE9FF;
@@ -258,7 +483,57 @@
       <span style="position:absolute;right:6px;bottom:4px;font-size:18px;color:#9FE9FF;opacity:0.85;">]</span>
       <div style="opacity:0.65;font-size:14px;margin-bottom:0.45em;letter-spacing:0.18em;">RED LEADER</div>
       <div style="font-size:21px;">All wings, report in.</div>
+
+      <!-- Multi-line readout below -->
+      <div style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(159,233,255,0.35);
+                  font-size:13px;letter-spacing:0.20em;opacity:0.85;line-height:1.7;">
+        <div>RED FLEET</div>
+        <div>12 SHIPS</div>
+        <div style="color:#FF3030;">TARGET LOCKED</div>
+      </div>
     </div>
+
+    <!-- Mini-radar HUD (bracketed, sweeping radius) -->
+    <svg id="launch-radar" class="clip" data-start="0" data-duration="6" data-track-index="10"
+         data-layout-allow-overflow
+         viewBox="0 0 160 160"
+         style="position:absolute;right:96px;bottom:120px;width:160px;height:160px;
+                opacity:0;font-family:'Helvetica Neue','Arial',sans-serif;">
+      <!-- Bracket corners -->
+      <path d="M 4,18 L 4,4 L 18,4" fill="none" stroke="#9FE9FF" stroke-width="1.4" opacity="0.85"/>
+      <path d="M 142,4 L 156,4 L 156,18" fill="none" stroke="#9FE9FF" stroke-width="1.4" opacity="0.85"/>
+      <path d="M 156,142 L 156,156 L 142,156" fill="none" stroke="#9FE9FF" stroke-width="1.4" opacity="0.85"/>
+      <path d="M 18,156 L 4,156 L 4,142" fill="none" stroke="#9FE9FF" stroke-width="1.4" opacity="0.85"/>
+
+      <!-- Radar background -->
+      <rect x="4" y="4" width="152" height="152" fill="rgba(10,20,40,0.55)" opacity="0.9"/>
+
+      <!-- Concentric circles -->
+      <circle cx="80" cy="80" r="60" fill="none" stroke="#9FE9FF" stroke-width="0.8" opacity="0.45"/>
+      <circle cx="80" cy="80" r="42" fill="none" stroke="#9FE9FF" stroke-width="0.6" opacity="0.35"/>
+      <circle cx="80" cy="80" r="24" fill="none" stroke="#9FE9FF" stroke-width="0.6" opacity="0.30"/>
+      <circle cx="80" cy="80" r="6"  fill="#9FE9FF" opacity="0.85"/>
+
+      <!-- Crosshair grid -->
+      <line x1="20" y1="80" x2="140" y2="80" stroke="#9FE9FF" stroke-width="0.4" opacity="0.30"/>
+      <line x1="80" y1="20" x2="80" y2="140" stroke="#9FE9FF" stroke-width="0.4" opacity="0.30"/>
+
+      <!-- Static blip dots (allies + target) -->
+      <circle cx="62" cy="98" r="2.2" fill="#9FE9FF" opacity="0.95"/>
+      <circle cx="48" cy="106" r="1.8" fill="#9FE9FF" opacity="0.85"/>
+      <circle cx="118" cy="44" r="2.4" fill="#FF3030" opacity="0.95"/>
+
+      <!-- Sweeping radius line (rotates over 6s) -->
+      <g id="radar-sweep" style="transform-origin:80px 80px;transform-box:view-box;">
+        <line x1="80" y1="80" x2="80" y2="20" stroke="#9FE9FF" stroke-width="1.2" opacity="0.95"/>
+        <path d="M 80,80 L 80,20 A 60 60 0 0 1 130,52 Z"
+              fill="#9FE9FF" opacity="0.18"/>
+      </g>
+
+      <!-- Label -->
+      <text x="80" y="150" fill="#9FE9FF" font-size="9" letter-spacing="2"
+            text-anchor="middle" opacity="0.75">SCAN</text>
+    </svg>
 
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/MotionPathPlugin.min.js"></script>
@@ -266,7 +541,7 @@
       (function () {
         gsap.registerPlugin(MotionPathPlugin);
 
-        // Deterministic starfield
+        // Deterministic PRNG
         function mulberry32(seed) {
           return function () {
             let t = (seed += 0x6d2b79f5);
@@ -322,6 +597,28 @@
           svg.appendChild(v);
         }
 
+        // Pre-build speed streak rects (deterministic, seeded), 10 streaks
+        const streakSvg = document.getElementById("launch-streaks");
+        const streakRnd = mulberry32(0xb015704);
+        const STREAK_COUNT = 10;
+        const streaks = [];
+        for (let i = 0; i < STREAK_COUNT; i++) {
+          const y = 80 + streakRnd() * 920;          // 80..1000
+          const w = 200 + streakRnd() * 200;         // 200..400
+          const h = streakRnd() < 0.5 ? 1 : 2;
+          const startT = streakRnd();                // 0..1 within window
+          const dur = 0.4 + streakRnd() * 0.2;       // 0.4..0.6
+          const r = document.createElementNS(ns, "rect");
+          r.setAttribute("x", "2000");
+          r.setAttribute("y", y.toFixed(1));
+          r.setAttribute("width", w.toFixed(1));
+          r.setAttribute("height", h);
+          r.setAttribute("fill", "#FFFFFF");
+          r.setAttribute("opacity", "0.6");
+          streakSvg.appendChild(r);
+          streaks.push({ el: r, w: w, startT: startT, dur: dur });
+        }
+
         window.__timelines = window.__timelines || {};
         const tl = gsap.timeline({ paused: true });
 
@@ -331,13 +628,23 @@
         tl.fromTo("#launch-stars",  { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 0.1);
         tl.fromTo("#launch-yavin",  { opacity: 0 }, { opacity: 1, duration: 1.0, ease: "power2.out" }, 0.2);
 
+        // Death Star slow reveal: t=1 → t=3, ending at 0.92
+        tl.fromTo("#launch-deathstar",
+          { opacity: 0 },
+          { opacity: 0.92, duration: 2.0, ease: "power2.out" }, 1.0);
+        // Death Star very-slow drift toward upper-left over the full 6s
+        tl.fromTo("#launch-deathstar",
+          { x: 0, y: 0 },
+          { x: -20, y: -10, duration: 6, ease: "none" }, 0);
+
         // Camera parallax: starfield drifts -120px over 6s; nebula and Yavin drift slower
         tl.to("#launch-stars",  { x: -120, duration: 6, ease: "none" }, 0);
         tl.to("#launch-nebula", { x: -60,  duration: 6, ease: "none" }, 0);
         tl.to("#launch-yavin",  { x: -40,  duration: 6, ease: "none" }, 0);
 
-        // X-Wing flies along the curved path, rotating to align (origin at nose)
+        // X-Wing (lead) flies along the curved path, rotating to align (origin at nose)
         gsap.set("#xwing", { transformOrigin: "0% 50%" });
+        gsap.set("#xwing-bank", { transformOrigin: "0% 50%" });
         tl.to("#xwing", {
           duration: 4.6,
           ease: "power1.inOut",
@@ -348,6 +655,12 @@
             autoRotate: true
           }
         }, 0.6);
+
+        // Banking maneuver on lead X-Wing (~t=2.8s) — roll +15deg over 0.3s, back over 0.4s
+        tl.to("#xwing-bank",
+          { rotation: 15, duration: 0.3, ease: "power2.inOut" }, 2.8);
+        tl.to("#xwing-bank",
+          { rotation: 0, duration: 0.4, ease: "power2.inOut" }, 3.1);
 
         // Engine glow throb (yoyo, finite repeat — 12 half-cycles ≈ 5.4s of pulsing)
         tl.fromTo("#xw-engines",
@@ -378,6 +691,26 @@
         tl.to("#xw-trail",
           { opacity: 0, duration: 0.6, ease: "power2.in" }, 5.0);
 
+        // Particle burst at engine ignition (t=0.6 — when ship emerges)
+        // 8 cyan particles fly outward radially over 0.5s, fade.
+        const igPartRnd = mulberry32(0x16711015);
+        tl.fromTo("#xw-ignition",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.05, ease: "none" }, 0.6);
+        for (let i = 0; i < 8; i++) {
+          const ang = (i / 8) * Math.PI * 2 + igPartRnd() * 0.4;
+          const dist = 38 + igPartRnd() * 18;
+          const dx = Math.cos(ang) * dist;
+          const dy = Math.sin(ang) * dist;
+          tl.fromTo("#ig-p" + i,
+            { x: 0, y: 0, scale: 1, opacity: 1 },
+            { x: dx, y: dy, scale: 0.3, opacity: 0,
+              duration: 0.5, ease: "power2.out",
+              transformOrigin: "-58px 0px" }, 0.6);
+        }
+        tl.to("#xw-ignition",
+          { opacity: 0, duration: 0.05, ease: "none" }, 1.15);
+
         // One-shot lens-flare burst at peak (~t=3s), anchored to engine cluster
         tl.fromTo("#xw-flare",
           { opacity: 0, scale: 0.0, transformOrigin: "-58px 0px" },
@@ -385,10 +718,82 @@
         tl.to("#xw-flare",
           { opacity: 0, scale: 1.4, duration: 0.55, ease: "power2.in" }, 3.30);
 
+        // Wingmate X-Wing — same flight, parallel offset path, scale 0.7, starts at 0.7s
+        gsap.set("#xwing-wing", { transformOrigin: "0% 50%", scale: 0.7 });
+        tl.to("#xwing-wing", {
+          duration: 4.6,
+          ease: "power1.inOut",
+          motionPath: {
+            path: "#xw-path-wing",
+            align: "#xw-path-wing",
+            alignOrigin: [0.5, 0.5],
+            autoRotate: true
+          }
+        }, 0.7);
+        // Engine pulse on wingmate
+        tl.fromTo("#xw-engines-wing",
+          { opacity: 0.7, scale: 0.92, transformOrigin: "-58px 0px" },
+          { opacity: 0.95, scale: 1.10, duration: 0.45, ease: "sine.inOut",
+            yoyo: true, repeat: 11 }, 0.7);
+        tl.fromTo("#xw-engine-cores-wing",
+          { opacity: 0.9, scale: 1.0, transformOrigin: "-58px 0px" },
+          { opacity: 0.55, scale: 1.30, duration: 0.15, ease: "steps(1)",
+            yoyo: true, repeat: 35 }, 0.7);
+        // Wingmate engine trail
+        tl.to("#xw-trail-wing", {
+          duration: 4.6,
+          ease: "power1.inOut",
+          motionPath: {
+            path: "#xw-path-wing",
+            align: "#xw-path-wing",
+            alignOrigin: [0.85, 0.5],
+            autoRotate: true
+          }
+        }, 0.7);
+        tl.fromTo("#xw-trail-wing",
+          { opacity: 0 },
+          { opacity: 0.5, duration: 0.5, ease: "power2.out" }, 0.8);
+        tl.to("#xw-trail-wing",
+          { opacity: 0, duration: 0.6, ease: "power2.in", overwrite: "auto" }, 5.0);
+
+        // Anime speed streaks during t=2.0 → t=4.5 (window 2.5s wide, base offset = 2.0)
+        // Each streak's startT is 0..1 mapped into the 2.5s window.
+        for (let i = 0; i < STREAK_COUNT; i++) {
+          const s = streaks[i];
+          const startTime = 2.0 + s.startT * (2.5 - s.dur);
+          tl.fromTo(s.el,
+            { x: 0, opacity: 0 },
+            { x: -2200 - s.w, opacity: 0.6, duration: s.dur, ease: "power1.in" },
+            startTime);
+          // fade out at end
+          tl.to(s.el,
+            { opacity: 0, duration: 0.1, ease: "none" },
+            startTime + s.dur - 0.1);
+        }
+
+        // Death Star reveal anamorphic flare (t=2s, brief flash)
+        tl.fromTo("#launch-lensflare",
+          { opacity: 0, scaleX: 0.6 },
+          { opacity: 0.5, scaleX: 1.0, duration: 0.2, ease: "power2.out",
+            transformOrigin: "50% 50%" }, 2.0);
+        tl.to("#launch-lensflare",
+          { opacity: 0, scaleX: 1.1, duration: 0.3, ease: "power2.in",
+            transformOrigin: "50% 50%", overwrite: "auto" }, 2.2);
+
         // HUD callout fades in
         tl.fromTo("#launch-hud",
           { opacity: 0, y: 20 },
           { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 1.6);
+
+        // Mini-radar fades in shortly after HUD
+        tl.fromTo("#launch-radar",
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 1.9);
+        // Radar sweep — full 360 rotation over 6s (linear)
+        tl.fromTo("#radar-sweep",
+          { rotation: 0, transformOrigin: "80px 80px" },
+          { rotation: 360, duration: 6, ease: "none",
+            transformOrigin: "80px 80px" }, 0);
 
         window.__timelines["scene-launch"] = tl;
       })();
