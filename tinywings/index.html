@@ -1339,35 +1339,34 @@
       e.currentTarget.textContent = G.muted ? "sound · off" : "sound · on";
       e.currentTarget.setAttribute("aria-pressed", G.muted ? "true" : "false");
     });
-    // Restart wiring fires on pointerdown (instant on mobile) AND
-    // touchstart (some Android browsers don't fire pointerdown on
-    // overlay buttons reliably). stopPropagation keeps the canvas's
-    // own listeners from re-firing as a "begin dive" tap. click is
-    // kept for keyboard / a11y.
-    function wireRestart(el, fn) {
-      let fired = 0;
-      const handler = e => {
-        e.preventDefault();
-        e.stopPropagation();
-        // Debounce — pointerdown + touchstart + click can all fire
-        // for one tap, and we don't want three restarts in a row.
-        const now = performance.now();
-        if (now - fired < 250) return;
-        fired = now;
-        fn();
-      };
-      el.addEventListener("pointerdown", handler);
-      el.addEventListener("touchstart", handler, { passive: false });
-      el.addEventListener("click", handler);
-    }
-    wireRestart(document.getElementById("restartBtn"), startGame);
-    // Manual restart button in the footer — escape hatch when end-game
-    // detection misses a stuck state. Always wins; no confirmation.
-    wireRestart(document.getElementById("manualRestartBtn"), () => {
-      // Force gameOver so endRun()'s guard doesn't re-fire mid-restart
-      G.gameOver = true;
+    // Restart wiring is intentionally aggressive — iOS Safari has
+    // a hostile relationship with overlay buttons inside touch-action:
+    // none ancestors. Per-element pointerdown/click listeners would
+    // miss taps on iOS standalone PWA mode. Capture-phase document
+    // listeners fire BEFORE any per-element handler can swallow them.
+    //
+    // Strategy: listen at document, check target.closest, debounce so
+    // the touchend → click cascade fires only once per tap.
+    let _lastRestart = 0;
+    function tryRestart(e) {
+      const t = e.target;
+      if (!t || !t.closest) return;
+      const r = t.closest("#restartBtn");
+      const m = t.closest("#manualRestartBtn");
+      if (!r && !m) return;
+      const now = performance.now();
+      if (now - _lastRestart < 350) { e.preventDefault(); e.stopPropagation(); return; }
+      _lastRestart = now;
+      e.preventDefault();
+      e.stopPropagation();
+      if (m) G.gameOver = true; // manual: bypass endRun guard
       startGame();
-    });
+    }
+    // touchend is iOS Safari's most reliable tap signal. pointerup is
+    // the modern equivalent. click is the keyboard/a11y fallback.
+    document.addEventListener("touchend", tryRestart, true);
+    document.addEventListener("pointerup", tryRestart, true);
+    document.addEventListener("click", tryRestart, true);
 
     // Keyboard alt — space/up = pitch down, mirrors tap
     window.addEventListener("keydown", e => {
