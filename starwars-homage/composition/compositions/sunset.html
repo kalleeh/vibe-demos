@@ -29,59 +29,31 @@
          viewBox="0 0 1920 1080" preserveAspectRatio="none"
          style="position:absolute;inset:0;width:100%;height:100%;">
       <defs>
-        <!-- 7-stop painterly band (top→bottom). Hard transitions between bands fake
-             posterized cel-paint. Stops are paired close together (e.g. 19/20%) to
-             create a near-flat band edge instead of smooth ramps. -->
+        <!-- Warm-only banded sky (top→bottom). Paired stops at 49/50% pairs
+             posterize the gradient into cel-paint bands matching the project's
+             sketchbook visual vocabulary. Zero blue anywhere. -->
         <linearGradient id="sky-band" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stop-color="#2a0e1a"/>
-          <stop offset="19%"  stop-color="#2a0e1a"/>
-          <stop offset="20%"  stop-color="#4a1620"/>
-          <stop offset="36%"  stop-color="#6e2417"/>
-          <stop offset="37%"  stop-color="#8a3019"/>
-          <stop offset="55%"  stop-color="#c45627"/>
-          <stop offset="56%"  stop-color="#d96930"/>
-          <stop offset="74%"  stop-color="#FFB347"/>
-          <stop offset="75%"  stop-color="#FFC059"/>
-          <stop offset="92%"  stop-color="#FFD27A"/>
-          <stop offset="100%" stop-color="#f4d49a"/>
+          <stop offset="0%"   stop-color="#3A1B5A"/>
+          <stop offset="24%"  stop-color="#3A1B5A"/>
+          <stop offset="25%"  stop-color="#4D2466"/>
+          <stop offset="44%"  stop-color="#7A3F8C"/>
+          <stop offset="45%"  stop-color="#9A4A88"/>
+          <stop offset="62%"  stop-color="#E55C8A"/>
+          <stop offset="63%"  stop-color="#F07A78"/>
+          <stop offset="80%"  stop-color="#FF9560"/>
+          <stop offset="81%"  stop-color="#FFB347"/>
+          <stop offset="100%" stop-color="#FFC470"/>
         </linearGradient>
-        <!-- Faint film-grain banding overlay -->
+        <!-- Faint film-grain banding overlay (warm-only) -->
         <linearGradient id="sky-film" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%"   stop-color="#000000" stop-opacity="0.18"/>
           <stop offset="40%"  stop-color="#000000" stop-opacity="0"/>
           <stop offset="60%"  stop-color="#FFD27A" stop-opacity="0"/>
           <stop offset="100%" stop-color="#FFB347" stop-opacity="0.08"/>
         </linearGradient>
-        <!-- Approaching-night blue rim at the very top -->
-        <linearGradient id="sky-night-rim" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"  stop-color="#1a2a55" stop-opacity="0.55"/>
-          <stop offset="40%" stop-color="#1a2a55" stop-opacity="0"/>
-        </linearGradient>
       </defs>
       <rect x="0" y="0" width="1920" height="1080" fill="url(#sky-band)"/>
       <rect x="0" y="0" width="1920" height="1080" fill="url(#sky-film)"/>
-      <rect id="sunset-night-rim" x="0" y="0" width="1920" height="320" fill="url(#sky-night-rim)" opacity="0.35"/>
-    </svg>
-
-    <!-- =========================================================
-         STARS — 10 faint pinpricks high in the deep-plum band.
-         Fade in t=4..6s. Distinct group so we can target it cleanly.
-         ========================================================= -->
-    <svg id="sunset-stars" class="clip" data-start="0" data-duration="8" data-track-index="1"
-         viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
-         style="position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none;">
-      <g fill="#F5F5F5">
-        <circle class="star" cx="180"  cy="60"  r="1.4" opacity="0.85"/>
-        <circle class="star" cx="320"  cy="120" r="1.0" opacity="0.65"/>
-        <circle class="star" cx="540"  cy="80"  r="1.2" opacity="0.75"/>
-        <circle class="star" cx="780"  cy="160" r="0.9" opacity="0.60"/>
-        <circle class="star" cx="980"  cy="50"  r="1.5" opacity="0.90"/>
-        <circle class="star" cx="1180" cy="140" r="1.0" opacity="0.65"/>
-        <circle class="star" cx="1380" cy="90"  r="1.3" opacity="0.80"/>
-        <circle class="star" cx="1560" cy="180" r="0.8" opacity="0.55"/>
-        <circle class="star" cx="1700" cy="70"  r="1.1" opacity="0.70"/>
-        <circle class="star" cx="1820" cy="150" r="1.4" opacity="0.85"/>
-      </g>
     </svg>
 
     <!-- =========================================================
@@ -108,11 +80,11 @@
           <stop offset="50%"  stop-color="#d96930" stop-opacity="0.50"/>
           <stop offset="100%" stop-color="#c45627" stop-opacity="0"/>
         </linearGradient>
-        <!-- Deep plum cloud — high, near-night band -->
+        <!-- Magenta cloud — high band -->
         <linearGradient id="cloud-plum" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%"   stop-color="#4a1620" stop-opacity="0"/>
-          <stop offset="50%"  stop-color="#6e2417" stop-opacity="0.45"/>
-          <stop offset="100%" stop-color="#4a1620" stop-opacity="0"/>
+          <stop offset="0%"   stop-color="#7A3F8C" stop-opacity="0"/>
+          <stop offset="50%"  stop-color="#9A4A88" stop-opacity="0.40"/>
+          <stop offset="100%" stop-color="#7A3F8C" stop-opacity="0"/>
         </linearGradient>
       </defs>
       <!-- Highest, deep plum band -->
@@ -138,7 +110,7 @@
     <svg id="sunset-dust" class="clip" data-start="0" data-duration="8" data-track-index="3"
          viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
          style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;">
-      <g fill="none" stroke="#FFD27A" stroke-linecap="round" opacity="0.30">
+      <g fill="none" stroke="#FFB347" stroke-linecap="round" opacity="0.30">
         <path class="dust-streak" d="M 200,720 Q 360,716 520,722"  stroke-width="1.2"/>
         <path class="dust-streak" d="M 760,742 Q 920,738 1080,744" stroke-width="1.0"/>
         <path class="dust-streak" d="M 1280,712 Q 1440,708 1600,716" stroke-width="1.4"/>
@@ -156,17 +128,17 @@
          style="position:absolute;inset:0;width:100%;height:100%;filter:blur(40px);mix-blend-mode:screen;">
       <defs>
         <radialGradient id="halo-a" cx="50%" cy="50%" r="50%">
-          <stop offset="0%"  stop-color="#FFD27A" stop-opacity="0.85"/>
+          <stop offset="0%"  stop-color="#FFE8A8" stop-opacity="0.85"/>
           <stop offset="60%" stop-color="#FFB347" stop-opacity="0.40"/>
           <stop offset="100%" stop-color="#FFB347" stop-opacity="0"/>
         </radialGradient>
         <radialGradient id="halo-b" cx="50%" cy="50%" r="50%">
-          <stop offset="0%"  stop-color="#FFB57A" stop-opacity="0.70"/>
-          <stop offset="100%" stop-color="#c45627" stop-opacity="0"/>
+          <stop offset="0%"  stop-color="#FF8A4C" stop-opacity="0.70"/>
+          <stop offset="100%" stop-color="#E55C3A" stop-opacity="0"/>
         </radialGradient>
       </defs>
-      <circle id="sun-glow-a" cx="980"  cy="700" r="380" fill="url(#halo-a)" data-layout-allow-overflow/>
-      <circle id="sun-glow-b" cx="1080" cy="730" r="280" fill="url(#halo-b)" data-layout-allow-overflow/>
+      <circle id="sun-glow-a" cx="900"  cy="640" r="320" fill="url(#halo-a)" data-layout-allow-overflow/>
+      <circle id="sun-glow-b" cx="1280" cy="700" r="220" fill="url(#halo-b)" data-layout-allow-overflow/>
     </svg>
 
     <!-- =========================================================
@@ -185,9 +157,9 @@
           <stop offset="100%" stop-color="#FFB347" stop-opacity="0"/>
         </linearGradient>
       </defs>
-      <!-- Group anchored at primary sun (cx=980, cy=700). Six spokes
+      <!-- Group anchored at primary sun (cx=900, cy=640). Six spokes
            radiate outward; rotation transform is animated on this group. -->
-      <g id="sunset-corona-spokes" transform="translate(980 700) rotate(0)" filter="blur(8px)">
+      <g id="sunset-corona-spokes" transform="translate(900 640) rotate(0)" filter="blur(8px)">
         <!-- Each spoke: tall thin rect drawn from -540..+540 vertically,
              rotated in 60deg increments so they form a 6-spoke star. -->
         <rect x="-22" y="-540" width="44" height="1080" fill="url(#corona-spoke)" transform="rotate(0)"/>
@@ -207,27 +179,27 @@
          data-layout-allow-overflow
          style="position:absolute;inset:0;width:100%;height:100%;">
       <defs>
-        <!-- HARD stops: white core 0-40%, sharp shift to apricot at 41%, fade out 90-100%. -->
+        <!-- Primary: cream-yellow cel disc with hard core/halo edge. -->
         <radialGradient id="sun-a" cx="50%" cy="50%" r="50%">
-          <stop offset="0%"   stop-color="#FFF4D6"/>
-          <stop offset="40%"  stop-color="#FFF4D6"/>
-          <stop offset="41%"  stop-color="#FFD27A"/>
-          <stop offset="70%"  stop-color="#FFB347"/>
+          <stop offset="0%"   stop-color="#FFE8A8"/>
+          <stop offset="60%"  stop-color="#FFE8A8"/>
+          <stop offset="61%"  stop-color="#FFB347"/>
           <stop offset="90%"  stop-color="#FFB347" stop-opacity="0.55"/>
           <stop offset="100%" stop-color="#FFB347" stop-opacity="0"/>
         </radialGradient>
+        <!-- Secondary: red-orange cel disc, visibly hotter than primary. -->
         <radialGradient id="sun-b" cx="50%" cy="50%" r="50%">
-          <stop offset="0%"   stop-color="#FFE6C0"/>
-          <stop offset="50%"  stop-color="#FFE6C0"/>
-          <stop offset="51%"  stop-color="#FFB57A"/>
-          <stop offset="90%"  stop-color="#c45627" stop-opacity="0.4"/>
-          <stop offset="100%" stop-color="#c45627" stop-opacity="0"/>
+          <stop offset="0%"   stop-color="#FF8A4C"/>
+          <stop offset="62%"  stop-color="#FF8A4C"/>
+          <stop offset="63%"  stop-color="#E55C3A"/>
+          <stop offset="90%"  stop-color="#E55C3A" stop-opacity="0.55"/>
+          <stop offset="100%" stop-color="#E55C3A" stop-opacity="0"/>
         </radialGradient>
       </defs>
-      <!-- Smaller companion sun, tucked behind primary, lower-right -->
-      <circle id="sun-b-disc" cx="1080" cy="730" r="95" fill="url(#sun-b)" data-layout-allow-overflow/>
-      <!-- Primary sun -->
-      <circle id="sun-a-disc" cx="980"  cy="700" r="150" fill="url(#sun-a)" data-layout-allow-overflow/>
+      <!-- Smaller red-orange companion sun, lower-right of primary, ~1.5x primary diameter away -->
+      <circle id="sun-b-disc" cx="1280" cy="700" r="80"  fill="url(#sun-b)" data-layout-allow-overflow/>
+      <!-- Primary cream-yellow sun, upper-left -->
+      <circle id="sun-a-disc" cx="900"  cy="640" r="120" fill="url(#sun-a)" data-layout-allow-overflow/>
     </svg>
 
     <!-- =========================================================
@@ -236,11 +208,11 @@
          ========================================================= -->
     <div id="sunset-sun-shimmer" class="clip" data-start="0" data-duration="8" data-track-index="7"
          data-layout-allow-overflow
-         style="position:absolute;left:43%;top:60%;width:18%;height:8%;
+         style="position:absolute;left:42%;top:56%;width:28%;height:10%;
                 background:radial-gradient(ellipse at 50% 50%,
-                  rgba(255,236,200,0.35) 0%,
-                  rgba(255,200,140,0.18) 55%,
-                  rgba(255,180,90,0) 100%);
+                  rgba(255,232,168,0.30) 0%,
+                  rgba(255,180,90,0.16) 55%,
+                  rgba(229,92,58,0) 100%);
                 filter:blur(4px);mix-blend-mode:screen;opacity:0.7;
                 pointer-events:none;"></div>
 
@@ -289,31 +261,31 @@
             fill="#8a5a44"/>
       <!-- BACK dune warm rim -->
       <path d="M0,790 C220,770 380,810 580,800 C780,790 940,762 1180,772 C1420,782 1620,800 1920,792"
-            fill="none" stroke="#FFD27A" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>
+            fill="none" stroke="#FFB347" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>
 
       <!-- MID dune body (russet) -->
       <path d="M0,840 C200,818 420,866 660,852 C880,840 1120,810 1360,832 C1580,852 1760,838 1920,842 L1920,1080 L0,1080 Z"
             fill="#6e3a2a"/>
       <!-- MID dune warm rim -->
       <path d="M0,840 C200,818 420,866 660,852 C880,840 1120,810 1360,832 C1580,852 1760,838 1920,842"
-            fill="none" stroke="#FFD27A" stroke-width="2.5" stroke-linecap="round" opacity="0.78"/>
+            fill="none" stroke="#FFB347" stroke-width="2.5" stroke-linecap="round" opacity="0.78"/>
 
       <!-- MID-NEAR dune body (dark sienna) -->
       <path d="M0,872 C220,852 460,898 700,886 C940,876 1140,852 1380,870 C1620,888 1800,876 1920,876 L1920,1080 L0,1080 Z"
             fill="#3a1a18"/>
       <!-- MID-NEAR warm rim -->
       <path d="M0,872 C220,852 460,898 700,886 C940,876 1140,852 1380,870 C1620,888 1800,876 1920,876"
-            fill="none" stroke="#FFD27A" stroke-width="2.5" stroke-linecap="round" opacity="0.70"/>
+            fill="none" stroke="#FFB347" stroke-width="2.5" stroke-linecap="round" opacity="0.70"/>
 
       <!-- NEAR dune body (near-black) -->
       <path d="M0,902 C260,872 460,932 720,920 C980,910 1180,880 1420,900 C1660,922 1820,910 1920,910 L1920,1080 L0,1080 Z"
             fill="#1f0d10"/>
       <!-- NEAR dune warm rim -->
       <path d="M0,902 C260,872 460,932 720,920 C980,910 1180,880 1420,900 C1660,922 1820,910 1920,910"
-            fill="none" stroke="#FFD27A" stroke-width="3" stroke-linecap="round" opacity="0.65"/>
+            fill="none" stroke="#FFB347" stroke-width="3" stroke-linecap="round" opacity="0.65"/>
       <!-- NEAR dune contour ink (Clone Wars bold silhouette stroke) -->
       <path d="M0,902 C260,872 460,932 720,920 C980,910 1180,880 1420,900 C1660,922 1820,910 1920,910"
-            fill="none" stroke="#0A0A0A" stroke-width="1.5" stroke-linecap="round" opacity="0.55"/>
+            fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" opacity="0.55"/>
     </svg>
 
     <!-- =========================================================
@@ -363,21 +335,21 @@
                  L 26,-22
                  C 28,-32 22,-44 10,-44
                  L -10,-44 Z"
-              fill="#0A0A0A" stroke="#0A0A0A" stroke-width="1.5" stroke-linejoin="round"/>
+              fill="#000000" stroke="#000000" stroke-width="1.5" stroke-linejoin="round"/>
 
         <!-- ARMS RAISED holding macrobinoculars: two arm strokes
              coming forward from shoulders, meeting at face height.
              Drawn as thick strokes for silhouette consistency. -->
         <path d="M -28,-6 C -22,-12 -14,-22 -8,-30"
-              fill="none" stroke="#0A0A0A" stroke-width="9"
+              fill="none" stroke="#000000" stroke-width="9"
               stroke-linecap="round" stroke-linejoin="round"/>
         <path d="M  28,-6 C  22,-12  14,-22  8,-30"
-              fill="none" stroke="#0A0A0A" stroke-width="9"
+              fill="none" stroke="#000000" stroke-width="9"
               stroke-linecap="round" stroke-linejoin="round"/>
 
         <!-- MACROBINOCULARS — small horizontal rectangle between
              hands at face height. Two cylinders + bridge. -->
-        <rect x="-12" y="-36" width="24" height="9" fill="#0A0A0A" stroke="#0A0A0A" stroke-width="1.2"/>
+        <rect x="-12" y="-36" width="24" height="9" fill="#000000" stroke="#000000" stroke-width="1.2"/>
         <rect x="-13" y="-34" width="3"  height="5" fill="#1a1a1a"/>
         <rect x="10"  y="-34" width="3"  height="5" fill="#1a1a1a"/>
         <!-- Tiny warm catch-light kiss on the front of each barrel -->
@@ -387,7 +359,7 @@
         <!-- Hem ripple — overlaid path morphed via attr d. -->
         <path id="luke-hem"
               d="M -44,72 C -30,76 -14,74 0,76 C 14,78 30,76 44,72 L 46,86 L -46,86 Z"
-              fill="#0A0A0A"/>
+              fill="#000000"/>
 
         <!-- Warm rim on the top edge (hood crown + shoulders + arms).
              Cel-style key-light kiss — 1.5px stroke, opacity 0.85. -->
@@ -395,20 +367,20 @@
                  C -28,-32 -22,-44 -10,-44
                  L 10,-44
                  C 22,-44 28,-32 22,-22"
-              fill="none" stroke="#FFD27A" stroke-width="1.5"
+              fill="none" stroke="#FFB347" stroke-width="1.5"
               stroke-linecap="round" opacity="0.85"/>
         <path d="M -34,8 C -28,12 -22,14 -16,14"
-              fill="none" stroke="#FFD27A" stroke-width="1.5"
+              fill="none" stroke="#FFB347" stroke-width="1.5"
               stroke-linecap="round" opacity="0.85"/>
         <path d="M 16,14 C 22,14 28,12 34,8"
-              fill="none" stroke="#FFD27A" stroke-width="1.5"
+              fill="none" stroke="#FFB347" stroke-width="1.5"
               stroke-linecap="round" opacity="0.85"/>
         <!-- Rim along raised arms -->
         <path d="M -28,-6 C -22,-12 -14,-22 -10,-28"
-              fill="none" stroke="#FFD27A" stroke-width="1.5"
+              fill="none" stroke="#FFB347" stroke-width="1.5"
               stroke-linecap="round" opacity="0.85"/>
         <path d="M  28,-6 C  22,-12  14,-22  10,-28"
-              fill="none" stroke="#FFD27A" stroke-width="1.5"
+              fill="none" stroke="#FFB347" stroke-width="1.5"
               stroke-linecap="round" opacity="0.85"/>
       </g>
     </svg>
@@ -446,16 +418,13 @@
         tl.fromTo("#sunset-dunes",   { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power2.out" }, 0.4);
         tl.fromTo("#sunset-figure",  { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }, 0.6);
 
-        // ----- Twin sun descent over the full 8s (slow, contemplative) -----
-        tl.to("#sun-a-disc", { attr: { cy: 760 }, duration: 8, ease: "power1.in" }, 0);
-        tl.to("#sun-b-disc", { attr: { cy: 800, cx: 1060 }, duration: 8, ease: "power1.in" }, 0);
-        tl.to("#sun-glow-a", { attr: { cy: 760 }, duration: 8, ease: "power1.in" }, 0);
-        tl.to("#sun-glow-b", { attr: { cy: 800, cx: 1060 }, duration: 8, ease: "power1.in" }, 0);
-
-        // ----- Approaching-night blue rim creeps in as suns descend -----
-        tl.fromTo("#sunset-night-rim",
-          { opacity: 0.20 },
-          { opacity: 0.75, duration: 8, ease: "power1.inOut", overwrite: "auto" }, 0);
+        // ----- Twin sun descent over the full 8s (slow, contemplative).
+        // Primary drops from 640 -> 700, secondary 700 -> 740. Suns stay
+        // separated and above the horizon (~752) for the duration. -----
+        tl.to("#sun-a-disc", { attr: { cy: 700 }, duration: 8, ease: "power1.in" }, 0);
+        tl.to("#sun-b-disc", { attr: { cy: 740 }, duration: 8, ease: "power1.in" }, 0);
+        tl.to("#sun-glow-a", { attr: { cy: 700 }, duration: 8, ease: "power1.in" }, 0);
+        tl.to("#sun-glow-b", { attr: { cy: 740 }, duration: 8, ease: "power1.in" }, 0);
 
         // ----- Heat-haze breathing (after fade-in completes); overwrite the fade -----
         tl.to("#sunset-haze",
@@ -514,14 +483,9 @@
 
         // ----- Sun corona slow rotation over 8s (rotation: 360, ease none) -----
         tl.fromTo("#sunset-corona-spokes",
-          { rotation: 0,   transformOrigin: "980px 700px" },
-          { rotation: 360, transformOrigin: "980px 700px",
+          { rotation: 0,   transformOrigin: "900px 640px" },
+          { rotation: 360, transformOrigin: "900px 640px",
             duration: 8, ease: "none", overwrite: "auto" }, 0);
-
-        // ----- Stars peek through: fade in t=4..6s, hold to end -----
-        tl.fromTo("#sunset-stars",
-          { opacity: 0 },
-          { opacity: 0.85, duration: 2.0, ease: "power1.out", overwrite: "auto" }, 4);
 
         // ----- Camera slow push-in (1.0 -> 1.03 over 8s) -----
         tl.fromTo("#sunset-camera",

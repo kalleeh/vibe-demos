@@ -1,7 +1,7 @@
 <template id="scene-launch-template">
   <div data-composition-id="scene-launch" data-width="1920" data-height="1080"
        data-layout-allow-overflow
-       style="position:relative;width:100%;height:100%;overflow:hidden;background:#03030a;">
+       style="position:relative;width:100%;height:100%;overflow:hidden;background:#02030A;">
 
     <!-- Deep space backdrop: 5-stop radial -->
     <div id="launch-bg" class="clip" data-start="0" data-duration="6" data-track-index="0"
@@ -48,16 +48,16 @@
          viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
          style="position:absolute;inset:0;width:100%;height:100%;opacity:0;">
       <defs>
-        <!-- Plated metal sphere — radial with hard cel banding via stops -->
+        <!-- Plated metal sphere — neutral grey lattice, no blue tint -->
         <radialGradient id="ds-grad" cx="35%" cy="38%" r="65%">
-          <stop offset="0%"    stop-color="#b8bdc4"/>
-          <stop offset="22%"   stop-color="#b8bdc4"/>
-          <stop offset="22.5%" stop-color="#9aa1a9"/>
-          <stop offset="48%"   stop-color="#9aa1a9"/>
-          <stop offset="48.5%" stop-color="#6e7780"/>
-          <stop offset="72%"   stop-color="#6e7780"/>
-          <stop offset="72.5%" stop-color="#3f464d"/>
-          <stop offset="100%"  stop-color="#2c3138"/>
+          <stop offset="0%"    stop-color="#5C6068"/>
+          <stop offset="22%"   stop-color="#5C6068"/>
+          <stop offset="22.5%" stop-color="#4F5460"/>
+          <stop offset="48%"   stop-color="#4F5460"/>
+          <stop offset="48.5%" stop-color="#3F4450"/>
+          <stop offset="72%"   stop-color="#3F4450"/>
+          <stop offset="72.5%" stop-color="#2A2E36"/>
+          <stop offset="100%"  stop-color="#1A1D22"/>
         </radialGradient>
         <!-- Light hemisphere clip (left half of the silhouette) -->
         <clipPath id="ds-light-clip">
@@ -69,14 +69,8 @@
         </clipPath>
       </defs>
 
-      <!-- Faint atmospheric haze ring just outside silhouette -->
-      <circle cx="1700" cy="200" r="248" fill="none" stroke="#9fafd0"
-              stroke-width="1" opacity="0.30" data-layout-allow-overflow/>
-      <circle cx="1700" cy="200" r="256" fill="none" stroke="#9fafd0"
-              stroke-width="0.6" opacity="0.18" data-layout-allow-overflow/>
-
       <!-- Dark hemisphere base (full silhouette filled with shadow tone) -->
-      <circle cx="1700" cy="200" r="240" fill="#2c3138" data-layout-allow-overflow/>
+      <circle cx="1700" cy="200" r="240" fill="#1A1D22" data-layout-allow-overflow/>
 
       <!-- Light hemisphere with gradient (clipped to left half) -->
       <g clip-path="url(#ds-light-clip)" data-layout-allow-overflow>
@@ -86,31 +80,28 @@
       <!-- Hard cel terminator line (sharp vertical-ish boundary) -->
       <g clip-path="url(#ds-disk-clip)" data-layout-allow-overflow>
         <!-- Subtle terminator gradient strip to sell hard cel edge -->
-        <rect x="1690" y="-50" width="14" height="500" fill="#1a1d22" opacity="0.55"/>
-        <rect x="1700" y="-50" width="6"  height="500" fill="#0a0c10" opacity="0.65"/>
+        <rect x="1690" y="-50" width="14" height="500" fill="#1A1D22" opacity="0.55"/>
+        <rect x="1700" y="-50" width="6"  height="500" fill="#0E1014" opacity="0.70"/>
 
-        <!-- Equatorial trench lines (1-2 thin dark grey horizontals) -->
-        <line x1="1460" y1="200" x2="1940" y2="200"
-              stroke="#1a1d22" stroke-width="1.4" opacity="0.85"/>
-        <line x1="1460" y1="208" x2="1940" y2="208"
-              stroke="#3f464d" stroke-width="0.8" opacity="0.50"/>
+        <!-- Equatorial trench band (concave groove, darker on dark hemisphere) -->
+        <rect x="1460" y="197" width="240" height="6" fill="#1A1D22" opacity="0.95"/>
+        <rect x="1700" y="197" width="240" height="6" fill="#0E1014" opacity="0.92"/>
+        <line x1="1460" y1="197" x2="1940" y2="197"
+              stroke="#0E1014" stroke-width="0.8" opacity="0.6"/>
+        <line x1="1460" y1="203" x2="1940" y2="203"
+              stroke="#0E1014" stroke-width="0.8" opacity="0.5"/>
 
-        <!-- Superlaser dish: small dark indent in upper-third of lit hemisphere -->
-        <circle cx="1640" cy="130" r="50" fill="#3f464d" opacity="0.95"/>
-        <circle cx="1640" cy="130" r="50" fill="none" stroke="#1a1d22" stroke-width="1.4"/>
-        <circle cx="1640" cy="130" r="38" fill="#2c3138" opacity="0.85"/>
-        <circle cx="1640" cy="130" r="22" fill="#6e7780" opacity="0.55"/>
-        <circle cx="1640" cy="130" r="8"  fill="#1a1d22"/>
-        <!-- Crosshair in the dish -->
-        <line x1="1612" y1="130" x2="1668" y2="130"
-              stroke="#1a1d22" stroke-width="0.8" opacity="0.6"/>
-        <line x1="1640" y1="102" x2="1640" y2="158"
-              stroke="#1a1d22" stroke-width="0.8" opacity="0.6"/>
+        <!-- Superlaser dish: clean dark circle in upper hemisphere, no glow -->
+        <circle cx="1640" cy="130" r="50" fill="#0E1014" opacity="0.98"/>
+        <circle cx="1640" cy="130" r="50" fill="none" stroke="#1A1D22" stroke-width="1.4"/>
+        <circle cx="1640" cy="130" r="38" fill="#0E1014" opacity="0.95"/>
+        <circle cx="1640" cy="130" r="22" fill="#1A1D22" opacity="0.85"/>
+        <circle cx="1640" cy="130" r="8"  fill="#0E1014"/>
       </g>
 
       <!-- Outer rim stroke (silhouette definition) -->
       <circle cx="1700" cy="200" r="240" fill="none"
-              stroke="#1a1d22" stroke-width="1.4" opacity="0.85" data-layout-allow-overflow/>
+              stroke="#0E1014" stroke-width="1.4" opacity="0.85" data-layout-allow-overflow/>
     </svg>
 
     <!-- Yavin gas giant -->
@@ -182,8 +173,8 @@
         <ellipse cx="1500" cy="1720" rx="900" ry="26" fill="url(#band-1)" opacity="0.65"/>
         <ellipse cx="1500" cy="1860" rx="900" ry="32" fill="url(#band-3)" opacity="0.55"/>
 
-        <!-- Hard terminator (cel light/shadow boundary) -->
-        <rect x="1280" y="600" width="60" height="1800" fill="url(#terminator)" opacity="0.8"/>
+        <!-- Soft atmospheric terminator (gas-giant scatter, NOT a hard cel edge) -->
+        <rect x="1250" y="600" width="120" height="1800" fill="url(#terminator)" opacity="0.55"/>
         <!-- Shadow side: black ellipse over right 40% -->
         <ellipse cx="1820" cy="1500" rx="640" ry="900" fill="#000000" opacity="0.32"/>
 
@@ -223,6 +214,12 @@
           <stop offset="60%"  stop-color="#FFFFFF" stop-opacity="0.85"/>
           <stop offset="100%" stop-color="#9FE9FF" stop-opacity="0"/>
         </radialGradient>
+        <!-- Rear exhaust trail (red-orange, tapered, fades to transparent) -->
+        <linearGradient id="exhaust-w" x1="100%" y1="50%" x2="0%" y2="50%">
+          <stop offset="0%"   stop-color="#FF8A4C" stop-opacity="0.85"/>
+          <stop offset="45%"  stop-color="#E55C3A" stop-opacity="0.55"/>
+          <stop offset="100%" stop-color="#E55C3A" stop-opacity="0"/>
+        </linearGradient>
         <!-- Wingmate flight path (parallel, offset down + left) -->
         <path id="xw-path-wing" d="M -300,920 C 220,920 620,820 920,660 C 1220,500 1520,360 2020,220"
               fill="none" stroke="none" />
@@ -242,6 +239,12 @@
       <g id="xwing-wing" data-layout-allow-overflow
          style="filter:drop-shadow(0 0 5px rgba(159,233,255,0.30));">
         <g id="xwing-wing-bank">
+          <!-- Rear engine exhaust trails (dual red-orange, paired upper/lower) -->
+          <g id="xw-exhaust-wing" data-layout-allow-overflow
+             style="mix-blend-mode:screen;">
+            <ellipse cx="-92" cy="-21" rx="38" ry="3.4" fill="url(#exhaust-w)"/>
+            <ellipse cx="-92" cy="21"  rx="38" ry="3.4" fill="url(#exhaust-w)"/>
+          </g>
           <!-- Engine glows -->
           <g id="xw-engines-wing" data-layout-allow-overflow>
             <circle cx="-58" cy="-30" r="16" fill="url(#engine-glow-w)"/>
@@ -271,10 +274,8 @@
             <rect x="14" y="36"  width="34" height="3.5" fill="#3a342c" stroke="#0a0806" stroke-width="0.8"/>
             <rect x="14" y="46"  width="34" height="3.5" fill="#2a2620" stroke="#0a0806" stroke-width="0.8"/>
 
-            <rect x="-30" y="-42" width="40" height="3" fill="#FF3030" opacity="0.85"/>
-            <rect x="-30" y="-34" width="40" height="3" fill="#FF3030" opacity="0.85"/>
-            <rect x="-30" y="32"  width="40" height="3" fill="#FF3030" opacity="0.85"/>
-            <rect x="-30" y="40"  width="40" height="3" fill="#FF3030" opacity="0.85"/>
+            <rect x="-30" y="-39" width="40" height="4" fill="#D6342A" opacity="0.92"/>
+            <rect x="-30" y="35"  width="40" height="4" fill="#D6342A" opacity="0.92"/>
 
             <polygon points="-60,-10 36,-8 60,0 36,8 -60,10"
                      fill="#d8d2c4" stroke="#2a2620" stroke-width="1.8" stroke-linejoin="miter"/>
@@ -324,6 +325,12 @@
           <stop offset="60%"  stop-color="#FFFFFF" stop-opacity="0.85"/>
           <stop offset="100%" stop-color="#9FE9FF" stop-opacity="0"/>
         </radialGradient>
+        <!-- Rear exhaust trail (red-orange, tapered, fades to transparent) -->
+        <linearGradient id="exhaust" x1="100%" y1="50%" x2="0%" y2="50%">
+          <stop offset="0%"   stop-color="#FF8A4C" stop-opacity="0.95"/>
+          <stop offset="45%"  stop-color="#E55C3A" stop-opacity="0.60"/>
+          <stop offset="100%" stop-color="#E55C3A" stop-opacity="0"/>
+        </linearGradient>
         <!-- Hidden flight path -->
         <path id="xw-path" d="M -200,820 C 300,820 700,720 1000,560 C 1300,400 1600,260 2120,120"
               fill="none" stroke="none" />
@@ -343,6 +350,13 @@
       <g id="xwing" data-layout-allow-overflow>
         <g id="xwing-bank" data-layout-allow-overflow
            style="filter:drop-shadow(0 0 6px rgba(159,233,255,0.35));">
+
+          <!-- Rear engine exhaust trails (dual red-orange, paired upper/lower) -->
+          <g id="xw-exhaust" data-layout-allow-overflow
+             style="mix-blend-mode:screen;">
+            <ellipse cx="-92" cy="-21" rx="42" ry="3.6" fill="url(#exhaust)"/>
+            <ellipse cx="-92" cy="21"  rx="42" ry="3.6" fill="url(#exhaust)"/>
+          </g>
 
           <!-- Particle burst at engine ignition (radial cyan, fades out) -->
           <g id="xw-ignition" data-layout-allow-overflow style="opacity:0;">
@@ -410,11 +424,9 @@
             <rect x="14" y="36"  width="34" height="3.5" fill="#3a342c" stroke="#0a0806" stroke-width="0.8"/>
             <rect x="14" y="46"  width="34" height="3.5" fill="#2a2620" stroke="#0a0806" stroke-width="0.8"/>
 
-            <!-- Red squadron stripes on each wing -->
-            <rect x="-30" y="-42" width="40" height="3" fill="#FF3030" opacity="0.85"/>
-            <rect x="-30" y="-34" width="40" height="3" fill="#FF3030" opacity="0.85"/>
-            <rect x="-30" y="32"  width="40" height="3" fill="#FF3030" opacity="0.85"/>
-            <rect x="-30" y="40"  width="40" height="3" fill="#FF3030" opacity="0.85"/>
+            <!-- Red squadron stripes — single thicker stripe per wing (canonical Red Five) -->
+            <rect x="-30" y="-39" width="40" height="4" fill="#D6342A" opacity="0.92"/>
+            <rect x="-30" y="35"  width="40" height="4" fill="#D6342A" opacity="0.92"/>
 
             <!-- Fuselage (cigar, narrowing to nose). Lit top, shadow underside -->
             <polygon points="-60,-10 36,-8 60,0 36,8 -60,10"
@@ -668,6 +680,12 @@
           { opacity: 1.0, scale: 1.10, duration: 0.45, ease: "sine.inOut",
             yoyo: true, repeat: 11 }, 0.6);
 
+        // Rear exhaust trail throb (paired red-orange ribbons behind engines)
+        tl.fromTo("#xw-exhaust",
+          { opacity: 0.85, scaleX: 0.92, transformOrigin: "-58px 0px" },
+          { opacity: 1.0,  scaleX: 1.10, duration: 0.45, ease: "sine.inOut",
+            yoyo: true, repeat: 11 }, 0.6);
+
         // Hard cyan flicker on the bright cores every ~0.3s (finite repeat)
         tl.fromTo("#xw-engine-cores",
           { opacity: 1.0, scale: 1.0, transformOrigin: "-58px 0px" },
@@ -734,6 +752,11 @@
         tl.fromTo("#xw-engines-wing",
           { opacity: 0.7, scale: 0.92, transformOrigin: "-58px 0px" },
           { opacity: 0.95, scale: 1.10, duration: 0.45, ease: "sine.inOut",
+            yoyo: true, repeat: 11 }, 0.7);
+        // Wingmate rear exhaust throb
+        tl.fromTo("#xw-exhaust-wing",
+          { opacity: 0.75, scaleX: 0.92, transformOrigin: "-58px 0px" },
+          { opacity: 0.95, scaleX: 1.10, duration: 0.45, ease: "sine.inOut",
             yoyo: true, repeat: 11 }, 0.7);
         tl.fromTo("#xw-engine-cores-wing",
           { opacity: 0.9, scale: 1.0, transformOrigin: "-58px 0px" },

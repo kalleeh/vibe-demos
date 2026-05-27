@@ -1,22 +1,23 @@
 <template id="scene-trench-template">
-  <div data-composition-id="scene-trench" data-width="1920" data-height="1080"
+  <div data-composition-id="scene-trench" data-duration="12" data-width="1920" data-height="1080"
        data-layout-allow-overflow
        style="position:relative;width:100%;height:100%;overflow:hidden;background:#04060a;perspective:900px;perspective-origin:50% 50%;">
 
     <!-- Camera-shake wrapper: every visual layer except the final flash sits inside this so
          turret hits jolt the whole frame uniformly. -->
-    <div id="trench-camera" class="clip" data-start="0" data-duration="8" data-track-index="0"
+    <div id="trench-camera" class="clip" data-start="0" data-duration="12" data-track-index="0"
          data-layout-allow-overflow
          style="position:absolute;inset:0;overflow:hidden;">
 
-      <!-- Vanishing-point glow: hard cyan-white core that grows as we close -->
+      <!-- Vanishing-point glow: warm white core (ANH-1977) that grows as we close.
+           Smaller radius (~240px) so trench walls read clearly against it. -->
       <div id="trench-vp"
-           style="position:absolute;left:50%;top:50%;width:520px;height:520px;
+           style="position:absolute;left:50%;top:50%;width:240px;height:240px;
                   transform:translate(-50%,-50%);
                   background:radial-gradient(circle at 50% 50%,
                     #FFFFFF 0%,
-                    #9FE9FF 30%,
-                    rgba(159,233,255,0) 70%);
+                    #FFE9C8 28%,
+                    rgba(255,233,200,0) 72%);
                   mix-blend-mode:screen;"></div>
 
       <!-- Trench: a 3D stack of perspective rings rendered as concentric quads -->
@@ -72,59 +73,60 @@
         </g>
       </svg>
 
-      <!-- Motion streaks SVG: 24+ thin diagonal cyan lines along floor + walls converging on VP -->
+      <!-- Motion streaks SVG: ~50 thin warm-white blips converging on VP, generated below. -->
       <svg id="trench-streaks"
            viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
            style="position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen;pointer-events:none;">
-        <g stroke="#9FE9FF" stroke-width="2" stroke-linecap="round">
-          <!-- Floor streaks -->
-          <line class="streak" x1="960" y1="540" x2="120"  y2="980"/>
-          <line class="streak" x1="960" y1="540" x2="380"  y2="1020"/>
-          <line class="streak" x1="960" y1="540" x2="640"  y2="1060"/>
-          <line class="streak" x1="960" y1="540" x2="1280" y2="1060"/>
-          <line class="streak" x1="960" y1="540" x2="1540" y2="1020"/>
-          <line class="streak" x1="960" y1="540" x2="1800" y2="980"/>
-          <line class="streak" x1="960" y1="540" x2="240"  y2="900"/>
-          <line class="streak" x1="960" y1="540" x2="1680" y2="900"/>
-          <line class="streak" x1="960" y1="540" x2="60"   y2="1040"/>
-          <line class="streak" x1="960" y1="540" x2="1860" y2="1040"/>
-          <line class="streak" x1="960" y1="540" x2="500"  y2="1075"/>
-          <line class="streak" x1="960" y1="540" x2="1420" y2="1075"/>
-          <!-- Left wall streaks -->
-          <line class="streak" x1="960" y1="540" x2="40"   y2="200"/>
-          <line class="streak" x1="960" y1="540" x2="80"   y2="420"/>
-          <line class="streak" x1="960" y1="540" x2="160"  y2="660"/>
-          <line class="streak" x1="960" y1="540" x2="280"  y2="780"/>
-          <line class="streak" x1="960" y1="540" x2="20"   y2="540"/>
-          <line class="streak" x1="960" y1="540" x2="100"  y2="120"/>
-          <!-- Right wall streaks -->
-          <line class="streak" x1="960" y1="540" x2="1880" y2="200"/>
-          <line class="streak" x1="960" y1="540" x2="1840" y2="420"/>
-          <line class="streak" x1="960" y1="540" x2="1760" y2="660"/>
-          <line class="streak" x1="960" y1="540" x2="1640" y2="780"/>
-          <line class="streak" x1="960" y1="540" x2="1900" y2="540"/>
-          <line class="streak" x1="960" y1="540" x2="1820" y2="120"/>
-          <!-- Ceiling-edge streaks -->
-          <line class="streak" x1="960" y1="540" x2="540"  y2="60"/>
-          <line class="streak" x1="960" y1="540" x2="1380" y2="60"/>
+        <g id="trench-streaks-group" stroke="#FFE9C8" stroke-width="2" stroke-linecap="round" fill="none">
+          <!-- Streak <line> elements injected procedurally with mulberry32. -->
         </g>
       </svg>
 
-      <!-- Exhaust port — small dark recessed cube at vanishing point. -->
+      <!-- Exhaust port — recessed cube at vanishing point, sized so it reads as a target. -->
       <svg id="trench-exhaust"
            viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
            style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;">
         <g transform="translate(960 540)">
-          <!-- Outer recessed frame -->
-          <rect x="-22" y="-22" width="44" height="44" fill="#0a0e14" stroke="#2a323d" stroke-width="1.2"/>
+          <!-- Outer recessed frame (~88px = ~4.6% viewport width) -->
+          <rect x="-44" y="-44" width="88" height="88" fill="#0a0e14" stroke="#2a323d" stroke-width="1.6"/>
           <!-- Inner shadow rim -->
-          <rect x="-18" y="-18" width="36" height="36" fill="#04060a" stroke="#11161d" stroke-width="0.8"/>
+          <rect x="-36" y="-36" width="72" height="72" fill="#04060a" stroke="#11161d" stroke-width="1.0"/>
           <!-- Black inner hole -->
-          <rect id="trench-exhaust-hole" x="-12" y="-12" width="24" height="24" fill="#000000"/>
+          <rect id="trench-exhaust-hole" x="-24" y="-24" width="48" height="48" fill="#000000"/>
           <!-- Red glow halo (faint, ramps up) -->
-          <rect id="trench-exhaust-glow" x="-12" y="-12" width="24" height="24"
-                fill="#FF3030" opacity="0" style="mix-blend-mode:screen;filter:blur(3px);"/>
+          <rect id="trench-exhaust-glow" x="-24" y="-24" width="48" height="48"
+                fill="#FF3030" opacity="0" style="mix-blend-mode:screen;filter:blur(5px);"/>
         </g>
+      </svg>
+
+      <!-- Proton torpedoes — two small white-hot bolts travel from cockpit (bottom-center)
+           into the exhaust port at t=9.5-10.0s. Bright white core, soft warm halo. -->
+      <svg id="trench-torpedoes"
+           viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+           style="position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen;pointer-events:none;">
+        <defs>
+          <radialGradient id="torpedo-halo" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"  stop-color="#FFFFFF" stop-opacity="1"/>
+            <stop offset="40%" stop-color="#FFE9C8" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#FFE9C8" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <g id="torpedo-1" opacity="0" transform="translate(840 980)">
+          <circle r="22" fill="url(#torpedo-halo)"/>
+          <circle r="6"  fill="#FFFFFF"/>
+        </g>
+        <g id="torpedo-2" opacity="0" transform="translate(1080 980)">
+          <circle r="22" fill="url(#torpedo-halo)"/>
+          <circle r="6"  fill="#FFFFFF"/>
+        </g>
+      </svg>
+
+      <!-- Lock flash square — pulses on the exhaust port at the moment of fire. -->
+      <svg id="trench-lockflash"
+           viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
+           style="position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen;pointer-events:none;">
+        <rect id="trench-lockflash-rect" x="916" y="496" width="88" height="88"
+              fill="#FFFFFF" opacity="0"/>
       </svg>
 
       <!-- Laser bolts SVG (4 streaks pulsing toward viewer). Each is layered: cyan halo + red bolt + white core. -->
@@ -170,11 +172,22 @@
         </g>
       </svg>
 
-      <!-- Targeting computer HUD -->
+      <!-- Targeting computer HUD — ANH-1977 amber/orange phosphor -->
       <svg id="trench-hud"
            viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
            style="position:absolute;inset:0;width:100%;height:100%;opacity:0;">
-        <g stroke="#9FE9FF" fill="none" stroke-width="1.5" opacity="0.85">
+        <!-- Soft amber pad behind the central reticle -->
+        <defs>
+          <radialGradient id="hud-pad-grad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"  stop-color="#FFFFFF" stop-opacity="0.55"/>
+            <stop offset="40%" stop-color="#FFB347" stop-opacity="0.32"/>
+            <stop offset="100%" stop-color="#FFB347" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <rect x="660" y="320" width="600" height="440" fill="url(#hud-pad-grad)"
+              style="mix-blend-mode:screen;" opacity="0.9"/>
+
+        <g stroke="#FF8A1C" fill="none" stroke-width="1.5" opacity="0.9">
           <!-- Reticle frame -->
           <rect x="660" y="320" width="600" height="440" rx="0"/>
           <!-- Tick marks -->
@@ -193,7 +206,7 @@
         </g>
 
         <!-- Spinning data widget: top-left -->
-        <g id="hud-widget-tl" transform="translate(220 220)" stroke="#9FE9FF" fill="none" opacity="0.75">
+        <g id="hud-widget-tl" transform="translate(220 220)" stroke="#FF8A1C" fill="none" opacity="0.78">
           <circle r="56" stroke-width="1.2"/>
           <circle r="42" stroke-width="1" stroke-dasharray="4 6"/>
           <circle r="28" stroke-width="1"/>
@@ -201,11 +214,11 @@
           <line x1="28"  y1="0" x2="56"  y2="0" stroke-width="1.2"/>
           <line x1="0" y1="-56" x2="0" y2="-28" stroke-width="1.2"/>
           <line x1="0" y1="28"  x2="0" y2="56"  stroke-width="1.2"/>
-          <rect x="-4" y="-4" width="8" height="8" fill="#9FE9FF" stroke="none"/>
+          <rect x="-4" y="-4" width="8" height="8" fill="#FFB347" stroke="none"/>
         </g>
 
         <!-- Spinning data widget: top-right -->
-        <g id="hud-widget-tr" transform="translate(1700 220)" stroke="#9FE9FF" fill="none" opacity="0.75">
+        <g id="hud-widget-tr" transform="translate(1700 220)" stroke="#FF8A1C" fill="none" opacity="0.78">
           <polygon points="0,-50 43,-25 43,25 0,50 -43,25 -43,-25" stroke-width="1.2"/>
           <polygon points="0,-30 26,-15 26,15 0,30 -26,15 -26,-15" stroke-width="1" stroke-dasharray="3 5"/>
           <line x1="-50" y1="0" x2="50"  y2="0" stroke-width="1"/>
@@ -213,21 +226,21 @@
         </g>
 
         <!-- Spinning data widget: bottom-right (smaller) -->
-        <g id="hud-widget-br" transform="translate(1700 860)" stroke="#9FE9FF" fill="none" opacity="0.75">
+        <g id="hud-widget-br" transform="translate(1700 860)" stroke="#FF8A1C" fill="none" opacity="0.78">
           <circle r="44" stroke-width="1.2"/>
           <circle r="32" stroke-width="1" stroke-dasharray="2 4"/>
           <line x1="-44" y1="0" x2="44" y2="0" stroke-width="1"/>
           <line x1="0" y1="-44" x2="0" y2="44" stroke-width="1"/>
-          <circle r="6" fill="#9FE9FF" stroke="none"/>
+          <circle r="6" fill="#FFB347" stroke="none"/>
         </g>
 
         <!-- Horizon / pitch indicator: bottom-center, gently sways -->
-        <g id="hud-horizon" transform="translate(960 960)" stroke="#9FE9FF" fill="none" opacity="0.8">
+        <g id="hud-horizon" transform="translate(960 960)" stroke="#FF8A1C" fill="none" opacity="0.85">
           <circle r="60" stroke-width="1.2"/>
           <g id="hud-horizon-tilt">
             <line x1="-54" y1="0" x2="-22" y2="0" stroke-width="1.6"/>
             <line x1="22"  y1="0" x2="54"  y2="0" stroke-width="1.6"/>
-            <polygon points="-6,0 0,-7 6,0" fill="#9FE9FF" stroke="none"/>
+            <polygon points="-6,0 0,-7 6,0" fill="#FFB347" stroke="none"/>
             <line x1="-14" y1="6" x2="-8" y2="6" stroke-width="1"/>
             <line x1="8"   y1="6" x2="14" y2="6" stroke-width="1"/>
           </g>
@@ -236,7 +249,7 @@
           <line x1="0" y1="-66" x2="0" y2="-58" stroke-width="1"/>
         </g>
 
-        <g fill="#9FE9FF" font-family="monospace" font-size="20" opacity="0.9" letter-spacing="2">
+        <g fill="#FFB347" font-family="monospace" font-size="20" opacity="0.95" letter-spacing="2">
           <text x="660" y="305">EXHAUST PORT — 2M</text>
           <text x="660" y="785">STAY ON TARGET</text>
           <text x="1140" y="785" text-anchor="end">RED FIVE</text>
@@ -251,14 +264,16 @@
           <line x1="1020" y1="298" x2="1140" y2="298" stroke="#FF3030" stroke-width="1.4"/>
         </g>
 
-        <!-- Distance readout: 6 stacked text spans crossfading (last is the 0.0KM red flash) -->
-        <g font-family="monospace" font-size="22" letter-spacing="2" fill="#9FE9FF">
+        <!-- Distance readout: 8 stacked text spans crossfading. Final two = FIRING + 0.0KM red. -->
+        <g font-family="monospace" font-size="22" letter-spacing="2" fill="#FFB347">
           <text x="220" y="860" id="dist-1" opacity="0">DIST: 2.0KM</text>
           <text x="220" y="860" id="dist-2" opacity="0">DIST: 1.5KM</text>
           <text x="220" y="860" id="dist-3" opacity="0">DIST: 1.0KM</text>
           <text x="220" y="860" id="dist-4" opacity="0">DIST: 0.5KM</text>
-          <text x="220" y="860" id="dist-5" opacity="0">DIST: 0.1KM</text>
-          <text x="220" y="860" id="dist-6" opacity="0" fill="#FF3030" font-weight="bold">DIST: 0.0KM</text>
+          <text x="220" y="860" id="dist-5" opacity="0">DIST: 0.2KM</text>
+          <text x="220" y="860" id="dist-6" opacity="0">DIST: 0.1KM</text>
+          <text x="220" y="860" id="dist-7" opacity="0" fill="#FFFFFF" font-weight="bold">FIRING</text>
+          <text x="220" y="860" id="dist-8" opacity="0" fill="#FF3030" font-weight="bold">DIST: 0.0KM</text>
         </g>
       </svg>
 
@@ -266,26 +281,26 @@
       <svg id="trench-cockpit-shadow"
            viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
            style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;mix-blend-mode:screen;">
-        <path d="M0,0 L1920,0 L1920,140 L1620,210 L1380,250 L1080,260 L840,250 L540,210 L300,180 L0,140 Z"
+        <path d="M0,0 L1920,0 L1920,180 L1620,260 L1380,300 L1080,310 L840,300 L540,260 L300,225 L0,180 Z"
               fill="#FF3030" opacity="0.55"/>
         <path d="M0,1080 L0,920 L240,860 L520,830 L820,820 L1100,820 L1380,830 L1660,860 L1920,920 L1920,1080 Z"
               fill="#FF3030" opacity="0.55"/>
-        <path d="M0,140 L120,200 L120,880 L0,920 Z" fill="#FF3030" opacity="0.55"/>
-        <path d="M1920,140 L1800,200 L1800,880 L1920,920 Z" fill="#FF3030" opacity="0.55"/>
+        <path d="M0,180 L120,235 L120,880 L0,920 Z" fill="#FF3030" opacity="0.55"/>
+        <path d="M1920,180 L1800,235 L1800,880 L1920,920 Z" fill="#FF3030" opacity="0.55"/>
       </svg>
 
       <svg id="trench-cockpit"
            viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
            style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;">
-        <!-- Top frame -->
-        <path d="M0,0 L1920,0 L1920,140 L1620,210 L1380,250 L1080,260 L840,250 L540,210 L300,180 L0,140 Z"
+        <!-- Top frame — thicker yoke (~180px) for ANH-1977 canopy proportion -->
+        <path d="M0,0 L1920,0 L1920,180 L1620,260 L1380,300 L1080,310 L840,300 L540,260 L300,225 L0,180 Z"
               fill="#0a0a0a" opacity="0.95"/>
         <!-- Bottom frame with thrust ring -->
         <path d="M0,1080 L0,920 L240,860 L520,830 L820,820 L1100,820 L1380,830 L1660,860 L1920,920 L1920,1080 Z"
               fill="#0a0a0a" opacity="0.95"/>
         <!-- Side struts -->
-        <path d="M0,140 L120,200 L120,880 L0,920 Z" fill="#0a0a0a" opacity="0.95"/>
-        <path d="M1920,140 L1800,200 L1800,880 L1920,920 Z" fill="#0a0a0a" opacity="0.95"/>
+        <path d="M0,180 L120,235 L120,880 L0,920 Z" fill="#0a0a0a" opacity="0.95"/>
+        <path d="M1920,180 L1800,235 L1800,880 L1920,920 Z" fill="#0a0a0a" opacity="0.95"/>
 
         <!-- Instrument panel LED dots along the bottom edge (cyan + amber) -->
         <g>
@@ -296,24 +311,72 @@
         </g>
       </svg>
 
-      <!-- Explosion bloom — banded radial burst growing from VP after the strike. -->
-      <div id="trench-bloom"
-           style="position:absolute;left:50%;top:50%;width:520px;height:520px;
-                  transform:translate(-50%,-50%) scale(0);
+      <!-- Explosion: two-axis anamorphic cross flare per trench/explosion.jpg.
+           Hot-white core + vertical spike + horizontal spike + orange-red plume below. -->
+
+      <!-- Hot-white core (centered via GSAP xPercent/yPercent in tween) -->
+      <div id="trench-bloom-core"
+           style="position:absolute;left:50%;top:50%;width:380px;height:380px;
                   background:radial-gradient(circle at 50% 50%,
                     #FFFFFF 0%,
-                    #FFFFFF 8%,
-                    #FFE81F 22%,
-                    #FFB347 38%,
-                    #FF3030 58%,
-                    rgba(255,48,48,0.4) 78%,
-                    rgba(255,48,48,0) 100%);
+                    #FFFFFF 18%,
+                    #FFE9C8 40%,
+                    rgba(255,233,200,0.5) 65%,
+                    rgba(255,233,200,0) 100%);
+                  mix-blend-mode:screen;opacity:0;pointer-events:none;"></div>
+
+      <!-- Vertical anamorphic spike -->
+      <div id="trench-bloom-spike-v"
+           style="position:absolute;left:50%;top:50%;width:8px;height:1200px;
+                  background:linear-gradient(to bottom,
+                    rgba(255,255,255,0) 0%,
+                    rgba(255,233,200,0.55) 30%,
+                    #FFFFFF 50%,
+                    rgba(255,233,200,0.55) 70%,
+                    rgba(255,255,255,0) 100%);
+                  filter:blur(12px);
+                  mix-blend-mode:screen;opacity:0;pointer-events:none;"></div>
+
+      <!-- Horizontal anamorphic spike -->
+      <div id="trench-bloom-spike-h"
+           style="position:absolute;left:50%;top:50%;width:1600px;height:8px;
+                  background:linear-gradient(to right,
+                    rgba(255,255,255,0) 0%,
+                    rgba(255,233,200,0.55) 30%,
+                    #FFFFFF 50%,
+                    rgba(255,233,200,0.55) 70%,
+                    rgba(255,255,255,0) 100%);
+                  filter:blur(12px);
+                  mix-blend-mode:screen;opacity:0;pointer-events:none;"></div>
+
+      <!-- Orange-red plume — offset 80px below core via top:calc(...) -->
+      <div id="trench-bloom"
+           style="position:absolute;left:50%;top:calc(50% + 80px);width:340px;height:340px;
+                  background:radial-gradient(circle at 50% 45%,
+                    #FFB347 0%,
+                    #FF8A4C 28%,
+                    #E55C3A 55%,
+                    rgba(229,92,58,0.35) 78%,
+                    rgba(229,92,58,0) 100%);
                   mix-blend-mode:screen;opacity:0;pointer-events:none;"></div>
 
     </div>
 
+    <!-- Obi-Wan subtitle: "Use the Force, Luke. Trust your feelings."
+         Two-line cross-fade subtitle, ghosted off-white serif italic against any background.
+         Positioned at ~80% from top, above cockpit chrome but below center reticle. -->
+    <div id="trench-subtitle" class="clip" data-start="6.0" data-duration="2.5" data-track-index="5"
+         style="position:absolute;left:0;right:0;top:80%;text-align:center;
+                font-family:'Times New Roman','Georgia',serif;font-style:italic;
+                font-size:38px;color:#E8E4D8;letter-spacing:0.06em;line-height:1.3;
+                text-shadow:0 0 8px rgba(0,0,0,0.85), 0 0 18px rgba(0,0,0,0.65);
+                opacity:0;pointer-events:none;">
+      <div id="trench-subtitle-line1" style="opacity:0;">Use the Force, Luke.</div>
+      <div id="trench-subtitle-line2" style="opacity:0;">Trust your feelings.</div>
+    </div>
+
     <!-- Screen flash overlay (just before transition out) — outside camera so shake doesn't pull it. -->
-    <div id="trench-flash" class="clip" data-start="6.6" data-duration="1.4" data-track-index="6"
+    <div id="trench-flash" class="clip" data-start="10.6" data-duration="1.4" data-track-index="6"
          style="position:absolute;inset:0;background:#FFFFFF;opacity:0;mix-blend-mode:screen;pointer-events:none;"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
@@ -373,17 +436,17 @@
           lw.style.cssText =
             "position:absolute;left:50%;top:50%;width:" + SEG_LEN + "px;height:1080px;" +
             "transform:translate(-700px,-50%) rotateY(90deg);" +
-            "background:#1a222c;" +
-            "border-right:1px solid #2a323d;border-left:1px solid #2a323d;";
+            "background:#3B434C;" +
+            "border-right:2px solid #0A0D11;border-left:2px solid #0A0D11;";
 
           const lwTop = document.createElement("div");
           lwTop.style.cssText =
             "position:absolute;left:0;top:0;width:100%;height:36%;" +
-            "background:#2a323d;border-bottom:1px solid #2a323d;";
+            "background:#4A5560;border-bottom:2px solid #0A0D11;";
           const lwBot = document.createElement("div");
           lwBot.style.cssText =
             "position:absolute;left:0;bottom:0;width:100%;height:32%;" +
-            "background:#0a0e14;border-top:1px solid #2a323d;";
+            "background:#11151A;border-top:2px solid #0A0D11;";
           lw.appendChild(lwTop);
           lw.appendChild(lwBot);
 
@@ -392,16 +455,16 @@
           rw.style.cssText =
             "position:absolute;left:50%;top:50%;width:" + SEG_LEN + "px;height:1080px;" +
             "transform:translate(700px,-50%) rotateY(-90deg);" +
-            "background:#1a222c;" +
-            "border-right:1px solid #2a323d;border-left:1px solid #2a323d;";
+            "background:#3B434C;" +
+            "border-right:2px solid #0A0D11;border-left:2px solid #0A0D11;";
           const rwTop = document.createElement("div");
           rwTop.style.cssText =
             "position:absolute;left:0;top:0;width:100%;height:36%;" +
-            "background:#2a323d;border-bottom:1px solid #2a323d;";
+            "background:#4A5560;border-bottom:2px solid #0A0D11;";
           const rwBot = document.createElement("div");
           rwBot.style.cssText =
             "position:absolute;left:0;bottom:0;width:100%;height:32%;" +
-            "background:#0a0e14;border-top:1px solid #2a323d;";
+            "background:#11151A;border-top:2px solid #0A0D11;";
           rw.appendChild(rwTop);
           rw.appendChild(rwBot);
 
@@ -552,199 +615,402 @@
         window.__timelines = window.__timelines || {};
         const tl = gsap.timeline({ paused: true });
 
-        // CAMERA: trench rushes toward viewer — fly through the stack.
+        // ============================================================
+        // 12-second timeline (trench-local time):
+        //   0.0 — 8.5  : Final approach. HUD, distance countdown, TIE dogfight, target lock.
+        //   6.0 — 8.5  : Obi-Wan subtitle two-line crossfade.
+        //   8.5 — 9.5  : Final approach intensifies — countdown to FIRING.
+        //   9.5 —10.0  : Torpedoes fire; lock-flash on the port.
+        //  10.0 —10.8  : Torpedoes travel; small white burst at the port.
+        //  10.8 —11.5  : Cross-flare anamorphic explosion peaks.
+        //  11.5 —12.0  : Final flash, fade to white then black.
+        // ============================================================
+
+        // CAMERA: trench rushes toward viewer — fly through the stack across the full 12s.
         const totalZ = SEG_LEN * (SEG_COUNT - 6);
         tl.fromTo("#trench-stage",
           { z: -totalZ * 0.2 },
-          { z: totalZ, duration: 7.2, ease: "power1.in" }, 0);
+          { z: totalZ, duration: 11.0, ease: "power1.in" }, 0);
 
-        // Vanishing-point glow grows brighter as we close
+        // Vanishing-point glow grows brighter as we close — small radius, late peak,
+        // capped opacity so trench walls stay readable beneath it.
         tl.fromTo("#trench-vp",
-          { opacity: 0.5, scale: 0.6 },
-          { opacity: 1.0, scale: 2.1, duration: 7.0, ease: "power2.in" }, 0);
+          { opacity: 0.30, scale: 0.6 },
+          { opacity: 0.65, scale: 1.4, duration: 10.5, ease: "power2.in" }, 0);
 
         // HUD fades in (red leader's targeting computer)
         tl.fromTo("#trench-hud", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 0.4);
 
-        // Targeting box jitters subtly — early phase
+        // Targeting box jitters subtly — early phase. Holds longer for the 12s scene.
         tl.fromTo("#trench-target",
           { x: -10, y: -6 },
-          { x: 12, y: 8, duration: 0.4, ease: "sine.inOut", yoyo: true, repeat: 11 }, 1.0);
+          { x: 12, y: 8, duration: 0.4, ease: "sine.inOut", yoyo: true, repeat: 19 }, 1.0);
 
-        // At t=6.5 the target box snaps onto the exhaust port (centered on 960,540).
-        // Original rect anchor is x=900,y=480 -> center 960,540, so x/y stays at 0.
+        // At t=9.0 the target box snaps onto the exhaust port (centered on 960,540).
+        // Snap to ~110×110 — slightly larger than the 88px exhaust frame so brackets read.
         tl.to("#trench-target",
-          { x: 0, y: 0, attr: { width: 60, height: 60, x: 930, y: 510 },
-            duration: 0.18, ease: "power3.out" }, 6.45);
+          { x: 0, y: 0, attr: { width: 110, height: 110, x: 905, y: 485 },
+            duration: 0.18, ease: "power3.out", overwrite: "auto" }, 8.95);
+        // Reticle pulses during final approach
+        tl.fromTo("#trench-target",
+          { opacity: 1.0 },
+          { opacity: 0.55, duration: 0.18, ease: "sine.inOut", yoyo: true, repeat: 5,
+            overwrite: "auto" }, 9.2);
 
-        // Spinning HUD widgets — full 360 over the duration of the shot
+        // Spinning HUD widgets — full 360 over a longer duration; fewer rev/sec so it doesn't whir.
         tl.fromTo("#hud-widget-tl",
           { rotation: 0, transformOrigin: "220px 220px" },
-          { rotation: 360, transformOrigin: "220px 220px", duration: 8, ease: "none" }, 0);
+          { rotation: 360, transformOrigin: "220px 220px", duration: 12, ease: "none" }, 0);
         tl.fromTo("#hud-widget-tr",
           { rotation: 0, transformOrigin: "1700px 220px" },
-          { rotation: -360, transformOrigin: "1700px 220px", duration: 8, ease: "none" }, 0);
+          { rotation: -360, transformOrigin: "1700px 220px", duration: 12, ease: "none" }, 0);
         tl.fromTo("#hud-widget-br",
           { rotation: 0, transformOrigin: "1700px 860px" },
-          { rotation: 360, transformOrigin: "1700px 860px", duration: 8, ease: "none" }, 0);
+          { rotation: 360, transformOrigin: "1700px 860px", duration: 12, ease: "none" }, 0);
 
         // Horizon indicator — gentle sway
         tl.fromTo("#hud-horizon-tilt",
           { rotation: -6, transformOrigin: "0px 0px" },
           { rotation: 6, transformOrigin: "0px 0px",
-            duration: 1.6, ease: "sine.inOut", yoyo: true, repeat: 4 }, 0.4);
+            duration: 1.6, ease: "sine.inOut", yoyo: true, repeat: 6 }, 0.4);
 
-        // Distance readout — crossfade through 6 pre-rendered values; final is red 0.0KM
-        const distSteps = ["#dist-1", "#dist-2", "#dist-3", "#dist-4", "#dist-5", "#dist-6"];
-        const distStarts = [0.6, 1.8, 3.0, 4.2, 5.2, 6.4];
-        const distHolds  = [1.1, 1.1, 1.1, 0.9, 1.1, 1.4];
+        // Distance readout — crossfade across the 12s scene, ending FIRING then 0.0KM.
+        const distSteps  = ["#dist-1", "#dist-2", "#dist-3", "#dist-4", "#dist-5", "#dist-6", "#dist-7", "#dist-8"];
+        const distStarts = [ 0.6,       2.0,       3.6,       5.2,       6.8,       8.5,       9.4,       10.4];
+        const distHolds  = [ 1.2,       1.4,       1.4,       1.4,       1.5,       0.7,       0.8,       1.5];
         for (let d = 0; d < distSteps.length; d++) {
           tl.to(distSteps[d], { opacity: 0.95, duration: 0.25, ease: "power2.out" }, distStarts[d]);
           tl.to(distSteps[d], { opacity: 0,    duration: 0.25, ease: "power2.in"  }, distStarts[d] + distHolds[d]);
         }
-        // Final 0.0KM — red flash pulse, second visibility hit
-        tl.fromTo("#dist-6",
+        // Final 0.0KM — red flash pulse during explosion peak
+        tl.fromTo("#dist-8",
           { opacity: 0.4 },
-          { opacity: 1.0, duration: 0.18, ease: "sine.inOut", yoyo: true, repeat: 5 }, 6.5);
+          { opacity: 1.0, duration: 0.2, ease: "sine.inOut", yoyo: true, repeat: 5 }, 10.5);
 
         // Cockpit foreground subtly bobs
         tl.fromTo("#trench-cockpit",
           { y: -4 },
-          { y: 4, duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: 10 }, 0);
+          { y: 4, duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: 18 }, 0);
 
         // Instrument panel LEDs — gently pulse, finite repeats, varied timing
-        tl.fromTo("#led-1", { opacity: 0.4 }, { opacity: 1.0, duration: 0.7, ease: "sine.inOut", yoyo: true, repeat: 10 }, 0);
-        tl.fromTo("#led-2", { opacity: 0.5 }, { opacity: 1.0, duration: 0.9, ease: "sine.inOut", yoyo: true, repeat: 8  }, 0.2);
-        tl.fromTo("#led-3", { opacity: 0.4 }, { opacity: 1.0, duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: 12 }, 0.1);
-        tl.fromTo("#led-4", { opacity: 0.6 }, { opacity: 1.0, duration: 1.1, ease: "sine.inOut", yoyo: true, repeat: 6  }, 0.3);
+        tl.fromTo("#led-1", { opacity: 0.4 }, { opacity: 1.0, duration: 0.7, ease: "sine.inOut", yoyo: true, repeat: 16 }, 0);
+        tl.fromTo("#led-2", { opacity: 0.5 }, { opacity: 1.0, duration: 0.9, ease: "sine.inOut", yoyo: true, repeat: 12 }, 0.2);
+        tl.fromTo("#led-3", { opacity: 0.4 }, { opacity: 1.0, duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: 18 }, 0.1);
+        tl.fromTo("#led-4", { opacity: 0.6 }, { opacity: 1.0, duration: 1.1, ease: "sine.inOut", yoyo: true, repeat: 10 }, 0.3);
 
-        // Motion streaks — scale outward from VP, finite repeats. Per-streak seeded offsets so
-        // they don't all bloom in lock-step.
-        const streakNodes = document.querySelectorAll(".streak");
-        streakNodes.forEach(function (node, idx) {
-          const delay = rndStreak() * 0.45;
-          const dur   = 0.42 + rndStreak() * 0.4;
-          const peakOpacity = 0.3 + rndStreak() * 0.2;
-          const peakScale = 1.2 + rndStreak() * 0.5;
-          const repeats = 8 + Math.floor(rndStreak() * 5);
-          tl.fromTo(node,
-            { opacity: 0, transformOrigin: "960px 540px", scale: 0.18 },
-            { opacity: peakOpacity, scale: peakScale, duration: dur, ease: "power2.out",
-              repeat: repeats, repeatDelay: rndStreak() * 0.15 }, delay);
-        });
-
-        // TIE FIGHTER 1 — appears centered at t=2.5, grows from 0.15 to 0.6 over 3s,
-        // sways horizontally with finite repeats.
-        tl.fromTo("#tie-1",
-          { opacity: 0, transformOrigin: "960px 540px",
-            attr: { transform: "translate(960 540) scale(0.15)" } },
-          { opacity: 1, duration: 0.6, ease: "power2.out", overwrite: "auto" }, 2.5);
-        // Scale the TIE — animate the SVG transform attr in steps so the pursuit reads as approach.
-        tl.to("#tie-1",
-          { attr: { transform: "translate(960 540) scale(0.30)" },
-            duration: 1.5, ease: "power1.in", overwrite: "auto" }, 3.1);
-        tl.to("#tie-1",
-          { attr: { transform: "translate(990 540) scale(0.45)" },
-            duration: 0.8, ease: "power1.inOut" }, 4.0);
-        tl.to("#tie-1",
-          { attr: { transform: "translate(930 540) scale(0.60)" },
-            duration: 0.7, ease: "power1.inOut" }, 4.8);
-        // Fade out as we close on the exhaust port
-        tl.to("#tie-1", { opacity: 0, duration: 0.4, ease: "power2.in" }, 6.2);
-        tl.set("#tie-1", { opacity: 0 }, 6.6);
-        tl.set("#tie-2", { opacity: 0 }, 6.7);
-        // TIE engine pulse (finite, per-element)
-        tl.fromTo("#tie-1 .tie-glow",
-          { opacity: 0.55 },
-          { opacity: 1, duration: 0.5, ease: "sine.inOut", yoyo: true, repeat: 7 }, 2.5);
-
-        // TIE FIGHTER 2 — appears at t=5 in upper-right, smaller scale.
-        tl.set("#tie-2", { opacity: 0,
-          attr: { transform: "translate(1320 360) scale(0.22)" } }, 0);
-        tl.to("#tie-2", { opacity: 0.95, duration: 0.4, ease: "power2.out" }, 5.0);
-        tl.to("#tie-2",
-          { attr: { transform: "translate(1380 380) scale(0.30)" },
-            duration: 0.9, ease: "power1.inOut" }, 5.0);
-        tl.to("#tie-2",
-          { attr: { transform: "translate(1280 350) scale(0.30)" },
-            duration: 0.6, ease: "sine.inOut" }, 5.9);
-        tl.to("#tie-2", { opacity: 0, duration: 0.4, ease: "power2.in" }, 6.3);
-        tl.fromTo("#tie-2 .tie-glow",
-          { opacity: 0.55 },
-          { opacity: 1, duration: 0.4, ease: "sine.inOut", yoyo: true, repeat: 3 }, 5.0);
-
-        // EXHAUST PORT — fades in at t=5.5 dead center, red glow ramps up.
-        tl.fromTo("#trench-exhaust",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.5, ease: "power2.out" }, 5.5);
-        tl.fromTo("#trench-exhaust-glow",
-          { opacity: 0 },
-          { opacity: 0.85, duration: 1.0, ease: "power2.in" }, 5.5);
-        // Exhaust glow pulse — finite, marks "lock"
-        tl.fromTo("#trench-exhaust-hole",
-          { opacity: 1 },
-          { opacity: 0.6, duration: 0.25, ease: "sine.inOut", yoyo: true, repeat: 3 }, 6.0);
-
-        // TARGET LOCK ACQUIRED — appears at t=5.5, blinks (finite).
-        tl.fromTo("#hud-lock",
-          { opacity: 0 },
-          { opacity: 1, duration: 0.25, ease: "power2.out" }, 5.5);
-        tl.fromTo("#hud-lock",
-          { opacity: 1 },
-          { opacity: 0.25, duration: 0.18, ease: "sine.inOut", yoyo: true, repeat: 9 }, 5.8);
-
-        // LASERS — 4 streaks, each layered halo+bolt+core
-        const lasers = [
-          { id: "#laser-1", from: { x: -800, y: -140, rotation: 12  }, to: { x: 0, y: 0, rotation: 12  }, delay: 2.2 },
-          { id: "#laser-2", from: { x:  900, y:  120, rotation: -10 }, to: { x: 0, y: 0, rotation: -10 }, delay: 2.6 },
-          { id: "#laser-3", from: { x: -700, y:  160, rotation: -8  }, to: { x: 0, y: 0, rotation: -8  }, delay: 3.4 },
-          { id: "#laser-4", from: { x:  820, y: -100, rotation: 14  }, to: { x: 0, y: 0, rotation: 14  }, delay: 4.2 }
-        ];
-        for (const L of lasers) {
-          tl.set(L.id, { opacity: 0, scale: 0.7, ...L.from }, 0);
-          tl.to(L.id, { ...L.to, opacity: 1, scale: 1.2, duration: 0.18, ease: "power2.out" }, L.delay);
-          tl.to(L.id, { opacity: 0, scale: 0.6, duration: 0.22, ease: "power2.in" }, L.delay + 0.18);
+        // Motion streaks — generate ~20 short blips with mulberry32, each ~8-15% of viewport
+        // diagonal (≈ 175-330px) on a 1920×1080 canvas. Reduced from 50 so trench walls read
+        // clearly between streaks. ANH miniature reads as fast small blips, not light-tunnel.
+        const streakGroup = document.getElementById("trench-streaks-group");
+        const SVG_NS = "http://www.w3.org/2000/svg";
+        const VPX = 960, VPY = 540;
+        const STREAK_COUNT = 20;
+        for (let s = 0; s < STREAK_COUNT; s++) {
+          // Random angle around 360°, biased away from the cockpit-frame-eaten zones.
+          const ang = rndStreak() * Math.PI * 2;
+          // Final outward distance from VP — clip to 175-330px so individual lines stay short.
+          const farR = 175 + rndStreak() * 155;
+          // Inner start radius — small (near VP) so line "scales" outward visually.
+          const nearR = 30 + rndStreak() * 30;
+          const x1 = VPX + Math.cos(ang) * nearR;
+          const y1 = VPY + Math.sin(ang) * nearR;
+          const x2 = VPX + Math.cos(ang) * farR;
+          const y2 = VPY + Math.sin(ang) * farR;
+          const line = document.createElementNS(SVG_NS, "line");
+          line.setAttribute("class", "streak");
+          line.setAttribute("x1", x1.toFixed(1));
+          line.setAttribute("y1", y1.toFixed(1));
+          line.setAttribute("x2", x2.toFixed(1));
+          line.setAttribute("y2", y2.toFixed(1));
+          // Slight per-streak stroke width variation so they read as a population, not a comb.
+          line.setAttribute("stroke-width", (1.2 + rndStreak() * 1.4).toFixed(2));
+          streakGroup.appendChild(line);
         }
 
-        // CAMERA SHAKE — at each laser hit (delay + 0.18 = impact moment), jolt the camera
-        // wrapper. translate xy with finite-repeat yoyo — short, sharp, then settled.
-        const shakeOffsets = [
-          { x:  6, y: -4 },
-          { x: -5, y:  5 },
-          { x:  4, y:  6 },
-          { x: -6, y: -3 }
-        ];
-        tl.set("#trench-camera", { x: 0, y: 0 }, 0);
-        tl.set("#trench-cockpit-shadow", { opacity: 0, x: 0, y: 0 }, 0);
-        lasers.forEach(function (L, idx) {
-          const hit = L.delay + 0.16;
-          const off = shakeOffsets[idx];
-          tl.to("#trench-camera",
-            { x: off.x, y: off.y, duration: 0.07, ease: "power2.out", overwrite: "auto" }, hit);
-          tl.to("#trench-camera",
-            { x: -off.x * 0.6, y: -off.y * 0.6, duration: 0.08, ease: "sine.inOut", overwrite: "auto" }, hit + 0.07);
-          tl.to("#trench-camera",
-            { x: 0, y: 0, duration: 0.15, ease: "power2.out", overwrite: "auto" }, hit + 0.15);
-
-          // Chromatic-shadow cockpit duplicate flickers in red on each hit, fades quickly.
-          tl.to("#trench-cockpit-shadow",
-            { opacity: 0.55, x: -3, y: 2, duration: 0.06, ease: "power2.out", overwrite: "auto" }, hit);
-          tl.to("#trench-cockpit-shadow",
-            { opacity: 0, x: 0, y: 0, duration: 0.18, ease: "power2.in", overwrite: "auto" }, hit + 0.08);
+        // Animate streaks — short lifetime (~0.25s) per blip, many repeats so the population
+        // continually recycles across the full 12s. Per-streak seeded offsets keep them out of
+        // lock-step. Population is intentionally sparse (20) so trench walls remain visible.
+        const streakNodes = document.querySelectorAll(".streak");
+        streakNodes.forEach(function (node, idx) {
+          const delay = rndStreak() * 0.6;
+          const dur   = 0.18 + rndStreak() * 0.14;          // 0.18-0.32s lifetime
+          const peakOpacity = 0.30 + rndStreak() * 0.22;    // capped ≤ 0.55
+          const peakScale = 1.1 + rndStreak() * 0.4;
+          // Total trench window is ~12s; at ~0.25s lifetime we want ~36-46 cycles.
+          const repeats = 36 + Math.floor(rndStreak() * 14);
+          tl.fromTo(node,
+            { opacity: 0, transformOrigin: "960px 540px", scale: 0.2 },
+            { opacity: peakOpacity, scale: peakScale, duration: dur, ease: "power2.out",
+              repeat: repeats, repeatDelay: rndStreak() * 0.05 }, delay);
         });
 
-        // Final beat: hard white flash as the proton torpedo strikes home
+        // ============================================================
+        // TIE FIGHTER 1 — flies through center reticle, gets shot down.
+        // Path: upper-left start → center reticle at t=4.5 → continuing toward bottom-right exit.
+        // Bezier samples (t-local seconds): 2.0 (300,200,0.18) → 3.5 (640,400,0.30) →
+        //   4.5 (960,540,0.55) → 4.7 hit → 5.0 fade out.
+        // ============================================================
+        tl.set("#tie-1", { opacity: 0,
+          attr: { transform: "translate(300 200) scale(0.18)" } }, 0);
+        tl.to("#tie-1", { opacity: 1, duration: 0.5, ease: "power2.out", overwrite: "auto" }, 2.0);
+        // Approach: upper-left → center, growing.
+        tl.to("#tie-1",
+          { attr: { transform: "translate(640 400) scale(0.30)" },
+            duration: 1.5, ease: "power1.inOut", overwrite: "auto" }, 2.0);
+        tl.to("#tie-1",
+          { attr: { transform: "translate(960 540) scale(0.55)" },
+            duration: 1.0, ease: "power1.inOut", overwrite: "auto" }, 3.5);
+        // TIE engine pulse during the chase
+        tl.fromTo("#tie-1 .tie-glow",
+          { opacity: 0.55 },
+          { opacity: 1, duration: 0.4, ease: "sine.inOut", yoyo: true, repeat: 11 }, 2.0);
+
+        // ============================================================
+        // TIE FIGHTER 2 — secondary, briefly visible upper-right then peels away
+        // before the kill shot so the dogfight read isn't crowded.
+        // ============================================================
+        tl.set("#tie-2", { opacity: 0,
+          attr: { transform: "translate(1320 360) scale(0.22)" } }, 0);
+        tl.to("#tie-2", { opacity: 0.85, duration: 0.4, ease: "power2.out" }, 2.6);
+        tl.to("#tie-2",
+          { attr: { transform: "translate(1480 320) scale(0.18)" },
+            duration: 1.4, ease: "power1.inOut" }, 2.6);
+        tl.to("#tie-2", { opacity: 0, duration: 0.4, ease: "power2.in" }, 4.0);
+        tl.fromTo("#tie-2 .tie-glow",
+          { opacity: 0.55 },
+          { opacity: 1, duration: 0.4, ease: "sine.inOut", yoyo: true, repeat: 3 }, 2.6);
+
+        // ============================================================
+        // KILL SHOT — at t=4.5 wingmen converge two RED bolts on TIE-1 from off-screen
+        // (200,400) and (1700,400). Bolts are repurposed laser-1 + laser-2: snap-positioned,
+        // fired toward (960,540). At t=4.7 TIE-1 explodes (small white cross flash) then fades.
+        // ============================================================
+        // Convert laser-1: from off-screen left wingman → TIE position
+        // Bolt anatomy (each rect inside #laser-N): -280..0 x range, so the rect's right edge
+        // sits at the group origin. We translate the group to the bolt tip's target.
+        // Approach: position the group at TIE position (960,540) with rotation pointing back
+        // toward origin position; the gradient already lights the leading edge.
+        // Off-screen wingman 1: (200,400) → TIE (960,540). dx=760, dy=140, angle=atan2(140,760)≈10.4°
+        // Off-screen wingman 2: (1700,400) → TIE (960,540). dx=-740, dy=140, angle≈169.3° (or 180+ -10.7)
+        // We render the bolt by setting laser group transform to TIE position and rotation, then
+        // animating it into existence and fading out.
+        tl.set("#laser-1", { x: 0, y: 0, rotation: 0, opacity: 0 }, 0);
+        tl.set("#laser-1", {
+          attr: { transform: "translate(200 400) rotate(10.4)" },
+          opacity: 0, scale: 0.7
+        }, 4.4);
+        tl.to("#laser-1", {
+          attr: { transform: "translate(960 540) rotate(10.4)" },
+          opacity: 1, scale: 1.2, duration: 0.13, ease: "power2.out", overwrite: "auto"
+        }, 4.5);
+        tl.to("#laser-1", { opacity: 0, scale: 0.6, duration: 0.18, ease: "power2.in", overwrite: "auto" }, 4.63);
+
+        tl.set("#laser-2", { x: 0, y: 0, rotation: 0, opacity: 0 }, 0);
+        tl.set("#laser-2", {
+          attr: { transform: "translate(1700 400) rotate(190.7)" },
+          opacity: 0, scale: 0.7
+        }, 4.4);
+        tl.to("#laser-2", {
+          attr: { transform: "translate(960 540) rotate(190.7)" },
+          opacity: 1, scale: 1.2, duration: 0.13, ease: "power2.out", overwrite: "auto"
+        }, 4.5);
+        tl.to("#laser-2", { opacity: 0, scale: 0.6, duration: 0.18, ease: "power2.in", overwrite: "auto" }, 4.63);
+
+        // TIE-1 kill flash — small white-hot core + brief 4-spike cross at TIE position.
+        // We reuse the existing bloom assets briefly (scale them tiny so they read as a hit,
+        // not the climax).
+        // Use a temporary smaller-scale flash on the explosion bloom-core:
+        // (We delay the main explosion to t=10.8; this brief one sits at t=4.7.)
+        // To avoid clobbering the main explosion, we use the lock-flash rect for this hit too:
+        tl.set("#trench-lockflash-rect",
+          { attr: { x: 936, y: 516, width: 48, height: 48 }, opacity: 0 }, 0);
+        tl.fromTo("#trench-lockflash-rect",
+          { opacity: 0 },
+          { opacity: 0.95, duration: 0.06, ease: "power3.out" }, 4.66);
+        tl.to("#trench-lockflash-rect",
+          { opacity: 0, duration: 0.30, ease: "power2.in" }, 4.72);
+        // Reset lockflash for its later torpedo-lock use:
+        tl.set("#trench-lockflash-rect",
+          { attr: { x: 916, y: 496, width: 88, height: 88 }, opacity: 0 }, 5.05);
+
+        // Fade TIE-1 out after the hit
+        tl.to("#tie-1", { opacity: 0, duration: 0.3, ease: "power2.in" }, 4.7);
+        tl.set("#tie-1", { opacity: 0 }, 5.0);
+
+        // Camera kick at the kill shot (sharp small jolt, on-palette with hits elsewhere)
+        tl.set("#trench-camera", { x: 0, y: 0 }, 0);
+        tl.set("#trench-cockpit-shadow", { opacity: 0, x: 0, y: 0 }, 0);
+        tl.to("#trench-camera",
+          { x: 5, y: -3, duration: 0.07, ease: "power2.out", overwrite: "auto" }, 4.66);
+        tl.to("#trench-camera",
+          { x: -3, y: 2, duration: 0.08, ease: "sine.inOut", overwrite: "auto" }, 4.73);
+        tl.to("#trench-camera",
+          { x: 0, y: 0, duration: 0.15, ease: "power2.out", overwrite: "auto" }, 4.81);
+        tl.to("#trench-cockpit-shadow",
+          { opacity: 0.45, x: -2, y: 2, duration: 0.06, ease: "power2.out", overwrite: "auto" }, 4.66);
+        tl.to("#trench-cockpit-shadow",
+          { opacity: 0, x: 0, y: 0, duration: 0.18, ease: "power2.in", overwrite: "auto" }, 4.74);
+
+        // ============================================================
+        // OBI-WAN SUBTITLE (Delta D) — two-line crossfade.
+        //   t=6.0–7.2 : "Use the Force, Luke."
+        //   t=7.4–8.5 : "Trust your feelings."
+        // The container clip data-start/data-duration (6.0/2.5) gates visibility; inside,
+        // each line has its own opacity tween.
+        // ============================================================
+        tl.fromTo("#trench-subtitle",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.01, ease: "none" }, 6.0);
+        // Line 1
+        tl.fromTo("#trench-subtitle-line1",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.5, ease: "power2.out" }, 6.0);
+        tl.to("#trench-subtitle-line1",
+          { opacity: 0, duration: 0.4, ease: "power2.in" }, 7.2);
+        // Line 2
+        tl.fromTo("#trench-subtitle-line2",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.5, ease: "power2.out" }, 7.4);
+        tl.to("#trench-subtitle-line2",
+          { opacity: 0, duration: 0.4, ease: "power2.in" }, 8.5);
+        tl.to("#trench-subtitle",
+          { opacity: 0, duration: 0.01, ease: "none" }, 8.91);
+
+        // ============================================================
+        // EXHAUST PORT — fades in at t=8.0, red glow ramps up steadily.
+        // ============================================================
+        tl.fromTo("#trench-exhaust",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.5, ease: "power2.out" }, 8.0);
+        tl.fromTo("#trench-exhaust-glow",
+          { opacity: 0 },
+          { opacity: 0.85, duration: 1.6, ease: "power2.in" }, 8.0);
+        // Exhaust port pulses as we close — finite, marks "lock"
+        tl.fromTo("#trench-exhaust-hole",
+          { opacity: 1 },
+          { opacity: 0.6, duration: 0.25, ease: "sine.inOut", yoyo: true, repeat: 5 }, 9.0);
+
+        // TARGET LOCK ACQUIRED — appears at t=9.0, blinks (finite).
+        tl.fromTo("#hud-lock",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.25, ease: "power2.out" }, 9.0);
+        tl.fromTo("#hud-lock",
+          { opacity: 1 },
+          { opacity: 0.25, duration: 0.18, ease: "sine.inOut", yoyo: true, repeat: 9 }, 9.3);
+
+        // ============================================================
+        // TORPEDO FIRE (Delta E, t=9.5–10.0) — two small white-hot bolts launch from cockpit
+        // bottom-center, travel toward exhaust port. Lock-flash square pulses on the port.
+        // ============================================================
+        tl.set("#torpedo-1", { opacity: 0, attr: { transform: "translate(840 980)" } }, 0);
+        tl.set("#torpedo-2", { opacity: 0, attr: { transform: "translate(1080 980)" } }, 0);
+        tl.to("#torpedo-1", { opacity: 1, duration: 0.10, ease: "power2.out" }, 9.5);
+        tl.to("#torpedo-2", { opacity: 1, duration: 0.10, ease: "power2.out" }, 9.55);
+        // Travel from cockpit launch points toward exhaust port (960,540)
+        tl.to("#torpedo-1",
+          { attr: { transform: "translate(944 560) scale(0.55)" },
+            duration: 1.0, ease: "power2.in" }, 9.5);
+        tl.to("#torpedo-2",
+          { attr: { transform: "translate(976 560) scale(0.55)" },
+            duration: 1.0, ease: "power2.in" }, 9.55);
+        // Brief lock-flash white square pulse on the port at moment of fire
+        tl.set("#trench-lockflash-rect",
+          { attr: { x: 916, y: 496, width: 88, height: 88 }, opacity: 0 }, 9.45);
+        tl.to("#trench-lockflash-rect",
+          { opacity: 0.85, duration: 0.10, ease: "power3.out" }, 9.5);
+        tl.to("#trench-lockflash-rect",
+          { opacity: 0, duration: 0.30, ease: "power2.in" }, 9.6);
+
+        // ============================================================
+        // TORPEDO IMPACT (t=10.4–10.8) — small white burst at the port; trench walls still
+        // visible. Torpedoes fade as they enter the hole.
+        // ============================================================
+        tl.to("#torpedo-1", { opacity: 0, duration: 0.20, ease: "power2.in" }, 10.4);
+        tl.to("#torpedo-2", { opacity: 0, duration: 0.20, ease: "power2.in" }, 10.4);
+        // Hard-kill so non-linear seeking after the fade leaves them invisible.
+        tl.set("#torpedo-1", { opacity: 0 }, 10.60);
+        tl.set("#torpedo-2", { opacity: 0 }, 10.60);
+        // Small white pre-burst on the port — uses the lockflash rect again, larger scale
+        tl.set("#trench-lockflash-rect",
+          { attr: { x: 906, y: 486, width: 108, height: 108 }, opacity: 0 }, 10.35);
+        tl.to("#trench-lockflash-rect",
+          { opacity: 1.0, duration: 0.15, ease: "power3.out" }, 10.4);
+        tl.to("#trench-lockflash-rect",
+          { opacity: 0, duration: 0.40, ease: "power2.in" }, 10.55);
+
+        // ============================================================
+        // CAMERA SHAKE during final approach — small ramping pulses, increases toward firing.
+        // Honors the 4-6px / 0.07-0.15s envelope.
+        // ============================================================
+        const finalShakes = [
+          { t: 8.6, x:  4, y: -3 },
+          { t: 9.2, x: -4, y:  4 },
+          { t: 9.7, x:  5, y:  4 },
+          { t: 10.3, x: -5, y: -3 },
+          { t: 10.8, x:  6, y:  5 }
+        ];
+        finalShakes.forEach(function (s) {
+          tl.to("#trench-camera",
+            { x: s.x, y: s.y, duration: 0.08, ease: "power2.out", overwrite: "auto" }, s.t);
+          tl.to("#trench-camera",
+            { x: -s.x * 0.5, y: -s.y * 0.5, duration: 0.10, ease: "sine.inOut", overwrite: "auto" }, s.t + 0.08);
+          tl.to("#trench-camera",
+            { x: 0, y: 0, duration: 0.14, ease: "power2.out", overwrite: "auto" }, s.t + 0.18);
+        });
+
+        // ============================================================
+        // BIG EXPLOSION (Delta E, t=10.8–11.5) — cross-flare anamorphic blooms peak.
+        // Hot-white core punches in late, vertical + horizontal spikes whip outward,
+        // orange-red plume fills the lower half. Trench walls are now occluded.
+        // ============================================================
+        tl.fromTo("#trench-bloom-core",
+          { opacity: 0, scale: 0, xPercent: -50, yPercent: -50, transformOrigin: "50% 50%" },
+          { opacity: 0.95, scale: 1.4, xPercent: -50, yPercent: -50,
+            duration: 0.20, ease: "power3.out", overwrite: "auto" }, 10.8);
+        tl.to("#trench-bloom-core",
+          { scale: 2.2, xPercent: -50, yPercent: -50,
+            duration: 0.55, ease: "power2.out", overwrite: "auto" }, 11.0);
+        tl.to("#trench-bloom-core",
+          { opacity: 0, duration: 0.6, ease: "power2.in", overwrite: "auto" }, 11.55);
+
+        // Vertical anamorphic spike
+        tl.fromTo("#trench-bloom-spike-v",
+          { opacity: 0, scaleY: 0, xPercent: -50, yPercent: -50, transformOrigin: "50% 50%" },
+          { opacity: 1, scaleY: 1, xPercent: -50, yPercent: -50,
+            duration: 0.16, ease: "power4.out", overwrite: "auto" }, 10.82);
+        tl.to("#trench-bloom-spike-v",
+          { opacity: 0, duration: 0.85, ease: "power2.in", overwrite: "auto" }, 11.1);
+
+        // Horizontal anamorphic spike
+        tl.fromTo("#trench-bloom-spike-h",
+          { opacity: 0, scaleX: 0, xPercent: -50, yPercent: -50, transformOrigin: "50% 50%" },
+          { opacity: 1, scaleX: 1, xPercent: -50, yPercent: -50,
+            duration: 0.16, ease: "power4.out", overwrite: "auto" }, 10.82);
+        tl.to("#trench-bloom-spike-h",
+          { opacity: 0, duration: 0.85, ease: "power2.in", overwrite: "auto" }, 11.1);
+
+        // Orange-red plume — slower bloom, lingers longer than the white core.
+        tl.fromTo("#trench-bloom",
+          { opacity: 0, scale: 0, xPercent: -50, yPercent: -50, transformOrigin: "50% 50%" },
+          { opacity: 1, scale: 4.2, xPercent: -50, yPercent: -50,
+            duration: 1.0, ease: "power2.out", overwrite: "auto" }, 10.88);
+        tl.to("#trench-bloom",
+          { opacity: 0, duration: 0.9, ease: "power2.in", overwrite: "auto" }, 11.6);
+
+        // ============================================================
+        // FINAL FLASH (t=10.8–11.8) — hot white screen flash spike on impact, then quickly
+        // backs off so the cross-flare explosion + plume read underneath, then a softer
+        // fade-to-white at the very end before the title scene takes over.
+        // ============================================================
         tl.fromTo("#trench-flash",
           { opacity: 0 },
-          { opacity: 0.98, duration: 0.18, ease: "power2.out" }, 6.6);
-        tl.to("#trench-flash", { opacity: 0, duration: 0.7, ease: "power2.in" }, 6.8);
-
-        // EXPLOSION BLOOM — banded radial ramp from 0 to 6x scale starting at t=6.7
-        tl.fromTo("#trench-bloom",
-          { opacity: 0, scale: 0, transformOrigin: "50% 50%" },
-          { opacity: 1, scale: 6, duration: 0.8, ease: "power2.out", overwrite: "auto" }, 6.7);
-        tl.to("#trench-bloom",
-          { opacity: 0, duration: 0.7, ease: "power2.in", overwrite: "auto" }, 7.5);
+          { opacity: 0.85, duration: 0.18, ease: "power2.out", overwrite: "auto" }, 10.8);
+        tl.to("#trench-flash",
+          { opacity: 0.35, duration: 0.5, ease: "power2.in", overwrite: "auto" }, 10.98);
+        tl.to("#trench-flash",
+          { opacity: 0.55, duration: 0.4, ease: "sine.inOut", overwrite: "auto" }, 11.55);
+        tl.to("#trench-flash",
+          { opacity: 0, duration: 0.3, ease: "power2.in", overwrite: "auto" }, 11.7);
 
         window.__timelines["scene-trench"] = tl;
       })();

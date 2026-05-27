@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "preview": "hyperframes preview",
-    "render": "hyperframes render --output ../film.mp4 --quality medium",
+    "render": "hyperframes render --output ../film.mp4 --quality standard",
     "lint": "hyperframes lint",
     "inspect": "hyperframes inspect"
   },

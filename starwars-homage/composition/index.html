@@ -16,7 +16,7 @@
     </style>
   </head>
   <body>
-    <div data-composition-id="root" data-start="0" data-duration="38" data-width="1920" data-height="1080">
+    <div data-composition-id="root" data-start="0" data-duration="42" data-width="1920" data-height="1080">
       <!-- Scene 1: Crawl (0 → 14) -->
       <div
         id="scene-crawl"
@@ -47,22 +47,22 @@
         data-track-index="3"
       ></div>
 
-      <!-- Scene 4: Trench (28 → 36) -->
+      <!-- Scene 4: Trench (28 → 40) -->
       <div
         id="scene-trench"
         data-composition-id="scene-trench"
         data-composition-src="compositions/trench.html"
         data-start="28"
-        data-duration="8"
+        data-duration="12"
         data-track-index="4"
       ></div>
 
-      <!-- Title card (36 → 38) -->
+      <!-- Title card (40 → 42) -->
       <div
         id="scene-title"
         data-composition-id="scene-title"
         data-composition-src="compositions/title.html"
-        data-start="36"
+        data-start="40"
         data-duration="2"
         data-track-index="5"
       ></div>
@@ -72,7 +72,7 @@
         id="fader"
         class="clip"
         data-start="0"
-        data-duration="38"
+        data-duration="42"
         data-track-index="9"
         style="position:absolute;inset:0;background:#000;pointer-events:none;opacity:0;"
       ></div>
@@ -81,7 +81,7 @@
       <audio
         id="score"
         data-start="0"
-        data-duration="38"
+        data-duration="42"
         data-track-index="10"
         data-volume="0.85"
         src="audio.mp3"
@@ -92,7 +92,7 @@
         window.__timelines = window.__timelines || {};
         const tl = gsap.timeline({ paused: true });
 
-        const boundaries = [14, 22, 28, 36];
+        const boundaries = [14, 22, 28, 40];
         for (const b of boundaries) {
           tl.to("#fader", { opacity: 1, duration: 0.4, ease: "power2.in", overwrite: "auto" }, b - 0.4);
           tl.to("#fader", { opacity: 0, duration: 0.4, ease: "power2.out", overwrite: "auto" }, b + 0.05);

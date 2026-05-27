@@ -20,7 +20,7 @@
     <svg id="title-clouds" class="clip" data-start="0" data-duration="2" data-track-index="1"
          viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"
          data-layout-allow-overflow
-         style="position:absolute;inset:0;width:100%;height:100%;filter:blur(60px);opacity:0.55;
+         style="position:absolute;inset:0;width:100%;height:100%;filter:blur(60px);opacity:0.40;
                 transform-origin:50% 50%;">
       <defs>
         <radialGradient id="cloud-a" cx="50%" cy="50%" r="50%">
@@ -282,7 +282,7 @@
           { opacity: 0, scale: 2.0, duration: 0.6, ease: "power2.out" }, 0);
 
         // ---- Cosmic clouds: gentle fade-in + very slow rotation ----
-        tl.fromTo("#title-clouds", { opacity: 0 }, { opacity: 0.55, duration: 0.8, ease: "power2.out" }, 0);
+        tl.fromTo("#title-clouds", { opacity: 0 }, { opacity: 0.40, duration: 0.8, ease: "power2.out" }, 0);
         tl.fromTo("#title-clouds", { rotation: 0 }, { rotation: 360, duration: 2, ease: "none", transformOrigin: "50% 50%" }, 0);
 
         // ---- Stars fade in + parallax drift ----
