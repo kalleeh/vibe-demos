@@ -904,7 +904,7 @@
 
     <div class="end-panel" id="endPanel">
       <h2>the day ends</h2>
-      <div class="sub">DAY <span id="endDay">1</span> COMPLETE</div>
+      <div class="sub" id="endReason">DAY 1 COMPLETE</div>
       <div class="lines">
         you flew <span class="num" id="endDist">0</span> m<br>
         with <span class="num" id="endPerfect">0</span> perfect launches<br>
@@ -1141,9 +1141,11 @@
       stuckMs: 0,              // time spent at near-zero speed on slope
       noProgressMs: 0,         // time since maxBx last advanced
       stuckCheckBx: 0,         // bx watermark for noProgressMs
+      backslideMs: 0,          // sustained-backslide hysteresis
       pitchReleasedAt: -1e9,   // wall-clock time of most recent pointer-up
       pitchReleasedSlope: 0,   // terrain slope at last release; ramp launch requires this was a downhill
       flightStartX: 200,
+      flightStartT: 0,         // wall-clock time of run start (for spawn warmup)
       gameOver: false,
       muted: false,
 
@@ -1274,9 +1276,13 @@
       G.stuckMs = 0;
       G.noProgressMs = 0;
       G.stuckCheckBx = 200;
+      G.backslideMs = 0;
       G.flightStartX = 200;
+      G.flightStartT = performance.now();
       G.gameOver = false;
+      G.pitchReleasedAt = -1e9;
       G.pitchReleasedSlope = 0;
+      G.boostingNow = false;
       G.transitioning = false;
       G.transitionEnd = 0;
       if (typeof trail !== "undefined") trail.length = 0;
@@ -1373,16 +1379,34 @@
     let _lastRestart = 0;
     function doRestart(isManual) {
       const now = performance.now();
-      if (now - _lastRestart < 350) return;
+      // 600 ms debounce, not 350 — iOS Safari delivers synthesized
+      // click 300–500 ms after the touchend it was already triggered
+      // by, which previously slipped through the 350 ms window and
+      // double-fired startGame, manifesting as flicker / panel flash.
+      if (now - _lastRestart < 600) return;
       _lastRestart = now;
       if (isManual) G.gameOver = true; // bypass endRun guard
       startGame();
+      // Blur whatever has focus so a subsequent Space keypress doesn't
+      // synthesize another button click on the focused restart button
+      // and re-trigger this codepath.
+      if (document.activeElement && document.activeElement.blur) {
+        try { document.activeElement.blur(); } catch {}
+      }
     }
     function tryRestart(e) {
       const t = e.target;
-      if (!t || !t.closest) return;
-      const r = t.closest("#restartBtn");
-      const m = t.closest("#manualRestartBtn");
+      // iOS sometimes dispatches synthesized clicks with target=Text
+      // node or document.body; closest is undefined on text nodes and
+      // returns null on body. Walk up via parentNode to recover.
+      let el = t;
+      while (el && (!el.closest || !(el.closest("#restartBtn") || el.closest("#manualRestartBtn")))) {
+        if (!el.parentNode || el === document) { el = null; break; }
+        el = el.parentNode;
+      }
+      if (!el || !el.closest) return;
+      const r = el.closest("#restartBtn");
+      const m = el.closest("#manualRestartBtn");
       if (!r && !m) return;
       e.preventDefault();
       e.stopPropagation();
@@ -1740,34 +1764,52 @@
 
       // End-of-flight detection. Three independent triggers — any one
       // ends the run:
-      //  (a) low speed for sustained time (classic wedge-in-slope)
-      //  (b) no forward progress (maxBx stalls) — catches airborne
-      //      stalls and bouncing-in-place even when speed flickers high.
-      //  (c) backsliding — bx actually retreating from the watermark
-      //      means the bird is being pushed back by an uphill it can't
-      //      climb; no point waiting another second to call it.
-      // Use FORWARD speed (|vx|), not total speed. A bird bouncing in
-      // place has high vy oscillation that masks zero forward progress
-      // — total speed never dips below the threshold even though the
-      // run is functionally over.
-      const fwd = Math.abs(G.vx);
-      if (fwd < 60) {
-        G.stuckMs += dt * 1000;
-        if (G.stuckMs > 700) endRun("the wind has settled");
-      } else {
-        G.stuckMs = 0;
+      //  (a) low forward speed for sustained time (wedge-in-slope)
+      //  (b) no forward progress (maxBx stalls)
+      //  (c) sustained backsliding (uphill is winning)
+      //
+      // Spawn warmup: don't run any of these for the first 800 ms after
+      // startGame so a bird placed on a slightly tricky opening seed has
+      // time to accelerate before the watchdog even starts ticking.
+      const sinceStart = performance.now() - G.flightStartT;
+      if (sinceStart > 800) {
+        // Use SIGNED forward velocity (vx itself, not |vx|). A bird in
+        // a valley bouncing backward at vx=-80 has |vx|=80 which clears
+        // the gate and feels alive — but it isn't going anywhere. The
+        // signed check catches "going nowhere or backward" with one
+        // condition, and the absolute-stall case (vx near zero) is a
+        // subset of it.
+        if (G.vx < 60) {
+          G.stuckMs += dt * 1000;
+          if (G.stuckMs > 700) endRun("the wind has settled");
+        } else {
+          G.stuckMs = 0;
+        }
+        // Forward-progress watchdog: bird must gain ≥10 px every 1200ms.
+        // The old +40 px threshold let a bird oscillating ±41 px reset
+        // the watermark on every cycle and never trip — visually frozen
+        // but technically advancing. 10 px / 1.2 s catches that case.
+        if (G.bx > G.stuckCheckBx + 10) {
+          G.stuckCheckBx = G.bx;
+          G.noProgressMs = 0;
+        } else {
+          G.noProgressMs += dt * 1000;
+          if (G.noProgressMs > 1200) endRun("out of speed");
+        }
+        // Backslide trigger needs hysteresis — a single 60px transient
+        // from a steep ramp-bounce shouldn't end the run instantly. The
+        // bird must be ≥60 px below the watermark for ≥250 ms.
+        if (G.bx < G.stuckCheckBx - 60) {
+          G.backslideMs += dt * 1000;
+          if (G.backslideMs > 250) endRun("shoved back");
+        } else {
+          G.backslideMs = 0;
+        }
       }
-      // Forward-progress watchdog: bird must gain ≥40 px every 700 ms.
-      if (G.bx > G.stuckCheckBx + 40) {
-        G.stuckCheckBx = G.bx;
-        G.noProgressMs = 0;
-      } else {
-        G.noProgressMs += dt * 1000;
-        if (G.noProgressMs > 700) endRun("out of speed");
-      }
-      // Backslide trigger: bird is being shoved BACK from its high-water
-      // mark by ≥60 px. That's not "stuck", that's defeated.
-      if (G.bx < G.stuckCheckBx - 60) endRun("shoved back");
+      // If any of the three triggers ended the run this frame, stop
+      // here — the rest of the function (day timer, HUD, distance HWM)
+      // shouldn't keep ticking on a dead bird.
+      if (G.gameOver) return;
 
       // Day timer
       if (!G.transitioning) {
@@ -1819,13 +1861,20 @@
       G.gameOver = true;
       const distM = G.maxDistM;
       const newBest = distM >= G.bestDist && distM > 0;
-      document.getElementById("endDist").textContent = String(distM);
-      document.getElementById("endPerfect").textContent = String(G.perfectCount);
-      document.getElementById("endDay").textContent = String(G.day);
-      document.getElementById("endNewBest").style.display = newBest ? "" : "none";
-      const sub = document.querySelector("#endPanel .sub");
-      if (sub && reason) sub.textContent = reason.toUpperCase();
-      document.getElementById("endPanel").classList.add("live");
+      const $ = (id) => document.getElementById(id);
+      // Each setter is null-checked because previous versions of endRun
+      // overwrote the .sub container's textContent which destroyed the
+      // #endDay span it had just written into — second-and-later deaths
+      // then threw on the missing element and the end panel never
+      // appeared, making restart feel broken. Now #endReason holds the
+      // whole "REASON · DAY N" string as one textContent, no nested
+      // spans to clobber.
+      const endDist = $("endDist"); if (endDist) endDist.textContent = String(distM);
+      const endPerfect = $("endPerfect"); if (endPerfect) endPerfect.textContent = String(G.perfectCount);
+      const endReason = $("endReason");
+      if (endReason) endReason.textContent = reason ? `${reason.toUpperCase()} · DAY ${G.day}` : `DAY ${G.day} COMPLETE`;
+      const endNewBest = $("endNewBest"); if (endNewBest) endNewBest.style.display = newBest ? "" : "none";
+      const ep = $("endPanel"); if (ep) ep.classList.add("live");
     }
 
     // ── Rendering ─────────────────────────────────────────────────
