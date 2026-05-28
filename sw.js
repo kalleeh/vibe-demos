@@ -1,20 +1,22 @@
 /* vibe-studio root landing — minimal offline shell SW.
    Tight scope: only caches the root landing, never demo subpaths
    (each demo registers its own SW under its own scope). */
-const CACHE = "vibe-root-v4";
+const CACHE = "vibe-root-v5";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
-  // Landing-page imagery — hero band, 7 hover thumbs, paper texture, divider.
+  // Landing-page imagery — hero band, 9 hover thumbs, paper texture, divider.
   "./thumbs/hero-band.jpg",
   "./thumbs/paper-texture.jpg",
-  "./thumbs/divider.jpg",
+  "./thumbs/divider.png",
   "./thumbs/sweden.jpg",
   "./thumbs/molecule.jpg",
   "./thumbs/globe.jpg",
   "./thumbs/intake.jpg",
   "./thumbs/mbti.jpg",
   "./thumbs/resonans.jpg",
-  "./thumbs/clinic-admin.jpg"
+  "./thumbs/clinic-admin.png",
+  "./thumbs/starwars.jpg",
+  "./tinywings/assets/hero-mood.webp"
 ];
 
 self.addEventListener("install", e => {
@@ -38,8 +40,11 @@ self.addEventListener("fetch", e => {
   const root = new URL(self.registration.scope);
   const path = url.pathname.slice(root.pathname.length);
   // Anything in a demo subfolder belongs to that demo's SW — except for
-  // `thumbs/`, which is the landing's own asset folder.
-  if (path.includes("/") && !path.startsWith("thumbs/")) return;
+  // `thumbs/` (the landing's own asset folder) and a small allow-list of
+  // cross-demo assets the landing legitimately renders inline (e.g. a demo's
+  // hero image used as its index thumbnail).
+  const LANDING_CROSSDEMO = new Set(["tinywings/assets/hero-mood.webp"]);
+  if (path.includes("/") && !path.startsWith("thumbs/") && !LANDING_CROSSDEMO.has(path)) return;
 
   if (req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html")) {
     e.respondWith(
