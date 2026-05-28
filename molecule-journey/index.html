@@ -2193,7 +2193,15 @@
        ANIMATION LOOP — per-frame motion for each scene
        ============================================================ */
     const clock = new THREE.Clock();
-    const trailHistory = [];
+    // Ring buffer for the marker trail, plus scratch vectors used in the
+    // hero-molecule vibration math — both kept out of the hot path so the
+    // animation loop allocates nothing per frame.
+    const trailHistory = Array.from({ length: TRAIL_LEN }, () => new THREE.Vector3());
+    let trailHead = 0;
+    let trailCount = 0;
+    const _heroDir = new THREE.Vector3();
+    const _heroPerp = new THREE.Vector3();
+    const _heroOff = new THREE.Vector3();
 
     function tick() {
       const dt = Math.min(clock.getDelta(), 0.05);
@@ -2217,9 +2225,9 @@
         hydrogens.forEach((h, i) => {
           // basePos modulation only when not in chapter-6 explosion
           if (smoothProgress < 5.5) {
-            let dir = h.basePos.clone().normalize();
+            _heroDir.copy(h.basePos).normalize();
+            _heroOff.set(0, 0, 0);
             let stretch = 1.0;
-            const off = new THREE.Vector3();
             if (heroVibMode === "symmetric") {
               // All four C–H bonds stretch in phase.
               stretch = 1.0 + Math.sin(elapsed * omegaStretch) * ampStretch;
@@ -2231,12 +2239,12 @@
               // Tetrahedral H–C–H angle wobbles. Lateral nudge perpendicular
               // to bond axis, slower frequency, smaller amplitude.
               stretch = 1.0 + Math.sin(elapsed * omegaBend) * ampStretch * 0.4;
-              const perp = new THREE.Vector3(-dir.y, dir.x, 0).normalize();
-              off.copy(perp).multiplyScalar(
+              _heroPerp.set(-_heroDir.y, _heroDir.x, 0).normalize();
+              _heroOff.copy(_heroPerp).multiplyScalar(
                 Math.sin(elapsed * omegaBend + i * Math.PI / 2) * ampBend
               );
             }
-            h.group.position.copy(h.basePos).multiplyScalar(stretch).add(off);
+            h.group.position.copy(h.basePos).multiplyScalar(stretch).add(_heroOff);
           }
           h.mesh.rotation.x = Math.sin(elapsed * 1.7 + i) * 0.5;
           h.mesh.rotation.y = Math.cos(elapsed * 1.4 + i) * 0.5;
@@ -2265,13 +2273,18 @@
         const r = 0.12 + Math.sin(elapsed * 4 + i) * 0.02;
         h.position.set(Math.cos(a) * r, Math.sin(a*0.9 + i) * r * 0.6, Math.sin(a) * r);
       });
-      // Trail
+      // Trail — ring buffer of pre-allocated Vector3s, no per-frame allocation.
       if (markerGroup.visible) {
-        trailHistory.push(markerGroup.position.clone());
-        if (trailHistory.length > TRAIL_LEN) trailHistory.shift();
+        trailHistory[trailHead].copy(markerGroup.position);
+        trailHead = (trailHead + 1) % TRAIL_LEN;
+        if (trailCount < TRAIL_LEN) trailCount++;
+        const newest = (trailHead - 1 + TRAIL_LEN) % TRAIL_LEN;
         for (let i = 0; i < TRAIL_LEN; i++) {
-          const idx = trailHistory.length - 1 - i;
-          const p = idx >= 0 ? trailHistory[idx] : (trailHistory[0] || markerGroup.position);
+          // Repeat the oldest recorded sample for slots beyond what we've
+          // captured yet, so the line geometry stays well-formed in the
+          // first ~64 frames.
+          const age = Math.min(i, trailCount - 1);
+          const p = trailHistory[(newest - age + TRAIL_LEN) % TRAIL_LEN];
           trailPos[i*3]   = p.x;
           trailPos[i*3+1] = p.y;
           trailPos[i*3+2] = p.z;
@@ -2280,7 +2293,8 @@
         trailLine.visible = true;
       } else {
         trailLine.visible = false;
-        trailHistory.length = 0;
+        trailCount = 0;
+        trailHead = 0;
       }
 
       /* Tanker scene motion */
