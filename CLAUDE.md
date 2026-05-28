@@ -50,26 +50,24 @@ When **adding** a demo:
 - Pick the next two-digit number (`01`, `02`, `03`, …). Numbering is **chronological by ship order**, never reused. If demo `02` is removed later, `02` stays retired — do not renumber existing entries.
 - If there is a `data-status="soon"` placeholder slot at the right number, replace it with the live entry rather than appending after it.
 - Update the `<div class="count">` text in the section header (`Index / NN entries`) to match the number of **shipped** entries (exclude `data-status="soon"` rows).
-- Add the demo's display label to the `labels` map in the inline `<script>` so the cursor-follow preview shows the right title:
-  ```js
-  const labels = { sweden: "Svensk Mat", <new-key>: "<Display Title>" };
-  ```
-  The key matches `data-preview="<key>"` on the `<a class="work">` row.
+- Add a thumbnail for the demo. Place a 1280×720 JPG at `thumbs/<slug>.jpg` (or PNG/WebP if the source needs it — match what's already there) and reference it inline on the row via `<span class="thumb"><img src="./thumbs/<slug>.jpg" ...>`. A demo may instead reuse one of its own internal hero assets (e.g. tinywings uses `./tinywings/assets/hero-mood.webp`); when you do, add that path to the root `sw.js` cross-demo allow-list so the landing's SW can cache and serve it.
 - If after adding there are fewer than 3 visible rows total, top up with `data-status="soon"` placeholder rows so the index doesn't feel sparse. If there are 3+ shipped, drop the placeholders.
-- Match the existing visual grammar: `<span class="num">`, `<span class="title">` with one word italicised in `<em>`, `<span class="tags">` (3 short uppercase phrases separated by `<br>`), `<span class="year">`, `<span class="arrow">→</span>`.
+- Match the existing visual grammar: `<span class="num">`, `<span class="title">` with one word italicised in `<em>`, `<span class="tags">` (3 short uppercase phrases separated by `<br>`), `<span class="thumb">` (the inline thumbnail), `<span class="year">`, `<span class="arrow">→</span>`.
 
 When **removing** a demo:
 - Delete the demo's folder.
 - Remove its row from the works index.
 - Decrement the `Index / NN entries` count.
-- Remove its key from the `labels` map.
+- Delete the demo's thumbnail under `thumbs/` (and remove the path from the root `sw.js` SHELL list).
 - If the removed slot was in the middle (e.g. `02`), insert a `data-status="soon"` placeholder at that number to preserve numbering — do NOT renumber the entries that came after.
 
 When **renaming** a demo:
 - Move the folder to the new slug.
 - Update the `href` on its works-index row.
-- Update the `data-preview` key and the matching `labels` entry if the title changed.
+- Rename the thumbnail under `thumbs/` and update the `<img src>` on the row plus the path in the root `sw.js` SHELL list.
 - Update `README.md` link.
+
+Note: an earlier version of the landing used a cursor-follow preview driven by `data-preview` attributes and a `labels` map in an inline script. That has been replaced by the inline `<span class="thumb">` per row — no JS, no hover state to wire up. New rows use only the thumbnail; do not reintroduce `data-preview` or a `labels` map.
 
 ### 3. `README.md`
 
