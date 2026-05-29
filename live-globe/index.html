@@ -1244,15 +1244,26 @@
     }
     ffToggle.addEventListener("click", startFastForward);
 
-    /* SunCalc — sunrise/sunset per city */
+    /* SunCalc — sunrise/sunset per city. SunCalc is a CDN global and is NOT
+       precached by the SW; if it fails to load, fall back to "—" instead of
+       leaving the stats shimmering "loading" forever. */
     function updateSun() {
       const now = new Date();
+      const haveSunCalc = typeof SunCalc !== "undefined";
       Object.values(CITIES).forEach(c => {
-        const t = SunCalc.getTimes(now, c.lat, c.lon);
-        document.getElementById(`sr-${c.key}`).textContent = fmtTime(t.sunrise, c.tz);
-        document.getElementById(`sr-${c.key}`).classList.remove("shimmer");
-        document.getElementById(`ss-${c.key}`).textContent = fmtTime(t.sunset, c.tz);
-        document.getElementById(`ss-${c.key}`).classList.remove("shimmer");
+        const srEl = document.getElementById(`sr-${c.key}`);
+        const ssEl = document.getElementById(`ss-${c.key}`);
+        try {
+          if (!haveSunCalc) throw new Error("SunCalc unavailable");
+          const t = SunCalc.getTimes(now, c.lat, c.lon);
+          srEl.textContent = fmtTime(t.sunrise, c.tz);
+          ssEl.textContent = fmtTime(t.sunset, c.tz);
+        } catch {
+          srEl.textContent = "—";
+          ssEl.textContent = "—";
+        }
+        srEl.classList.remove("shimmer");
+        ssEl.classList.remove("shimmer");
       });
     }
     updateSun();
@@ -1410,27 +1421,37 @@
     }
 
     /* ── Canned blurbs (no API call, work for everyone) ── */
+    // Hour-of-day IN THE CITY'S timezone — the rhythm prose below must key off
+    // this, not the viewer's local clock, or e.g. a Korean viewer sees Stockholm's
+    // 3AM clock next to "metro running normally".
+    function cityHour(date, tz) {
+      return parseInt(new Intl.DateTimeFormat("en-GB", {
+        timeZone: tz, hour: "2-digit", hour12: false
+      }).format(date), 10);
+    }
+
     function cannedBlurb(c) {
       const now = new Date();
       const localTime = fmtTime(now, c.tz);
+      const h = cityHour(now, c.tz);
       const w = c.weather;
       const wLine = w ? `${w.label.toLowerCase()}, ${Math.round(w.tempC)}°C` : "weather offline";
       if (c.key === "stockholm") {
         return {
           ko: `스톡홀름은 지금 ${localTime}, ${wLine}. 감라스탄의 좁은 골목에는 늦은 산책객 몇 명. 지하철 ${
-            now.getHours() < 8 ? "첫 차" : now.getHours() > 22 ? "막차" : "정상 운행"
+            h < 8 ? "첫 차" : h > 22 ? "막차" : "정상 운행"
           }, 항구의 페리는 발틱해를 향해 천천히 미끄러진다.`,
           en: `It's ${localTime} in Stockholm — ${wLine}. A handful of late walkers in Gamla Stan; the metro is ${
-            now.getHours() < 8 ? "starting up" : now.getHours() > 22 ? "winding down" : "running normally"
+            h < 8 ? "starting up" : h > 22 ? "winding down" : "running normally"
           }; harbor ferries glide toward the Baltic.`
         };
       }
       return {
         ko: `서울은 지금 ${localTime}, ${wLine}. 강남역 일대는 ${
-          now.getHours() < 7 ? "조용" : now.getHours() < 10 ? "출근길" : now.getHours() < 18 ? "분주" : "퇴근 인파"
+          h < 7 ? "조용" : h < 10 ? "출근길" : h < 18 ? "분주" : "퇴근 인파"
         }하고, 한강을 따라 자전거가 지나간다. 종로의 작은 분식집들은 영업 중.`,
         en: `It's ${localTime} in Seoul — ${wLine}. Around Gangnam Station the streets are ${
-          now.getHours() < 7 ? "quiet" : now.getHours() < 10 ? "in commute mode" : now.getHours() < 18 ? "busy" : "full of evening crowds"
+          h < 7 ? "quiet" : h < 10 ? "in commute mode" : h < 18 ? "busy" : "full of evening crowds"
         }; cyclists trace the Han River; the small 분식 shops in Jongno are still open.`
       };
     }

@@ -1333,6 +1333,10 @@
       e.preventDefault();
       ensureAudio();
       if (G.gameOver) return;
+      // Capture the pointer so we still get pointerup even if the finger/cursor
+      // releases over the topbar/footer that overlay the playfield — otherwise
+      // pitchDown sticks "on" forever and the bird dives until it crashes.
+      try { canvas.setPointerCapture(e.pointerId); } catch {}
       G.pitchDown = true;
       // Mid-air tap-press also consumes boost if available
       if (G.airborne && G.boost > 0.18) {
@@ -1435,8 +1439,15 @@
     window.addEventListener("keydown", e => {
       if (e.repeat) return;
       if (e.code === "Space" || e.code === "ArrowDown") {
-        G.pitchDown = true;
-        if (G.gameOver) startGame();
+        if (G.gameOver) {
+          // Route through doRestart so the 600ms debounce also covers the
+          // synthesized click that a focused restart button fires on Space —
+          // otherwise the game restarts twice.
+          e.preventDefault();
+          doRestart(false);
+        } else {
+          G.pitchDown = true;
+        }
       }
     });
     window.addEventListener("keyup", e => {
@@ -1683,6 +1694,7 @@
           const releasedAtCrest = !G.pitchDown && justReleased && releasedOnDownhill;
           if (releasedAtCrest) {
             G.perfectLaunch = true;
+            G._perfectAt = performance.now(); // stamp so the halo can decay
             G.perfectCount++;
             G.boost = Math.min(1, G.boost + 0.35);
             blip(440, 0.20, "sine", 0.16);
@@ -2518,9 +2530,9 @@
       drawOffscreenIndicator(sx, sy);
       drawMinimap();
 
-      // Perfect-launch sparkle decays after one second
-      if (G.perfectLaunch && performance.now() - (G._perfectAt || 0) > 60) {
-        G._perfectAt = performance.now();
+      // Perfect-launch halo decays one second after the launch instant.
+      if (G.perfectLaunch && performance.now() - (G._perfectAt || 0) > 1000) {
+        G.perfectLaunch = false;
       }
 
       drawTransitionOverlay();

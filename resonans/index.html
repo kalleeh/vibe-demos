@@ -284,7 +284,9 @@
       <a class="back" href="../">← Studio</a>
     </header>
 
-    <canvas id="sketch" aria-label="Vibrating string sketch"></canvas>
+    <canvas id="sketch" tabindex="0" role="application"
+            aria-label="Vibrating string sketch — press Space to pluck the centre, Left/Right arrows to pluck off-centre"
+            aria-keyshortcuts="Space ArrowLeft ArrowRight"></canvas>
 
     <div class="label-block" aria-hidden="true">
       <span class="n" id="modeNum">1</span>
@@ -1308,7 +1310,10 @@
     // (no `e.repeat` filter) so a held key sustains the rhythm.
     window.addEventListener("keydown", e => {
       if (scene !== "string") return;
-      if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+      // Don't hijack Space/Arrows when a control is focused — let the button,
+      // link, or input handle its native keyboard activation.
+      if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA"
+          || e.target.closest("button, a, [role=button], select"))) return;
       let frac = -1;
       if (e.code === "Space") frac = 0.5;
       else if (e.code === "ArrowLeft")  frac = 0.30;

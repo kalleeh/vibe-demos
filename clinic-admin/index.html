@@ -4780,10 +4780,15 @@
               counters.ambiguous++;
             } else if (hit.type === "recoded") {
               action = "normalized";
+              // The normalized EDI form is the dotless kcd9 (e.g. S33.5 → S335) —
+              // show that, not the dotted input form, or the row contradicts its note.
+              standardCode = hit.kcd9 || codeNorm;
               note = "마침표 정리(.→없음) — EDI 청구 형식";
               counters.normalized++;
             } else if (hit.type === "merged") {
               action = "normalized";
+              // merged → the current standard form lives in kcd9 (e.g. R51 → R51.9).
+              standardCode = hit.kcd9 || codeRaw;
               note = "구버전 코드 → 현행 표준형으로 정리";
               counters.normalized++;
             } else {
@@ -4803,7 +4808,16 @@
               action = "ucode_solo";
               note = "한의 변증 단독 — 양방 진단(M/G/K…) 동반코딩 필요";
               counters.ucode_solo++;
-              counters[hit ? (hit.type === "unchanged" ? "clean" : hit.type) : "missing"]--;
+              // Decrement the SAME logical bucket the first pass incremented above
+              // (split→ambiguous, recoded/merged→normalized, else→clean), not the
+              // raw hit.type — otherwise a recoded/split U-mapping double-counts.
+              let bucket = "missing";
+              if (hit) {
+                bucket = hit.type === "split" ? "ambiguous"
+                       : (hit.type === "recoded" || hit.type === "merged") ? "normalized"
+                       : "clean";
+              }
+              counters[bucket]--;
             }
           }
 
@@ -5568,7 +5582,11 @@
         for (const row of rows) {
           const id = row["기록ID"] || row["ID"] || "";
           const rawType = row["기록종류"] || row["종류"] || "";
-          const created = String(row["작성일자"] || "").trim();
+          // Legal retention runs from the treatment-completion / last-visit date
+          // (per retention.json), falling back to 작성일자 when that column is absent.
+          const created = String(
+            row["진료완료일"] || row["마지막진료일"] || row["작성일자"] || ""
+          ).trim();
           const status = (row["상태"] || "active").trim();
           const cat = normalize(rawType);
 
@@ -6143,7 +6161,7 @@
        Tab 7 — AI 코딩 어시스트
        Pastes 진료 메모 → KCD-8 + 자보 + 비급여 추천 with
        citations. Canned-first; live mode if user pastes
-       Anthropic API key. Streams output.
+       Anthropic API key. Non-streaming (structured JSON brief).
        ───────────────────────────────────────────────────────── */
     function initTab7() {
       const KEY_STORE = "ai.key";
@@ -6210,7 +6228,6 @@
 
       // Canned exemplar — calibrated against KCD/자보/비급여 data files
       const cannedFor = (note) => {
-        const lower = note.toLowerCase();
         const isAccident = /사고|추돌|교통|충돌/.test(note);
         const isNeck = /경[부추]|목/.test(note);
         const isLumbar = /요[부추]|허리/.test(note);
@@ -6243,8 +6260,8 @@
         }
 
         const bigeup = isAccident
-          ? [{ code: "BC0001", name: "추나치료 (단순추나)", conf: 0.70, ref: "HIRA 비급여" }]
-          : [{ code: "BC0011", name: "약침치료", conf: 0.65, ref: "HIRA 비급여" }];
+          ? [{ code: "BC0101", name: "추나요법 — 자율신경", conf: 0.70, ref: "HIRA 비급여" }]
+          : [{ code: "BC0001", name: "약침술 — 경혈", conf: 0.65, ref: "HIRA 비급여" }];
 
         return { kcd, uCode, jabo, bigeup };
       };

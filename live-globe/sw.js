@@ -1,5 +1,5 @@
 /* live-globe — minimal offline shell SW */
-const CACHE = "vibe-live-globe-v4";
+const CACHE = "vibe-live-globe-v5";
 const SHELL = [
   "./",
   "./index.html",
@@ -13,7 +13,7 @@ self.addEventListener("install", e => {
 self.addEventListener("activate", e => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k.startsWith(CACHE.replace(/-v\d+$/, "-")) && k !== CACHE).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });

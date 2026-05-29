@@ -1294,7 +1294,7 @@
 
       <!-- Input panel -->
       <div class="panel">
-        <img class="herb-vignette ginseng" src="./herb-ginseng.png" alt="" width="800" height="1200" loading="lazy" decoding="async" aria-hidden="true">
+        <img class="herb-vignette ginseng" src="./herb-ginseng.webp" alt="" width="440" height="660" loading="lazy" decoding="async" aria-hidden="true">
         <header class="panel-head">
           <div>
             <div class="lbl">01 · 환자 진술</div>
@@ -1346,7 +1346,7 @@
 
       <!-- Output panel -->
       <div class="panel">
-        <img class="herb-vignette mugwort" src="./herb-mugwort.png" alt="" width="800" height="1200" loading="lazy" decoding="async" aria-hidden="true">
+        <img class="herb-vignette mugwort" src="./herb-mugwort.webp" alt="" width="440" height="660" loading="lazy" decoding="async" aria-hidden="true">
         <header class="panel-head">
           <div>
             <div class="lbl">02 · 임상 브리프</div>
@@ -1708,11 +1708,17 @@
     });
   });
 
+  /* Original empty-state prompt — cached so the error path (which overwrites
+     #emptyState p with err.message) can be reverted on Clear / next run. */
+  const EMPTY_STATE_PROMPT = $("#emptyState p").textContent;
+  const resetEmptyState = () => { $("#emptyState p").textContent = EMPTY_STATE_PROMPT; };
+
   /* ── Clear ── */
   $("#clearBtn").addEventListener("click", () => {
     $("#narrative").value = "";
     state.currentBrief = null;
     $("#brief").style.display = "none";
+    resetEmptyState();
     $("#emptyState").style.display = "flex";
     $("#printBar").style.display = "none";
     const ap = $("#atlasPanel"); if (ap) ap.style.display = "none";
@@ -1822,6 +1828,7 @@
     const text = $("#narrative").value.trim();
     if (!text) { $("#narrative").focus(); return; }
 
+    resetEmptyState(); // clear any prior error text before this run
     $("#emptyState").style.display = "none";
     $("#brief").style.display = "none";
     $("#outputProgress").classList.add("on");
@@ -1861,18 +1868,26 @@
   }
 
   /* ── Render brief ── */
+  // Escape interpolated text before it lands in innerHTML. In live mode the
+  // brief is model-generated JSON, so every field is untrusted input.
+  const esc = (s) => String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
   function renderBrief(brief) {
     const lang = state.lang;
+    // t() translates; et() translates AND escapes for safe innerHTML interpolation.
     const t = (obj) => typeof obj === "string" ? obj : (obj[lang] || obj.ko);
+    const et = (obj) => esc(t(obj));
 
     const sasangSlug = (brief.sasang && brief.sasang.latin) ?
       brief.sasang.latin.toLowerCase().replace(/[^a-z]+/g, "-") : "";
 
     const sasangHtml = brief.sasang ? `
-      <div class="sasang ${sasangSlug}" title="${brief.sasang.latin}">
-        <span class="glyph">${(brief.sasang.type || "").charAt(0)}</span>
-        <span class="name">${brief.sasang.type}</span>
-        <span class="conf">${t(brief.sasang.why)}</span>
+      <div class="sasang ${sasangSlug}" title="${esc(brief.sasang.latin)}">
+        <span class="glyph">${esc((brief.sasang.type || "").charAt(0))}</span>
+        <span class="name">${esc(brief.sasang.type)}</span>
+        <span class="conf">${et(brief.sasang.why)}</span>
       </div>
     ` : "";
 
@@ -1892,9 +1907,9 @@
         <h3>주소 · Chief complaints</h3>
         <div class="complaints">
           ${brief.complaints.map(c => `
-            <div class="complaint sev-${c.sev}">
-              <div class="name"><span class="sev"></span>${lang === "ko" ? c.ko : c.en}</div>
-              <div class="meta">${"●".repeat(c.sev)}${"○".repeat(4 - c.sev)} · ${t(c.dur)}</div>
+            <div class="complaint sev-${Number(c.sev) || 0}">
+              <div class="name"><span class="sev"></span>${esc(lang === "ko" ? c.ko : c.en)}</div>
+              <div class="meta">${"●".repeat(Number(c.sev) || 0)}${"○".repeat(4 - (Number(c.sev) || 0))} · ${et(c.dur)}</div>
             </div>
           `).join("")}
         </div>
@@ -1905,19 +1920,19 @@
         ${sasangHtml}
         <div class="pattern">
           <div class="head">
-            <div class="name">${brief.pattern.ko}</div>
-            <div class="latin">${brief.pattern.latin}</div>
+            <div class="name">${esc(brief.pattern.ko)}</div>
+            <div class="latin">${esc(brief.pattern.latin)}</div>
           </div>
-          <div class="why">${t(brief.pattern.why)}</div>
+          <div class="why">${et(brief.pattern.why)}</div>
         </div>
       </div>
 
       <div class="section">
         <h3>처방 · Formula</h3>
         <div class="formula">
-          <div class="name">${brief.formula.name}</div>
-          <div class="pinyin">${brief.formula.pinyin}</div>
-          <div class="note">${t(brief.formula.note)}</div>
+          <div class="name">${esc(brief.formula.name)}</div>
+          <div class="pinyin">${esc(brief.formula.pinyin)}</div>
+          <div class="note">${et(brief.formula.note)}</div>
         </div>
         ${herbHtml}
       </div>
@@ -1927,9 +1942,9 @@
         <div class="points">
           ${brief.points.map(p => `
             <div class="point">
-              <div class="code">${p.code}</div>
-              <div class="name">${p.ko}</div>
-              <div class="why">${t(p.why)}</div>
+              <div class="code">${esc(p.code)}</div>
+              <div class="name">${esc(p.ko)}</div>
+              <div class="why">${et(p.why)}</div>
             </div>
           `).join("")}
         </div>
@@ -1938,7 +1953,7 @@
       <div class="section">
         <h3>추가 문진 · Follow-up</h3>
         <ul class="followups">
-          ${(lang === "ko" ? brief.followups.ko : brief.followups.en).map(f => `<li>${f}</li>`).join("")}
+          ${(lang === "ko" ? brief.followups.ko : brief.followups.en).map(f => `<li>${esc(f)}</li>`).join("")}
         </ul>
       </div>
     `;

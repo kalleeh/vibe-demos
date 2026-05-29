@@ -1269,18 +1269,18 @@ footer.bottom {
 </header>
 
 <div class="tabs" role="tablist">
-  <button class="tab active" data-mode="test" role="tab">
+  <button class="tab active" data-mode="test" role="tab" id="tab-test" aria-selected="true" aria-controls="panel-test">
     빠른 테스트
-    <span class="meta">12문항 · 약 2분 · 빠른 진단</span>
+    <span class="meta">28문항 · 약 5분 · 빠른 진단</span>
   </button>
-  <button class="tab" data-mode="ai" role="tab">
+  <button class="tab" data-mode="ai" role="tab" id="tab-ai" aria-selected="false" aria-controls="panel-ai">
     AI 깊이 읽기
     <span class="meta">Free-text · Claude</span>
   </button>
 </div>
 
 <!-- ====== TEST PANEL ====== -->
-<section class="panel active" id="panel-test">
+<section class="panel active" id="panel-test" role="tabpanel" aria-labelledby="tab-test">
 
   <div id="test-intro">
     <div class="intro-card">
@@ -1327,7 +1327,7 @@ footer.bottom {
 </section>
 
 <!-- ====== AI PANEL ====== -->
-<section class="panel" id="panel-ai">
+<section class="panel" id="panel-ai" role="tabpanel" aria-labelledby="tab-ai">
 
   <div class="ai-intro">
     <h2>당신의 글을 읽고 유형을 추론합니다</h2>
@@ -2144,8 +2144,9 @@ function updateModePill() {
 // ============================================================
 $$(".tab").forEach(tab => {
   tab.addEventListener("click", () => {
-    $$(".tab").forEach(t => t.classList.remove("active"));
+    $$(".tab").forEach(t => { t.classList.remove("active"); t.setAttribute("aria-selected", "false"); });
     tab.classList.add("active");
+    tab.setAttribute("aria-selected", "true");
     const mode = tab.dataset.mode;
     $$(".panel").forEach(p => p.classList.remove("active"));
     $("#panel-" + mode).classList.add("active");
@@ -2343,7 +2344,8 @@ function showResult() {
     type,
     nickname_ko: meta.nickname,
     pull_quote: meta.one_liner,
-    fromTest: true
+    fromTest: true,
+    testLength: state.testLength
   });
 }
 
@@ -2662,7 +2664,10 @@ async function renderResultCard(payload) {
   // footer text
   ctx.fillStyle = "rgba(20,17,13,0.55)";
   ctx.font = "500 16px 'JetBrains Mono', monospace";
-  ctx.fillText(payload.fromTest ? "12-Q QUICK TEST" : "AI DEEP-READ", 80, 988);
+  const cardLabel = payload.fromTest
+    ? (payload.testLength === "full" ? "93-Q FORM-M" : "28-Q QUICK TEST")
+    : "AI DEEP-READ";
+  ctx.fillText(cardLabel, 80, 988);
   ctx.textAlign = "right";
   ctx.fillText("kalleeh.github.io/vibe-demos", W - 80, 988);
   ctx.textAlign = "left";
@@ -2991,7 +2996,10 @@ async function runAnalyze() {
 }
 
 function pickCanned(text) {
-  let bestScore = -1;
+  // Start at 0 so an entry that matches NOTHING (s===0) never displaces the
+  // default; only a real keyword hit (s>0) wins. The last CANNED entry is the
+  // intended fallback for unmatched text.
+  let bestScore = 0;
   let best = CANNED[CANNED.length - 1];
   for (const c of CANNED) {
     if (!c.matches.length) continue;

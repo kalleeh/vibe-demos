@@ -1817,7 +1817,7 @@
           <p class="lead">미슐랭 별부터 1882년의 비어홀까지 — 도시·예산·종류로 좁혀 보세요. 카드를 누르면 시그니처 메뉴와 실전 팁이 펼쳐집니다.</p>
         </div>
 
-        <div class="city-strip" id="cityFilters" role="tablist" aria-label="도시 필터"></div>
+        <div class="city-strip" id="cityFilters" role="group" aria-label="도시 필터"></div>
 
         <div class="filter-row">
           <label for="priceFilter">예산</label>
@@ -2089,7 +2089,7 @@
           <div class="section-kicker"><span class="num">/ STO</span>스톡홀름 · Stockholm</div>
           <h3>발트해의 <em>식탁</em>.</h3>
           <p class="city-deck">감라스탄의 전통 비어홀부터 외스테르말름의 1888년 시장까지. 미트볼·토스트 스카겐·카넬불레의 본진.</p>
-          <button class="btn" data-spread="스톡holm" onclick="printCity('stockholm')">이 도시의 한 장 스프레드 <span class="arrow">↓</span></button>
+          <button class="btn" onclick="printCity('stockholm')">이 도시의 한 장 스프레드 <span class="arrow">↓</span></button>
         </div>
 
         <div class="city-section" data-city="예테보리">
@@ -2395,13 +2395,19 @@
 
     cities.forEach(city => {
       const btn = document.createElement("button");
-      btn.className = "chip" + (city === "전체" ? " active" : "");
+      const isActive = city === "전체";
+      btn.className = "chip" + (isActive ? " active" : "");
+      btn.setAttribute("aria-pressed", isActive ? "true" : "false");
       const cnt = city === "전체" ? restaurants.length : restaurants.filter(r => r.city === city).length;
       btn.innerHTML = `${city}<span class="count">${String(cnt).padStart(2, "0")}</span>`;
       btn.addEventListener("click", () => {
         currentCity = city;
-        document.querySelectorAll("#cityFilters .chip").forEach(c => c.classList.remove("active"));
+        document.querySelectorAll("#cityFilters .chip").forEach(c => {
+          c.classList.remove("active");
+          c.setAttribute("aria-pressed", "false");
+        });
         btn.classList.add("active");
+        btn.setAttribute("aria-pressed", "true");
         renderRestaurants();
       });
       cityFilters.appendChild(btn);
@@ -2530,16 +2536,39 @@
     /* ============================================================
        Tabs
        ============================================================ */
+    // Wire the WAI-ARIA tabs relationship for content tabsets (data-tab → panel):
+    // give each tab/panel an id, link them via aria-controls / aria-labelledby,
+    // and mark the panels role=tabpanel. (day-tabs toggle .day blocks, not
+    // .tab-panel, so they're left as a simple toggle group.)
+    document.querySelectorAll(".tabs .tab[data-tab]").forEach(t => {
+      const panel = document.getElementById("panel-" + t.dataset.tab);
+      if (!panel) return;
+      const tabId = "tab-" + t.dataset.tab;
+      t.id = tabId;
+      t.setAttribute("aria-controls", panel.id);
+      panel.setAttribute("role", "tabpanel");
+      panel.setAttribute("aria-labelledby", tabId);
+    });
+
+    // Reflect tab selection to assistive tech: aria-selected on every tab,
+    // matching the .active class.
+    const syncTabAria = (tabset) => {
+      tabset.querySelectorAll(".tab").forEach(x =>
+        x.setAttribute("aria-selected", x.classList.contains("active") ? "true" : "false"));
+    };
     document.querySelectorAll(".tabs").forEach(tabset => {
+      syncTabAria(tabset);
       tabset.querySelectorAll(".tab").forEach(t => {
         t.addEventListener("click", () => {
           if (t.dataset.day) {
             tabset.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
             t.classList.add("active");
+            syncTabAria(tabset);
             document.querySelectorAll(".day").forEach(d => d.classList.toggle("active", d.dataset.day === t.dataset.day));
           } else if (t.dataset.tab) {
             tabset.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
             t.classList.add("active");
+            syncTabAria(tabset);
             const parent = tabset.parentElement;
             parent.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
             const target = document.getElementById("panel-" + t.dataset.tab);
@@ -2701,13 +2730,20 @@
       const isKid  = constraint === "kid";
       const isDrnk = constraint === "drink";
 
-      // Helper: pick first match by predicate, fall back to any restaurant.
+      // Restaurants already placed in an earlier slot — every pick() avoids
+      // these so the same place never appears twice in one plan.
+      const used = new Set();
+      // Helper: pick first match by predicate (skipping already-used places),
+      // then fall back to any unused restaurant, then to any restaurant at all.
       function pick(preds) {
         for (const p of preds) {
-          const hit = pickByCity(city, p)[0];
-          if (hit) return hit;
+          const hit = pickByCity(city, r => !used.has(r.id) && p(r))[0];
+          if (hit) { used.add(hit.id); return hit; }
         }
-        return pickByCity(city, () => true)[0];
+        const fresh = pickByCity(city, r => !used.has(r.id))[0];
+        const hit = fresh || pickByCity(city, () => true)[0];
+        if (hit) used.add(hit.id);
+        return hit;
       }
 
       // Slot 1 — fika morning
@@ -2727,7 +2763,7 @@
       // Slot 3 — afternoon fika / market
       const afternoon = pick([
         r => r.type === "해산물" && r.name.toLowerCase().includes("salu"),
-        r => r.type === "피카" && r.id !== morningFika.id,
+        r => r.type === "피카",
         r => r.tags?.includes("fika")
       ]);
 
@@ -2737,14 +2773,14 @@
         r => isVeg ? (r.tags?.includes("veg") && r.type !== "피카") : null,
         r => isKid ? (r.type === "전통" && r.price !== "$$$$") : null,
         r => r.type === "파인다이닝",
-        r => r.type !== "피카" && r.id !== lunch.id
+        r => r.type !== "피카"
       ].filter(Boolean));
 
       // Slot 5 — nightcap (only if drink-leaning or weekend)
       const nightcap = pick([
         r => isDrnk ? r.signature.toLowerCase().includes("칵") || r.name.toLowerCase().includes("tjoget") : null,
-        r => r.type === "전통" && r.id !== dinner.id && r.id !== lunch.id,
-        r => r.id !== dinner.id
+        r => r.type === "전통",
+        r => true
       ].filter(Boolean));
 
       // Build slots based on duration

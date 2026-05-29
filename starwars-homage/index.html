@@ -254,7 +254,7 @@
       <article class="card">
         <p class="eyebrow">vibe-demos · 09</p>
         <h1>A New <em>Hope</em></h1>
-        <p class="lede">A 38-second cinematic homage in four beats — opening crawl, binary sunset, X-wing launch, trench run.</p>
+        <p class="lede">A 42-second cinematic homage in four beats — opening crawl, binary sunset, X-wing launch, trench run.</p>
       </article>
 
       <div class="player">
@@ -265,7 +265,7 @@
           controls
           data-show="false"
           poster="poster.jpg"
-          aria-label="A New Hope — a 38-second cinematic Star Wars homage"
+          aria-label="A New Hope — a 42-second cinematic Star Wars homage"
         >
           <source src="film.mp4" type="video/mp4" />
         </video>
@@ -276,9 +276,12 @@
           </button>
         </div>
 
-        <div class="buffering" role="status" aria-live="polite">
+        <div class="buffering" role="status" aria-label="Loading film">
           <div class="track" aria-hidden="true"></div>
-          <div class="label" id="buffering-label">Entering hyperspace…</div>
+          <!-- aria-hidden: the % updates on every progress tick; announcing
+               each would spam screen readers. The role=status label above
+               carries the single "Loading film" announcement. -->
+          <div class="label" id="buffering-label" aria-hidden="true">Entering hyperspace…</div>
         </div>
 
         <div class="ended-overlay">

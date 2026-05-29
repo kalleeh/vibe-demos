@@ -1,5 +1,5 @@
 /* sweden-food-guide — minimal offline shell SW */
-const CACHE = "vibe-sweden-food-guide-v5";
+const CACHE = "vibe-sweden-food-guide-v6";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
   // First-tab dish photos so the initial paint is instant offline.
@@ -15,7 +15,7 @@ self.addEventListener("install", e => {
 self.addEventListener("activate", e => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k.startsWith(CACHE.replace(/-v\d+$/, "-")) && k !== CACHE).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });

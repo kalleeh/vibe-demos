@@ -1,7 +1,10 @@
 /* vibe-studio root landing — minimal offline shell SW.
    Tight scope: only caches the root landing, never demo subpaths
    (each demo registers its own SW under its own scope). */
-const CACHE = "vibe-root-v6";
+const CACHE = "vibe-root-v7";
+// Cache family prefix — activate() only evicts stale caches in this family,
+// never sibling demos' caches (CacheStorage is shared per origin).
+const CACHE_PREFIX = "vibe-root-";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
   // Landing-page imagery — hero band, 9 hover thumbs, paper texture, divider.
@@ -25,7 +28,7 @@ self.addEventListener("install", e => {
 self.addEventListener("activate", e => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k.startsWith(CACHE_PREFIX) && k !== CACHE).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });

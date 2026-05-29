@@ -1,11 +1,13 @@
-const CACHE = "vibe-starwars-homage-v9";
+const CACHE = "vibe-starwars-homage-v10";
 const SHELL = [
   "./",
   "./index.html",
   "./icon.svg",
   "./manifest.webmanifest",
-  "./poster.jpg",
-  "./film.mp4"
+  "./poster.jpg"
+  // NOTE: film.mp4 is intentionally NOT precached. Serving a video from the
+  // Cache API returns a full 200 to byte-range (206) requests, which breaks
+  // seeking/scrubbing in iOS Safari. The fetch handler skips it too.
 ];
 
 self.addEventListener("install", (e) => {
@@ -18,7 +20,7 @@ self.addEventListener("install", (e) => {
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
+      Promise.all(keys.filter((k) => k.startsWith(CACHE.replace(/-v\d+$/, "-")) && k !== CACHE).map((k) => caches.delete(k)))
     )
   );
   self.clients.claim();
@@ -29,6 +31,9 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+  // Let the browser handle the video directly so byte-range (206) requests
+  // work — never intercept or cache it.
+  if (url.pathname.endsWith(".mp4")) return;
 
   const isHTML =
     req.mode === "navigate" ||

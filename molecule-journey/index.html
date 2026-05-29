@@ -382,6 +382,7 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
       #loading .bar::after { animation: none; left: 0; width: 100%; }
       .hero .scroll-cue::after { animation: none; }
     }
@@ -2101,16 +2102,13 @@
 
       // For chapter 6, hero re-forms at burner location
       if (idx >= 5) {
-        const reform = idx === 6 ? (1 - t) * (heroVis) : (heroVis);
         heroMolecule.position.set(0, -0.3, -4.5);
-        // Make hero materials shrink products visibility too
       } else {
         heroMolecule.position.set(0, 0, 0);
       }
 
       // Scene visibilities (fade via opacity helper)
-      const sm = (key, target) => {
-        const groupName = "scene" + key.charAt(0).toUpperCase() + key.slice(1);
+      const sm = (key) => {
         const g = ({ tanker: sceneTanker, cryo: sceneCryo, regas: sceneRegas, pipeline: scenePipeline, kitchen: sceneKitchen, combustion: sceneCombustion })[key];
         const op = lerp(a.scenes[key], b.scenes[key], t);
         g.visible = op > 0.005;
@@ -2120,13 +2118,21 @@
             if (child.isMesh && child.material) {
               const mats = Array.isArray(child.material) ? child.material : [child.material];
               for (const m of mats) {
-                // Only set transparent if needed; preserve materials that have explicit opacity behaviors
+                // Only set transparent if needed; preserve materials that have explicit opacity behaviors.
+                // Track the ORIGINAL transparent flag too, so an opaque material
+                // isn't left permanently transparent (z-sorting artifacts) once it
+                // fades back in. Toggling .transparent needs a recompile (needsUpdate).
                 if (m._origOpacity === undefined) m._origOpacity = m.opacity;
+                if (m._origTransparent === undefined) m._origTransparent = m.transparent;
                 if (op < 0.999) {
-                  m.transparent = true;
+                  if (!m.transparent) { m.transparent = true; m.needsUpdate = true; }
                   m.opacity = m._origOpacity * op;
-                } else if (m.transparent && m._origOpacity !== undefined) {
+                } else {
                   m.opacity = m._origOpacity;
+                  if (m.transparent !== m._origTransparent) {
+                    m.transparent = m._origTransparent;
+                    m.needsUpdate = true;
+                  }
                 }
               }
             } else if (child.isPoints && child.material) {
@@ -2170,12 +2176,13 @@
         u.shock.material.opacity = products * 0.6;
         u.shock.scale.setScalar(0.5 + products * 4);
         u.core.material.opacity = products * 0.85;
-        // Hero hydrogens fly out as products bloom (chapter 6)
+        // Hero hydrogens fly out as products bloom (chapter 6). Reuse a scratch
+        // vector instead of basePos.clone() to keep the loop allocation-free.
         if (idx >= 5) {
-          hydrogens.forEach((h, i) => {
-            const fly = products * 1.6;
-            const dir = h.basePos.clone().normalize();
-            h.group.position.copy(h.basePos).addScaledVector(dir, fly);
+          const fly = products * 1.6;
+          hydrogens.forEach((h) => {
+            _heroDir.copy(h.basePos).normalize();
+            h.group.position.copy(h.basePos).addScaledVector(_heroDir, fly);
           });
         } else {
           hydrogens.forEach(h => h.group.position.copy(h.basePos));
@@ -2203,9 +2210,16 @@
     const _heroPerp = new THREE.Vector3();
     const _heroOff = new THREE.Vector3();
 
+    // Honor reduced-motion: freeze all idle/time-driven motion (rotation,
+    // vibration, shader time) to a static frame, but KEEP scroll-driven
+    // applyState so the scrollytelling itself still works.
+    const reduceMotionMQ = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let reduceMotion = reduceMotionMQ.matches;
+    reduceMotionMQ.addEventListener("change", e => { reduceMotion = e.matches; });
+
     function tick() {
-      const dt = Math.min(clock.getDelta(), 0.05);
-      const elapsed = clock.getElapsedTime();
+      const dt = reduceMotion ? 0 : Math.min(clock.getDelta(), 0.05);
+      const elapsed = reduceMotion ? 0 : clock.getElapsedTime();
 
       smoothProgress += (scrollProgress - smoothProgress) * 0.08;
       applyState(smoothProgress);

@@ -1,10 +1,10 @@
 /* intake-companion — minimal offline shell SW */
-const CACHE = "vibe-intake-companion-v5";
+const CACHE = "vibe-intake-companion-v6";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
-  // Watercolor herb vignettes (transparent PNG) that float in the page margins.
-  "./herb-ginseng.png",
-  "./herb-mugwort.png",
+  // Watercolor herb vignettes (small WebP) that float in the page margins.
+  "./herb-ginseng.webp",
+  "./herb-mugwort.webp",
   // Five most-common 본초 watercolors precached for the formula expansion.
   // Remaining 15 lazy-load on demand (cache-first via the fetch handler below).
   "./herbs/insam.jpg",
@@ -19,7 +19,7 @@ self.addEventListener("install", e => {
 self.addEventListener("activate", e => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k.startsWith(CACHE.replace(/-v\d+$/, "-")) && k !== CACHE).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
