@@ -168,6 +168,57 @@
         display: grid;
       }
 
+      /* Buffering indicator — a thin hyperspace-streak bar at the bottom of
+         the player while the 18MB film loads. Shown only in the buffering
+         state; the % label fills in from the `progress` event when the
+         browser reports a buffered range. */
+      .buffering {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: none;
+        flex-direction: column;
+        gap: 8px;
+        padding: 0 0 22px;
+        align-items: center;
+        z-index: 5;
+      }
+      body[data-state="buffering"] .buffering {
+        display: flex;
+      }
+      body[data-state="buffering"] .poster .play-btn {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .buffering .track {
+        width: min(60%, 320px);
+        height: 2px;
+        background: rgba(255, 232, 31, 0.18);
+        overflow: hidden;
+        border-radius: 2px;
+      }
+      .buffering .track::before {
+        content: "";
+        display: block;
+        height: 100%;
+        width: 40%;
+        background: var(--crawl);
+        animation: streak 1.1s ease-in-out infinite;
+      }
+      .buffering .label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--crawl);
+        opacity: 0.85;
+      }
+      @keyframes streak {
+        0%   { transform: translateX(-110%); }
+        100% { transform: translateX(310%); }
+      }
+
       .meta {
         margin-top: 28px;
         font-family: "JetBrains Mono", monospace;
@@ -190,6 +241,11 @@
           content: " (reduced motion)";
           opacity: 0.7;
         }
+        .buffering .track::before {
+          animation: none;
+          width: 100%;
+          opacity: 0.5;
+        }
       }
     </style>
   </head>
@@ -209,6 +265,7 @@
           controls
           data-show="false"
           poster="poster.jpg"
+          aria-label="A New Hope — a 38-second cinematic Star Wars homage"
         >
           <source src="film.mp4" type="video/mp4" />
         </video>
@@ -217,6 +274,11 @@
           <button class="play-btn" id="play-btn" type="button" aria-label="Play film">
             ▶ Play film
           </button>
+        </div>
+
+        <div class="buffering" role="status" aria-live="polite">
+          <div class="track" aria-hidden="true"></div>
+          <div class="label" id="buffering-label">Entering hyperspace…</div>
         </div>
 
         <div class="ended-overlay">
@@ -238,11 +300,24 @@
       const video = document.getElementById("film");
       const playBtn = document.getElementById("play-btn");
       const replayBtn = document.getElementById("replay-btn");
+      const bufferingLabel = document.getElementById("buffering-label");
+
+      // Reflect how much of the 18MB film has buffered into the status label.
+      function updateBufferLabel() {
+        if (!video.duration || !video.buffered.length) return;
+        const end = video.buffered.end(video.buffered.length - 1);
+        const pct = Math.min(100, Math.round((end / video.duration) * 100));
+        bufferingLabel.textContent = "Entering hyperspace… " + pct + "%";
+      }
 
       function play() {
-        body.dataset.state = "playing";
+        // Show buffering feedback immediately; only flip to the full-bleed
+        // "playing" state once the browser actually starts rendering frames.
+        body.dataset.state = "buffering";
+        bufferingLabel.textContent = "Entering hyperspace…";
         video.dataset.show = "true";
         video.currentTime = 0;
+        updateBufferLabel();
         video.play().catch(() => {
           body.dataset.state = "idle";
           video.dataset.show = "false";
@@ -250,6 +325,18 @@
       }
       playBtn.addEventListener("click", play);
       replayBtn.addEventListener("click", play);
+
+      // Buffering lifecycle: progress fills the %, playing reveals the film,
+      // waiting/stalled drops back to the buffering indicator mid-stream.
+      video.addEventListener("progress", updateBufferLabel);
+      video.addEventListener("playing", () => {
+        body.dataset.state = "playing";
+      });
+      video.addEventListener("waiting", () => {
+        if (body.dataset.state === "playing") body.dataset.state = "buffering";
+        updateBufferLabel();
+      });
+      video.addEventListener("stalled", updateBufferLabel);
       video.addEventListener("ended", () => {
         body.dataset.state = "ended";
       });

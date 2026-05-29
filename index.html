@@ -259,6 +259,11 @@
       100% { transform: translateX(-50%); }
     }
 
+    @media (prefers-reduced-motion: reduce) {
+      .status .pulse { animation: none; }
+      .marquee-track { animation: none; transform: translateX(0); }
+    }
+
     /* ── Section header ── */
     .section-head {
       display: flex;

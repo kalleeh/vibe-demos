@@ -2459,7 +2459,7 @@
             <span>${starsHTML(r.rating)} <span style="margin-left:8px;color:var(--muted)">${r.rating.toFixed(1)}</span></span>
             <span class="resto-link">자세히 →</span>
           </div>`;
-        card.addEventListener("click", () => openModal(r));
+        card.addEventListener("click", () => openModal(r, card));
         grid.appendChild(card);
       });
     }
@@ -2471,7 +2471,9 @@
     /* ============================================================
        Modal
        ============================================================ */
-    function openModal(r) {
+    let modalTrigger = null; // element to restore focus to on close
+    function openModal(r, trigger) {
+      modalTrigger = trigger || document.activeElement;
       const back = document.getElementById("modalBack");
       const body = document.getElementById("modalBody");
       const num = String(r.id).padStart(2, "0");
@@ -2498,14 +2500,32 @@
         ${r.tip ? `<div class="tip"><strong>Tip</strong> ${r.tip}</div>` : ""}`;
       back.classList.add("open");
       document.body.style.overflow = "hidden";
+      // Move focus into the dialog so keyboard/SR users aren't stranded behind it.
+      document.getElementById("modalClose").focus();
     }
     function closeModal() {
       document.getElementById("modalBack").classList.remove("open");
       document.body.style.overflow = "";
+      // Return focus to the card that opened the modal.
+      if (modalTrigger && typeof modalTrigger.focus === "function") modalTrigger.focus();
+      modalTrigger = null;
     }
     document.getElementById("modalClose").addEventListener("click", closeModal);
     document.getElementById("modalBack").addEventListener("click", e => { if (e.target.id === "modalBack") closeModal(); });
-    document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+    document.addEventListener("keydown", e => {
+      const back = document.getElementById("modalBack");
+      if (!back.classList.contains("open")) return;
+      if (e.key === "Escape") { closeModal(); return; }
+      // Trap Tab within the dialog while it's open.
+      if (e.key === "Tab") {
+        const focusable = back.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    });
 
     /* ============================================================
        Tabs

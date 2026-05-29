@@ -980,15 +980,22 @@
     let velY = 0, velX = 0;
     let lastInputT = performance.now();
 
-    container.addEventListener("pointerdown", e => {
+    /* Click pin → open AI panel for that city */
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    let pointerDownXY = null;
+
+    /* Named handlers so teardown() can detach them (see below). */
+    const onPointerDown = e => {
       // Don't hijack drags that started on a card or button
       if (e.target.closest(".city-card, .ai-panel, .topbar")) return;
       isDragging = true;
       lastX = e.clientX; lastY = e.clientY;
       lastInputT = performance.now();
       container.setPointerCapture(e.pointerId);
-    });
-    container.addEventListener("pointermove", e => {
+      pointerDownXY = { x: e.clientX, y: e.clientY };
+    };
+    const onPointerMove = e => {
       if (!isDragging) return;
       const dx = e.clientX - lastX;
       const dy = e.clientY - lastY;
@@ -998,20 +1005,11 @@
       velY = dx * 0.005;
       velX = dy * 0.005;
       lastInputT = performance.now();
-    });
-    container.addEventListener("pointerup", () => { isDragging = false; });
-    container.addEventListener("pointerleave", () => { isDragging = false; });
-    container.addEventListener("wheel", e => { lastInputT = performance.now(); }, { passive: true });
-
-    /* Click pin → open AI panel for that city */
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-    let pointerDownXY = null;
-    container.addEventListener("pointerdown", e => {
-      if (e.target.closest(".city-card, .ai-panel, .topbar")) return;
-      pointerDownXY = { x: e.clientX, y: e.clientY };
-    });
-    container.addEventListener("pointerup", e => {
+    };
+    const onPointerLeave = () => { isDragging = false; };
+    const onWheel = e => { lastInputT = performance.now(); };
+    const onPointerUp = e => {
+      isDragging = false;
       if (!pointerDownXY) return;
       const dx = e.clientX - pointerDownXY.x;
       const dy = e.clientY - pointerDownXY.y;
@@ -1029,7 +1027,12 @@
         const cityKey = hits[0].object.userData.cityKey;
         if (cityKey) openAiPanel(cityKey);
       }
-    });
+    };
+    container.addEventListener("pointerdown", onPointerDown);
+    container.addEventListener("pointermove", onPointerMove);
+    container.addEventListener("pointerup", onPointerUp);
+    container.addEventListener("pointerleave", onPointerLeave);
+    container.addEventListener("wheel", onWheel, { passive: true });
 
     /* ───────────────────────────────────────────────
        Sun direction (for shader + day-night)
@@ -1074,7 +1077,9 @@
        Animation loop
        ─────────────────────────────────────────────── */
     const clock = new THREE.Clock();
+    let rendering = true;
     function tick() {
+      if (!rendering) return; // stop the RAF loop after teardown
       const dt = clock.getDelta();
       const t = clock.getElapsedTime();
 
@@ -1136,7 +1141,16 @@
     function teardown() {
       if (disposed) return;
       disposed = true;
+      rendering = false; // halt the RAF loop
+      clearInterval(clockTimer);
+      clearInterval(sunTimer);
+      clearInterval(weatherTimer);
       window.removeEventListener("resize", onResize);
+      container.removeEventListener("pointerdown", onPointerDown);
+      container.removeEventListener("pointermove", onPointerMove);
+      container.removeEventListener("pointerup", onPointerUp);
+      container.removeEventListener("pointerleave", onPointerLeave);
+      container.removeEventListener("wheel", onWheel);
       scene.traverse(o => {
         if (o.isMesh || o.isLine || o.isPoints) {
           if (o.geometry) o.geometry.dispose();
@@ -1214,7 +1228,7 @@
     tickClocks();
     // Real-time tick — pauses while fast-forward is active to avoid stomping
     // the per-frame fast-forward updates.
-    setInterval(() => { if (!fastForward.active) tickClocks(); }, 15000);
+    const clockTimer = setInterval(() => { if (!fastForward.active) tickClocks(); }, 15000);
 
     /* ───────────────────────────────────────────────
        Fast-forward: 24 real hours in 12 wall seconds
@@ -1242,7 +1256,7 @@
       });
     }
     updateSun();
-    setInterval(updateSun, 60 * 60 * 1000); // hourly is plenty
+    const sunTimer = setInterval(updateSun, 60 * 60 * 1000); // hourly is plenty
 
     /* Open-Meteo weather (no key, CORS-friendly) */
     const WEATHER_CODES = {
@@ -1281,7 +1295,7 @@
       }
     }
     Object.values(CITIES).forEach(c => fetchWeather(c));
-    setInterval(() => Object.values(CITIES).forEach(c => fetchWeather(c)), 10 * 60 * 1000);
+    const weatherTimer = setInterval(() => Object.values(CITIES).forEach(c => fetchWeather(c)), 10 * 60 * 1000);
 
     /* ───────────────────────────────────────────────
        AI panel — canned-first, key-optional, model toggle

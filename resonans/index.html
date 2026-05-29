@@ -734,7 +734,7 @@
         const i = Math.floor(xi * (N - 1));
         const x = gridX(i);
         const y = stringY - u[i] * 90;
-        const r = 28 + 36 * a + 8 * Math.sin(performance.now() * 0.001 + n);
+        const r = 28 + 36 * a + (reduceMotion ? 0 : 8 * Math.sin(performance.now() * 0.001 + n));
         const grd = ctx.createRadialGradient(x, y, 0, x, y, r);
         grd.addColorStop(0,   `rgba(201, 126, 96, ${0.18 * a})`);
         grd.addColorStop(0.6, `rgba(201, 126, 96, ${0.06 * a})`);

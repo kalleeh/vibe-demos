@@ -1,5 +1,5 @@
 /* live-globe — minimal offline shell SW */
-const CACHE = "vibe-live-globe-v3";
+const CACHE = "vibe-live-globe-v4";
 const SHELL = [
   "./",
   "./index.html",

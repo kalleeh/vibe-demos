@@ -2610,20 +2610,25 @@
     });
 
     // Dismiss on tap-elsewhere / scroll / esc / resize.
-    document.addEventListener("click", e => {
+    // Named handlers so they can be detached on pagehide (BFCache hygiene).
+    const onDocClick = e => {
       if (!activeBtn) return;
       if (tooltip.contains(e.target)) return;
       if (e.target.closest(".hotspot") === activeBtn) return;
       close();
-    });
-    document.addEventListener("keydown", e => {
-      if (e.key === "Escape") close();
-    });
-    window.addEventListener("scroll", () => {
-      if (activeBtn) position(activeBtn);
-    }, { passive: true });
-    window.addEventListener("resize", () => {
-      if (activeBtn) position(activeBtn);
+    };
+    const onDocKey = e => { if (e.key === "Escape") close(); };
+    const onWinScroll = () => { if (activeBtn) position(activeBtn); };
+    const onWinResize = () => { if (activeBtn) position(activeBtn); };
+    document.addEventListener("click", onDocClick);
+    document.addEventListener("keydown", onDocKey);
+    window.addEventListener("scroll", onWinScroll, { passive: true });
+    window.addEventListener("resize", onWinResize);
+    window.addEventListener("pagehide", () => {
+      document.removeEventListener("click", onDocClick);
+      document.removeEventListener("keydown", onDocKey);
+      window.removeEventListener("scroll", onWinScroll);
+      window.removeEventListener("resize", onWinResize);
     });
   })();
 
