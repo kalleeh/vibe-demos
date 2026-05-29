@@ -1107,14 +1107,9 @@
       globe.rotation.x = curRotX;
       atmo.rotation.copy(globe.rotation);
 
-      /* Pin pulse rings */
-      Object.values(pinObjects).forEach(group => {
-        group.rotation.y = curRotY; // wrong axis-of-rotation? we set group as child of scene at fixed point
-      });
-      // Actually we want pins to rotate WITH the globe. Re-parent on first frame:
-      // (handled below in init)
-
-      /* Pulse all pin rings */
+      /* Pulse all pin rings — pins are parented to `globe` at init time
+         (see Promise.all texture load below), so they already inherit the
+         globe's rotation; no per-pin rotation update is needed here. */
       scene.traverse(o => {
         if (o.userData && o.userData.isPulse) {
           const s = 1 + (Math.sin(t * 2.4) + 1) * 0.6;
@@ -1133,6 +1128,32 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
     }
     window.addEventListener("resize", onResize);
+
+    /* Teardown: dispose GPU resources and detach listeners when the page
+       is hidden. Follows the Three.js docs pattern (traverse → dispose
+       geometry/material/material.map → dispose renderer + PMREMGenerator). */
+    let disposed = false;
+    function teardown() {
+      if (disposed) return;
+      disposed = true;
+      window.removeEventListener("resize", onResize);
+      scene.traverse(o => {
+        if (o.isMesh || o.isLine || o.isPoints) {
+          if (o.geometry) o.geometry.dispose();
+          const mats = Array.isArray(o.material) ? o.material : (o.material ? [o.material] : []);
+          for (const m of mats) {
+            for (const k in m) {
+              const v = m[k];
+              if (v && v.isTexture) v.dispose();
+            }
+            m.dispose();
+          }
+        }
+      });
+      pmrem.dispose();
+      renderer.dispose();
+    }
+    window.addEventListener("pagehide", teardown);
 
     /* ───────────────────────────────────────────────
        Init: load textures, parent pins, start
