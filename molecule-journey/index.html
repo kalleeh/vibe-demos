@@ -2437,6 +2437,35 @@
     window.addEventListener("resize", onResize);
     window.addEventListener("scroll", computeProgress, { passive: true });
 
+    /* Teardown: when the page is hidden (tab close, navigation, BFCache),
+       dispose GPU resources and detach listeners so a quick back-forward
+       doesn't pile up WebGL contexts. Pattern follows the Three.js docs
+       (traverse → dispose geometry/material/material.map → dispose renderer
+       + PMREMGenerator). Idempotent — running twice is safe. */
+    let disposed = false;
+    function teardown() {
+      if (disposed) return;
+      disposed = true;
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("scroll", computeProgress);
+      scene.traverse(o => {
+        if (o.isMesh || o.isLine || o.isPoints) {
+          if (o.geometry) o.geometry.dispose();
+          const mats = Array.isArray(o.material) ? o.material : (o.material ? [o.material] : []);
+          for (const m of mats) {
+            for (const k in m) {
+              const v = m[k];
+              if (v && v.isTexture) v.dispose();
+            }
+            m.dispose();
+          }
+        }
+      });
+      pmrem.dispose();
+      renderer.dispose();
+    }
+    window.addEventListener("pagehide", teardown);
+
     computeProgress();
     smoothProgress = scrollProgress;
     applyState(smoothProgress);
