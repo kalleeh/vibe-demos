@@ -328,7 +328,12 @@
 
     const canvas = document.getElementById("sketch");
     const ctx = canvas.getContext("2d");
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // Reactive reduced-motion: re-read on every render branch instead of
+    // snapshotting at load. The OS-level toggle is a real accessibility
+    // signal users flip mid-session; honoring it live costs nothing.
+    const reduceMotionMQ = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let reduceMotion = reduceMotionMQ.matches;
+    reduceMotionMQ.addEventListener("change", e => { reduceMotion = e.matches; });
 
     // ── String state ──────────────────────────────────────────────
     const N = 220;                  // grid points along string
@@ -1296,6 +1301,27 @@
       e.preventDefault();
       pluckAtClient(e.clientX, e.clientY);
     }, { passive: false });
+
+    // Keyboard pluck — Space plucks centre, ←/→ pluck off-centre. Mirrors
+    // the pointer pluck math (same idx/amp/width) so the wave physics is
+    // identical regardless of input modality. Keeps repeating-key auto-fire
+    // (no `e.repeat` filter) so a held key sustains the rhythm.
+    window.addEventListener("keydown", e => {
+      if (scene !== "string") return;
+      if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+      let frac = -1;
+      if (e.code === "Space") frac = 0.5;
+      else if (e.code === "ArrowLeft")  frac = 0.30;
+      else if (e.code === "ArrowRight") frac = 0.70;
+      if (frac < 0) return;
+      e.preventDefault();
+      ensureAudio();
+      const idx = Math.floor(frac * (N - 1));
+      const amp = 0.04 + 0.02 * Math.random();
+      pluck(idx, amp, 22);
+      pluckSound(0.28);
+      setDronePitch();
+    });
 
     // Mode chips
     function syncModeUI() {
