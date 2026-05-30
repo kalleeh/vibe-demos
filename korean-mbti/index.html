@@ -2650,6 +2650,29 @@ function renderGallery() {
     ${sections}`;
 }
 
+// ============================================================
+// 16유형 도감 — DETAIL (result-style, minus 4축 bars)
+// ============================================================
+function renderGalleryDetail(type) {
+  const meta = TYPES[type] || {};
+  const portraitHTML = renderPortrait(type, (meta.nickname || "").split(" · ")[0]);
+  const vibesHTML = (meta.vibes || []).map(v => `<span class="vibe">${escapeHTML(v)}</span>`).join("");
+  const fnHTML = renderFnStack(type);
+  return `
+    <button class="gallery-back" data-action="gallery-back">← 도감</button>
+    <div class="result">
+      ${portraitHTML}
+      <div class="type-hero">
+        <div class="code">${escapeHTML(type)}</div>
+        <div class="nickname">${escapeHTML(meta.nickname || "")}</div>
+      </div>
+      <p class="gallery-oneliner">${escapeHTML(meta.one_liner || "")}</p>
+      ${vibesHTML ? `<div class="vibes">${vibesHTML}</div>` : ""}
+      <p class="gallery-note">4축 막대는 ‘내’ 검사 결과에서만 나타나요 — 여기선 유형 고유의 결만 봅니다. <a href="#" data-action="goto-test">내 축이 궁금하다면 → 빠른 테스트</a></p>
+      ${fnHTML}
+    </div>`;
+}
+
 function escapeHTML(s) {
   if (s == null) return "";
   return String(s).replace(/[&<>"']/g, c => ({
