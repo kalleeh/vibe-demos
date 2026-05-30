@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#f3ede1"/>
-  <!-- 2x2 grid of MBTI axis letters; the "F" quadrant is highlighted in oxblood,
+  <rect width="512" height="512" rx="96" fill="#f5efe2"/>
+  <!-- 2x2 grid of MBTI axis letters; the "F" quadrant is highlighted in celadon,
        suggesting the moment one trait "lights up" as your type. -->
   <g font-family="Georgia, 'Noto Serif KR', serif" font-weight="500" text-anchor="middle">
-    <text x="180" y="220" font-size="120" fill="#1a2238" font-style="italic">I</text>
-    <text x="332" y="220" font-size="120" fill="#1a2238" font-style="italic">N</text>
-    <text x="180" y="380" font-size="120" fill="#1a2238" font-style="italic">T</text>
-    <text x="332" y="380" font-size="120" fill="#9a2a2a" font-style="italic">F</text>
+    <text x="180" y="220" font-size="120" fill="#1f2620" font-style="italic">I</text>
+    <text x="332" y="220" font-size="120" fill="#1f2620" font-style="italic">N</text>
+    <text x="180" y="380" font-size="120" fill="#1f2620" font-style="italic">T</text>
+    <text x="332" y="380" font-size="120" fill="#48695a" font-style="italic">F</text>
   </g>
   <!-- Editorial dot tying it back to the studio system -->
-  <circle cx="412" cy="120" r="14" fill="#9a2a2a"/>
+  <circle cx="412" cy="120" r="14" fill="#48695a"/>
 </svg>

@@ -1,13 +1,13 @@
 {
-  "name": "MBTI 16유형 — Korean MBTI Read",
-  "short_name": "MBTI 16",
+  "name": "MBTI · 성격의 결 — Korean MBTI Read",
+  "short_name": "MBTI 결",
   "description": "Korean cultural MBTI test plus AI deep-read of free-form Korean text.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#f3ede1",
-  "theme_color": "#1a2238",
+  "background_color": "#f5efe2",
+  "theme_color": "#f5efe2",
   "lang": "ko",
   "categories": ["lifestyle", "entertainment", "education"],
   "icons": [
