@@ -1449,24 +1449,24 @@ footer.bottom {
 <header class="top">
   <div class="brand">
     <div class="eyebrow">Korean MBTI Read · Work 05</div>
-    <h1 class="title">MBTI · 성격의 <em>결</em></h1>
-    <div class="sub">짧은 검사로 16유형을 읽고, 내 결을 들여다보는 시간.</div>
+    <h1 class="title" data-i18n-html="titleHTML">MBTI · 성격의 <em>결</em></h1>
+    <div class="sub" data-i18n="sub">짧은 검사로 16유형을 읽고, 내 결을 들여다보는 시간.</div>
   </div>
-  <a class="back-link" href="../">← 인덱스</a>
+  <a class="back-link" href="../" data-i18n="backLink">← 인덱스</a>
 </header>
 
 <div class="tabs" role="tablist">
   <button class="tab active" data-mode="test" role="tab" id="tab-test" aria-selected="true" aria-controls="panel-test">
-    빠른 테스트
-    <span class="meta">28문항 · 약 5분 · 빠른 진단</span>
+    <span data-i18n="tabTest">빠른 테스트</span>
+    <span class="meta" data-i18n="tabTestMeta">28문항 · 약 5분 · 빠른 진단</span>
   </button>
   <button class="tab" data-mode="ai" role="tab" id="tab-ai" aria-selected="false" aria-controls="panel-ai">
-    AI 깊이 읽기
-    <span class="meta">Free-text · Claude</span>
+    <span data-i18n="tabAI">AI 깊이 읽기</span>
+    <span class="meta" data-i18n="tabAIMeta">Free-text · Claude</span>
   </button>
   <button class="tab" data-mode="gallery" role="tab" id="tab-gallery" aria-selected="false" aria-controls="panel-gallery">
-    16유형 도감
-    <span class="meta">16유형 · 초상 도감</span>
+    <span data-i18n="tabGallery">16유형 도감</span>
+    <span class="meta" data-i18n="tabGalleryMeta">16유형 · 초상 도감</span>
   </button>
 </div>
 
@@ -1475,7 +1475,7 @@ footer.bottom {
 
   <div id="test-intro">
     <div class="intro-card">
-      <h2>두 가지 길이로 풀 수 있어요</h2>
+      <h2 data-i18n="introH">두 가지 길이로 풀 수 있어요</h2>
       <p>각 축(외향·내향, 감각·직관, 사고·감정, 판단·인식)을 강제선택으로 측정합니다.
       한국 MBTI 문화의 별명도 결과에 함께 나옵니다 — 잔망 루피, 곰돌이 푸, 인싸 끝판왕 같은 톤.</p>
       <p>본 검사는 어세스타 정식 검사(Form M·Form Q)가 <em>아닙니다</em>.
@@ -1486,17 +1486,17 @@ footer.bottom {
       <div class="length-picker">
         <button class="length-card" data-length="quick">
           <div class="length-num">28</div>
-          <div class="length-label">빠른 인상</div>
-          <div class="length-meta">~5분 · 7문항/축</div>
+          <div class="length-label" data-i18n="lenQuickLabel">빠른 인상</div>
+          <div class="length-meta" data-i18n="lenQuickMeta">~5분 · 7문항/축</div>
           <div class="length-desc">각 축의 5가지 결을 한 번씩 짚는 빠른 검사. 친구와 비교하기 좋아요.</div>
-          <div class="length-cta">시작 →</div>
+          <div class="length-cta" data-i18n="lenQuickCta">시작 →</div>
         </button>
         <button class="length-card" data-length="full">
           <div class="length-num">93</div>
-          <div class="length-label">정밀 · Form M 길이</div>
-          <div class="length-meta">~15분 · 21·26·24·22 분포</div>
+          <div class="length-label" data-i18n="lenFullLabel">정밀 · Form M 길이</div>
+          <div class="length-meta" data-i18n="lenFullMeta">~15분 · 21·26·24·22 분포</div>
           <div class="length-desc">실제 Form M에 가까운 문항 수와 분포. 결과는 20개 하위 결까지.</div>
-          <div class="length-cta">시작 →</div>
+          <div class="length-cta" data-i18n="lenFullCta">시작 →</div>
         </button>
       </div>
     </div>
@@ -1521,14 +1521,14 @@ footer.bottom {
 <section class="panel" id="panel-ai" role="tabpanel" aria-labelledby="tab-ai">
 
   <div class="ai-intro">
-    <h2>당신의 글을 읽고 유형을 추론합니다</h2>
+    <h2 data-i18n="aiH">당신의 글을 읽고 유형을 추론합니다</h2>
     <p>일기, 카톡 한 토막, SNS 게시물, 블로그 한 단락 — 200~600자 정도의
     자연스러운 한국어 글을 붙여넣으면 Claude가 글의 결을 읽고 16유형 중 하나를
     자신 있게 골라냅니다. 한국 MBTI 문화 별명까지 같이 달아줍니다.</p>
 
     <div class="hint-grid">
       <div class="hint-col good">
-        <span class="hint-h">잘 읽히는 글</span>
+        <span class="hint-h" data-i18n="hintGoodH">잘 읽히는 글</span>
         <ul>
           <li>혼잣말처럼 적은 일기 한 토막</li>
           <li>친구에게 푸념하듯 보낸 카톡 단락</li>
@@ -1537,7 +1537,7 @@ footer.bottom {
         </ul>
       </div>
       <div class="hint-col bad">
-        <span class="hint-h">덜 읽히는 글</span>
+        <span class="hint-h" data-i18n="hintBadH">덜 읽히는 글</span>
         <ul>
           <li>이력서·자기소개서처럼 정형화된 글</li>
           <li>공지문, 뉴스 인용, 기사 같은 톤</li>
@@ -1553,13 +1553,13 @@ footer.bottom {
 
   <div class="sample-row">
     <span class="sample-label">예시 글로 시작하기 →</span>
-    <button class="chip" data-sample="diary">일기 (몽글 INFP풍)</button>
-    <button class="chip" data-sample="kakao">카톡 (인싸 ENFP풍)</button>
-    <button class="chip" data-sample="reflect">자기성찰 (조용 INTJ풍)</button>
-    <button class="chip ghost" data-sample="clear">비우기</button>
+    <button class="chip" data-sample="diary" data-i18n="sampleDiary">일기 (몽글 INFP풍)</button>
+    <button class="chip" data-sample="kakao" data-i18n="sampleKakao">카톡 (인싸 ENFP풍)</button>
+    <button class="chip" data-sample="reflect" data-i18n="sampleReflect">자기성찰 (조용 INTJ풍)</button>
+    <button class="chip ghost" data-sample="clear" data-i18n="sampleClear">비우기</button>
   </div>
 
-  <textarea class="ai-input" id="ai-input" placeholder="여기에 200~600자 정도의 한국어 글을 붙여넣어 주세요. 위 예시 칩을 눌러서 시작해도 됩니다."></textarea>
+  <textarea class="ai-input" id="ai-input" data-i18n-attr="placeholder:placeholder" placeholder="여기에 200~600자 정도의 한국어 글을 붙여넣어 주세요. 위 예시 칩을 눌러서 시작해도 됩니다."></textarea>
 
   <div class="counter-row">
     <span class="counter" id="char-counter">0자</span>
@@ -1574,23 +1574,23 @@ footer.bottom {
       <button data-model="claude-haiku-4-5">Haiku 4.5</button>
     </div>
     <button class="mic-button" id="btn-mic" type="button" aria-pressed="false">
-      <span class="mic-dot"></span><span class="mic-label">말하기</span>
+      <span class="mic-dot"></span><span class="mic-label" data-i18n="micLabel">말하기</span>
     </button>
     <div class="grow"></div>
-    <button class="btn secondary" id="btn-toggle-key">키 입력 / 해제</button>
-    <button class="btn" id="btn-analyze">읽어줘 →</button>
+    <button class="btn secondary" id="btn-toggle-key" data-i18n="keyBtn">키 입력 / 해제</button>
+    <button class="btn" id="btn-analyze" data-i18n="readBtn">읽어줘 →</button>
   </div>
 
   <div class="key-prompt" id="key-prompt" style="display:none">
-    <h3>본인의 Anthropic API 키를 사용합니다</h3>
-    <p>키는 이 브라우저의 localStorage에만 저장되며 어디로도 전송되지 않습니다.
-    키 발급 →
+    <h3 data-i18n="keyPanelH">본인의 Anthropic API 키를 사용합니다</h3>
+    <p data-i18n="keyPanelP">키는 이 브라우저의 localStorage에만 저장되며 어디로도 전송되지 않습니다.</p>
+    <p>키 발급 →
     <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a></p>
     <div class="key-row">
       <input type="password" class="key-input" id="key-input" placeholder="sk-ant-…" autocomplete="off">
-      <button class="btn secondary" id="btn-paste">붙여넣기</button>
-      <button class="btn" id="btn-save-key">저장</button>
-      <button class="btn secondary" id="btn-forget-key">잊기</button>
+      <button class="btn secondary" id="btn-paste" data-i18n="keyPaste">붙여넣기</button>
+      <button class="btn" id="btn-save-key" data-i18n="keySave">저장</button>
+      <button class="btn secondary" id="btn-forget-key" data-i18n="keyForget">잊기</button>
     </div>
   </div>
 
@@ -1610,7 +1610,7 @@ footer.bottom {
 
 <footer class="bottom">
   <span>Vibe Studio · 2026</span>
-  <span>MBTI는 가벼운 자기 이해 도구. 진단 아님.</span>
+  <span data-i18n="footerTag">MBTI는 가벼운 자기 이해 도구. 진단 아님.</span>
 </footer>
 
 </div>
@@ -2516,6 +2516,21 @@ $("#panel-gallery").addEventListener("click", (e) => {
     }
   }
 });
+
+// ============================================================
+// I18N — STATIC CHROME SWAP
+// ============================================================
+// Swap all tagged static-chrome strings to the current LANG.
+function applyStaticStrings() {
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.getAttribute("data-i18n")); });
+  document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = t(el.getAttribute("data-i18n-html")); });
+  document.querySelectorAll("[data-i18n-attr]").forEach(el => {
+    el.getAttribute("data-i18n-attr").split(",").forEach(pair => {
+      const [attr, key] = pair.split(":").map(s => s.trim());
+      if (attr && key) el.setAttribute(attr, t(key));
+    });
+  });
+}
 
 // ============================================================
 // TAB SWITCHING
