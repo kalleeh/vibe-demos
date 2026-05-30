@@ -1825,37 +1825,40 @@
       // shouldn't keep ticking on a dead bird.
       if (G.gameOver) return;
 
-      // Day timer — frozen during the tutorial so the run can't time out.
-      if (!G.transitioning && !G.tutorial) {
-        const elapsed = performance.now() - G.dayStartT;
-        if (elapsed > G.dayDurMs) {
-          G.transitioning = true;
-          G.transitionEnd = performance.now() + 1200;
-          blip(330, 0.6, "sine", 0.10);
+      // Day timer — frozen entirely during the tutorial so the run can't
+      // time out and the day counter doesn't run away.
+      if (!G.tutorial) {
+        if (!G.transitioning) {
+          const elapsed = performance.now() - G.dayStartT;
+          if (elapsed > G.dayDurMs) {
+            G.transitioning = true;
+            G.transitionEnd = performance.now() + 1200;
+            blip(330, 0.6, "sine", 0.10);
+          }
+        } else if (performance.now() > G.transitionEnd) {
+          // Move to next day, keep flight going
+          const newPaletteIdx = (G.paletteIdx + 1) % PALETTES.length;
+          const nextDay = G.day + 1;
+          G.dayStartT = performance.now();
+          G.transitioning = false;
+          G.day = nextDay;
+          // Carry the bird across day boundaries — keep current terrain so
+          // the slope under the bird doesn't snap. Reseeding mid-flight
+          // would teleport the surface and stall the run.
+          G.paletteIdx = newPaletteIdx;
+          // Stars / clouds
+          G.stars.length = 0;
+          G.clouds.length = 0;
+          if (PALETTES[G.paletteIdx].name === "night") {
+            const r = mulberry32(G.seed ^ 0x9999);
+            for (let i = 0; i < 60; i++) G.stars.push({ x: r(), y: r() * 0.5, r: 0.6 + r() * 1.0 });
+          } else {
+            const r = mulberry32(G.seed ^ 0x7777);
+            const count = 4 + Math.floor(r() * 4);
+            for (let i = 0; i < count; i++) G.clouds.push({ x: r() * 4000 + G.bx + i * 600, y: 60 + r() * 90, w: 80 + r() * 120, speed: 0.04 + r() * 0.04 });
+          }
+          document.getElementById("dayNum").textContent = String(nextDay);
         }
-      } else if (performance.now() > G.transitionEnd) {
-        // Move to next day, keep flight going
-        const newPaletteIdx = (G.paletteIdx + 1) % PALETTES.length;
-        const nextDay = G.day + 1;
-        G.dayStartT = performance.now();
-        G.transitioning = false;
-        G.day = nextDay;
-        // Carry the bird across day boundaries — keep current terrain so
-        // the slope under the bird doesn't snap. Reseeding mid-flight
-        // would teleport the surface and stall the run.
-        G.paletteIdx = newPaletteIdx;
-        // Stars / clouds
-        G.stars.length = 0;
-        G.clouds.length = 0;
-        if (PALETTES[G.paletteIdx].name === "night") {
-          const r = mulberry32(G.seed ^ 0x9999);
-          for (let i = 0; i < 60; i++) G.stars.push({ x: r(), y: r() * 0.5, r: 0.6 + r() * 1.0 });
-        } else {
-          const r = mulberry32(G.seed ^ 0x7777);
-          const count = 4 + Math.floor(r() * 4);
-          for (let i = 0; i < count; i++) G.clouds.push({ x: r() * 4000 + G.bx + i * 600, y: 60 + r() * 90, w: 80 + r() * 120, speed: 0.04 + r() * 0.04 });
-        }
-        document.getElementById("dayNum").textContent = String(nextDay);
       }
 
       // Distance and best — use the bird's max-x reached this run, not
