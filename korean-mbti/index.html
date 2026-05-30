@@ -2416,6 +2416,16 @@ $$(".tab").forEach(tab => {
     const mode = tab.dataset.mode;
     $$(".panel").forEach(p => p.classList.remove("active"));
     $("#panel-" + mode).classList.add("active");
+    // Re-render the 도감 on activation so it reflects any gender change made
+    // from another tab (keeps the one global 女/男 toggle truly global).
+    if (mode === "gallery" && $("#gallery-grid")?.innerHTML) {
+      if ($("#gallery-grid").style.display !== "none") {
+        showGalleryGrid();
+      } else {
+        const t = $("#gallery-detail")?.querySelector(".type-portrait")?.dataset.type;
+        if (t) showGalleryDetail(t);
+      }
+    }
   });
 });
 
