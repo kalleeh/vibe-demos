@@ -483,6 +483,63 @@
     }
     .rotate-hint button:hover { background: var(--ink); color: var(--paper); }
 
+    /* ── Tutorial coachmark — lower-center cream card with a squiggle arrow ── */
+    .coachmark {
+      position: absolute;
+      left: 50%; bottom: 14%;
+      transform: translateX(-50%);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      z-index: 6;
+      pointer-events: none;
+      text-align: center;
+    }
+    .coachmark.live { display: flex; }
+    .coachmark .card {
+      background: rgba(244, 236, 214, 0.94);
+      border: 1px dashed var(--ink-soft);
+      box-shadow: 0 8px 22px rgba(42,38,29,0.14);
+      padding: 8px 18px;
+      font-family: "Caveat", cursive;
+      font-size: 22px;
+      color: var(--ink);
+      transform: rotate(-0.5deg);
+      pointer-events: auto;
+    }
+    .coachmark .arrow { width: 34px; height: 34px; color: var(--bloom); animation: cm-bob 1.4s ease-in-out infinite; }
+    @keyframes cm-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+    .coachmark .skip {
+      margin-top: 4px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--muted);
+      background: none; border: none; cursor: pointer; pointer-events: auto;
+    }
+    .coachmark .skip:hover { color: var(--ink); }
+    @media (prefers-reduced-motion: reduce) {
+      .coachmark .arrow { animation: none; }
+    }
+
+    /* ── HUD pointer — small caption that points at the topbar minimap or
+         the off-screen chevron. Reuses the cream/Caveat grammar. ── */
+    .hud-pointer {
+      position: absolute;
+      display: none;
+      max-width: 230px;
+      background: rgba(244, 236, 214, 0.95);
+      border: 1px dashed var(--ink-soft);
+      box-shadow: 0 6px 16px rgba(42,38,29,0.14);
+      padding: 6px 12px;
+      font-family: "Caveat", cursive;
+      font-size: 18px; line-height: 1.2;
+      color: var(--ink);
+      z-index: 7;
+      pointer-events: none;
+    }
+    .hud-pointer.live { display: block; }
+
     /* Game-over panel — appears centered, fades in.
        z-index 6 so it sits above the now-absolutely-positioned canvas
        (z-index 1) and the topbar/footer (z-index 3). Without this it
@@ -634,6 +691,19 @@
     </header>
 
     <canvas id="sky" aria-label="Pencil hills glider"></canvas>
+
+    <!-- Tutorial coachmark (lower-center) -->
+    <div class="coachmark" id="coachmark" role="status" aria-live="polite">
+      <div class="card" id="coachmarkText">hold on the way down ↓</div>
+      <svg class="arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 3 C 9 9, 15 13, 12 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M7 16 L12 21 L17 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <button class="skip" id="coachmarkSkip" type="button">skip tutorial</button>
+    </div>
+
+    <!-- HUD pointer (minimap / off-screen arrow callouts) -->
+    <div class="hud-pointer" id="hudPointer"></div>
 
     <div class="rotate-hint" id="rotateHint" aria-hidden="true">
       <div class="phone-glyph" aria-hidden="true">
@@ -1295,8 +1365,70 @@
       ep.classList.remove("live");
     }
 
-    // Replaced with the real implementation in a later task.
-    function startTutorial() {}
+    // ── Guided tutorial controller ───────────────────────────────────
+    const coachmark = document.getElementById("coachmark");
+    const coachmarkText = document.getElementById("coachmarkText");
+    const hudPointer = document.getElementById("hudPointer");
+    const TUTORIAL_STEPS = [
+      "hold on the way down ↓",
+      "now let go on the rise — soar ↑",
+      "tap once in the air to spend boost ✦",
+    ];
+    function showCoachmark(text) {
+      coachmarkText.textContent = text;
+      coachmark.classList.add("live");
+    }
+    function hideCoachmark() { coachmark.classList.remove("live"); }
+
+    // Position the HUD pointer under the topbar minimap and show a caption.
+    function showMinimapPointer() {
+      const mm = document.querySelector(".minimap-wrap");
+      if (!mm) return;
+      const r = mm.getBoundingClientRect();
+      hudPointer.textContent = "the strip up top shows the hills ahead — and where your bird is";
+      hudPointer.style.left = Math.max(8, Math.min(window.innerWidth - 240, r.left)) + "px";
+      hudPointer.style.top = (r.bottom + 8) + "px";
+      hudPointer.classList.add("live");
+    }
+    function hideHudPointer() { hudPointer.classList.remove("live"); }
+
+    function startTutorial() {
+      // startGame() has already run (see dismissIntro); enable learn-mode now.
+      G.tutorial = true;
+      G.tutorialStep = 0;
+      showCoachmark(TUTORIAL_STEPS[0]);
+      showMinimapPointer();
+      // Auto-dismiss the minimap pointer after a few seconds even if the
+      // player lingers on step 1.
+      clearTimeout(G._minimapTimer);
+      G._minimapTimer = setTimeout(hideHudPointer, 5000);
+    }
+
+    function endTutorial() {
+      G.tutorial = false;
+      G.tutorialStep = 3;
+      hideCoachmark();
+      hideHudPointer();
+      setOnboarded();
+      // Hand the run back to normal play with full loss conditions and the
+      // day clock running from now.
+      G.dayStartT = performance.now();
+    }
+
+    // Advance called from the physics tick when a real move is detected.
+    function tutorialAdvance(step) {
+      if (!G.tutorial || G.tutorialStep !== step) return;
+      G.tutorialStep = step + 1;
+      if (step === 0) hideHudPointer(); // minimap pointer goes once step 1 is done
+      if (G.tutorialStep < TUTORIAL_STEPS.length) {
+        showCoachmark(TUTORIAL_STEPS[G.tutorialStep]);
+      } else {
+        showCoachmark("that's it — the hills are yours.");
+        setTimeout(endTutorial, 1400);
+      }
+    }
+
+    document.getElementById("coachmarkSkip").addEventListener("click", endTutorial);
 
     // ── Resize ───────────────────────────────────────────────────
     let dpr = 1, viewW = 0, viewH = 0, baseY = 0;
@@ -1343,6 +1475,7 @@
       // Mid-air tap-press also consumes boost if available
       if (G.airborne && G.boost > 0.18) {
         G.boostingNow = true;
+        if (G.tutorial && G.tutorialStep === 2) tutorialAdvance(2);
         // Forward kick — preserves direction sign of vx
         const dir = Math.sign(G.vx) || 1;
         G.vx += dir * 220;
@@ -1679,6 +1812,7 @@
         // looks like it's bouncing on cobblestones.
         if (slope < -0.18 && G.vy < 0 && Math.abs(G.vx) > 240 && !G.pitchDown && !G.airborne) {
           G.airborne = true;
+          if (G.tutorial && G.tutorialStep === 1) tutorialAdvance(1);
           // Tiny pop just to clear the eps band — NOT scaled, so soft
           // ramps give soft launches naturally via existing vy.
           G.vy -= 25;
@@ -2528,6 +2662,11 @@
       angle = Math.max(-1.2, Math.min(1.2, angle));
 
       // Trail when fast (boost or steep dive)
+      // Tutorial step 0: detect a real dive (held on a downslope).
+      if (G.tutorial && G.tutorialStep === 0 &&
+          G.pitchDown && !G.airborne && G.terrain && G.terrain.slope(G.bx) > 0.10) {
+        tutorialAdvance(0);
+      }
       if (G.boostingNow || G.vy > 380 || (G.pitchDown && !G.airborne && G.terrain && G.terrain.slope(G.bx) > 0.10)) pushTrail(sx, sy);
       drawTrail();
 
