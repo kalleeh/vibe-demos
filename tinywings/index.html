@@ -1239,6 +1239,7 @@
       pitchReleasedSlope: 0,   // terrain slope at last release; ramp launch requires this was a downhill
       flightStartX: 200,
       flightStartT: 0,         // wall-clock time of run start (for spawn warmup)
+      graceUntil: 0,           // post-tutorial grace: until this time, stall/stuck triggers don't end the run
       gameOver: false,
       muted: false,
 
@@ -1372,6 +1373,7 @@
       G.backslideMs = 0;
       G.flightStartX = 200;
       G.flightStartT = performance.now();
+      G.graceUntil = 0;
       G.gameOver = false;
       G.tutorial = false;
       G.tutorialStep = 0;
@@ -1446,6 +1448,15 @@
       coachmark.classList.remove("urgent");
       G._tutorialFrozen = false;
       hideHudPointer();
+      // Grace window: whoever just finished the tutorial gets ~3s where the
+      // stall/no-progress/backslide triggers are suppressed, so mis-timing
+      // their first real hills doesn't end the run in 2-3s. Granted on EVERY
+      // tutorial completion (not gated on the device's onboarded flag) so a
+      // beginner replaying How-to-play on an already-onboarded device still
+      // gets the cushion. Not farmable for score: grace grants no speed/boost/
+      // distance — a skilled run never approaches the triggers, so it's
+      // invisible to good play and only softens the learn-it-then-fumble moment.
+      G.graceUntil = performance.now() + 3000;
       setOnboarded();
       // Hand the run back to normal play with full loss conditions and the
       // day clock running from now.
@@ -2070,6 +2081,13 @@
       // startGame so a bird placed on a slightly tricky opening seed has
       // time to accelerate before the watchdog even starts ticking.
       const sinceStart = performance.now() - G.flightStartT;
+      // Loss triggers are suppressed during the tutorial and during the
+      // post-tutorial grace window (a freshly-taught player gets ~3s to fumble
+      // their first hills without dying). We still ACCUMULATE the timers during
+      // grace so the run ends promptly if the bird is still genuinely stuck the
+      // instant grace lapses — grace softens the cliff, it doesn't hide a
+      // permanently-dead bird.
+      const lossArmed = !G.tutorial && performance.now() >= G.graceUntil;
       if (sinceStart > 800) {
         // Use SIGNED forward velocity (vx itself, not |vx|). A bird in
         // a valley bouncing backward at vx=-80 has |vx|=80 which clears
@@ -2079,7 +2097,7 @@
         // subset of it.
         if (G.vx < 60) {
           G.stuckMs += dt * 1000;
-          if (G.stuckMs > 700 && !G.tutorial) endRun("the wind has settled");
+          if (G.stuckMs > 1000 && lossArmed) endRun("the wind has settled");
         } else {
           G.stuckMs = 0;
         }
@@ -2092,14 +2110,14 @@
           G.noProgressMs = 0;
         } else {
           G.noProgressMs += dt * 1000;
-          if (G.noProgressMs > 1200 && !G.tutorial) endRun("out of speed");
+          if (G.noProgressMs > 1200 && lossArmed) endRun("out of speed");
         }
         // Backslide trigger needs hysteresis — a single 60px transient
         // from a steep ramp-bounce shouldn't end the run instantly. The
         // bird must be ≥60 px below the watermark for ≥250 ms.
         if (G.bx < G.stuckCheckBx - 60) {
           G.backslideMs += dt * 1000;
-          if (G.backslideMs > 250 && !G.tutorial) endRun("shoved back");
+          if (G.backslideMs > 250 && lossArmed) endRun("shoved back");
         } else {
           G.backslideMs = 0;
         }
@@ -2719,7 +2737,17 @@
       const margin = 22;
       const inX = sx >= margin && sx <= viewW - margin;
       const inY = sy >= margin && sy <= viewH - margin;
-      if (inX && inY) return;
+      if (inX && inY) {
+        // Bird is back in frame: there's no chevron to point at, so the
+        // "follow the arrow back down" caption must not linger. Dismiss it the
+        // instant the bird re-enters view (it was armed when the bird flew off
+        // the top) and burn the one-time flag so it never re-shows.
+        if (_offscreenCaptionUntil && !_offscreenSeen) {
+          _offscreenSeen = true;
+          hudPointer.classList.remove("live");
+        }
+        return;
+      }
       // Altitude in meters above the hill baseline. by is positive-down,
       // so a negative by means above baseline.
       const altM = Math.max(0, Math.round(-G.by / 14));
