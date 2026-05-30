@@ -1621,6 +1621,26 @@ footer.bottom {
 <script>
 "use strict";
 
+// ============================================================
+// i18n core — paired _ko/_en data + STR dictionary, KO fallback.
+// ============================================================
+const LANG_STORAGE = "vibe.korean-mbti.lang";
+let LANG = (localStorage.getItem(LANG_STORAGE) === "en") ? "en" : "ko"; // default ko
+function setLangValue(l) { LANG = (l === "en") ? "en" : "ko"; localStorage.setItem(LANG_STORAGE, LANG); }
+// Fixed-UI string lookup: current lang → ko fallback → key itself.
+const t = (key) => (STR[LANG] && STR[LANG][key] != null ? STR[LANG][key] : (STR.ko[key] != null ? STR.ko[key] : key));
+// Paired-field picker for data objects: field_<lang> → field_ko → field.
+const L = (obj, field) => {
+  if (!obj) return "";
+  const v = obj[field + "_" + LANG];
+  if (v != null) return v;
+  const ko = obj[field + "_ko"];
+  if (ko != null) return ko;
+  return obj[field] != null ? obj[field] : "";
+};
+// STR is populated in the next task; define empty shells so t() never throws.
+const STR = { ko: {}, en: {} };
+
 // 20 facets — Korean canonical names follow 어세스타 Step II convention.
 // Surface forms vary across printings; treat these as the most common variant.
 const FACETS = {
