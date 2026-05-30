@@ -1373,6 +1373,7 @@
       if (typeof hideCoachmark === "function") hideCoachmark();
       if (typeof hideHudPointer === "function") hideHudPointer();
       clearTimeout(G._minimapTimer);
+      clearTimeout(G._endTutorialTimer);
       G.pitchReleasedAt = -1e9;
       G.pitchReleasedSlope = 0;
       G.boostingNow = false;
@@ -1429,6 +1430,8 @@
     }
 
     function endTutorial() {
+      clearTimeout(G._minimapTimer);
+      clearTimeout(G._endTutorialTimer);
       G.tutorial = false;
       G.tutorialStep = 3;
       hideCoachmark();
@@ -1448,7 +1451,8 @@
         showCoachmark(TUTORIAL_STEPS[G.tutorialStep]);
       } else {
         showCoachmark("that's it — the hills are yours.");
-        setTimeout(endTutorial, 1400);
+        clearTimeout(G._endTutorialTimer);
+        G._endTutorialTimer = setTimeout(endTutorial, 1400);
       }
     }
 
@@ -1606,6 +1610,16 @@
           doRestart(false);
         } else {
           G.pitchDown = true;
+          // Mid-air Space/Down also spends boost (mirrors canvas pointerdown),
+          // so keyboard players can perform the boost and complete the tutorial.
+          if (G.airborne && G.boost > 0.18) {
+            G.boostingNow = true;
+            if (G.tutorial && G.tutorialStep === 2) tutorialAdvance(2);
+            const dir = Math.sign(G.vx) || 1;
+            G.vx += dir * 220;
+            G.boost = Math.max(0, G.boost - 0.32);
+            blip(680, 0.14, "triangle", 0.16);
+          }
         }
       }
     });
@@ -1617,6 +1631,7 @@
           if (!G.gameOver) blip(540, 0.05, "sine", 0.04);
         }
         G.pitchDown = false;
+        G.boostingNow = false;
       }
     });
 
@@ -1710,6 +1725,13 @@
       tunerEl.classList.remove("live");
       tunerEl.setAttribute("aria-hidden", "true");
       tuneBtn.setAttribute("aria-pressed", "false");
+      // Pause the run behind the re-shown story card so the bird doesn't keep
+      // flying (and can't crash → pop the end-panel over the card). The
+      // intro buttons route back through dismissIntro → startGame, which
+      // resumes from a fresh run.
+      G.gameOver = true;
+      const endPanel = document.getElementById("endPanel");
+      if (endPanel) endPanel.classList.remove("live");
       const introEl = document.getElementById("introPanel");
       introEl.classList.remove("gone");
     });
