@@ -1468,12 +1468,21 @@
         // tutorial), leaving it sitting dead. Tutorial-only; normal play keeps
         // the earned-only boost economy.
         G.boost = Math.max(G.boost, 0.7);
-        if (!G.airborne) {
+        if (!G.airborne && G.terrain) {
           G.airborne = true;
           const dir = Math.sign(G.vx) || 1;
           G.vx = dir * Math.max(Math.abs(G.vx), 300); // comfortably above LIFT_VMIN so it glides, not stalls
-          G.vy = Math.min(G.vy, -300);                // upward pop = "soar", ~1s hang time to react and tap
+          G.vy = Math.min(G.vy, -300);                // upward pop = "soar"
+          // CRITICAL: lift the bird clearly off the surface, else the very next
+          // physicsStep's surfing branch (by >= surface - eps) reclaims it,
+          // resets airborne=false, and the boost tap can never fire. The step-2
+          // freeze gate below then holds it airborne until the player taps.
+          G.by = G.terrain.h(G.bx) - 60;
         }
+        // Show the current boost on the meter immediately (the meter is updated
+        // in the render loop, which keeps running during the freeze).
+        const bf = document.getElementById("boostFill");
+        if (bf) bf.style.width = (G.boost * 100).toFixed(1) + "%";
       }
       if (G.tutorialStep < TUTORIAL_STEPS.length) {
         showCoachmark(TUTORIAL_STEPS[G.tutorialStep]);
@@ -1821,11 +1830,28 @@
         }
         return; // freeze: do not advance physics this step
       }
-      // Leaving the freeze (player pressed, or slope no longer a downhill).
+      // Tutorial step 2 (boost): hold the bird airborne until the player taps.
+      // The release step set it airborne with a full-ish meter; freezing here
+      // makes the boost tap TIMING-INDEPENDENT (no narrow window to miss) and
+      // stops the bird from gliding back down, landing, and stalling on the
+      // next hill (loss is disabled in the tutorial). The tap spends boost and
+      // advances to step 3, which drops this condition and resumes physics.
+      if (G.tutorial && G.tutorialStep === 2 && G.airborne) {
+        if (!G._tutorialFrozen) {
+          G._tutorialFrozen = true;
+          showCoachmark("tap NOW — spend boost in the air ✦");
+          coachmark.classList.add("urgent");
+        }
+        return;
+      }
+      // Leaving any tutorial freeze (player pressed / tapped, or the freeze
+      // condition no longer holds). Restore the normal step prompt.
       if (G._tutorialFrozen) {
         G._tutorialFrozen = false;
         coachmark.classList.remove("urgent");
-        if (G.tutorial && G.tutorialStep === 0) showCoachmark(TUTORIAL_STEPS[0]);
+        if (G.tutorial && G.tutorialStep < TUTORIAL_STEPS.length) {
+          showCoachmark(TUTORIAL_STEPS[G.tutorialStep]);
+        }
       }
 
       const t = G.terrain;
