@@ -1924,6 +1924,16 @@ const DIAL_BUCKETS = [
   { key: "S", han: "覺", ko: "감각", desc: "사실·디테일·현장을 읽는 결" }
 ];
 
+// Temperament groups for the 도감 gallery — order, labels, and bible palette
+// anchors (NT lavender / NF coral / SJ sage / SP honey). Each section gets a
+// faint wash of its anchor over cream.
+const TEMPERAMENT_GROUPS = [
+  { key: "NT", label: "NT · 분석가", anchor: "#ADA7FF", types: ["INTJ", "INTP", "ENTJ", "ENTP"] },
+  { key: "NF", label: "NF · 외교관", anchor: "#D96E54", types: ["INFJ", "INFP", "ENFJ", "ENFP"] },
+  { key: "SJ", label: "SJ · 관리자", anchor: "#9CAA8E", types: ["ISTJ", "ISFJ", "ESTJ", "ESFJ"] },
+  { key: "SP", label: "SP · 탐험가", anchor: "#E3B25A", types: ["ISTP", "ISFP", "ESTP", "ESFP"] }
+];
+
 // Ranks within stack: dom=4, aux=3, tert=2, inf=1.
 // We compute each bucket's strength = max rank of any function in that bucket
 // that appears in the stack (covers e.g. ENFP where N appears as Ne(dom) only,
