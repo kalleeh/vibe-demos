@@ -2611,6 +2611,45 @@ function renderFnStack(type) {
   `;
 }
 
+// ============================================================
+// 16유형 도감 — GALLERY GRID
+// Four temperament sections, each tinted with its bible palette.
+// Each card: selected-gender portrait + code + short nickname.
+// ============================================================
+function renderGallery() {
+  const sections = TEMPERAMENT_GROUPS.map(group => {
+    const cards = group.types.map(type => {
+      const meta = TYPES[type] || {};
+      const shortNick = (meta.nickname || "").split(" · ")[0] || type;
+      const src = portraitPath(type);
+      return `
+        <button class="type-card" data-type="${type}" aria-label="${escapeHTML(type)} ${escapeHTML(shortNick)}">
+          <span class="type-card-thumb">
+            <img src="${src}" alt="" width="1024" height="1024" loading="lazy" decoding="async" data-type="${type}">
+          </span>
+          <span class="type-card-code">${type}</span>
+          <span class="type-card-nick">${escapeHTML(shortNick)}</span>
+        </button>`;
+    }).join("");
+    return `
+      <section class="temperament-section" style="--group-anchor:${group.anchor}">
+        <h3 class="temperament-label">${escapeHTML(group.label)}</h3>
+        <div class="type-grid">${cards}</div>
+      </section>`;
+  }).join("");
+
+  const g = getGender();
+  return `
+    <div class="gallery-head">
+      <div class="gallery-intro">열여섯 결을 한눈에. 카드를 누르면 그 유형의 결이 펼쳐집니다.</div>
+      <div class="gender-toggle gallery-gender" role="group" aria-label="초상 선택">
+        <button type="button" data-gender="women" class="${g === "women" ? "active" : ""}" aria-pressed="${g === "women"}">女</button>
+        <button type="button" data-gender="men" class="${g === "men" ? "active" : ""}" aria-pressed="${g === "men"}">男</button>
+      </div>
+    </div>
+    ${sections}`;
+}
+
 function escapeHTML(s) {
   if (s == null) return "";
   return String(s).replace(/[&<>"']/g, c => ({
