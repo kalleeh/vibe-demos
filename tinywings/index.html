@@ -1457,6 +1457,24 @@
       if (!G.tutorial || G.tutorialStep !== step) return;
       G.tutorialStep = step + 1;
       if (step === 0) hideHudPointer(); // minimap pointer goes once step 1 is done
+      if (step === 1) {
+        // Entering the boost step: set up exactly the state it teaches — the
+        // bird airborne with spendable boost — so "tap in the air to spend
+        // boost" is immediately actionable and the bird visibly soars off the
+        // release. Without this the step SOFT-LOCKS: boost is earned-only (so
+        // a first-timer's meter sits empty AND the completion gate
+        // `airborne && boost > 0.18` can never fire), and a post-release bird
+        // can stall on an uphill with no recovery (loss is disabled in the
+        // tutorial), leaving it sitting dead. Tutorial-only; normal play keeps
+        // the earned-only boost economy.
+        G.boost = Math.max(G.boost, 0.7);
+        if (!G.airborne) {
+          G.airborne = true;
+          const dir = Math.sign(G.vx) || 1;
+          G.vx = dir * Math.max(Math.abs(G.vx), 300); // comfortably above LIFT_VMIN so it glides, not stalls
+          G.vy = Math.min(G.vy, -300);                // upward pop = "soar", ~1s hang time to react and tap
+        }
+      }
       if (G.tutorialStep < TUTORIAL_STEPS.length) {
         showCoachmark(TUTORIAL_STEPS[G.tutorialStep]);
       } else {
