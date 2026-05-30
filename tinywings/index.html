@@ -518,8 +518,15 @@
       background: none; border: none; cursor: pointer; pointer-events: auto;
     }
     .coachmark .skip:hover { color: var(--ink); }
+    .coachmark.urgent .card {
+      animation: cm-pulse 0.9s ease-in-out infinite;
+      border-color: var(--bloom);
+      color: var(--bloom);
+    }
+    @keyframes cm-pulse { 0%,100% { transform: rotate(-0.5deg) scale(1); } 50% { transform: rotate(-0.5deg) scale(1.06); } }
     @media (prefers-reduced-motion: reduce) {
       .coachmark .arrow { animation: none; }
+      .coachmark.urgent .card { animation: none; }
     }
 
     /* ── HUD pointer — small caption that points at the topbar minimap or
@@ -1374,6 +1381,7 @@
       if (typeof hideHudPointer === "function") hideHudPointer();
       clearTimeout(G._minimapTimer);
       clearTimeout(G._endTutorialTimer);
+      G._tutorialFrozen = false;
       G.pitchReleasedAt = -1e9;
       G.pitchReleasedSlope = 0;
       G.boostingNow = false;
@@ -1403,7 +1411,7 @@
       coachmarkText.textContent = text;
       coachmark.classList.add("live");
     }
-    function hideCoachmark() { coachmark.classList.remove("live"); }
+    function hideCoachmark() { coachmark.classList.remove("live"); coachmark.classList.remove("urgent"); }
 
     // Position the HUD pointer under the topbar minimap and show a caption.
     function showMinimapPointer() {
@@ -1435,6 +1443,8 @@
       G.tutorial = false;
       G.tutorialStep = 3;
       hideCoachmark();
+      coachmark.classList.remove("urgent");
+      G._tutorialFrozen = false;
       hideHudPointer();
       setOnboarded();
       // Hand the run back to normal play with full loss conditions and the
@@ -1518,6 +1528,7 @@
         G.pitchReleasedAt = performance.now();
         G.pitchReleasedSlope = G.terrain ? G.terrain.slope(G.bx) : 0;
         if (!G.gameOver) blip(540, 0.05, "sine", 0.04);
+        if (G.tutorial && G.tutorialStep === 1) tutorialAdvance(1);
       }
       G.pitchDown = false;
       G.boostingNow = false;
@@ -1527,6 +1538,7 @@
         G.pitchReleasedAt = performance.now();
         G.pitchReleasedSlope = G.terrain ? G.terrain.slope(G.bx) : 0;
         if (!G.gameOver) blip(540, 0.05, "sine", 0.04);
+        if (G.tutorial && G.tutorialStep === 1) tutorialAdvance(1);
       }
       G.pitchDown = false;
       G.boostingNow = false;
@@ -1629,6 +1641,7 @@
           G.pitchReleasedAt = performance.now();
           G.pitchReleasedSlope = G.terrain ? G.terrain.slope(G.bx) : 0;
           if (!G.gameOver) blip(540, 0.05, "sine", 0.04);
+          if (G.tutorial && G.tutorialStep === 1) tutorialAdvance(1);
         }
         G.pitchDown = false;
         G.boostingNow = false;
@@ -1776,6 +1789,27 @@
     function physicsStep(dt) {
       if (G.gameOver) return;
 
+      // Tutorial step 0: when the bird reaches a real downslope and the player
+      // hasn't pressed yet, FREEZE the bird (skip the physics step) and pulse a
+      // "hold NOW" prompt — guarantees a teachable press-moment and prevents the
+      // never-touched bird from surfing to rest and getting stuck. Unfreezes the
+      // instant the player holds (G.pitchDown).
+      if (G.tutorial && G.tutorialStep === 0 && !G.airborne && !G.pitchDown &&
+          G.terrain && G.terrain.slope(G.bx) > 0.12) {
+        if (!G._tutorialFrozen) {
+          G._tutorialFrozen = true;
+          showCoachmark("hold NOW — dive down the slope ↓");
+          coachmark.classList.add("urgent");
+        }
+        return; // freeze: do not advance physics this step
+      }
+      // Leaving the freeze (player pressed, or slope no longer a downhill).
+      if (G._tutorialFrozen) {
+        G._tutorialFrozen = false;
+        coachmark.classList.remove("urgent");
+        if (G.tutorial && G.tutorialStep === 0) showCoachmark(TUTORIAL_STEPS[0]);
+      }
+
       const t = G.terrain;
       // Slope at current x — note "y down" means positive slope = downhill
       const slope = t.slope(G.bx);
@@ -1885,7 +1919,6 @@
         // looks like it's bouncing on cobblestones.
         if (slope < -0.18 && G.vy < 0 && Math.abs(G.vx) > 240 && !G.pitchDown && !G.airborne) {
           G.airborne = true;
-          if (G.tutorial && G.tutorialStep === 1) tutorialAdvance(1);
           // Tiny pop just to clear the eps band — NOT scaled, so soft
           // ramps give soft launches naturally via existing vy.
           G.vy -= 25;
