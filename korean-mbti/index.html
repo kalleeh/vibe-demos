@@ -565,6 +565,19 @@ header.top {
   margin-bottom: 18px;
   font-weight: 500;
 }
+.axes h3:has(+ .axes-sub) { margin-bottom: 6px; }
+.axes-sub {
+  font-size: 12px;
+  color: rgba(31, 38, 32, 0.55);
+  margin-bottom: 20px;
+  font-family: "Noto Serif KR", serif;
+  font-style: italic;
+}
+.axes-sub em, .fnstack-sub em {
+  font-style: normal;
+  color: var(--accent-2);
+  font-weight: 600;
+}
 .axis {
   margin-bottom: 18px;
 }
@@ -2496,6 +2509,7 @@ function renderResultHTML(r) {
       </div>
       <div class="axes">
         <h3>4 축 분석</h3>
+        <div class="axes-sub">유형을 이루는 <em>네 글자</em> — 각 축에서 어느 쪽에 섰는지와 그 확신도.</div>
         ${axisHTML}
       </div>
       ${fnHTML}
@@ -2521,7 +2535,9 @@ function renderResultHTML(r) {
 function renderFnStack(type) {
   const data = computeFnStrengths(type);
   if (!data) return "";
-  const dials = DIAL_BUCKETS.map(b => {
+  // Render in stack order (#1 dominant → #4 inferior → off-stack last) so the
+  // dials match the "강한 결부터 약한 결" promise in the subtitle.
+  const dials = [...DIAL_BUCKETS].sort((a, b) => data.ordinal[a.key] - data.ordinal[b.key]).map(b => {
     const s = data.strength[b.key];
     const ord = data.ordinal[b.key];
     const dim = ord >= 4;
@@ -2554,7 +2570,7 @@ function renderFnStack(type) {
   return `
     <div class="fnstack">
       <h3>인지 기능 스택 — Function Stack</h3>
-      <div class="fnstack-sub">${escapeHTML(stackStr)} — 강한 결부터 약한 결 순서로.</div>
+      <div class="fnstack-sub">같은 성향을 <em>쓰는 순서</em>로 — 가장 기대는 결(#1)부터 가장 서툰 결(#4)까지. ${escapeHTML(stackStr)}.</div>
       <svg width="0" height="0" style="position:absolute" aria-hidden="true">
         <defs>
           <linearGradient id="fnGrad" x1="0" x2="1" y1="0" y2="1">
