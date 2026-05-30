@@ -565,6 +565,19 @@ header.top {
   margin-bottom: 18px;
   font-weight: 500;
 }
+.axes h3:has(+ .axes-sub) { margin-bottom: 6px; }
+.axes-sub {
+  font-size: 12px;
+  color: rgba(31, 38, 32, 0.55);
+  margin-bottom: 20px;
+  font-family: "Noto Serif KR", serif;
+  font-style: italic;
+}
+.axes-sub em, .fnstack-sub em {
+  font-style: normal;
+  color: var(--accent-2);
+  font-weight: 600;
+}
 .axis {
   margin-bottom: 18px;
 }
@@ -872,6 +885,134 @@ header.top {
 @media (max-width: 580px) {
   .fnstack-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .fn-arc { width: 56px; height: 56px; }
+}
+
+/* ---------- 16유형 도감 (gallery) ---------- */
+.gallery-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+.gallery-intro {
+  font-family: "Noto Serif KR", serif;
+  font-style: italic;
+  font-size: 13px;
+  color: rgba(31, 38, 32, 0.6);
+}
+.temperament-section {
+  margin-bottom: 26px;
+  padding: 18px 18px 20px;
+  border-radius: 6px;
+  background:
+    linear-gradient(0deg, color-mix(in srgb, var(--group-anchor) 7%, transparent), color-mix(in srgb, var(--group-anchor) 7%, transparent)),
+    rgba(31, 38, 32, 0.015);
+  border: 1px solid color-mix(in srgb, var(--group-anchor) 22%, var(--line));
+}
+.temperament-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--group-anchor) 60%, var(--ink));
+  margin-bottom: 14px;
+  font-weight: 500;
+}
+.type-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.type-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--paper);
+  cursor: pointer;
+  overflow: hidden;
+  font-family: inherit;
+  transition: border-color 0.18s, transform 0.12s, box-shadow 0.18s;
+}
+.type-card:hover,
+.type-card:focus-visible {
+  border-color: var(--accent-2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(31, 38, 32, 0.1);
+  outline: none;
+}
+.type-card-thumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: rgba(31, 38, 32, 0.04);
+}
+.type-card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  display: block;
+}
+.type-card-code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  margin-top: 10px;
+}
+.type-card-nick {
+  font-family: "Noto Sans KR", sans-serif;
+  font-size: 12px;
+  color: rgba(31, 38, 32, 0.72);
+  margin-top: 3px;
+  text-align: center;
+  padding: 0 6px;
+}
+.gallery-back {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--accent-2);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-bottom: 14px;
+}
+.gallery-back:hover { color: var(--accent); }
+.gallery-oneliner {
+  font-family: "Noto Serif KR", serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink);
+  margin: 4px 0 12px;
+}
+.gallery-note {
+  font-family: "Noto Serif KR", serif;
+  font-style: italic;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: rgba(31, 38, 32, 0.55);
+  margin: 6px 0 20px;
+}
+.gallery-note a {
+  color: var(--accent-2);
+  font-style: normal;
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-2) 40%, transparent);
+}
+.gallery-note a:hover { color: var(--accent); }
+@media (max-width: 560px) {
+  .type-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .type-card { transition: none; }
+  .type-card:hover, .type-card:focus-visible { transform: none; }
 }
 
 /* ---------- result-card share button ---------- */
@@ -1323,6 +1464,10 @@ footer.bottom {
     AI 깊이 읽기
     <span class="meta">Free-text · Claude</span>
   </button>
+  <button class="tab" data-mode="gallery" role="tab" id="tab-gallery" aria-selected="false" aria-controls="panel-gallery">
+    16유형 도감
+    <span class="meta">16유형 · 초상 도감</span>
+  </button>
 </div>
 
 <!-- ====== TEST PANEL ====== -->
@@ -1455,6 +1600,12 @@ footer.bottom {
 
   <div id="ai-result"></div>
 
+</section>
+
+<!-- ====== GALLERY PANEL (16유형 도감) ====== -->
+<section class="panel" id="panel-gallery" role="tabpanel" aria-labelledby="tab-gallery">
+  <div id="gallery-grid"></div>
+  <div id="gallery-detail" style="display:none"></div>
 </section>
 
 <footer class="bottom">
@@ -1911,6 +2062,16 @@ const DIAL_BUCKETS = [
   { key: "S", han: "覺", ko: "감각", desc: "사실·디테일·현장을 읽는 결" }
 ];
 
+// Temperament groups for the 도감 gallery — order, labels, and bible palette
+// anchors (NT lavender / NF coral / SJ sage / SP honey). Each section gets a
+// faint wash of its anchor over cream.
+const TEMPERAMENT_GROUPS = [
+  { key: "NT", label: "NT · 분석가", anchor: "#ADA7FF", types: ["INTJ", "INTP", "ENTJ", "ENTP"] },
+  { key: "NF", label: "NF · 외교관", anchor: "#D96E54", types: ["INFJ", "INFP", "ENFJ", "ENFP"] },
+  { key: "SJ", label: "SJ · 관리자", anchor: "#9CAA8E", types: ["ISTJ", "ISFJ", "ESTJ", "ESFJ"] },
+  { key: "SP", label: "SP · 탐험가", anchor: "#E3B25A", types: ["ISTP", "ISFP", "ESTP", "ESFP"] }
+];
+
 // Ranks within stack: dom=4, aux=3, tert=2, inf=1.
 // We compute each bucket's strength = max rank of any function in that bucket
 // that appears in the stack (covers e.g. ENFP where N appears as Ne(dom) only,
@@ -2198,6 +2359,53 @@ function updateModePill() {
 }
 
 // ============================================================
+// 16유형 도감 GALLERY
+// ============================================================
+function showGalleryGrid() {
+  $("#gallery-grid").innerHTML = renderGallery();
+  $("#gallery-grid").style.display = "";
+  $("#gallery-detail").style.display = "none";
+}
+function showGalleryDetail(type) {
+  $("#gallery-detail").innerHTML = renderGalleryDetail(type);
+  $("#gallery-detail").style.display = "";
+  $("#gallery-grid").style.display = "none";
+  // Only scroll when the gallery panel is the active tab — avoids scrolling to
+  // a hidden panel if this is ever called outside the visible-gallery flow.
+  const panel = $("#panel-gallery");
+  if (panel.classList.contains("active")) {
+    panel.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+// Initial grid render.
+showGalleryGrid();
+// Delegated clicks within the gallery panel.
+$("#panel-gallery").addEventListener("click", (e) => {
+  const card = e.target.closest(".type-card");
+  if (card) { showGalleryDetail(card.dataset.type); return; }
+  if (e.target.closest('[data-action="gallery-back"]')) { showGalleryGrid(); return; }
+  const gotoTest = e.target.closest('[data-action="goto-test"]');
+  if (gotoTest) {
+    e.preventDefault();
+    $('#tab-test').click();
+    return;
+  }
+  // Gallery's own 女/男 toggles: persist the shared gender, then re-render.
+  const gbtn = e.target.closest("[data-gender]");
+  if (gbtn) {
+    const g = gbtn.dataset.gender;
+    if (g === getGender()) return;
+    setGender(g);
+    if ($("#gallery-grid")?.style.display !== "none") {
+      showGalleryGrid();
+    } else {
+      const t = $("#gallery-detail")?.querySelector(".type-portrait")?.dataset.type;
+      if (t) showGalleryDetail(t);
+    }
+  }
+});
+
+// ============================================================
 // TAB SWITCHING
 // ============================================================
 $$(".tab").forEach(tab => {
@@ -2208,6 +2416,16 @@ $$(".tab").forEach(tab => {
     const mode = tab.dataset.mode;
     $$(".panel").forEach(p => p.classList.remove("active"));
     $("#panel-" + mode).classList.add("active");
+    // Re-render the 도감 on activation so it reflects any gender change made
+    // from another tab (keeps the one global 女/男 toggle truly global).
+    if (mode === "gallery" && $("#gallery-grid")?.innerHTML) {
+      if ($("#gallery-grid").style.display !== "none") {
+        showGalleryGrid();
+      } else {
+        const t = $("#gallery-detail")?.querySelector(".type-portrait")?.dataset.type;
+        if (t) showGalleryDetail(t);
+      }
+    }
   });
 });
 
@@ -2430,6 +2648,22 @@ function renderFacetRows(facets) {
   return `<div class="facet-list">${rows}</div>`;
 }
 
+// Portrait hero + 女/男 toggle. Shared by the result screen and the 도감 gallery
+// detail so both render identical markup and respond to the same gender toggle.
+function renderPortrait(type, altLabel) {
+  const src = portraitPath(type);
+  if (!src) return "";
+  const g = getGender();
+  const alt = `${type}${altLabel ? " — " + altLabel : ""}`;
+  return `<div class="portrait-wrap">
+        <img class="type-portrait" src="${src}" alt="${escapeHTML(alt)}" width="1024" height="640" loading="eager" decoding="async" data-type="${escapeHTML(type)}">
+        <div class="gender-toggle" role="group" aria-label="초상 선택">
+          <button type="button" data-gender="women" class="${g === "women" ? "active" : ""}" aria-pressed="${g === "women"}">女</button>
+          <button type="button" data-gender="men" class="${g === "men" ? "active" : ""}" aria-pressed="${g === "men"}">男</button>
+        </div>
+      </div>`;
+}
+
 function renderResultHTML(r) {
   const axisHTML = r.axes.map(a => {
     const isRight = a.lean === a.axis.split("/")[1];
@@ -2469,17 +2703,7 @@ function renderResultHTML(r) {
         ? `<span class="pill demo">DEMO</span>`
         : `<span class="pill">CLAUDE · ${escapeHTML(r.modelLabel || "Sonnet 4.6")}</span>`);
 
-  const portraitSrc = portraitPath(r.type);
-  const g = getGender();
-  const portraitHTML = portraitSrc
-    ? `<div class="portrait-wrap">
-        <img class="type-portrait" src="${portraitSrc}" alt="${escapeHTML(r.type)} — ${escapeHTML(r.nickname_ko)}" width="1024" height="640" loading="eager" decoding="async" data-type="${escapeHTML(r.type)}">
-        <div class="gender-toggle" role="group" aria-label="초상 선택">
-          <button type="button" data-gender="women" class="${g === "women" ? "active" : ""}" aria-pressed="${g === "women"}">女</button>
-          <button type="button" data-gender="men" class="${g === "men" ? "active" : ""}" aria-pressed="${g === "men"}">男</button>
-        </div>
-      </div>`
-    : "";
+  const portraitHTML = renderPortrait(r.type, r.nickname_ko);
 
   const fnHTML = renderFnStack(r.type);
 
@@ -2496,6 +2720,7 @@ function renderResultHTML(r) {
       </div>
       <div class="axes">
         <h3>4 축 분석</h3>
+        <div class="axes-sub">유형을 이루는 <em>네 글자</em> — 각 축에서 어느 쪽에 섰는지와 그 확신도.</div>
         ${axisHTML}
       </div>
       ${fnHTML}
@@ -2521,7 +2746,9 @@ function renderResultHTML(r) {
 function renderFnStack(type) {
   const data = computeFnStrengths(type);
   if (!data) return "";
-  const dials = DIAL_BUCKETS.map(b => {
+  // Render in stack order (#1 dominant → #4 inferior → off-stack last) so the
+  // dials match the "강한 결부터 약한 결" promise in the subtitle.
+  const dials = [...DIAL_BUCKETS].sort((a, b) => data.ordinal[a.key] - data.ordinal[b.key]).map(b => {
     const s = data.strength[b.key];
     const ord = data.ordinal[b.key];
     const dim = ord >= 4;
@@ -2554,7 +2781,7 @@ function renderFnStack(type) {
   return `
     <div class="fnstack">
       <h3>인지 기능 스택 — Function Stack</h3>
-      <div class="fnstack-sub">${escapeHTML(stackStr)} — 강한 결부터 약한 결 순서로.</div>
+      <div class="fnstack-sub">같은 성향을 <em>쓰는 순서</em>로 — 가장 기대는 결(#1)부터 가장 서툰 결(#4)까지. ${escapeHTML(stackStr)}.</div>
       <svg width="0" height="0" style="position:absolute" aria-hidden="true">
         <defs>
           <linearGradient id="fnGrad" x1="0" x2="1" y1="0" y2="1">
@@ -2567,6 +2794,68 @@ function renderFnStack(type) {
       <div class="fnstack-grid">${dials}</div>
     </div>
   `;
+}
+
+// ============================================================
+// 16유형 도감 — GALLERY GRID
+// Four temperament sections, each tinted with its bible palette.
+// Each card: selected-gender portrait + code + short nickname.
+// ============================================================
+function renderGallery() {
+  const sections = TEMPERAMENT_GROUPS.map(group => {
+    const cards = group.types.map(type => {
+      const meta = TYPES[type] || {};
+      const shortNick = (meta.nickname || "").split(" · ")[0] || type;
+      const src = portraitPath(type);
+      return `
+        <button class="type-card" data-type="${type}" aria-label="${escapeHTML(type)} ${escapeHTML(shortNick)}">
+          <span class="type-card-thumb">
+            <img src="${src}" alt="" width="1024" height="1024" loading="lazy" decoding="async" data-type="${type}">
+          </span>
+          <span class="type-card-code">${type}</span>
+          <span class="type-card-nick">${escapeHTML(shortNick)}</span>
+        </button>`;
+    }).join("");
+    return `
+      <section class="temperament-section" style="--group-anchor:${group.anchor}">
+        <h3 class="temperament-label">${escapeHTML(group.label)}</h3>
+        <div class="type-grid">${cards}</div>
+      </section>`;
+  }).join("");
+
+  const g = getGender();
+  return `
+    <div class="gallery-head">
+      <div class="gallery-intro">열여섯 결을 한눈에. 카드를 누르면 그 유형의 결이 펼쳐집니다.</div>
+      <div class="gender-toggle gallery-gender" role="group" aria-label="초상 선택">
+        <button type="button" data-gender="women" class="${g === "women" ? "active" : ""}" aria-pressed="${g === "women"}">女</button>
+        <button type="button" data-gender="men" class="${g === "men" ? "active" : ""}" aria-pressed="${g === "men"}">男</button>
+      </div>
+    </div>
+    ${sections}`;
+}
+
+// ============================================================
+// 16유형 도감 — DETAIL (result-style, minus 4축 bars)
+// ============================================================
+function renderGalleryDetail(type) {
+  const meta = TYPES[type] || {};
+  const portraitHTML = renderPortrait(type, (meta.nickname || "").split(" · ")[0]);
+  const vibesHTML = (meta.vibes || []).map(v => `<span class="vibe">${escapeHTML(v)}</span>`).join("");
+  const fnHTML = renderFnStack(type);
+  return `
+    <button class="gallery-back" data-action="gallery-back">← 도감</button>
+    <div class="result">
+      ${portraitHTML}
+      <div class="type-hero">
+        <div class="code">${escapeHTML(type)}</div>
+        <div class="nickname">${escapeHTML(meta.nickname || "")}</div>
+      </div>
+      <p class="gallery-oneliner">${escapeHTML(meta.one_liner || "")}</p>
+      ${vibesHTML ? `<div class="vibes">${vibesHTML}</div>` : ""}
+      <p class="gallery-note">4축 막대는 ‘내’ 검사 결과에서만 나타나요 — 여기선 유형 고유의 결만 봅니다. <a href="#" data-action="goto-test">내 축이 궁금하다면 → 빠른 테스트</a></p>
+      ${fnHTML}
+    </div>`;
 }
 
 function escapeHTML(s) {
