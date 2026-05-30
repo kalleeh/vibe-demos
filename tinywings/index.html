@@ -314,6 +314,14 @@
       transition: background 160ms, color 160ms;
     }
     .intro-panel button:hover { background: var(--ink); color: var(--paper); }
+    .intro-panel .intro-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 4px; }
+    .intro-panel button.ghost {
+      border-style: dotted;
+      font-size: 16px;
+      color: var(--muted);
+      padding: 6px 16px;
+    }
+    .intro-panel button.ghost:hover { background: transparent; color: var(--ink); border-color: var(--ink-soft); }
     .intro-panel .legend {
       display: flex; flex-wrap: wrap; gap: 10px;
       font-family: "JetBrains Mono", monospace;
@@ -660,17 +668,16 @@
       <img class="hero" src="./assets/hero-mood.webp" alt="" width="1280" height="720" decoding="async">
       <div class="copy">
         <div class="kicker">A Quiet Glide · 단 한 번의 비행</div>
-        <h1>One bird, <em>a few hills</em>, and the slow turn of a day.</h1>
+        <h1>A little bird, <em>too heavy to fly</em>, and a sky full of hills.</h1>
         <p>
-          Tap and hold on a <em>downslope</em> to dive — release on the rising crest to launch.
-          Each day is a new seed of rolling pencil hills; flight ends when night fully falls,
-          or the bird comes to rest. There is no score worth chasing — only the <em>arc</em>.
+          This bird can't keep itself up by flapping — it's a touch too heavy.
+          So it does the next best thing: it <em>surfs the hills</em>. Dive down a
+          slope to gather speed, let go on the rise, and it soars on what it
+          borrowed from gravity.
         </p>
-        <button id="beginBtn" type="button">begin the day →</button>
-        <div class="legend">
-          <span><span class="key">tap</span> dive on the down</span>
-          <span><span class="key">release</span> launch on the up</span>
-          <span><span class="key">tap mid-air</span> spend boost</span>
+        <div class="intro-actions">
+          <button id="beginBtn" type="button">teach me to glide →</button>
+          <button id="skipIntroBtn" type="button" class="ghost">just let me fly</button>
         </div>
 
         <!-- ── Install-as-app accordion. Hidden when running standalone. ── -->
@@ -1295,6 +1302,9 @@
       const ep = document.getElementById("endPanel");
       ep.classList.remove("live");
     }
+
+    // Replaced with the real implementation in a later task.
+    function startTutorial() {}
 
     // ── Resize ───────────────────────────────────────────────────
     let dpr = 1, viewW = 0, viewH = 0, baseY = 0;
@@ -2551,18 +2561,34 @@
     startGame();
     G.gameOver = true; // re-pause: startGame clears the flag
     const intro = document.getElementById("introPanel");
-    function dismissIntro() {
+    const ONBOARD_KEY = "vibe.tinywings.onboarded";
+    function isOnboarded() {
+      try { return localStorage.getItem(ONBOARD_KEY) === "1"; } catch (e) { return false; }
+    }
+    function setOnboarded() {
+      try { localStorage.setItem(ONBOARD_KEY, "1"); } catch (e) {}
+    }
+    // Hide the intro panel; pass {tutorial:true} to launch the guided tutorial,
+    // otherwise start normal free play. Always marks the player onboarded.
+    function dismissIntro(opts) {
       ensureAudio();
       intro.classList.add("gone");
-      // Restart fresh after preview so the bird begins from a known state.
+      setOnboarded();
+      startGame();
+      if (opts && opts.tutorial) startTutorial();
+    }
+    document.getElementById("beginBtn").addEventListener("click", () => dismissIntro({ tutorial: true }));
+    document.getElementById("skipIntroBtn").addEventListener("click", () => dismissIntro({ tutorial: false }));
+    // Tap-anywhere on the canvas while the panel is up = "just let me fly".
+    canvas.addEventListener("pointerdown", () => {
+      if (!intro.classList.contains("gone")) dismissIntro({ tutorial: false });
+    }, true);
+    // Returning players (already onboarded) never see the card — skip straight
+    // to play. First-time visitors keep the panel up until they choose.
+    if (isOnboarded()) {
+      intro.classList.add("gone");
       startGame();
     }
-    document.getElementById("beginBtn").addEventListener("click", dismissIntro);
-    // Also accept tap-anywhere on the canvas as "begin" while the panel
-    // is up — a phone player won't notice a button.
-    canvas.addEventListener("pointerdown", () => {
-      if (!intro.classList.contains("gone")) dismissIntro();
-    }, true);
 
     // ── Install help ─────────────────────────────────────────────
     // Folds into the intro. Hide entirely if already running standalone.
