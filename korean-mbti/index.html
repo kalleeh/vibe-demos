@@ -2231,6 +2231,53 @@ function updateModePill() {
 }
 
 // ============================================================
+// 16유형 도감 GALLERY
+// ============================================================
+function showGalleryGrid() {
+  $("#gallery-grid").innerHTML = renderGallery();
+  $("#gallery-grid").style.display = "";
+  $("#gallery-detail").style.display = "none";
+}
+function showGalleryDetail(type) {
+  $("#gallery-detail").innerHTML = renderGalleryDetail(type);
+  $("#gallery-detail").style.display = "";
+  $("#gallery-grid").style.display = "none";
+  // Only scroll when the gallery panel is the active tab — avoids scrolling to
+  // a hidden panel if this is ever called outside the visible-gallery flow.
+  const panel = $("#panel-gallery");
+  if (panel.classList.contains("active")) {
+    panel.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+// Initial grid render.
+showGalleryGrid();
+// Delegated clicks within the gallery panel.
+$("#panel-gallery").addEventListener("click", (e) => {
+  const card = e.target.closest(".type-card");
+  if (card) { showGalleryDetail(card.dataset.type); return; }
+  if (e.target.closest('[data-action="gallery-back"]')) { showGalleryGrid(); return; }
+  const gotoTest = e.target.closest('[data-action="goto-test"]');
+  if (gotoTest) {
+    e.preventDefault();
+    $('#tab-test').click();
+    return;
+  }
+  // Gallery's own 女/男 toggles: persist the shared gender, then re-render.
+  const gbtn = e.target.closest("[data-gender]");
+  if (gbtn) {
+    const g = gbtn.dataset.gender;
+    if (g === getGender()) return;
+    setGender(g);
+    if ($("#gallery-grid")?.style.display !== "none") {
+      showGalleryGrid();
+    } else {
+      const t = $("#gallery-detail")?.querySelector(".type-portrait")?.dataset.type;
+      if (t) showGalleryDetail(t);
+    }
+  }
+});
+
+// ============================================================
 // TAB SWITCHING
 // ============================================================
 $$(".tab").forEach(tab => {
