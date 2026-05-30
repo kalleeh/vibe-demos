@@ -1,12 +1,13 @@
-const CACHE = "vibe-korean-mbti-v8";
+const CACHE = "vibe-korean-mbti-v9";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
-  // Canned-demo portraits so the showcase flow is instant offline.
-  // The other 12 types are picked up by the runtime cache on first view.
-  "./portraits/infj.jpg",
-  "./portraits/entj.jpg",
-  "./portraits/enfp.jpg",
-  "./portraits/isfj.jpg"
+  // Canned-demo portraits (women set, the default) so the showcase flow is
+  // instant offline. Other types + the men set are picked up by the runtime
+  // cache on first view.
+  "./portraits/women/infj.jpg",
+  "./portraits/women/entj.jpg",
+  "./portraits/women/enfp.jpg",
+  "./portraits/women/isfj.jpg"
 ];
 
 self.addEventListener("install", e => {
