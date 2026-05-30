@@ -2453,6 +2453,22 @@ function renderFacetRows(facets) {
   return `<div class="facet-list">${rows}</div>`;
 }
 
+// Portrait hero + 女/男 toggle. Shared by the result screen and the 도감 gallery
+// detail so both render identical markup and respond to the same gender toggle.
+function renderPortrait(type, altLabel) {
+  const src = portraitPath(type);
+  if (!src) return "";
+  const g = getGender();
+  const alt = `${type}${altLabel ? " — " + altLabel : ""}`;
+  return `<div class="portrait-wrap">
+        <img class="type-portrait" src="${src}" alt="${escapeHTML(alt)}" width="1024" height="640" loading="eager" decoding="async" data-type="${escapeHTML(type)}">
+        <div class="gender-toggle" role="group" aria-label="초상 선택">
+          <button type="button" data-gender="women" class="${g === "women" ? "active" : ""}" aria-pressed="${g === "women"}">女</button>
+          <button type="button" data-gender="men" class="${g === "men" ? "active" : ""}" aria-pressed="${g === "men"}">男</button>
+        </div>
+      </div>`;
+}
+
 function renderResultHTML(r) {
   const axisHTML = r.axes.map(a => {
     const isRight = a.lean === a.axis.split("/")[1];
@@ -2492,17 +2508,7 @@ function renderResultHTML(r) {
         ? `<span class="pill demo">DEMO</span>`
         : `<span class="pill">CLAUDE · ${escapeHTML(r.modelLabel || "Sonnet 4.6")}</span>`);
 
-  const portraitSrc = portraitPath(r.type);
-  const g = getGender();
-  const portraitHTML = portraitSrc
-    ? `<div class="portrait-wrap">
-        <img class="type-portrait" src="${portraitSrc}" alt="${escapeHTML(r.type)} — ${escapeHTML(r.nickname_ko)}" width="1024" height="640" loading="eager" decoding="async" data-type="${escapeHTML(r.type)}">
-        <div class="gender-toggle" role="group" aria-label="초상 선택">
-          <button type="button" data-gender="women" class="${g === "women" ? "active" : ""}" aria-pressed="${g === "women"}">女</button>
-          <button type="button" data-gender="men" class="${g === "men" ? "active" : ""}" aria-pressed="${g === "men"}">男</button>
-        </div>
-      </div>`
-    : "";
+  const portraitHTML = renderPortrait(r.type, r.nickname_ko);
 
   const fnHTML = renderFnStack(r.type);
 
