@@ -1336,6 +1336,10 @@ footer.bottom {
     AI 깊이 읽기
     <span class="meta">Free-text · Claude</span>
   </button>
+  <button class="tab" data-mode="gallery" role="tab" id="tab-gallery" aria-selected="false" aria-controls="panel-gallery">
+    16유형 도감
+    <span class="meta">16유형 · 초상 도감</span>
+  </button>
 </div>
 
 <!-- ====== TEST PANEL ====== -->
@@ -1468,6 +1472,12 @@ footer.bottom {
 
   <div id="ai-result"></div>
 
+</section>
+
+<!-- ====== GALLERY PANEL (16유형 도감) ====== -->
+<section class="panel" id="panel-gallery" role="tabpanel" aria-labelledby="tab-gallery">
+  <div id="gallery-grid"></div>
+  <div id="gallery-detail" style="display:none"></div>
 </section>
 
 <footer class="bottom">
