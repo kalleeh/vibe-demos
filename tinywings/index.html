@@ -673,6 +673,17 @@
       border-top: 1px dashed var(--line);
     }
     .tuner footer .toggle { font-size: 12px; }
+    .tuner .settings-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .tuner .settings-item { text-align: left; }
+    .settings-disclosure { border-top: 1px dashed var(--line); padding-top: 10px; }
+    .settings-summary {
+      appearance: none; background: none; border: none; cursor: pointer;
+      font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted); padding: 2px 0;
+    }
+    .settings-summary[aria-expanded="true"] { color: var(--ink); }
+    .advanced-body { margin-top: 10px; }
+    .advanced-body[hidden] { display: none; }
   </style>
 </head>
 <body>
@@ -949,21 +960,29 @@
       <span class="spacer" style="flex:1"></span>
       <span class="boost-wrap"><span>BOOST</span><span class="boost"><span class="fill" id="boostFill"></span></span></span>
       <button class="toggle" id="manualRestartBtn" title="Restart this run if it gets stuck">restart</button>
-      <button class="toggle" id="tuneBtn" aria-pressed="false" title="Tweak physics">tune · physics</button>
-      <button class="toggle" id="muteBtn" aria-pressed="false">sound · on</button>
+      <button class="toggle" id="settingsBtn" aria-pressed="false" aria-controls="tuner" title="Settings">⚙ settings</button>
     </footer>
 
     <aside class="tuner" id="tuner" aria-hidden="true">
       <header>
-        <span class="kicker">PHYSICS · LIVE</span>
+        <span class="kicker">SETTINGS</span>
         <button class="x" id="tuneClose" aria-label="Close">×</button>
       </header>
-      <p class="lede">drag a slider — feels apply immediately. <em>copy</em> dumps the current values for me to paste.</p>
-      <div class="rows" id="tuneRows"></div>
-      <footer>
-        <button class="toggle" id="tuneCopy">copy values</button>
-        <button class="toggle" id="tuneReset">reset defaults</button>
-      </footer>
+      <div class="settings-rows">
+        <button class="toggle settings-item" id="howToPlayBtn" type="button">▸ how to play</button>
+        <button class="toggle settings-item" id="muteBtn" aria-pressed="false">sound · on</button>
+      </div>
+      <div class="settings-disclosure">
+        <button class="settings-summary" id="advancedToggle" type="button" aria-expanded="false" aria-controls="advancedBody">▸ advanced · physics</button>
+        <div class="advanced-body" id="advancedBody" hidden>
+          <p class="lede">drag a slider — feels apply immediately. <em>copy</em> dumps the current values for me to paste.</p>
+          <div class="rows" id="tuneRows"></div>
+          <footer>
+            <button class="toggle" id="tuneCopy">copy values</button>
+            <button class="toggle" id="tuneReset">reset defaults</button>
+          </footer>
+        </div>
+      </div>
     </aside>
 
     <div class="end-panel" id="endPanel">
@@ -1642,7 +1661,7 @@
       GRAVITY_SURF:  { min: 200,  max: 2400, step: 10,   label: "gravity · surf",   hint: "pull along the slope while surfing the hills" },
     };
     const tunerEl = document.getElementById("tuner");
-    const tuneBtn = document.getElementById("tuneBtn");
+    const tuneBtn = document.getElementById("settingsBtn");
     const tuneCopyBtn = document.getElementById("tuneCopy");
     const tuneResetBtn = document.getElementById("tuneReset");
     const tuneCloseBtn = document.getElementById("tuneClose");
@@ -1684,6 +1703,26 @@
       tunerEl.setAttribute("aria-hidden", "true");
       tuneBtn.setAttribute("aria-pressed", "false");
     });
+
+    // How-to-play: replay the full story card + tutorial on demand. Does NOT
+    // clear the onboarded flag (explicit replay, not first-visit).
+    document.getElementById("howToPlayBtn").addEventListener("click", () => {
+      tunerEl.classList.remove("live");
+      tunerEl.setAttribute("aria-hidden", "true");
+      tuneBtn.setAttribute("aria-pressed", "false");
+      const introEl = document.getElementById("introPanel");
+      introEl.classList.remove("gone");
+    });
+
+    // Advanced·physics disclosure.
+    const advancedToggle = document.getElementById("advancedToggle");
+    const advancedBody = document.getElementById("advancedBody");
+    advancedToggle.addEventListener("click", () => {
+      const open = advancedBody.hasAttribute("hidden");
+      if (open) { advancedBody.removeAttribute("hidden"); advancedToggle.setAttribute("aria-expanded", "true"); }
+      else { advancedBody.setAttribute("hidden", ""); advancedToggle.setAttribute("aria-expanded", "false"); }
+    });
+
     tuneResetBtn.addEventListener("click", () => {
       Object.assign(PHYS, PHYS_DEFAULTS);
       try { localStorage.removeItem("sketchwings.phys"); } catch {}
