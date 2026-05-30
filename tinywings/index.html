@@ -1719,8 +1719,15 @@
     const advancedBody = document.getElementById("advancedBody");
     advancedToggle.addEventListener("click", () => {
       const open = advancedBody.hasAttribute("hidden");
-      if (open) { advancedBody.removeAttribute("hidden"); advancedToggle.setAttribute("aria-expanded", "true"); }
-      else { advancedBody.setAttribute("hidden", ""); advancedToggle.setAttribute("aria-expanded", "false"); }
+      if (open) {
+        advancedBody.removeAttribute("hidden");
+        advancedToggle.setAttribute("aria-expanded", "true");
+        advancedToggle.textContent = "▾ advanced · physics";
+      } else {
+        advancedBody.setAttribute("hidden", "");
+        advancedToggle.setAttribute("aria-expanded", "false");
+        advancedToggle.textContent = "▸ advanced · physics";
+      }
     });
 
     tuneResetBtn.addEventListener("click", () => {
