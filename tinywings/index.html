@@ -2545,29 +2545,29 @@
     // ahead/behind the camera). Shows a chevron at the nearest edge plus
     // an altitude readout in meters so the player can keep track.
     // One-time caption next to the off-screen chevron. Shows once ever.
+    // Reuses the shared #hudPointer node (also used by the tutorial's minimap
+    // pointer) — so we skip entirely during the tutorial to avoid fighting over
+    // the node and to save the hint for real gameplay.
     const OFFSCREEN_KEY = "vibe.tinywings.seenOffscreen";
     let _offscreenSeen = (() => { try { return localStorage.getItem(OFFSCREEN_KEY) === "1"; } catch (e) { return false; } })();
-    let _offscreenCaptionUntil = 0;
+    let _offscreenCaptionUntil = 0; // 0 = not yet armed; otherwise the window-end timestamp
     function maybeShowOffscreenCaption(px, py) {
-      if (_offscreenSeen) return;
+      if (_offscreenSeen || G.tutorial) return;
       if (!_offscreenCaptionUntil) {
         // First sighting — arm a 4s display window and persist the flag.
         _offscreenCaptionUntil = performance.now() + 4000;
         try { localStorage.setItem(OFFSCREEN_KEY, "1"); } catch (e) {}
-        const hp = document.getElementById("hudPointer");
-        hp.textContent = "that's your bird — follow the arrow back down";
+        hudPointer.textContent = "that's your bird — follow the arrow back down";
       }
-      const hp = document.getElementById("hudPointer");
       if (performance.now() < _offscreenCaptionUntil) {
         // Pin near the chevron; the chevron canvas coords map 1:1 to the
         // overlay since both cover the full viewport.
-        hp.style.left = Math.max(8, Math.min(window.innerWidth - 240, px + 18)) + "px";
-        hp.style.top = Math.max(8, Math.min(window.innerHeight - 40, py - 8)) + "px";
-        hp.classList.add("live");
+        hudPointer.style.left = Math.max(8, Math.min(window.innerWidth - 240, px + 18)) + "px";
+        hudPointer.style.top = Math.max(8, Math.min(window.innerHeight - 40, py - 8)) + "px";
+        hudPointer.classList.add("live");
       } else {
         _offscreenSeen = true;
-        // Only hide if the tutorial isn't currently using the pointer.
-        if (!G.tutorial) hp.classList.remove("live");
+        hudPointer.classList.remove("live");
       }
     }
     function drawOffscreenIndicator(sx, sy) {
