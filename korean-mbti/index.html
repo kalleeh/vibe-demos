@@ -887,6 +887,134 @@ header.top {
   .fn-arc { width: 56px; height: 56px; }
 }
 
+/* ---------- 16유형 도감 (gallery) ---------- */
+.gallery-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+.gallery-intro {
+  font-family: "Noto Serif KR", serif;
+  font-style: italic;
+  font-size: 13px;
+  color: rgba(31, 38, 32, 0.6);
+}
+.temperament-section {
+  margin-bottom: 26px;
+  padding: 18px 18px 20px;
+  border-radius: 6px;
+  background:
+    linear-gradient(0deg, color-mix(in srgb, var(--group-anchor) 7%, transparent), color-mix(in srgb, var(--group-anchor) 7%, transparent)),
+    rgba(31, 38, 32, 0.015);
+  border: 1px solid color-mix(in srgb, var(--group-anchor) 22%, var(--line));
+}
+.temperament-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--group-anchor) 60%, var(--ink));
+  margin-bottom: 14px;
+  font-weight: 500;
+}
+.type-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.type-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--paper);
+  cursor: pointer;
+  overflow: hidden;
+  font-family: inherit;
+  transition: border-color 0.18s, transform 0.12s, box-shadow 0.18s;
+}
+.type-card:hover,
+.type-card:focus-visible {
+  border-color: var(--accent-2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(31, 38, 32, 0.1);
+  outline: none;
+}
+.type-card-thumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: rgba(31, 38, 32, 0.04);
+}
+.type-card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  display: block;
+}
+.type-card-code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  margin-top: 10px;
+}
+.type-card-nick {
+  font-family: "Noto Sans KR", sans-serif;
+  font-size: 12px;
+  color: rgba(31, 38, 32, 0.72);
+  margin-top: 3px;
+  text-align: center;
+  padding: 0 6px;
+}
+.gallery-back {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--accent-2);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-bottom: 14px;
+}
+.gallery-back:hover { color: var(--accent); }
+.gallery-oneliner {
+  font-family: "Noto Serif KR", serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink);
+  margin: 4px 0 12px;
+}
+.gallery-note {
+  font-family: "Noto Serif KR", serif;
+  font-style: italic;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: rgba(31, 38, 32, 0.55);
+  margin: 6px 0 20px;
+}
+.gallery-note a {
+  color: var(--accent-2);
+  font-style: normal;
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent-2) 40%, transparent);
+}
+.gallery-note a:hover { color: var(--accent); }
+@media (max-width: 560px) {
+  .type-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .type-card { transition: none; }
+  .type-card:hover, .type-card:focus-visible { transform: none; }
+}
+
 /* ---------- result-card share button ---------- */
 .btn.card-btn {
   background: var(--gold);
