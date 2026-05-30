@@ -2544,6 +2544,32 @@
     // Pinned indicator when the bird is off-screen (above, below, or far
     // ahead/behind the camera). Shows a chevron at the nearest edge plus
     // an altitude readout in meters so the player can keep track.
+    // One-time caption next to the off-screen chevron. Shows once ever.
+    const OFFSCREEN_KEY = "vibe.tinywings.seenOffscreen";
+    let _offscreenSeen = (() => { try { return localStorage.getItem(OFFSCREEN_KEY) === "1"; } catch (e) { return false; } })();
+    let _offscreenCaptionUntil = 0;
+    function maybeShowOffscreenCaption(px, py) {
+      if (_offscreenSeen) return;
+      if (!_offscreenCaptionUntil) {
+        // First sighting — arm a 4s display window and persist the flag.
+        _offscreenCaptionUntil = performance.now() + 4000;
+        try { localStorage.setItem(OFFSCREEN_KEY, "1"); } catch (e) {}
+        const hp = document.getElementById("hudPointer");
+        hp.textContent = "that's your bird — follow the arrow back down";
+      }
+      const hp = document.getElementById("hudPointer");
+      if (performance.now() < _offscreenCaptionUntil) {
+        // Pin near the chevron; the chevron canvas coords map 1:1 to the
+        // overlay since both cover the full viewport.
+        hp.style.left = Math.max(8, Math.min(window.innerWidth - 240, px + 18)) + "px";
+        hp.style.top = Math.max(8, Math.min(window.innerHeight - 40, py - 8)) + "px";
+        hp.classList.add("live");
+      } else {
+        _offscreenSeen = true;
+        // Only hide if the tutorial isn't currently using the pointer.
+        if (!G.tutorial) hp.classList.remove("live");
+      }
+    }
     function drawOffscreenIndicator(sx, sy) {
       const margin = 22;
       const inX = sx >= margin && sx <= viewW - margin;
@@ -2590,6 +2616,7 @@
       if (dir === 2) { tx = 0 - tw / 2; ty = -22; }
       ctx.fillText(label, tx, ty);
       ctx.restore();
+      maybeShowOffscreenCaption(px, py);
     }
 
     // Trailing pencil streak when the bird is fast (boost or dive)
