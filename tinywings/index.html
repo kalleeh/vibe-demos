@@ -1349,6 +1349,11 @@
       G.gameOver = false;
       G.tutorial = false;
       G.tutorialStep = 0;
+      // Tear down any visible tutorial UI on (re)start so a mid-tutorial
+      // restart can't leave a frozen coachmark on screen.
+      if (typeof hideCoachmark === "function") hideCoachmark();
+      if (typeof hideHudPointer === "function") hideHudPointer();
+      clearTimeout(G._minimapTimer);
       G.pitchReleasedAt = -1e9;
       G.pitchReleasedSlope = 0;
       G.boostingNow = false;
