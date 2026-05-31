@@ -2666,8 +2666,8 @@ function rerenderActivePanel() {
       const meta = TYPES[state.lastResult.type] || {};
       wireSaveCard($("#test-result"), {
         type: state.lastResult.type,
-        nickname_ko: meta.nickname,
-        pull_quote: meta.one_liner,
+        nickname_ko: L(meta, "nickname"),
+        pull_quote: L(meta, "one_liner"),
         fromTest: true,
         testLength: state.lastResult.testLength
       });
@@ -2698,6 +2698,9 @@ function rerenderActivePanel() {
         $("#ai-input").focus();
       });
       if (window.__lastAIResult._saveCardPayload) {
+        // Refresh the card nickname to the current language; keep pull_quote
+        // (it's a quote from the user's own input text, language-neutral).
+        window.__lastAIResult._saveCardPayload.nickname_ko = L(window.__lastAIResult, "nickname");
         wireSaveCard($("#ai-result"), window.__lastAIResult._saveCardPayload);
       }
     }
