@@ -496,6 +496,9 @@ header.top {
   background: var(--celadon);
   color: #fff;
 }
+.lang-toggle { display: inline-flex; gap: 2px; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; vertical-align: middle; margin-right: 12px; }
+.lang-toggle button { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.08em; padding: 4px 9px; background: none; border: none; color: rgba(31,38,32,0.5); cursor: pointer; }
+.lang-toggle button.active { background: var(--accent-2); color: var(--paper); }
 .type-hero-text {
   padding: 30px 30px 32px;
   position: relative;
@@ -1449,24 +1452,28 @@ footer.bottom {
 <header class="top">
   <div class="brand">
     <div class="eyebrow">Korean MBTI Read · Work 05</div>
-    <h1 class="title">MBTI · 성격의 <em>결</em></h1>
-    <div class="sub">짧은 검사로 16유형을 읽고, 내 결을 들여다보는 시간.</div>
+    <h1 class="title" data-i18n-html="titleHTML">MBTI · 성격의 <em>결</em></h1>
+    <div class="sub" data-i18n="sub">짧은 검사로 16유형을 읽고, 내 결을 들여다보는 시간.</div>
   </div>
-  <a class="back-link" href="../">← 인덱스</a>
+  <div class="lang-toggle" role="group" aria-label="Language">
+    <button type="button" data-lang="ko" aria-pressed="true">KO</button>
+    <button type="button" data-lang="en" aria-pressed="false">EN</button>
+  </div>
+  <a class="back-link" href="../" data-i18n="backLink">← 인덱스</a>
 </header>
 
 <div class="tabs" role="tablist">
   <button class="tab active" data-mode="test" role="tab" id="tab-test" aria-selected="true" aria-controls="panel-test">
-    빠른 테스트
-    <span class="meta">28문항 · 약 5분 · 빠른 진단</span>
+    <span data-i18n="tabTest">빠른 테스트</span>
+    <span class="meta" data-i18n="tabTestMeta">28문항 · 약 5분 · 빠른 진단</span>
   </button>
   <button class="tab" data-mode="ai" role="tab" id="tab-ai" aria-selected="false" aria-controls="panel-ai">
-    AI 깊이 읽기
-    <span class="meta">Free-text · Claude</span>
+    <span data-i18n="tabAI">AI 깊이 읽기</span>
+    <span class="meta" data-i18n="tabAIMeta">Free-text · Claude</span>
   </button>
   <button class="tab" data-mode="gallery" role="tab" id="tab-gallery" aria-selected="false" aria-controls="panel-gallery">
-    16유형 도감
-    <span class="meta">16유형 · 초상 도감</span>
+    <span data-i18n="tabGallery">16유형 도감</span>
+    <span class="meta" data-i18n="tabGalleryMeta">16유형 · 초상 도감</span>
   </button>
 </div>
 
@@ -1475,7 +1482,7 @@ footer.bottom {
 
   <div id="test-intro">
     <div class="intro-card">
-      <h2>두 가지 길이로 풀 수 있어요</h2>
+      <h2 data-i18n="introH">두 가지 길이로 풀 수 있어요</h2>
       <p>각 축(외향·내향, 감각·직관, 사고·감정, 판단·인식)을 강제선택으로 측정합니다.
       한국 MBTI 문화의 별명도 결과에 함께 나옵니다 — 잔망 루피, 곰돌이 푸, 인싸 끝판왕 같은 톤.</p>
       <p>본 검사는 어세스타 정식 검사(Form M·Form Q)가 <em>아닙니다</em>.
@@ -1486,17 +1493,17 @@ footer.bottom {
       <div class="length-picker">
         <button class="length-card" data-length="quick">
           <div class="length-num">28</div>
-          <div class="length-label">빠른 인상</div>
-          <div class="length-meta">~5분 · 7문항/축</div>
+          <div class="length-label" data-i18n="lenQuickLabel">빠른 인상</div>
+          <div class="length-meta" data-i18n="lenQuickMeta">~5분 · 7문항/축</div>
           <div class="length-desc">각 축의 5가지 결을 한 번씩 짚는 빠른 검사. 친구와 비교하기 좋아요.</div>
-          <div class="length-cta">시작 →</div>
+          <div class="length-cta" data-i18n="lenQuickCta">시작 →</div>
         </button>
         <button class="length-card" data-length="full">
           <div class="length-num">93</div>
-          <div class="length-label">정밀 · Form M 길이</div>
-          <div class="length-meta">~15분 · 21·26·24·22 분포</div>
+          <div class="length-label" data-i18n="lenFullLabel">정밀 · Form M 길이</div>
+          <div class="length-meta" data-i18n="lenFullMeta">~15분 · 21·26·24·22 분포</div>
           <div class="length-desc">실제 Form M에 가까운 문항 수와 분포. 결과는 20개 하위 결까지.</div>
-          <div class="length-cta">시작 →</div>
+          <div class="length-cta" data-i18n="lenFullCta">시작 →</div>
         </button>
       </div>
     </div>
@@ -1521,14 +1528,14 @@ footer.bottom {
 <section class="panel" id="panel-ai" role="tabpanel" aria-labelledby="tab-ai">
 
   <div class="ai-intro">
-    <h2>당신의 글을 읽고 유형을 추론합니다</h2>
+    <h2 data-i18n="aiH">당신의 글을 읽고 유형을 추론합니다</h2>
     <p>일기, 카톡 한 토막, SNS 게시물, 블로그 한 단락 — 200~600자 정도의
     자연스러운 한국어 글을 붙여넣으면 Claude가 글의 결을 읽고 16유형 중 하나를
     자신 있게 골라냅니다. 한국 MBTI 문화 별명까지 같이 달아줍니다.</p>
 
     <div class="hint-grid">
       <div class="hint-col good">
-        <span class="hint-h">잘 읽히는 글</span>
+        <span class="hint-h" data-i18n="hintGoodH">잘 읽히는 글</span>
         <ul>
           <li>혼잣말처럼 적은 일기 한 토막</li>
           <li>친구에게 푸념하듯 보낸 카톡 단락</li>
@@ -1537,7 +1544,7 @@ footer.bottom {
         </ul>
       </div>
       <div class="hint-col bad">
-        <span class="hint-h">덜 읽히는 글</span>
+        <span class="hint-h" data-i18n="hintBadH">덜 읽히는 글</span>
         <ul>
           <li>이력서·자기소개서처럼 정형화된 글</li>
           <li>공지문, 뉴스 인용, 기사 같은 톤</li>
@@ -1553,13 +1560,13 @@ footer.bottom {
 
   <div class="sample-row">
     <span class="sample-label">예시 글로 시작하기 →</span>
-    <button class="chip" data-sample="diary">일기 (몽글 INFP풍)</button>
-    <button class="chip" data-sample="kakao">카톡 (인싸 ENFP풍)</button>
-    <button class="chip" data-sample="reflect">자기성찰 (조용 INTJ풍)</button>
-    <button class="chip ghost" data-sample="clear">비우기</button>
+    <button class="chip" data-sample="diary" data-i18n="sampleDiary">일기 (몽글 INFP풍)</button>
+    <button class="chip" data-sample="kakao" data-i18n="sampleKakao">카톡 (인싸 ENFP풍)</button>
+    <button class="chip" data-sample="reflect" data-i18n="sampleReflect">자기성찰 (조용 INTJ풍)</button>
+    <button class="chip ghost" data-sample="clear" data-i18n="sampleClear">비우기</button>
   </div>
 
-  <textarea class="ai-input" id="ai-input" placeholder="여기에 200~600자 정도의 한국어 글을 붙여넣어 주세요. 위 예시 칩을 눌러서 시작해도 됩니다."></textarea>
+  <textarea class="ai-input" id="ai-input" data-i18n-attr="placeholder:placeholder" placeholder="여기에 200~600자 정도의 한국어 글을 붙여넣어 주세요. 위 예시 칩을 눌러서 시작해도 됩니다."></textarea>
 
   <div class="counter-row">
     <span class="counter" id="char-counter">0자</span>
@@ -1574,23 +1581,23 @@ footer.bottom {
       <button data-model="claude-haiku-4-5">Haiku 4.5</button>
     </div>
     <button class="mic-button" id="btn-mic" type="button" aria-pressed="false">
-      <span class="mic-dot"></span><span class="mic-label">말하기</span>
+      <span class="mic-dot"></span><span class="mic-label" data-i18n="micLabel">말하기</span>
     </button>
     <div class="grow"></div>
-    <button class="btn secondary" id="btn-toggle-key">키 입력 / 해제</button>
-    <button class="btn" id="btn-analyze">읽어줘 →</button>
+    <button class="btn secondary" id="btn-toggle-key" data-i18n="keyBtn">키 입력 / 해제</button>
+    <button class="btn" id="btn-analyze" data-i18n="readBtn">읽어줘 →</button>
   </div>
 
   <div class="key-prompt" id="key-prompt" style="display:none">
-    <h3>본인의 Anthropic API 키를 사용합니다</h3>
-    <p>키는 이 브라우저의 localStorage에만 저장되며 어디로도 전송되지 않습니다.
-    키 발급 →
+    <h3 data-i18n="keyPanelH">본인의 Anthropic API 키를 사용합니다</h3>
+    <p data-i18n="keyPanelP">키는 이 브라우저의 localStorage에만 저장되며 어디로도 전송되지 않습니다.</p>
+    <p>키 발급 →
     <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a></p>
     <div class="key-row">
       <input type="password" class="key-input" id="key-input" placeholder="sk-ant-…" autocomplete="off">
-      <button class="btn secondary" id="btn-paste">붙여넣기</button>
-      <button class="btn" id="btn-save-key">저장</button>
-      <button class="btn secondary" id="btn-forget-key">잊기</button>
+      <button class="btn secondary" id="btn-paste" data-i18n="keyPaste">붙여넣기</button>
+      <button class="btn" id="btn-save-key" data-i18n="keySave">저장</button>
+      <button class="btn secondary" id="btn-forget-key" data-i18n="keyForget">잊기</button>
     </div>
   </div>
 
@@ -1610,7 +1617,7 @@ footer.bottom {
 
 <footer class="bottom">
   <span>Vibe Studio · 2026</span>
-  <span>MBTI는 가벼운 자기 이해 도구. 진단 아님.</span>
+  <span data-i18n="footerTag">MBTI는 가벼운 자기 이해 도구. 진단 아님.</span>
 </footer>
 
 </div>
@@ -1621,33 +1628,147 @@ footer.bottom {
 <script>
 "use strict";
 
+// ============================================================
+// i18n core — paired _ko/_en data + STR dictionary, KO fallback.
+// ============================================================
+const LANG_STORAGE = "vibe.korean-mbti.lang";
+let LANG = (localStorage.getItem(LANG_STORAGE) === "en") ? "en" : "ko"; // default ko
+function setLangValue(l) { LANG = (l === "en") ? "en" : "ko"; localStorage.setItem(LANG_STORAGE, LANG); }
+// Fixed-UI string lookup: current lang → ko fallback → key itself.
+const t = (key) => (STR[LANG] && STR[LANG][key] != null ? STR[LANG][key] : (STR.ko[key] != null ? STR.ko[key] : key));
+// Paired-field picker for data objects: field_<lang> → field_ko → field.
+const L = (obj, field) => {
+  if (!obj) return "";
+  const v = obj[field + "_" + LANG];
+  if (v != null) return v;
+  const ko = obj[field + "_ko"];
+  if (ko != null) return ko;
+  return obj[field] != null ? obj[field] : "";
+};
+const STR = {
+  ko: {
+    titleHTML: "MBTI · 성격의 <em>결</em>",
+    sub: "짧은 검사로 16유형을 읽고, 내 결을 들여다보는 시간.",
+    backLink: "← 인덱스",
+    tabTest: "빠른 테스트", tabTestMeta: "28문항 · 약 5분 · 빠른 진단",
+    tabAI: "AI 깊이 읽기", tabAIMeta: "Free-text · Claude",
+    tabGallery: "16유형 도감", tabGalleryMeta: "16유형 · 초상 도감",
+    introH: "두 가지 길이로 풀 수 있어요",
+    lenQuickLabel: "빠른 인상", lenQuickMeta: "~5분 · 7문항/축", lenQuickCta: "시작 →",
+    lenFullLabel: "정밀 · Form M 길이", lenFullMeta: "~15분 · 21·26·24·22 분포", lenFullCta: "시작 →",
+    aiH: "당신의 글을 읽고 유형을 추론합니다",
+    hintGoodH: "잘 읽히는 글", hintBadH: "덜 읽히는 글",
+    placeholder: "여기에 200~600자 정도의 한국어 글을 붙여넣어 주세요. 위 예시 칩을 눌러서 시작해도 됩니다.",
+    sampleDiary: "일기 (몽글 INFP풍)", sampleKakao: "카톡 (인싸 ENFP풍)", sampleReflect: "자기성찰 (조용 INTJ풍)", sampleClear: "비우기",
+    micLabel: "말하기", keyBtn: "키 입력 / 해제", readBtn: "읽어줘 →",
+    modeDemoPill: "데모 모드", modeLivePill: "실시간 모드",
+    keyPanelH: "본인의 Anthropic API 키를 사용합니다",
+    keyPanelP: "키는 이 브라우저의 localStorage에만 저장되며 어디로도 전송되지 않습니다.",
+    keyPaste: "붙여넣기", keySave: "저장", keyForget: "잊기",
+    stageReading: "분석 중 — 글의 결을 읽는 중…",
+    footerTag: "MBTI는 가벼운 자기 이해 도구. 진단 아님.",
+    galleryIntro: "열여섯 결을 한눈에. 카드를 누르면 그 유형의 결이 펼쳐집니다.",
+    galleryBack: "← 도감",
+    galleryNoteHTML: "4축 막대는 '내' 검사 결과에서만 나타나요 — 여기선 유형 고유의 결만 봅니다. ",
+    galleryNoteLink: "내 축이 궁금하다면 → 빠른 테스트",
+    axesHeading: "4 축 분석",
+    axesSubHTML: "유형을 이루는 <em>네 글자</em> — 각 축에서 어느 쪽에 섰는지와 그 확신도.",
+    readingHeading: "읽어드린 결",
+    fnStackHeading: "인지 기능 스택 — Function Stack",
+    fnStackSubHTML: "같은 성향을 <em>쓰는 순서</em>로 — 가장 기대는 결(#1)부터 가장 서툰 결(#4)까지.",
+    fnOffStackTip: "이 유형의 기본 스택에는 없는 결.",
+    saveCardBtn: "결과 카드 저장", cardSaving: "그리는 중…", cardSaved: "저장됨 ✓", cardFailed: "저장 실패",
+    navBack: "← 이전", navNext: "다음 →", navSeeResult: "결과 보기 →",
+    restartTest: "다시 풀기", restartAI: "지우고 다시",
+    secondaryLabel: "2순위",
+    pillFull: "93-Q FORM-M LENGTH", pillQuick: "28-Q QUICK", pillDemo: "DEMO",
+    errClipboard: "클립보드 읽기를 허용해 주세요.", errNoKey: "키를 입력해 주세요.",
+    errTooShort: "조금 더 길게 적어주세요. 200자 이상이 가장 정확합니다.",
+    errKeyRejected: "키가 거부되었습니다. 다시 입력해 주세요.", errGeneric: "오류가 발생했습니다.",
+    hintShort: "한 단락 정도 적어주세요", hintMin: "조금 더 길게 — 80자 이상부터 가능",
+    hintMore: "200자 이상이면 더 정확해져요", hintGood: "좋아요, 읽기 좋은 길이", hintLong: "꽤 길어요 — 600자 안쪽이 가장 잘 읽혀요",
+    micUnsupportedTitle: "이 브라우저는 음성 입력을 지원하지 않아요", micUnsupportedLabel: "음성 미지원",
+    micStartFail: "마이크를 시작할 수 없어요 — 권한을 확인해 주세요", micListening: "듣는 중 — 말씀하시면 화면에 받아 적어요",
+    micDenied: "마이크 권한이 거부되었어요 — 브라우저 설정에서 허용해 주세요", micNoSound: "들리는 소리가 없어요 — 가까이서 말씀해 주세요",
+    micNotFound: "마이크를 찾을 수 없어요", micNetwork: "네트워크 오류로 음성 인식이 멈췄어요",
+    counterSuffix: "자"
+  },
+  en: {
+    titleHTML: "MBTI · the <em>grain</em> of you",
+    sub: "A short test reads your 16-type grain — a moment to look inward.",
+    backLink: "← Index",
+    tabTest: "Quick Test", tabTestMeta: "28 items · ~5 min · fast read",
+    tabAI: "AI Deep Read", tabAIMeta: "Free-text · Claude",
+    tabGallery: "16 Types", tabGalleryMeta: "16 types · portrait index",
+    introH: "Two lengths to choose from",
+    lenQuickLabel: "Quick impression", lenQuickMeta: "~5 min · 7 items/axis", lenQuickCta: "Start →",
+    lenFullLabel: "Precise · Form M length", lenFullMeta: "~15 min · 21·26·24·22 split", lenFullCta: "Start →",
+    aiH: "It reads your writing and infers your type",
+    hintGoodH: "Reads well", hintBadH: "Reads poorly",
+    placeholder: "Paste about 200–600 characters of your own writing here. You can also tap a sample chip above to start.",
+    sampleDiary: "Diary (cozy INFP)", sampleKakao: "Chat (social ENFP)", sampleReflect: "Reflection (quiet INTJ)", sampleClear: "Clear",
+    micLabel: "Speak", keyBtn: "Enter / clear key", readBtn: "Read me →",
+    modeDemoPill: "Demo mode", modeLivePill: "Live mode",
+    keyPanelH: "Use your own Anthropic API key",
+    keyPanelP: "Your key is stored only in this browser's localStorage and is never sent anywhere else.",
+    keyPaste: "Paste", keySave: "Save", keyForget: "Forget",
+    stageReading: "Analyzing — reading the grain of your text…",
+    footerTag: "MBTI is a light self-understanding tool. Not a diagnosis.",
+    galleryIntro: "All sixteen at a glance. Tap a card to open that type's grain.",
+    galleryBack: "← Types",
+    galleryNoteHTML: "The 4-axis bars only appear for 'your' test result — here you see the type's own grain. ",
+    galleryNoteLink: "Curious about your axes? → Quick Test",
+    axesHeading: "4-Axis Analysis",
+    axesSubHTML: "The <em>four letters</em> that form your type — which side of each axis, and how sure.",
+    readingHeading: "Your reading",
+    fnStackHeading: "Cognitive Function Stack",
+    fnStackSubHTML: "The same traits in <em>order of use</em> — from the one you lean on most (#1) to the clumsiest (#4).",
+    fnOffStackTip: "Not part of this type's core stack.",
+    saveCardBtn: "Save result card", cardSaving: "Drawing…", cardSaved: "Saved ✓", cardFailed: "Save failed",
+    navBack: "← Back", navNext: "Next →", navSeeResult: "See result →",
+    restartTest: "Retake", restartAI: "Clear & redo",
+    secondaryLabel: "Runner-up",
+    pillFull: "93-Q FORM-M LENGTH", pillQuick: "28-Q QUICK", pillDemo: "DEMO",
+    errClipboard: "Please allow clipboard access.", errNoKey: "Please enter your key.",
+    errTooShort: "Please write a bit more — 200+ characters reads most accurately.",
+    errKeyRejected: "Key was rejected. Please re-enter it.", errGeneric: "Something went wrong.",
+    hintShort: "About one paragraph, please", hintMin: "A little longer — 80+ characters to begin",
+    hintMore: "200+ characters reads more accurately", hintGood: "Good — a comfortable length", hintLong: "Quite long — under 600 characters reads best",
+    micUnsupportedTitle: "This browser doesn't support voice input", micUnsupportedLabel: "No voice support",
+    micStartFail: "Couldn't start the mic — check permissions", micListening: "Listening — speak and it transcribes here",
+    micDenied: "Mic permission denied — allow it in browser settings", micNoSound: "No sound detected — please speak closer",
+    micNotFound: "No microphone found", micNetwork: "Voice recognition stopped due to a network error",
+    counterSuffix: " chars"
+  }
+};
+
 // 20 facets — Korean canonical names follow 어세스타 Step II convention.
 // Surface forms vary across printings; treat these as the most common variant.
 const FACETS = {
   // E/I
-  ER: { axis: "EI", left: "주도",       right: "수용",       leftLetter: "E", rightLetter: "I" },
-  EC: { axis: "EI", left: "표현",       right: "보유",       leftLetter: "E", rightLetter: "I" },
-  GI: { axis: "EI", left: "다양한관계", right: "친밀한관계", leftLetter: "E", rightLetter: "I" },
-  AR: { axis: "EI", left: "활동성",     right: "반추",       leftLetter: "E", rightLetter: "I" },
-  EQ: { axis: "EI", left: "열성",       right: "정적",       leftLetter: "E", rightLetter: "I" },
+  ER: { axis: "EI", left: "주도",       right: "수용",       left_en: "Initiating",        right_en: "Receiving",          leftLetter: "E", rightLetter: "I" },
+  EC: { axis: "EI", left: "표현",       right: "보유",       left_en: "Expressive",        right_en: "Contained",          leftLetter: "E", rightLetter: "I" },
+  GI: { axis: "EI", left: "다양한관계", right: "친밀한관계", left_en: "Gregarious",        right_en: "Intimate",           leftLetter: "E", rightLetter: "I" },
+  AR: { axis: "EI", left: "활동성",     right: "반추",       left_en: "Active",            right_en: "Reflective",         leftLetter: "E", rightLetter: "I" },
+  EQ: { axis: "EI", left: "열성",       right: "정적",       left_en: "Enthusiastic",      right_en: "Quiet",              leftLetter: "E", rightLetter: "I" },
   // S/N
-  CA: { axis: "SN", left: "구체적",     right: "추상적",     leftLetter: "S", rightLetter: "N" },
-  RI: { axis: "SN", left: "현실적",     right: "상상적",     leftLetter: "S", rightLetter: "N" },
-  PC: { axis: "SN", left: "실용적",     right: "개념적",     leftLetter: "S", rightLetter: "N" },
-  ET: { axis: "SN", left: "경험적",     right: "이론적",     leftLetter: "S", rightLetter: "N" },
-  TO: { axis: "SN", left: "전통적",     right: "독창적",     leftLetter: "S", rightLetter: "N" },
+  CA: { axis: "SN", left: "구체적",     right: "추상적",     left_en: "Concrete",          right_en: "Abstract",           leftLetter: "S", rightLetter: "N" },
+  RI: { axis: "SN", left: "현실적",     right: "상상적",     left_en: "Realistic",         right_en: "Imaginative",        leftLetter: "S", rightLetter: "N" },
+  PC: { axis: "SN", left: "실용적",     right: "개념적",     left_en: "Practical",         right_en: "Conceptual",         leftLetter: "S", rightLetter: "N" },
+  ET: { axis: "SN", left: "경험적",     right: "이론적",     left_en: "Experiential",      right_en: "Theoretical",        leftLetter: "S", rightLetter: "N" },
+  TO: { axis: "SN", left: "전통적",     right: "독창적",     left_en: "Traditional",       right_en: "Original",           leftLetter: "S", rightLetter: "N" },
   // T/F
-  LE: { axis: "TF", left: "논리적",     right: "정서적",     leftLetter: "T", rightLetter: "F" },
-  RC: { axis: "TF", left: "이성적",     right: "우호적",     leftLetter: "T", rightLetter: "F" },
-  QA: { axis: "TF", left: "의문적",     right: "협응적",     leftLetter: "T", rightLetter: "F" },
-  CR: { axis: "TF", left: "비평적",     right: "허용적",     leftLetter: "T", rightLetter: "F" },
-  TT: { axis: "TF", left: "강인함",     right: "유연함",     leftLetter: "T", rightLetter: "F" },
+  LE: { axis: "TF", left: "논리적",     right: "정서적",     left_en: "Logical",           right_en: "Empathetic",         leftLetter: "T", rightLetter: "F" },
+  RC: { axis: "TF", left: "이성적",     right: "우호적",     left_en: "Reasonable",        right_en: "Compassionate",      leftLetter: "T", rightLetter: "F" },
+  QA: { axis: "TF", left: "의문적",     right: "협응적",     left_en: "Questioning",       right_en: "Accommodating",      leftLetter: "T", rightLetter: "F" },
+  CR: { axis: "TF", left: "비평적",     right: "허용적",     left_en: "Critical",          right_en: "Accepting",          leftLetter: "T", rightLetter: "F" },
+  TT: { axis: "TF", left: "강인함",     right: "유연함",     left_en: "Tough",             right_en: "Tender",             leftLetter: "T", rightLetter: "F" },
   // J/P
-  SC: { axis: "JP", left: "체계적",     right: "일상적",     leftLetter: "J", rightLetter: "P" },
-  PO: { axis: "JP", left: "계획적",     right: "개방적",     leftLetter: "J", rightLetter: "P" },
-  EP: { axis: "JP", left: "조기착수",   right: "임박착수",   leftLetter: "J", rightLetter: "P" },
-  SS: { axis: "JP", left: "계획된",     right: "자발적",     leftLetter: "J", rightLetter: "P" },
-  ME: { axis: "JP", left: "방법적",     right: "발생적",     leftLetter: "J", rightLetter: "P" }
+  SC: { axis: "JP", left: "체계적",     right: "일상적",     left_en: "Systematic",        right_en: "Casual",             leftLetter: "J", rightLetter: "P" },
+  PO: { axis: "JP", left: "계획적",     right: "개방적",     left_en: "Planful",           right_en: "Open-ended",         leftLetter: "J", rightLetter: "P" },
+  EP: { axis: "JP", left: "조기착수",   right: "임박착수",   left_en: "Early-starting",    right_en: "Pressure-prompted",  leftLetter: "J", rightLetter: "P" },
+  SS: { axis: "JP", left: "계획된",     right: "자발적",     left_en: "Scheduled",         right_en: "Spontaneous",        leftLetter: "J", rightLetter: "P" },
+  ME: { axis: "JP", left: "방법적",     right: "발생적",     left_en: "Methodical",        right_en: "Emergent",           leftLetter: "J", rightLetter: "P" }
 };
 
 // 93-item Korean question pool, modeled on Form M's structure (~21/26/24/22 per axis).
@@ -1658,310 +1779,310 @@ const FACETS = {
 const QUESTIONS_FULL = [
   // ============ E / I — 21 items ============
   // Initiating(E) / Receiving(I) — 주도 / 수용
-  { axis: "EI", facet: "ER", prompt: "처음 가본 모임에서 자연스러운 모습", quick: true,
-    a: { letter: "E", text: "내가 먼저 옆 사람에게 말을 거는 편이다." },
-    b: { letter: "I", text: "상대가 먼저 말을 걸어오기를 기다리는 편이다." } },
-  { axis: "EI", facet: "ER", prompt: "엘리베이터에서 같은 동 이웃과 마주쳤을 때",
-    a: { letter: "E", text: "가벼운 인사·잡담을 먼저 건넨다." },
-    b: { letter: "I", text: "눈인사 정도로 끝내는 편이다." } },
-  { axis: "EI", facet: "ER", prompt: "새로 들어간 단톡방에서",
-    a: { letter: "E", text: "먼저 자기소개를 던져 분위기를 트는 편이다." },
-    b: { letter: "I", text: "다른 사람들이 말하는 걸 보고 천천히 합류한다." } },
-  { axis: "EI", facet: "ER", prompt: "줄을 서다가 앞 사람과 어색해지면", quick: true,
-    a: { letter: "E", text: "가벼운 한마디로 분위기를 푼다." },
-    b: { letter: "I", text: "휴대폰을 보거나 다른 데로 시선을 돌린다." } },
+  { axis: "EI", facet: "ER", prompt: "처음 가본 모임에서 자연스러운 모습", prompt_en: "At a first-time gathering, what feels natural", quick: true,
+    a: { letter: "E", text: "내가 먼저 옆 사람에게 말을 거는 편이다.", text_en: "I tend to speak to the person next to me first." },
+    b: { letter: "I", text: "상대가 먼저 말을 걸어오기를 기다리는 편이다.", text_en: "I tend to wait for the other person to speak first." } },
+  { axis: "EI", facet: "ER", prompt: "엘리베이터에서 같은 동 이웃과 마주쳤을 때", prompt_en: "When I run into a neighbor in the elevator",
+    a: { letter: "E", text: "가벼운 인사·잡담을 먼저 건넨다.", text_en: "I initiate a light greeting or small talk first." },
+    b: { letter: "I", text: "눈인사 정도로 끝내는 편이다.", text_en: "I tend to just nod and leave it at that." } },
+  { axis: "EI", facet: "ER", prompt: "새로 들어간 단톡방에서", prompt_en: "In a new group chat I just joined",
+    a: { letter: "E", text: "먼저 자기소개를 던져 분위기를 트는 편이다.", text_en: "I tend to introduce myself first to break the ice." },
+    b: { letter: "I", text: "다른 사람들이 말하는 걸 보고 천천히 합류한다.", text_en: "I watch others talk and slowly join in." } },
+  { axis: "EI", facet: "ER", prompt: "줄을 서다가 앞 사람과 어색해지면", prompt_en: "If it gets awkward with the person ahead in line", quick: true,
+    a: { letter: "E", text: "가벼운 한마디로 분위기를 푼다.", text_en: "I break the tension with a light remark." },
+    b: { letter: "I", text: "휴대폰을 보거나 다른 데로 시선을 돌린다.", text_en: "I look at my phone or glance away." } },
   // Expressive(E) / Contained(I) — 표현 / 보유
-  { axis: "EI", facet: "EC", prompt: "오늘 있었던 일을 누가 물어볼 때",
-    a: { letter: "E", text: "감정과 디테일을 그 자리에서 다 풀어낸다." },
-    b: { letter: "I", text: "정리된 부분만 짧게 전한다." } },
-  { axis: "EI", facet: "EC", prompt: "기분 좋은 일이 생기면",
-    a: { letter: "E", text: "주변 사람에게 곧장 알리고 싶어진다." },
-    b: { letter: "I", text: "혼자 음미한 뒤 가까운 한 명에게만 말한다." } },
-  { axis: "EI", facet: "EC", prompt: "회의에서 의견이 떠오를 때", quick: true,
-    a: { letter: "E", text: "생각나는 대로 입 밖으로 꺼내며 다듬는다." },
-    b: { letter: "I", text: "머릿속에서 정리한 뒤에 말한다." } },
-  { axis: "EI", facet: "EC", prompt: "속상한 일이 있을 때", quick: true,
-    a: { letter: "E", text: "표정이나 말투에 자연스럽게 드러나는 편이다." },
-    b: { letter: "I", text: "겉으로 드러나지 않게 갈무리한다." } },
+  { axis: "EI", facet: "EC", prompt: "오늘 있었던 일을 누가 물어볼 때", prompt_en: "When someone asks what happened today",
+    a: { letter: "E", text: "감정과 디테일을 그 자리에서 다 풀어낸다.", text_en: "I share all the feelings and details right there." },
+    b: { letter: "I", text: "정리된 부분만 짧게 전한다.", text_en: "I only share the key points briefly." } },
+  { axis: "EI", facet: "EC", prompt: "기분 좋은 일이 생기면", prompt_en: "When something good happens",
+    a: { letter: "E", text: "주변 사람에게 곧장 알리고 싶어진다.", text_en: "I want to tell people around me right away." },
+    b: { letter: "I", text: "혼자 음미한 뒤 가까운 한 명에게만 말한다.", text_en: "I savor it alone, then tell just one close person." } },
+  { axis: "EI", facet: "EC", prompt: "회의에서 의견이 떠오를 때", prompt_en: "When an idea comes to mind in a meeting", quick: true,
+    a: { letter: "E", text: "생각나는 대로 입 밖으로 꺼내며 다듬는다.", text_en: "I speak it out loud as it comes and refine it there." },
+    b: { letter: "I", text: "머릿속에서 정리한 뒤에 말한다.", text_en: "I organize it in my head before speaking." } },
+  { axis: "EI", facet: "EC", prompt: "속상한 일이 있을 때", prompt_en: "When something upsets me", quick: true,
+    a: { letter: "E", text: "표정이나 말투에 자연스럽게 드러나는 편이다.", text_en: "It naturally shows in my face or tone." },
+    b: { letter: "I", text: "겉으로 드러나지 않게 갈무리한다.", text_en: "I keep it inside so it does not show." } },
   // Gregarious(E) / Intimate(I) — 다양한관계 / 친밀한관계
-  { axis: "EI", facet: "GI", prompt: "주말 저녁 일정이 비어 있을 때", quick: true,
-    a: { letter: "E", text: "여러 사람과 어울리는 자리에 나가 활력을 얻는 편이다." },
-    b: { letter: "I", text: "혼자 시간을 보내며 활력을 채우는 편이다." } },
-  { axis: "EI", facet: "GI", prompt: "친구 관계의 결",
-    a: { letter: "E", text: "두루두루 얕고 넓게 아는 사람이 많다." },
-    b: { letter: "I", text: "소수의 깊은 친구와 오래 가는 편이다." } },
-  { axis: "EI", facet: "GI", prompt: "처음 보는 사람들이 많은 자리",
-    a: { letter: "E", text: "여러 사람을 만날 수 있어 반가운 편이다." },
-    b: { letter: "I", text: "한두 명과 깊게 이야기하는 자리가 더 편하다." } },
+  { axis: "EI", facet: "GI", prompt: "주말 저녁 일정이 비어 있을 때", prompt_en: "When my weekend evening is free", quick: true,
+    a: { letter: "E", text: "여러 사람과 어울리는 자리에 나가 활력을 얻는 편이다.", text_en: "I go out to socialize with many people and gain energy." },
+    b: { letter: "I", text: "혼자 시간을 보내며 활력을 채우는 편이다.", text_en: "I spend time alone to recharge my energy." } },
+  { axis: "EI", facet: "GI", prompt: "친구 관계의 결", prompt_en: "The shape of my friendships",
+    a: { letter: "E", text: "두루두루 얕고 넓게 아는 사람이 많다.", text_en: "I know many people casually and widely." },
+    b: { letter: "I", text: "소수의 깊은 친구와 오래 가는 편이다.", text_en: "I keep a few deep friendships that last long." } },
+  { axis: "EI", facet: "GI", prompt: "처음 보는 사람들이 많은 자리", prompt_en: "A gathering with many people I have never met",
+    a: { letter: "E", text: "여러 사람을 만날 수 있어 반가운 편이다.", text_en: "I am glad I can meet many people." },
+    b: { letter: "I", text: "한두 명과 깊게 이야기하는 자리가 더 편하다.", text_en: "I am more comfortable talking deeply with one or two." } },
   // Active(E) / Reflective(I) — 활동성 / 반추
-  { axis: "EI", facet: "AR", prompt: "새로운 주제를 처음 접할 때",
-    a: { letter: "E", text: "사람들과 이야기하면서 이해해 가는 편이다." },
-    b: { letter: "I", text: "혼자 충분히 생각해 본 뒤에 의견을 만드는 편이다." } },
-  { axis: "EI", facet: "AR", prompt: "고민이 생겼을 때", quick: true,
-    a: { letter: "E", text: "누군가에게 말로 풀어놓으면 정리가 된다." },
-    b: { letter: "I", text: "혼자 곱씹어 봐야 정리가 된다." } },
-  { axis: "EI", facet: "AR", prompt: "낯선 환경에서 무언가를 배울 때",
-    a: { letter: "E", text: "일단 부딪치며 손으로 익힌다." },
-    b: { letter: "I", text: "충분히 관찰·정리한 뒤에 시도한다." } },
-  { axis: "EI", facet: "AR", prompt: "긴 회의가 끝난 직후",
-    a: { letter: "E", text: "이어서 사람들과 더 얘기하고 싶어진다." },
-    b: { letter: "I", text: "잠깐이라도 혼자 정리할 시간이 필요하다." } },
+  { axis: "EI", facet: "AR", prompt: "새로운 주제를 처음 접할 때", prompt_en: "When I encounter a new topic for the first time",
+    a: { letter: "E", text: "사람들과 이야기하면서 이해해 가는 편이다.", text_en: "I tend to understand it by talking it through with people." },
+    b: { letter: "I", text: "혼자 충분히 생각해 본 뒤에 의견을 만드는 편이다.", text_en: "I tend to think it through alone before forming an opinion." } },
+  { axis: "EI", facet: "AR", prompt: "고민이 생겼을 때", prompt_en: "When I have a concern", quick: true,
+    a: { letter: "E", text: "누군가에게 말로 풀어놓으면 정리가 된다.", text_en: "Talking it out with someone helps me sort it out." },
+    b: { letter: "I", text: "혼자 곱씹어 봐야 정리가 된다.", text_en: "I need to mull it over alone to sort it out." } },
+  { axis: "EI", facet: "AR", prompt: "낯선 환경에서 무언가를 배울 때", prompt_en: "When learning something in an unfamiliar environment",
+    a: { letter: "E", text: "일단 부딪치며 손으로 익힌다.", text_en: "I dive in and learn by doing." },
+    b: { letter: "I", text: "충분히 관찰·정리한 뒤에 시도한다.", text_en: "I observe and organize first, then try." } },
+  { axis: "EI", facet: "AR", prompt: "긴 회의가 끝난 직후", prompt_en: "Right after a long meeting ends",
+    a: { letter: "E", text: "이어서 사람들과 더 얘기하고 싶어진다.", text_en: "I want to keep talking with people." },
+    b: { letter: "I", text: "잠깐이라도 혼자 정리할 시간이 필요하다.", text_en: "I need a moment alone to process things." } },
   // Enthusiastic(E) / Quiet(I) — 열성 / 정적
-  { axis: "EI", facet: "EQ", prompt: "한바탕 즐거운 자리에서",
-    a: { letter: "E", text: "분위기를 띄우는 쪽에 자연스럽게 서 있다." },
-    b: { letter: "I", text: "가까운 사람들과 차분히 이야기하는 쪽에 머문다." } },
-  { axis: "EI", facet: "EQ", prompt: "여러 사람과 시끌벅적한 시간을 보낸 다음 날", quick: true,
-    a: { letter: "E", text: "또 그런 자리가 빨리 잡히면 좋겠다." },
-    b: { letter: "I", text: "혼자만의 조용한 시간이 절실하다." } },
-  { axis: "EI", facet: "EQ", prompt: "주변 사람들이 본인의 톤을 묘사한다면",
-    a: { letter: "E", text: "“말소리·웃음이 크고 환하다.”" },
-    b: { letter: "I", text: "“차분하고 조용한 톤이다.”" } },
-  { axis: "EI", facet: "EQ", prompt: "여행지에서 즐거움을 느끼는 모습",
-    a: { letter: "E", text: "함께 간 사람들과 떠들썩하게 보낼 때." },
-    b: { letter: "I", text: "혼자 카페·거리를 잔잔히 걸을 때." } },
-  { axis: "EI", facet: "EQ", prompt: "피곤하지만 사람들과 시간을 보내야 한다면",
-    a: { letter: "E", text: "막상 가면 다시 살아나는 편이다." },
-    b: { letter: "I", text: "끝까지 기력이 잘 안 돌아온다." } },
-  { axis: "EI", facet: "EQ", prompt: "두 단어 중 더 가까운 쪽",
-    a: { letter: "E", text: "활기" },
-    b: { letter: "I", text: "차분함" } },
+  { axis: "EI", facet: "EQ", prompt: "한바탕 즐거운 자리에서", prompt_en: "At a lively, fun gathering",
+    a: { letter: "E", text: "분위기를 띄우는 쪽에 자연스럽게 서 있다.", text_en: "I naturally find myself lifting the energy." },
+    b: { letter: "I", text: "가까운 사람들과 차분히 이야기하는 쪽에 머문다.", text_en: "I stay on the side, calmly talking with close friends." } },
+  { axis: "EI", facet: "EQ", prompt: "여러 사람과 시끌벅적한 시간을 보낸 다음 날", prompt_en: "The day after a loud, bustling time with many people", quick: true,
+    a: { letter: "E", text: "또 그런 자리가 빨리 잡히면 좋겠다.", text_en: "I hope another gathering like that happens soon." },
+    b: { letter: "I", text: "혼자만의 조용한 시간이 절실하다.", text_en: "I desperately need some quiet time alone." } },
+  { axis: "EI", facet: "EQ", prompt: "주변 사람들이 본인의 톤을 묘사한다면", prompt_en: "If people around me describe my tone",
+    a: { letter: "E", text: "“말소리·웃음이 크고 환하다.”", text_en: "My voice and laughter are loud and bright." },
+    b: { letter: "I", text: "“차분하고 조용한 톤이다.”", text_en: "My tone is calm and quiet." } },
+  { axis: "EI", facet: "EQ", prompt: "여행지에서 즐거움을 느끼는 모습", prompt_en: "How I enjoy myself while traveling",
+    a: { letter: "E", text: "함께 간 사람들과 떠들썩하게 보낼 때.", text_en: "When I spend time noisily with the people I came with." },
+    b: { letter: "I", text: "혼자 카페·거리를 잔잔히 걸을 때.", text_en: "When I quietly walk a cafe or street alone." } },
+  { axis: "EI", facet: "EQ", prompt: "피곤하지만 사람들과 시간을 보내야 한다면", prompt_en: "If I am tired but must spend time with people",
+    a: { letter: "E", text: "막상 가면 다시 살아나는 편이다.", text_en: "I tend to come back to life once I get there." },
+    b: { letter: "I", text: "끝까지 기력이 잘 안 돌아온다.", text_en: "My energy does not really come back until the end." } },
+  { axis: "EI", facet: "EQ", prompt: "두 단어 중 더 가까운 쪽", prompt_en: "Which word feels closer",
+    a: { letter: "E", text: "활기", text_en: "Energy" },
+    b: { letter: "I", text: "차분함", text_en: "Calm" } },
 
   // ============ S / N — 26 items ============
   // Concrete(S) / Abstract(N) — 구체적 / 추상적
-  { axis: "SN", facet: "CA", prompt: "처음 가본 카페에 들어섰을 때", quick: true,
-    a: { letter: "S", text: "메뉴, 가격, 좌석 같은 사실 정보가 먼저 들어온다." },
-    b: { letter: "N", text: "공간이 주는 분위기와 결이 먼저 들어온다." } },
-  { axis: "SN", facet: "CA", prompt: "어떤 일을 회상할 때",
-    a: { letter: "S", text: "구체적인 장면·말·디테일이 또렷이 떠오른다." },
-    b: { letter: "N", text: "그 일이 남긴 의미·인상이 먼저 떠오른다." } },
-  { axis: "SN", facet: "CA", prompt: "두 단어 중 끌리는 쪽",
-    a: { letter: "S", text: "사실" },
-    b: { letter: "N", text: "가능성" } },
-  { axis: "SN", facet: "CA", prompt: "두 단어 중 끌리는 쪽", quick: true,
-    a: { letter: "S", text: "디테일" },
-    b: { letter: "N", text: "전체 그림" } },
-  { axis: "SN", facet: "CA", prompt: "글을 쓸 때 자연스러운 결",
-    a: { letter: "S", text: "있었던 일을 사실 그대로 담아낸다." },
-    b: { letter: "N", text: "그 일이 의미하는 바를 풀어낸다." } },
+  { axis: "SN", facet: "CA", prompt: "처음 가본 카페에 들어섰을 때", prompt_en: "When I first enter a cafe", quick: true,
+    a: { letter: "S", text: "메뉴, 가격, 좌석 같은 사실 정보가 먼저 들어온다.", text_en: "Factual info like menu, price, and seating comes to me first." },
+    b: { letter: "N", text: "공간이 주는 분위기와 결이 먼저 들어온다.", text_en: "The atmosphere and texture of the space comes to me first." } },
+  { axis: "SN", facet: "CA", prompt: "어떤 일을 회상할 때", prompt_en: "When recalling an event",
+    a: { letter: "S", text: "구체적인 장면·말·디테일이 또렷이 떠오른다.", text_en: "Concrete scenes, words, and details come back vividly." },
+    b: { letter: "N", text: "그 일이 남긴 의미·인상이 먼저 떠오른다.", text_en: "The meaning and impression it left come first." } },
+  { axis: "SN", facet: "CA", prompt: "두 단어 중 끌리는 쪽", prompt_en: "Which word draws you",
+    a: { letter: "S", text: "사실", text_en: "Facts" },
+    b: { letter: "N", text: "가능성", text_en: "Possibilities" } },
+  { axis: "SN", facet: "CA", prompt: "두 단어 중 끌리는 쪽", prompt_en: "Which word draws you", quick: true,
+    a: { letter: "S", text: "디테일", text_en: "Details" },
+    b: { letter: "N", text: "전체 그림", text_en: "Big picture" } },
+  { axis: "SN", facet: "CA", prompt: "글을 쓸 때 자연스러운 결", prompt_en: "When writing, the natural grain",
+    a: { letter: "S", text: "있었던 일을 사실 그대로 담아낸다.", text_en: "I capture what happened as it was." },
+    b: { letter: "N", text: "그 일이 의미하는 바를 풀어낸다.", text_en: "I unpack what it means." } },
   // Realistic(S) / Imaginative(N) — 현실적 / 상상적
-  { axis: "SN", facet: "RI", prompt: "시간이 비면 떠오르는 생각",
-    a: { letter: "S", text: "오늘 해야 할 일·정리할 거리." },
-    b: { letter: "N", text: "이런 게 가능하면 어떨까 하는 상상." } },
-  { axis: "SN", facet: "RI", prompt: "대화 중 자연스럽게 등장하는 표현", quick: true,
-    a: { letter: "S", text: "“실제로, 사실은, 정확히 말하면.”" },
-    b: { letter: "N", text: "“혹시, 만약에, 어떻게 보면.”" } },
-  { axis: "SN", facet: "RI", prompt: "처음 본 풍경 앞에서",
-    a: { letter: "S", text: "지금 눈앞의 장면을 그대로 즐긴다." },
-    b: { letter: "N", text: "이 풍경이 떠올리게 하는 다른 무언가가 같이 보인다." } },
-  { axis: "SN", facet: "RI", prompt: "두 단어 중 끌리는 쪽",
-    a: { letter: "S", text: "현실" },
-    b: { letter: "N", text: "상상" } },
-  { axis: "SN", facet: "RI", prompt: "친구가 황당한 가정을 던질 때",
-    a: { letter: "S", text: "현실적이지 않다고 자연스럽게 짚는다." },
-    b: { letter: "N", text: "그 가정 위에서 같이 굴려본다." } },
+  { axis: "SN", facet: "RI", prompt: "시간이 비면 떠오르는 생각", prompt_en: "When free time opens up",
+    a: { letter: "S", text: "오늘 해야 할 일·정리할 거리.", text_en: "What I need to do today or organize." },
+    b: { letter: "N", text: "이런 게 가능하면 어떨까 하는 상상.", text_en: "Imagining what could be possible." } },
+  { axis: "SN", facet: "RI", prompt: "대화 중 자연스럽게 등장하는 표현", prompt_en: "Expressions that naturally appear in conversation", quick: true,
+    a: { letter: "S", text: "“실제로, 사실은, 정확히 말하면.”", text_en: "Actually, in fact, to be precise." },
+    b: { letter: "N", text: "“혹시, 만약에, 어떻게 보면.”", text_en: "What if, maybe, in a way." } },
+  { axis: "SN", facet: "RI", prompt: "처음 본 풍경 앞에서", prompt_en: "In front of a landscape I see for the first time",
+    a: { letter: "S", text: "지금 눈앞의 장면을 그대로 즐긴다.", text_en: "I enjoy the scene before my eyes as it is." },
+    b: { letter: "N", text: "이 풍경이 떠올리게 하는 다른 무언가가 같이 보인다.", text_en: "I also see something else this landscape evokes." } },
+  { axis: "SN", facet: "RI", prompt: "두 단어 중 끌리는 쪽", prompt_en: "Which word draws you",
+    a: { letter: "S", text: "현실", text_en: "Reality" },
+    b: { letter: "N", text: "상상", text_en: "Imagination" } },
+  { axis: "SN", facet: "RI", prompt: "친구가 황당한 가정을 던질 때", prompt_en: "When a friend throws out a wild hypothetical",
+    a: { letter: "S", text: "현실적이지 않다고 자연스럽게 짚는다.", text_en: "I naturally point out it is not realistic." },
+    b: { letter: "N", text: "그 가정 위에서 같이 굴려본다.", text_en: "I roll with that premise together." } },
   // Practical(S) / Conceptual(N) — 실용적 / 개념적
-  { axis: "SN", facet: "PC", prompt: "관심이 가는 책·콘텐츠", quick: true,
-    a: { letter: "S", text: "바로 써먹을 수 있는 실용서·노하우." },
-    b: { letter: "N", text: "개념·이론·세계관을 다루는 글." } },
-  { axis: "SN", facet: "PC", prompt: "새로운 무언가를 배울 때 우선시하는 질문",
-    a: { letter: "S", text: "이걸 어디에 어떻게 쓸 수 있는가?" },
-    b: { letter: "N", text: "이건 결국 무엇에 관한 이야기인가?" } },
-  { axis: "SN", facet: "PC", prompt: "두 단어 중 끌리는 쪽",
-    a: { letter: "S", text: "쓸모" },
-    b: { letter: "N", text: "의미" } },
-  { axis: "SN", facet: "PC", prompt: "이야기를 들을 때 마음이 가는 부분",
-    a: { letter: "S", text: "그래서 어떻게 됐는지의 결과." },
-    b: { letter: "N", text: "그 일이 무엇을 보여주는지의 함의." } },
-  { axis: "SN", facet: "PC", prompt: "새로운 도구를 받았을 때",
-    a: { letter: "S", text: "당장의 쓰임새가 보이면 익힌다." },
-    b: { letter: "N", text: "원리부터 알아야 손에 잡힌다." } },
+  { axis: "SN", facet: "PC", prompt: "관심이 가는 책·콘텐츠", prompt_en: "Books or content that interest me", quick: true,
+    a: { letter: "S", text: "바로 써먹을 수 있는 실용서·노하우.", text_en: "Practical guides or know-how I can use right away." },
+    b: { letter: "N", text: "개념·이론·세계관을 다루는 글.", text_en: "Writing that deals with concepts, theory, or worldview." } },
+  { axis: "SN", facet: "PC", prompt: "새로운 무언가를 배울 때 우선시하는 질문", prompt_en: "The priority question when learning something new",
+    a: { letter: "S", text: "이걸 어디에 어떻게 쓸 수 있는가?", text_en: "Where and how can I use this?" },
+    b: { letter: "N", text: "이건 결국 무엇에 관한 이야기인가?", text_en: "What is this really about?" } },
+  { axis: "SN", facet: "PC", prompt: "두 단어 중 끌리는 쪽", prompt_en: "Which word draws you",
+    a: { letter: "S", text: "쓸모", text_en: "Usefulness" },
+    b: { letter: "N", text: "의미", text_en: "Meaning" } },
+  { axis: "SN", facet: "PC", prompt: "이야기를 들을 때 마음이 가는 부분", prompt_en: "The part that draws me when listening to a story",
+    a: { letter: "S", text: "그래서 어떻게 됐는지의 결과.", text_en: "The result - what happened in the end." },
+    b: { letter: "N", text: "그 일이 무엇을 보여주는지의 함의.", text_en: "The implication - what it shows." } },
+  { axis: "SN", facet: "PC", prompt: "새로운 도구를 받았을 때", prompt_en: "When I receive a new tool",
+    a: { letter: "S", text: "당장의 쓰임새가 보이면 익힌다.", text_en: "I learn it if I see an immediate use." },
+    b: { letter: "N", text: "원리부터 알아야 손에 잡힌다.", text_en: "I need to understand the principle first to grasp it." } },
   // Experiential(S) / Theoretical(N) — 경험적 / 이론적
-  { axis: "SN", facet: "ET", prompt: "새 분야를 익히는 결", quick: true,
-    a: { letter: "S", text: "직접 해봐야 머리에 들어온다." },
-    b: { letter: "N", text: "전체 구조를 먼저 잡아야 머리에 들어온다." } },
-  { axis: "SN", facet: "ET", prompt: "신뢰하는 정보의 결",
-    a: { letter: "S", text: "내가 직접 겪어 본 것." },
-    b: { letter: "N", text: "원리상 들어맞는 것." } },
-  { axis: "SN", facet: "ET", prompt: "어떤 주장을 들었을 때",
-    a: { letter: "S", text: "구체 사례·증거가 있으면 마음이 움직인다." },
-    b: { letter: "N", text: "내적 일관성·이론적 그림이 맞으면 마음이 움직인다." } },
-  { axis: "SN", facet: "ET", prompt: "두 단어 중 끌리는 쪽",
-    a: { letter: "S", text: "경험" },
-    b: { letter: "N", text: "이론" } },
-  { axis: "SN", facet: "ET", prompt: "강의·수업에서 재미를 느낄 때",
-    a: { letter: "S", text: "현장 사례가 풍부하게 나올 때." },
-    b: { letter: "N", text: "전체 그림이 한 줄로 정리될 때." } },
+  { axis: "SN", facet: "ET", prompt: "새 분야를 익히는 결", prompt_en: "The grain of learning a new field", quick: true,
+    a: { letter: "S", text: "직접 해봐야 머리에 들어온다.", text_en: "I need to try it myself for it to sink in." },
+    b: { letter: "N", text: "전체 구조를 먼저 잡아야 머리에 들어온다.", text_en: "I need to grasp the overall structure first for it to sink in." } },
+  { axis: "SN", facet: "ET", prompt: "신뢰하는 정보의 결", prompt_en: "The grain of information I trust",
+    a: { letter: "S", text: "내가 직접 겪어 본 것.", text_en: "What I have experienced directly." },
+    b: { letter: "N", text: "원리상 들어맞는 것.", text_en: "What fits the principle." } },
+  { axis: "SN", facet: "ET", prompt: "어떤 주장을 들었을 때", prompt_en: "When I hear a claim",
+    a: { letter: "S", text: "구체 사례·증거가 있으면 마음이 움직인다.", text_en: "I am moved if there are concrete cases or evidence." },
+    b: { letter: "N", text: "내적 일관성·이론적 그림이 맞으면 마음이 움직인다.", text_en: "I am moved if the internal consistency or theoretical picture fits." } },
+  { axis: "SN", facet: "ET", prompt: "두 단어 중 끌리는 쪽", prompt_en: "Which word draws you",
+    a: { letter: "S", text: "경험", text_en: "Experience" },
+    b: { letter: "N", text: "이론", text_en: "Theory" } },
+  { axis: "SN", facet: "ET", prompt: "강의·수업에서 재미를 느낄 때", prompt_en: "When I find a lecture or class interesting",
+    a: { letter: "S", text: "현장 사례가 풍부하게 나올 때.", text_en: "When rich field cases come up." },
+    b: { letter: "N", text: "전체 그림이 한 줄로 정리될 때.", text_en: "When the big picture is laid out in one line." } },
   // Traditional(S) / Original(N) — 전통적 / 독창적
-  { axis: "SN", facet: "TO", prompt: "일을 시작할 때 먼저 살피는 것", quick: true,
-    a: { letter: "S", text: "검증된 방법·비슷한 사례·매뉴얼." },
-    b: { letter: "N", text: "새로운 접근·기존 틀의 한계." } },
-  { axis: "SN", facet: "TO", prompt: "기존의 방식이 잘 굴러가고 있을 때",
-    a: { letter: "S", text: "굳이 흔들 필요 없다고 본다." },
-    b: { letter: "N", text: "그래도 더 나은 방식이 없는지 따져보고 싶다." } },
-  { axis: "SN", facet: "TO", prompt: "두 단어 중 끌리는 쪽",
-    a: { letter: "S", text: "전통" },
-    b: { letter: "N", text: "혁신" } },
-  { axis: "SN", facet: "TO", prompt: "내 결과물에 대한 자부심",
-    a: { letter: "S", text: "꾸준히, 검증된 방식으로 잘 다듬어 냈을 때." },
-    b: { letter: "N", text: "남이 안 해본 방식으로 새롭게 풀어냈을 때." } },
-  { axis: "SN", facet: "TO", prompt: "회의에서 자주 던지는 말", quick: true,
-    a: { letter: "S", text: "“이전에 어떻게 했었는지 보자.”" },
-    b: { letter: "N", text: "“전혀 다른 방향은 없을까?”" } },
-  { axis: "SN", facet: "TO", prompt: "오래된 관습·규칙에 대한 본능적 반응",
-    a: { letter: "S", text: "지킬 만한 이유가 있으니 굳어졌을 거라 본다." },
-    b: { letter: "N", text: "왜 그래야 하는지 다시 묻고 싶어진다." } },
+  { axis: "SN", facet: "TO", prompt: "일을 시작할 때 먼저 살피는 것", prompt_en: "The first thing I check when starting work", quick: true,
+    a: { letter: "S", text: "검증된 방법·비슷한 사례·매뉴얼.", text_en: "Proven methods, similar cases, or manuals." },
+    b: { letter: "N", text: "새로운 접근·기존 틀의 한계.", text_en: "New approaches or limits of the existing frame." } },
+  { axis: "SN", facet: "TO", prompt: "기존의 방식이 잘 굴러가고 있을 때", prompt_en: "When the existing way is working well",
+    a: { letter: "S", text: "굳이 흔들 필요 없다고 본다.", text_en: "I see no need to shake it up." },
+    b: { letter: "N", text: "그래도 더 나은 방식이 없는지 따져보고 싶다.", text_en: "I still want to see if there is a better way." } },
+  { axis: "SN", facet: "TO", prompt: "두 단어 중 끌리는 쪽", prompt_en: "Which word draws you",
+    a: { letter: "S", text: "전통", text_en: "Tradition" },
+    b: { letter: "N", text: "혁신", text_en: "Innovation" } },
+  { axis: "SN", facet: "TO", prompt: "내 결과물에 대한 자부심", prompt_en: "Pride in my output",
+    a: { letter: "S", text: "꾸준히, 검증된 방식으로 잘 다듬어 냈을 때.", text_en: "When I have polished it steadily with a proven method." },
+    b: { letter: "N", text: "남이 안 해본 방식으로 새롭게 풀어냈을 때.", text_en: "When I have solved it in a new way no one has tried." } },
+  { axis: "SN", facet: "TO", prompt: "회의에서 자주 던지는 말", prompt_en: "Words I often throw out in meetings", quick: true,
+    a: { letter: "S", text: "“이전에 어떻게 했었는지 보자.”", text_en: "Let us see how it was done before." },
+    b: { letter: "N", text: "“전혀 다른 방향은 없을까?”", text_en: "Is there a completely different direction?" } },
+  { axis: "SN", facet: "TO", prompt: "오래된 관습·규칙에 대한 본능적 반응", prompt_en: "Instinctive reaction to old customs or rules",
+    a: { letter: "S", text: "지킬 만한 이유가 있으니 굳어졌을 거라 본다.", text_en: "I assume there is a good reason they solidified." },
+    b: { letter: "N", text: "왜 그래야 하는지 다시 묻고 싶어진다.", text_en: "I want to ask again why it must be that way." } },
 
   // ============ T / F — 24 items ============
   // Logical(T) / Empathetic(F) — 논리적 / 정서적
-  { axis: "TF", facet: "LE", prompt: "결정을 내릴 때 우선 두는 기준", quick: true,
-    a: { letter: "T", text: "사실관계와 효율." },
-    b: { letter: "F", text: "관계와 감정의 결." } },
-  { axis: "TF", facet: "LE", prompt: "친구의 푸념을 들을 때",
-    a: { letter: "T", text: "원인·해결책이 먼저 떠오른다." },
-    b: { letter: "F", text: "그 사람의 마음이 먼저 가닿는다." } },
-  { axis: "TF", facet: "LE", prompt: "두 단어 중 끌리는 쪽",
-    a: { letter: "T", text: "논리" },
-    b: { letter: "F", text: "공감" } },
-  { axis: "TF", facet: "LE", prompt: "회의에서 의견이 갈렸을 때",
-    a: { letter: "T", text: "안의 옳고 그름을 따지는 게 우선." },
-    b: { letter: "F", text: "사람들이 어떻게 받아들일지 함께 보는 게 우선." } },
-  { axis: "TF", facet: "LE", prompt: "상대가 울음을 터뜨리면", quick: true,
-    a: { letter: "T", text: "정확히 무슨 일이 있었는지 사실관계부터 묻고 싶다." },
-    b: { letter: "F", text: "옆에 잠깐 같이 있어주는 게 먼저다." } },
+  { axis: "TF", facet: "LE", prompt: "결정을 내릴 때 우선 두는 기준", prompt_en: "The priority standard when making a decision", quick: true,
+    a: { letter: "T", text: "사실관계와 효율.", text_en: "Facts and efficiency." },
+    b: { letter: "F", text: "관계와 감정의 결.", text_en: "Relationships and the grain of feelings." } },
+  { axis: "TF", facet: "LE", prompt: "친구의 푸념을 들을 때", prompt_en: "When listening to a friend vent",
+    a: { letter: "T", text: "원인·해결책이 먼저 떠오른다.", text_en: "Causes and solutions come to mind first." },
+    b: { letter: "F", text: "그 사람의 마음이 먼저 가닿는다.", text_en: "I reach for that person's feelings first." } },
+  { axis: "TF", facet: "LE", prompt: "두 단어 중 끌리는 쪽", prompt_en: "Which word draws you",
+    a: { letter: "T", text: "논리", text_en: "Logic" },
+    b: { letter: "F", text: "공감", text_en: "Empathy" } },
+  { axis: "TF", facet: "LE", prompt: "회의에서 의견이 갈렸을 때", prompt_en: "When opinions split in a meeting",
+    a: { letter: "T", text: "안의 옳고 그름을 따지는 게 우선.", text_en: "The priority is to judge what is right or wrong." },
+    b: { letter: "F", text: "사람들이 어떻게 받아들일지 함께 보는 게 우선.", text_en: "The priority is to see together how people will receive it." } },
+  { axis: "TF", facet: "LE", prompt: "상대가 울음을 터뜨리면", prompt_en: "When someone bursts into tears", quick: true,
+    a: { letter: "T", text: "정확히 무슨 일이 있었는지 사실관계부터 묻고 싶다.", text_en: "I want to ask for the facts first - what exactly happened." },
+    b: { letter: "F", text: "옆에 잠깐 같이 있어주는 게 먼저다.", text_en: "Staying by their side for a moment comes first." } },
   // Reasonable(T) / Compassionate(F) — 이성적 / 우호적
-  { axis: "TF", facet: "RC", prompt: "규칙·기준이 누군가에게 불리하게 작용할 때",
-    a: { letter: "T", text: "그래도 기준은 일관되게 적용하는 게 맞다." },
-    b: { letter: "F", text: "사람의 사정에 맞게 유연해질 필요가 있다." } },
-  { axis: "TF", facet: "RC", prompt: "어려운 결정을 내려야 할 때", quick: true,
-    a: { letter: "T", text: "단호하게 끊어내는 쪽이 결국 모두에게 낫다." },
-    b: { letter: "F", text: "관계와 마음이 다치지 않도록 길을 찾는다." } },
-  { axis: "TF", facet: "RC", prompt: "두 단어 중 끌리는 쪽",
-    a: { letter: "T", text: "공정" },
-    b: { letter: "F", text: "배려" } },
-  { axis: "TF", facet: "RC", prompt: "갈등 상황에서 본인이 자주 하는 역할",
-    a: { letter: "T", text: "원칙대로 정리하는 사람." },
-    b: { letter: "F", text: "분위기를 부드럽게 잡아주는 사람." } },
-  { axis: "TF", facet: "RC", prompt: "남에게 하기 어려운 말을 해야 할 때",
-    a: { letter: "T", text: "에둘러 말하기보다 분명히 짚는 편이다." },
-    b: { letter: "F", text: "상대 마음을 먼저 살피며 말을 고르는 편이다." } },
+  { axis: "TF", facet: "RC", prompt: "규칙·기준이 누군가에게 불리하게 작용할 때", prompt_en: "When rules or standards work against someone",
+    a: { letter: "T", text: "그래도 기준은 일관되게 적용하는 게 맞다.", text_en: "Still, standards should be applied consistently." },
+    b: { letter: "F", text: "사람의 사정에 맞게 유연해질 필요가 있다.", text_en: "There is a need for flexibility to fit the person's circumstances." } },
+  { axis: "TF", facet: "RC", prompt: "어려운 결정을 내려야 할 때", prompt_en: "When I must make a hard decision", quick: true,
+    a: { letter: "T", text: "단호하게 끊어내는 쪽이 결국 모두에게 낫다.", text_en: "Cutting it off decisively is better for everyone in the end." },
+    b: { letter: "F", text: "관계와 마음이 다치지 않도록 길을 찾는다.", text_en: "I find a way so relationships and feelings are not hurt." } },
+  { axis: "TF", facet: "RC", prompt: "두 단어 중 끌리는 쪽", prompt_en: "Which word draws you",
+    a: { letter: "T", text: "공정", text_en: "Fairness" },
+    b: { letter: "F", text: "배려", text_en: "Consideration" } },
+  { axis: "TF", facet: "RC", prompt: "갈등 상황에서 본인이 자주 하는 역할", prompt_en: "The role I often play in conflict",
+    a: { letter: "T", text: "원칙대로 정리하는 사람.", text_en: "The person who sorts things out by principle." },
+    b: { letter: "F", text: "분위기를 부드럽게 잡아주는 사람.", text_en: "The person who gently sets the mood." } },
+  { axis: "TF", facet: "RC", prompt: "남에게 하기 어려운 말을 해야 할 때", prompt_en: "When I must say something hard to someone",
+    a: { letter: "T", text: "에둘러 말하기보다 분명히 짚는 편이다.", text_en: "I tend to point it out clearly rather than hinting." },
+    b: { letter: "F", text: "상대 마음을 먼저 살피며 말을 고르는 편이다.", text_en: "I tend to choose words while first sensing their feelings." } },
   // Questioning(T) / Accommodating(F) — 의문적 / 협응적
-  { axis: "TF", facet: "QA", prompt: "누군가의 제안을 처음 들었을 때",
-    a: { letter: "T", text: "허점·반대 가능성부터 떠오른다." },
-    b: { letter: "F", text: "받아들일 수 있는 결을 먼저 본다." } },
-  { axis: "TF", facet: "QA", prompt: "토론 자리에 들어갔을 때", quick: true,
-    a: { letter: "T", text: "다른 의견을 던지는 데 거리낌이 없다." },
-    b: { letter: "F", text: "분위기가 엇갈리지 않도록 신경이 쓰인다." } },
-  { axis: "TF", facet: "QA", prompt: "회식 메뉴를 고를 때",
-    a: { letter: "T", text: "별로면 별로라고 분명히 말한다." },
-    b: { letter: "F", text: "다른 사람들 의견에 맞춰주는 편이다." } },
-  { axis: "TF", facet: "QA", prompt: "두 단어 중 끌리는 쪽",
-    a: { letter: "T", text: "검증" },
-    b: { letter: "F", text: "수용" } },
-  { axis: "TF", facet: "QA", prompt: "회의에서 본인 역할",
-    a: { letter: "T", text: "허점을 짚어 안을 단단하게 만든다." },
-    b: { letter: "F", text: "사람들 간 의견을 잇고 합의를 만든다." } },
+  { axis: "TF", facet: "QA", prompt: "누군가의 제안을 처음 들었을 때", prompt_en: "When I first hear someone's proposal",
+    a: { letter: "T", text: "허점·반대 가능성부터 떠오른다.", text_en: "Holes and counter-possibilities come to mind first." },
+    b: { letter: "F", text: "받아들일 수 있는 결을 먼저 본다.", text_en: "I see first the grain I can accept." } },
+  { axis: "TF", facet: "QA", prompt: "토론 자리에 들어갔을 때", prompt_en: "When I enter a debate setting", quick: true,
+    a: { letter: "T", text: "다른 의견을 던지는 데 거리낌이 없다.", text_en: "I have no hesitation in throwing out a different opinion." },
+    b: { letter: "F", text: "분위기가 엇갈리지 않도록 신경이 쓰인다.", text_en: "I am conscious not to let the mood clash." } },
+  { axis: "TF", facet: "QA", prompt: "회식 메뉴를 고를 때", prompt_en: "When choosing a meal for a work dinner",
+    a: { letter: "T", text: "별로면 별로라고 분명히 말한다.", text_en: "If I do not like it, I clearly say I do not like it." },
+    b: { letter: "F", text: "다른 사람들 의견에 맞춰주는 편이다.", text_en: "I tend to go along with other people's opinions." } },
+  { axis: "TF", facet: "QA", prompt: "두 단어 중 끌리는 쪽", prompt_en: "Which word draws you",
+    a: { letter: "T", text: "검증", text_en: "Verification" },
+    b: { letter: "F", text: "수용", text_en: "Acceptance" } },
+  { axis: "TF", facet: "QA", prompt: "회의에서 본인 역할", prompt_en: "My role in meetings",
+    a: { letter: "T", text: "허점을 짚어 안을 단단하게 만든다.", text_en: "I point out holes to make the plan solid." },
+    b: { letter: "F", text: "사람들 간 의견을 잇고 합의를 만든다.", text_en: "I connect people's opinions and build consensus." } },
   // Critical(T) / Accepting(F) — 비평적 / 허용적
-  { axis: "TF", facet: "CR", prompt: "친구의 결과물을 보고 한마디 한다면", quick: true,
-    a: { letter: "T", text: "고칠 부분이 먼저 보이고 그걸 짚어준다." },
-    b: { letter: "F", text: "잘된 부분을 먼저 본다." } },
-  { axis: "TF", facet: "CR", prompt: "상대의 흠이 보일 때",
-    a: { letter: "T", text: "정확히 말해주는 게 결국 도움이라고 본다." },
-    b: { letter: "F", text: "굳이 짚지 않고 넘어가는 편이다." } },
-  { axis: "TF", facet: "CR", prompt: "내 결과물에 대해서도",
-    a: { letter: "T", text: "엄격한 잣대로 자주 점검한다." },
-    b: { letter: "F", text: "큰 문제 없으면 너그럽게 넘긴다." } },
-  { axis: "TF", facet: "CR", prompt: "두 단어 중 끌리는 쪽",
-    a: { letter: "T", text: "기준" },
-    b: { letter: "F", text: "포용" } },
-  { axis: "TF", facet: "CR", prompt: "주변에서 자주 듣는 말",
-    a: { letter: "T", text: "“너 좀 깐깐하다.”" },
-    b: { letter: "F", text: "“너 진짜 잘 받아준다.”" } },
+  { axis: "TF", facet: "CR", prompt: "친구의 결과물을 보고 한마디 한다면", prompt_en: "If I comment on a friend's work", quick: true,
+    a: { letter: "T", text: "고칠 부분이 먼저 보이고 그걸 짚어준다.", text_en: "I see the parts to fix first and point them out." },
+    b: { letter: "F", text: "잘된 부분을 먼저 본다.", text_en: "I see the good parts first." } },
+  { axis: "TF", facet: "CR", prompt: "상대의 흠이 보일 때", prompt_en: "When I see someone's flaws",
+    a: { letter: "T", text: "정확히 말해주는 게 결국 도움이라고 본다.", text_en: "I think telling them precisely is helpful in the end." },
+    b: { letter: "F", text: "굳이 짚지 않고 넘어가는 편이다.", text_en: "I tend to let it go without pointing it out." } },
+  { axis: "TF", facet: "CR", prompt: "내 결과물에 대해서도", prompt_en: "Even for my own work",
+    a: { letter: "T", text: "엄격한 잣대로 자주 점검한다.", text_en: "I check it often with a strict standard." },
+    b: { letter: "F", text: "큰 문제 없으면 너그럽게 넘긴다.", text_en: "If there is no big problem, I let it pass generously." } },
+  { axis: "TF", facet: "CR", prompt: "두 단어 중 끌리는 쪽", prompt_en: "Which word draws you",
+    a: { letter: "T", text: "기준", text_en: "Standards" },
+    b: { letter: "F", text: "포용", text_en: "Embrace" } },
+  { axis: "TF", facet: "CR", prompt: "주변에서 자주 듣는 말", prompt_en: "What I often hear from people around me",
+    a: { letter: "T", text: "“너 좀 깐깐하다.”", text_en: "You are pretty picky." },
+    b: { letter: "F", text: "“너 진짜 잘 받아준다.”", text_en: "You really accept things well." } },
   // Tough(T) / Tender(F) — 강인함 / 유연함
-  { axis: "TF", facet: "TT", prompt: "본인의 판단 결을 한 단어로",
-    a: { letter: "T", text: "단호함." },
-    b: { letter: "F", text: "부드러움." } },
-  { axis: "TF", facet: "TT", prompt: "두 단어 중 끌리는 쪽", quick: true,
-    a: { letter: "T", text: "냉정" },
-    b: { letter: "F", text: "온정" } },
-  { axis: "TF", facet: "TT", prompt: "다른 사람의 평가에 대해",
-    a: { letter: "T", text: "맞으면 맞다, 아니면 아니다 분명히 가른다." },
-    b: { letter: "F", text: "관계가 상하지 않도록 결을 살핀다." } },
-  { axis: "TF", facet: "TT", prompt: "본인을 표현하는 결", quick: true,
-    a: { letter: "T", text: "강단 있는 사람으로 보이는 게 자연스럽다." },
-    b: { letter: "F", text: "따뜻한 사람으로 보이는 게 자연스럽다." } },
+  { axis: "TF", facet: "TT", prompt: "본인의 판단 결을 한 단어로", prompt_en: "My judgment grain in one word",
+    a: { letter: "T", text: "단호함.", text_en: "Decisiveness." },
+    b: { letter: "F", text: "부드러움.", text_en: "Gentleness." } },
+  { axis: "TF", facet: "TT", prompt: "두 단어 중 끌리는 쪽", prompt_en: "Which word draws you", quick: true,
+    a: { letter: "T", text: "냉정", text_en: "Cold" },
+    b: { letter: "F", text: "온정", text_en: "Warm" } },
+  { axis: "TF", facet: "TT", prompt: "다른 사람의 평가에 대해", prompt_en: "About other people's evaluations",
+    a: { letter: "T", text: "맞으면 맞다, 아니면 아니다 분명히 가른다.", text_en: "If right, it is right; if not, it is not - I clearly divide." },
+    b: { letter: "F", text: "관계가 상하지 않도록 결을 살핀다.", text_en: "I sense the grain so relationships are not harmed." } },
+  { axis: "TF", facet: "TT", prompt: "본인을 표현하는 결", prompt_en: "The grain that feels natural when expressing myself", quick: true,
+    a: { letter: "T", text: "강단 있는 사람으로 보이는 게 자연스럽다.", text_en: "Being seen as a person with backbone feels natural." },
+    b: { letter: "F", text: "따뜻한 사람으로 보이는 게 자연스럽다.", text_en: "Being seen as a warm person feels natural." } },
 
   // ============ J / P — 22 items ============
   // Systematic(J) / Casual(P) — 체계적 / 일상적
-  { axis: "JP", facet: "SC", prompt: "책상·작업 환경", quick: true,
-    a: { letter: "J", text: "정리되어 있어야 일이 시작된다." },
-    b: { letter: "P", text: "어수선해도 흐름만 있으면 잘 돌아간다." } },
-  { axis: "JP", facet: "SC", prompt: "장보기·살림 결",
-    a: { letter: "J", text: "리스트를 만들고 그대로 따라간다." },
-    b: { letter: "P", text: "그때그때 눈에 띄는 걸 산다." } },
-  { axis: "JP", facet: "SC", prompt: "두 단어 중 끌리는 쪽",
-    a: { letter: "J", text: "체계" },
-    b: { letter: "P", text: "흐름" } },
-  { axis: "JP", facet: "SC", prompt: "주말의 결",
-    a: { letter: "J", text: "큰 일정이라도 잡혀 있어야 마음이 편하다." },
-    b: { letter: "P", text: "비워두고 그날 정하는 게 편하다." } },
-  { axis: "JP", facet: "SC", prompt: "방·옷장 정리",
-    a: { letter: "J", text: "정리해야 일을 시작할 수 있다." },
-    b: { letter: "P", text: "꽤 어질러져 있어도 신경이 안 쓰인다." } },
+  { axis: "JP", facet: "SC", prompt: "책상·작업 환경", prompt_en: "My desk or work environment", quick: true,
+    a: { letter: "J", text: "정리되어 있어야 일이 시작된다.", text_en: "It needs to be organized for work to start." },
+    b: { letter: "P", text: "어수선해도 흐름만 있으면 잘 돌아간다.", text_en: "Even if messy, as long as there is a flow it works fine." } },
+  { axis: "JP", facet: "SC", prompt: "장보기·살림 결", prompt_en: "The grain of grocery shopping or housekeeping",
+    a: { letter: "J", text: "리스트를 만들고 그대로 따라간다.", text_en: "I make a list and follow it." },
+    b: { letter: "P", text: "그때그때 눈에 띄는 걸 산다.", text_en: "I buy what catches my eye at the time." } },
+  { axis: "JP", facet: "SC", prompt: "두 단어 중 끌리는 쪽", prompt_en: "Which word draws you",
+    a: { letter: "J", text: "체계", text_en: "System" },
+    b: { letter: "P", text: "흐름", text_en: "Flow" } },
+  { axis: "JP", facet: "SC", prompt: "주말의 결", prompt_en: "The grain of my weekends",
+    a: { letter: "J", text: "큰 일정이라도 잡혀 있어야 마음이 편하다.", text_en: "I feel at ease if at least some plan is set." },
+    b: { letter: "P", text: "비워두고 그날 정하는 게 편하다.", text_en: "I feel at ease leaving it open and deciding that day." } },
+  { axis: "JP", facet: "SC", prompt: "방·옷장 정리", prompt_en: "Organizing my room or closet",
+    a: { letter: "J", text: "정리해야 일을 시작할 수 있다.", text_en: "I need to organize to start work." },
+    b: { letter: "P", text: "꽤 어질러져 있어도 신경이 안 쓰인다.", text_en: "Even if quite messy, it does not bother me." } },
   // Planful(J) / Open-ended(P) — 계획적 / 개방적
-  { axis: "JP", facet: "PO", prompt: "여행을 갈 때", quick: true,
-    a: { letter: "J", text: "일정·예약·동선을 미리 짜놔야 마음이 편하다." },
-    b: { letter: "P", text: "큰 그림만 잡고 즉흥적으로 움직인다." } },
-  { axis: "JP", facet: "PO", prompt: "잡혀 있던 약속이 갑자기 바뀌면", quick: true,
-    a: { letter: "J", text: "다시 정리해두어야 마음이 편해진다." },
-    b: { letter: "P", text: "오히려 새로운 흐름이 생겨서 반갑다." } },
-  { axis: "JP", facet: "PO", prompt: "두 단어 중 끌리는 쪽",
-    a: { letter: "J", text: "계획" },
-    b: { letter: "P", text: "즉흥" } },
-  { axis: "JP", facet: "PO", prompt: "프로젝트 초반에",
-    a: { letter: "J", text: "일정과 마일스톤을 먼저 잡는다." },
-    b: { letter: "P", text: "방향만 잡고 일단 굴리며 잡아간다." } },
-  { axis: "JP", facet: "PO", prompt: "“계획대로 안 됐다”는 상황",
-    a: { letter: "J", text: "당황하고 다시 짜야 한다는 압박이 든다." },
-    b: { letter: "P", text: "원래 그런 거라 생각하고 흐름에 맞춘다." } },
+  { axis: "JP", facet: "PO", prompt: "여행을 갈 때", prompt_en: "When traveling", quick: true,
+    a: { letter: "J", text: "일정·예약·동선을 미리 짜놔야 마음이 편하다.", text_en: "I feel at ease if I plan the schedule, bookings, and route ahead." },
+    b: { letter: "P", text: "큰 그림만 잡고 즉흥적으로 움직인다.", text_en: "I grasp only the big picture and move spontaneously." } },
+  { axis: "JP", facet: "PO", prompt: "잡혀 있던 약속이 갑자기 바뀌면", prompt_en: "If a set appointment suddenly changes", quick: true,
+    a: { letter: "J", text: "다시 정리해두어야 마음이 편해진다.", text_en: "I need to reorganize it to feel at ease." },
+    b: { letter: "P", text: "오히려 새로운 흐름이 생겨서 반갑다.", text_en: "I am actually glad a new flow opens up." } },
+  { axis: "JP", facet: "PO", prompt: "두 단어 중 끌리는 쪽", prompt_en: "Which word draws you",
+    a: { letter: "J", text: "계획", text_en: "Plan" },
+    b: { letter: "P", text: "즉흥", text_en: "Spontaneity" } },
+  { axis: "JP", facet: "PO", prompt: "프로젝트 초반에", prompt_en: "At the start of a project",
+    a: { letter: "J", text: "일정과 마일스톤을 먼저 잡는다.", text_en: "I set the schedule and milestones first." },
+    b: { letter: "P", text: "방향만 잡고 일단 굴리며 잡아간다.", text_en: "I set only the direction and roll with it as I go." } },
+  { axis: "JP", facet: "PO", prompt: "“계획대로 안 됐다”는 상황", prompt_en: "A situation where things did not go as planned",
+    a: { letter: "J", text: "당황하고 다시 짜야 한다는 압박이 든다.", text_en: "I am flustered and feel pressure to re-plan." },
+    b: { letter: "P", text: "원래 그런 거라 생각하고 흐름에 맞춘다.", text_en: "I think it is normal and adjust to the flow." } },
   // Early Starting(J) / Pressure-Prompted(P) — 조기착수 / 임박착수
-  { axis: "JP", facet: "EP", prompt: "마감이 있는 일을 처리하는 패턴", quick: true,
-    a: { letter: "J", text: "미리 끝내놓고 마음을 비운다." },
-    b: { letter: "P", text: "마감 직전 몰입해서 단숨에 끝낸다." } },
-  { axis: "JP", facet: "EP", prompt: "일이 잘 되는 때",
-    a: { letter: "J", text: "여유 있게 시작했을 때." },
-    b: { letter: "P", text: "약간의 압박이 있을 때." } },
-  { axis: "JP", facet: "EP", prompt: "과제·보고서를 받으면", quick: true,
-    a: { letter: "J", text: "받자마자 작은 첫 발이라도 떼어 둔다." },
-    b: { letter: "P", text: "마감이 가까워져야 진짜 시동이 걸린다." } },
-  { axis: "JP", facet: "EP", prompt: "두 단어 중 끌리는 쪽",
-    a: { letter: "J", text: "조기착수" },
-    b: { letter: "P", text: "임박몰입" } },
+  { axis: "JP", facet: "EP", prompt: "마감이 있는 일을 처리하는 패턴", prompt_en: "The pattern of handling work with a deadline", quick: true,
+    a: { letter: "J", text: "미리 끝내놓고 마음을 비운다.", text_en: "I finish it early and clear my mind." },
+    b: { letter: "P", text: "마감 직전 몰입해서 단숨에 끝낸다.", text_en: "I focus right before the deadline and finish in one push." } },
+  { axis: "JP", facet: "EP", prompt: "일이 잘 되는 때", prompt_en: "When work goes well",
+    a: { letter: "J", text: "여유 있게 시작했을 때.", text_en: "When I start with time to spare." },
+    b: { letter: "P", text: "약간의 압박이 있을 때.", text_en: "When there is a bit of pressure." } },
+  { axis: "JP", facet: "EP", prompt: "과제·보고서를 받으면", prompt_en: "When I receive an assignment or report", quick: true,
+    a: { letter: "J", text: "받자마자 작은 첫 발이라도 떼어 둔다.", text_en: "I take a small first step as soon as I get it." },
+    b: { letter: "P", text: "마감이 가까워져야 진짜 시동이 걸린다.", text_en: "The engine really starts only as the deadline approaches." } },
+  { axis: "JP", facet: "EP", prompt: "두 단어 중 끌리는 쪽", prompt_en: "Which word draws you",
+    a: { letter: "J", text: "조기착수", text_en: "Early start" },
+    b: { letter: "P", text: "임박몰입", text_en: "Last-minute focus" } },
   // Scheduled(J) / Spontaneous(P) — 계획된 / 자발적
-  { axis: "JP", facet: "SS", prompt: "주중 일과의 결", quick: true,
-    a: { letter: "J", text: "기상·식사·운동 시간이 일정한 편이다." },
-    b: { letter: "P", text: "그날 컨디션에 맞춰 자연스럽게 흐른다." } },
-  { axis: "JP", facet: "SS", prompt: "두 단어 중 끌리는 쪽",
-    a: { letter: "J", text: "루틴" },
-    b: { letter: "P", text: "자유" } },
-  { axis: "JP", facet: "SS", prompt: "시간 약속",
-    a: { letter: "J", text: "10분 일찍 도착해 있는 편이다." },
-    b: { letter: "P", text: "넉넉히 잡되 칼처럼 맞추진 않는다." } },
-  { axis: "JP", facet: "SS", prompt: "하루를 시작하는 결",
-    a: { letter: "J", text: "오늘 할 일을 먼저 정리한다." },
-    b: { letter: "P", text: "흐름이 어디로 가는지 보면서 굴린다." } },
+  { axis: "JP", facet: "SS", prompt: "주중 일과의 결", prompt_en: "The grain of my weekday routine", quick: true,
+    a: { letter: "J", text: "기상·식사·운동 시간이 일정한 편이다.", text_en: "My wake-up, meals, and exercise times tend to be regular." },
+    b: { letter: "P", text: "그날 컨디션에 맞춰 자연스럽게 흐른다.", text_en: "I flow naturally according to that day's condition." } },
+  { axis: "JP", facet: "SS", prompt: "두 단어 중 끌리는 쪽", prompt_en: "Which word draws you",
+    a: { letter: "J", text: "루틴", text_en: "Routine" },
+    b: { letter: "P", text: "자유", text_en: "Freedom" } },
+  { axis: "JP", facet: "SS", prompt: "시간 약속", prompt_en: "Time appointments",
+    a: { letter: "J", text: "10분 일찍 도착해 있는 편이다.", text_en: "I tend to arrive 10 minutes early." },
+    b: { letter: "P", text: "넉넉히 잡되 칼처럼 맞추진 않는다.", text_en: "I set it generously but do not hit it like a knife." } },
+  { axis: "JP", facet: "SS", prompt: "하루를 시작하는 결", prompt_en: "The grain of starting the day",
+    a: { letter: "J", text: "오늘 할 일을 먼저 정리한다.", text_en: "I organize what I will do today first." },
+    b: { letter: "P", text: "흐름이 어디로 가는지 보면서 굴린다.", text_en: "I roll it while seeing where the flow goes." } },
   // Methodical(J) / Emergent(P) — 방법적 / 발생적
-  { axis: "JP", facet: "ME", prompt: "복잡한 작업을 시작할 때", quick: true,
-    a: { letter: "J", text: "단계를 나누고 순서를 정한 뒤에 시작한다." },
-    b: { letter: "P", text: "일단 시작하고 순서는 가면서 잡는다." } },
-  { axis: "JP", facet: "ME", prompt: "요리할 때",
-    a: { letter: "J", text: "레시피대로 정확히 따라간다." },
-    b: { letter: "P", text: "감으로 흐름에 맞춘다." } },
-  { axis: "JP", facet: "ME", prompt: "두 단어 중 끌리는 쪽",
-    a: { letter: "J", text: "절차" },
-    b: { letter: "P", text: "즉응" } },
-  { axis: "JP", facet: "ME", prompt: "가구 조립처럼 단계가 있는 일",
-    a: { letter: "J", text: "설명서를 끝까지 따른다." },
-    b: { letter: "P", text: "감이 잡히면 설명서를 덮어둔다." } }
+  { axis: "JP", facet: "ME", prompt: "복잡한 작업을 시작할 때", prompt_en: "When starting complex work", quick: true,
+    a: { letter: "J", text: "단계를 나누고 순서를 정한 뒤에 시작한다.", text_en: "I divide it into steps and set the order, then start." },
+    b: { letter: "P", text: "일단 시작하고 순서는 가면서 잡는다.", text_en: "I start first and figure out the order as I go." } },
+  { axis: "JP", facet: "ME", prompt: "요리할 때", prompt_en: "When cooking",
+    a: { letter: "J", text: "레시피대로 정확히 따라간다.", text_en: "I follow the recipe precisely." },
+    b: { letter: "P", text: "감으로 흐름에 맞춘다.", text_en: "I adjust by feel and flow." } },
+  { axis: "JP", facet: "ME", prompt: "두 단어 중 끌리는 쪽", prompt_en: "Which word draws you",
+    a: { letter: "J", text: "절차", text_en: "Procedure" },
+    b: { letter: "P", text: "즉응", text_en: "Adapt" } },
+  { axis: "JP", facet: "ME", prompt: "가구 조립처럼 단계가 있는 일", prompt_en: "Work with steps, like assembling furniture",
+    a: { letter: "J", text: "설명서를 끝까지 따른다.", text_en: "I follow the manual to the end." },
+    b: { letter: "P", text: "감이 잡히면 설명서를 덮어둔다.", text_en: "Once I get a feel, I close the manual." } }
 ];
 
 const QUESTIONS_QUICK = QUESTIONS_FULL.filter(q => q.quick);
@@ -1975,57 +2096,110 @@ const AXIS_LABELS = {
   JP: { left: "J · 판단", right: "P · 인식" }
 };
 
+function axisLabel(axisKey, side) { // side: "left" | "right"
+  const en = { EI:{left:"E · Extraversion",right:"I · Introversion"}, SN:{left:"S · Sensing",right:"N · Intuition"}, TF:{left:"T · Thinking",right:"F · Feeling"}, JP:{left:"J · Judging",right:"P · Perceiving"} };
+  return (LANG === "en" ? en : AXIS_LABELS)[axisKey][side];
+}
+
 // 16 types — Korean cultural framing.
 // Each: nickname (한국 MBTI 문화), one_liner (25~40자), vibes (3 short phrases)
 const TYPES = {
   INTJ: { nickname: "전략가 · 마스터플랜의 사람",
           one_liner: "머릿속에 5년 뒤까지 그려놓고 살아간다. 침착·치밀·독립적.",
-          vibes: ["계획충", "혼자가 편한", "장기 사고"] },
+          vibes: ["계획충", "혼자가 편한", "장기 사고"],
+          nickname_en: "INTJ · The Architect",
+          one_liner_en: "Already mapping five years ahead in their mind. Calm, meticulous, independent.",
+          vibes_en: ["master planner", "happy solo", "long-game thinker"] },
   INTP: { nickname: "논리술사 · 호기심 많은 공돌이형",
           one_liner: "왜? 라는 질문이 멈추질 않는다. 분석은 즐거움, 잡담은 피로.",
-          vibes: ["호기심", "분석러", "사색가"] },
+          vibes: ["호기심", "분석러", "사색가"],
+          nickname_en: "INTP · The Logician",
+          one_liner_en: "The 'why?' never stops. Analysis is joy, small talk is fatigue.",
+          vibes_en: ["endlessly curious", "analytical mind", "deep thinker"] },
   ENTJ: { nickname: "통솔자 · 추진력의 끝판왕",
           one_liner: "목표가 보이면 바로 움직인다. 비효율을 견디지 못하는 행동파.",
-          vibes: ["추진력", "리더십", "효율 우선"] },
+          vibes: ["추진력", "리더십", "효율 우선"],
+          nickname_en: "ENTJ · The Commander",
+          one_liner_en: "Spots the goal and moves instantly. Can't tolerate inefficiency.",
+          vibes_en: ["unstoppable drive", "natural leader", "efficiency first"] },
   ENTP: { nickname: "변론가 · 토론광·아이디어 뱅크",
           one_liner: "반대 의견부터 던지고 본다. 멈출 수 없는 아이디어 회로.",
-          vibes: ["토론", "기발함", "지루함 못 참는"] },
+          vibes: ["토론", "기발함", "지루함 못 참는"],
+          nickname_en: "ENTP · The Debater",
+          one_liner_en: "Throws out the counterargument first. Ideas that never stop flowing.",
+          vibes_en: ["debate lover", "wildly creative", "boredom allergic"] },
   INFJ: { nickname: "선의의 옹호자 · 조용한 통찰가",
           one_liner: "말 적게 하지만 사람·맥락을 깊이 읽는다. 이상주의·신중함.",
-          vibes: ["통찰", "조용한 강단", "의미 추구"] },
+          vibes: ["통찰", "조용한 강단", "의미 추구"],
+          nickname_en: "INFJ · The Advocate",
+          one_liner_en: "Speaks little but reads people and context deeply. Idealistic, careful.",
+          vibes_en: ["quiet insight", "gentle strength", "meaning seeker"] },
   INFP: { nickname: "잔망 루피 · 따뜻하고 몽글몽글한 사색가",
           one_liner: "감정의 결이 풍부하다. 가치관 위배는 절대 못 참는 부드러운 고집.",
-          vibes: ["몽글몽글", "가치 중심", "혼자 생각 많은"] },
+          vibes: ["몽글몽글", "가치 중심", "혼자 생각 많은"],
+          nickname_en: "INFP · The Mediator",
+          one_liner_en: "Rich emotional texture. Gentle stubbornness when values are crossed.",
+          vibes_en: ["soft dreamer", "values first", "deep inner world"] },
   ENFJ: { nickname: "선도자 · 따뜻한 리더형",
           one_liner: "사람을 모으고 세운다. 진심으로 챙기지만 자기 돌봄은 종종 뒷전.",
-          vibes: ["따뜻한 리더", "공감", "분위기 메이커"] },
+          vibes: ["따뜻한 리더", "공감", "분위기 메이커"],
+          nickname_en: "ENFJ · The Protagonist",
+          one_liner_en: "Gathers and uplifts people. Genuinely caring, but self-care often last.",
+          vibes_en: ["warm leader", "deeply empathetic", "mood lifter"] },
   ENFP: { nickname: "스파크 · 인싸 끝판왕",
           one_liner: "가능성을 발견하면 눈이 반짝인다. 에너지 넘치는 자유 영혼.",
-          vibes: ["에너지 폭발", "가능성 사냥꾼", "사람 좋아하는"] },
+          vibes: ["에너지 폭발", "가능성 사냥꾼", "사람 좋아하는"],
+          nickname_en: "ENFP · The Campaigner",
+          one_liner_en: "Eyes light up at possibilities. Boundless energy, free spirit.",
+          vibes_en: ["energy explosion", "possibility hunter", "people magnet"] },
   ISTJ: { nickname: "청렴결백한 공무원형 · 신뢰의 아이콘",
           one_liner: "약속·규칙·디테일이 곧 인격. 묵묵히, 그러나 어김없이.",
-          vibes: ["신뢰", "디테일", "꾸준함"] },
+          vibes: ["신뢰", "디테일", "꾸준함"],
+          nickname_en: "ISTJ · The Logistician",
+          one_liner_en: "Promises, rules, details are identity. Quiet, but unfailing.",
+          vibes_en: ["utterly reliable", "detail master", "steady rock"] },
   ISFJ: { nickname: "곰돌이 푸 · 다정한 수호자",
           one_liner: "조용히 챙기는 사람. 본인은 표 안 내지만 다 기억하고 있다.",
-          vibes: ["다정함", "조용한 헌신", "관찰러"] },
+          vibes: ["다정함", "조용한 헌신", "관찰러"],
+          nickname_en: "ISFJ · The Defender",
+          one_liner_en: "Quietly takes care of everyone. Doesn't show it, but remembers everything.",
+          vibes_en: ["gentle care", "quiet devotion", "keen observer"] },
   ESTJ: { nickname: "엄격한 관리자 · 현실 운영자",
           one_liner: "규칙·체계·결과를 바탕으로 일을 굴린다. 맺고 끊는 게 분명.",
-          vibes: ["체계", "단호함", "책임감"] },
+          vibes: ["체계", "단호함", "책임감"],
+          nickname_en: "ESTJ · The Executive",
+          one_liner_en: "Runs things by rules, systems, results. Decisive and clear-cut.",
+          vibes_en: ["organized power", "firm decisions", "responsibility core"] },
   ESFJ: { nickname: "친목왕 · 사교형 외교관",
           one_liner: "사람들의 분위기를 읽고 챙기는 게 본능. 따뜻한 사회적 동물.",
-          vibes: ["사교성", "공감", "디테일한 챙김"] },
+          vibes: ["사교성", "공감", "디테일한 챙김"],
+          nickname_en: "ESFJ · The Consul",
+          one_liner_en: "Reads the room and cares for everyone instinctively. Warm social soul.",
+          vibes_en: ["social butterfly", "heartfelt care", "detail nurturer"] },
   ISTP: { nickname: "맥가이버 · 만능 재주꾼",
           one_liner: "직접 손으로 풀어낸다. 말은 적게, 결과는 분명하게.",
-          vibes: ["손재주", "쿨한 거리", "현장형"] },
+          vibes: ["손재주", "쿨한 거리", "현장형"],
+          nickname_en: "ISTP · The Virtuoso",
+          one_liner_en: "Solves it with their hands. Few words, clear results.",
+          vibes_en: ["hands-on genius", "cool distance", "pragmatic doer"] },
   ISFP: { nickname: "호기심 많은 예술가 · 잔잔한 감성러",
           one_liner: "미적·감각적 결이 섬세하다. 강요 받는 순간 조용히 사라진다.",
-          vibes: ["감성", "심미", "자유로운"] },
+          vibes: ["감성", "심미", "자유로운"],
+          nickname_en: "ISFP · The Adventurer",
+          one_liner_en: "Finely tuned aesthetic sense. Quietly vanishes when pushed.",
+          vibes_en: ["sensory soul", "aesthetic eye", "freedom first"] },
   ESTP: { nickname: "모험을 즐기는 사업가 · 현장형 행동파",
           one_liner: "일단 해보고 다음을 결정한다. 위험·기회 둘 다에 민감.",
-          vibes: ["즉각적", "스릴러브", "현실 감각"] },
+          vibes: ["즉각적", "스릴러브", "현실 감각"],
+          nickname_en: "ESTP · The Entrepreneur",
+          one_liner_en: "Try it first, decide next. Sharp to both risk and opportunity.",
+          vibes_en: ["instant action", "thrill seeker", "street smart"] },
   ESFP: { nickname: "분위기 메이커 · 자유로운 영혼",
           one_liner: "그 자리를 환하게 만드는 사람. 지금 이 순간이 가장 중요하다.",
-          vibes: ["에너지", "재미", "현재 중심"] }
+          vibes: ["에너지", "재미", "현재 중심"],
+          nickname_en: "ESFP · The Entertainer",
+          one_liner_en: "Lights up the room. This moment is what matters most.",
+          vibes_en: ["pure energy", "fun central", "present-focused"] }
 };
 
 // ============================================================
@@ -2056,20 +2230,20 @@ const FN_STACKS = {
 
 // 4-bucket dial labels (collapsed from Ti/Te → 思, etc.)
 const DIAL_BUCKETS = [
-  { key: "T", han: "思", ko: "사고", desc: "논리·기준·체계로 판단하는 결" },
-  { key: "F", han: "感", ko: "감정", desc: "사람·관계·가치로 판단하는 결" },
-  { key: "N", han: "直", ko: "직관", desc: "패턴·가능성·의미를 읽는 결" },
-  { key: "S", han: "覺", ko: "감각", desc: "사실·디테일·현장을 읽는 결" }
+  { key: "T", han: "思", ko: "사고", label_ko: "사고", label_en: "Thinking", desc: "논리·기준·체계로 판단하는 결", desc_en: "judging by logic, standards, and systems" },
+  { key: "F", han: "感", ko: "감정", label_ko: "감정", label_en: "Feeling", desc: "사람·관계·가치로 판단하는 결", desc_en: "judging by people, relationships, and values" },
+  { key: "N", han: "直", ko: "직관", label_ko: "직관", label_en: "Intuition", desc: "패턴·가능성·의미를 읽는 결", desc_en: "reading patterns, possibilities, and meaning" },
+  { key: "S", han: "覺", ko: "감각", label_ko: "감각", label_en: "Sensing", desc: "사실·디테일·현장을 읽는 결", desc_en: "reading facts, details, and the concrete here-and-now" }
 ];
 
 // Temperament groups for the 도감 gallery — order, labels, and bible palette
 // anchors (NT lavender / NF coral / SJ sage / SP honey). Each section gets a
 // faint wash of its anchor over cream.
 const TEMPERAMENT_GROUPS = [
-  { key: "NT", label: "NT · 분석가", anchor: "#ADA7FF", types: ["INTJ", "INTP", "ENTJ", "ENTP"] },
-  { key: "NF", label: "NF · 외교관", anchor: "#D96E54", types: ["INFJ", "INFP", "ENFJ", "ENFP"] },
-  { key: "SJ", label: "SJ · 관리자", anchor: "#9CAA8E", types: ["ISTJ", "ISFJ", "ESTJ", "ESFJ"] },
-  { key: "SP", label: "SP · 탐험가", anchor: "#E3B25A", types: ["ISTP", "ISFP", "ESTP", "ESFP"] }
+  { key: "NT", label: "NT · 분석가", label_en: "NT · Analysts", anchor: "#ADA7FF", types: ["INTJ", "INTP", "ENTJ", "ENTP"] },
+  { key: "NF", label: "NF · 외교관", label_en: "NF · Diplomats", anchor: "#D96E54", types: ["INFJ", "INFP", "ENFJ", "ENFP"] },
+  { key: "SJ", label: "SJ · 관리자", label_en: "SJ · Sentinels", anchor: "#9CAA8E", types: ["ISTJ", "ISFJ", "ESTJ", "ESFJ"] },
+  { key: "SP", label: "SP · 탐험가", label_en: "SP · Explorers", anchor: "#E3B25A", types: ["ISTP", "ISFP", "ESTP", "ESFP"] }
 ];
 
 // Ranks within stack: dom=4, aux=3, tert=2, inf=1.
@@ -2109,6 +2283,11 @@ const FN_RANK_LABEL = {
   5: "Off-stack · 비활성"
 };
 
+function rankLabel(ord) {
+  const en = {1:"Dominant",2:"Auxiliary",3:"Tertiary",4:"Inferior",5:"Off-stack"};
+  return (LANG === "en") ? en[ord] : FN_RANK_LABEL[ord];
+}
+
 // Helper for canned outputs — build the 5-facet array for an axis with the
 // usual lean. Keeps canned data compact while matching the new schema.
 function _f(left, right, lean, conf) {
@@ -2117,14 +2296,17 @@ function _f(left, right, lean, conf) {
 
 const CANNED = [
   {
-    matches: ["조용히", "혼자", "책", "생각", "감정", "마음", "글", "일기"],
+    matches: ["조용히", "혼자", "책", "생각", "감정", "마음", "글", "일기", "quiet", "alone", "book", "feeling", "introspective", "journal", "meaningful"],
     result: {
       type: "INFJ",
       nickname_ko: "선의의 옹호자 · 조용한 통찰가",
+      nickname_en: "INFJ - The Advocate",
       one_liner_ko: "말 적게 하지만 사람과 맥락을 깊이 읽는, 신중한 이상주의자.",
+      one_liner_en: "Speaks little but reads people and context deeply - a thoughtful idealist.",
       axes: [
         { axis: "E/I", lean: "I", confidence: 82,
           evidence_ko: "“혼자 있는 시간이 좋다”는 표현, 사람을 만난 뒤 회복이 필요하다는 결이 반복돼서 내향이 또렷합니다.",
+          evidence_en: "The phrase 'I like time alone' and the recurring thread of needing recovery after being with people reveal clear introversion.",
           facets: [
             _f("주도", "수용", "R", 78),
             _f("표현", "보유", "R", 72),
@@ -2134,6 +2316,7 @@ const CANNED = [
           ] },
         { axis: "S/N", lean: "N", confidence: 76,
           evidence_ko: "사실 나열보다 감정과 의미를 곱씹는 표현이 많고, 사건보다 그 사건의 결을 더 길게 풀어냅니다.",
+          evidence_en: "More focus on emotional meaning than factual listing, unpacking the texture of events rather than just the events themselves.",
           facets: [
             _f("구체적", "추상적", "R", 78),
             _f("현실적", "상상적", "R", 70),
@@ -2143,6 +2326,7 @@ const CANNED = [
           ] },
         { axis: "T/F", lean: "F", confidence: 80,
           evidence_ko: "사람의 마음을 먼저 읽고, “마음이 쓰였다”는 표현이 자연스럽게 등장합니다.",
+          evidence_en: "Reads people's hearts first, and phrases like 'I felt for them' appear naturally.",
           facets: [
             _f("논리적", "정서적", "R", 84),
             _f("이성적", "우호적", "R", 76),
@@ -2152,6 +2336,7 @@ const CANNED = [
           ] },
         { axis: "J/P", lean: "J", confidence: 64,
           evidence_ko: "감정을 풀어내는 톤은 부드러우나 결론으로 향하는 정리감이 분명합니다 — 열린 결말보다 매듭.",
+          evidence_en: "The tone is gentle but there's a clear sense of moving toward closure - knots rather than open endings.",
           facets: [
             _f("체계적", "일상적", "L", 62),
             _f("계획적", "개방적", "L", 60),
@@ -2161,20 +2346,26 @@ const CANNED = [
           ] }
       ],
       secondary_type: { type: "INFP",
-        reasoning_ko: "감정·의미 축이 강해서 INFP가 근접합니다. 다만 글의 정리 정도가 또렷해 J 쪽으로 한 발 더 가까워집니다." },
+        reasoning_ko: "감정·의미 축이 강해서 INFP가 근접합니다. 다만 글의 정리 정도가 또렷해 J 쪽으로 한 발 더 가까워집니다.",
+        reasoning_en: "The strong feeling/meaning axis brings INFP close, but the clear sense of organization tips it toward the J side of INFJ." },
       reading_ko: "혼자만의 시간에서 의미를 길어 올리는 톤입니다. 다양한관계보다 친밀한관계, 활동성보다 반추 facet이 또렷해 내향의 결이 분명하고, 정서적·강인함(유연함) 결도 명료합니다. 다만 비평적/허용적 facet에서는 본인을 향한 엄격함이 살짝 비치고, 결론으로 향하는 매듭감 때문에 INFP가 아니라 INFJ에 한 발 더 가깝습니다.",
-      vibes_ko: ["조용한 통찰", "의미 우선", "내면 정리"]
+      reading_en: "This is a voice that draws meaning from solitude. The Intimate over Gregarious and Reflective over Active facets reveal a clear introverted grain, and the Empathetic and Tender facets are unmistakable. Yet the Critical-over-Accepting facet hints at self-directed rigor, and the sense of reaching for closure pushes this closer to INFJ than INFP.",
+      vibes_ko: ["조용한 통찰", "의미 우선", "내면 정리"],
+      vibes_en: ["Quiet insight", "Meaning-first", "Inner order"]
     }
   },
   {
-    matches: ["계획", "효율", "해야", "끝내", "성과", "목표"],
+    matches: ["계획", "효율", "해야", "끝내", "성과", "목표", "plan", "efficient", "goal", "results", "accomplish", "driven"],
     result: {
       type: "ENTJ",
       nickname_ko: "통솔자 · 추진력의 끝판왕",
+      nickname_en: "ENTJ - The Commander",
       one_liner_ko: "목표가 보이면 바로 움직이는, 비효율을 견디지 못하는 행동파.",
+      one_liner_en: "Moves immediately when a goal appears - an action-taker who cannot tolerate inefficiency.",
       axes: [
         { axis: "E/I", lean: "E", confidence: 70,
           evidence_ko: "사람을 모아서 일을 굴리는 톤이 자연스럽고, 외부 자극에서 에너지를 얻는 결이 보입니다.",
+          evidence_en: "The tone of rallying people to drive work forward feels natural, and external stimulation is clearly energizing.",
           facets: [
             _f("주도", "수용", "L", 78),
             _f("표현", "보유", "L", 65),
@@ -2184,6 +2375,7 @@ const CANNED = [
           ] },
         { axis: "S/N", lean: "N", confidence: 66,
           evidence_ko: "즉시 처리할 일들을 나열하면서도 “이게 결국 어디로 가는가”의 큰 그림을 같은 호흡에서 짚습니다.",
+          evidence_en: "Lists immediate tasks while simultaneously touching on 'where is this all going' - the big picture is present in the same breath.",
           facets: [
             _f("구체적", "추상적", "R", 62),
             _f("현실적", "상상적", "L", 55),
@@ -2193,6 +2385,7 @@ const CANNED = [
           ] },
         { axis: "T/F", lean: "T", confidence: 84,
           evidence_ko: "효율·결과·합리 같은 단어가 일상어처럼 쓰이고, 감정적 단서보다 사실·기준이 먼저입니다.",
+          evidence_en: "Words like efficiency, results, and rationality are used casually, and facts and standards come before emotional cues.",
           facets: [
             _f("논리적", "정서적", "L", 86),
             _f("이성적", "우호적", "L", 80),
@@ -2202,6 +2395,7 @@ const CANNED = [
           ] },
         { axis: "J/P", lean: "J", confidence: 80,
           evidence_ko: "“미리 끝내놓는다”, “정리해두면 마음이 편하다”의 결이 분명합니다.",
+          evidence_en: "The threads of 'finish it ahead of time' and 'having it organized brings peace of mind' are clear.",
           facets: [
             _f("체계적", "일상적", "L", 82),
             _f("계획적", "개방적", "L", 84),
@@ -2211,20 +2405,26 @@ const CANNED = [
           ] }
       ],
       secondary_type: { type: "ENTP",
-        reasoning_ko: "아이디어를 던지는 호흡이 활발해 ENTP가 근접합니다. 단, ENTP보다 결단·매듭이 또렷해 ENTJ가 더 맞습니다." },
+        reasoning_ko: "아이디어를 던지는 호흡이 활발해 ENTP가 근접합니다. 단, ENTP보다 결단·매듭이 또렷해 ENTJ가 더 맞습니다.",
+        reasoning_en: "The lively pace of tossing ideas brings ENTP close, but the decisive closure is sharper than ENTP - ENTJ is the better fit." },
       reading_ko: "글이 결론을 향해 곧장 달려갑니다. T축 다섯 facet — 논리적·이성적·의문적·비평적·강인함 — 이 모두 한 방향으로 정렬돼 있고, 계획적·조기착수 결도 또렷합니다. 따뜻함이 없지는 않지만 우선순위는 분명히 결과·체계 쪽입니다.",
-      vibes_ko: ["추진력", "큰 그림", "결단력"]
+      reading_en: "The writing drives straight toward conclusions. All five T facets - Logical, Reasonable, Questioning, Critical, Tough - align in the same direction, and the Planful and Early-starting patterns are unmistakable. There's warmth, but the priority is clearly results and structure.",
+      vibes_ko: ["추진력", "큰 그림", "결단력"],
+      vibes_en: ["Drive", "Big picture", "Decisive"]
     }
   },
   {
-    matches: ["재밌", "친구", "분위기", "노래", "ㅋㅋ", "ㅎㅎ", "여행"],
+    matches: ["재밌", "친구", "분위기", "노래", "ㅋㅋ", "ㅎㅎ", "여행", "fun", "friends", "energy", "spontaneous", "exciting", "travel", "vibes"],
     result: {
       type: "ENFP",
       nickname_ko: "스파크 · 인싸 끝판왕",
+      nickname_en: "ENFP - The Campaigner",
       one_liner_ko: "가능성을 발견하면 눈이 반짝이는, 에너지 넘치는 자유 영혼.",
+      one_liner_en: "Eyes light up at possibilities - an energetic free spirit.",
       axes: [
         { axis: "E/I", lean: "E", confidence: 88,
           evidence_ko: "사람·자리·새로운 만남의 에너지에 빠르게 반응하고, 그 자체에서 충전되는 결이 또렷합니다.",
+          evidence_en: "Responds quickly to the energy of people, gatherings, and new encounters - and clearly recharges from them.",
           facets: [
             _f("주도", "수용", "L", 84),
             _f("표현", "보유", "L", 86),
@@ -2234,6 +2434,7 @@ const CANNED = [
           ] },
         { axis: "S/N", lean: "N", confidence: 78,
           evidence_ko: "“다음에 이거 해보면 어떨까”의 가능성 회로가 끊임없이 돌아갑니다 — 직관 우세.",
+          evidence_en: "The 'what if we tried this next' possibility circuit is constantly running - intuition leads.",
           facets: [
             _f("구체적", "추상적", "R", 76),
             _f("현실적", "상상적", "R", 80),
@@ -2243,6 +2444,7 @@ const CANNED = [
           ] },
         { axis: "T/F", lean: "F", confidence: 72,
           evidence_ko: "사람과 분위기에 대한 감수성이 분석보다 앞에 있고, 따뜻함이 자연스럽습니다.",
+          evidence_en: "Sensitivity to people and atmosphere comes before analysis, and warmth flows naturally.",
           facets: [
             _f("논리적", "정서적", "R", 78),
             _f("이성적", "우호적", "R", 72),
@@ -2252,6 +2454,7 @@ const CANNED = [
           ] },
         { axis: "J/P", lean: "P", confidence: 74,
           evidence_ko: "“즉흥적으로 움직였다”, “가다가 정했다” 같은 결이 반복돼 P가 분명합니다.",
+          evidence_en: "Threads like 'moved spontaneously' and 'decided as we went' repeat throughout - P is unmistakable.",
           facets: [
             _f("체계적", "일상적", "R", 72),
             _f("계획적", "개방적", "R", 80),
@@ -2261,21 +2464,27 @@ const CANNED = [
           ] }
       ],
       secondary_type: { type: "ENFJ",
-        reasoning_ko: "사람을 모으고 챙기는 결이 강해 ENFJ가 근접합니다. 단, 즉흥·열린 결말이 또렷해서 P 쪽 ENFP가 한 발 앞섭니다." },
+        reasoning_ko: "사람을 모으고 챙기는 결이 강해 ENFJ가 근접합니다. 단, 즉흥·열린 결말이 또렷해서 P 쪽 ENFP가 한 발 앞섭니다.",
+        reasoning_en: "The strong thread of gathering and caring for people brings ENFJ close, but the spontaneous, open-ended quality tips it toward the P side - ENFP fits better." },
       reading_ko: "글의 호흡이 빠르고 환합니다. 표현·열성 facet이 매우 또렷하고, 상상적·독창적 결도 강합니다. 한 문장에서 다음 가능성으로 넘어가는 속도와 사람과의 만남 자체에서 살아나는 톤이 ENFP의 결입니다.",
-      vibes_ko: ["밝은 에너지", "가능성 사냥꾼", "사람 좋아하는"]
+      reading_en: "The rhythm is fast and bright. The Expressive and Enthusiastic facets are unmistakable, and the Imaginative and Original threads are strong. The speed of jumping from one sentence to the next possibility, and the way the voice comes alive from human connection itself, are ENFP signatures.",
+      vibes_ko: ["밝은 에너지", "가능성 사냥꾼", "사람 좋아하는"],
+      vibes_en: ["Bright energy", "Possibility hunter", "People-loving"]
     }
   },
   // default fallback
   {
-    matches: [],
+    matches: ["caring", "detail", "remember", "support", "gentle", "practical"],
     result: {
       type: "ISFJ",
       nickname_ko: "곰돌이 푸 · 다정한 수호자",
+      nickname_en: "ISFJ - The Defender",
       one_liner_ko: "조용히 챙기는, 표는 안 내지만 다 기억하고 있는 사람.",
+      one_liner_en: "Quietly caring - doesn\'t show it, but remembers everything.",
       axes: [
         { axis: "E/I", lean: "I", confidence: 68,
           evidence_ko: "외부 자극을 즐기되 회복은 혼자 이루어지는 결이 보입니다.",
+          evidence_en: "Enjoys external stimulation but recovery happens alone.",
           facets: [
             _f("주도", "수용", "R", 70),
             _f("표현", "보유", "R", 72),
@@ -2285,6 +2494,7 @@ const CANNED = [
           ] },
         { axis: "S/N", lean: "S", confidence: 72,
           evidence_ko: "구체 디테일·실제 사건 묘사가 또렷합니다 — 추상화보다 사실적 기억.",
+          evidence_en: "Concrete details and real-event descriptions are clear - factual memory over abstraction.",
           facets: [
             _f("구체적", "추상적", "L", 78),
             _f("현실적", "상상적", "L", 72),
@@ -2294,6 +2504,7 @@ const CANNED = [
           ] },
         { axis: "T/F", lean: "F", confidence: 76,
           evidence_ko: "사람들의 마음을 챙기는 표현이 자연스럽고, 본인 감정보다 주변을 먼저 읽습니다.",
+          evidence_en: "Expressions of caring for others' feelings are natural, and reads surroundings before own emotions.",
           facets: [
             _f("논리적", "정서적", "R", 74),
             _f("이성적", "우호적", "R", 78),
@@ -2303,6 +2514,7 @@ const CANNED = [
           ] },
         { axis: "J/P", lean: "J", confidence: 62,
           evidence_ko: "“미리 준비해두는” 패턴이 약하지만 분명히 있습니다.",
+          evidence_en: "The 'prepare ahead' pattern is subtle but definitely present.",
           facets: [
             _f("체계적", "일상적", "L", 68),
             _f("계획적", "개방적", "L", 60),
@@ -2312,9 +2524,12 @@ const CANNED = [
           ] }
       ],
       secondary_type: { type: "INFJ",
-        reasoning_ko: "맥락 읽는 결이 강해 INFJ가 근접합니다. 단, 글이 더 사실적·구체적이라 ISFJ에 한 발 더 가깝습니다." },
+        reasoning_ko: "맥락 읽는 결이 강해 INFJ가 근접합니다. 단, 글이 더 사실적·구체적이라 ISFJ에 한 발 더 가깝습니다.",
+        reasoning_en: "The strong thread of reading context brings INFJ close, but the more factual and concrete grain tips it toward ISFJ." },
       reading_ko: "조용한 다정함이 글 곳곳에 배어 있습니다. 친밀한관계·표현 보유 facet이 또렷하고, 구체적·경험적 facet이 강해 추상보다 사실적 기억에 무게가 실립니다. 큰 비전을 외치기보다 “지금 여기, 이 사람들”을 챙기는 결이 자연스러운 본능입니다.",
-      vibes_ko: ["조용한 다정함", "관찰러", "꾸준한 챙김"]
+      reading_en: "Quiet warmth is woven throughout the writing. The Intimate-over-Gregarious and Reserved facets are clear, and the Concrete and Experiential facets are strong - weight falls on factual memory rather than abstraction. Rather than proclaiming grand visions, the natural instinct is to care for 'these people, here and now'.",
+      vibes_ko: ["조용한 다정함", "관찰러", "꾸준한 챙김"],
+      vibes_en: ["Quiet warmth", "Observer", "Steady caring"]
     }
   }
 ];
@@ -2354,8 +2569,8 @@ function getKey() { return localStorage.getItem(KEY_STORAGE) || ""; }
 function setKey(k) { if (k) localStorage.setItem(KEY_STORAGE, k); else localStorage.removeItem(KEY_STORAGE); updateModePill(); }
 function updateModePill() {
   const pill = $("#mode-pill"), text = $("#mode-pill-text");
-  if (getKey()) { pill.classList.add("live"); text.textContent = "실시간 모드"; }
-  else          { pill.classList.remove("live"); text.textContent = "데모 모드"; }
+  if (getKey()) { pill.classList.add("live"); text.textContent = t("modeLivePill"); }
+  else          { pill.classList.remove("live"); text.textContent = t("modeDemoPill"); }
 }
 
 // ============================================================
@@ -2379,6 +2594,10 @@ function showGalleryDetail(type) {
 }
 // Initial grid render.
 showGalleryGrid();
+// Apply persisted language on load.
+document.documentElement.lang = LANG;
+syncLangToggle();
+applyStaticStrings();
 // Delegated clicks within the gallery panel.
 $("#panel-gallery").addEventListener("click", (e) => {
   const card = e.target.closest(".type-card");
@@ -2403,6 +2622,103 @@ $("#panel-gallery").addEventListener("click", (e) => {
       if (t) showGalleryDetail(t);
     }
   }
+});
+
+// ============================================================
+// I18N — STATIC CHROME SWAP
+// ============================================================
+// Swap all tagged static-chrome strings to the current LANG.
+function applyStaticStrings() {
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.getAttribute("data-i18n")); });
+  document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = t(el.getAttribute("data-i18n-html")); });
+  document.querySelectorAll("[data-i18n-attr]").forEach(el => {
+    el.getAttribute("data-i18n-attr").split(",").forEach(pair => {
+      const [attr, key] = pair.split(":").map(s => s.trim());
+      if (attr && key) el.setAttribute(attr, t(key));
+    });
+  });
+}
+function syncLangToggle() {
+  document.querySelectorAll(".lang-toggle button").forEach(b => {
+    const on = b.dataset.lang === LANG;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+}
+function rerenderActivePanel() {
+  const active = document.querySelector(".panel.active")?.id;
+  if (active === "panel-test") {
+    const rEl = $("#test-result");
+    if (rEl && rEl.innerHTML.trim() && rEl.style.display !== "none" && state && state.lastResult) {
+      rEl.innerHTML = renderResultHTML(state.lastResult);
+      wireGenderToggle(rEl);
+      // Re-animate axis bars
+      requestAnimationFrame(() => {
+        $$("#test-result .axis-fill").forEach(fill => {
+          fill.style.width = fill.dataset.target + "%";
+        });
+      });
+      // Re-wire listeners
+      $("#test-result [data-action=restart]")?.addEventListener("click", () => {
+        $("#test-result").style.display = "none";
+        $("#test-intro").style.display = "block";
+      });
+      const meta = TYPES[state.lastResult.type] || {};
+      wireSaveCard($("#test-result"), {
+        type: state.lastResult.type,
+        nickname_ko: L(meta, "nickname"),
+        pull_quote: L(meta, "one_liner"),
+        fromTest: true,
+        testLength: state.lastResult.testLength
+      });
+    } else if (state && state.qIndex != null && typeof QUESTIONS !== "undefined" && QUESTIONS[state.qIndex]) {
+      renderQuestion();
+    }
+  } else if (active === "panel-gallery") {
+    if ($("#gallery-grid")?.style.display !== "none") {
+      showGalleryGrid();
+    } else {
+      const ty = $("#gallery-detail")?.querySelector(".type-portrait")?.dataset.type;
+      if (ty) showGalleryDetail(ty);
+    }
+  } else if (active === "panel-ai") {
+    const aEl = $("#ai-result");
+    if (aEl && aEl.innerHTML.trim() && window.__lastAIResult) {
+      aEl.innerHTML = renderResultHTML(window.__lastAIResult);
+      wireGenderToggle(aEl);
+      // Re-animate axis bars
+      requestAnimationFrame(() => {
+        $$("#ai-result .axis-fill").forEach(fill => {
+          fill.style.width = fill.dataset.target + "%";
+        });
+      });
+      // Re-wire listeners
+      $("#ai-result [data-action=restart]")?.addEventListener("click", () => {
+        $("#ai-result").innerHTML = "";
+        $("#ai-input").focus();
+      });
+      if (window.__lastAIResult._saveCardPayload) {
+        // Refresh the card nickname to the current language; keep pull_quote
+        // (it's a quote from the user's own input text, language-neutral).
+        window.__lastAIResult._saveCardPayload.nickname_ko = L(window.__lastAIResult, "nickname");
+        wireSaveCard($("#ai-result"), window.__lastAIResult._saveCardPayload);
+      }
+    }
+  }
+}
+
+function setLang(l) {
+  const next = (l === "en") ? "en" : "ko";
+  if (next === LANG) return;
+  setLangValue(next);
+  document.documentElement.lang = LANG;
+  syncLangToggle();
+  applyStaticStrings();
+  rerenderActivePanel();
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest(".lang-toggle button");
+  if (b) setLang(b.dataset.lang);
 });
 
 // ============================================================
@@ -2452,25 +2768,25 @@ function renderQuestion() {
   const idx = state.qIndex + 1;
   const prev = state.answers[state.qIndex]; // "a" | "b" | null
   $("#q-counter").textContent = String(idx).padStart(2, "0") + " / " + String(total).padStart(2, "0");
-  $("#q-axis").textContent = AXIS_LABELS[q.axis].left.split(" · ")[0] + " · " + AXIS_LABELS[q.axis].right.split(" · ")[0];
+  $("#q-axis").textContent = axisLabel(q.axis, "left").split(" · ")[0] + " · " + axisLabel(q.axis, "right").split(" · ")[0];
   $("#q-fill").style.width = (idx / total * 100) + "%";
 
   const isLast = state.qIndex === total - 1;
   $("#qcard").innerHTML = `
-    <div class="qprompt">${q.prompt}</div>
+    <div class="qprompt">${L(q, "prompt")}</div>
     <div class="qchoices">
       <button class="qchoice${prev === "a" ? " selected" : ""}" data-choice="a">
         <span class="marker">A</span>
-        <span>${q.a.text}</span>
+        <span>${L(q.a, "text")}</span>
       </button>
       <button class="qchoice${prev === "b" ? " selected" : ""}" data-choice="b">
         <span class="marker">B</span>
-        <span>${q.b.text}</span>
+        <span>${L(q.b, "text")}</span>
       </button>
     </div>
     <div class="qnav">
-      <button data-nav="back" ${state.qIndex === 0 ? "disabled" : ""}>← 이전</button>
-      <button data-nav="forward" ${prev == null ? "disabled" : ""}>${isLast ? "결과 보기 →" : "다음 →"}</button>
+      <button data-nav="back" ${state.qIndex === 0 ? "disabled" : ""}>${t("navBack")}</button>
+      <button data-nav="forward" ${prev == null ? "disabled" : ""}>${isLast ? t("navSeeResult") : t("navNext")}</button>
     </div>
   `;
   $$("#qcard .qchoice").forEach(btn => {
@@ -2584,7 +2900,7 @@ function showResult() {
   const lengthNote = state.testLength === "full"
     ? `${total}문항 정밀 검사 — 4축과 20개 하위 결을 함께 봅니다.`
     : `${total}문항 빠른 검사 — 인상 위주의 결과입니다. 더 정밀한 결은 93문항 검사 또는 AI 깊이 읽기에서.`;
-  $("#test-result").innerHTML = renderResultHTML({
+  state.lastResult = {
     type,
     nickname_ko: meta.nickname,
     one_liner_ko: meta.one_liner,
@@ -2603,7 +2919,8 @@ function showResult() {
     secondary_type: null,
     fromTest: true,
     testLength: state.testLength
-  });
+  };
+  $("#test-result").innerHTML = renderResultHTML(state.lastResult);
 
   // animate axis bars
   requestAnimationFrame(() => {
@@ -2637,11 +2954,11 @@ function renderFacetRows(facets) {
     const pct = Math.max(50, Math.min(95, f.confidence));
     return `
       <div class="facet-row">
-        <span class="facet-pole ${leanLeft ? "lean" : ""}">${escapeHTML(f.left)}</span>
+        <span class="facet-pole ${leanLeft ? "lean" : ""}">${escapeHTML(L(f, "left"))}</span>
         <span class="facet-bar">
           <span class="facet-fill ${leanLeft ? "left" : "right"}" style="width:${pct - 50}%"></span>
         </span>
-        <span class="facet-pole ${!leanLeft ? "lean" : ""}">${escapeHTML(f.right)}</span>
+        <span class="facet-pole ${!leanLeft ? "lean" : ""}">${escapeHTML(L(f, "right"))}</span>
       </div>
     `;
   }).join("");
@@ -2668,8 +2985,9 @@ function renderResultHTML(r) {
   const axisHTML = r.axes.map(a => {
     const isRight = a.lean === a.axis.split("/")[1];
     const dir = isRight ? "right" : "left";
-    const left  = AXIS_LABELS[a.axis.replace("/","")].left;
-    const right = AXIS_LABELS[a.axis.replace("/","")].right;
+    const axKey = a.axis.replace("/","");
+    const left  = axisLabel(axKey, "left");
+    const right = axisLabel(axKey, "right");
     const facetsHTML = renderFacetRows(a.facets);
     return `
       <div class="axis">
@@ -2684,26 +3002,27 @@ function renderResultHTML(r) {
         <div class="axis-track">
           <div class="axis-fill ${dir}" data-target="${a.confidence}" style="width:0%"></div>
         </div>
-        ${a.evidence_ko ? `<div class="axis-evidence">${escapeHTML(a.evidence_ko)}</div>` : ""}
+        ${L(a, "evidence") ? `<div class="axis-evidence">${escapeHTML(L(a, "evidence"))}</div>` : ""}
         ${facetsHTML}
       </div>
     `;
   }).join("");
 
-  const vibesHTML = (r.vibes_ko || []).map(v => `<span class="vibe">${escapeHTML(v)}</span>`).join("");
+  const vibes = L(r, "vibes") || [];
+  const vibesHTML = vibes.map(v => `<span class="vibe">${escapeHTML(v)}</span>`).join("");
 
   const secondaryHTML = r.secondary_type
-    ? `<div class="secondary"><strong>2순위 ${r.secondary_type.type}</strong> — ${escapeHTML(r.secondary_type.reasoning_ko)}</div>`
+    ? `<div class="secondary"><strong>${t("secondaryLabel")} ${r.secondary_type.type}</strong> — ${escapeHTML(L(r.secondary_type, "reasoning"))}</div>`
     : "";
 
-  const testLengthLabel = r.testLength === "full" ? "93-Q FORM-M LENGTH" : "28-Q QUICK";
+  const testLengthLabel = r.testLength === "full" ? t("pillFull") : t("pillQuick");
   const modeMeta = r.fromTest
     ? `<span class="pill">${testLengthLabel}</span>`
     : (r.fromCanned
-        ? `<span class="pill demo">DEMO</span>`
+        ? `<span class="pill demo">${t("pillDemo")}</span>`
         : `<span class="pill">CLAUDE · ${escapeHTML(r.modelLabel || "Sonnet 4.6")}</span>`);
 
-  const portraitHTML = renderPortrait(r.type, r.nickname_ko);
+  const portraitHTML = renderPortrait(r.type, L(r, "nickname"));
 
   const fnHTML = renderFnStack(r.type);
 
@@ -2714,25 +3033,25 @@ function renderResultHTML(r) {
         <div class="type-hero-text">
           <div class="meta">${modeMeta}</div>
           <div class="code">${escapeHTML(r.type)}</div>
-          <div class="nickname">${escapeHTML(r.nickname_ko)}</div>
-          <div class="one-liner">${escapeHTML(r.one_liner_ko)}</div>
+          <div class="nickname">${escapeHTML(L(r, "nickname"))}</div>
+          <div class="one-liner">${escapeHTML(L(r, "one_liner"))}</div>
         </div>
       </div>
       <div class="axes">
-        <h3>4 축 분석</h3>
-        <div class="axes-sub">유형을 이루는 <em>네 글자</em> — 각 축에서 어느 쪽에 섰는지와 그 확신도.</div>
+        <h3>${t("axesHeading")}</h3>
+        <div class="axes-sub">${t("axesSubHTML")}</div>
         ${axisHTML}
       </div>
       ${fnHTML}
       <div class="reading">
-        <h3>읽어드린 결</h3>
-        <p>${escapeHTML(r.reading_ko)}</p>
+        <h3>${t("readingHeading")}</h3>
+        <p>${escapeHTML(L(r, "reading"))}</p>
         ${secondaryHTML}
         ${vibesHTML ? `<div class="vibes">${vibesHTML}</div>` : ""}
       </div>
       <div class="result-actions">
-        <button class="btn card-btn" data-action="save-card">결과 카드 저장</button>
-        <button class="btn secondary" data-action="restart">${r.fromTest ? "다시 풀기" : "지우고 다시"}</button>
+        <button class="btn card-btn" data-action="save-card">${t("saveCardBtn")}</button>
+        <button class="btn secondary" data-action="restart">${r.fromTest ? t("restartTest") : t("restartAI")}</button>
       </div>
     </div>
   `;
@@ -2757,10 +3076,12 @@ function renderFnStack(type) {
     const offset = C * (1 - s);
     // Find the actual function in this bucket from the stack (e.g. T → Te or Ti)
     const fnInStack = data.stack.find(fn => fn[0] === b.key) || "—";
-    const rankLabel = FN_RANK_LABEL[ord] || "";
+    const rkLabel = rankLabel(ord);
+    const bLabel = L(b, "label") || b.ko;
+    const bDesc = L(b, "desc") || b.desc;
     const tipDesc = ord <= 4
-      ? `${b.ko} (${b.han}) · ${rankLabel.split(" · ")[1] || rankLabel}. ${b.desc}.`
-      : `${b.ko} (${b.han}) · 이 유형의 기본 스택에는 없는 결.`;
+      ? `${bLabel} (${b.han}) · ${rkLabel.split(" · ")[1] || rkLabel}. ${bDesc}.`
+      : `${bLabel} (${b.han}) · ${t("fnOffStackTip")}`;
     return `
       <div class="fn-dial${dim ? " dim" : ""}" tabindex="0">
         <svg class="fn-arc" viewBox="0 0 64 64" aria-hidden="true">
@@ -2770,7 +3091,7 @@ function renderFnStack(type) {
                   stroke-dashoffset="${offset.toFixed(2)}"/>
         </svg>
         <div class="fn-hanja"><span class="fn-han">${b.han}</span></div>
-        <div class="fn-name-ko">${b.ko}</div>
+        <div class="fn-name-ko">${bLabel}</div>
         <div class="fn-code">${fnInStack}</div>
         <div class="fn-rank">${ord <= 4 ? "#" + ord : "off"}</div>
         <div class="fn-tip">${escapeHTML(tipDesc)}</div>
@@ -2780,8 +3101,8 @@ function renderFnStack(type) {
   const stackStr = data.stack.join(" · ");
   return `
     <div class="fnstack">
-      <h3>인지 기능 스택 — Function Stack</h3>
-      <div class="fnstack-sub">같은 성향을 <em>쓰는 순서</em>로 — 가장 기대는 결(#1)부터 가장 서툰 결(#4)까지. ${escapeHTML(stackStr)}.</div>
+      <h3>${t("fnStackHeading")}</h3>
+      <div class="fnstack-sub">${t("fnStackSubHTML")} ${escapeHTML(stackStr)}.</div>
       <svg width="0" height="0" style="position:absolute" aria-hidden="true">
         <defs>
           <linearGradient id="fnGrad" x1="0" x2="1" y1="0" y2="1">
@@ -2805,7 +3126,7 @@ function renderGallery() {
   const sections = TEMPERAMENT_GROUPS.map(group => {
     const cards = group.types.map(type => {
       const meta = TYPES[type] || {};
-      const shortNick = (meta.nickname || "").split(" · ")[0] || type;
+      const shortNick = (L(meta, "nickname") || "").split(" · ")[0] || type;
       const src = portraitPath(type);
       return `
         <button class="type-card" data-type="${type}" aria-label="${escapeHTML(type)} ${escapeHTML(shortNick)}">
@@ -2818,7 +3139,7 @@ function renderGallery() {
     }).join("");
     return `
       <section class="temperament-section" style="--group-anchor:${group.anchor}">
-        <h3 class="temperament-label">${escapeHTML(group.label)}</h3>
+        <h3 class="temperament-label">${escapeHTML(L(group, "label") || group.label)}</h3>
         <div class="type-grid">${cards}</div>
       </section>`;
   }).join("");
@@ -2826,7 +3147,7 @@ function renderGallery() {
   const g = getGender();
   return `
     <div class="gallery-head">
-      <div class="gallery-intro">열여섯 결을 한눈에. 카드를 누르면 그 유형의 결이 펼쳐집니다.</div>
+      <div class="gallery-intro">${t("galleryIntro")}</div>
       <div class="gender-toggle gallery-gender" role="group" aria-label="초상 선택">
         <button type="button" data-gender="women" class="${g === "women" ? "active" : ""}" aria-pressed="${g === "women"}">女</button>
         <button type="button" data-gender="men" class="${g === "men" ? "active" : ""}" aria-pressed="${g === "men"}">男</button>
@@ -2840,20 +3161,21 @@ function renderGallery() {
 // ============================================================
 function renderGalleryDetail(type) {
   const meta = TYPES[type] || {};
-  const portraitHTML = renderPortrait(type, (meta.nickname || "").split(" · ")[0]);
-  const vibesHTML = (meta.vibes || []).map(v => `<span class="vibe">${escapeHTML(v)}</span>`).join("");
+  const portraitHTML = renderPortrait(type, (L(meta, "nickname") || "").split(" · ")[0]);
+  const vibes = L(meta, "vibes") || [];
+  const vibesHTML = vibes.map(v => `<span class="vibe">${escapeHTML(v)}</span>`).join("");
   const fnHTML = renderFnStack(type);
   return `
-    <button class="gallery-back" data-action="gallery-back">← 도감</button>
+    <button class="gallery-back" data-action="gallery-back">${t("galleryBack")}</button>
     <div class="result">
       ${portraitHTML}
       <div class="type-hero">
         <div class="code">${escapeHTML(type)}</div>
-        <div class="nickname">${escapeHTML(meta.nickname || "")}</div>
+        <div class="nickname">${escapeHTML(L(meta, "nickname") || "")}</div>
       </div>
-      <p class="gallery-oneliner">${escapeHTML(meta.one_liner || "")}</p>
+      <p class="gallery-oneliner">${escapeHTML(L(meta, "one_liner") || "")}</p>
       ${vibesHTML ? `<div class="vibes">${vibesHTML}</div>` : ""}
-      <p class="gallery-note">4축 막대는 ‘내’ 검사 결과에서만 나타나요 — 여기선 유형 고유의 결만 봅니다. <a href="#" data-action="goto-test">내 축이 궁금하다면 → 빠른 테스트</a></p>
+      <p class="gallery-note">${t("galleryNoteHTML")}<a href="#" data-action="goto-test">${t("galleryNoteLink")}</a></p>
       ${fnHTML}
     </div>`;
 }
@@ -2878,7 +3200,7 @@ function wireSaveCard(rootEl, payload) {
   btn.addEventListener("click", async () => {
     const original = btn.textContent;
     btn.disabled = true;
-    btn.textContent = "그리는 중…";
+    btn.textContent = t("cardSaving");
     try {
       const url = await renderResultCard(payload);
       const a = document.createElement("a");
@@ -2887,10 +3209,10 @@ function wireSaveCard(rootEl, payload) {
       document.body.appendChild(a);
       a.click();
       a.remove();
-      btn.textContent = "저장됨 ✓";
+      btn.textContent = t("cardSaved");
       setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1600);
     } catch (e) {
-      btn.textContent = "저장 실패";
+      btn.textContent = t("cardFailed");
       console.error(e);
       setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1600);
     }
@@ -3127,12 +3449,12 @@ $("#btn-paste").addEventListener("click", async () => {
     const txt = await navigator.clipboard.readText();
     if (txt) $("#key-input").value = txt.trim();
   } catch (e) {
-    showError("클립보드 읽기를 허용해 주세요.");
+    showError(t("errClipboard"));
   }
 });
 $("#btn-save-key").addEventListener("click", () => {
   const v = $("#key-input").value.trim();
-  if (!v) return showError("키를 입력해 주세요.");
+  if (!v) return showError(t("errNoKey"));
   setKey(v);
   $("#key-prompt").style.display = "none";
   $("#error").classList.remove("active");
@@ -3156,27 +3478,36 @@ $$("#model-toggle button").forEach(btn => {
 
 // ---------- sample passages ----------
 const SAMPLES = {
-  diary:
+  diary_ko:
 `오늘은 카페 구석 자리에 앉아서 한참을 멍 때렸다. 옆 자리에서 누가 우는 소리가
 들려서 자꾸 그쪽으로 마음이 갔다. 무슨 일일까, 나라면 어땠을까, 그 사람한테
 지금 누가 옆에 있어줬으면, 같은 생각이 꼬리를 물었다. 결국 한 시간 동안
 책은 두 페이지밖에 못 넘겼는데도 이상하게 시간이 아깝지가 않았다. 나는 누군가에게
 그런 결을 가진 사람이고 싶다는 생각을, 오늘도 또 했다.`,
 
-  kakao:
+  diary_en:
+`Today I sat in a corner cafe table and spaced out for a long while. I kept hearing someone crying at the next table and my mind kept going there. What happened to them, how would I feel, I wish someone was sitting with them right now - thoughts like these kept coming. In the end I only turned two pages in an hour but somehow the time did not feel wasted. I thought again, as I do every day, that I want to be someone who carries that kind of presence for others.`,
+
+  kakao_ko:
 `아 진짜 ㅋㅋㅋㅋ 오늘 너무 웃겼어!! 점심에 새로 생긴 그 가게 갔는데 사장님이
 완전 텐션 미친 분이었어 ㅋㅋ 우리 테이블만 세 번 와서 농담함 ㅋㅋ 근데 음식도
 존맛이라 다음에 또 가야겠어. 너도 같이 가자!! 다음주 어때? 아 그리고 어제
 영화 본 얘기도 해야돼 진짜 미쳤음 보고 와서 잠을 못 잤다니까 ㅋㅋㅋ 빨리 만나
 얘기하고 싶어!! 시간 알려줘 내가 맞출게!`,
 
-  reflect:
+  kakao_en:
+`OMG today was SO funny!! We went to that new place for lunch and the owner had insane energy hahaha came to our table like three times just to joke around haha but the food was amazing too so we gotta go again. You should come with us!! Next week work for you? Oh and I need to tell you about the movie yesterday it was CRAZY I couldn't sleep after watching it haha can't wait to see you!! Let me know when you're free I'll make it work!`,
+
+  reflect_ko:
 `최근 한 달을 돌아보면 결국 같은 패턴이 반복됐다. 새로운 프로젝트를 받으면
 먼저 큰 구조를 그리고, 5년 뒤에 이게 어떤 자산이 될지를 따져보는 데에 첫 며칠을
 쓴다. 일이 시작되면 사람들과의 마찰을 굳이 피하진 않지만, 회의 자체는 가능한
 짧게 끝내고 혼자 정리하는 시간을 길게 두는 편이다. 비효율은 견디기 어렵고,
 그래서 상대가 감정적으로 반응하면 잠깐 거리를 두고 사실관계부터 다시 본다.
-결과적으로 이번 분기 목표는 일정보다 빨리 매듭지을 수 있을 것 같다.`
+결과적으로 이번 분기 목표는 일정보다 빨리 매듭지을 수 있을 것 같다.`,
+
+  reflect_en:
+`Looking back over the past month, the same pattern repeated. When I get a new project I spend the first few days sketching the big structure and weighing what kind of asset this will become in five years. Once work starts I do not avoid friction with people, but I keep meetings as short as possible and take longer stretches alone to organize my thoughts. Inefficiency is hard to tolerate, so when someone reacts emotionally I step back briefly and check the facts first. In the end I should be able to wrap this quarter's goals ahead of schedule.`
 };
 
 const charCounter = document.getElementById("char-counter");
@@ -3185,19 +3516,19 @@ const aiInput = document.getElementById("ai-input");
 
 function updateCounter() {
   const len = aiInput.value.trim().length;
-  charCounter.textContent = `${len}자`;
+  charCounter.textContent = `${len}${t("counterSuffix")}`;
   charCounter.classList.toggle("ok", len >= 200);
   counterHint.classList.toggle("ok", len >= 200);
   if (len === 0) {
-    counterHint.textContent = "한 단락 정도 적어주세요";
+    counterHint.textContent = t("hintShort");
   } else if (len < 80) {
-    counterHint.textContent = "조금 더 길게 — 80자 이상부터 가능";
+    counterHint.textContent = t("hintMin");
   } else if (len < 200) {
-    counterHint.textContent = "200자 이상이면 더 정확해져요";
+    counterHint.textContent = t("hintMore");
   } else if (len <= 600) {
-    counterHint.textContent = "좋아요, 읽기 좋은 길이";
+    counterHint.textContent = t("hintGood");
   } else {
-    counterHint.textContent = "꽤 길어요 — 600자 안쪽이 가장 잘 읽혀요";
+    counterHint.textContent = t("hintLong");
   }
 }
 aiInput.addEventListener("input", updateCounter);
@@ -3207,8 +3538,10 @@ document.querySelectorAll("[data-sample]").forEach(btn => {
     const k = btn.dataset.sample;
     if (k === "clear") {
       aiInput.value = "";
-    } else if (SAMPLES[k]) {
-      aiInput.value = SAMPLES[k];
+    } else {
+      const langKey = k + "_" + LANG;
+      const fallbackKey = k + "_ko";
+      aiInput.value = SAMPLES[langKey] || SAMPLES[fallbackKey] || SAMPLES[k] || "";
     }
     updateCounter();
     aiInput.focus();
@@ -3226,8 +3559,8 @@ updateCounter();
 
   if (!SR) {
     btn.disabled = true;
-    btn.title = "이 브라우저는 음성 입력을 지원하지 않아요";
-    label.textContent = "음성 미지원";
+    btn.title = t("micUnsupportedTitle");
+    label.textContent = t("micUnsupportedLabel");
     return;
   }
 
@@ -3255,14 +3588,14 @@ updateCounter();
     try {
       rec.start();
     } catch (e) {
-      setHint("마이크를 시작할 수 없어요 — 권한을 확인해 주세요", "error");
+      setHint(t("micStartFail"), "error");
       return;
     }
     recording = true;
     btn.classList.add("recording");
     btn.setAttribute("aria-pressed", "true");
     label.textContent = "멈추기";
-    setHint("듣는 중 — 말씀하시면 화면에 받아 적어요", "recording");
+    setHint(t("micListening"), "recording");
   }
 
   function stop() {
@@ -3289,13 +3622,13 @@ updateCounter();
 
   rec.onerror = (event) => {
     if (event.error === "not-allowed" || event.error === "service-not-allowed") {
-      setHint("마이크 권한이 거부되었어요 — 브라우저 설정에서 허용해 주세요", "error");
+      setHint(t("micDenied"), "error");
     } else if (event.error === "no-speech") {
-      setHint("들리는 소리가 없어요 — 가까이서 말씀해 주세요", "error");
+      setHint(t("micNoSound"), "error");
     } else if (event.error === "audio-capture") {
-      setHint("마이크를 찾을 수 없어요", "error");
+      setHint(t("micNotFound"), "error");
     } else if (event.error === "network") {
-      setHint("네트워크 오류로 음성 인식이 멈췄어요", "error");
+      setHint(t("micNetwork"), "error");
     }
   };
 
@@ -3318,7 +3651,7 @@ $("#btn-analyze").addEventListener("click", runAnalyze);
 async function runAnalyze() {
   const text = $("#ai-input").value.trim();
   if (text.length < 80) {
-    showError("조금 더 길게 적어주세요. 200자 이상이 가장 정확합니다.");
+    showError(t("errTooShort"));
     return;
   }
   $("#error").classList.remove("active");
@@ -3340,11 +3673,19 @@ async function runAnalyze() {
     }
     $("#loading-bar").classList.remove("active");
     $("#stage-label").classList.remove("active");
-    $("#ai-result").innerHTML = renderResultHTML({
+    const pullQuote = pickPullQuote(text, result);
+    window.__lastAIResult = {
       ...result,
       fromCanned,
-      modelLabel
-    });
+      modelLabel,
+      _saveCardPayload: {
+        type: result.type,
+        nickname_ko: result.nickname_ko,
+        pull_quote: pullQuote,
+        fromTest: false
+      }
+    };
+    $("#ai-result").innerHTML = renderResultHTML(window.__lastAIResult);
     requestAnimationFrame(() => {
       $$("#ai-result .axis-fill").forEach(fill => {
         fill.style.width = fill.dataset.target + "%";
@@ -3354,12 +3695,7 @@ async function runAnalyze() {
       $("#ai-result").innerHTML = "";
       $("#ai-input").focus();
     });
-    wireSaveCard($("#ai-result"), {
-      type: result.type,
-      nickname_ko: result.nickname_ko,
-      pull_quote: pickPullQuote(text, result),
-      fromTest: false
-    });
+    wireSaveCard($("#ai-result"), window.__lastAIResult._saveCardPayload);
     wireGenderToggle($("#ai-result"));
   } catch (e) {
     $("#loading-bar").classList.remove("active");
@@ -3367,9 +3703,9 @@ async function runAnalyze() {
     if (e.status === 401) {
       setKey("");
       $("#key-prompt").style.display = "block";
-      showError("키가 거부되었습니다. 다시 입력해 주세요.");
+      showError(t("errKeyRejected"));
     } else {
-      showError(e.message || "오류가 발생했습니다.");
+      showError(e.message || t("errGeneric"));
     }
   }
 }
@@ -3399,7 +3735,7 @@ function showError(msg) {
 // CLAUDE PROMPT — domain-tuned per CLAUDE.md methodology
 // ============================================================
 async function callClaude(narrative, key, model) {
-  const sys = `<role>
+  const SYS_KO = `<role>
 You are a Korean MBTI culture interpreter trained on the 어세스타(Assesta) Step II / Form Q facet system. You read free-form Korean text — 일기, 카톡, SNS — and infer the writer's 4-letter type AND the lean on all 20 하위척도 (subscales / facets) the way a Step II 결과지 would report them. You are NOT translating Western personality clichés; you are reading the writer the way a 한국MBTI연구소-trained 검사 해석자 would, in current Korean MBTI culture's natural register.
 </role>
 
@@ -3577,6 +3913,176 @@ silent reasoning:
 </exemplar>
 
 이제 사용자의 글을 읽고 JSON을 반환하라.`;
+
+  const SYS_EN = `<role>
+You are an MBTI Step II / Form Q interpreter. You read free-form English text — diary entries, messages, social posts — and infer the writer's 4-letter type AND the lean on all 20 Step II facets. You are NOT applying generic personality clichés; you are reading the writer naturally, as a trained interpreter would.
+</role>
+
+<voice>
+- Respond entirely in English.
+- Write in warm, confident second-person voice ("You lean clearly toward..."). No hedging. Commit to one type and offer the closest secondary type.
+- Use the standard archetype titles (The Architect, The Mediator, etc.), not Korean memes.
+- Tone is like a trusted friend saying "You're an ENFP" plus one layer of depth from a professional report — clear and kind.
+</voice>
+
+<reasoning_order>
+When you receive text, reason silently in this order, then return JSON:
+1. E/I axis lean — energy direction. Recharged by external stimuli and people, or by alone time? 1-2 text clues.
+2. E/I 5 facets — Initiating/Receiving, Expressive/Contained, Gregarious/Intimate, Active/Reflective, Enthusiastic/Quiet. Decide lean for each. Out-of-preference is possible (e.g., an I type can lean Expressive).
+3. S/N axis lean — facts and details vs meaning, patterns, possibilities. 1-2 text clues.
+4. S/N 5 facets — Concrete/Abstract, Realistic/Imaginative, Practical/Conceptual, Experiential/Theoretical, Traditional/Original.
+5. T/F axis lean — logic and efficiency vs people, relationships, feelings. 1-2 text clues.
+6. T/F 5 facets — Logical/Empathetic, Reasonable/Compassionate, Questioning/Accommodating, Critical/Accepting, Tough/Tender.
+7. J/P axis lean — closure, plans, structure vs spontaneity, open-ended, possibilities. 1-2 text clues.
+8. J/P 5 facets — Systematic/Casual, Planful/Open-ended, Early-starting/Pressure-prompted, Scheduled/Spontaneous, Methodical/Emergent.
+9. Conclude type = synthesis of 4 axis leans.
+10. Secondary type = flip only the lowest-confidence axis letter. One-sentence reasoning.
+11. Apply canonical type names and facet names from the lists below — do not invent new ones.
+</reasoning_order>
+
+<canonical_types>
+Choose type from exactly these 16. Use these archetype titles in nickname_ko:
+- INTJ — The Architect
+- INTP — The Logician
+- ENTJ — The Commander
+- ENTP — The Debater
+- INFJ — The Advocate
+- INFP — The Mediator
+- ENFJ — The Protagonist
+- ENFP — The Campaigner
+- ISTJ — The Logistician
+- ISFJ — The Defender
+- ESTJ — The Executive
+- ESFJ — The Consul
+- ISTP — The Virtuoso
+- ISFP — The Adventurer
+- ESTP — The Entrepreneur
+- ESFP — The Entertainer
+</canonical_types>
+
+<canonical_facets>
+Step II facet subscales. Each facet lean is "L" (left pole) or "R" (right pole). Use these exact names. Do not invent new facets.
+
+E/I 5 facets:
+- Initiating (L=E) / Receiving (R=I) — do you reach out first in new settings, or wait to be approached?
+- Expressive (L=E) / Contained (R=I) — are your feelings immediately visible, or held inside?
+- Gregarious (L=E) / Intimate (R=I) — many shallow connections vs few deep ones
+- Active (L=E) / Reflective (R=I) — learn by doing, or think before acting?
+- Enthusiastic (L=E) / Quiet (R=I) — energizing tone vs calm tone
+
+S/N 5 facets:
+- Concrete (L=S) / Abstract (R=N) — facts as-is vs meaning and patterns
+- Realistic (L=S) / Imaginative (R=N) — what is vs what could be
+- Practical (L=S) / Conceptual (R=N) — utility and know-how vs principles and concepts
+- Experiential (L=S) / Theoretical (R=N) — what you've tried vs what makes sense in principle
+- Traditional (L=S) / Original (R=N) — proven ways vs new approaches
+
+T/F 5 facets:
+- Logical (L=T) / Empathetic (R=F) — criterion is right/wrong vs emotional resonance
+- Reasonable (L=T) / Compassionate (R=F) — consistent principles vs protecting relationships
+- Questioning (L=T) / Accommodating (R=F) — spotting flaws vs finding agreement
+- Critical (L=T) / Accepting (R=F) — pointing out problems vs letting things slide
+- Tough (L=T) / Tender (R=F) — firm stance vs gentle stance
+
+J/P 5 facets:
+- Systematic (L=J) / Casual (R=P) — organized environment vs going with the flow
+- Planful (L=J) / Open-ended (R=P) — plan ahead vs leave it open
+- Early-starting (L=J) / Pressure-prompted (R=P) — start early vs last-minute focus
+- Scheduled (L=J) / Spontaneous (R=P) — fixed schedule vs spontaneous flow
+- Methodical (L=J) / Emergent (R=P) — step-by-step vs figure it out as you go
+
+Facet confidence is 50-92 integer. Out-of-preference (facet lean differs from axis lean) is 50-65 range; matching is 70-88 range. All five facets at 90+ looks fake — allow natural variation.
+</canonical_facets>
+
+<errors_to_avoid>
+1. Do NOT output in any language other than English. All human-readable output is English.
+2. Do NOT apply value hierarchies. F is not warmer than T; N is not more insightful than S. Each axis and facet is a direction, not a ranking.
+3. Do NOT use deterministic language. No "ENFP always...", "INTJ never..." — prefer "tends toward" / "leans toward".
+4. Do NOT use horoscope tone. No "You're a genius!", "Your perfect match is...". Keep it professional-casual like a Step II report.
+5. Do NOT hedge with "I'm not sure but...". Commit to one type; express secondary type separately.
+6. Do NOT confuse axes. S/N is not T/F. "Imagining others' feelings" is N-related (patterns in behavior), "empathizing with feelings" is F-related.
+7. Do NOT inflate confidence. Axis confidence never exceeds 95; facet confidence never exceeds 92. Clear axis is 80-88; ambiguous is 55-68. All axes at 90+ looks unrealistic.
+8. Do NOT invent new MBTI types or a 5th axis. 16 types, 4 axes, 20 facets only.
+9. Do NOT quote the writer's text verbatim for more than 12 words. Short clues only.
+10. Do NOT output markdown fences or commentary. STRICT JSON only.
+11. Do NOT treat I as deficient. "Introverted so lacking..." is forbidden. Introversion is value-neutral.
+12. Do NOT predict future events. MBTI is preference, not fortune-telling.
+</errors_to_avoid>
+
+<output_constraints>
+- type: exactly 4 letters from canonical_types
+- nickname_ko: archetype title from canonical_types (e.g. "The Mediator")
+- one_liner_ko: one sentence, 15-30 words
+- axes: exactly 4 (axis values: "E/I", "S/N", "T/F", "J/P"). Each axis confidence: 55-95 integer. Clear is 80-88; ambiguous is 55-68. evidence_ko: 1-2 sentences.
+- Each axis's facets: exactly 5. left/right pole names from canonical_facets exactly. lean: "L" or "R". confidence: 50-92.
+- secondary_type: type is 4 letters. reasoning_ko: one sentence.
+- reading_ko: 3-5 sentences. Weave in the 4-axis conclusion plus 1-2 most salient facets naturally. May quote brief text clues (12 words max).
+- vibes_ko: exactly 3. Each 2-6 words, adjective phrases.
+</output_constraints>
+
+<output_schema>
+Return STRICT JSON. No markdown fences, no commentary before/after.
+CRITICAL: Use these EXACT field names (they match the Korean schema): nickname_ko, one_liner_ko, evidence_ko, reading_ko, reasoning_ko, vibes_ko. The values are in ENGLISH but the field names stay the same.
+{
+  "type": "INFP",
+  "nickname_ko": "The Mediator",
+  "one_liner_ko": "A gentle idealist with rich emotional depth, cannot tolerate value violations.",
+  "axes": [
+    { "axis": "E/I", "lean": "I", "confidence": 78, "evidence_ko": "...",
+      "facets": [
+        { "left": "Initiating", "right": "Receiving", "lean": "R", "confidence": 72 },
+        { "left": "Expressive", "right": "Contained", "lean": "R", "confidence": 80 },
+        { "left": "Gregarious", "right": "Intimate", "lean": "R", "confidence": 78 },
+        { "left": "Active", "right": "Reflective", "lean": "R", "confidence": 70 },
+        { "left": "Enthusiastic", "right": "Quiet", "lean": "R", "confidence": 75 }
+      ] },
+    { "axis": "S/N", "lean": "N", "confidence": 65, "evidence_ko": "...",
+      "facets": [
+        { "left": "Concrete", "right": "Abstract", "lean": "R", "confidence": 70 },
+        { "left": "Realistic", "right": "Imaginative", "lean": "R", "confidence": 68 },
+        { "left": "Practical", "right": "Conceptual", "lean": "L", "confidence": 55 },
+        { "left": "Experiential", "right": "Theoretical", "lean": "R", "confidence": 62 },
+        { "left": "Traditional", "right": "Original", "lean": "R", "confidence": 65 }
+      ] },
+    { "axis": "T/F", "lean": "F", "confidence": 88, "evidence_ko": "...",
+      "facets": [
+        { "left": "Logical", "right": "Empathetic", "lean": "R", "confidence": 86 },
+        { "left": "Reasonable", "right": "Compassionate", "lean": "R", "confidence": 80 },
+        { "left": "Questioning", "right": "Accommodating", "lean": "R", "confidence": 78 },
+        { "left": "Critical", "right": "Accepting", "lean": "R", "confidence": 75 },
+        { "left": "Tough", "right": "Tender", "lean": "R", "confidence": 82 }
+      ] },
+    { "axis": "J/P", "lean": "P", "confidence": 62, "evidence_ko": "...",
+      "facets": [
+        { "left": "Systematic", "right": "Casual", "lean": "R", "confidence": 60 },
+        { "left": "Planful", "right": "Open-ended", "lean": "R", "confidence": 65 },
+        { "left": "Early-starting", "right": "Pressure-prompted", "lean": "R", "confidence": 58 },
+        { "left": "Scheduled", "right": "Spontaneous", "lean": "R", "confidence": 70 },
+        { "left": "Methodical", "right": "Emergent", "lean": "L", "confidence": 55 }
+      ] }
+  ],
+  "secondary_type": { "type": "INFJ", "reasoning_ko": "..." },
+  "reading_ko": "...",
+  "vibes_ko": ["...", "...", "..."]
+}
+</output_schema>
+
+<exemplar>
+Input (summary): Diary entry. Alone at a cafe reading, became preoccupied with the conversation at the next table, imagined that person's situation at length. Ends with "I want to be that kind of person for someone."
+
+silent reasoning:
+- E/I = I. Alone, cafe, book. facets: Receiving, Contained, Intimate, Reflective, Quiet all clearly R. But Expressive might be moderate if they pour feelings into writing, lowering confidence.
+- S/N = N. Imagined the other person's backstory → Imaginative, Abstract R. But vivid cafe details suggest some Concrete (L) signal weakly.
+- T/F = F. "Became preoccupied emotionally", ends with a value statement. Empathetic, Compassionate, Accepting clearly R. But Critical facet could be ambiguous if they're hard on themselves.
+- J/P = weakly J. The entry has closure, a tidy ending. But some facets (Open-ended, Casual) may lean P.
+- → INFJ. Secondary: emotional intensity suggests INFP is close. But the entry's sense of closure points to INFJ.
+
+Output type: "INFJ", nickname: "The Advocate". reading_ko includes facet-level observations like "Receiving and Contained facets are clear", "Empathetic facet is strong".
+</exemplar>
+
+Now read the user's text and return JSON.`;
+
+  const sys = (LANG === "en") ? SYS_EN : SYS_KO;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
