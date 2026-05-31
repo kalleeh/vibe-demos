@@ -496,6 +496,9 @@ header.top {
   background: var(--celadon);
   color: #fff;
 }
+.lang-toggle { display: inline-flex; gap: 2px; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; vertical-align: middle; margin-right: 12px; }
+.lang-toggle button { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.08em; padding: 4px 9px; background: none; border: none; color: rgba(31,38,32,0.5); cursor: pointer; }
+.lang-toggle button.active { background: var(--accent-2); color: var(--paper); }
 .type-hero-text {
   padding: 30px 30px 32px;
   position: relative;
@@ -1451,6 +1454,10 @@ footer.bottom {
     <div class="eyebrow">Korean MBTI Read · Work 05</div>
     <h1 class="title" data-i18n-html="titleHTML">MBTI · 성격의 <em>결</em></h1>
     <div class="sub" data-i18n="sub">짧은 검사로 16유형을 읽고, 내 결을 들여다보는 시간.</div>
+  </div>
+  <div class="lang-toggle" role="group" aria-label="Language">
+    <button type="button" data-lang="ko" aria-pressed="true">KO</button>
+    <button type="button" data-lang="en" aria-pressed="false">EN</button>
   </div>
   <a class="back-link" href="../" data-i18n="backLink">← 인덱스</a>
 </header>
@@ -2491,6 +2498,10 @@ function showGalleryDetail(type) {
 }
 // Initial grid render.
 showGalleryGrid();
+// Apply persisted language on load.
+document.documentElement.lang = LANG;
+syncLangToggle();
+applyStaticStrings();
 // Delegated clicks within the gallery panel.
 $("#panel-gallery").addEventListener("click", (e) => {
   const card = e.target.closest(".type-card");
@@ -2531,6 +2542,26 @@ function applyStaticStrings() {
     });
   });
 }
+function syncLangToggle() {
+  document.querySelectorAll(".lang-toggle button").forEach(b => {
+    const on = b.dataset.lang === LANG;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+}
+function setLang(l) {
+  const next = (l === "en") ? "en" : "ko";
+  if (next === LANG) return;
+  setLangValue(next);
+  document.documentElement.lang = LANG;
+  syncLangToggle();
+  applyStaticStrings();
+  rerenderActivePanel();
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest(".lang-toggle button");
+  if (b) setLang(b.dataset.lang);
+});
 
 // ============================================================
 // TAB SWITCHING
