@@ -1483,26 +1483,26 @@ footer.bottom {
   <div id="test-intro">
     <div class="intro-card">
       <h2 data-i18n="introH">두 가지 길이로 풀 수 있어요</h2>
-      <p>각 축(외향·내향, 감각·직관, 사고·감정, 판단·인식)을 강제선택으로 측정합니다.
+      <p data-i18n-html="introP1">각 축(외향·내향, 감각·직관, 사고·감정, 판단·인식)을 강제선택으로 측정합니다.
       한국 MBTI 문화의 별명도 결과에 함께 나옵니다 — 잔망 루피, 곰돌이 푸, 인싸 끝판왕 같은 톤.</p>
-      <p>본 검사는 어세스타 정식 검사(Form M·Form Q)가 <em>아닙니다</em>.
+      <p data-i18n-html="introP2">본 검사는 어세스타 정식 검사(Form M·Form Q)가 <em>아닙니다</em>.
       실제 검사의 문항 분포와 20개 하위 결(facet) 구조를 참고해 만든 자체 한국어판 간이 검사입니다.
       진짜 정식 진단은 어세스타에서 받으시고, 더 깊은 자유 텍스트 읽기는 위 탭의 <em>AI 깊이 읽기</em>에서.</p>
-      <p class="intro-foot">하위 결(facet) 명칭은 어세스타 Step II <em>20개 facet</em> 관행을 따랐지만
+      <p class="intro-foot" data-i18n-html="introFoot">하위 결(facet) 명칭은 어세스타 Step II <em>20개 facet</em> 관행을 따랐지만
       판본·시기에 따라 명칭이 다르게 표기될 수 있습니다.</p>
       <div class="length-picker">
         <button class="length-card" data-length="quick">
           <div class="length-num">28</div>
           <div class="length-label" data-i18n="lenQuickLabel">빠른 인상</div>
           <div class="length-meta" data-i18n="lenQuickMeta">~5분 · 7문항/축</div>
-          <div class="length-desc">각 축의 5가지 결을 한 번씩 짚는 빠른 검사. 친구와 비교하기 좋아요.</div>
+          <div class="length-desc" data-i18n="lenQuickDesc">각 축의 5가지 결을 한 번씩 짚는 빠른 검사. 친구와 비교하기 좋아요.</div>
           <div class="length-cta" data-i18n="lenQuickCta">시작 →</div>
         </button>
         <button class="length-card" data-length="full">
           <div class="length-num">93</div>
           <div class="length-label" data-i18n="lenFullLabel">정밀 · Form M 길이</div>
           <div class="length-meta" data-i18n="lenFullMeta">~15분 · 21·26·24·22 분포</div>
-          <div class="length-desc">실제 Form M에 가까운 문항 수와 분포. 결과는 20개 하위 결까지.</div>
+          <div class="length-desc" data-i18n="lenFullDesc">실제 Form M에 가까운 문항 수와 분포. 결과는 20개 하위 결까지.</div>
           <div class="length-cta" data-i18n="lenFullCta">시작 →</div>
         </button>
       </div>
@@ -1529,7 +1529,7 @@ footer.bottom {
 
   <div class="ai-intro">
     <h2 data-i18n="aiH">당신의 글을 읽고 유형을 추론합니다</h2>
-    <p>일기, 카톡 한 토막, SNS 게시물, 블로그 한 단락 — 200~600자 정도의
+    <p data-i18n="aiP1">일기, 카톡 한 토막, SNS 게시물, 블로그 한 단락 — 200~600자 정도의
     자연스러운 한국어 글을 붙여넣으면 Claude가 글의 결을 읽고 16유형 중 하나를
     자신 있게 골라냅니다. 한국 MBTI 문화 별명까지 같이 달아줍니다.</p>
 
@@ -1537,29 +1537,29 @@ footer.bottom {
       <div class="hint-col good">
         <span class="hint-h" data-i18n="hintGoodH">잘 읽히는 글</span>
         <ul>
-          <li>혼잣말처럼 적은 일기 한 토막</li>
-          <li>친구에게 푸념하듯 보낸 카톡 단락</li>
-          <li>최근 있었던 한 가지 사건·감정</li>
-          <li>자연스러운 반말/존댓말, 솔직한 톤</li>
+          <li data-i18n="hintGood1">혼잣말처럼 적은 일기 한 토막</li>
+          <li data-i18n="hintGood2">친구에게 푸념하듯 보낸 카톡 단락</li>
+          <li data-i18n="hintGood3">최근 있었던 한 가지 사건·감정</li>
+          <li data-i18n="hintGood4">자연스러운 반말/존댓말, 솔직한 톤</li>
         </ul>
       </div>
       <div class="hint-col bad">
         <span class="hint-h" data-i18n="hintBadH">덜 읽히는 글</span>
         <ul>
-          <li>이력서·자기소개서처럼 정형화된 글</li>
-          <li>공지문, 뉴스 인용, 기사 같은 톤</li>
-          <li>한두 줄짜리 짧은 메시지 (50자 미만)</li>
-          <li>여러 사람의 대화가 섞인 채팅 로그</li>
+          <li data-i18n="hintBad1">이력서·자기소개서처럼 정형화된 글</li>
+          <li data-i18n="hintBad2">공지문, 뉴스 인용, 기사 같은 톤</li>
+          <li data-i18n="hintBad3">한두 줄짜리 짧은 메시지 (50자 미만)</li>
+          <li data-i18n="hintBad4">여러 사람의 대화가 섞인 채팅 로그</li>
         </ul>
       </div>
     </div>
 
-    <p class="ai-intro-foot">키 없이 <em>데모 모드</em>에서 미리 만든 예시 결과를 볼 수 있고,
+    <p class="ai-intro-foot" data-i18n-html="aiIntroFoot">키 없이 <em>데모 모드</em>에서 미리 만든 예시 결과를 볼 수 있고,
     본인 키를 입력하면 <em>실시간 모드</em>로 작동합니다.</p>
   </div>
 
   <div class="sample-row">
-    <span class="sample-label">예시 글로 시작하기 →</span>
+    <span class="sample-label" data-i18n="sampleLabel">예시 글로 시작하기 →</span>
     <button class="chip" data-sample="diary" data-i18n="sampleDiary">일기 (몽글 INFP풍)</button>
     <button class="chip" data-sample="kakao" data-i18n="sampleKakao">카톡 (인싸 ENFP풍)</button>
     <button class="chip" data-sample="reflect" data-i18n="sampleReflect">자기성찰 (조용 INTJ풍)</button>
@@ -1569,13 +1569,13 @@ footer.bottom {
   <textarea class="ai-input" id="ai-input" data-i18n-attr="placeholder:placeholder" placeholder="여기에 200~600자 정도의 한국어 글을 붙여넣어 주세요. 위 예시 칩을 눌러서 시작해도 됩니다."></textarea>
 
   <div class="counter-row">
-    <span class="counter" id="char-counter">0자</span>
-    <span class="counter-hint" id="counter-hint">한 단락 정도 더 적어주세요</span>
+    <span class="counter" id="char-counter" data-i18n="counterZero">0자</span>
+    <span class="counter-hint" id="counter-hint" data-i18n="counterHintInit">한 단락 정도 더 적어주세요</span>
   </div>
   <div class="mic-hint" id="mic-hint"></div>
 
   <div class="controls">
-    <span class="mode-pill" id="mode-pill"><span class="dot"></span><span id="mode-pill-text">데모 모드</span></span>
+    <span class="mode-pill" id="mode-pill"><span class="dot"></span><span id="mode-pill-text" data-i18n="modeDemoPill">데모 모드</span></span>
     <div class="model-toggle" id="model-toggle">
       <button data-model="claude-sonnet-4-6" class="active">Sonnet 4.6</button>
       <button data-model="claude-haiku-4-5">Haiku 4.5</button>
@@ -1591,7 +1591,7 @@ footer.bottom {
   <div class="key-prompt" id="key-prompt" style="display:none">
     <h3 data-i18n="keyPanelH">본인의 Anthropic API 키를 사용합니다</h3>
     <p data-i18n="keyPanelP">키는 이 브라우저의 localStorage에만 저장되며 어디로도 전송되지 않습니다.</p>
-    <p>키 발급 →
+    <p><span data-i18n="keyIssue">키 발급 →</span>
     <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a></p>
     <div class="key-row">
       <input type="password" class="key-input" id="key-input" placeholder="sk-ant-…" autocomplete="off">
@@ -1602,7 +1602,7 @@ footer.bottom {
   </div>
 
   <div class="error" id="error"></div>
-  <div class="stage-label" id="stage-label">분석 중 — 글의 결을 읽는 중…</div>
+  <div class="stage-label" id="stage-label" data-i18n="stageReading">분석 중 — 글의 결을 읽는 중…</div>
   <div class="loading-bar" id="loading-bar"><div class="stripe"></div></div>
 
   <div id="ai-result"></div>
@@ -1654,6 +1654,19 @@ const STR = {
     tabAI: "AI 깊이 읽기", tabAIMeta: "Free-text · Claude",
     tabGallery: "16유형 도감", tabGalleryMeta: "16유형 · 초상 도감",
     introH: "두 가지 길이로 풀 수 있어요",
+    introP1: "각 축(외향·내향, 감각·직관, 사고·감정, 판단·인식)을 강제선택으로 측정합니다. 한국 MBTI 문화의 별명도 결과에 함께 나옵니다 — 잔망 루피, 곰돌이 푸, 인싸 끝판왕 같은 톤.",
+    introP2: "본 검사는 어세스타 정식 검사(Form M·Form Q)가 <em>아닙니다</em>. 실제 검사의 문항 분포와 20개 하위 결(facet) 구조를 참고해 만든 자체 한국어판 간이 검사입니다. 진짜 정식 진단은 어세스타에서 받으시고, 더 깊은 자유 텍스트 읽기는 위 탭의 <em>AI 깊이 읽기</em>에서.",
+    introFoot: "하위 결(facet) 명칭은 어세스타 Step II <em>20개 facet</em> 관행을 따랐지만 판본·시기에 따라 명칭이 다르게 표기될 수 있습니다.",
+    lenQuickDesc: "각 축의 5가지 결을 한 번씩 짚는 빠른 검사. 친구와 비교하기 좋아요.",
+    lenFullDesc: "실제 Form M에 가까운 문항 수와 분포. 결과는 20개 하위 결까지.",
+    aiP1: "일기, 카톡 한 토막, SNS 게시물, 블로그 한 단락 — 200~600자 정도의 자연스러운 한국어 글을 붙여넣으면 Claude가 글의 결을 읽고 16유형 중 하나를 자신 있게 골라냅니다. 한국 MBTI 문화 별명까지 같이 달아줍니다.",
+    hintGood1: "혼잣말처럼 적은 일기 한 토막", hintGood2: "친구에게 푸념하듯 보낸 카톡 단락", hintGood3: "최근 있었던 한 가지 사건·감정", hintGood4: "자연스러운 반말/존댓말, 솔직한 톤",
+    hintBad1: "이력서·자기소개서처럼 정형화된 글", hintBad2: "공지문, 뉴스 인용, 기사 같은 톤", hintBad3: "한두 줄짜리 짧은 메시지 (50자 미만)", hintBad4: "여러 사람의 대화가 섞인 채팅 로그",
+    aiIntroFoot: "키 없이 <em>데모 모드</em>에서 미리 만든 예시 결과를 볼 수 있고, 본인 키를 입력하면 <em>실시간 모드</em>로 작동합니다.",
+    sampleLabel: "예시 글로 시작하기 →",
+    keyIssue: "키 발급 →",
+    counterZero: "0자", counterHintInit: "한 단락 정도 더 적어주세요",
+    docTitle: "MBTI · 성격의 결 — Korean MBTI Read",
     lenQuickLabel: "빠른 인상", lenQuickMeta: "~5분 · 7문항/축", lenQuickCta: "시작 →",
     lenFullLabel: "정밀 · Form M 길이", lenFullMeta: "~15분 · 21·26·24·22 분포", lenFullCta: "시작 →",
     aiH: "당신의 글을 읽고 유형을 추론합니다",
@@ -1701,6 +1714,19 @@ const STR = {
     tabAI: "AI Deep Read", tabAIMeta: "Free-text · Claude",
     tabGallery: "16 Types", tabGalleryMeta: "16 types · portrait index",
     introH: "Two lengths to choose from",
+    introP1: "Each axis (Extraversion/Introversion, Sensing/Intuition, Thinking/Feeling, Judging/Perceiving) is measured by forced choice. Your result comes with a Korean MBTI-culture nickname too - in the spirit of Loopy, Pooh Bear, life-of-the-party.",
+    introP2: "This is <em>not</em> the official Assesta test (Form M / Form Q). It's a homemade Korean-style short test built by referencing the real test's item distribution and 20-facet structure. For a real diagnosis, see Assesta; for a deeper free-text read, use <em>AI Deep Read</em> in the tab above.",
+    introFoot: "Facet names follow the Assesta Step II <em>20-facet</em> convention, but naming may vary by edition and era.",
+    lenQuickDesc: "A quick test that touches each axis's five facets once. Great for comparing with friends.",
+    lenFullDesc: "Item count and distribution close to the real Form M. Results go all the way to the 20 facets.",
+    aiP1: "Paste a diary entry, a chat snippet, a social post, or a blog paragraph - about 200-600 characters of natural writing - and Claude reads its grain and confidently picks one of the 16 types. It even adds a Korean MBTI-culture nickname.",
+    hintGood1: "A diary entry written like talking to yourself", hintGood2: "A chat message venting to a friend", hintGood3: "One recent event or feeling", hintGood4: "Natural casual or polite tone, honest voice",
+    hintBad1: "Formal writing like a resume or cover letter", hintBad2: "Announcements, news quotes, article tone", hintBad3: "A one-or-two-line short message (under 50 chars)", hintBad4: "A chat log mixing several people's voices",
+    aiIntroFoot: "Without a key you can see pre-made examples in <em>Demo mode</em>; enter your own key to run in <em>Live mode</em>.",
+    sampleLabel: "Start with a sample →",
+    keyIssue: "Get a key →",
+    counterZero: "0 chars", counterHintInit: "About one more paragraph, please",
+    docTitle: "MBTI · the grain of you — Korean MBTI Read",
     lenQuickLabel: "Quick impression", lenQuickMeta: "~5 min · 7 items/axis", lenQuickCta: "Start →",
     lenFullLabel: "Precise · Form M length", lenFullMeta: "~15 min · 21·26·24·22 split", lenFullCta: "Start →",
     aiH: "It reads your writing and infers your type",
@@ -2637,6 +2663,7 @@ function applyStaticStrings() {
       if (attr && key) el.setAttribute(attr, t(key));
     });
   });
+  document.title = t("docTitle");
 }
 function syncLangToggle() {
   document.querySelectorAll(".lang-toggle button").forEach(b => {
