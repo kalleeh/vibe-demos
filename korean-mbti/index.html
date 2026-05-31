@@ -2296,14 +2296,17 @@ function _f(left, right, lean, conf) {
 
 const CANNED = [
   {
-    matches: ["조용히", "혼자", "책", "생각", "감정", "마음", "글", "일기"],
+    matches: ["조용히", "혼자", "책", "생각", "감정", "마음", "글", "일기", "quiet", "alone", "book", "feeling", "introspective", "journal", "meaningful"],
     result: {
       type: "INFJ",
       nickname_ko: "선의의 옹호자 · 조용한 통찰가",
+      nickname_en: "INFJ - The Advocate",
       one_liner_ko: "말 적게 하지만 사람과 맥락을 깊이 읽는, 신중한 이상주의자.",
+      one_liner_en: "Speaks little but reads people and context deeply - a thoughtful idealist.",
       axes: [
         { axis: "E/I", lean: "I", confidence: 82,
           evidence_ko: "“혼자 있는 시간이 좋다”는 표현, 사람을 만난 뒤 회복이 필요하다는 결이 반복돼서 내향이 또렷합니다.",
+          evidence_en: "The phrase 'I like time alone' and the recurring thread of needing recovery after being with people reveal clear introversion.",
           facets: [
             _f("주도", "수용", "R", 78),
             _f("표현", "보유", "R", 72),
@@ -2313,6 +2316,7 @@ const CANNED = [
           ] },
         { axis: "S/N", lean: "N", confidence: 76,
           evidence_ko: "사실 나열보다 감정과 의미를 곱씹는 표현이 많고, 사건보다 그 사건의 결을 더 길게 풀어냅니다.",
+          evidence_en: "More focus on emotional meaning than factual listing, unpacking the texture of events rather than just the events themselves.",
           facets: [
             _f("구체적", "추상적", "R", 78),
             _f("현실적", "상상적", "R", 70),
@@ -2322,6 +2326,7 @@ const CANNED = [
           ] },
         { axis: "T/F", lean: "F", confidence: 80,
           evidence_ko: "사람의 마음을 먼저 읽고, “마음이 쓰였다”는 표현이 자연스럽게 등장합니다.",
+          evidence_en: "Reads people's hearts first, and phrases like 'I felt for them' appear naturally.",
           facets: [
             _f("논리적", "정서적", "R", 84),
             _f("이성적", "우호적", "R", 76),
@@ -2331,6 +2336,7 @@ const CANNED = [
           ] },
         { axis: "J/P", lean: "J", confidence: 64,
           evidence_ko: "감정을 풀어내는 톤은 부드러우나 결론으로 향하는 정리감이 분명합니다 — 열린 결말보다 매듭.",
+          evidence_en: "The tone is gentle but there's a clear sense of moving toward closure - knots rather than open endings.",
           facets: [
             _f("체계적", "일상적", "L", 62),
             _f("계획적", "개방적", "L", 60),
@@ -2340,20 +2346,26 @@ const CANNED = [
           ] }
       ],
       secondary_type: { type: "INFP",
-        reasoning_ko: "감정·의미 축이 강해서 INFP가 근접합니다. 다만 글의 정리 정도가 또렷해 J 쪽으로 한 발 더 가까워집니다." },
+        reasoning_ko: "감정·의미 축이 강해서 INFP가 근접합니다. 다만 글의 정리 정도가 또렷해 J 쪽으로 한 발 더 가까워집니다.",
+        reasoning_en: "The strong feeling/meaning axis brings INFP close, but the clear sense of organization tips it toward the J side of INFJ." },
       reading_ko: "혼자만의 시간에서 의미를 길어 올리는 톤입니다. 다양한관계보다 친밀한관계, 활동성보다 반추 facet이 또렷해 내향의 결이 분명하고, 정서적·강인함(유연함) 결도 명료합니다. 다만 비평적/허용적 facet에서는 본인을 향한 엄격함이 살짝 비치고, 결론으로 향하는 매듭감 때문에 INFP가 아니라 INFJ에 한 발 더 가깝습니다.",
-      vibes_ko: ["조용한 통찰", "의미 우선", "내면 정리"]
+      reading_en: "This is a voice that draws meaning from solitude. The Intimate over Gregarious and Reflective over Active facets reveal a clear introverted grain, and the Empathetic and Tender facets are unmistakable. Yet the Critical-over-Accepting facet hints at self-directed rigor, and the sense of reaching for closure pushes this closer to INFJ than INFP.",
+      vibes_ko: ["조용한 통찰", "의미 우선", "내면 정리"],
+      vibes_en: ["Quiet insight", "Meaning-first", "Inner order"]
     }
   },
   {
-    matches: ["계획", "효율", "해야", "끝내", "성과", "목표"],
+    matches: ["계획", "효율", "해야", "끝내", "성과", "목표", "plan", "efficient", "goal", "results", "accomplish", "driven"],
     result: {
       type: "ENTJ",
       nickname_ko: "통솔자 · 추진력의 끝판왕",
+      nickname_en: "ENTJ - The Commander",
       one_liner_ko: "목표가 보이면 바로 움직이는, 비효율을 견디지 못하는 행동파.",
+      one_liner_en: "Moves immediately when a goal appears - an action-taker who cannot tolerate inefficiency.",
       axes: [
         { axis: "E/I", lean: "E", confidence: 70,
           evidence_ko: "사람을 모아서 일을 굴리는 톤이 자연스럽고, 외부 자극에서 에너지를 얻는 결이 보입니다.",
+          evidence_en: "The tone of rallying people to drive work forward feels natural, and external stimulation is clearly energizing.",
           facets: [
             _f("주도", "수용", "L", 78),
             _f("표현", "보유", "L", 65),
@@ -2363,6 +2375,7 @@ const CANNED = [
           ] },
         { axis: "S/N", lean: "N", confidence: 66,
           evidence_ko: "즉시 처리할 일들을 나열하면서도 “이게 결국 어디로 가는가”의 큰 그림을 같은 호흡에서 짚습니다.",
+          evidence_en: "Lists immediate tasks while simultaneously touching on 'where is this all going' - the big picture is present in the same breath.",
           facets: [
             _f("구체적", "추상적", "R", 62),
             _f("현실적", "상상적", "L", 55),
@@ -2372,6 +2385,7 @@ const CANNED = [
           ] },
         { axis: "T/F", lean: "T", confidence: 84,
           evidence_ko: "효율·결과·합리 같은 단어가 일상어처럼 쓰이고, 감정적 단서보다 사실·기준이 먼저입니다.",
+          evidence_en: "Words like efficiency, results, and rationality are used casually, and facts and standards come before emotional cues.",
           facets: [
             _f("논리적", "정서적", "L", 86),
             _f("이성적", "우호적", "L", 80),
@@ -2381,6 +2395,7 @@ const CANNED = [
           ] },
         { axis: "J/P", lean: "J", confidence: 80,
           evidence_ko: "“미리 끝내놓는다”, “정리해두면 마음이 편하다”의 결이 분명합니다.",
+          evidence_en: "The threads of 'finish it ahead of time' and 'having it organized brings peace of mind' are clear.",
           facets: [
             _f("체계적", "일상적", "L", 82),
             _f("계획적", "개방적", "L", 84),
@@ -2390,20 +2405,26 @@ const CANNED = [
           ] }
       ],
       secondary_type: { type: "ENTP",
-        reasoning_ko: "아이디어를 던지는 호흡이 활발해 ENTP가 근접합니다. 단, ENTP보다 결단·매듭이 또렷해 ENTJ가 더 맞습니다." },
+        reasoning_ko: "아이디어를 던지는 호흡이 활발해 ENTP가 근접합니다. 단, ENTP보다 결단·매듭이 또렷해 ENTJ가 더 맞습니다.",
+        reasoning_en: "The lively pace of tossing ideas brings ENTP close, but the decisive closure is sharper than ENTP - ENTJ is the better fit." },
       reading_ko: "글이 결론을 향해 곧장 달려갑니다. T축 다섯 facet — 논리적·이성적·의문적·비평적·강인함 — 이 모두 한 방향으로 정렬돼 있고, 계획적·조기착수 결도 또렷합니다. 따뜻함이 없지는 않지만 우선순위는 분명히 결과·체계 쪽입니다.",
-      vibes_ko: ["추진력", "큰 그림", "결단력"]
+      reading_en: "The writing drives straight toward conclusions. All five T facets - Logical, Reasonable, Questioning, Critical, Tough - align in the same direction, and the Planful and Early-starting patterns are unmistakable. There's warmth, but the priority is clearly results and structure.",
+      vibes_ko: ["추진력", "큰 그림", "결단력"],
+      vibes_en: ["Drive", "Big picture", "Decisive"]
     }
   },
   {
-    matches: ["재밌", "친구", "분위기", "노래", "ㅋㅋ", "ㅎㅎ", "여행"],
+    matches: ["재밌", "친구", "분위기", "노래", "ㅋㅋ", "ㅎㅎ", "여행", "fun", "friends", "energy", "spontaneous", "exciting", "travel", "vibes"],
     result: {
       type: "ENFP",
       nickname_ko: "스파크 · 인싸 끝판왕",
+      nickname_en: "ENFP - The Campaigner",
       one_liner_ko: "가능성을 발견하면 눈이 반짝이는, 에너지 넘치는 자유 영혼.",
+      one_liner_en: "Eyes light up at possibilities - an energetic free spirit.",
       axes: [
         { axis: "E/I", lean: "E", confidence: 88,
           evidence_ko: "사람·자리·새로운 만남의 에너지에 빠르게 반응하고, 그 자체에서 충전되는 결이 또렷합니다.",
+          evidence_en: "Responds quickly to the energy of people, gatherings, and new encounters - and clearly recharges from them.",
           facets: [
             _f("주도", "수용", "L", 84),
             _f("표현", "보유", "L", 86),
@@ -2413,6 +2434,7 @@ const CANNED = [
           ] },
         { axis: "S/N", lean: "N", confidence: 78,
           evidence_ko: "“다음에 이거 해보면 어떨까”의 가능성 회로가 끊임없이 돌아갑니다 — 직관 우세.",
+          evidence_en: "The 'what if we tried this next' possibility circuit is constantly running - intuition leads.",
           facets: [
             _f("구체적", "추상적", "R", 76),
             _f("현실적", "상상적", "R", 80),
@@ -2422,6 +2444,7 @@ const CANNED = [
           ] },
         { axis: "T/F", lean: "F", confidence: 72,
           evidence_ko: "사람과 분위기에 대한 감수성이 분석보다 앞에 있고, 따뜻함이 자연스럽습니다.",
+          evidence_en: "Sensitivity to people and atmosphere comes before analysis, and warmth flows naturally.",
           facets: [
             _f("논리적", "정서적", "R", 78),
             _f("이성적", "우호적", "R", 72),
@@ -2431,6 +2454,7 @@ const CANNED = [
           ] },
         { axis: "J/P", lean: "P", confidence: 74,
           evidence_ko: "“즉흥적으로 움직였다”, “가다가 정했다” 같은 결이 반복돼 P가 분명합니다.",
+          evidence_en: "Threads like 'moved spontaneously' and 'decided as we went' repeat throughout - P is unmistakable.",
           facets: [
             _f("체계적", "일상적", "R", 72),
             _f("계획적", "개방적", "R", 80),
@@ -2440,21 +2464,27 @@ const CANNED = [
           ] }
       ],
       secondary_type: { type: "ENFJ",
-        reasoning_ko: "사람을 모으고 챙기는 결이 강해 ENFJ가 근접합니다. 단, 즉흥·열린 결말이 또렷해서 P 쪽 ENFP가 한 발 앞섭니다." },
+        reasoning_ko: "사람을 모으고 챙기는 결이 강해 ENFJ가 근접합니다. 단, 즉흥·열린 결말이 또렷해서 P 쪽 ENFP가 한 발 앞섭니다.",
+        reasoning_en: "The strong thread of gathering and caring for people brings ENFJ close, but the spontaneous, open-ended quality tips it toward the P side - ENFP fits better." },
       reading_ko: "글의 호흡이 빠르고 환합니다. 표현·열성 facet이 매우 또렷하고, 상상적·독창적 결도 강합니다. 한 문장에서 다음 가능성으로 넘어가는 속도와 사람과의 만남 자체에서 살아나는 톤이 ENFP의 결입니다.",
-      vibes_ko: ["밝은 에너지", "가능성 사냥꾼", "사람 좋아하는"]
+      reading_en: "The rhythm is fast and bright. The Expressive and Enthusiastic facets are unmistakable, and the Imaginative and Original threads are strong. The speed of jumping from one sentence to the next possibility, and the way the voice comes alive from human connection itself, are ENFP signatures.",
+      vibes_ko: ["밝은 에너지", "가능성 사냥꾼", "사람 좋아하는"],
+      vibes_en: ["Bright energy", "Possibility hunter", "People-loving"]
     }
   },
   // default fallback
   {
-    matches: [],
+    matches: ["caring", "detail", "remember", "support", "gentle", "practical"],
     result: {
       type: "ISFJ",
       nickname_ko: "곰돌이 푸 · 다정한 수호자",
+      nickname_en: "ISFJ - The Defender",
       one_liner_ko: "조용히 챙기는, 표는 안 내지만 다 기억하고 있는 사람.",
+      one_liner_en: "Quietly caring - doesn\'t show it, but remembers everything.",
       axes: [
         { axis: "E/I", lean: "I", confidence: 68,
           evidence_ko: "외부 자극을 즐기되 회복은 혼자 이루어지는 결이 보입니다.",
+          evidence_en: "Enjoys external stimulation but recovery happens alone.",
           facets: [
             _f("주도", "수용", "R", 70),
             _f("표현", "보유", "R", 72),
@@ -2464,6 +2494,7 @@ const CANNED = [
           ] },
         { axis: "S/N", lean: "S", confidence: 72,
           evidence_ko: "구체 디테일·실제 사건 묘사가 또렷합니다 — 추상화보다 사실적 기억.",
+          evidence_en: "Concrete details and real-event descriptions are clear - factual memory over abstraction.",
           facets: [
             _f("구체적", "추상적", "L", 78),
             _f("현실적", "상상적", "L", 72),
@@ -2473,6 +2504,7 @@ const CANNED = [
           ] },
         { axis: "T/F", lean: "F", confidence: 76,
           evidence_ko: "사람들의 마음을 챙기는 표현이 자연스럽고, 본인 감정보다 주변을 먼저 읽습니다.",
+          evidence_en: "Expressions of caring for others' feelings are natural, and reads surroundings before own emotions.",
           facets: [
             _f("논리적", "정서적", "R", 74),
             _f("이성적", "우호적", "R", 78),
@@ -2482,6 +2514,7 @@ const CANNED = [
           ] },
         { axis: "J/P", lean: "J", confidence: 62,
           evidence_ko: "“미리 준비해두는” 패턴이 약하지만 분명히 있습니다.",
+          evidence_en: "The 'prepare ahead' pattern is subtle but definitely present.",
           facets: [
             _f("체계적", "일상적", "L", 68),
             _f("계획적", "개방적", "L", 60),
@@ -2491,9 +2524,12 @@ const CANNED = [
           ] }
       ],
       secondary_type: { type: "INFJ",
-        reasoning_ko: "맥락 읽는 결이 강해 INFJ가 근접합니다. 단, 글이 더 사실적·구체적이라 ISFJ에 한 발 더 가깝습니다." },
+        reasoning_ko: "맥락 읽는 결이 강해 INFJ가 근접합니다. 단, 글이 더 사실적·구체적이라 ISFJ에 한 발 더 가깝습니다.",
+        reasoning_en: "The strong thread of reading context brings INFJ close, but the more factual and concrete grain tips it toward ISFJ." },
       reading_ko: "조용한 다정함이 글 곳곳에 배어 있습니다. 친밀한관계·표현 보유 facet이 또렷하고, 구체적·경험적 facet이 강해 추상보다 사실적 기억에 무게가 실립니다. 큰 비전을 외치기보다 “지금 여기, 이 사람들”을 챙기는 결이 자연스러운 본능입니다.",
-      vibes_ko: ["조용한 다정함", "관찰러", "꾸준한 챙김"]
+      reading_en: "Quiet warmth is woven throughout the writing. The Intimate-over-Gregarious and Reserved facets are clear, and the Concrete and Experiential facets are strong - weight falls on factual memory rather than abstraction. Rather than proclaiming grand visions, the natural instinct is to care for 'these people, here and now'.",
+      vibes_ko: ["조용한 다정함", "관찰러", "꾸준한 챙김"],
+      vibes_en: ["Quiet warmth", "Observer", "Steady caring"]
     }
   }
 ];
@@ -2533,8 +2569,8 @@ function getKey() { return localStorage.getItem(KEY_STORAGE) || ""; }
 function setKey(k) { if (k) localStorage.setItem(KEY_STORAGE, k); else localStorage.removeItem(KEY_STORAGE); updateModePill(); }
 function updateModePill() {
   const pill = $("#mode-pill"), text = $("#mode-pill-text");
-  if (getKey()) { pill.classList.add("live"); text.textContent = "실시간 모드"; }
-  else          { pill.classList.remove("live"); text.textContent = "데모 모드"; }
+  if (getKey()) { pill.classList.add("live"); text.textContent = t("modeLivePill"); }
+  else          { pill.classList.remove("live"); text.textContent = t("modeDemoPill"); }
 }
 
 // ============================================================
@@ -3161,7 +3197,7 @@ function wireSaveCard(rootEl, payload) {
   btn.addEventListener("click", async () => {
     const original = btn.textContent;
     btn.disabled = true;
-    btn.textContent = "그리는 중…";
+    btn.textContent = t("cardSaving");
     try {
       const url = await renderResultCard(payload);
       const a = document.createElement("a");
@@ -3170,10 +3206,10 @@ function wireSaveCard(rootEl, payload) {
       document.body.appendChild(a);
       a.click();
       a.remove();
-      btn.textContent = "저장됨 ✓";
+      btn.textContent = t("cardSaved");
       setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1600);
     } catch (e) {
-      btn.textContent = "저장 실패";
+      btn.textContent = t("cardFailed");
       console.error(e);
       setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1600);
     }
@@ -3410,12 +3446,12 @@ $("#btn-paste").addEventListener("click", async () => {
     const txt = await navigator.clipboard.readText();
     if (txt) $("#key-input").value = txt.trim();
   } catch (e) {
-    showError("클립보드 읽기를 허용해 주세요.");
+    showError(t("errClipboard"));
   }
 });
 $("#btn-save-key").addEventListener("click", () => {
   const v = $("#key-input").value.trim();
-  if (!v) return showError("키를 입력해 주세요.");
+  if (!v) return showError(t("errNoKey"));
   setKey(v);
   $("#key-prompt").style.display = "none";
   $("#error").classList.remove("active");
@@ -3439,27 +3475,36 @@ $$("#model-toggle button").forEach(btn => {
 
 // ---------- sample passages ----------
 const SAMPLES = {
-  diary:
+  diary_ko:
 `오늘은 카페 구석 자리에 앉아서 한참을 멍 때렸다. 옆 자리에서 누가 우는 소리가
 들려서 자꾸 그쪽으로 마음이 갔다. 무슨 일일까, 나라면 어땠을까, 그 사람한테
 지금 누가 옆에 있어줬으면, 같은 생각이 꼬리를 물었다. 결국 한 시간 동안
 책은 두 페이지밖에 못 넘겼는데도 이상하게 시간이 아깝지가 않았다. 나는 누군가에게
 그런 결을 가진 사람이고 싶다는 생각을, 오늘도 또 했다.`,
 
-  kakao:
+  diary_en:
+`Today I sat in a corner cafe table and spaced out for a long while. I kept hearing someone crying at the next table and my mind kept going there. What happened to them, how would I feel, I wish someone was sitting with them right now - thoughts like these kept coming. In the end I only turned two pages in an hour but somehow the time did not feel wasted. I thought again, as I do every day, that I want to be someone who carries that kind of presence for others.`,
+
+  kakao_ko:
 `아 진짜 ㅋㅋㅋㅋ 오늘 너무 웃겼어!! 점심에 새로 생긴 그 가게 갔는데 사장님이
 완전 텐션 미친 분이었어 ㅋㅋ 우리 테이블만 세 번 와서 농담함 ㅋㅋ 근데 음식도
 존맛이라 다음에 또 가야겠어. 너도 같이 가자!! 다음주 어때? 아 그리고 어제
 영화 본 얘기도 해야돼 진짜 미쳤음 보고 와서 잠을 못 잤다니까 ㅋㅋㅋ 빨리 만나
 얘기하고 싶어!! 시간 알려줘 내가 맞출게!`,
 
-  reflect:
+  kakao_en:
+`OMG today was SO funny!! We went to that new place for lunch and the owner had insane energy hahaha came to our table like three times just to joke around haha but the food was amazing too so we gotta go again. You should come with us!! Next week work for you? Oh and I need to tell you about the movie yesterday it was CRAZY I couldn't sleep after watching it haha can't wait to see you!! Let me know when you're free I'll make it work!`,
+
+  reflect_ko:
 `최근 한 달을 돌아보면 결국 같은 패턴이 반복됐다. 새로운 프로젝트를 받으면
 먼저 큰 구조를 그리고, 5년 뒤에 이게 어떤 자산이 될지를 따져보는 데에 첫 며칠을
 쓴다. 일이 시작되면 사람들과의 마찰을 굳이 피하진 않지만, 회의 자체는 가능한
 짧게 끝내고 혼자 정리하는 시간을 길게 두는 편이다. 비효율은 견디기 어렵고,
 그래서 상대가 감정적으로 반응하면 잠깐 거리를 두고 사실관계부터 다시 본다.
-결과적으로 이번 분기 목표는 일정보다 빨리 매듭지을 수 있을 것 같다.`
+결과적으로 이번 분기 목표는 일정보다 빨리 매듭지을 수 있을 것 같다.`,
+
+  reflect_en:
+`Looking back over the past month, the same pattern repeated. When I get a new project I spend the first few days sketching the big structure and weighing what kind of asset this will become in five years. Once work starts I do not avoid friction with people, but I keep meetings as short as possible and take longer stretches alone to organize my thoughts. Inefficiency is hard to tolerate, so when someone reacts emotionally I step back briefly and check the facts first. In the end I should be able to wrap this quarter's goals ahead of schedule.`
 };
 
 const charCounter = document.getElementById("char-counter");
@@ -3468,19 +3513,19 @@ const aiInput = document.getElementById("ai-input");
 
 function updateCounter() {
   const len = aiInput.value.trim().length;
-  charCounter.textContent = `${len}자`;
+  charCounter.textContent = `${len}${t("counterSuffix")}`;
   charCounter.classList.toggle("ok", len >= 200);
   counterHint.classList.toggle("ok", len >= 200);
   if (len === 0) {
-    counterHint.textContent = "한 단락 정도 적어주세요";
+    counterHint.textContent = t("hintShort");
   } else if (len < 80) {
-    counterHint.textContent = "조금 더 길게 — 80자 이상부터 가능";
+    counterHint.textContent = t("hintMin");
   } else if (len < 200) {
-    counterHint.textContent = "200자 이상이면 더 정확해져요";
+    counterHint.textContent = t("hintMore");
   } else if (len <= 600) {
-    counterHint.textContent = "좋아요, 읽기 좋은 길이";
+    counterHint.textContent = t("hintGood");
   } else {
-    counterHint.textContent = "꽤 길어요 — 600자 안쪽이 가장 잘 읽혀요";
+    counterHint.textContent = t("hintLong");
   }
 }
 aiInput.addEventListener("input", updateCounter);
@@ -3490,8 +3535,10 @@ document.querySelectorAll("[data-sample]").forEach(btn => {
     const k = btn.dataset.sample;
     if (k === "clear") {
       aiInput.value = "";
-    } else if (SAMPLES[k]) {
-      aiInput.value = SAMPLES[k];
+    } else {
+      const langKey = k + "_" + LANG;
+      const fallbackKey = k + "_ko";
+      aiInput.value = SAMPLES[langKey] || SAMPLES[fallbackKey] || SAMPLES[k] || "";
     }
     updateCounter();
     aiInput.focus();
@@ -3509,8 +3556,8 @@ updateCounter();
 
   if (!SR) {
     btn.disabled = true;
-    btn.title = "이 브라우저는 음성 입력을 지원하지 않아요";
-    label.textContent = "음성 미지원";
+    btn.title = t("micUnsupportedTitle");
+    label.textContent = t("micUnsupportedLabel");
     return;
   }
 
@@ -3538,14 +3585,14 @@ updateCounter();
     try {
       rec.start();
     } catch (e) {
-      setHint("마이크를 시작할 수 없어요 — 권한을 확인해 주세요", "error");
+      setHint(t("micStartFail"), "error");
       return;
     }
     recording = true;
     btn.classList.add("recording");
     btn.setAttribute("aria-pressed", "true");
     label.textContent = "멈추기";
-    setHint("듣는 중 — 말씀하시면 화면에 받아 적어요", "recording");
+    setHint(t("micListening"), "recording");
   }
 
   function stop() {
@@ -3572,13 +3619,13 @@ updateCounter();
 
   rec.onerror = (event) => {
     if (event.error === "not-allowed" || event.error === "service-not-allowed") {
-      setHint("마이크 권한이 거부되었어요 — 브라우저 설정에서 허용해 주세요", "error");
+      setHint(t("micDenied"), "error");
     } else if (event.error === "no-speech") {
-      setHint("들리는 소리가 없어요 — 가까이서 말씀해 주세요", "error");
+      setHint(t("micNoSound"), "error");
     } else if (event.error === "audio-capture") {
-      setHint("마이크를 찾을 수 없어요", "error");
+      setHint(t("micNotFound"), "error");
     } else if (event.error === "network") {
-      setHint("네트워크 오류로 음성 인식이 멈췄어요", "error");
+      setHint(t("micNetwork"), "error");
     }
   };
 
@@ -3601,7 +3648,7 @@ $("#btn-analyze").addEventListener("click", runAnalyze);
 async function runAnalyze() {
   const text = $("#ai-input").value.trim();
   if (text.length < 80) {
-    showError("조금 더 길게 적어주세요. 200자 이상이 가장 정확합니다.");
+    showError(t("errTooShort"));
     return;
   }
   $("#error").classList.remove("active");
@@ -3653,9 +3700,9 @@ async function runAnalyze() {
     if (e.status === 401) {
       setKey("");
       $("#key-prompt").style.display = "block";
-      showError("키가 거부되었습니다. 다시 입력해 주세요.");
+      showError(t("errKeyRejected"));
     } else {
-      showError(e.message || "오류가 발생했습니다.");
+      showError(e.message || t("errGeneric"));
     }
   }
 }
