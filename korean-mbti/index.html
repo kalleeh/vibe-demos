@@ -1679,6 +1679,7 @@ const STR = {
     fnOffStackTip: "이 유형의 기본 스택에는 없는 결.",
     saveCardBtn: "결과 카드 저장", cardSaving: "그리는 중…", cardSaved: "저장됨 ✓", cardFailed: "저장 실패",
     navBack: "← 이전", navNext: "다음 →", navSeeResult: "결과 보기 →",
+    restartTest: "다시 풀기", restartAI: "지우고 다시",
     secondaryLabel: "2순위",
     pillFull: "93-Q FORM-M LENGTH", pillQuick: "28-Q QUICK", pillDemo: "DEMO",
     errClipboard: "클립보드 읽기를 허용해 주세요.", errNoKey: "키를 입력해 주세요.",
@@ -1725,6 +1726,7 @@ const STR = {
     fnOffStackTip: "Not part of this type's core stack.",
     saveCardBtn: "Save result card", cardSaving: "Drawing…", cardSaved: "Saved ✓", cardFailed: "Save failed",
     navBack: "← Back", navNext: "Next →", navSeeResult: "See result →",
+    restartTest: "Retake", restartAI: "Clear & redo",
     secondaryLabel: "Runner-up",
     pillFull: "93-Q FORM-M LENGTH", pillQuick: "28-Q QUICK", pillDemo: "DEMO",
     errClipboard: "Please allow clipboard access.", errNoKey: "Please enter your key.",
@@ -2094,6 +2096,11 @@ const AXIS_LABELS = {
   JP: { left: "J · 판단", right: "P · 인식" }
 };
 
+function axisLabel(axisKey, side) { // side: "left" | "right"
+  const en = { EI:{left:"E · Extraversion",right:"I · Introversion"}, SN:{left:"S · Sensing",right:"N · Intuition"}, TF:{left:"T · Thinking",right:"F · Feeling"}, JP:{left:"J · Judging",right:"P · Perceiving"} };
+  return (LANG === "en" ? en : AXIS_LABELS)[axisKey][side];
+}
+
 // 16 types — Korean cultural framing.
 // Each: nickname (한국 MBTI 문화), one_liner (25~40자), vibes (3 short phrases)
 const TYPES = {
@@ -2227,6 +2234,11 @@ const FN_RANK_LABEL = {
   4: "Inferior · 열등기능",
   5: "Off-stack · 비활성"
 };
+
+function rankLabel(ord) {
+  const en = {1:"Dominant",2:"Auxiliary",3:"Tertiary",4:"Inferior",5:"Off-stack"};
+  return (LANG === "en") ? en[ord] : FN_RANK_LABEL[ord];
+}
 
 // Helper for canned outputs — build the 5-facet array for an axis with the
 // usual lean. Keeps canned data compact while matching the new schema.
@@ -2549,6 +2561,65 @@ function syncLangToggle() {
     b.setAttribute("aria-pressed", on ? "true" : "false");
   });
 }
+function rerenderActivePanel() {
+  const active = document.querySelector(".panel.active")?.id;
+  if (active === "panel-test") {
+    const rEl = $("#test-result");
+    if (rEl && rEl.innerHTML.trim() && rEl.style.display !== "none" && state && state.lastResult) {
+      rEl.innerHTML = renderResultHTML(state.lastResult);
+      wireGenderToggle(rEl);
+      // Re-animate axis bars
+      requestAnimationFrame(() => {
+        $$("#test-result .axis-fill").forEach(fill => {
+          fill.style.width = fill.dataset.target + "%";
+        });
+      });
+      // Re-wire listeners
+      $("#test-result [data-action=restart]")?.addEventListener("click", () => {
+        $("#test-result").style.display = "none";
+        $("#test-intro").style.display = "block";
+      });
+      const meta = TYPES[state.lastResult.type] || {};
+      wireSaveCard($("#test-result"), {
+        type: state.lastResult.type,
+        nickname_ko: meta.nickname,
+        pull_quote: meta.one_liner,
+        fromTest: true,
+        testLength: state.lastResult.testLength
+      });
+    } else if (state && state.qIndex != null && typeof QUESTIONS !== "undefined" && QUESTIONS[state.qIndex]) {
+      renderQuestion();
+    }
+  } else if (active === "panel-gallery") {
+    if ($("#gallery-grid")?.style.display !== "none") {
+      showGalleryGrid();
+    } else {
+      const ty = $("#gallery-detail")?.querySelector(".type-portrait")?.dataset.type;
+      if (ty) showGalleryDetail(ty);
+    }
+  } else if (active === "panel-ai") {
+    const aEl = $("#ai-result");
+    if (aEl && aEl.innerHTML.trim() && window.__lastAIResult) {
+      aEl.innerHTML = renderResultHTML(window.__lastAIResult);
+      wireGenderToggle(aEl);
+      // Re-animate axis bars
+      requestAnimationFrame(() => {
+        $$("#ai-result .axis-fill").forEach(fill => {
+          fill.style.width = fill.dataset.target + "%";
+        });
+      });
+      // Re-wire listeners
+      $("#ai-result [data-action=restart]")?.addEventListener("click", () => {
+        $("#ai-result").innerHTML = "";
+        $("#ai-input").focus();
+      });
+      if (window.__lastAIResult._saveCardPayload) {
+        wireSaveCard($("#ai-result"), window.__lastAIResult._saveCardPayload);
+      }
+    }
+  }
+}
+
 function setLang(l) {
   const next = (l === "en") ? "en" : "ko";
   if (next === LANG) return;
@@ -2610,25 +2681,25 @@ function renderQuestion() {
   const idx = state.qIndex + 1;
   const prev = state.answers[state.qIndex]; // "a" | "b" | null
   $("#q-counter").textContent = String(idx).padStart(2, "0") + " / " + String(total).padStart(2, "0");
-  $("#q-axis").textContent = AXIS_LABELS[q.axis].left.split(" · ")[0] + " · " + AXIS_LABELS[q.axis].right.split(" · ")[0];
+  $("#q-axis").textContent = axisLabel(q.axis, "left").split(" · ")[0] + " · " + axisLabel(q.axis, "right").split(" · ")[0];
   $("#q-fill").style.width = (idx / total * 100) + "%";
 
   const isLast = state.qIndex === total - 1;
   $("#qcard").innerHTML = `
-    <div class="qprompt">${q.prompt}</div>
+    <div class="qprompt">${L(q, "prompt")}</div>
     <div class="qchoices">
       <button class="qchoice${prev === "a" ? " selected" : ""}" data-choice="a">
         <span class="marker">A</span>
-        <span>${q.a.text}</span>
+        <span>${L(q.a, "text")}</span>
       </button>
       <button class="qchoice${prev === "b" ? " selected" : ""}" data-choice="b">
         <span class="marker">B</span>
-        <span>${q.b.text}</span>
+        <span>${L(q.b, "text")}</span>
       </button>
     </div>
     <div class="qnav">
-      <button data-nav="back" ${state.qIndex === 0 ? "disabled" : ""}>← 이전</button>
-      <button data-nav="forward" ${prev == null ? "disabled" : ""}>${isLast ? "결과 보기 →" : "다음 →"}</button>
+      <button data-nav="back" ${state.qIndex === 0 ? "disabled" : ""}>${t("navBack")}</button>
+      <button data-nav="forward" ${prev == null ? "disabled" : ""}>${isLast ? t("navSeeResult") : t("navNext")}</button>
     </div>
   `;
   $$("#qcard .qchoice").forEach(btn => {
@@ -2742,7 +2813,7 @@ function showResult() {
   const lengthNote = state.testLength === "full"
     ? `${total}문항 정밀 검사 — 4축과 20개 하위 결을 함께 봅니다.`
     : `${total}문항 빠른 검사 — 인상 위주의 결과입니다. 더 정밀한 결은 93문항 검사 또는 AI 깊이 읽기에서.`;
-  $("#test-result").innerHTML = renderResultHTML({
+  state.lastResult = {
     type,
     nickname_ko: meta.nickname,
     one_liner_ko: meta.one_liner,
@@ -2761,7 +2832,8 @@ function showResult() {
     secondary_type: null,
     fromTest: true,
     testLength: state.testLength
-  });
+  };
+  $("#test-result").innerHTML = renderResultHTML(state.lastResult);
 
   // animate axis bars
   requestAnimationFrame(() => {
@@ -2795,11 +2867,11 @@ function renderFacetRows(facets) {
     const pct = Math.max(50, Math.min(95, f.confidence));
     return `
       <div class="facet-row">
-        <span class="facet-pole ${leanLeft ? "lean" : ""}">${escapeHTML(f.left)}</span>
+        <span class="facet-pole ${leanLeft ? "lean" : ""}">${escapeHTML(L(f, "left"))}</span>
         <span class="facet-bar">
           <span class="facet-fill ${leanLeft ? "left" : "right"}" style="width:${pct - 50}%"></span>
         </span>
-        <span class="facet-pole ${!leanLeft ? "lean" : ""}">${escapeHTML(f.right)}</span>
+        <span class="facet-pole ${!leanLeft ? "lean" : ""}">${escapeHTML(L(f, "right"))}</span>
       </div>
     `;
   }).join("");
@@ -2826,8 +2898,9 @@ function renderResultHTML(r) {
   const axisHTML = r.axes.map(a => {
     const isRight = a.lean === a.axis.split("/")[1];
     const dir = isRight ? "right" : "left";
-    const left  = AXIS_LABELS[a.axis.replace("/","")].left;
-    const right = AXIS_LABELS[a.axis.replace("/","")].right;
+    const axKey = a.axis.replace("/","");
+    const left  = axisLabel(axKey, "left");
+    const right = axisLabel(axKey, "right");
     const facetsHTML = renderFacetRows(a.facets);
     return `
       <div class="axis">
@@ -2842,26 +2915,27 @@ function renderResultHTML(r) {
         <div class="axis-track">
           <div class="axis-fill ${dir}" data-target="${a.confidence}" style="width:0%"></div>
         </div>
-        ${a.evidence_ko ? `<div class="axis-evidence">${escapeHTML(a.evidence_ko)}</div>` : ""}
+        ${L(a, "evidence") ? `<div class="axis-evidence">${escapeHTML(L(a, "evidence"))}</div>` : ""}
         ${facetsHTML}
       </div>
     `;
   }).join("");
 
-  const vibesHTML = (r.vibes_ko || []).map(v => `<span class="vibe">${escapeHTML(v)}</span>`).join("");
+  const vibes = L(r, "vibes") || [];
+  const vibesHTML = vibes.map(v => `<span class="vibe">${escapeHTML(v)}</span>`).join("");
 
   const secondaryHTML = r.secondary_type
-    ? `<div class="secondary"><strong>2순위 ${r.secondary_type.type}</strong> — ${escapeHTML(r.secondary_type.reasoning_ko)}</div>`
+    ? `<div class="secondary"><strong>${t("secondaryLabel")} ${r.secondary_type.type}</strong> — ${escapeHTML(L(r.secondary_type, "reasoning"))}</div>`
     : "";
 
-  const testLengthLabel = r.testLength === "full" ? "93-Q FORM-M LENGTH" : "28-Q QUICK";
+  const testLengthLabel = r.testLength === "full" ? t("pillFull") : t("pillQuick");
   const modeMeta = r.fromTest
     ? `<span class="pill">${testLengthLabel}</span>`
     : (r.fromCanned
-        ? `<span class="pill demo">DEMO</span>`
+        ? `<span class="pill demo">${t("pillDemo")}</span>`
         : `<span class="pill">CLAUDE · ${escapeHTML(r.modelLabel || "Sonnet 4.6")}</span>`);
 
-  const portraitHTML = renderPortrait(r.type, r.nickname_ko);
+  const portraitHTML = renderPortrait(r.type, L(r, "nickname"));
 
   const fnHTML = renderFnStack(r.type);
 
@@ -2872,25 +2946,25 @@ function renderResultHTML(r) {
         <div class="type-hero-text">
           <div class="meta">${modeMeta}</div>
           <div class="code">${escapeHTML(r.type)}</div>
-          <div class="nickname">${escapeHTML(r.nickname_ko)}</div>
-          <div class="one-liner">${escapeHTML(r.one_liner_ko)}</div>
+          <div class="nickname">${escapeHTML(L(r, "nickname"))}</div>
+          <div class="one-liner">${escapeHTML(L(r, "one_liner"))}</div>
         </div>
       </div>
       <div class="axes">
-        <h3>4 축 분석</h3>
-        <div class="axes-sub">유형을 이루는 <em>네 글자</em> — 각 축에서 어느 쪽에 섰는지와 그 확신도.</div>
+        <h3>${t("axesHeading")}</h3>
+        <div class="axes-sub">${t("axesSubHTML")}</div>
         ${axisHTML}
       </div>
       ${fnHTML}
       <div class="reading">
-        <h3>읽어드린 결</h3>
-        <p>${escapeHTML(r.reading_ko)}</p>
+        <h3>${t("readingHeading")}</h3>
+        <p>${escapeHTML(L(r, "reading"))}</p>
         ${secondaryHTML}
         ${vibesHTML ? `<div class="vibes">${vibesHTML}</div>` : ""}
       </div>
       <div class="result-actions">
-        <button class="btn card-btn" data-action="save-card">결과 카드 저장</button>
-        <button class="btn secondary" data-action="restart">${r.fromTest ? "다시 풀기" : "지우고 다시"}</button>
+        <button class="btn card-btn" data-action="save-card">${t("saveCardBtn")}</button>
+        <button class="btn secondary" data-action="restart">${r.fromTest ? t("restartTest") : t("restartAI")}</button>
       </div>
     </div>
   `;
@@ -2915,10 +2989,12 @@ function renderFnStack(type) {
     const offset = C * (1 - s);
     // Find the actual function in this bucket from the stack (e.g. T → Te or Ti)
     const fnInStack = data.stack.find(fn => fn[0] === b.key) || "—";
-    const rankLabel = FN_RANK_LABEL[ord] || "";
+    const rkLabel = rankLabel(ord);
+    const bLabel = L(b, "label") || b.ko;
+    const bDesc = L(b, "desc") || b.desc;
     const tipDesc = ord <= 4
-      ? `${b.ko} (${b.han}) · ${rankLabel.split(" · ")[1] || rankLabel}. ${b.desc}.`
-      : `${b.ko} (${b.han}) · 이 유형의 기본 스택에는 없는 결.`;
+      ? `${bLabel} (${b.han}) · ${rkLabel.split(" · ")[1] || rkLabel}. ${bDesc}.`
+      : `${bLabel} (${b.han}) · ${t("fnOffStackTip")}`;
     return `
       <div class="fn-dial${dim ? " dim" : ""}" tabindex="0">
         <svg class="fn-arc" viewBox="0 0 64 64" aria-hidden="true">
@@ -2928,7 +3004,7 @@ function renderFnStack(type) {
                   stroke-dashoffset="${offset.toFixed(2)}"/>
         </svg>
         <div class="fn-hanja"><span class="fn-han">${b.han}</span></div>
-        <div class="fn-name-ko">${b.ko}</div>
+        <div class="fn-name-ko">${bLabel}</div>
         <div class="fn-code">${fnInStack}</div>
         <div class="fn-rank">${ord <= 4 ? "#" + ord : "off"}</div>
         <div class="fn-tip">${escapeHTML(tipDesc)}</div>
@@ -2938,8 +3014,8 @@ function renderFnStack(type) {
   const stackStr = data.stack.join(" · ");
   return `
     <div class="fnstack">
-      <h3>인지 기능 스택 — Function Stack</h3>
-      <div class="fnstack-sub">같은 성향을 <em>쓰는 순서</em>로 — 가장 기대는 결(#1)부터 가장 서툰 결(#4)까지. ${escapeHTML(stackStr)}.</div>
+      <h3>${t("fnStackHeading")}</h3>
+      <div class="fnstack-sub">${t("fnStackSubHTML")} ${escapeHTML(stackStr)}.</div>
       <svg width="0" height="0" style="position:absolute" aria-hidden="true">
         <defs>
           <linearGradient id="fnGrad" x1="0" x2="1" y1="0" y2="1">
@@ -2963,7 +3039,7 @@ function renderGallery() {
   const sections = TEMPERAMENT_GROUPS.map(group => {
     const cards = group.types.map(type => {
       const meta = TYPES[type] || {};
-      const shortNick = (meta.nickname || "").split(" · ")[0] || type;
+      const shortNick = (L(meta, "nickname") || "").split(" · ")[0] || type;
       const src = portraitPath(type);
       return `
         <button class="type-card" data-type="${type}" aria-label="${escapeHTML(type)} ${escapeHTML(shortNick)}">
@@ -2976,7 +3052,7 @@ function renderGallery() {
     }).join("");
     return `
       <section class="temperament-section" style="--group-anchor:${group.anchor}">
-        <h3 class="temperament-label">${escapeHTML(group.label)}</h3>
+        <h3 class="temperament-label">${escapeHTML(L(group, "label") || group.label)}</h3>
         <div class="type-grid">${cards}</div>
       </section>`;
   }).join("");
@@ -2984,7 +3060,7 @@ function renderGallery() {
   const g = getGender();
   return `
     <div class="gallery-head">
-      <div class="gallery-intro">열여섯 결을 한눈에. 카드를 누르면 그 유형의 결이 펼쳐집니다.</div>
+      <div class="gallery-intro">${t("galleryIntro")}</div>
       <div class="gender-toggle gallery-gender" role="group" aria-label="초상 선택">
         <button type="button" data-gender="women" class="${g === "women" ? "active" : ""}" aria-pressed="${g === "women"}">女</button>
         <button type="button" data-gender="men" class="${g === "men" ? "active" : ""}" aria-pressed="${g === "men"}">男</button>
@@ -2998,20 +3074,21 @@ function renderGallery() {
 // ============================================================
 function renderGalleryDetail(type) {
   const meta = TYPES[type] || {};
-  const portraitHTML = renderPortrait(type, (meta.nickname || "").split(" · ")[0]);
-  const vibesHTML = (meta.vibes || []).map(v => `<span class="vibe">${escapeHTML(v)}</span>`).join("");
+  const portraitHTML = renderPortrait(type, (L(meta, "nickname") || "").split(" · ")[0]);
+  const vibes = L(meta, "vibes") || [];
+  const vibesHTML = vibes.map(v => `<span class="vibe">${escapeHTML(v)}</span>`).join("");
   const fnHTML = renderFnStack(type);
   return `
-    <button class="gallery-back" data-action="gallery-back">← 도감</button>
+    <button class="gallery-back" data-action="gallery-back">${t("galleryBack")}</button>
     <div class="result">
       ${portraitHTML}
       <div class="type-hero">
         <div class="code">${escapeHTML(type)}</div>
-        <div class="nickname">${escapeHTML(meta.nickname || "")}</div>
+        <div class="nickname">${escapeHTML(L(meta, "nickname") || "")}</div>
       </div>
-      <p class="gallery-oneliner">${escapeHTML(meta.one_liner || "")}</p>
+      <p class="gallery-oneliner">${escapeHTML(L(meta, "one_liner") || "")}</p>
       ${vibesHTML ? `<div class="vibes">${vibesHTML}</div>` : ""}
-      <p class="gallery-note">4축 막대는 ‘내’ 검사 결과에서만 나타나요 — 여기선 유형 고유의 결만 봅니다. <a href="#" data-action="goto-test">내 축이 궁금하다면 → 빠른 테스트</a></p>
+      <p class="gallery-note">${t("galleryNoteHTML")}<a href="#" data-action="goto-test">${t("galleryNoteLink")}</a></p>
       ${fnHTML}
     </div>`;
 }
@@ -3498,11 +3575,19 @@ async function runAnalyze() {
     }
     $("#loading-bar").classList.remove("active");
     $("#stage-label").classList.remove("active");
-    $("#ai-result").innerHTML = renderResultHTML({
+    const pullQuote = pickPullQuote(text, result);
+    window.__lastAIResult = {
       ...result,
       fromCanned,
-      modelLabel
-    });
+      modelLabel,
+      _saveCardPayload: {
+        type: result.type,
+        nickname_ko: result.nickname_ko,
+        pull_quote: pullQuote,
+        fromTest: false
+      }
+    };
+    $("#ai-result").innerHTML = renderResultHTML(window.__lastAIResult);
     requestAnimationFrame(() => {
       $$("#ai-result .axis-fill").forEach(fill => {
         fill.style.width = fill.dataset.target + "%";
@@ -3512,12 +3597,7 @@ async function runAnalyze() {
       $("#ai-result").innerHTML = "";
       $("#ai-input").focus();
     });
-    wireSaveCard($("#ai-result"), {
-      type: result.type,
-      nickname_ko: result.nickname_ko,
-      pull_quote: pickPullQuote(text, result),
-      fromTest: false
-    });
+    wireSaveCard($("#ai-result"), window.__lastAIResult._saveCardPayload);
     wireGenderToggle($("#ai-result"));
   } catch (e) {
     $("#loading-bar").classList.remove("active");
