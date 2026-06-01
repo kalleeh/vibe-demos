@@ -1,5 +1,5 @@
 /* sketchwings — minimal offline shell SW */
-const CACHE = "vibe-tinywings-v39";
+const CACHE = "vibe-tinywings-v40";
 const SHELL = [
   "./",
   "./index.html",
@@ -24,6 +24,9 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
+  // Never intercept cross-origin requests (PocketBase API, CDN ESM) — let them
+  // hit the network untouched so leaderboard data is always fresh.
+  if (new URL(req.url).origin !== self.location.origin) return;
   if (req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html")) {
     e.respondWith(
       fetch(req).then(r => {
