@@ -208,6 +208,7 @@
       position: relative;
     }
     .boost .fill {
+      display: block; /* it's a <span>; without this, width/height are ignored and the bar never shows */
       height: 100%; width: 0%;
       background: var(--bloom);
       transition: width 120ms linear;
