@@ -586,6 +586,15 @@
       transition: background 160ms, color 160ms;
     }
     .end-panel button:hover { background: var(--ink); color: var(--paper); }
+    .end-panel .lb-submit { margin-top: 14px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .end-panel .lb-submit[hidden] { display: none; }
+    .end-panel .lb-submit input {
+      appearance: none; border: 1px dashed var(--ink-soft); background: var(--paper-2);
+      font-family: "Caveat", cursive; font-size: 20px; color: var(--ink);
+      padding: 4px 12px; text-align: center; width: min(220px, 70vw);
+    }
+    .end-panel .lb-submit input:focus { outline: none; border-color: var(--bloom); }
+    .end-panel .lb-note { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; min-height: 12px; }
 
     @media (max-width: 640px) {
       .topbar { padding: 12px 14px 2px; gap: 6px; }
@@ -1004,6 +1013,13 @@
         you flew <span class="num" id="endDist">0</span> m<br>
         with <span class="num" id="endPerfect">0</span> perfect launches<br>
         <span id="endNewBest" style="display:none">— a new best —</span>
+      </div>
+      <div class="lb-submit" id="lbSubmit" hidden>
+        <input id="lbName" type="text" maxlength="20" placeholder="your name"
+               autocomplete="off" autocapitalize="words" spellcheck="false"
+               aria-label="your name for the leaderboard">
+        <button type="button" id="lbSubmitBtn">submit to leaderboard</button>
+        <div class="lb-note" id="lbSubmitNote" role="status" aria-live="polite"></div>
       </div>
       <button id="restartBtn">begin again</button>
     </div>
