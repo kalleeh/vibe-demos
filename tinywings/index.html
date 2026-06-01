@@ -1484,11 +1484,13 @@
           const dir = Math.sign(G.vx) || 1;
           G.vx = dir * Math.max(Math.abs(G.vx), 300); // comfortably above LIFT_VMIN so it glides, not stalls
           G.vy = Math.min(G.vy, -300);                // upward pop = "soar"
-          // CRITICAL: lift the bird clearly off the surface, else the very next
-          // physicsStep's surfing branch (by >= surface - eps) reclaims it,
-          // resets airborne=false, and the boost tap can never fire. The step-2
-          // freeze gate below then holds it airborne until the player taps.
-          G.by = G.terrain.h(G.bx) - 60;
+          // Lift JUST clear of the surface (not a big snap) so the airborne
+          // branch — not the surfing branch (by >= surface - eps) — takes over
+          // on the next step. The upward vy above then carries the bird up
+          // SMOOTHLY over ~0.4s instead of teleporting 60px in one frame; the
+          // step-2 freeze gate only engages once it tops out (vy >= 0), so the
+          // bird visibly soars to its apex and hangs there waiting for the tap.
+          G.by = G.terrain.h(G.bx) - 10;
         }
         // Show the current boost on the meter immediately (the meter is updated
         // in the render loop, which keeps running during the freeze).
@@ -1847,13 +1849,17 @@
       // stops the bird from gliding back down, landing, and stalling on the
       // next hill (loss is disabled in the tutorial). The tap spends boost and
       // advances to step 3, which drops this condition and resumes physics.
+      // Freeze only once the bird has soared to its apex (vy >= 0). The release
+      // gave it an upward pop; letting physics run until it tops out turns the
+      // launch into a visible ~0.4s rise instead of an instant teleport-up.
+      // Once at the apex we freeze and hold (timing-independent boost tap).
       if (G.tutorial && G.tutorialStep === 2 && G.airborne) {
-        if (!G._tutorialFrozen) {
+        if (!G._tutorialFrozen && G.vy >= 0) {
           G._tutorialFrozen = true;
           showCoachmark("tap NOW — spend boost in the air ✦");
           coachmark.classList.add("urgent");
         }
-        return;
+        if (G._tutorialFrozen) return; // hold at apex until the tap
       }
       // Leaving any tutorial freeze (player pressed / tapped, or the freeze
       // condition no longer holds). Restore the normal step prompt.
