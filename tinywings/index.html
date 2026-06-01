@@ -3216,6 +3216,79 @@
     if (_submitBtn) _submitBtn.addEventListener("click", submitScore);
     const _nameInput = $id("lbName");
     if (_nameInput) _nameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); submitScore(); } });
+
+    let lbCache = null; // last fetched rows
+
+    function renderSkeleton() {
+      const list = $id("lbList");
+      if (!list) return;
+      list.innerHTML = "";
+      for (let i = 0; i < 6; i++) {
+        const li = document.createElement("li");
+        li.className = "skel";
+        const bar = document.createElement("span");
+        bar.className = "bar";
+        li.appendChild(bar);
+        list.appendChild(li);
+      }
+    }
+
+    function setStatus(connected, text) {
+      const s = $id("lbStatus"), t = $id("lbStatusText"), d = s ? s.querySelector(".dot") : null;
+      if (s) s.classList.toggle("off", !connected);
+      if (d) d.textContent = connected ? "●" : "○";
+      if (t) t.textContent = text;
+    }
+
+    function renderRows(rows) {
+      const list = $id("lbList");
+      if (!list) return;
+      list.innerHTML = "";
+      if (!rows || rows.length === 0) {
+        const li = document.createElement("li");
+        li.className = "lb-empty";
+        li.textContent = "no glides logged yet — be the first.";
+        list.appendChild(li);
+        return;
+      }
+      const me = playerId();
+      rows.forEach((r, i) => {
+        const li = document.createElement("li");
+        if (r.player_id && r.player_id === me) li.classList.add("me");
+        const rank = document.createElement("span"); rank.className = "rank"; rank.textContent = String(i + 1);
+        const who = document.createElement("span"); who.className = "who"; who.textContent = r.name || "anon"; // textContent → no XSS
+        const dist = document.createElement("span"); dist.className = "dist"; dist.textContent = `${r.score} m`;
+        li.appendChild(rank); li.appendChild(who); li.appendChild(dist);
+        list.appendChild(li);
+      });
+    }
+
+    async function loadBoard() {
+      if (!online) { await checkHealth(); }
+      if (!online) { setStatus(false, "local — leaderboard unavailable"); renderRows([]); return; }
+      setStatus(true, "connected");
+      if (lbCache && !lbCacheDirty) { renderRows(lbCache); return; }
+      renderSkeleton();
+      try {
+        const rows = await pb.collection("leaderboard").getList(1, 25, { sort: "-score" });
+        lbCache = rows.items || [];
+        lbCacheDirty = false;
+        renderRows(lbCache);
+      } catch (e) {
+        online = false;
+        setStatus(false, "local — leaderboard unavailable");
+        renderRows([]);
+      }
+    }
+
+    function openBoard() { const o = $id("lbOverlay"); if (o) { o.classList.add("live"); loadBoard(); } }
+    function closeBoard() { const o = $id("lbOverlay"); if (o) o.classList.remove("live"); }
+
+    const _open = $id("lbOpenBtn"); if (_open) _open.addEventListener("click", openBoard);
+    const _close = $id("lbCloseBtn"); if (_close) _close.addEventListener("click", closeBoard);
+    const _overlay = $id("lbOverlay");
+    if (_overlay) _overlay.addEventListener("click", (e) => { if (e.target === _overlay) closeBoard(); });
+    window.addEventListener("keydown", (e) => { if (e.key === "Escape") closeBoard(); });
   </script>
 </body>
 </html>
