@@ -1,0 +1,12 @@
+{
+  "_comment": "Registry of demos with PocketBase backends. Migrations live in <slug>/pb/pb_migrations/. sync-backends.sh reads this to converge the server.",
+  "server": {
+    "host": "pb-backends",
+    "ip": "13.61.133.93",
+    "user": "ubuntu",
+    "domain": "pb.gurum.se"
+  },
+  "backends": {
+    "tinywings": { "port": 8091 }
+  }
+}
