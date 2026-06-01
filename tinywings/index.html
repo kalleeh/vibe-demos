@@ -20,6 +20,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Sketchwings">
 
+  <script type="importmap">
+    { "imports": { "pocketbase": "https://cdn.jsdelivr.net/npm/pocketbase@0.25.0/dist/pocketbase.es.mjs" } }
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -3034,6 +3038,52 @@
     window.addEventListener("orientationchange", maybeShowRotate);
     window.addEventListener("resize", maybeShowRotate);
     maybeShowRotate();
+  </script>
+  <script type="module">
+    /* ============================================================
+       LEADERBOARD (PocketBase, Tier 1 public)
+       Isolated from the game script. Communicates only via the
+       global window.G state (distance) and the DOM. The game never
+       awaits PocketBase — this layer is purely additive.
+
+       Collection: leaderboard (base)  — https://tinywings.pb.gurum.se/_/
+         name      (text, required, max 20)
+         score     (number, required, min 0)
+         player_id (text)   ← anonymous UUID, used only to highlight "you"
+         Rules: list="" view="" create="" update=null delete=null
+       ============================================================ */
+    import PocketBase from "pocketbase";
+
+    const PB_URL = "https://tinywings.pb.gurum.se";
+    const pb = new PocketBase(PB_URL);
+    let online = false;
+
+    // Anonymous identity — NOT access control (rules are public). Used only
+    // to highlight the player's own rows in the overlay.
+    function playerId() {
+      let id = null;
+      try { id = localStorage.getItem("vibe.tinywings.player-id"); } catch (e) {}
+      if (!id) {
+        id = (crypto.randomUUID ? crypto.randomUUID()
+              : String(Date.now()) + "-" + Math.round(performance.now()));
+        try { localStorage.setItem("vibe.tinywings.player-id", id); } catch (e) {}
+      }
+      return id;
+    }
+    function rememberedName() {
+      try { return localStorage.getItem("vibe.tinywings.name") || ""; } catch (e) { return ""; }
+    }
+
+    // One-time, best-effort. No reconnection polling (per CLAUDE.md).
+    async function checkHealth() {
+      try { await pb.health.check(); online = true; }
+      catch (e) { online = false; }
+      return online;
+    }
+    checkHealth();
+
+    // Exposed so later steps (and quick console checks) can reach them.
+    window.__lb = { pb, playerId, rememberedName, get online() { return online; }, checkHealth };
   </script>
 </body>
 </html>
