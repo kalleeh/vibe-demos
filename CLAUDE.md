@@ -399,9 +399,268 @@ Every demo that does background work — LLM call, OCR, 3D asset load, audio ana
 
 ## Things to NOT do
 
-- Do not introduce a build tool, framework, or package.json. Demos are plain static files.
+- Do not introduce a build tool, framework, or package.json. Demos are plain static files. Push to `main` = frontend deploy. (`sync-backends.sh` is a backend deploy script, not a frontend build step — it doesn't touch the HTML/JS/CSS that GitHub Pages serves.)
 - Do not share CSS between the landing and individual demos. The landing's editorial styling is bespoke; each demo has its own visual identity.
 - Do not commit secrets, analytics scripts, or trackers.
 - Do not force-push `main` unless the user asks.
 - Do not edit `index.html` styling without preserving the editorial grammar described above.
 
+
+## PocketBase backend pattern (optional persistence/sync layer)
+
+PocketBase is the backend for vibe-demos that need shared/persistent state. Local-first: every demo MUST work without it. The backend enhances — it never gates.
+
+### Decision tree (start here)
+
+```
+Does the demo need data that persists across browser clears
+OR is shared between multiple users?
+  │
+  ├─ NO → client-only (localStorage/IndexedDB). Stop here.
+  │
+  └─ YES → Does <slug>/pb/ exist?
+              │
+              ├─ YES → backend exists. URL: https://<slug>.pb.gurum.se
+              │         Port is in backends/config.json.
+              │
+              └─ NO → create it (see checklist below).
+```
+
+### Checklist: adding a backend to a demo
+
+When adding a PocketBase backend to a demo, create/modify these files:
+
+1. **`<slug>/pb/pb_migrations/001_<description>.js`** — migration file defining collections
+2. **`backends/config.json`** — add `"<slug>": { "port": <next port> }` to the `"backends"` object (ports start at 8091, never reused, always increment)
+3. **`<slug>/index.html`** — in the frontend:
+   - Add `"pocketbase"` to the importmap
+   - Add `const PB_URL = 'https://<slug>.pb.gurum.se';` (slug = folder name, kebab-case)
+   - Add health check + localStorage fallback (see local-first pattern below)
+   - Add collection schema comment block at top of module script
+   - Add subtle online/offline indicator
+4. **`<slug>/sw.js`** — skip cross-origin fetches from caching
+5. **Run `./sync-backends.sh`** from the repo root to deploy the backend
+
+### Conventions
+
+- **Collection names:** singular, snake_case (`leaderboard`, `game_state`, `player_move`)
+- **Migration naming:** `NNN_<description>.js` — sequential, never renumbered (`001_init_leaderboard.js`, `002_add_combo_field.js`)
+- **Migrations are the source of truth.** Admin UI edits are for prototyping only — snapshot them back to files with `ssh pb-backends "cd /opt/pocketbase/<slug> && ./pocketbase migrate collections"` before committing.
+- **Ports:** always increment from 8091. Never reuse a port even if a backend is removed.
+- **PB SDK version:** use `@0.25.0` (tested with this project). Pin exactly, never `@latest`.
+
+### SDK import
+
+```html
+<script type="importmap">
+  {
+    "imports": {
+      "pocketbase": "https://cdn.jsdelivr.net/npm/pocketbase@0.25.0/dist/pocketbase.es.mjs"
+    }
+  }
+</script>
+```
+
+The importmap goes in `<head>`. If the demo has no module script yet (e.g. a classic-`<script>` game like tinywings), this is the page's first importmap — add it and put the PocketBase logic in its own `<script type="module">`; it talks to the classic script via a `window.__*` hook, not shared scope. With no browser to hand, sanity-check a module-script body with `node --check` (it validates syntax without resolving the bare `pocketbase` specifier).
+
+Combine with Three.js if needed (one importmap per page):
+
+```html
+<script type="importmap">
+  {
+    "imports": {
+      "three":         "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+      "pocketbase":    "https://cdn.jsdelivr.net/npm/pocketbase@0.25.0/dist/pocketbase.es.mjs"
+    }
+  }
+</script>
+```
+
+### Security tiers
+
+PocketBase uses **collection API rules** for access control — not API keys. Each collection has rules for list/view/create/update/delete. An API key in a public frontend is security theater; rules are the real access control.
+
+**Tier 1 — Public data (default for most demos):**
+
+```
+Collection: leaderboard
+  listRule: ""       ← anyone reads
+  viewRule: ""
+  createRule: ""     ← anyone writes
+  updateRule: null   ← nobody edits
+  deleteRule: null   ← nobody deletes
+```
+
+No auth needed. Abuse prevention: field validation (max lengths, min/max values) + PocketBase rate limiting (configure in Settings → Application).
+
+**Tier 2 — Anonymous identity (multiplayer):**
+
+```js
+let playerId = localStorage.getItem('vibe.<slug>.player-id');
+if (!playerId) { playerId = crypto.randomUUID(); localStorage.setItem('vibe.<slug>.player-id', playerId); }
+```
+
+```
+updateRule: "player_id = @request.body.player_id"   ← own data only
+```
+
+**Tier 3 — Real accounts (rare — only for cross-device identity):**
+
+```js
+await pb.collection('users').authWithPassword(email, password);
+// Token auto-persisted in localStorage, attached to all subsequent requests
+```
+
+```
+listRule: "owner = @request.auth.id"   ← own data only
+```
+
+Tiers are composable — combine rules as needed. Most demos use Tier 1.
+
+### Local-first fallback
+
+```js
+import PocketBase from 'pocketbase';
+
+const PB_URL = 'https://<slug>.pb.gurum.se';
+const pb = new PocketBase(PB_URL);
+let online = false;
+
+try { await pb.health.check(); online = true; } catch { online = false; }
+
+async function getScores() {
+  if (online) {
+    try { return await pb.collection('leaderboard').getFullList({ sort: '-score' }); }
+    catch { online = false; }
+  }
+  return JSON.parse(localStorage.getItem('vibe.<slug>.scores') || '[]');
+}
+```
+
+Show a subtle indicator: `● connected` / `○ local`. Never block the UI. Do not implement automatic reconnection polling — check `pb.health.check()` only on user-initiated actions.
+
+### Realtime subscriptions
+
+```js
+pb.collection('game_state').subscribe('*', (e) => {
+  // e.action: 'create' | 'update' | 'delete'
+  updateUI(e.record);
+});
+```
+
+On disconnect, PocketBase SDK auto-reconnects. If the connection drops and the demo needs to handle it, listen for `pb.realtime.onDisconnect`. For most demos, the auto-reconnect is sufficient.
+
+### Service worker
+
+Skip all cross-origin fetches from caching:
+
+```js
+self.addEventListener('fetch', (e) => {
+  const url = new URL(e.request.url);
+  if (url.origin !== self.location.origin) return;
+  // ... normal cache strategy
+});
+```
+
+### Collection schema comment
+
+Document expected collections at the top of the module script:
+
+```js
+/*
+ * PocketBase: https://<slug>.pb.gurum.se/_/
+ *
+ * Collection: leaderboard (base)
+ *   - name (text, required, max: 20)
+ *   - score (number, required, min: 0)
+ *   - player_id (text)
+ *   Rules: list="", view="", create="", update=null, delete=null
+ */
+```
+
+### Migration file format
+
+```js
+// <slug>/pb/pb_migrations/001_init_leaderboard.js
+migrate((app) => {
+  let collection = new Collection({
+    type: "base",
+    name: "leaderboard",
+    listRule: "",
+    viewRule: "",
+    createRule: "",
+    updateRule: null,
+    deleteRule: null,
+    fields: [
+      { type: "text", name: "name", required: true, max: 20 },
+      { type: "number", name: "score", required: true, min: 0 },
+      { type: "text", name: "player_id" },
+    ],
+  });
+  app.save(collection);
+}, (app) => {
+  let collection = app.findCollectionByNameOrId("leaderboard");
+  app.delete(collection);
+});
+```
+
+### Deploy
+
+`sync-backends.sh` is the single deploy command. It reads `backends/config.json`, rsyncs migrations from `<slug>/pb/pb_migrations/` to the server, provisions systemd units, and regenerates the Caddyfile. Idempotent — safe to run anytime.
+
+```bash
+./sync-backends.sh    # run from the vibe-demos repo root
+```
+
+**Infrastructure context** (for reference only — agent doesn't manage this):
+- Server: Lightsail `pb-backends` (13.61.133.93), 2GB RAM, eu-north-1
+- Caddy reverse proxy with wildcard TLS cert (Let's Encrypt DNS-01 via Route 53)
+- Each backend: systemd unit `pocketbase@<slug>`, port from config.json
+- SSH: `ssh pb-backends` (configured in ~/.ssh/config)
+- Rebuildable: re-provision server + run sync = full recovery
+
+### File structure
+
+```
+vibe-demos/
+├── backends/
+│   └── config.json          ← port registry + server details
+├── sync-backends.sh         ← deploy script (human runs this)
+├── tinywings/
+│   ├── index.html
+│   └── pb/                  ← exists only if demo has a backend
+│       └── pb_migrations/
+│           └── 001_init_leaderboard.js
+└── clinic-admin/
+    └── index.html           ← no pb/ = no backend
+```
+
+### When to use PocketBase vs staying client-only
+
+Use PocketBase when the demo needs:
+- **Multiplayer / shared state** (multiple users see each other's actions)
+- **Persistent leaderboards** (survive browser clear, shared across visitors)
+- **Cross-device sync** (same user, multiple devices)
+
+Stay client-only when:
+- Single-user, single-device
+- Data loss on browser clear is acceptable
+- No shared state between visitors
+
+### Anti-patterns
+
+- **Do NOT make PocketBase required for the demo to load.** Always fall back to local data.
+- **Do NOT use a BYO-URL pattern.** We own the server; the URL is baked in as a constant.
+- **Do NOT add user login unless the demo needs cross-device identity.** Tier 1 or 2 for most demos.
+- **Do NOT use innerHTML with user-submitted PocketBase fields.** Use `textContent` to prevent XSS.
+- **Do NOT assume collections exist without a migration file.** Migrations are the source of truth; admin UI is for prototyping only.
+- **Do NOT use PocketBase for static data that could be a JSON file.**
+- **Do NOT run PocketBase on GitHub Pages.** It's a server binary.
+- **Do NOT add `pocketbase` to a package.json.** CDN import only.
+- **Do NOT rely on API keys in the frontend.** Collection rules are the access control.
+- **Do NOT implement reconnection polling.** Check health on user actions only.
+
+### Reference implementation
+
+`tinywings/` — the canonical PocketBase demo. Frontend + migration are shipped (Tier 1 public leaderboard, local-first fallback, **fetch-on-open** refresh — no realtime); the collection goes live once a human runs `./sync-backends.sh`. Demonstrates the full pattern end-to-end: health check, anonymous `player_id` identity (for "you" highlighting, not auth), submit-on-personal-best, top-N overlay with skeleton loader, XSS-safe `textContent` rendering, and graceful offline degradation. The leaderboard logic lives in its own `<script type="module">` in `tinywings/index.html`, bridged to the classic game script only via a `window.__lbOnEnd` hook.
