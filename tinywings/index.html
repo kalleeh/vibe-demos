@@ -1992,8 +1992,8 @@
           // moment of RELEASE, not now. Old code checked |slope| < 0.15
           // at launch time, which is mathematically impossible here
           // and silently zeroed the perfect counter.
-          const justReleased = (performance.now() - G.pitchReleasedAt) < 350;
-          const releasedOnDownhill = G.pitchReleasedSlope > 0.10;
+          const justReleased = (performance.now() - G.pitchReleasedAt) < 500;
+          const releasedOnDownhill = G.pitchReleasedSlope > 0.06;
           const releasedAtCrest = !G.pitchDown && justReleased && releasedOnDownhill;
           if (releasedAtCrest) {
             G.perfectLaunch = true;
@@ -2062,10 +2062,17 @@
           G.vy = 0;
           blip(140, 0.18, "sawtooth", 0.10);
         } else {
-          // Soft landing
+          // Soft landing. A clean tangent-matched landing (<12°) charges a
+          // good chunk; a merely-okay landing (12°..32°) still charges a
+          // little, so ordinary gliding feeds the meter instead of giving
+          // nothing. Only perfect launches (+0.35) should fill it fast, but
+          // casual play shouldn't leave the meter near-empty all run.
           if (relAngleDeg < PERFECT_ANGLE_DEG) {
-            G.boost = Math.min(1, G.boost + 0.10);
+            G.boost = Math.min(1, G.boost + 0.18);
             blip(520, 0.10, "sine", 0.08);
+          } else if (relAngleDeg < 32) {
+            G.boost = Math.min(1, G.boost + 0.07);
+            blip(480, 0.08, "sine", 0.05);
           }
         }
       }
