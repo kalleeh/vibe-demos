@@ -20,10 +20,6 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Sketchwings">
 
-  <script type="importmap">
-    { "imports": { "pocketbase": "https://cdn.jsdelivr.net/npm/pocketbase@0.25.0/dist/pocketbase.es.mjs" } }
-  </script>
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -172,7 +168,6 @@
       transition: color 160ms;
     }
     .back:hover { color: var(--ink); }
-    button.back.lb-open { appearance: none; background: transparent; cursor: pointer; }
 
     /* Leaderboard overlay */
     .lb-overlay {
@@ -759,7 +754,6 @@
       <span class="day-chip">DAY <span class="ph" id="dayNum">1</span></span>
       <span class="stat" id="distStat"><span class="l">DIST</span><span class="v" id="distV">0</span><span class="l">m</span></span>
       <span class="stat ev" id="bestStat"><span class="l">BEST</span><span class="v" id="bestV">0</span><span class="l">m</span></span>
-      <button class="back lb-open" id="lbOpenBtn" type="button">leaderboard</button>
       <a class="back" href="../">← Studio</a>
     </header>
 
@@ -1022,6 +1016,7 @@
       <span class="spacer" style="flex:1"></span>
       <span class="boost-wrap"><span>BOOST</span><span class="boost"><span class="fill" id="boostFill"></span></span></span>
       <button class="toggle" id="manualRestartBtn" title="Restart this run if it gets stuck">restart</button>
+      <button class="toggle" id="lbOpenBtn" type="button" aria-controls="lbOverlay" title="Leaderboard">🏆 leaderboard</button>
       <button class="toggle" id="settingsBtn" aria-pressed="false" aria-controls="tuner" title="Settings">⚙ settings</button>
     </footer>
 
@@ -3120,11 +3115,27 @@
          player_id (text)   ← anonymous UUID, used only to highlight "you"
          Rules: list="" view="" create="" update=null delete=null
        ============================================================ */
-    import PocketBase from "pocketbase";
-
+    // PocketBase SDK is loaded lazily by full URL via dynamic import() — NOT a
+    // static `import` + importmap. Importmaps need iOS Safari 16.4+; a static
+    // import that can't resolve throws at module-eval time and kills every
+    // handler below (the leaderboard button goes dead while the rest of the
+    // game still works). Dynamic import of a full URL works on any ES-module
+    // browser (iOS 11+) and lets us degrade gracefully if the CDN is down.
     const PB_URL = "https://tinywings.pb.gurum.se";
-    const pb = new PocketBase(PB_URL);
+    const PB_ESM = "https://cdn.jsdelivr.net/npm/pocketbase@0.25.0/dist/pocketbase.es.mjs";
+    let pb = null;
     let online = false;
+
+    let _pbPromise = null;
+    function getPB() {
+      if (pb) return Promise.resolve(pb);
+      if (!_pbPromise) {
+        _pbPromise = import(PB_ESM)
+          .then((m) => { pb = new m.default(PB_URL); return pb; })
+          .catch(() => { _pbPromise = null; return null; });
+      }
+      return _pbPromise;
+    }
 
     // Anonymous identity — NOT access control (rules are public). Used only
     // to highlight the player's own rows in the overlay.
@@ -3144,14 +3155,17 @@
 
     // One-time, best-effort. No reconnection polling (per CLAUDE.md).
     async function checkHealth() {
-      try { await pb.health.check(); online = true; }
-      catch (e) { online = false; }
+      try {
+        const c = await getPB();
+        if (!c) { online = false; return online; }
+        await c.health.check(); online = true;
+      } catch (e) { online = false; }
       return online;
     }
     checkHealth();
 
     // Exposed so later steps (and quick console checks) can reach them.
-    window.__lb = { pb, playerId, rememberedName, get online() { return online; }, checkHealth };
+    window.__lb = { getPB, get pb() { return pb; }, playerId, rememberedName, get online() { return online; }, checkHealth };
 
     const $id = (id) => document.getElementById(id);
 
@@ -3186,13 +3200,15 @@
       btn.disabled = true;
       setSubmitNote("submitting…");
       try {
-        await pb.collection("leaderboard").create({ name, score, player_id: playerId() });
+        const c = await getPB();
+        if (!c) throw new Error("sdk unavailable");
+        await c.collection("leaderboard").create({ name, score, player_id: playerId() });
         try { localStorage.setItem("vibe.tinywings.name", name); } catch (e) {}
         lbCacheDirty = true; // overlay refetches next open (Task 6)
         // Compute rank: how many strictly-greater scores exist, +1.
         let rank = null;
         try {
-          const better = await pb.collection("leaderboard").getList(1, 1, {
+          const better = await c.collection("leaderboard").getList(1, 1, {
             filter: `score > ${score}`, fields: "id", skipTotal: false,
           });
           rank = (better.totalItems ?? 0) + 1;
@@ -3270,7 +3286,9 @@
       if (lbCache && !lbCacheDirty) { renderRows(lbCache); return; }
       renderSkeleton();
       try {
-        const rows = await pb.collection("leaderboard").getList(1, 25, { sort: "-score" });
+        const c = await getPB();
+        if (!c) throw new Error("sdk unavailable");
+        const rows = await c.collection("leaderboard").getList(1, 25, { sort: "-score" });
         lbCache = rows.items || [];
         lbCacheDirty = false;
         renderRows(lbCache);
