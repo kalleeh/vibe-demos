@@ -1302,6 +1302,7 @@
       maxBx: 200,             // furthest world-x reached (progress high-water mark)
       lastProgressAt: 0,      // wall-clock time maxBx last advanced by PROGRESS_MIN
       nightfall: { active: false, startedAt: 0, phase: "engulf", surge: false, surgeFromX: 0, reason: "" },
+      nightBlots: [],         // fixed drifting ink blots near the front edge
 
       // Score
       perfectCount: 0,
@@ -1467,6 +1468,16 @@
       G.transitionEnd = 0;
       if (typeof trail !== "undefined") trail.length = 0;
       newDay(1);
+      G.nightBlots = [];
+      { const r = mulberry32((G.seed ^ 0x51ed) >>> 0);
+        for (let i = 0; i < 7; i++) G.nightBlots.push({
+          off: -10 - r() * 80,        // px behind the edge (negative = left)
+          yf: 0.08 + r() * 0.84,      // vertical fraction of canvas height
+          rad: 10 + r() * 22,         // blot radius
+          bob: 6 + r() * 10,          // vertical bob amplitude (px)
+          ph: r() * 6.283,            // phase
+          spd: 0.5 + r() * 0.8,       // bob speed
+        }); }
       // Place bird just above the hill surface at the spawn x, with a
       // slight downward tilt. Spawning high and falling far meant the
       // bird's downward velocity got cancelled out projecting onto an
@@ -3013,6 +3024,67 @@
       ctx.fillRect(0, 0, viewW, viewH);
     }
 
+    // Animated "ink wash" front. The right edge sits at the screen-x of nightX
+    // and undulates via time-driven sines (seamless — no per-frame jumps).
+    // Blots drift with the edge; stars fade in by how engulfing the front is.
+    function drawNight(camX, now) {
+      const edgeScreen = G.nightX - camX;
+      if (edgeScreen < -40) return; // front entirely off the left — nothing to draw
+      const t = now / 1000;
+      const H = viewH;
+      const samples = 22, amp1 = 14, amp2 = 7;
+      function edgeAt(y) {
+        return edgeScreen
+          + Math.sin(y * 0.011 + t * 0.7) * amp1
+          + Math.sin(y * 0.027 - t * 1.1) * amp2;
+      }
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(-2, -2);
+      for (let i = 0; i <= samples; i++) {
+        const y = (H * i) / samples;
+        ctx.lineTo(edgeAt(y), y);
+      }
+      ctx.lineTo(-2, H + 2);
+      ctx.closePath();
+      ctx.clip();
+      const maxEdge = edgeScreen + amp1 + amp2 + 4;
+      const g = ctx.createLinearGradient(0, 0, Math.max(8, maxEdge), 0);
+      g.addColorStop(0, "rgba(20, 22, 38, 0.96)");
+      g.addColorStop(0.75, "rgba(34, 40, 60, 0.80)");
+      g.addColorStop(1, "rgba(40, 46, 66, 0.0)"); // feathered leading edge
+      ctx.fillStyle = g;
+      ctx.fillRect(-2, -2, maxEdge + 4, H + 4);
+      const cross = Math.max(0, Math.min(1, edgeScreen / Math.max(1, viewW)));
+      if (cross > 0.02 && G.stars && G.stars.length) {
+        ctx.fillStyle = `rgba(232, 226, 200, ${(0.85 * cross).toFixed(3)})`;
+        for (const s of G.stars) {
+          const x = s.x * Math.max(8, edgeScreen);
+          const y = s.y * H * 0.7 + 16;
+          ctx.beginPath(); ctx.arc(x, y, s.r, 0, 6.283); ctx.fill();
+        }
+      }
+      ctx.restore();
+      for (const bl of G.nightBlots) {
+        const bx = edgeScreen + bl.off + Math.sin(t * 0.6 + bl.ph) * 5;
+        const by = bl.yf * H + Math.sin(t * bl.spd + bl.ph) * bl.bob;
+        const rg = ctx.createRadialGradient(bx, by, 0, bx, by, bl.rad);
+        rg.addColorStop(0, "rgba(26, 30, 48, 0.85)");
+        rg.addColorStop(1, "rgba(26, 30, 48, 0.0)");
+        ctx.fillStyle = rg;
+        ctx.beginPath(); ctx.arc(bx, by, bl.rad, 0, 6.283); ctx.fill();
+      }
+      const gapM = (G.bx - G.nightX) / 14;
+      if (!G.nightfall.active && gapM < NIGHT.NEAR_M && gapM > 0) {
+        const k = 1 - gapM / NIGHT.NEAR_M;
+        const vg = ctx.createLinearGradient(0, 0, viewW * 0.5, 0);
+        vg.addColorStop(0, `rgba(20, 22, 38, ${(0.28 * k).toFixed(3)})`);
+        vg.addColorStop(1, "rgba(20, 22, 38, 0)");
+        ctx.fillStyle = vg;
+        ctx.fillRect(0, 0, viewW * 0.5, H);
+      }
+    }
+
     // ── Main loop ─────────────────────────────────────────────────
     let lastT = performance.now();
     function frame(now) {
@@ -3064,6 +3136,7 @@
       drawBird(sx, sy, angle, G.airborne, G.perfectLaunch, boostVisual);
       drawOffscreenIndicator(sx, sy);
       drawMinimap();
+      drawNight(camX, now); // ink-wash front, over the world, under the end card
 
       // Perfect-launch halo decays one second after the launch instant.
       if (G.perfectLaunch && performance.now() - (G._perfectAt || 0) > 1000) {
