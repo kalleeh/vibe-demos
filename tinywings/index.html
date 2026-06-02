@@ -1297,14 +1297,17 @@
       pressActive: false,     // a pointer/key is currently held down
       pressStartAt: 0,        // wall-clock time the current press began
 
+      // Chasing night
+      nightX: -1e9,           // world-x of the night front's leading edge
+      maxBx: 200,             // furthest world-x reached (progress high-water mark)
+      lastProgressAt: 0,      // wall-clock time maxBx last advanced by PROGRESS_MIN
+      nightfall: { active: false, startedAt: 0, phase: "engulf", surge: false, surgeFromX: 0, reason: "" },
+      nightBlots: [],         // fixed drifting ink blots near the front edge
+
       // Score
       perfectCount: 0,
       bestDist: 0,
       maxDistM: 0,             // greatest distance reached this run
-      stuckMs: 0,              // time spent at near-zero speed on slope
-      noProgressMs: 0,         // time since maxBx last advanced
-      stuckCheckBx: 0,         // bx watermark for noProgressMs
-      backslideMs: 0,          // sustained-backslide hysteresis
       pitchReleasedAt: -1e9,   // wall-clock time of most recent pointer-up
       pitchReleasedSlope: 0,   // terrain slope at last release; ramp launch requires this was a downhill
       flightStartX: 200,
@@ -1437,12 +1440,12 @@
       G.boost = 0;
       G.perfectCount = 0;
       G.maxDistM = 0;
-      G.stuckMs = 0;
-      G.noProgressMs = 0;
-      G.stuckCheckBx = 200;
-      G.backslideMs = 0;
       G.flightStartX = 200;
       G.flightStartT = performance.now();
+      G.nightX = 200 - PHYS.NIGHT_GAP; // spawn bx is 200; front starts NIGHT_GAP behind
+      G.maxBx = 200;
+      G.lastProgressAt = performance.now();
+      G.nightfall = { active: false, startedAt: 0, phase: "engulf", surge: false, surgeFromX: 0, reason: "" };
       G.graceUntil = 0;
       G.gameOver = false;
       G.tutorial = false;
@@ -1464,6 +1467,16 @@
       G.transitionEnd = 0;
       if (typeof trail !== "undefined") trail.length = 0;
       newDay(1);
+      G.nightBlots = [];
+      { const r = mulberry32((G.seed ^ 0x51ed) >>> 0);
+        for (let i = 0; i < 7; i++) G.nightBlots.push({
+          off: -10 - r() * 80,        // px behind the edge (negative = left)
+          yf: 0.08 + r() * 0.84,      // vertical fraction of canvas height
+          rad: 10 + r() * 22,         // blot radius
+          bob: 6 + r() * 10,          // vertical bob amplitude (px)
+          ph: r() * 6.283,            // phase
+          spd: 0.5 + r() * 0.8,       // bob speed
+        }); }
       // Place bird just above the hill surface at the spawn x, with a
       // slight downward tilt. Spawning high and falling far meant the
       // bird's downward velocity got cancelled out projecting onto an
@@ -1789,6 +1802,8 @@
       FALL_TERMINAL:  540,  // unpressed-glide max downward speed (soft cap)
       PITCH_BIAS:    1500,  // extra downward when tap-held
       DRAG_AIR:      0.18,  // per-second velocity damping while airborne
+      NIGHT_PACE:    210,   // px/s the chasing night advances
+      NIGHT_GAP:    1200,   // px the night starts behind the bird each run
     };
     const PHYS = Object.assign({}, PHYS_DEFAULTS);
     try {
@@ -1797,6 +1812,20 @@
     } catch {}
     const STALL_ANGLE_DEG  = 55;  // landing angle above this = bonk
     const PERFECT_ANGLE_DEG = 12; // launch within this angle of slope tangent = perfect
+
+    // ── Chasing-night constants ──────────────────────────────────
+    // The night is a world-space front (NIGHT_X) advancing at a steady pace.
+    // The bird's speed is what outruns it. Tuned below a competent cruise
+    // (spawn vx=420, LIFT_VMIN=180, VMAX=1100) so a flowing run pulls away.
+    // Pace + start gap are live-tunable (PHYS.NIGHT_PACE / PHYS.NIGHT_GAP);
+    // the rest stay code constants.
+    const NIGHT = {
+      SURGE_MS:   260,   // on a hard stop, lerp the front to the bird over this
+      NEAR_M:      30,   // gap (m) under which the proximity cue intensifies
+      // Stop detector (replaces stuckMs/noProgressMs/backslideMs):
+      PROGRESS_MIN: 12,  // px of forward high-water gain that counts as progress
+      STOP_MS:    1300,  // no progress for this long (while armed) = instant loss
+    };
 
     // ── Physics tuner panel ─────────────────────────────────────────
     // Each entry is a slider for one PHYS knob: [min, max, step, hint].
@@ -1810,6 +1839,8 @@
       PITCH_BIAS:    { min: 0,    max: 4000, step: 25,   label: "pitch · dive bias", hint: "extra downward force when you tap-and-hold mid-air" },
       DRAG_AIR:      { min: 0,    max: 0.30, step: 0.005, label: "drag · air",      hint: "horizontal damping while airborne" },
       GRAVITY_SURF:  { min: 200,  max: 2400, step: 10,   label: "gravity · surf",   hint: "pull along the slope while surfing the hills" },
+      NIGHT_PACE:    { min: 80,   max: 500,  step: 5,  label: "night · pace",     hint: "how fast the darkness chases. higher = harder" },
+      NIGHT_GAP:     { min: 400,  max: 2400, step: 20, label: "night · head start", hint: "how far back the night begins each run" },
     };
     const tunerEl = document.getElementById("tuner");
     const tuneBtn = document.getElementById("settingsBtn");
@@ -1909,8 +1940,34 @@
       }
     });
 
+    // Advance the night front at a steady world pace. Frozen during the
+    // tutorial and during the nightfall animation. Catch detection lives in
+    // the loss-check block below; here the front only MOVES.
+    function updateNight(dt) {
+      if (G.tutorial || G.nightfall.active) return;
+      G.nightX += PHYS.NIGHT_PACE * dt;
+    }
+
+    // Single progress detector — replaces stuckMs / noProgressMs / backslideMs.
+    // Tracks the forward high-water mark (maxBx). If it fails to advance by
+    // PROGRESS_MIN within STOP_MS (while loss is armed), the bird has stopped:
+    // frozen, crawling-in-place, or backsliding all collapse to "no high-water
+    // progress". Returns true if a stop-loss should fire this frame.
+    function checkStopped(now, armed) {
+      if (G.bx > G.maxBx + NIGHT.PROGRESS_MIN) {
+        G.maxBx = G.bx;
+        G.lastProgressAt = now;
+        return false;
+      }
+      if (G.bx > G.maxBx) G.maxBx = G.bx; // creep the mark up on tiny gains, no timer reset
+      if (!armed) { G.lastProgressAt = now; return false; } // don't accumulate while unarmed
+      return (now - G.lastProgressAt) >= NIGHT.STOP_MS;
+    }
+
     function physicsStep(dt) {
       if (G.gameOver) return;
+      if (G.nightfall.active) return; // bird frozen during the nightfall animation
+      updateNight(dt);
 
       // Tutorial step 0: when the bird reaches a real downslope and the player
       // hasn't pressed yet, FREEZE the bird (skip the physics step) and pulse a
@@ -2177,61 +2234,35 @@
       // Boost meter UI
       document.getElementById("boostFill").style.width = (G.boost * 100).toFixed(1) + "%";
 
-      // End-of-flight detection. Three independent triggers — any one
-      // ends the run:
-      //  (a) low forward speed for sustained time (wedge-in-slope)
-      //  (b) no forward progress (maxBx stalls)
-      //  (c) sustained backsliding (uphill is winning)
+      // End-of-flight detection. Two independent loss paths, both ending the
+      // run via the nightfall sequence (see checkStopped / triggerNightfall):
+      //   Path 1 — STOPPED: consolidated progress detector (catches frozen,
+      //            crawling-in-place, and backsliding via the maxBx high-water mark).
+      //   Path 2 — NIGHT: the steady front catches a too-slow bird (bx <= nightX).
       //
-      // Spawn warmup: don't run any of these for the first 800 ms after
+      // Spawn warmup: don't run either path for the first 800 ms after
       // startGame so a bird placed on a slightly tricky opening seed has
       // time to accelerate before the watchdog even starts ticking.
       const sinceStart = performance.now() - G.flightStartT;
-      // Loss triggers are suppressed during the tutorial and during the
-      // post-tutorial grace window (a freshly-taught player gets ~3s to fumble
-      // their first hills without dying). We still ACCUMULATE the timers during
-      // grace so the run ends promptly if the bird is still genuinely stuck the
-      // instant grace lapses — grace softens the cliff, it doesn't hide a
-      // permanently-dead bird.
-      const lossArmed = !G.tutorial && performance.now() >= G.graceUntil;
-      if (sinceStart > 800) {
-        // Use SIGNED forward velocity (vx itself, not |vx|). A bird in
-        // a valley bouncing backward at vx=-80 has |vx|=80 which clears
-        // the gate and feels alive — but it isn't going anywhere. The
-        // signed check catches "going nowhere or backward" with one
-        // condition, and the absolute-stall case (vx near zero) is a
-        // subset of it.
-        if (G.vx < 60) {
-          G.stuckMs += dt * 1000;
-          if (G.stuckMs > 1000 && lossArmed) endRun("the wind has settled");
-        } else {
-          G.stuckMs = 0;
-        }
-        // Forward-progress watchdog: bird must gain ≥10 px every 1200ms.
-        // The old +40 px threshold let a bird oscillating ±41 px reset
-        // the watermark on every cycle and never trip — visually frozen
-        // but technically advancing. 10 px / 1.2 s catches that case.
-        if (G.bx > G.stuckCheckBx + 10) {
-          G.stuckCheckBx = G.bx;
-          G.noProgressMs = 0;
-        } else {
-          G.noProgressMs += dt * 1000;
-          if (G.noProgressMs > 1200 && lossArmed) endRun("out of speed");
-        }
-        // Backslide trigger needs hysteresis — a single 60px transient
-        // from a steep ramp-bounce shouldn't end the run instantly. The
-        // bird must be ≥60 px below the watermark for ≥250 ms.
-        if (G.bx < G.stuckCheckBx - 60) {
-          G.backslideMs += dt * 1000;
-          if (G.backslideMs > 250 && lossArmed) endRun("shoved back");
-        } else {
-          G.backslideMs = 0;
+      // Loss is suppressed during the tutorial and the post-tutorial grace
+      // window. Two clean paths, both ending the run via the nightfall
+      // sequence so every death reads as "the night caught you":
+      //   Path 1 — STOPPED: one progress detector (replaces the old three
+      //            stuck/no-progress/backslide counters) → instant loss, the
+      //            front SURGES in to meet the stalled bird.
+      //   Path 2 — NIGHT: the steady front catches a too-slow bird (bx<=nightX).
+      const now = performance.now();
+      const lossArmed = !G.tutorial && now >= G.graceUntil;
+      if (sinceStart > 800 && !G.nightfall.active) {
+        if (checkStopped(now, lossArmed)) {
+          triggerNightfall("the night caught you", { surge: true });
+        } else if (lossArmed && G.bx - G.nightX <= 0) {
+          triggerNightfall("the night caught you", { surge: false });
         }
       }
-      // If any of the three triggers ended the run this frame, stop
-      // here — the rest of the function (day timer, HUD, distance HWM)
-      // shouldn't keep ticking on a dead bird.
-      if (G.gameOver) return;
+      // A loss this frame starts the nightfall animation and freezes physics;
+      // don't keep ticking the day timer / HUD on a caught bird.
+      if (G.gameOver || G.nightfall.active) return;
 
       // Day timer — frozen entirely during the tutorial so the run can't
       // time out and the day counter doesn't run away.
@@ -2278,6 +2309,60 @@
         G.bestDist = G.maxDistM;
         try { localStorage.setItem("vibe.tinywings.best", String(G.bestDist)); } catch (e) {}
         document.getElementById("bestV").textContent = String(G.bestDist);
+      }
+    }
+
+    // Single entry point for ALL losses. cause = end-card reason string.
+    // opts.surge = true makes the front rush in (used by the instant stop loss);
+    // the night-catch loss passes surge:false (front is already at the bird).
+    function triggerNightfall(cause, opts) {
+      if (G.nightfall.active || G.gameOver) return;
+      const surge = !!(opts && opts.surge);
+      G.nightfall = {
+        active: true,
+        startedAt: performance.now(),
+        phase: surge ? "surge" : "engulf",
+        surge,
+        surgeFromX: G.nightX,
+        reason: cause || "the night caught you",
+      };
+      blip(180, 0.5, "sine", 0.10);
+    }
+
+    // Advances the nightfall animation by wall-clock time. Called every frame
+    // from frame() (physicsStep is frozen while nightfall is active, so the
+    // bird stops, but the animation must keep progressing). Reduced motion
+    // collapses surge+engulf+settle into a quick cross-fade.
+    function updateNightfall(now) {
+      const nf = G.nightfall;
+      if (!nf.active) return;
+      const t = now - nf.startedAt;
+      if (reduceMotion) {
+        // ~300ms straight to night, then the card.
+        G.nightX = G.bx; // front fully over the bird
+        if (t >= 300 && nf.phase !== "done") { nf.phase = "done"; endRun(nf.reason); }
+        return;
+      }
+      const SURGE = NIGHT.SURGE_MS, ENGULF = 900, SETTLE = 500;
+      if (nf.phase === "surge") {
+        // Ease the front to the bird over SURGE_MS, then engulf.
+        const k = Math.min(1, t / SURGE);
+        const e = k * k * (3 - 2 * k); // smoothstep
+        G.nightX = nf.surgeFromX + (G.bx - nf.surgeFromX) * e;
+        if (t >= SURGE) { nf.phase = "engulf"; nf.startedAt = now; }
+        return;
+      }
+      if (nf.phase === "engulf") {
+        // Push the front PAST the bird so the ink floods the whole screen.
+        const k = Math.min(1, t / ENGULF);
+        const e = k * k; // accelerate
+        G.nightX = G.bx + e * (viewW * 1.2); // well past the right edge in world px ≈ screen px
+        if (t >= ENGULF) { nf.phase = "settle"; nf.startedAt = now; }
+        return;
+      }
+      if (nf.phase === "settle") {
+        if (t >= SETTLE) { nf.phase = "done"; endRun(nf.reason); }
+        return;
       }
     }
 
@@ -2942,6 +3027,67 @@
       ctx.fillRect(0, 0, viewW, viewH);
     }
 
+    // Animated "ink wash" front. The right edge sits at the screen-x of nightX
+    // and undulates via time-driven sines (seamless — no per-frame jumps).
+    // Blots drift with the edge; stars fade in by how engulfing the front is.
+    function drawNight(camX, now) {
+      const edgeScreen = G.nightX - camX;
+      if (edgeScreen < -40) return; // front entirely off the left — nothing to draw
+      const t = reduceMotion ? 0 : now / 1000; // reduced motion: static front, no wobble/bob
+      const H = viewH;
+      const samples = 22, amp1 = 14, amp2 = 7;
+      function edgeAt(y) {
+        return edgeScreen
+          + Math.sin(y * 0.011 + t * 0.7) * amp1
+          + Math.sin(y * 0.027 - t * 1.1) * amp2;
+      }
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(-2, -2);
+      for (let i = 0; i <= samples; i++) {
+        const y = (H * i) / samples;
+        ctx.lineTo(edgeAt(y), y);
+      }
+      ctx.lineTo(-2, H + 2);
+      ctx.closePath();
+      ctx.clip();
+      const maxEdge = edgeScreen + amp1 + amp2 + 4;
+      const g = ctx.createLinearGradient(0, 0, Math.max(8, maxEdge), 0);
+      g.addColorStop(0, "rgba(20, 22, 38, 0.96)");
+      g.addColorStop(0.75, "rgba(34, 40, 60, 0.80)");
+      g.addColorStop(1, "rgba(40, 46, 66, 0.0)"); // feathered leading edge
+      ctx.fillStyle = g;
+      ctx.fillRect(-2, -2, maxEdge + 4, H + 4);
+      const cross = Math.max(0, Math.min(1, edgeScreen / Math.max(1, viewW)));
+      if (cross > 0.02 && G.stars && G.stars.length) {
+        ctx.fillStyle = `rgba(232, 226, 200, ${(0.85 * cross).toFixed(3)})`;
+        for (const s of G.stars) {
+          const x = s.x * Math.max(8, edgeScreen);
+          const y = s.y * H * 0.7 + 16;
+          ctx.beginPath(); ctx.arc(x, y, s.r, 0, 6.283); ctx.fill();
+        }
+      }
+      ctx.restore();
+      for (const bl of G.nightBlots) {
+        const bx = edgeScreen + bl.off + Math.sin(t * 0.6 + bl.ph) * 5;
+        const by = bl.yf * H + Math.sin(t * bl.spd + bl.ph) * bl.bob;
+        const rg = ctx.createRadialGradient(bx, by, 0, bx, by, bl.rad);
+        rg.addColorStop(0, "rgba(26, 30, 48, 0.85)");
+        rg.addColorStop(1, "rgba(26, 30, 48, 0.0)");
+        ctx.fillStyle = rg;
+        ctx.beginPath(); ctx.arc(bx, by, bl.rad, 0, 6.283); ctx.fill();
+      }
+      const gapM = (G.bx - G.nightX) / 14;
+      if (!G.nightfall.active && gapM < NIGHT.NEAR_M && gapM > 0) {
+        const k = 1 - gapM / NIGHT.NEAR_M;
+        const vg = ctx.createLinearGradient(0, 0, viewW * 0.5, 0);
+        vg.addColorStop(0, `rgba(20, 22, 38, ${(0.28 * k).toFixed(3)})`);
+        vg.addColorStop(1, "rgba(20, 22, 38, 0)");
+        ctx.fillStyle = vg;
+        ctx.fillRect(0, 0, viewW * 0.5, H);
+      }
+    }
+
     // ── Main loop ─────────────────────────────────────────────────
     let lastT = performance.now();
     function frame(now) {
@@ -2954,6 +3100,8 @@
       const sub = Math.max(1, Math.ceil(dt / 0.016));
       const dts = dt / sub;
       for (let i = 0; i < sub; i++) physicsStep(dts);
+
+      updateNightfall(now); // progresses the loss animation (physics is frozen meanwhile)
 
       // Render
       ctx.clearRect(0, 0, viewW, viewH);
@@ -2991,6 +3139,7 @@
       drawBird(sx, sy, angle, G.airborne, G.perfectLaunch, boostVisual);
       drawOffscreenIndicator(sx, sy);
       drawMinimap();
+      drawNight(camX, now); // ink-wash front, over the world, under the end card
 
       // Perfect-launch halo decays one second after the launch instant.
       if (G.perfectLaunch && performance.now() - (G._perfectAt || 0) > 1000) {
