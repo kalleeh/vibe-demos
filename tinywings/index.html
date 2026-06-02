@@ -2220,13 +2220,13 @@
       // Boost meter UI
       document.getElementById("boostFill").style.width = (G.boost * 100).toFixed(1) + "%";
 
-      // End-of-flight detection. Three independent triggers — any one
-      // ends the run:
-      //  (a) low forward speed for sustained time (wedge-in-slope)
-      //  (b) no forward progress (maxBx stalls)
-      //  (c) sustained backsliding (uphill is winning)
+      // End-of-flight detection. Two independent loss paths, both ending the
+      // run via the nightfall sequence (see checkStopped / triggerNightfall):
+      //   Path 1 — STOPPED: consolidated progress detector (catches frozen,
+      //            crawling-in-place, and backsliding via the maxBx high-water mark).
+      //   Path 2 — NIGHT: the steady front catches a too-slow bird (bx <= nightX).
       //
-      // Spawn warmup: don't run any of these for the first 800 ms after
+      // Spawn warmup: don't run either path for the first 800 ms after
       // startGame so a bird placed on a slightly tricky opening seed has
       // time to accelerate before the watchdog even starts ticking.
       const sinceStart = performance.now() - G.flightStartT;
