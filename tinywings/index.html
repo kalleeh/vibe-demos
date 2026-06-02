@@ -1942,7 +1942,7 @@
 
     // Advance the night front at a steady world pace. Frozen during the
     // tutorial and during the nightfall animation. Catch detection lives in
-    // Task 4's loss block; here the front only MOVES.
+    // the loss-check block below; here the front only MOVES.
     function updateNight(dt) {
       if (G.tutorial || G.nightfall.active) return;
       G.nightX += PHYS.NIGHT_PACE * dt;
