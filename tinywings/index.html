@@ -1291,6 +1291,11 @@
       // Boost
       boost: 0,               // 0..1
       boostingNow: false,
+      boostFlashUntil: 0,     // wall-clock time the boost trail/flash visual lasts until
+
+      // Press tracking — separates a quick tap (boost) from a hold (dive).
+      pressActive: false,     // a pointer/key is currently held down
+      pressStartAt: 0,        // wall-clock time the current press began
 
       // Score
       perfectCount: 0,
@@ -1452,6 +1457,9 @@
       G.pitchReleasedAt = -1e9;
       G.pitchReleasedSlope = 0;
       G.boostingNow = false;
+      G.boostFlashUntil = 0;
+      G.pressActive = false;
+      G.pressStartAt = 0;
       G.transitioning = false;
       G.transitionEnd = 0;
       if (typeof trail !== "undefined") trail.length = 0;
@@ -1606,6 +1614,62 @@
     window.addEventListener("orientationchange", resize);
 
     // ── Input ────────────────────────────────────────────────────
+    // A press means two different things depending on duration and state:
+    //   • On the ground  → dive immediately (pitch nose down on the downslope).
+    //   • In the air, quick TAP (released under HOLD_TAP_MS) → spend boost only.
+    //   • In the air, HOLD (past HOLD_TAP_MS)               → pitch nose down to dive.
+    // The old behavior fired boost AND pitch-down on the same airborne press,
+    // so the nose-down forward kick fought the boost's speed. Separating them
+    // lets a tap be a clean boost and a hold be a clean dive.
+    const HOLD_TAP_MS = 150;   // press shorter than this (in the air) = tap = boost
+    const BOOST_FLASH_MS = 220; // how long the boost visual lingers after a tap
+
+    function fireBoost() {
+      if (!(G.airborne && G.boost > 0.18)) return false;
+      G.boostingNow = true;
+      G.boostFlashUntil = performance.now() + BOOST_FLASH_MS;
+      if (G.tutorial && G.tutorialStep === 2) tutorialAdvance(2);
+      const dir = Math.sign(G.vx) || 1;
+      G.vx += dir * 220;
+      G.boost = Math.max(0, G.boost - 0.32);
+      blip(680, 0.14, "triangle", 0.16);
+      return true;
+    }
+
+    function beginPress() {
+      if (G.gameOver) return;
+      G.pressActive = true;
+      G.pressStartAt = performance.now();
+      if (G.airborne) {
+        // Airborne: don't commit to boost-vs-dive yet. A quick release fires
+        // boost (endPress); a sustained hold promotes to a dive in the tick.
+        blip(360, 0.06, "sine", 0.05);
+      } else {
+        // Grounded: dive immediately — keep the core dive mechanic latency-free.
+        G.pitchDown = true;
+        blip(360, 0.06, "sine", 0.05);
+      }
+    }
+
+    function endPress() {
+      const wasTap = G.pressActive && G.airborne && !G.pitchDown &&
+                     (performance.now() - G.pressStartAt) < HOLD_TAP_MS;
+      G.pressActive = false;
+      if (wasTap) {
+        // Quick airborne tap → boost only, no pitch-down, no launch-release.
+        fireBoost();
+        return;
+      }
+      if (G.pitchDown) {
+        G.pitchReleasedAt = performance.now();
+        G.pitchReleasedSlope = G.terrain ? G.terrain.slope(G.bx) : 0;
+        if (!G.gameOver) blip(540, 0.05, "sine", 0.04);
+        if (G.tutorial && G.tutorialStep === 1) tutorialAdvance(1);
+      }
+      G.pitchDown = false;
+      G.boostingNow = false;
+    }
+
     canvas.addEventListener("pointerdown", e => {
       e.preventDefault();
       ensureAudio();
@@ -1614,40 +1678,10 @@
       // releases over the topbar/footer that overlay the playfield — otherwise
       // pitchDown sticks "on" forever and the bird dives until it crashes.
       try { canvas.setPointerCapture(e.pointerId); } catch {}
-      G.pitchDown = true;
-      // Mid-air tap-press also consumes boost if available
-      if (G.airborne && G.boost > 0.18) {
-        G.boostingNow = true;
-        if (G.tutorial && G.tutorialStep === 2) tutorialAdvance(2);
-        // Forward kick — preserves direction sign of vx
-        const dir = Math.sign(G.vx) || 1;
-        G.vx += dir * 220;
-        G.boost = Math.max(0, G.boost - 0.32);
-        blip(680, 0.14, "triangle", 0.16);
-      } else {
-        blip(360, 0.06, "sine", 0.05);
-      }
+      beginPress();
     }, { passive: false });
-    canvas.addEventListener("pointerup", () => {
-      if (G.pitchDown) {
-        G.pitchReleasedAt = performance.now();
-        G.pitchReleasedSlope = G.terrain ? G.terrain.slope(G.bx) : 0;
-        if (!G.gameOver) blip(540, 0.05, "sine", 0.04);
-        if (G.tutorial && G.tutorialStep === 1) tutorialAdvance(1);
-      }
-      G.pitchDown = false;
-      G.boostingNow = false;
-    });
-    canvas.addEventListener("pointercancel", () => {
-      if (G.pitchDown) {
-        G.pitchReleasedAt = performance.now();
-        G.pitchReleasedSlope = G.terrain ? G.terrain.slope(G.bx) : 0;
-        if (!G.gameOver) blip(540, 0.05, "sine", 0.04);
-        if (G.tutorial && G.tutorialStep === 1) tutorialAdvance(1);
-      }
-      G.pitchDown = false;
-      G.boostingNow = false;
-    });
+    canvas.addEventListener("pointerup", () => { endPress(); });
+    canvas.addEventListener("pointercancel", () => { endPress(); });
     document.getElementById("muteBtn").addEventListener("click", e => {
       G.muted = !G.muted;
       e.currentTarget.textContent = G.muted ? "sound · off" : "sound · on";
@@ -1726,31 +1760,15 @@
           e.preventDefault();
           doRestart(false);
         } else {
-          G.pitchDown = true;
-          // Mid-air Space/Down also spends boost (mirrors canvas pointerdown),
-          // so keyboard players can perform the boost and complete the tutorial.
-          if (G.airborne && G.boost > 0.18) {
-            G.boostingNow = true;
-            if (G.tutorial && G.tutorialStep === 2) tutorialAdvance(2);
-            const dir = Math.sign(G.vx) || 1;
-            G.vx += dir * 220;
-            G.boost = Math.max(0, G.boost - 0.32);
-            blip(680, 0.14, "triangle", 0.16);
-          }
+          // Mirror the canvas tap/hold split: a quick Space/Down tap in the
+          // air spends boost; holding it pitches the bird down to dive.
+          e.preventDefault();
+          beginPress();
         }
       }
     });
     window.addEventListener("keyup", e => {
-      if (e.code === "Space" || e.code === "ArrowDown") {
-        if (G.pitchDown) {
-          G.pitchReleasedAt = performance.now();
-          G.pitchReleasedSlope = G.terrain ? G.terrain.slope(G.bx) : 0;
-          if (!G.gameOver) blip(540, 0.05, "sine", 0.04);
-          if (G.tutorial && G.tutorialStep === 1) tutorialAdvance(1);
-        }
-        G.pitchDown = false;
-        G.boostingNow = false;
-      }
+      if (e.code === "Space" || e.code === "ArrowDown") endPress();
     });
 
     // ── Physics tick ──────────────────────────────────────────────
@@ -1934,6 +1952,16 @@
         if (G.tutorial && G.tutorialStep < TUTORIAL_STEPS.length) {
           showCoachmark(TUTORIAL_STEPS[G.tutorialStep]);
         }
+      }
+
+      // Hold-to-dive promotion: an airborne press that's held past the tap
+      // window stops being a candidate boost-tap and becomes a dive. (A
+      // grounded press already set pitchDown immediately in beginPress.) This
+      // is what makes "only hold the screen to make the bird dive" work while
+      // a quick tap stays a pure boost.
+      if (G.pressActive && !G.pitchDown && G.airborne &&
+          (performance.now() - G.pressStartAt) >= HOLD_TAP_MS) {
+        G.pitchDown = true;
       }
 
       const t = G.terrain;
@@ -2953,10 +2981,14 @@
           G.pitchDown && !G.airborne && G.terrain && G.terrain.slope(G.bx) > 0.10) {
         tutorialAdvance(0);
       }
-      if (G.boostingNow || G.vy > 380 || (G.pitchDown && !G.airborne && G.terrain && G.terrain.slope(G.bx) > 0.10)) pushTrail(sx, sy);
+      // Boost is now a tap (fires and releases instantly), so its trail/flash
+      // is driven by a short timer rather than a held flag.
+      const boostVisual = performance.now() < G.boostFlashUntil;
+      if (!boostVisual) G.boostingNow = false;
+      if (boostVisual || G.vy > 380 || (G.pitchDown && !G.airborne && G.terrain && G.terrain.slope(G.bx) > 0.10)) pushTrail(sx, sy);
       drawTrail();
 
-      drawBird(sx, sy, angle, G.airborne, G.perfectLaunch, G.boostingNow);
+      drawBird(sx, sy, angle, G.airborne, G.perfectLaunch, boostVisual);
       drawOffscreenIndicator(sx, sy);
       drawMinimap();
 
