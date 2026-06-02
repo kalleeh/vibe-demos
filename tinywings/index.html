@@ -1307,10 +1307,6 @@
       perfectCount: 0,
       bestDist: 0,
       maxDistM: 0,             // greatest distance reached this run
-      stuckMs: 0,              // time spent at near-zero speed on slope
-      noProgressMs: 0,         // time since maxBx last advanced
-      stuckCheckBx: 0,         // bx watermark for noProgressMs
-      backslideMs: 0,          // sustained-backslide hysteresis
       pitchReleasedAt: -1e9,   // wall-clock time of most recent pointer-up
       pitchReleasedSlope: 0,   // terrain slope at last release; ramp launch requires this was a downhill
       flightStartX: 200,
@@ -1444,10 +1440,6 @@
       G.boost = 0;
       G.perfectCount = 0;
       G.maxDistM = 0;
-      G.stuckMs = 0;
-      G.noProgressMs = 0;
-      G.stuckCheckBx = 200;
-      G.backslideMs = 0;
       G.flightStartX = 200;
       G.flightStartT = performance.now();
       G.nightX = 200 - NIGHT.START_GAP; // spawn bx is 200; front starts START_GAP behind
@@ -1942,6 +1934,22 @@
       G.nightX += NIGHT.PACE * dt;
     }
 
+    // Single progress detector — replaces stuckMs / noProgressMs / backslideMs.
+    // Tracks the forward high-water mark (maxBx). If it fails to advance by
+    // PROGRESS_MIN within STOP_MS (while loss is armed), the bird has stopped:
+    // frozen, crawling-in-place, or backsliding all collapse to "no high-water
+    // progress". Returns true if a stop-loss should fire this frame.
+    function checkStopped(now, armed) {
+      if (G.bx > G.maxBx + NIGHT.PROGRESS_MIN) {
+        G.maxBx = G.bx;
+        G.lastProgressAt = now;
+        return false;
+      }
+      if (G.bx > G.maxBx) G.maxBx = G.bx; // creep the mark up on tiny gains, no timer reset
+      if (!armed) { G.lastProgressAt = now; return false; } // don't accumulate while unarmed
+      return (now - G.lastProgressAt) >= NIGHT.STOP_MS;
+    }
+
     function physicsStep(dt) {
       if (G.gameOver) return;
       if (G.nightfall.active) return; // bird frozen during the nightfall animation
@@ -2222,51 +2230,25 @@
       // startGame so a bird placed on a slightly tricky opening seed has
       // time to accelerate before the watchdog even starts ticking.
       const sinceStart = performance.now() - G.flightStartT;
-      // Loss triggers are suppressed during the tutorial and during the
-      // post-tutorial grace window (a freshly-taught player gets ~3s to fumble
-      // their first hills without dying). We still ACCUMULATE the timers during
-      // grace so the run ends promptly if the bird is still genuinely stuck the
-      // instant grace lapses — grace softens the cliff, it doesn't hide a
-      // permanently-dead bird.
-      const lossArmed = !G.tutorial && performance.now() >= G.graceUntil;
-      if (sinceStart > 800) {
-        // Use SIGNED forward velocity (vx itself, not |vx|). A bird in
-        // a valley bouncing backward at vx=-80 has |vx|=80 which clears
-        // the gate and feels alive — but it isn't going anywhere. The
-        // signed check catches "going nowhere or backward" with one
-        // condition, and the absolute-stall case (vx near zero) is a
-        // subset of it.
-        if (G.vx < 60) {
-          G.stuckMs += dt * 1000;
-          if (G.stuckMs > 1000 && lossArmed) endRun("the wind has settled");
-        } else {
-          G.stuckMs = 0;
-        }
-        // Forward-progress watchdog: bird must gain ≥10 px every 1200ms.
-        // The old +40 px threshold let a bird oscillating ±41 px reset
-        // the watermark on every cycle and never trip — visually frozen
-        // but technically advancing. 10 px / 1.2 s catches that case.
-        if (G.bx > G.stuckCheckBx + 10) {
-          G.stuckCheckBx = G.bx;
-          G.noProgressMs = 0;
-        } else {
-          G.noProgressMs += dt * 1000;
-          if (G.noProgressMs > 1200 && lossArmed) endRun("out of speed");
-        }
-        // Backslide trigger needs hysteresis — a single 60px transient
-        // from a steep ramp-bounce shouldn't end the run instantly. The
-        // bird must be ≥60 px below the watermark for ≥250 ms.
-        if (G.bx < G.stuckCheckBx - 60) {
-          G.backslideMs += dt * 1000;
-          if (G.backslideMs > 250 && lossArmed) endRun("shoved back");
-        } else {
-          G.backslideMs = 0;
+      // Loss is suppressed during the tutorial and the post-tutorial grace
+      // window. Two clean paths, both ending the run via the nightfall
+      // sequence so every death reads as "the night caught you":
+      //   Path 1 — STOPPED: one progress detector (replaces the old three
+      //            stuck/no-progress/backslide counters) → instant loss, the
+      //            front SURGES in to meet the stalled bird.
+      //   Path 2 — NIGHT: the steady front catches a too-slow bird (bx<=nightX).
+      const now = performance.now();
+      const lossArmed = !G.tutorial && now >= G.graceUntil;
+      if (sinceStart > 800 && !G.nightfall.active) {
+        if (checkStopped(now, lossArmed)) {
+          triggerNightfall("the night caught you", { surge: true });
+        } else if (lossArmed && G.bx - G.nightX <= 0) {
+          triggerNightfall("the night caught you", { surge: false });
         }
       }
-      // If any of the three triggers ended the run this frame, stop
-      // here — the rest of the function (day timer, HUD, distance HWM)
-      // shouldn't keep ticking on a dead bird.
-      if (G.gameOver) return;
+      // A loss this frame starts the nightfall animation and freezes physics;
+      // don't keep ticking the day timer / HUD on a caught bird.
+      if (G.gameOver || G.nightfall.active) return;
 
       // Day timer — frozen entirely during the tutorial so the run can't
       // time out and the day counter doesn't run away.
