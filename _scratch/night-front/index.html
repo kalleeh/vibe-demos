@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Night-front visual styles</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Fraunces:ital,opsz,wght@1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{ --paper:#f4ecd6; --paper2:#ede2c1; --ink:#2a261d; --muted:rgba(42,38,29,.55); --bloom:#b04a2f; --line:rgba(42,38,29,.16); }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:"JetBrains Mono",monospace;padding:18px 14px 60px}
+  h1{font-family:"Fraunces",serif;font-style:italic;font-weight:400;font-size:24px;margin:0 0 2px}
+  .sub{color:var(--muted);font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin:0 0 18px}
+  .opt{border:1px dashed var(--line);border-radius:10px;margin:0 0 16px;overflow:hidden;background:var(--paper);transition:border-color .15s, box-shadow .15s;cursor:pointer}
+  .opt.sel{border-color:var(--bloom);border-style:solid;box-shadow:0 6px 22px rgba(176,74,47,.18)}
+  .cap{display:flex;align-items:baseline;gap:10px;padding:10px 12px 8px}
+  .letter{font-family:"Fraunces",serif;font-style:italic;font-size:20px;color:var(--bloom)}
+  .name{font-family:"Caveat",cursive;font-size:21px}
+  .desc{color:var(--muted);font-size:11px;line-height:1.5;padding:0 12px 12px}
+  canvas{display:block;width:100%;height:150px;background:var(--paper2)}
+  .tag{display:inline-block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--bloom);border:1px solid var(--line);border-radius:20px;padding:2px 7px;margin-left:auto}
+  .hint{position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:var(--paper);font-size:11px;letter-spacing:.1em;text-align:center;padding:9px;text-transform:uppercase}
+</style>
+</head>
+<body>
+  <h1>The chasing night — three looks</h1>
+  <p class="sub">Bird flies right · the dark closes from the left · tap one</p>
+
+  <div class="opt" data-choice="a" onclick="pick(this,'a')">
+    <div class="cap"><span class="letter">A</span><span class="name">Ink wash wall</span><span class="tag">painterly</span></div>
+    <canvas id="ca" width="700" height="300"></canvas>
+    <div class="desc">A soft watercolour darkness bleeds in from the left edge — a feathered, uneven gradient with a few drifting ink blots at its leading edge. Calmest, most "sketchbook". The dark deepens the closer it gets. Stars wink on inside it.</div>
+  </div>
+
+  <div class="opt" data-choice="b" onclick="pick(this,'b')">
+    <div class="cap"><span class="letter">B</span><span class="name">Pencil-scribble storm</span><span class="tag">textured</span></div>
+    <canvas id="cb" width="700" height="300"></canvas>
+    <div class="desc">The night is a churning mass of dense pencil cross-hatching with a ragged hand-drawn edge that "eats" the hills and sky as it advances. Most visibly hand-made; reads clearly as a threat. Slightly busier.</div>
+  </div>
+
+  <div class="opt" data-choice="c" onclick="pick(this,'c')">
+    <div class="cap"><span class="letter">C</span><span class="name">Creeping vignette</span><span class="tag">minimal</span></div>
+    <canvas id="cc" width="700" height="300"></canvas>
+    <div class="desc">No hard wall — instead the whole left side darkens and desaturates as a deep vignette that grows across the screen. Subtlest; the world simply loses its light behind you. Least intrusive to the art, but the "edge" is vaguer.</div>
+  </div>
+
+  <div class="hint" id="hint">Tap a style — then tell me in the terminal</div>
+
+<script>
+function hills(ctx,w,h,seed){
+  ctx.strokeStyle="rgba(70,95,75,.5)";ctx.lineWidth=2;ctx.beginPath();
+  for(let x=0;x<=w;x+=4){let y=h*.62 + Math.sin(x*.012+seed)*22 + Math.sin(x*.031+seed*2)*10;x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+  ctx.stroke();
+  ctx.fillStyle="rgba(120,150,100,.18)";ctx.lineTo(w,h);ctx.lineTo(0,h);ctx.fill();
+}
+function bird(ctx,x,y){ctx.strokeStyle="#2a261d";ctx.lineWidth=2.4;ctx.beginPath();ctx.moveTo(x-9,y);ctx.quadraticCurveTo(x,y-9,x+12,y-2);ctx.quadraticCurveTo(x+2,y+2,x-9,y);ctx.stroke();ctx.beginPath();ctx.moveTo(x-1,y-3);ctx.quadraticCurveTo(x-5,y-12,x-12,y-9);ctx.stroke();}
+function base(id){const c=document.getElementById(id);const x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);
+  // sky band
+  let g=x.createLinearGradient(0,0,0,c.height*.7);g.addColorStop(0,"rgba(245,215,187,.5)");g.addColorStop(1,"rgba(244,236,214,0)");x.fillStyle=g;x.fillRect(0,0,c.width,c.height*.7);
+  hills(x,c.width,c.height,1.2);bird(x,c.width*.66,c.height*.4);return x;}
+
+// A — ink wash wall from left, ~45% across
+(function(){const c=document.getElementById('ca');const x=base('ca');const edge=c.width*.46;
+  let g=x.createLinearGradient(0,0,edge,0);g.addColorStop(0,"rgba(28,30,46,.96)");g.addColorStop(.7,"rgba(40,44,64,.7)");g.addColorStop(1,"rgba(40,44,64,0)");
+  x.fillStyle=g;x.fillRect(0,0,edge,c.height);
+  // drifting blots at leading edge
+  x.fillStyle="rgba(34,38,58,.55)";[[edge-6,60,16],[edge+10,150,11],[edge-14,210,20],[edge+18,95,7]].forEach(b=>{x.beginPath();x.arc(b[0],b[1],b[2],0,7);x.fill();});
+  // stars inside
+  x.fillStyle="rgba(232,226,200,.85)";[[40,50],[90,120],[150,70],[60,200],[180,170]].forEach(s=>{x.beginPath();x.arc(s[0],s[1],1.4,0,7);x.fill();});
+})();
+
+// B — pencil scribble storm
+(function(){const c=document.getElementById('cb');const x=base('cb');const edge=c.width*.44;
+  x.fillStyle="rgba(36,40,58,.92)";x.fillRect(0,0,edge,c.height);
+  // ragged edge
+  x.strokeStyle="rgba(36,40,58,.92)";x.lineWidth=3;x.beginPath();for(let y=0;y<=c.height;y+=6){let e=edge+Math.sin(y*.3)*10+(Math.random()*8-4);y===0?x.moveTo(e,y):x.lineTo(e,y);}x.stroke();
+  // cross-hatch
+  x.strokeStyle="rgba(20,22,36,.5)";x.lineWidth=1;for(let i=-c.height;i<edge;i+=9){x.beginPath();x.moveTo(i,0);x.lineTo(i+c.height,c.height);x.stroke();}
+  for(let i=0;i<edge+c.height;i+=9){x.beginPath();x.moveTo(i,0);x.lineTo(i-c.height,c.height);x.stroke();}
+  x.fillStyle="rgba(232,226,200,.8)";[[40,60],[100,140],[150,90]].forEach(s=>{x.beginPath();x.arc(s[0],s[1],1.4,0,7);x.fill();});
+})();
+
+// C — creeping vignette
+(function(){const c=document.getElementById('cc');const x=base('cc');
+  let g=x.createLinearGradient(0,0,c.width*.7,0);g.addColorStop(0,"rgba(26,28,44,.9)");g.addColorStop(.45,"rgba(40,44,64,.45)");g.addColorStop(.8,"rgba(60,64,84,.12)");g.addColorStop(1,"rgba(60,64,84,0)");
+  x.fillStyle=g;x.fillRect(0,0,c.width,c.height);
+  // radial darkening corners on the dark side
+  let r=x.createRadialGradient(c.width*.12,c.height*.5,20,c.width*.12,c.height*.5,c.height);r.addColorStop(0,"rgba(20,22,38,.5)");r.addColorStop(1,"rgba(20,22,38,0)");x.fillStyle=r;x.fillRect(0,0,c.width,c.height);
+})();
+
+let sel=null;
+function pick(el,ch){document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');sel=ch;
+  document.getElementById('hint').textContent='Selected '+ch.toUpperCase()+' — confirm in the terminal';
+  if(window.recordSelection)window.recordSelection(ch);if(window.toggleSelect){} }
+</script>
+</body>
+</html>
