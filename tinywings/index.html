@@ -1944,6 +1944,7 @@
 
     function physicsStep(dt) {
       if (G.gameOver) return;
+      if (G.nightfall.active) return; // bird frozen during the nightfall animation
       updateNight(dt);
 
       // Tutorial step 0: when the bird reaches a real downslope and the player
@@ -2312,6 +2313,60 @@
         G.bestDist = G.maxDistM;
         try { localStorage.setItem("vibe.tinywings.best", String(G.bestDist)); } catch (e) {}
         document.getElementById("bestV").textContent = String(G.bestDist);
+      }
+    }
+
+    // Single entry point for ALL losses. cause = end-card reason string.
+    // opts.surge = true makes the front rush in (used by the instant stop loss);
+    // the night-catch loss passes surge:false (front is already at the bird).
+    function triggerNightfall(cause, opts) {
+      if (G.nightfall.active || G.gameOver) return;
+      const surge = !!(opts && opts.surge);
+      G.nightfall = {
+        active: true,
+        startedAt: performance.now(),
+        phase: surge ? "surge" : "engulf",
+        surge,
+        surgeFromX: G.nightX,
+        reason: cause || "the night caught you",
+      };
+      blip(180, 0.5, "sine", 0.10);
+    }
+
+    // Advances the nightfall animation by wall-clock time. Called every frame
+    // from frame() (physicsStep is frozen while nightfall is active, so the
+    // bird stops, but the animation must keep progressing). Reduced motion
+    // collapses surge+engulf+settle into a quick cross-fade.
+    function updateNightfall(now) {
+      const nf = G.nightfall;
+      if (!nf.active) return;
+      const t = now - nf.startedAt;
+      if (reduceMotion) {
+        // ~300ms straight to night, then the card.
+        G.nightX = G.bx; // front fully over the bird
+        if (t >= 300 && nf.phase !== "done") { nf.phase = "done"; endRun(nf.reason); }
+        return;
+      }
+      const SURGE = NIGHT.SURGE_MS, ENGULF = 900, SETTLE = 500;
+      if (nf.phase === "surge") {
+        // Ease the front to the bird over SURGE_MS, then engulf.
+        const k = Math.min(1, t / SURGE);
+        const e = k * k * (3 - 2 * k); // smoothstep
+        G.nightX = nf.surgeFromX + (G.bx - nf.surgeFromX) * e;
+        if (t >= SURGE) { nf.phase = "engulf"; nf.startedAt = now; }
+        return;
+      }
+      if (nf.phase === "engulf") {
+        // Push the front PAST the bird so the ink floods the whole screen.
+        const k = Math.min(1, t / ENGULF);
+        const e = k * k; // accelerate
+        G.nightX = G.bx + e * (viewW * 1.2); // well past the right edge in world px ≈ screen px
+        if (t >= ENGULF) { nf.phase = "settle"; nf.startedAt = now; }
+        return;
+      }
+      if (nf.phase === "settle") {
+        if (t >= SETTLE) { nf.phase = "done"; endRun(nf.reason); }
+        return;
       }
     }
 
@@ -2988,6 +3043,8 @@
       const sub = Math.max(1, Math.ceil(dt / 0.016));
       const dts = dt / sub;
       for (let i = 0; i < sub; i++) physicsStep(dts);
+
+      updateNightfall(now); // progresses the loss animation (physics is frozen meanwhile)
 
       // Render
       ctx.clearRect(0, 0, viewW, viewH);
