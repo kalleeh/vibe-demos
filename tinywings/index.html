@@ -3030,7 +3030,7 @@
     function drawNight(camX, now) {
       const edgeScreen = G.nightX - camX;
       if (edgeScreen < -40) return; // front entirely off the left — nothing to draw
-      const t = now / 1000;
+      const t = reduceMotion ? 0 : now / 1000; // reduced motion: static front, no wobble/bob
       const H = viewH;
       const samples = 22, amp1 = 14, amp2 = 7;
       function edgeAt(y) {
