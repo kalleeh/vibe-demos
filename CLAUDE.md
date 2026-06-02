@@ -613,7 +613,7 @@ migrate((app) => {
 ./sync-backends.sh    # run from the vibe-demos repo root
 ```
 
-**Infrastructure context** (for reference only — agent doesn't manage this):
+**Infrastructure context** (the deploy script handles all of this; rarely touched directly):
 - Server: Lightsail `pb-backends` (13.61.133.93), 2GB RAM, eu-north-1
 - Caddy reverse proxy with wildcard TLS cert (Let's Encrypt DNS-01 via Route 53)
 - Each backend: systemd unit `pocketbase@<slug>`, port from config.json
@@ -626,7 +626,7 @@ migrate((app) => {
 vibe-demos/
 ├── backends/
 │   └── config.json          ← port registry + server details
-├── sync-backends.sh         ← deploy script (human runs this)
+├── sync-backends.sh         ← single deploy command (run from repo root)
 ├── tinywings/
 │   ├── index.html
 │   └── pb/                  ← exists only if demo has a backend
@@ -663,4 +663,4 @@ Stay client-only when:
 
 ### Reference implementation
 
-`tinywings/` — the canonical PocketBase demo. Frontend + migration are shipped (Tier 1 public leaderboard, local-first fallback, **fetch-on-open** refresh — no realtime); the collection goes live once a human runs `./sync-backends.sh`. Demonstrates the full pattern end-to-end: health check, anonymous `player_id` identity (for "you" highlighting, not auth), submit-on-personal-best, top-N overlay with skeleton loader, XSS-safe `textContent` rendering, and graceful offline degradation. The leaderboard logic lives in its own `<script type="module">` in `tinywings/index.html`, bridged to the classic game script only via a `window.__lbOnEnd` hook.
+`tinywings/` — the canonical PocketBase demo. Frontend + migration are shipped (Tier 1 public leaderboard, local-first fallback, **fetch-on-open** refresh — no realtime); the collection goes live once `./sync-backends.sh` is run. Demonstrates the full pattern end-to-end: health check, anonymous `player_id` identity (for "you" highlighting, not auth), submit-on-personal-best, top-N overlay with skeleton loader, XSS-safe `textContent` rendering, and graceful offline degradation. The leaderboard logic lives in its own `<script type="module">` in `tinywings/index.html`, bridged to the classic game script only via a `window.__lbOnEnd` hook.
