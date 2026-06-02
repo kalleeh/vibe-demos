@@ -42,9 +42,15 @@ while IFS=' ' read -r SLUG PORT; do
   if [ ! -d "$DEMO_PB_DIR" ]; then
     echo "  WARN: $SLUG/pb/ does not exist locally — skipping migrations rsync"
   else
-    # Rsync migrations to server
+    # Rsync migrations to server. /opt/pocketbase is owned by the pocketbase
+    # user and rsync runs over ssh as the login user, so we (a) pre-create the
+    # destination — rsync only creates the final path component, not missing
+    # intermediates, which breaks the first-ever sync of a new backend — and
+    # (b) write via "sudo rsync" so files land in the pocketbase-owned tree.
+    # The provisioning block below re-chowns them to pocketbase:pocketbase.
     echo "  Syncing migrations..."
-    rsync -avz --delete -e "ssh" \
+    $SSH "sudo mkdir -p /opt/pocketbase/${SLUG}/pb_migrations"
+    rsync -avz --delete -e "ssh" --rsync-path="sudo rsync" \
       "$DEMO_PB_DIR/pb_migrations/" \
       "${SERVER_HOST}:/opt/pocketbase/${SLUG}/pb_migrations/"
   fi
