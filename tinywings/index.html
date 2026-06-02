@@ -1297,6 +1297,12 @@
       pressActive: false,     // a pointer/key is currently held down
       pressStartAt: 0,        // wall-clock time the current press began
 
+      // Chasing night
+      nightX: -1e9,           // world-x of the night front's leading edge
+      maxBx: 200,             // furthest world-x reached (progress high-water mark)
+      lastProgressAt: 0,      // wall-clock time maxBx last advanced by PROGRESS_MIN
+      nightfall: { active: false, startedAt: 0, phase: "engulf", surge: false, surgeFromX: 0, reason: "" },
+
       // Score
       perfectCount: 0,
       bestDist: 0,
@@ -1320,6 +1326,7 @@
       stars: [],
       clouds: [],
     };
+    window.__TW_DEBUG_G = G; // TEMPORARY — removed in the final task. Do not ship.
     try {
       const stored = parseInt(localStorage.getItem("vibe.tinywings.best") || "0", 10);
       if (Number.isFinite(stored) && stored > 0) G.bestDist = stored;
@@ -1443,6 +1450,10 @@
       G.backslideMs = 0;
       G.flightStartX = 200;
       G.flightStartT = performance.now();
+      G.nightX = 200 - NIGHT.START_GAP; // spawn bx is 200; front starts START_GAP behind
+      G.maxBx = 200;
+      G.lastProgressAt = performance.now();
+      G.nightfall = { active: false, startedAt: 0, phase: "engulf", surge: false, surgeFromX: 0, reason: "" };
       G.graceUntil = 0;
       G.gameOver = false;
       G.tutorial = false;
@@ -1797,6 +1808,20 @@
     } catch {}
     const STALL_ANGLE_DEG  = 55;  // landing angle above this = bonk
     const PERFECT_ANGLE_DEG = 12; // launch within this angle of slope tangent = perfect
+
+    // ── Chasing-night constants ──────────────────────────────────
+    // The night is a world-space front (NIGHT_X) advancing at a steady pace.
+    // The bird's speed is what outruns it. Tuned below a competent cruise
+    // (spawn vx=420, LIFT_VMIN=180, VMAX=1100) so a flowing run pulls away.
+    const NIGHT = {
+      PACE:       210,   // px/s the front advances (steady; no rubber-banding)
+      START_GAP: 1200,   // px the front starts behind the bird each run (~85 m)
+      SURGE_MS:   260,   // on a hard stop, lerp the front to the bird over this
+      NEAR_M:      30,   // gap (m) under which the proximity cue intensifies
+      // Stop detector (replaces stuckMs/noProgressMs/backslideMs):
+      PROGRESS_MIN: 12,  // px of forward high-water gain that counts as progress
+      STOP_MS:    1300,  // no progress for this long (while armed) = instant loss
+    };
 
     // ── Physics tuner panel ─────────────────────────────────────────
     // Each entry is a slider for one PHYS knob: [min, max, step, hint].
