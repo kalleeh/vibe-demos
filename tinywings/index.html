@@ -1469,14 +1469,40 @@
       newDay(1);
       G.nightBlots = [];
       { const r = mulberry32((G.seed ^ 0x51ed) >>> 0);
-        for (let i = 0; i < 7; i++) G.nightBlots.push({
-          off: -10 - r() * 80,        // px behind the edge (negative = left)
-          yf: 0.08 + r() * 0.84,      // vertical fraction of canvas height
-          rad: 10 + r() * 22,         // blot radius
-          bob: 6 + r() * 10,          // vertical bob amplitude (px)
-          ph: r() * 6.283,            // phase
-          spd: 0.5 + r() * 0.8,       // bob speed
-        }); }
+        for (let i = 0; i < 7; i++) {
+          const rad = 11 + r() * 22;        // overall blot scale
+          // Each blot is built from 2–3 overlapping irregular lobes, so its
+          // silhouette is lumpy and its interior density is uneven — like a
+          // real ink/watercolor blot, not a gradient-bordered circle. The lobe
+          // outlines (per-vertex radius jitter) are seeded once here so the
+          // shape is stable across frames (no per-frame flicker).
+          const lobeCount = 2 + (r() < 0.6 ? 1 : 0);
+          const lobes = [];
+          for (let L = 0; L < lobeCount; L++) {
+            const N = 10;                    // outline vertices
+            const pts = [];
+            for (let k = 0; k < N; k++) pts.push(0.72 + r() * 0.5); // radius mult 0.72..1.22
+            lobes.push({
+              dx: (r() - 0.5) * rad * 1.1,   // lobe centre offset from blot centre
+              dy: (r() - 0.5) * rad * 1.1,
+              lr: rad * (L === 0 ? (0.85 + r() * 0.25) : (0.4 + r() * 0.4)), // main lobe big, satellites smaller
+              pts,
+              coreDx: (r() - 0.5) * rad * 0.5, // gradient core pushed off-centre → uneven density
+              coreDy: (r() - 0.5) * rad * 0.5,
+              alpha: 0.42 + r() * 0.34,      // per-lobe ink strength (overlaps build darker cores)
+              wob: r() * 6.283,              // breathing phase
+            });
+          }
+          G.nightBlots.push({
+            off: -10 - r() * 80,        // px behind the edge (negative = left)
+            yf: 0.08 + r() * 0.84,      // vertical fraction of canvas height
+            rad,
+            bob: 6 + r() * 10,          // vertical bob amplitude (px)
+            ph: r() * 6.283,            // phase
+            spd: 0.5 + r() * 0.8,       // bob speed
+            lobes,
+          });
+        } }
       // Place bird just above the hill surface at the spawn x, with a
       // slight downward tilt. Spawning high and falling far meant the
       // bird's downward velocity got cancelled out projecting onto an
@@ -1949,17 +1975,23 @@
     }
 
     // Single progress detector — replaces stuckMs / noProgressMs / backslideMs.
-    // Tracks the forward high-water mark (maxBx). If it fails to advance by
-    // PROGRESS_MIN within STOP_MS (while loss is armed), the bird has stopped:
-    // frozen, crawling-in-place, or backsliding all collapse to "no high-water
-    // progress". Returns true if a stop-loss should fire this frame.
+    // maxBx is a FIXED checkpoint, not a per-frame follower: it only jumps
+    // forward (resetting the stall timer) once the bird has gained a fresh
+    // PROGRESS_MIN of NEW ground past the last checkpoint. Crucially this gain
+    // is CUMULATIVE across frames — a bird gliding forward at any speed keeps
+    // clearing 12px of new ground every fraction of a second, so the timer
+    // keeps resetting. Only a bird that fails to make 12px of NEW forward
+    // progress for STOP_MS (frozen, crawling, or shoved back below the mark)
+    // is "stopped". (An earlier version advanced maxBx to bx every frame,
+    // which silently turned this into a 12px-PER-FRAME ≈ 720px/s speed floor
+    // and killed normal flight — especially steep, low-horizontal-speed
+    // perfect launches — at exactly STOP_MS. Do NOT reintroduce that creep.)
     function checkStopped(now, armed) {
       if (G.bx > G.maxBx + NIGHT.PROGRESS_MIN) {
         G.maxBx = G.bx;
         G.lastProgressAt = now;
         return false;
       }
-      if (G.bx > G.maxBx) G.maxBx = G.bx; // creep the mark up on tiny gains, no timer reset
       if (!armed) { G.lastProgressAt = now; return false; } // don't accumulate while unarmed
       return (now - G.lastProgressAt) >= NIGHT.STOP_MS;
     }
@@ -3071,11 +3103,38 @@
       for (const bl of G.nightBlots) {
         const bx = edgeScreen + bl.off + Math.sin(t * 0.6 + bl.ph) * 5;
         const by = bl.yf * H + Math.sin(t * bl.spd + bl.ph) * bl.bob;
-        const rg = ctx.createRadialGradient(bx, by, 0, bx, by, bl.rad);
-        rg.addColorStop(0, "rgba(26, 30, 48, 0.85)");
-        rg.addColorStop(1, "rgba(26, 30, 48, 0.0)");
-        ctx.fillStyle = rg;
-        ctx.beginPath(); ctx.arc(bx, by, bl.rad, 0, 6.283); ctx.fill();
+        // Each lobe is a closed irregular blob (smoothed through jittered
+        // outline points) filled with an OFF-CENTRE radial gradient. Overlapping
+        // lobes give a lumpy silhouette and an uneven, multi-cored interior —
+        // an ink/watercolor blot rather than a gradient-edged circle.
+        for (const lo of bl.lobes) {
+          const cx = bx + lo.dx, cy = by + lo.dy;
+          // gentle breathing so the edge feels wet/alive (frozen when t=0 / reduced motion)
+          const breathe = 1 + Math.sin(t * 0.8 + lo.wob) * 0.05;
+          const N = lo.pts.length;
+          // Build the smoothed irregular outline via midpoint quadratics.
+          const vx = [], vy = [];
+          for (let k = 0; k < N; k++) {
+            const a = (k / N) * 6.283;
+            const rr = lo.lr * lo.pts[k] * breathe;
+            vx.push(cx + Math.cos(a) * rr);
+            vy.push(cy + Math.sin(a) * rr * 0.86); // slightly squashed → less perfectly round
+          }
+          ctx.beginPath();
+          ctx.moveTo((vx[0] + vx[N - 1]) / 2, (vy[0] + vy[N - 1]) / 2);
+          for (let k = 0; k < N; k++) {
+            const nk = (k + 1) % N;
+            ctx.quadraticCurveTo(vx[k], vy[k], (vx[k] + vx[nk]) / 2, (vy[k] + vy[nk]) / 2);
+          }
+          ctx.closePath();
+          const gx = cx + lo.coreDx, gy = cy + lo.coreDy; // core pushed off-centre
+          const rg = ctx.createRadialGradient(gx, gy, 0, gx, gy, lo.lr * 1.25);
+          rg.addColorStop(0, `rgba(22, 25, 42, ${lo.alpha.toFixed(3)})`);
+          rg.addColorStop(0.6, `rgba(26, 30, 48, ${(lo.alpha * 0.6).toFixed(3)})`);
+          rg.addColorStop(1, "rgba(30, 34, 54, 0.0)"); // feathered bleed
+          ctx.fillStyle = rg;
+          ctx.fill();
+        }
       }
       const gapM = (G.bx - G.nightX) / 14;
       if (!G.nightfall.active && gapM < NIGHT.NEAR_M && gapM > 0) {
