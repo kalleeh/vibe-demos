@@ -1829,7 +1829,7 @@
       PITCH_BIAS:    1500,  // extra downward when tap-held
       DRAG_AIR:      0.18,  // per-second velocity damping while airborne
       NIGHT_PACE:    210,   // px/s the chasing night advances
-      NIGHT_GAP:    1200,   // px the night starts behind the bird each run
+      NIGHT_GAP:     600,   // px the night starts behind the bird each run
     };
     const PHYS = Object.assign({}, PHYS_DEFAULTS);
     try {
@@ -1866,7 +1866,7 @@
       DRAG_AIR:      { min: 0,    max: 0.30, step: 0.005, label: "drag · air",      hint: "horizontal damping while airborne" },
       GRAVITY_SURF:  { min: 200,  max: 2400, step: 10,   label: "gravity · surf",   hint: "pull along the slope while surfing the hills" },
       NIGHT_PACE:    { min: 80,   max: 500,  step: 5,  label: "night · pace",     hint: "how fast the darkness chases. higher = harder" },
-      NIGHT_GAP:     { min: 400,  max: 2400, step: 20, label: "night · head start", hint: "how far back the night begins each run" },
+      NIGHT_GAP:     { min: 100,  max: 2400, step: 20, label: "night · head start", hint: "how far back the night begins each run" },
     };
     const tunerEl = document.getElementById("tuner");
     const tuneBtn = document.getElementById("settingsBtn");
