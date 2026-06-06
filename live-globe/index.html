@@ -615,6 +615,15 @@
       cursor: pointer;
       user-select: none;
     }
+    .presence .p-head .p-activity {
+      font-size: 11px;
+      color: var(--accent, #ffb37a);
+      opacity: 0.85;
+      margin-left: auto;
+      margin-right: 10px;
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+    }
     .presence .p-head .p-title {
       font-family: "JetBrains Mono", monospace;
       font-size: 10px;
@@ -917,6 +926,7 @@
   <aside class="presence collapsed" id="presence" aria-label="Who's looking right now">
     <div class="p-head" id="pHead" role="button" tabindex="0" aria-expanded="false">
       <span class="p-title"><span class="pdot" aria-hidden="true"></span>Who's looking right now</span>
+      <span class="p-activity" id="pActivity" aria-live="polite" hidden></span>
       <span class="p-status" id="pStatus">○ local</span>
       <span class="p-chevron" aria-hidden="true">▾</span>
     </div>
@@ -2369,13 +2379,38 @@ Return strict JSON:
         // still show my local pins so the demo never looks empty.
         const items = recs.items || [];
         renderAll(items.length ? items : localPins());
+        renderActivity();
       } catch (e) {
         setOnline(false);
         renderAll(localPins());
       }
     }
 
-    function bumpActivity() {} // replaced in Task 4 with real activity-count logic
+    const pActivity = $id("pActivity");
+    const ACTIVITY_WINDOW_MS = 5 * 60 * 1000; // "recent" = last 5 minutes
+
+    // Count records whose `created` falls within the recent window. PB `created`
+    // is an ISO-ish string ("2026-06-06 03:13:59.377Z"); Date can parse it.
+    function recentCount() {
+      const now = Date.now();
+      let n = 0;
+      for (const r of allRecords) {
+        if (!r.created) continue;
+        const t = Date.parse(r.created.replace(" ", "T"));
+        if (!Number.isNaN(t) && now - t <= ACTIVITY_WINDOW_MS) n++;
+      }
+      return n;
+    }
+
+    function renderActivity() {
+      const n = recentCount();
+      if (!online || n <= 0) { pActivity.hidden = true; pActivity.textContent = ""; return; }
+      pActivity.hidden = false;
+      pActivity.textContent = `${n} recently active`;
+    }
+
+    // Called when a live pin arrives — re-derive the count from current records.
+    function bumpActivity() { renderActivity(); }
 
     let _sub = null; // unsubscribe fn returned by pb.subscribe
 
