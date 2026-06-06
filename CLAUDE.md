@@ -596,6 +596,10 @@ migrate((app) => {
       { type: "text", name: "name", required: true, max: 20 },
       { type: "number", name: "score", required: true, min: 0 },
       { type: "text", name: "player_id" },
+      // PB 0.25 base collections do NOT auto-create created/updated.
+      // Declare them as autodate or any `sort=created` 400s. See anti-patterns.
+      { type: "autodate", name: "created", onCreate: true, onUpdate: false },
+      { type: "autodate", name: "updated", onCreate: true, onUpdate: true },
     ],
   });
   app.save(collection);
@@ -655,6 +659,7 @@ Stay client-only when:
 - **Do NOT add user login unless the demo needs cross-device identity.** Tier 1 or 2 for most demos.
 - **Do NOT use innerHTML with user-submitted PocketBase fields.** Use `textContent` to prevent XSS.
 - **Do NOT assume collections exist without a migration file.** Migrations are the source of truth; admin UI is for prototyping only.
+- **Do NOT assume `created`/`updated` exist.** PB 0.25 base collections do NOT auto-create them. If the frontend sorts by `created` (or filters on it), declare it as an `autodate` field in the migration — otherwise `getFullList({ sort: 'created' })` 400s. tinywings dodges this by sorting on `-score`; the six demos added in `cbbf5f5` all sorted by `created` and needed a `002_add_autodate.js` follow-up.
 - **Do NOT use PocketBase for static data that could be a JSON file.**
 - **Do NOT run PocketBase on GitHub Pages.** It's a server binary.
 - **Do NOT add `pocketbase` to a package.json.** CDN import only.
