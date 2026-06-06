@@ -2384,9 +2384,10 @@ Return strict JSON:
     // NOT poll. Safe to call repeatedly — it no-ops if already subscribed.
     async function subscribeLive() {
       if (_sub) return;
+      _sub = true; // sentinel: subscribe in-flight — closes the async re-entry race
       try {
         const c = await getPB();
-        if (!c) return;
+        if (!c) { _sub = null; return; }
         _sub = await c.collection(COLLECTION).subscribe("*", (e) => {
           if (e.action !== "create" || !e.record) return;
           const r = e.record;
