@@ -930,6 +930,18 @@
       return c * 2 / (N - 1);
     }
 
+    // Build standing-wave coordinates for a ghost line (mode n, amplitude amp).
+    // Returns array of [x, y] coords matching curveCoords format.
+    function ghostCoords(n, amp) {
+      const coords = new Array(N);
+      for (let i = 0; i < N; i++) {
+        const x = gridX(i);
+        const y = stringY - Math.sin((n * Math.PI * i) / (N - 1)) * amp;
+        coords[i] = [x, y];
+      }
+      return coords;
+    }
+
     // Bird perched on the right peg
     function drawBird(bobY) {
       const x = rightX + 4;
@@ -1052,6 +1064,54 @@
         if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
       ctx.stroke();
+      ctx.restore();
+    }
+
+    // Draw faint, drifting ghost lines of others' locked waves — ambient presence only.
+    // NO counts, NO names, NO ranking. Fetch-on-open only, NO realtime.
+    function drawGhostLines(now) {
+      if (!ghostWaves || ghostWaves.length === 0) return;
+      const me = playerId();
+      // Filter out own waves (ghost lines are "others", not self-echo).
+      const others = ghostWaves.filter(r => r.player_id !== me);
+      if (others.length === 0) return;
+
+      ctx.save();
+      // Render oldest-to-newest so newest ghosts draw on top (faintest to most visible).
+      for (let i = others.length - 1; i >= 0; i--) {
+        const r = others[i];
+        const n = Math.max(1, Math.min(5, Math.round(r.mode || 1)));
+        const amp = Math.max(0, Math.min(5, +(r.amplitude || 0))) * 90; // same scale as curveAmp
+
+        // Fade opacity based on age: recent = more visible, old = near-invisible.
+        // Parse created (space-separated; Safari NaN gotcha).
+        const createdMs = Date.parse((r.created || "").replace(" ", "T"));
+        const ageMs = Date.now() - (isNaN(createdMs) ? 0 : createdMs);
+        const ageFade = Math.max(0, Math.min(1, 1 - ageMs / (14 * 86400 * 1000))); // fade over 14 days
+
+        // Slow horizontal drift (phase offset based on record id or index).
+        const driftPhase = (now * 0.00005 + i * 0.3) % 1;
+        const driftX = reduceMotion ? 0 : driftPhase * stringW * 0.1 - stringW * 0.05;
+
+        // Base opacity: very faint (0.08-0.14 range), scaled by age.
+        let baseAlpha = (0.08 + ageFade * 0.06);
+        // Reduced-motion: even fainter or omit entirely.
+        if (reduceMotion) baseAlpha *= 0.5;
+        if (baseAlpha < 0.02) continue;
+
+        // Build coords and offset by drift.
+        const coords = ghostCoords(n, amp);
+        const driftedCoords = coords.map(([x, y]) => [x + driftX, y]);
+
+        // Draw with the same hand-drawn style as the main string, but single pass + faint.
+        strokePath(driftedCoords, {
+          color: "rgba(107, 138, 118, 0.55)", // same muted bloom-2 as the target ghost
+          alpha: baseAlpha,
+          jitter: reduceMotion ? 0.2 : 0.8,
+          passes: 1,
+          lineWidth: 1.2
+        });
+      }
       ctx.restore();
     }
 
@@ -1316,6 +1376,7 @@
         // with the calibrated pluck) to pixels. 90 reads bold without
         // clipping at typical viewport heights.
         const curveAmp = 90;
+        drawGhostLines(now);
         drawAntinodeHints();
         drawTarget(curveAmp);
         drawRivalLeak(curveAmp);
@@ -1624,6 +1685,7 @@
     let pb = null;
     let online = false;
     let _pbPromise = null;
+    let ghostWaves = [];  // cached locked_wave records from others
 
     function getPB() {
       if (pb) return Promise.resolve(pb);
