@@ -1879,15 +1879,22 @@
     async function loadGallery() {
       // fetch-on-open. Re-check health here (user-initiated action).
       if (!online) await checkHealth();
-      if (!online) { renderRows(localList(), "local"); return; }
+      if (!online) {
+        // Offline: only your own waves, no ghosts from others.
+        ghostWaves = [];
+        renderRows(localList(), "local");
+        return;
+      }
       renderSkeleton();
       try {
         const c = await getPB();
         if (!c) throw new Error("sdk unavailable");
         const res = await c.collection("locked_wave").getList(1, 30, { sort: "-created" });
+        ghostWaves = res.items || [];  // cache for ghost rendering
         renderRows(res.items || [], "shared");
       } catch (e) {
         online = false;
+        ghostWaves = [];  // offline fallback
         renderRows(localList(), "local");
       }
     }
@@ -1916,6 +1923,19 @@
     window.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && _ov && _ov.classList.contains("live")) closeGallery();
     });
+
+    // Pre-load ghost data on page load (silent, doesn't open the overlay).
+    // Gallery button will re-fetch when opened, so this is just a warm start.
+    (async function preloadGhosts() {
+      if (!online) await checkHealth();
+      if (!online) return;
+      try {
+        const c = await getPB();
+        if (!c) return;
+        const res = await c.collection("locked_wave").getList(1, 30, { sort: "-created" });
+        ghostWaves = res.items || [];
+      } catch (e) { /* silent — ghosts are additive */ }
+    })();
   </script>
 </body>
 </html>
