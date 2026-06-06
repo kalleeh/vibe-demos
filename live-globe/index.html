@@ -1225,6 +1225,9 @@
     const presencePins = []; // { mesh, halo, rec } — rec = {city, note, lat, lon, mine}
     const presenceGroup = new THREE.Group();
     globe.add(presenceGroup);
+    const glowing = []; // { halo, dot, t0 } — pins currently animating their arrival flare
+    const GLOW_MS = 1600;
+    const raycaster = new THREE.Raycaster();
 
     window.__globe = {
       THREE,
@@ -1255,6 +1258,34 @@
           p.halo.geometry.dispose(); p.halo.material.dispose();
         }
         presencePins.length = 0;
+        glowing.length = 0;
+      },
+      // Flare the most-recently-added pin so an arriving ping catches the eye.
+      glowLastPin() {
+        const p = presencePins[presencePins.length - 1];
+        if (!p) return;
+        glowing.push({ halo: p.halo, dot: p.mesh, t0: performance.now() });
+      },
+      // Called every frame from tick(); advances + retires arrival flares.
+      updateGlows() {
+        if (!glowing.length) return;
+        const now = performance.now();
+        for (let i = glowing.length - 1; i >= 0; i--) {
+          const gobj = glowing[i];
+          const k = (now - gobj.t0) / GLOW_MS; // 0 → 1
+          if (k >= 1) {
+            // Settle back to the resting look.
+            gobj.halo.scale.setScalar(1);
+            gobj.halo.material.opacity = 0.18;
+            glowing.splice(i, 1);
+            continue;
+          }
+          // Ease-out flare: big bright halo that shrinks/fades to rest.
+          const ease = 1 - Math.pow(1 - k, 3);
+          const scale = 1 + (1 - ease) * 4;      // starts 5×, ends 1×
+          gobj.halo.scale.setScalar(scale);
+          gobj.halo.material.opacity = 0.18 + (1 - ease) * 0.55; // 0.73 → 0.18
+        }
       },
       // Project a globe-space pin to screen px for tooltip placement.
       // Returns null if the pin is on the far side of the globe (occluded).
@@ -1302,7 +1333,6 @@
     let lastInputT = performance.now();
 
     /* Click pin → open AI panel for that city */
-    const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
     let pointerDownXY = null;
 
@@ -1481,6 +1511,9 @@
           o.material.opacity = 0.55 - (s - 1) * 0.4;
         }
       });
+
+      /* Advance any arrival-glow flares on freshly-dropped pins. */
+      window.__globe.updateGlows();
 
       /* Let the presence layer reposition its open tooltip as the globe spins. */
       if (typeof window.__globe.onFrame === "function") window.__globe.onFrame();
