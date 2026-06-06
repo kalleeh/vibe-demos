@@ -1,5 +1,5 @@
 /* live-globe — minimal offline shell SW */
-const CACHE = "vibe-live-globe-v5";
+const CACHE = "vibe-live-globe-v6";
 const SHELL = [
   "./",
   "./index.html",
@@ -20,6 +20,9 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
+  // Never intercept cross-origin requests (PocketBase API, CDN ESM, weather,
+  // textures) — let them hit the network untouched so presence data is fresh.
+  if (new URL(req.url).origin !== self.location.origin) return;
   if (req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html")) {
     e.respondWith(
       fetch(req).then(r => {

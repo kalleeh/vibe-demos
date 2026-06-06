@@ -251,9 +251,138 @@
     }
     .scene-label.live { opacity: 1; }
 
+    .gallery-open { text-transform: none; }
+
+    /* ── Collective sketchbook overlay ─────────────────────────────── */
+    .gallery-overlay {
+      position: fixed; inset: 0; z-index: 20;
+      display: none;
+      align-items: center; justify-content: center;
+      padding: 24px;
+      background: rgba(42, 38, 29, 0.28);
+      -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+    }
+    .gallery-overlay.live { display: flex; }
+    .gallery-sheet {
+      position: relative;
+      width: min(560px, 100%);
+      max-height: 86vh;
+      overflow-y: auto;
+      background: var(--paper);
+      border: 1.5px solid var(--line);
+      border-radius: 6px;
+      box-shadow: 0 18px 50px rgba(42, 38, 29, 0.22);
+      padding: 26px 28px 22px;
+      /* faint ruled lines, echoing the page */
+      background-image:
+        repeating-linear-gradient(to bottom,
+          transparent 0, transparent 39px,
+          rgba(42, 38, 29, 0.045) 39px,
+          rgba(42, 38, 29, 0.045) 40px);
+    }
+    .gallery-head {
+      display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px;
+      margin-bottom: 6px;
+    }
+    .gallery-title {
+      font-family: "Caveat", cursive;
+      font-size: 30px; font-weight: 600;
+      color: var(--ink);
+      transform: rotate(-1deg);
+    }
+    .gallery-sub {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px; letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .gallery-close {
+      margin-left: auto;
+      appearance: none; border: none; background: none;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--muted); cursor: pointer; padding: 4px 0;
+      border-bottom: 1px dashed var(--line);
+    }
+    .gallery-close:hover { color: var(--ink); }
+    .gallery-note {
+      font-family: "Fraunces", Georgia, serif;
+      font-style: italic;
+      font-size: 14px; line-height: 1.5;
+      color: var(--ink-soft);
+      margin: 4px 0 18px;
+    }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+      gap: 14px;
+    }
+    .gw-card {
+      display: flex; flex-direction: column; gap: 5px;
+      padding: 8px 10px 9px;
+      border: 1px dashed var(--line);
+      border-radius: 5px;
+      background: rgba(244, 236, 214, 0.5);
+    }
+    .gw-card.mine { border-color: var(--bloom); border-style: solid; }
+    .gw-card canvas { width: 100%; height: 44px; display: block; }
+    .gw-meta {
+      display: flex; align-items: baseline; justify-content: space-between;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px; letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+    .gw-meta .gw-n { color: var(--ink); font-style: normal; }
+    .gw-label {
+      font-family: "Caveat", cursive;
+      font-size: 15px; line-height: 1.05;
+      color: var(--ink-soft);
+      min-height: 16px;
+      transform: rotate(-0.6deg);
+      word-break: break-word;
+    }
+    .gw-empty, .gw-skel-wrap {
+      grid-column: 1 / -1;
+      font-family: "Fraunces", Georgia, serif;
+      font-style: italic;
+      font-size: 14px;
+      color: var(--muted);
+      padding: 14px 2px;
+    }
+    .gw-skel {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+      gap: 14px;
+    }
+    .gw-skel .cell {
+      height: 78px;
+      border: 1px dashed var(--line); border-radius: 5px;
+      background: linear-gradient(100deg,
+        rgba(237,226,193,0.3) 30%, rgba(201,126,96,0.10) 50%, rgba(237,226,193,0.3) 70%);
+      background-size: 220% 100%;
+      animation: gw-shimmer 1.4s ease-in-out infinite;
+    }
+    @keyframes gw-shimmer { from { background-position: 180% 0; } to { background-position: -40% 0; } }
+    .gallery-status {
+      margin-top: 16px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .gallery-status .dot { color: var(--bloom-2); }
+    .gallery-status.off .dot { color: var(--muted); }
+
     /* Reduced motion — calm everything */
     @media (prefers-reduced-motion: reduce) {
       .footer .lock .pip.lit { box-shadow: none; }
+      .gw-skel .cell { animation: none; }
+      .gallery-overlay { -webkit-backdrop-filter: none; backdrop-filter: none; }
+    }
+
+    @media (max-width: 640px) {
+      .gallery-sheet { padding: 20px 18px 18px; }
+      .gallery-grid, .gw-skel { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
     }
 
     @media (max-width: 640px) {
@@ -300,7 +429,25 @@
       <span class="spacer" style="flex:1"></span>
       <span class="lock"><span class="pip" id="lockPip"></span><span id="lockText">searching</span></span>
       <button class="toggle" id="muteBtn" aria-pressed="false">sound · on</button>
+      <button class="toggle gallery-open" id="galleryOpenBtn">others' resonances</button>
     </footer>
+  </div>
+
+  <!-- ── Collective sketchbook overlay (not a leaderboard) ──────────── -->
+  <div class="gallery-overlay" id="galleryOverlay" aria-hidden="true">
+    <div class="gallery-sheet" role="dialog" aria-modal="true" aria-labelledby="galleryTitle">
+      <header class="gallery-head">
+        <span class="gallery-title" id="galleryTitle">다른 사람들의 공명</span>
+        <span class="gallery-sub">others' resonances · a quiet sketchbook</span>
+        <button class="gallery-close" id="galleryCloseBtn" aria-label="close">close</button>
+      </header>
+      <p class="gallery-note">
+        every locked standing wave is kept here — no scores, no ranking.
+        just the shapes people inked in, and when.
+      </p>
+      <div class="gallery-grid" id="galleryGrid"></div>
+      <div class="gallery-status" id="galleryStatus"><span class="dot">○</span> <span id="galleryStatusText">your own</span></div>
+    </div>
   </div>
 
   <script>
@@ -1218,7 +1365,19 @@
       // when lockEMA drops below the warming floor.
       if (lockEMA > 0.25) {
         sustainedFrames++;
-        if (sustainedFrames > 90 /* ~1.5s @ 60fps */) latchUntil = now + 1500;
+        if (sustainedFrames > 90 /* ~1.5s @ 60fps */) {
+          const wasLatched = now < latchUntil;
+          latchUntil = now + 1500;
+          // Fire the "inked it in" hook exactly once per genuine new lock —
+          // the rising edge of the latch, not every sustained frame. The
+          // optional PB layer listens here to save a quiet artifact; the
+          // game never awaits it and works identically if it's absent.
+          if (!wasLatched && typeof window.__resonansOnLock === "function") {
+            try {
+              window.__resonansOnLock({ mode, amplitude: targetCoefEMA });
+            } catch (e) { /* the calm never breaks for a backend hiccup */ }
+          }
+        }
       } else if (lockEMA < 0.10) {
         sustainedFrames = 0;
       }
@@ -1430,6 +1589,271 @@
     document.getElementById("modeName").textContent = "— first harmonic";
     document.getElementById("hint").textContent =
       "tap on the ↓ marks with the beat dot — the line will fill in";
+  </script>
+
+  <script type="module">
+    /* ============================================================
+       COLLECTIVE SKETCHBOOK (PocketBase, Tier 1 public) — ADDITIVE
+       A quiet gallery of standing waves people inked in. NOT a
+       leaderboard: no scores, no ranking, no counts, no "you're #1".
+       The value is persistence and quiet company.
+
+       Isolated from the game script. It talks to the game ONLY via the
+       window.__resonansOnLock(...) hook (called on the rising edge of a
+       genuine lock) and the DOM. The game never awaits this layer; the
+       calm meditative experience is fully intact with no backend — when
+       offline, the gallery shows the resonances YOU have locked locally.
+
+       Collection: locked_wave (base) — https://resonans.pb.gurum.se/_/
+         mode      (number, required, min 1, max 5)  ← the harmonic n
+         amplitude (number)   ← smoothed target coefficient, for redraw flavour
+         label     (text, max 40)  ← optional short note, usually empty
+         player_id (text)   ← anonymous UUID, used only to mark "mine"
+         Rules: list="" view="" create="" update=null delete=null
+       ============================================================ */
+    // PocketBase SDK loaded lazily by full CDN URL via dynamic import() —
+    // NOT a static importmap import. A static import that can't resolve
+    // throws at module-eval time and would kill this whole script; dynamic
+    // import of a full URL works on any ES-module browser and degrades
+    // gracefully if the CDN is unreachable.
+    const PB_URL = "https://resonans.pb.gurum.se";
+    const PB_ESM = "https://cdn.jsdelivr.net/npm/pocketbase@0.25.0/dist/pocketbase.es.mjs";
+    const LOCAL_KEY = "vibe.resonans.locked";   // local sketchbook fallback
+    const PID_KEY   = "vibe.resonans.player-id";
+
+    let pb = null;
+    let online = false;
+    let _pbPromise = null;
+
+    function getPB() {
+      if (pb) return Promise.resolve(pb);
+      if (!_pbPromise) {
+        _pbPromise = import(PB_ESM)
+          .then((m) => { pb = new m.default(PB_URL); return pb; })
+          .catch(() => { _pbPromise = null; return null; });
+      }
+      return _pbPromise;
+    }
+
+    // Anonymous identity — NOT access control (rules are public). Used only
+    // to softly mark the player's own resonances in the gallery.
+    function playerId() {
+      let id = null;
+      try { id = localStorage.getItem(PID_KEY); } catch (e) {}
+      if (!id) {
+        id = (crypto.randomUUID ? crypto.randomUUID()
+              : String(Date.now()) + "-" + Math.round(performance.now()));
+        try { localStorage.setItem(PID_KEY, id); } catch (e) {}
+      }
+      return id;
+    }
+
+    // ── Local sketchbook (always works, no backend needed) ──────────
+    function localList() {
+      try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || "[]"); }
+      catch (e) { return []; }
+    }
+    function localAdd(rec) {
+      const all = localList();
+      all.unshift(rec);
+      // Keep it small and calm — the most recent handful you inked in.
+      while (all.length > 30) all.pop();
+      try { localStorage.setItem(LOCAL_KEY, JSON.stringify(all)); } catch (e) {}
+    }
+
+    // One-time, best-effort health check. No reconnection polling (per CLAUDE.md).
+    async function checkHealth() {
+      try {
+        const c = await getPB();
+        if (!c) { online = false; return online; }
+        await c.health.check(); online = true;
+      } catch (e) { online = false; }
+      return online;
+    }
+    checkHealth();
+
+    // ── Save-on-lock — additive, never blocks the game ──────────────
+    // Debounce so one held resonance is one artifact, not a stream of them.
+    let lastSaveAt = 0;
+    window.__resonansOnLock = function ({ mode, amplitude }) {
+      const now = Date.now();
+      if (now - lastSaveAt < 4000) return;   // at most one per ~4s
+      lastSaveAt = now;
+      const n = Math.max(1, Math.min(5, Math.round(mode || 1)));
+      const amp = Math.max(0, Math.min(5, +amplitude || 0));
+      const rec = { mode: n, amplitude: amp, label: "", player_id: playerId(), created: new Date(now).toISOString() };
+      // Always keep a local copy so the gallery has quiet company offline.
+      localAdd(rec);
+      if (!online) return;
+      getPB().then((c) => {
+        if (!c) return;
+        return c.collection("locked_wave").create({
+          mode: n, amplitude: amp, label: "", player_id: playerId(),
+        });
+      }).catch(() => { online = false; /* silent — calm is preserved */ });
+    };
+
+    // ── Gallery rendering ───────────────────────────────────────────
+    const $g = (id) => document.getElementById(id);
+
+    function relTime(iso) {
+      const t = Date.parse(iso);
+      if (isNaN(t)) return "";
+      const s = Math.max(0, (Date.now() - t) / 1000);
+      if (s < 60)    return "just now";
+      if (s < 3600)  return Math.floor(s / 60) + "m ago";
+      if (s < 86400) return Math.floor(s / 3600) + "h ago";
+      const d = Math.floor(s / 86400);
+      return d === 1 ? "yesterday" : d + "d ago";
+    }
+
+    const MODE_WORD = {
+      1: "first harmonic", 2: "second harmonic", 3: "third harmonic",
+      4: "fourth harmonic", 5: "fifth harmonic"
+    };
+
+    // Draw a tiny hand-drawn standing wave of mode n into a small canvas —
+    // the same sine the player inked in, in miniature.
+    function drawThumb(cv, n) {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = cv.clientWidth || 100, h = cv.clientHeight || 44;
+      cv.width = Math.floor(w * dpr); cv.height = Math.floor(h * dpr);
+      const c = cv.getContext("2d");
+      c.setTransform(dpr, 0, 0, dpr, 0, 0);
+      c.clearRect(0, 0, w, h);
+      const padX = 8, midY = h / 2, amp = h * 0.32;
+      // soft graphite + an inked pass, lightly jittered for the sketch feel
+      const passes = [
+        { color: "rgba(42,38,29,0.30)", lw: 1.1, jit: 0.8 },
+        { color: "rgba(42,38,29,0.90)", lw: 1.6, jit: 0.4 },
+      ];
+      for (const p of passes) {
+        c.strokeStyle = p.color; c.lineWidth = p.lw;
+        c.lineCap = "round"; c.lineJoin = "round";
+        c.beginPath();
+        const steps = 60;
+        for (let i = 0; i <= steps; i++) {
+          const tx = i / steps;
+          const x = padX + tx * (w - padX * 2);
+          const y = midY - Math.sin(n * Math.PI * tx) * amp
+                    + (Math.random() - 0.5) * p.jit;
+          if (i === 0) c.moveTo(x, y); else c.lineTo(x, y);
+        }
+        c.stroke();
+      }
+      // end pegs
+      c.fillStyle = "rgba(42,38,29,0.8)";
+      c.beginPath(); c.arc(padX, midY, 2, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(w - padX, midY, 2, 0, Math.PI * 2); c.fill();
+    }
+
+    function renderRows(rows, source) {
+      const grid = $g("galleryGrid");
+      const status = $g("galleryStatus");
+      const statusText = $g("galleryStatusText");
+      grid.innerHTML = "";
+      status.classList.toggle("off", source !== "shared");
+      status.querySelector(".dot").textContent = source === "shared" ? "●" : "○";
+      statusText.textContent = source === "shared"
+        ? "shared sketchbook"
+        : "your own resonances";
+
+      if (!rows || rows.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "gw-empty";
+        empty.textContent = source === "shared"
+          ? "no resonances inked in yet — lock a standing wave and you'll be the first."
+          : "no resonances yet — when you lock a wave, it'll be kept here, just for you.";
+        grid.appendChild(empty);
+        return;
+      }
+
+      const me = playerId();
+      rows.forEach((r) => {
+        const n = Math.max(1, Math.min(5, Math.round(r.mode || 1)));
+        const card = document.createElement("div");
+        card.className = "gw-card";
+        if (r.player_id && r.player_id === me) card.classList.add("mine");
+
+        const cv = document.createElement("canvas");
+        card.appendChild(cv);
+
+        const meta = document.createElement("div");
+        meta.className = "gw-meta";
+        const nEl = document.createElement("span");
+        nEl.className = "gw-n"; nEl.textContent = "n=" + n;   // textContent → no XSS
+        const tEl = document.createElement("span");
+        tEl.textContent = relTime(r.created);
+        meta.appendChild(nEl); meta.appendChild(tEl);
+
+        const lab = document.createElement("div");
+        lab.className = "gw-label";
+        // label is optional; fall back to the harmonic's quiet name.
+        lab.textContent = (r.label && String(r.label).trim())
+          ? String(r.label).trim()
+          : MODE_WORD[n];
+
+        card.appendChild(meta);
+        card.appendChild(lab);
+        grid.appendChild(card);
+        // Canvas must be in the DOM before measuring clientWidth.
+        drawThumb(cv, n);
+      });
+    }
+
+    function renderSkeleton() {
+      const grid = $g("galleryGrid");
+      grid.innerHTML = "";
+      const wrap = document.createElement("div");
+      wrap.className = "gw-skel";
+      for (let i = 0; i < 6; i++) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        wrap.appendChild(cell);
+      }
+      grid.appendChild(wrap);
+    }
+
+    async function loadGallery() {
+      // fetch-on-open. Re-check health here (user-initiated action).
+      if (!online) await checkHealth();
+      if (!online) { renderRows(localList(), "local"); return; }
+      renderSkeleton();
+      try {
+        const c = await getPB();
+        if (!c) throw new Error("sdk unavailable");
+        const res = await c.collection("locked_wave").getList(1, 30, { sort: "-created" });
+        renderRows(res.items || [], "shared");
+      } catch (e) {
+        online = false;
+        renderRows(localList(), "local");
+      }
+    }
+
+    // ── Overlay open/close ──────────────────────────────────────────
+    function openGallery() {
+      const o = $g("galleryOverlay");
+      if (!o) return;
+      o.classList.add("live");
+      o.setAttribute("aria-hidden", "false");
+      loadGallery();
+    }
+    function closeGallery() {
+      const o = $g("galleryOverlay");
+      if (!o) return;
+      o.classList.remove("live");
+      o.setAttribute("aria-hidden", "true");
+    }
+
+    const _open = $g("galleryOpenBtn");
+    if (_open) _open.addEventListener("click", openGallery);
+    const _close = $g("galleryCloseBtn");
+    if (_close) _close.addEventListener("click", closeGallery);
+    const _ov = $g("galleryOverlay");
+    if (_ov) _ov.addEventListener("click", (e) => { if (e.target === _ov) closeGallery(); });
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && _ov && _ov.classList.contains("live")) closeGallery();
+    });
   </script>
 </body>
 </html>

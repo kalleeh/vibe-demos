@@ -1,5 +1,5 @@
 /* intake-companion — minimal offline shell SW */
-const CACHE = "vibe-intake-companion-v6";
+const CACHE = "vibe-intake-companion-v7";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
   // Watercolor herb vignettes (small WebP) that float in the page margins.
@@ -26,8 +26,11 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
-  // Skip Anthropic API — never cache live calls.
-  if (new URL(req.url).hostname === "api.anthropic.com") return;
+  // Never intercept cross-origin requests — let them hit the network untouched.
+  // This covers the Anthropic API (api.anthropic.com — live calls must never be
+  // cached), the PocketBase case corpus (intake-companion.pb.gurum.se), the
+  // PocketBase SDK ESM on jsDelivr, and the Google Fonts CDN.
+  if (new URL(req.url).origin !== self.location.origin) return;
   if (req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html")) {
     e.respondWith(
       fetch(req).then(r => {

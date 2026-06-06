@@ -749,6 +749,105 @@ header.top {
   margin-top: 22px;
 }
 
+/* ---------- social proof (live type distribution) ---------- */
+.social {
+  background: rgba(31, 38, 32, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 24px 26px;
+  margin-bottom: 18px;
+}
+.social h3 {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.social .lb-status {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: none;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  font-weight: 400;
+}
+.social .lb-status .dot { color: var(--accent-2); margin-right: 4px; }
+.social .lb-status.off .dot { color: var(--ink-soft); }
+.social .rarity {
+  font-family: "Noto Serif KR", serif;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.social .rarity .accent {
+  color: var(--accent);
+  font-style: italic;
+}
+.social .rarity-sub {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  margin-bottom: 18px;
+}
+.social .dist {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.social .dist-row {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 10px;
+}
+.social .dist-code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+.social .dist-row.me .dist-code { color: var(--accent); font-weight: 600; }
+.social .dist-track {
+  position: relative;
+  height: 8px;
+  background: rgba(31, 38, 32, 0.07);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.social .dist-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0%;
+  background: var(--gold);
+  border-radius: 2px;
+  transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.social .dist-row.me .dist-fill { background: var(--accent); }
+.social .dist-pct {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  color: var(--ink-soft);
+  text-align: right;
+}
+.social .dist-row.me .dist-pct { color: var(--accent); }
+.social.is-loading .rarity,
+.social.is-loading .dist-fill {
+  opacity: 0.4;
+}
+@media (prefers-reduced-motion: reduce) {
+  .social .dist-fill { transition: none; }
+}
+
 /* ---------- function-stack dial (cognitive functions) ---------- */
 .fnstack {
   background: rgba(31, 38, 32, 0.04);
@@ -1687,6 +1786,13 @@ const STR = {
     axesHeading: "4 축 분석",
     axesSubHTML: "유형을 이루는 <em>네 글자</em> — 각 축에서 어느 쪽에 섰는지와 그 확신도.",
     readingHeading: "읽어드린 결",
+    socialHeading: "같은 결을 가진 사람들",
+    socialReading: "같은 결과를 본 사람들을 모으는 중…",
+    socialLocal: "로컬 집계",
+    socialConnected: "실시간 집계",
+    socialRarityRare: "전체 중 {PCT}% — 흔치 않은 결입니다.",
+    socialRarityCommon: "응답자의 {PCT}%가 같은 결과를 봤어요.",
+    socialSampleNote: "지금까지 {N}명의 응답 기준",
     fnStackHeading: "인지 기능 스택 — Function Stack",
     fnStackSubHTML: "같은 성향을 <em>쓰는 순서</em>로 — 가장 기대는 결(#1)부터 가장 서툰 결(#4)까지.",
     fnOffStackTip: "이 유형의 기본 스택에는 없는 결.",
@@ -1747,6 +1853,13 @@ const STR = {
     axesHeading: "4-Axis Analysis",
     axesSubHTML: "The <em>four letters</em> that form your type — which side of each axis, and how sure.",
     readingHeading: "Your reading",
+    socialHeading: "Others with your grain",
+    socialReading: "Gathering everyone who saw this result…",
+    socialLocal: "local tally",
+    socialConnected: "live tally",
+    socialRarityRare: "Just {PCT}% of takers — an uncommon grain.",
+    socialRarityCommon: "{PCT}% of takers saw the same result.",
+    socialSampleNote: "Based on {N} responses so far",
     fnStackHeading: "Cognitive Function Stack",
     fnStackSubHTML: "The same traits in <em>order of use</em> — from the one you lean on most (#1) to the clumsiest (#4).",
     fnOffStackTip: "Not part of this type's core stack.",
@@ -2698,6 +2811,7 @@ function rerenderActivePanel() {
         fromTest: true,
         testLength: state.lastResult.testLength
       });
+      window.__mbtiSocial?.(state.lastResult.type, L(meta, "nickname"), "#test-result", { submit: false });
     } else if (state && state.qIndex != null && typeof QUESTIONS !== "undefined" && QUESTIONS[state.qIndex]) {
       renderQuestion();
     }
@@ -2730,6 +2844,7 @@ function rerenderActivePanel() {
         window.__lastAIResult._saveCardPayload.nickname_ko = L(window.__lastAIResult, "nickname");
         wireSaveCard($("#ai-result"), window.__lastAIResult._saveCardPayload);
       }
+      window.__mbtiSocial?.(window.__lastAIResult.type, L(window.__lastAIResult, "nickname"), "#ai-result", { submit: false });
     }
   }
 }
@@ -2968,6 +3083,8 @@ function showResult() {
     testLength: state.testLength
   });
   wireGenderToggle($("#test-result"));
+  // Submit + show the live type distribution (additive; no-op if unavailable).
+  window.__mbtiSocial?.(type, meta.nickname, "#test-result", { submit: true });
 }
 
 // ============================================================
@@ -3006,6 +3123,25 @@ function renderPortrait(type, altLabel) {
           <button type="button" data-gender="men" class="${g === "men" ? "active" : ""}" aria-pressed="${g === "men"}">男</button>
         </div>
       </div>`;
+}
+
+// Canonical 16-type order for the distribution bar (stable across renders).
+const MBTI_ORDER = [
+  "INTJ","INTP","ENTJ","ENTP",
+  "INFJ","INFP","ENFJ","ENFP",
+  "ISTJ","ISFJ","ESTJ","ESFJ",
+  "ISTP","ISFP","ESTP","ESFP"
+];
+
+// Inert skeleton bars shown before the tally arrives (so first paint isn't dead).
+function renderDistSkeleton(myType) {
+  return MBTI_ORDER.map(tp => `
+    <div class="dist-row${tp === myType ? " me" : ""}" data-type="${escapeHTML(tp)}">
+      <span class="dist-code">${escapeHTML(tp)}</span>
+      <span class="dist-track"><span class="dist-fill" style="width:0%"></span></span>
+      <span class="dist-pct">—</span>
+    </div>
+  `).join("");
 }
 
 function renderResultHTML(r) {
@@ -3075,6 +3211,15 @@ function renderResultHTML(r) {
         <p>${escapeHTML(L(r, "reading"))}</p>
         ${secondaryHTML}
         ${vibesHTML ? `<div class="vibes">${vibesHTML}</div>` : ""}
+      </div>
+      <div class="social is-loading" data-type="${escapeHTML(r.type)}">
+        <h3>
+          <span>${t("socialHeading")}</span>
+          <span class="lb-status off"><span class="dot">○</span><span class="lb-status-text">${t("socialLocal")}</span></span>
+        </h3>
+        <div class="rarity">${t("socialReading")}</div>
+        <div class="rarity-sub"></div>
+        <div class="dist">${renderDistSkeleton(r.type)}</div>
       </div>
       <div class="result-actions">
         <button class="btn card-btn" data-action="save-card">${t("saveCardBtn")}</button>
@@ -3724,6 +3869,7 @@ async function runAnalyze() {
     });
     wireSaveCard($("#ai-result"), window.__lastAIResult._saveCardPayload);
     wireGenderToggle($("#ai-result"));
+    window.__mbtiSocial?.(result.type, L(window.__lastAIResult, "nickname"), "#ai-result", { submit: true });
   } catch (e) {
     $("#loading-bar").classList.remove("active");
     $("#stage-label").classList.remove("active");
@@ -4143,6 +4289,243 @@ Now read the user's text and return JSON.`;
 // INIT
 // ============================================================
 updateModePill();
+
+// Bridge to the PocketBase module script (separate scope). The module needs
+// the i18n string lookup + current language to localise the rarity framing.
+window.__mbtiI18n = {
+  t: (k) => t(k),
+  lang: () => LANG,
+  order: MBTI_ORDER,
+};
+</script>
+
+<script type="module">
+  /* ============================================================
+     TYPE-DISTRIBUTION SOCIAL PROOF (PocketBase, Tier 1 public)
+     Isolated from the classic test/AI script above. Communicates
+     only via the DOM and the window.__mbtiI18n bridge. The demo
+     never awaits PocketBase — this layer is purely additive and
+     falls back to a local tally so nothing looks broken offline.
+
+     Collection: mbti_result (base)  — https://korean-mbti.pb.gurum.se/_/
+       type      (text, required, max 8)   ← "INFP", "ENTJ", …
+       nickname  (text, max 40)            ← 한국 MBTI 별명, for context
+       player_id (text)                    ← anonymous UUID, de-dupe only
+       Rules: list="" view="" create="" update=null delete=null
+     ============================================================ */
+  // PocketBase SDK is loaded lazily by full URL via dynamic import() — NOT a
+  // static `import` + importmap. A static import that can't resolve throws at
+  // module-eval time and would kill this whole block (the result screen renders
+  // fine, the social bar silently goes dead). Dynamic import of a full URL works
+  // on any ES-module browser and lets us degrade gracefully if the CDN is down.
+  const PB_URL = "https://korean-mbti.pb.gurum.se";
+  const PB_ESM = "https://cdn.jsdelivr.net/npm/pocketbase@0.25.0/dist/pocketbase.es.mjs";
+  const LS_TALLY = "vibe.korean-mbti.tally";
+  const LS_PID   = "vibe.korean-mbti.player-id";
+  const LS_DONE  = "vibe.korean-mbti.submitted"; // type already submitted this device
+
+  const ORDER = (window.__mbtiI18n && window.__mbtiI18n.order) || [
+    "INTJ","INTP","ENTJ","ENTP","INFJ","INFP","ENFJ","ENFP",
+    "ISTJ","ISFJ","ESTJ","ESFJ","ISTP","ISFP","ESTP","ESFP"
+  ];
+  const T = (k) => (window.__mbtiI18n ? window.__mbtiI18n.t(k) : k);
+
+  let pb = null, online = false, _pbPromise = null;
+  function getPB() {
+    if (pb) return Promise.resolve(pb);
+    if (!_pbPromise) {
+      _pbPromise = import(PB_ESM)
+        .then((m) => { pb = new m.default(PB_URL); return pb; })
+        .catch(() => { _pbPromise = null; return null; });
+    }
+    return _pbPromise;
+  }
+
+  // Anonymous identity — NOT access control (rules are public). Used only to
+  // de-dupe a repeat taker so one device doesn't skew the tally.
+  function playerId() {
+    let id = null;
+    try { id = localStorage.getItem(LS_PID); } catch (e) {}
+    if (!id) {
+      id = (crypto.randomUUID ? crypto.randomUUID()
+            : String(Date.now()) + "-" + Math.round(performance.now()));
+      try { localStorage.setItem(LS_PID, id); } catch (e) {}
+    }
+    return id;
+  }
+
+  async function checkHealth() {
+    try {
+      const c = await getPB();
+      if (!c) { online = false; return online; }
+      await c.health.check(); online = true;
+    } catch (e) { online = false; }
+    return online;
+  }
+  // One-time health probe on load. No reconnection polling (per CLAUDE.md).
+  checkHealth();
+
+  // ---- local tally (fallback + warm first paint) -----------------------
+  function readLocalTally() {
+    let raw = null;
+    try { raw = localStorage.getItem(LS_TALLY); } catch (e) {}
+    let obj = {};
+    try { obj = raw ? JSON.parse(raw) : {}; } catch (e) { obj = {}; }
+    const out = {};
+    for (const tp of ORDER) out[tp] = Math.max(0, parseInt(obj[tp], 10) || 0);
+    return out;
+  }
+  function bumpLocalTally(type) {
+    const t = readLocalTally();
+    if (ORDER.includes(type)) t[type] = (t[type] || 0) + 1;
+    try { localStorage.setItem(LS_TALLY, JSON.stringify(t)); } catch (e) {}
+    return t;
+  }
+  function alreadySubmitted(type) {
+    let done = null;
+    try { done = localStorage.getItem(LS_DONE); } catch (e) {}
+    return done === type;
+  }
+  function markSubmitted(type) {
+    try { localStorage.setItem(LS_DONE, type); } catch (e) {}
+  }
+
+  // ---- aggregate fetch --------------------------------------------------
+  // Pull every row (capped) and tally by type client-side. The collection is
+  // small demo-scale; a getFullList with a generous batch is fine.
+  async function fetchAggregate() {
+    const c = await getPB();
+    if (!c) throw new Error("sdk unavailable");
+    const rows = await c.collection("mbti_result").getFullList({
+      batch: 500, fields: "type", sort: "-created",
+    });
+    const tally = {};
+    for (const tp of ORDER) tally[tp] = 0;
+    for (const r of rows) {
+      const tp = (r.type || "").toUpperCase();
+      if (tally[tp] != null) tally[tp] += 1;
+    }
+    return tally;
+  }
+
+  // ---- rendering --------------------------------------------------------
+  function setStatus(root, connected) {
+    const s = root.querySelector(".lb-status");
+    const txt = root.querySelector(".lb-status-text");
+    const dot = root.querySelector(".lb-status .dot");
+    if (s) s.classList.toggle("off", !connected);
+    if (dot) dot.textContent = connected ? "●" : "○";
+    if (txt) txt.textContent = connected ? T("socialConnected") : T("socialLocal");
+  }
+
+  function fmtPct(n) {
+    if (n >= 10) return String(Math.round(n));
+    if (n >= 1)  return (Math.round(n * 10) / 10).toString();
+    return (Math.round(n * 10) / 10).toString();
+  }
+
+  function render(root, tally, myType, connected) {
+    setStatus(root, connected);
+    const total = ORDER.reduce((s, tp) => s + (tally[tp] || 0), 0);
+    const max = Math.max(1, ...ORDER.map(tp => tally[tp] || 0));
+
+    // rarity line
+    const rarityEl = root.querySelector(".rarity");
+    const subEl = root.querySelector(".rarity-sub");
+    if (total <= 0) {
+      // No data anywhere yet — keep it honest, don't fake a percentage.
+      if (rarityEl) {
+        rarityEl.textContent = "";
+        const strong = document.createElement("span");
+        strong.className = "accent";
+        strong.textContent = myType;
+        rarityEl.appendChild(strong);
+        rarityEl.appendChild(document.createTextNode(
+          window.__mbtiI18n && window.__mbtiI18n.lang() === "en"
+            ? " — be the first to log this grain."
+            : " — 이 결을 처음 기록하는 사람이에요."
+        ));
+      }
+      if (subEl) subEl.textContent = "";
+    } else {
+      const myCount = tally[myType] || 0;
+      const pct = (myCount / total) * 100;
+      // "common" if your share is at/above an even split (1/16 ≈ 6.25%);
+      // below that it reads as the rarer grain.
+      const tmpl = pct >= 6.25 ? T("socialRarityCommon") : T("socialRarityRare");
+      const parts = tmpl.split("{PCT}");
+      if (rarityEl) {
+        rarityEl.textContent = "";
+        rarityEl.appendChild(document.createTextNode(parts[0] || ""));
+        const accent = document.createElement("span");
+        accent.className = "accent";
+        accent.textContent = fmtPct(pct) + "%";
+        rarityEl.appendChild(accent);
+        rarityEl.appendChild(document.createTextNode(parts[1] || ""));
+      }
+      if (subEl) subEl.textContent = T("socialSampleNote").replace("{N}", String(total));
+    }
+
+    // distribution bars (heights relative to the most-common type for contrast)
+    ORDER.forEach(tp => {
+      const rowSel = `.dist-row[data-type="${tp}"]`;
+      const row = root.querySelector(rowSel);
+      if (!row) return;
+      const count = tally[tp] || 0;
+      const shareOfTotal = total > 0 ? (count / total) * 100 : 0;
+      const w = total > 0 ? (count / max) * 100 : 0;
+      const fill = row.querySelector(".dist-fill");
+      const pctEl = row.querySelector(".dist-pct");
+      if (fill) fill.style.width = w.toFixed(1) + "%";
+      if (pctEl) pctEl.textContent = total > 0 ? fmtPct(shareOfTotal) + "%" : "—";
+    });
+
+    root.classList.remove("is-loading");
+  }
+
+  // ---- public entry, called by the classic script ----------------------
+  // type: "INFP", nickname: 별명 (for the submitted row), rootSel: container,
+  // opts.submit: whether to record a new row (true on a fresh result render,
+  // false on a language re-render so we don't double-count).
+  window.__mbtiSocial = async function (type, nickname, rootSel, opts) {
+    opts = opts || {};
+    const root = document.querySelector(`${rootSel} .social`);
+    if (!root || !type) return;
+
+    // Warm first paint from whatever local tally we have (incl. this result).
+    let localTally = readLocalTally();
+
+    // Record locally first so the bar is never empty, and (if eligible) push
+    // one row to PocketBase. De-dupe by remembered type per device.
+    if (opts.submit && !alreadySubmitted(type)) {
+      localTally = bumpLocalTally(type);
+      markSubmitted(type);
+      if (online) {
+        getPB().then(c => {
+          if (!c) return;
+          return c.collection("mbti_result").create({
+            type: String(type).slice(0, 8),
+            nickname: String(nickname || "").slice(0, 40),
+            player_id: playerId(),
+          });
+        }).catch(() => { online = false; });
+      }
+    }
+
+    // Paint local immediately (offline-correct), then upgrade to live if we can.
+    render(root, localTally, type, online);
+
+    if (!online) { await checkHealth(); }
+    if (!online) return; // local paint already correct
+
+    try {
+      const live = await fetchAggregate();
+      render(root, live, type, true);
+    } catch (e) {
+      online = false;
+      render(root, readLocalTally(), type, false);
+    }
+  };
 </script>
 
 <script>

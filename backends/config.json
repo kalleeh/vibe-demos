@@ -7,6 +7,12 @@
     "domain": "pb.gurum.se"
   },
   "backends": {
-    "tinywings": { "port": 8091 }
+    "tinywings": { "port": 8091 },
+    "korean-mbti": { "port": 8092 },
+    "clinic-admin": { "port": 8093 },
+    "live-globe": { "port": 8094 },
+    "intake-companion": { "port": 8095 },
+    "sweden-food-guide": { "port": 8096 },
+    "resonans": { "port": 8097 }
   }
 }

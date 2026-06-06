@@ -1,5 +1,5 @@
 /* resonans — minimal offline shell SW */
-const CACHE = "vibe-resonans-v8";
+const CACHE = "vibe-resonans-v9";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -14,6 +14,9 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
+  // Never intercept cross-origin requests (PocketBase API, CDN ESM) — let them
+  // hit the network untouched so the collective sketchbook is always fresh.
+  if (new URL(req.url).origin !== self.location.origin) return;
   if (req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html")) {
     e.respondWith(
       fetch(req).then(r => {

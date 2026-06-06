@@ -26,7 +26,7 @@ Currently shipped demos (verify with `ls` before recommending — this list can 
 - `korean-mbti/` — short Korean MBTI test + AI deep-read mode that infers type from a free-form Korean passage. Uses Korean MBTI culture nicknames (잔망 루피, 곰돌이 푸…).
 - `resonans/` — calm sketchbook game on a hand-drawn cream-paper string. Real 1D wave physics, tap to pluck, pick mode (n=1..5), the line "inks itself in" when you lock the resonance. No score, no timer.
 - `clinic-admin/` — Korean 한방병원 administration assistant (행정원장). Camera/OCR + voice + share-sheet intake, left-rail nav, ⌘K command palette, guided demo tour. AI demo following the intake-companion pattern.
-- `tinywings/` ("Sketchwings") — one-tap arcade glider over hand-drawn pencil hills with a day-into-night cycle. Reuses its own `assets/hero-mood.webp` as the works-index thumbnail (path is in the root `sw.js` allow-list).
+- `tinywings/` ("Sketchwings") — one-tap arcade glider over hand-drawn pencil hills with a day-into-night cycle. Shared leaderboard via PocketBase (fetch-on-open, local-first fallback). **Canonical PocketBase demo** — reference implementation for the backend pattern. Reuses its own `assets/hero-mood.webp` as the works-index thumbnail (path is in the root `sw.js` allow-list).
 - `starwars-homage/` ("A New Hope") — 38s cinematic homage rendered to MP4 via the HyperFrames CLI (crawl → binary sunset → trench run). Ships the rendered `film.mp4` + `poster.jpg`; authored research lives in `composition/refs/`.
 
 GitHub Pages is configured to serve `main` from the repo root. Push to `main` = deploy. There is no build step.

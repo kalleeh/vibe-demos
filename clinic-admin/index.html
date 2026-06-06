@@ -358,6 +358,117 @@
     .demo-strip .demo-cta:active { transform: scale(0.98); }
     .demo-strip .demo-cta .play { font-size: 9px; }
 
+    /* ── Live shared intake board (PocketBase realtime showcase) ── */
+    .intake-board { margin: -8px 0 26px; }
+    .intake-board .board-head {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .intake-board .board-head h4 {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase;
+      color: var(--muted); margin: 0;
+    }
+    .intake-board .board-head h4 .step { color: var(--accent); font-weight: 600; margin-right: 6px; }
+    /* sample-data pill — must never read as real records */
+    .intake-pill {
+      font-family: "JetBrains Mono", monospace; font-size: 9.5px;
+      letter-spacing: 0.8px; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 4px;
+      color: var(--accent); background: rgba(176,74,47,0.08);
+      border: 1px dashed rgba(176,74,47,0.4);
+    }
+    .intake-sync {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: "JetBrains Mono", monospace; font-size: 10px;
+      letter-spacing: 0.8px; color: var(--muted); margin-left: auto;
+    }
+    .intake-sync .dot { color: var(--muted); font-size: 13px; line-height: 1; }
+    .intake-sync.on  { color: var(--celadon-2); }
+    .intake-sync.on  .dot { color: var(--celadon-2); animation: intakePulse 2.2s ease-in-out infinite; }
+    @keyframes intakePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+    @media (prefers-reduced-motion: reduce) { .intake-sync.on .dot { animation: none; } }
+
+    .intake-cols {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+      align-items: start;
+    }
+    @media (max-width: 760px) { .intake-cols { grid-template-columns: 1fr; } }
+    .intake-col {
+      background: rgba(255,255,255,0.4); border: 1px solid var(--line);
+      border-radius: 8px; padding: 12px 12px 14px; min-height: 96px;
+    }
+    .intake-col .col-label {
+      display: flex; align-items: center; justify-content: space-between;
+      font-family: "JetBrains Mono", monospace; font-size: 10px;
+      letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+      padding: 2px 2px 10px; border-bottom: 1px solid var(--line-2); margin-bottom: 10px;
+    }
+    .intake-col[data-status="대기"]   .col-label { color: var(--ink-2); }
+    .intake-col[data-status="진료중"] .col-label { color: var(--celadon-2); }
+    .intake-col[data-status="완료"]   .col-label { color: var(--muted); }
+    .intake-col .col-count { font-size: 10px; opacity: 0.7; }
+    .intake-col .col-cards { display: flex; flex-direction: column; gap: 8px; }
+    .intake-col .col-empty {
+      font-family: "Fraunces", "Noto Serif KR", serif; font-style: italic;
+      font-size: 13px; color: var(--muted); padding: 6px 2px;
+    }
+
+    .intake-card {
+      background: rgba(255,255,255,0.7); border: 1px solid var(--line);
+      border-left: 3px solid var(--celadon); border-radius: 6px;
+      padding: 10px 11px; transition: transform .15s, box-shadow .15s;
+    }
+    .intake-card.mine { border-left-color: var(--accent); }
+    .intake-card.flash { animation: intakeFlash .9s ease-out; }
+    @keyframes intakeFlash {
+      0% { box-shadow: 0 0 0 2px rgba(123,168,154,0.6); transform: translateY(-2px); }
+      100% { box-shadow: 0 0 0 0 rgba(123,168,154,0); transform: none; }
+    }
+    @media (prefers-reduced-motion: reduce) { .intake-card.flash { animation: none; } }
+    .intake-card .pc-name {
+      font-family: "Inter", sans-serif; font-weight: 600; font-size: 14px;
+      color: var(--ink); display: flex; align-items: baseline; gap: 6px;
+    }
+    .intake-card .pc-name .mine-tag {
+      font-family: "JetBrains Mono", monospace; font-weight: 400;
+      font-size: 8.5px; letter-spacing: 0.6px; text-transform: uppercase;
+      color: var(--accent);
+    }
+    .intake-card .pc-summary {
+      font-size: 12px; color: var(--ink-2); margin-top: 3px; line-height: 1.35;
+    }
+    .intake-card .pc-actions {
+      display: flex; gap: 6px; margin-top: 9px;
+    }
+    .intake-card .pc-btn {
+      font-family: "JetBrains Mono", monospace; font-size: 10px;
+      letter-spacing: 0.6px; padding: 5px 9px; border-radius: 4px;
+      border: 1px solid var(--line); background: rgba(255,255,255,0.5);
+      color: var(--ink-2); cursor: pointer; transition: background .15s, color .15s;
+    }
+    .intake-card .pc-btn:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .intake-card .pc-btn.advance { color: var(--celadon-2); border-color: rgba(93,140,126,0.4); }
+    .intake-card .pc-btn.advance:hover { background: var(--celadon-2); color: var(--paper); border-color: var(--celadon-2); }
+
+    .intake-add {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px;
+      padding-top: 14px; border-top: 1px solid var(--line-2);
+    }
+    .intake-add input {
+      font-family: "Inter", sans-serif; font-size: 13px;
+      padding: 8px 10px; border: 1px solid var(--line); border-radius: 5px;
+      background: rgba(255,255,255,0.6); color: var(--ink);
+    }
+    .intake-add input#intake-name { flex: 0 0 150px; }
+    .intake-add input#intake-summary { flex: 1 1 200px; }
+    .intake-add .pc-btn { flex: 0 0 auto; }
+    .intake-add .pc-btn:disabled { opacity: 0.5; cursor: default; }
+    .intake-add .add-note {
+      flex-basis: 100%; font-family: "JetBrains Mono", monospace;
+      font-size: 10px; color: var(--muted); margin: 0;
+    }
+
     /* ── Two-column workspace layout ── */
     .work {
       display: grid;
@@ -2686,6 +2797,35 @@
         <div class="actions">
           <button type="button" class="btn" id="install-nudge-open">설치 방법 보기</button>
           <button type="button" class="btn secondary" id="install-nudge-dismiss">나중에</button>
+        </div>
+      </div>
+
+      <!-- ── Live shared intake board — PocketBase realtime showcase ── -->
+      <div class="intake-board" id="intake-board" role="region" aria-label="실시간 접수 현황판">
+        <div class="board-head">
+          <h4><span class="step">★</span> 실시간 접수 현황판</h4>
+          <span class="intake-pill" title="이 현황판은 가상의 예시 환자 데이터입니다. 실제 진료기록이 아닙니다.">데모 · 예시 데이터</span>
+          <span class="intake-sync" id="intake-sync"><span class="dot">○</span><span id="intake-sync-text">로컬 — 이 기기에서만</span></span>
+        </div>
+        <div class="intake-cols">
+          <div class="intake-col" data-status="대기">
+            <div class="col-label"><span>대기</span><span class="col-count" data-count="대기">0</span></div>
+            <div class="col-cards" id="intake-col-대기"></div>
+          </div>
+          <div class="intake-col" data-status="진료중">
+            <div class="col-label"><span>진료중</span><span class="col-count" data-count="진료중">0</span></div>
+            <div class="col-cards" id="intake-col-진료중"></div>
+          </div>
+          <div class="intake-col" data-status="완료">
+            <div class="col-label"><span>완료</span><span class="col-count" data-count="완료">0</span></div>
+            <div class="col-cards" id="intake-col-완료"></div>
+          </div>
+        </div>
+        <div class="intake-add">
+          <input type="text" id="intake-name" maxlength="40" placeholder="예시 환자명" autocomplete="off" aria-label="예시 환자명">
+          <input type="text" id="intake-summary" maxlength="200" placeholder="간단 메모 (예: 요통 초진)" autocomplete="off" aria-label="접수 메모">
+          <button type="button" class="pc-btn advance" id="intake-add-btn">+ 접수 추가</button>
+          <p class="add-note" id="intake-add-note">다른 기기·탭에서 열어두면 추가·상태변경이 즉시 동기화됩니다. 예시 데이터만 사용하세요.</p>
         </div>
       </div>
 
@@ -6839,6 +6979,276 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
         { id: "ad4", label: "외부감사 또는 내부 행정점검 분기 1회", meta: "행정 자체 점검" }
       ]}
     ];
+  </script>
+
+  <script type="module">
+    /* ============================================================
+       LIVE SHARED INTAKE BOARD — PocketBase realtime showcase
+       Isolated module. The rest of clinic-admin works fully without
+       it (local-first); this layer is purely additive.
+
+       ⚠ PURE DEMO DATA. Every card is a fictional sample patient.
+       There is NO real patient data in this collection, ever. The UI
+       carries a "데모 · 예시 데이터" pill so it never misrepresents
+       itself as real clinical records.
+
+       Collection: intake_card (base) — https://clinic-admin.pb.gurum.se/_/
+         patient_name (text, required, max 40)
+         status       (text, required, max 12)  — 대기 | 진료중 | 완료
+         summary      (text, max 200)
+         player_id    (text)  — anonymous UUID, origin tag, NOT auth
+         Rules: list="" view="" create="" update="" delete=""
+                (open update/delete — a shared demo board where any
+                 device must be able to advance any card's status;
+                 data is fictional seed, so no ownership gate. See
+                 the migration file for the full rationale.)
+
+       Realtime: pb.collection('intake_card').subscribe('*', …) — a card
+       created/updated/deleted on one device appears on every other open
+       screen instantly. SDK auto-reconnects; no manual polling.
+       ============================================================ */
+    // SDK is loaded lazily by full URL via dynamic import() — NOT a static
+    // import + importmap. A static import that can't resolve throws at
+    // module-eval time and would kill every handler below. Dynamic import of
+    // a full URL degrades gracefully if the CDN/backend is down (the board
+    // still runs on the local-first seed).
+    const PB_URL = "https://clinic-admin.pb.gurum.se";
+    const PB_ESM = "https://cdn.jsdelivr.net/npm/pocketbase@0.25.0/dist/pocketbase.es.mjs";
+    const STATUSES = ["대기", "진료중", "완료"];
+    const LS_LOCAL = "vibe.clinic-admin.intake-cards"; // local-first fallback store
+
+    let pb = null, online = false, _pbPromise = null, _sub = null;
+
+    function getPB() {
+      if (pb) return Promise.resolve(pb);
+      if (!_pbPromise) {
+        _pbPromise = import(PB_ESM)
+          .then((m) => { pb = new m.default(PB_URL); return pb; })
+          .catch(() => { _pbPromise = null; return null; });
+      }
+      return _pbPromise;
+    }
+
+    // Anonymous identity — NOT access control. Only tags which device
+    // created a card so the UI can show an "added by you" marker.
+    function playerId() {
+      let id = null;
+      try { id = localStorage.getItem("vibe.clinic-admin.player-id"); } catch (e) {}
+      if (!id) {
+        id = (crypto.randomUUID ? crypto.randomUUID()
+              : String(Date.now()) + "-" + Math.round(performance.now()));
+        try { localStorage.setItem("vibe.clinic-admin.player-id", id); } catch (e) {}
+      }
+      return id;
+    }
+
+    const $id = (id) => document.getElementById(id);
+
+    // ── Local-first store (used when offline / no backend) ──
+    function loadLocal() {
+      try { return JSON.parse(localStorage.getItem(LS_LOCAL) || "null"); } catch (e) { return null; }
+    }
+    function saveLocal(cards) {
+      try { localStorage.setItem(LS_LOCAL, JSON.stringify(cards)); } catch (e) {}
+    }
+    // Fictional seed patients — only ever sample data.
+    function seedCards() {
+      const me = playerId();
+      return [
+        { id: "seed-1", patient_name: "김민서", status: "대기",   summary: "요통 초진 · 접수 대기", player_id: "" },
+        { id: "seed-2", patient_name: "이준호", status: "대기",   summary: "교통사고 후 경추 통증", player_id: "" },
+        { id: "seed-3", patient_name: "박서연", status: "진료중", summary: "오십견 추나 진행 중", player_id: "" },
+        { id: "seed-4", patient_name: "정우진", status: "완료",   summary: "발목 염좌 · 침 치료 완료", player_id: me },
+      ];
+    }
+
+    // In-memory view model: id -> card record
+    let cards = new Map();
+
+    function setSync(connected, text) {
+      const s = $id("intake-sync"), t = $id("intake-sync-text");
+      if (s) { s.classList.toggle("on", connected); const d = s.querySelector(".dot"); if (d) d.textContent = connected ? "●" : "○"; }
+      if (t) t.textContent = text;
+    }
+
+    function nextStatus(st) {
+      const i = STATUSES.indexOf(st);
+      return i >= 0 && i < STATUSES.length - 1 ? STATUSES[i + 1] : null;
+    }
+
+    function makeCardEl(rec, flash) {
+      const me = playerId();
+      const el = document.createElement("div");
+      el.className = "intake-card" + (rec.player_id && rec.player_id === me ? " mine" : "") + (flash ? " flash" : "");
+      el.dataset.id = rec.id;
+
+      const name = document.createElement("div");
+      name.className = "pc-name";
+      const nameText = document.createElement("span");
+      nameText.textContent = rec.patient_name || "환자"; // textContent → no XSS
+      name.appendChild(nameText);
+      if (rec.player_id && rec.player_id === me) {
+        const tag = document.createElement("span");
+        tag.className = "mine-tag"; tag.textContent = "내가 추가";
+        name.appendChild(tag);
+      }
+      el.appendChild(name);
+
+      if (rec.summary) {
+        const sum = document.createElement("div");
+        sum.className = "pc-summary";
+        sum.textContent = rec.summary; // textContent → no XSS
+        el.appendChild(sum);
+      }
+
+      const actions = document.createElement("div");
+      actions.className = "pc-actions";
+      const nx = nextStatus(rec.status);
+      if (nx) {
+        const adv = document.createElement("button");
+        adv.type = "button"; adv.className = "pc-btn advance";
+        adv.textContent = nx === "진료중" ? "진료 시작 →" : "완료 →";
+        adv.addEventListener("click", () => advanceCard(rec.id));
+        actions.appendChild(adv);
+      }
+      const del = document.createElement("button");
+      del.type = "button"; del.className = "pc-btn";
+      del.textContent = "지우기";
+      del.addEventListener("click", () => deleteCard(rec.id));
+      actions.appendChild(del);
+      el.appendChild(actions);
+
+      return el;
+    }
+
+    function render(flashId) {
+      const buckets = { "대기": [], "진료중": [], "완료": [] };
+      for (const rec of cards.values()) {
+        const st = STATUSES.includes(rec.status) ? rec.status : "대기";
+        buckets[st].push(rec);
+      }
+      for (const st of STATUSES) {
+        const col = $id("intake-col-" + st);
+        if (!col) continue;
+        col.innerHTML = "";
+        const list = buckets[st];
+        const cnt = document.querySelector('.col-count[data-count="' + st + '"]');
+        if (cnt) cnt.textContent = String(list.length);
+        if (list.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "col-empty";
+          empty.textContent = st === "대기" ? "접수 대기 없음" : (st === "진료중" ? "진료 중 없음" : "완료 없음");
+          col.appendChild(empty);
+          continue;
+        }
+        list.forEach((rec) => col.appendChild(makeCardEl(rec, rec.id === flashId)));
+      }
+    }
+
+    function persistIfLocal() { if (!online) saveLocal(Array.from(cards.values())); }
+
+    // ── Mutations: try backend, fall back to local ──
+    async function advanceCard(id) {
+      const rec = cards.get(id);
+      if (!rec) return;
+      const nx = nextStatus(rec.status);
+      if (!nx) return;
+      if (online) {
+        try {
+          const c = await getPB();
+          if (!c) throw new Error("sdk");
+          await c.collection("intake_card").update(id, { status: nx });
+          return; // realtime event re-renders
+        } catch (e) { online = false; setSync(false, "로컬 — 이 기기에서만"); }
+      }
+      rec.status = nx; cards.set(id, rec); persistIfLocal(); render(id);
+    }
+
+    async function deleteCard(id) {
+      if (online) {
+        try {
+          const c = await getPB();
+          if (!c) throw new Error("sdk");
+          await c.collection("intake_card").delete(id);
+          return; // realtime event re-renders
+        } catch (e) { online = false; setSync(false, "로컬 — 이 기기에서만"); }
+      }
+      cards.delete(id); persistIfLocal(); render();
+    }
+
+    async function addCard() {
+      const nameEl = $id("intake-name"), sumEl = $id("intake-summary"), btn = $id("intake-add-btn");
+      if (!nameEl) return;
+      let name = (nameEl.value || "").trim().slice(0, 40);
+      if (!name) name = "예시 환자";
+      const summary = (sumEl ? sumEl.value : "").trim().slice(0, 200);
+      const payload = { patient_name: name, status: "대기", summary, player_id: playerId() };
+      if (btn) btn.disabled = true;
+      if (online) {
+        try {
+          const c = await getPB();
+          if (!c) throw new Error("sdk");
+          await c.collection("intake_card").create(payload);
+          nameEl.value = ""; if (sumEl) sumEl.value = "";
+          if (btn) btn.disabled = false;
+          return; // realtime event re-renders
+        } catch (e) { online = false; setSync(false, "로컬 — 이 기기에서만"); }
+      }
+      const rec = Object.assign({ id: "local-" + (crypto.randomUUID ? crypto.randomUUID() : Date.now()) }, payload);
+      cards.set(rec.id, rec); persistIfLocal();
+      nameEl.value = ""; if (sumEl) sumEl.value = "";
+      if (btn) btn.disabled = false;
+      render(rec.id);
+    }
+
+    // ── Boot: health check once, then either go live or run local ──
+    async function boot() {
+      // Wire add controls immediately (work in every mode).
+      const btn = $id("intake-add-btn");
+      if (btn) btn.addEventListener("click", addCard);
+      const nameEl = $id("intake-name");
+      if (nameEl) nameEl.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addCard(); } });
+
+      let c = null;
+      try { c = await getPB(); if (c) { await c.health.check(); online = true; } } catch (e) { online = false; }
+
+      if (online && c) {
+        setSync(true, "실시간 동기화 중");
+        try {
+          const rows = await c.collection("intake_card").getFullList({ sort: "created" });
+          cards = new Map(rows.map((r) => [r.id, r]));
+          // First-run seed: if the shared board is empty, plant fictional samples.
+          if (cards.size === 0) {
+            for (const s of seedCards()) {
+              try { await c.collection("intake_card").create({ patient_name: s.patient_name, status: s.status, summary: s.summary, player_id: s.player_id }); } catch (e) {}
+            }
+            const seeded = await c.collection("intake_card").getFullList({ sort: "created" });
+            cards = new Map(seeded.map((r) => [r.id, r]));
+          }
+          render();
+          // Realtime: live create/update/delete across all open screens.
+          _sub = await c.collection("intake_card").subscribe("*", (e) => {
+            if (e.action === "delete") cards.delete(e.record.id);
+            else cards.set(e.record.id, e.record);
+            render(e.action === "create" || e.action === "update" ? e.record.id : null);
+          });
+          return;
+        } catch (e) { online = false; setSync(false, "로컬 — 이 기기에서만"); }
+      }
+
+      // Local-first path (no backend / offline / CDN down).
+      setSync(false, "로컬 — 이 기기에서만");
+      const stored = loadLocal();
+      const list = (stored && stored.length) ? stored : seedCards();
+      cards = new Map(list.map((r) => [r.id, r]));
+      if (!stored) saveLocal(Array.from(cards.values()));
+      render();
+    }
+
+    // Expose for quick console checks.
+    window.__intake = { getPB, get pb() { return pb; }, get online() { return online; }, playerId, get cards() { return cards; } };
+
+    boot();
   </script>
 
   <script>

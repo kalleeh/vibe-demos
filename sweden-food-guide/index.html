@@ -572,6 +572,177 @@
       border-bottom: 1px solid var(--line);
     }
 
+    /* ── Community spots (PocketBase, Tier 1) ── */
+    .comm-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--faint);
+      margin-bottom: 18px;
+    }
+    .comm-status .dot { color: var(--pine); font-size: 11px; line-height: 1; }
+    .comm-status.off { color: var(--faint); }
+    .comm-status.off .dot { color: var(--faint); }
+
+    .comm-add {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+      padding: 0 0 22px;
+      margin-bottom: 28px;
+      border-bottom: 1px solid var(--line);
+    }
+    .comm-add .fld { display: flex; flex-direction: column; gap: 6px; }
+    .comm-add .fld.grow { flex: 1; min-width: 200px; }
+    .comm-add label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    .comm-add input,
+    .comm-add select {
+      background: transparent;
+      color: var(--ink);
+      border: 0;
+      border-bottom: 1px solid var(--line-strong);
+      border-radius: 0;
+      padding: 6px 4px;
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-size: 16px;
+      width: 100%;
+    }
+    .comm-add input::placeholder { font-style: italic; color: var(--faint); }
+    .comm-add input:focus,
+    .comm-add select:focus { outline: none; border-bottom-color: var(--gold); }
+    .comm-add select option { background: var(--paper-2); color: var(--ink); }
+    .comm-note {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-size: 13.5px;
+      color: var(--muted);
+      min-height: 1.2em;
+      margin: -10px 0 22px;
+    }
+    .comm-note.err { color: var(--berry); }
+    .comm-note.ok { color: var(--pine); }
+
+    .comm-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 0;
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+    }
+    .comm-spot {
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 22px 22px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .comm-spot .top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .comm-spot h4 {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 400;
+      font-size: 19px;
+      letter-spacing: -0.01em;
+      line-height: 1.25;
+    }
+    .comm-spot .city {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9.5px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--frost);
+      white-space: nowrap;
+    }
+    .comm-spot .note {
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: var(--ink-2);
+    }
+    .comm-spot .note.empty { color: var(--faint); font-style: italic; }
+    .comm-spot .vote-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    .comm-vote {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      border: 1px solid var(--line-strong);
+      background: transparent;
+      color: var(--ink);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s, border-color 0.18s;
+    }
+    .comm-vote:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
+    .comm-vote:disabled { cursor: default; opacity: 0.85; }
+    .comm-vote.voted { border-color: var(--pine); color: var(--pine); }
+    .comm-vote .heart { font-size: 12px; line-height: 1; }
+    .comm-vote .n {
+      font-weight: 600;
+      font-size: 12px;
+      font-feature-settings: "tnum";
+    }
+    .comm-spot .src {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+    .comm-empty {
+      grid-column: 1 / -1;
+      padding: 40px 28px;
+      text-align: center;
+      color: var(--muted);
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-style: italic;
+      font-size: 16px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .comm-grid .skel {
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 22px;
+    }
+    .comm-grid .skel .bar {
+      display: block;
+      height: 14px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, rgba(244,236,214,0.05), rgba(244,236,214,0.12), rgba(244,236,214,0.05));
+      background-size: 200% 100%;
+      animation: commShimmer 1.4s linear infinite;
+      margin-bottom: 10px;
+    }
+    .comm-grid .skel .bar.short { width: 55%; }
+    @keyframes commShimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+    @media (prefers-reduced-motion: reduce) {
+      .comm-grid .skel .bar { animation: none; }
+    }
+
     /* ── Tabs ── */
     .tabs {
       display: flex;
@@ -1716,6 +1887,7 @@
         <a href="#itinerary">Reseplan</a>
         <a href="#tips">Tips</a>
         <a href="#budget">Budget</a>
+        <a href="#community">Community</a>
       </nav>
       <a href="../" class="back-link">← 인덱스</a>
     </div>
@@ -2105,6 +2277,41 @@
           <p class="city-deck">코펜하겐과 다리로 연결된 도시. 정육 레스토랑 Bastard, 점심 한 가지만 내는 Saltimporten, 그리고 마지막 밤의 한식.</p>
           <button class="btn" onclick="printCity('malmo')">이 도시의 한 장 스프레드 <span class="arrow">↓</span></button>
         </div>
+      </section>
+
+      <section class="block" id="community">
+        <div class="section-head">
+          <div class="left">
+            <div class="section-kicker"><span class="num">/ 07</span>COMMUNITY · 커뮤니티 추천</div>
+            <h2>여행자들이 <em>직접</em> 더한 곳.</h2>
+          </div>
+          <p class="lead">큐레이션 목록 밖, 한국 여행자들이 실제로 가보고 추천하는 곳. 한 줄 메모를 남기고, 가본 곳에 “실제로 가봤어요”를 눌러 주세요. 추천이 많은 순으로 정렬됩니다.</p>
+        </div>
+
+        <div class="comm-status" id="commStatus"><span class="dot">○</span><span id="commStatusText">로컬 모드 — 이 기기에만 저장</span></div>
+
+        <div class="comm-add">
+          <div class="fld grow">
+            <label for="commName">장소 이름</label>
+            <input type="text" id="commName" maxlength="60" placeholder="예: Café Pascal" autocomplete="off">
+          </div>
+          <div class="fld">
+            <label for="commCity">도시</label>
+            <select id="commCity">
+              <option value="스톡홀름">스톡홀름</option>
+              <option value="예테보리">예테보리</option>
+              <option value="말뫼">말뫼</option>
+            </select>
+          </div>
+          <div class="fld grow">
+            <label for="commNote">한 줄 메모</label>
+            <input type="text" id="commNote" maxlength="120" placeholder="무엇이 좋았나요? (선택)" autocomplete="off">
+          </div>
+          <button class="btn primary" id="commAddBtn">추천 추가 <span class="arrow">→</span></button>
+        </div>
+        <p class="comm-note" id="commAddNote" role="status" aria-live="polite"></p>
+
+        <div class="comm-grid" id="commGrid"></div>
       </section>
 
       <!-- Print-only city spreads. Hidden in screen mode; printCity() flips body class. -->
@@ -2925,6 +3132,313 @@
       setTimeout(() => window.print(), 50);
     }
     window.printCity = printCity;
+  </script>
+
+  <script type="module">
+    /* ============================================================
+       COMMUNITY SPOTS (PocketBase, Tier 1 public) — Feature 7
+       Isolated from the classic guide script. Purely additive: the
+       guide works fully with no backend (local-first via localStorage).
+
+       PocketBase: https://sweden-food-guide.pb.gurum.se/_/
+
+       Collection: community_spot (base)
+         name      (text, required, max 60)
+         city      (text, required, max 20)   ← 스톡홀름 | 예테보리 | 말뫼
+         note      (text, max 120)
+         player_id (text)   ← anonymous UUID, the submitter
+         Rules: list="" view="" create="" update=null delete=null
+
+       Collection: spot_vote (base)  — one row per upvote
+         spot      (text, required)   ← community_spot id
+         player_id (text, required)   ← who upvoted (client-side de-dupe)
+         Rules: list="" view="" create="" update=null delete=null
+
+       Vote counts are computed CLIENT-SIDE by counting spot_vote rows
+       per spot id. Everything is create-only — no update rule, so votes
+       can't be tampered with. A player_id may upvote a spot once
+       (enforced client-side; this is a demo, not access control).
+       ============================================================ */
+
+    // PocketBase SDK is loaded lazily by full URL via dynamic import() — NOT a
+    // static `import` + importmap. A static import that can't resolve throws at
+    // module-eval time and would kill every handler below; dynamic import of a
+    // full URL works on any ES-module browser and degrades gracefully offline.
+    const PB_URL = "https://sweden-food-guide.pb.gurum.se";
+    const PB_ESM = "https://cdn.jsdelivr.net/npm/pocketbase@0.25.0/dist/pocketbase.es.mjs";
+    const LS_LOCAL = "vibe.sweden-food-guide.spots";   // locally-added spots
+    const LS_VOTED = "vibe.sweden-food-guide.voted";   // ids this player upvoted
+    const NAME_MAX = 60, CITY_MAX = 20, NOTE_MAX = 120;
+    const CITIES = ["스톡홀름", "예테보리", "말뫼"];
+
+    let pb = null;
+    let online = false;
+    let _pbPromise = null;
+
+    function getPB() {
+      if (pb) return Promise.resolve(pb);
+      if (!_pbPromise) {
+        _pbPromise = import(PB_ESM)
+          .then((m) => { pb = new m.default(PB_URL); return pb; })
+          .catch(() => { _pbPromise = null; return null; });
+      }
+      return _pbPromise;
+    }
+
+    // Anonymous identity — NOT access control (rules are public). Used to
+    // attribute spots and de-dupe upvotes ("you").
+    function playerId() {
+      let id = null;
+      try { id = localStorage.getItem("vibe.sweden-food-guide.player-id"); } catch (e) {}
+      if (!id) {
+        id = (crypto.randomUUID ? crypto.randomUUID()
+              : String(Date.now()) + "-" + Math.round(performance.now()));
+        try { localStorage.setItem("vibe.sweden-food-guide.player-id", id); } catch (e) {}
+      }
+      return id;
+    }
+
+    function readLS(key, fallback) {
+      try { return JSON.parse(localStorage.getItem(key) || fallback); } catch (e) { return JSON.parse(fallback); }
+    }
+    function writeLS(key, val) {
+      try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+    }
+    function localSpots() { return readLS(LS_LOCAL, "[]"); }
+    function votedIds() { return readLS(LS_VOTED, "[]"); }
+    function hasVoted(id) { return votedIds().indexOf(id) !== -1; }
+    function rememberVote(id) {
+      const v = votedIds();
+      if (v.indexOf(id) === -1) { v.push(id); writeLS(LS_VOTED, v); }
+    }
+
+    // One-time, best-effort health check. No reconnection polling (per CLAUDE.md).
+    async function checkHealth() {
+      try {
+        const c = await getPB();
+        if (!c) { online = false; return online; }
+        await c.health.check(); online = true;
+      } catch (e) { online = false; }
+      return online;
+    }
+
+    const $id = (id) => document.getElementById(id);
+
+    function setStatus(connected, text) {
+      const s = $id("commStatus"), t = $id("commStatusText");
+      const d = s ? s.querySelector(".dot") : null;
+      if (s) s.classList.toggle("off", !connected);
+      if (d) d.textContent = connected ? "●" : "○";
+      if (t) t.textContent = text;
+    }
+    function setAddNote(msg, kind) {
+      const n = $id("commAddNote");
+      if (!n) return;
+      n.textContent = msg || "";
+      n.className = "comm-note" + (kind ? " " + kind : "");
+    }
+
+    function citySigil(city) {
+      if (city === "스톡홀름") return "STO";
+      if (city === "예테보리") return "GOT";
+      if (city === "말뫼") return "MAL";
+      return "···";
+    }
+
+    // ── Rendering ──────────────────────────────────────────────
+    function renderSkeleton() {
+      const grid = $id("commGrid");
+      if (!grid) return;
+      grid.textContent = "";
+      for (let i = 0; i < 4; i++) {
+        const li = document.createElement("div");
+        li.className = "skel";
+        const a = document.createElement("span"); a.className = "bar";
+        const b = document.createElement("span"); b.className = "bar short";
+        li.appendChild(a); li.appendChild(b);
+        grid.appendChild(li);
+      }
+    }
+
+    // spots: [{ id, name, city, note, player_id, votes, source }]
+    function renderSpots(spots) {
+      const grid = $id("commGrid");
+      if (!grid) return;
+      grid.textContent = ""; // never innerHTML with community text (XSS)
+      if (!spots || spots.length === 0) {
+        const e = document.createElement("div");
+        e.className = "comm-empty";
+        e.textContent = "아직 추천이 없어요 — 첫 추천을 남겨 주세요.";
+        grid.appendChild(e);
+        return;
+      }
+      spots.forEach((s) => {
+        const card = document.createElement("div");
+        card.className = "comm-spot";
+
+        const top = document.createElement("div"); top.className = "top";
+        const h = document.createElement("h4"); h.textContent = s.name; // textContent → no XSS
+        const city = document.createElement("span"); city.className = "city";
+        city.textContent = citySigil(s.city) + " · " + s.city;
+        top.appendChild(h); top.appendChild(city);
+
+        const note = document.createElement("p");
+        note.className = "note" + (s.note ? "" : " empty");
+        note.textContent = s.note ? s.note : "메모 없음";
+
+        const row = document.createElement("div"); row.className = "vote-row";
+        const btn = document.createElement("button");
+        const voted = hasVoted(s.id);
+        btn.className = "comm-vote" + (voted ? " voted" : "");
+        btn.disabled = voted;
+        const heart = document.createElement("span"); heart.className = "heart"; heart.textContent = "♥";
+        const label = document.createElement("span");
+        label.textContent = voted ? "가봤어요" : "실제로 가봤어요";
+        const n = document.createElement("span"); n.className = "n"; n.textContent = String(s.votes || 0);
+        btn.appendChild(heart); btn.appendChild(label); btn.appendChild(n);
+        btn.addEventListener("click", () => upvote(s, btn, n, label));
+        row.appendChild(btn);
+
+        const src = document.createElement("span"); src.className = "src";
+        src.textContent = s.source === "local" ? "이 기기" : "커뮤니티";
+        row.appendChild(src);
+
+        card.appendChild(top); card.appendChild(note); card.appendChild(row);
+        grid.appendChild(card);
+      });
+    }
+
+    function sortSpots(spots) {
+      return spots.slice().sort((a, b) => (b.votes || 0) - (a.votes || 0)
+        || String(a.name).localeCompare(String(b.name)));
+    }
+
+    // ── Load (fetch-on-open semantics: runs once on first paint) ──
+    let _loaded = false;
+    async function loadSpots() {
+      renderSkeleton();
+      await checkHealth();
+      if (!online) {
+        setStatus(false, "로컬 모드 — 이 기기에만 저장");
+        renderSpots(sortSpots(localSpots().map((s) => ({ ...s, source: "local" }))));
+        _loaded = true;
+        return;
+      }
+      setStatus(true, "연결됨 · 커뮤니티 추천");
+      try {
+        const c = await getPB();
+        if (!c) throw new Error("sdk unavailable");
+        const [spotRes, voteRes] = await Promise.all([
+          c.collection("community_spot").getFullList({ sort: "-created" }),
+          c.collection("spot_vote").getFullList(),
+        ]);
+        const counts = {};
+        voteRes.forEach((v) => { counts[v.spot] = (counts[v.spot] || 0) + 1; });
+        const remote = spotRes.map((r) => ({
+          id: r.id, name: r.name, city: r.city, note: r.note || "",
+          player_id: r.player_id, votes: counts[r.id] || 0, source: "remote",
+        }));
+        renderSpots(sortSpots(remote));
+        _loaded = true;
+      } catch (e) {
+        online = false;
+        setStatus(false, "로컬 모드 — 이 기기에만 저장");
+        renderSpots(sortSpots(localSpots().map((s) => ({ ...s, source: "local" }))));
+        _loaded = true;
+      }
+    }
+
+    // ── Add a spot ─────────────────────────────────────────────
+    async function addSpot() {
+      const nameEl = $id("commName"), cityEl = $id("commCity"), noteEl = $id("commNote"), btn = $id("commAddBtn");
+      if (!nameEl || !cityEl || !noteEl || !btn) return;
+      const name = (nameEl.value || "").trim().slice(0, NAME_MAX);
+      let city = (cityEl.value || "").trim().slice(0, CITY_MAX);
+      const note = (noteEl.value || "").trim().slice(0, NOTE_MAX);
+      if (!name) { setAddNote("장소 이름을 입력해 주세요.", "err"); nameEl.focus(); return; }
+      if (CITIES.indexOf(city) === -1) city = CITIES[0];
+
+      btn.disabled = true;
+      setAddNote("추가하는 중…");
+
+      if (online) {
+        try {
+          const c = await getPB();
+          if (!c) throw new Error("sdk unavailable");
+          await c.collection("community_spot").create({ name, city, note, player_id: playerId() });
+          nameEl.value = ""; noteEl.value = "";
+          setAddNote("추천이 추가됐어요 ✓", "ok");
+          await loadSpots();
+          btn.disabled = false;
+          return;
+        } catch (e) {
+          online = false; // fall through to local
+        }
+      }
+      // Offline / failed: store locally so the demo still works.
+      const local = localSpots();
+      local.push({
+        id: "local-" + (crypto.randomUUID ? crypto.randomUUID() : Date.now()),
+        name, city, note, player_id: playerId(), votes: 0,
+      });
+      writeLS(LS_LOCAL, local);
+      nameEl.value = ""; noteEl.value = "";
+      setStatus(false, "로컬 모드 — 이 기기에만 저장");
+      setAddNote("로컬에 저장됐어요 (백엔드 연결 시 동기화되지 않습니다).", "ok");
+      renderSpots(sortSpots(localSpots().map((s) => ({ ...s, source: "local" }))));
+      btn.disabled = false;
+    }
+
+    // ── Upvote (create-only spot_vote; client-side de-dupe) ────
+    async function upvote(spot, btn, nEl, labelEl) {
+      if (hasVoted(spot.id)) return;
+      btn.disabled = true;
+
+      // Local spots can't be voted on the server (no row exists there);
+      // just bump the local count.
+      if (spot.source === "local" || String(spot.id).indexOf("local-") === 0) {
+        const local = localSpots();
+        const hit = local.find((s) => s.id === spot.id);
+        if (hit) { hit.votes = (hit.votes || 0) + 1; writeLS(LS_LOCAL, local); }
+        rememberVote(spot.id);
+        spot.votes = (spot.votes || 0) + 1;
+        nEl.textContent = String(spot.votes);
+        labelEl.textContent = "가봤어요";
+        btn.classList.add("voted");
+        return;
+      }
+
+      if (!online) { await checkHealth(); }
+      if (!online) { btn.disabled = false; setAddNote("백엔드에 연결할 수 없어요.", "err"); return; }
+      try {
+        const c = await getPB();
+        if (!c) throw new Error("sdk unavailable");
+        await c.collection("spot_vote").create({ spot: spot.id, player_id: playerId() });
+        rememberVote(spot.id);
+        spot.votes = (spot.votes || 0) + 1;
+        nEl.textContent = String(spot.votes);
+        labelEl.textContent = "가봤어요";
+        btn.classList.add("voted");
+        // Re-sort so the bumped spot moves up. Cheap: re-render current DOM order
+        // isn't worth a refetch — just reload to reflect the new ordering.
+        await loadSpots();
+      } catch (e) {
+        online = false;
+        btn.disabled = false;
+        setAddNote("추천을 저장하지 못했어요.", "err");
+      }
+    }
+
+    // ── Wire up ────────────────────────────────────────────────
+    const _addBtn = $id("commAddBtn");
+    if (_addBtn) _addBtn.addEventListener("click", addSpot);
+    const _nameInput = $id("commName");
+    if (_nameInput) _nameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addSpot(); } });
+    const _noteInput = $id("commNote");
+    if (_noteInput) _noteInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addSpot(); } });
+
+    // Fetch-on-open: load once on first paint (no realtime, no polling).
+    loadSpots();
   </script>
 
   <script>

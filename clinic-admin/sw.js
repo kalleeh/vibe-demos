@@ -1,5 +1,5 @@
 /* clinic-admin — minimal offline shell SW */
-const CACHE = "vibe-clinic-admin-v14";
+const CACHE = "vibe-clinic-admin-v15";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
   "./data/kcd9.json",
@@ -20,8 +20,11 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
-  // Never cache live API calls — they are user-specific and time-sensitive.
-  if (req.url.includes("api.anthropic.com")) return;
+  // Never intercept cross-origin requests — PocketBase API/realtime
+  // (clinic-admin.pb.gurum.se), the PB SDK ESM (jsdelivr), the Anthropic
+  // API, etc. Let them hit the network untouched so the live intake board
+  // and AI calls are always fresh and the SW never caches stale data.
+  if (new URL(req.url).origin !== self.location.origin) return;
   if (req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html")) {
     e.respondWith(
       fetch(req).then(r => {

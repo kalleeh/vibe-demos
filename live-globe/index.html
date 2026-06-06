@@ -583,7 +583,222 @@
     }
     .key-prompt.error .err { display: block; }
 
+    /* ── Presence layer ("who's looking right now") ── */
+    /* A compact panel, centered low, listing the recent visitor pins + a
+       drop-your-own form. Editorial monospace/serif grammar, like the cards. */
+    .presence {
+      position: fixed;
+      left: 50%;
+      bottom: 26px;
+      transform: translateX(-50%);
+      width: min(380px, calc(100% - 40px));
+      background: var(--panel);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      z-index: 9;
+      transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .25s;
+      overflow: hidden;
+    }
+    body.focus .presence {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-50%) translateY(20px);
+    }
+    .presence .p-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 13px 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .presence .p-head .p-title {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .presence .p-head .p-title .pdot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--muted);
+      transition: background .2s, box-shadow .2s;
+    }
+    .presence.online .p-head .p-title .pdot {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .presence .p-head .p-status {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .presence .p-head .p-chevron {
+      transition: transform .25s;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .presence.collapsed .p-chevron { transform: rotate(-90deg); }
+    .presence .p-body {
+      max-height: 340px;
+      overflow: hidden;
+      transition: max-height .3s cubic-bezier(.2,.8,.2,1), opacity .2s;
+    }
+    .presence.collapsed .p-body { max-height: 0; opacity: 0; }
+
+    .presence .p-list {
+      list-style: none;
+      max-height: 168px;
+      overflow-y: auto;
+      padding: 0 16px;
+      margin: 0;
+    }
+    .presence .p-list li {
+      display: flex;
+      align-items: baseline;
+      gap: 9px;
+      padding: 7px 0;
+      border-top: 1px solid var(--line);
+      cursor: pointer;
+    }
+    .presence .p-list li:first-child { border-top: none; }
+    .presence .p-list li:hover { color: var(--accent); }
+    .presence .p-list li.mine .p-city { color: var(--accent); }
+    .presence .p-list li .p-pindot {
+      flex: none;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--warm);
+      box-shadow: 0 0 6px var(--warm);
+      transform: translateY(1px);
+    }
+    .presence .p-list li.mine .p-pindot {
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent);
+    }
+    .presence .p-list li .p-city {
+      font-family: "Fraunces", serif;
+      font-size: 14px;
+      color: var(--ink);
+      flex: none;
+      max-width: 42%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .presence .p-list li .p-note {
+      font-family: "Inter", sans-serif;
+      font-size: 12px;
+      color: var(--ink-dim);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+    .presence .p-empty {
+      padding: 6px 16px 12px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+    }
+    .presence .p-skel {
+      height: 13px;
+      margin: 9px 0;
+      border-radius: 3px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 100%);
+      background-size: 200% 100%;
+      animation: textshimmer 1.6s linear infinite;
+    }
+
+    .presence .p-form {
+      padding: 12px 16px 14px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .presence .p-form .p-row { display: flex; gap: 8px; }
+    .presence .p-form input {
+      flex: 1;
+      min-width: 0;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--line-2);
+      color: var(--ink);
+      padding: 9px 11px;
+      border-radius: 4px;
+      font-family: "Inter", sans-serif;
+      font-size: 13px;
+      outline: none;
+    }
+    .presence .p-form input:focus { border-color: var(--accent); }
+    .presence .p-form input#pCity { flex: 0 0 42%; }
+    .presence .p-form button {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 9px 14px;
+      border-radius: 4px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background .2s, opacity .2s;
+      flex: none;
+    }
+    .presence .p-form button:hover { background: #fff; }
+    .presence .p-form button:disabled { opacity: 0.5; cursor: default; }
+    .presence .p-form .p-hint {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      min-height: 12px;
+    }
+    .presence .p-form .p-hint.warn { color: var(--warm); }
+
+    /* Floating tooltip for a hovered/tapped pin */
+    .pin-tip {
+      position: fixed;
+      z-index: 40;
+      max-width: 240px;
+      background: var(--panel-2);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--line-2);
+      border-radius: 4px;
+      padding: 8px 11px;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity .15s, transform .15s;
+    }
+    .pin-tip.on { opacity: 1; transform: translateY(0); }
+    .pin-tip .t-city {
+      font-family: "Fraunces", serif;
+      font-size: 14px;
+      color: var(--ink);
+      display: block;
+    }
+    .pin-tip .t-note {
+      font-family: "Inter", sans-serif;
+      font-size: 12px;
+      color: var(--ink-dim);
+      display: block;
+      margin-top: 2px;
+    }
+
     @media (max-width: 800px) {
+      .presence { left: 20px; right: 20px; transform: none; width: auto; bottom: 20px; }
+      body.focus .presence { transform: translateY(20px); }
       .city-card { width: calc(100% - 40px); bottom: 20px; }
       .city-card.left  { left: 20px; right: 20px; bottom: 200px; }
       .city-card.right { right: 20px; }
@@ -601,6 +816,7 @@
       .city-card .stat .v.shimmer { animation: none; background: none; -webkit-text-fill-color: var(--ink); }
       body.fastforward .topbar .ff-btn .ff-glyph::before,
       body.fastforward .topbar .ff-btn .ff-glyph::after { animation: none; }
+      .presence .p-skel { animation: none; background: rgba(255,255,255,0.07); }
     }
   </style>
 </head>
@@ -695,6 +911,35 @@
         <span class="err" id="keyErr">Key was rejected — try another</span>
       </div>
     </div>
+  </div>
+
+  <!-- Presence layer: who's looking right now -->
+  <aside class="presence collapsed" id="presence" aria-label="Who's looking right now">
+    <div class="p-head" id="pHead" role="button" tabindex="0" aria-expanded="false">
+      <span class="p-title"><span class="pdot" aria-hidden="true"></span>Who's looking right now</span>
+      <span class="p-status" id="pStatus">○ local</span>
+      <span class="p-chevron" aria-hidden="true">▾</span>
+    </div>
+    <div class="p-body">
+      <ul class="p-list" id="pList" aria-live="polite"></ul>
+      <div class="p-empty" id="pEmpty" hidden>No pins yet — drop the first one.</div>
+      <div class="p-form">
+        <div class="p-row">
+          <input type="text" id="pCity" placeholder="Your city" maxlength="40" autocomplete="off" spellcheck="false">
+          <input type="text" id="pNote" placeholder="One-line note…" maxlength="80" autocomplete="off">
+        </div>
+        <div class="p-row">
+          <button id="pSubmit" type="button">Drop a pin</button>
+          <span class="p-hint" id="pHint">Click the globe to place — or type a known city.</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Floating tooltip for a hovered/tapped presence pin -->
+  <div class="pin-tip" id="pinTip" role="status" aria-live="polite">
+    <span class="t-city" id="tipCity"></span>
+    <span class="t-note" id="tipNote"></span>
   </div>
 
   <script type="importmap">
@@ -971,6 +1216,82 @@
     });
 
     /* ───────────────────────────────────────────────
+       Presence pins bridge — the PocketBase module (a separate
+       <script type="module"> below) renders visitor pins onto the globe
+       through this API. Kept tiny and additive: the globe works with zero
+       presence pins. Pins are small warm/accent markers parented to `globe`
+       so they rotate with it (added once `globe` exists, here at init time).
+       ─────────────────────────────────────────────── */
+    const presencePins = []; // { mesh, halo, rec } — rec = {city, note, lat, lon, mine}
+    const presenceGroup = new THREE.Group();
+    globe.add(presenceGroup);
+
+    window.__globe = {
+      THREE,
+      RADIUS,
+      latLonToVec3,
+      // Add one visitor pin. Returns nothing; pin lives in presenceGroup.
+      addPin(rec) {
+        const pos = latLonToVec3(rec.lat, rec.lon, RADIUS * 1.004);
+        const color = rec.mine ? 0x6cc5ff : 0xffb37a;
+        const dotMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.95 });
+        const dot = new THREE.Mesh(new THREE.SphereGeometry(0.012, 12, 12), dotMat);
+        dot.position.copy(pos);
+        const haloMat = new THREE.MeshBasicMaterial({
+          color, transparent: true, opacity: 0.18,
+          depthWrite: false, blending: THREE.AdditiveBlending
+        });
+        const halo = new THREE.Mesh(new THREE.SphereGeometry(0.03, 16, 16), haloMat);
+        halo.position.copy(pos);
+        presenceGroup.add(halo);
+        presenceGroup.add(dot);
+        dot.userData.presence = rec;
+        presencePins.push({ mesh: dot, halo, rec });
+      },
+      clearPins() {
+        for (const p of presencePins) {
+          presenceGroup.remove(p.mesh); presenceGroup.remove(p.halo);
+          p.mesh.geometry.dispose(); p.mesh.material.dispose();
+          p.halo.geometry.dispose(); p.halo.material.dispose();
+        }
+        presencePins.length = 0;
+      },
+      // Project a globe-space pin to screen px for tooltip placement.
+      // Returns null if the pin is on the far side of the globe (occluded).
+      projectPin(p) {
+        const world = p.mesh.getWorldPosition(new THREE.Vector3());
+        // Cull back-facing pins: dot from globe center → pin vs center → camera.
+        const center = globe.getWorldPosition(new THREE.Vector3());
+        const toCam = camera.position.clone().sub(center).normalize();
+        const toPin = world.clone().sub(center).normalize();
+        if (toPin.dot(toCam) < -0.05) return null;
+        const ndc = world.clone().project(camera);
+        return {
+          x: (ndc.x * 0.5 + 0.5) * window.innerWidth,
+          y: (-ndc.y * 0.5 + 0.5) * window.innerHeight
+        };
+      },
+      get pins() { return presencePins; },
+      raycaster, camera,
+      // True when a click landed on empty globe (not a pin / city) and the
+      // presence "place mode" wants the lat/lon. Set by the PB module.
+      placeArmed: false,
+      onPlace: null // (lat, lon) => void
+    };
+
+    /* Convert a globe-surface intersection point back to lat/lon, accounting
+       for the globe's current rotation (pins are children of `globe`). */
+    function pointToLatLon(worldPoint) {
+      const local = globe.worldToLocal(worldPoint.clone()).normalize();
+      const lat = 90 - Math.acos(Math.max(-1, Math.min(1, local.y))) * 180 / Math.PI;
+      // Inverse of latLonToVec3: x=-sin(phi)cos(theta), z=sin(phi)sin(theta),
+      // theta=(lon+180)deg. So lon = atan2(z, -x) in deg - 180.
+      let lon = Math.atan2(local.z, -local.x) * 180 / Math.PI - 180;
+      lon = ((lon + 540) % 360) - 180;
+      return { lat, lon };
+    }
+
+    /* ───────────────────────────────────────────────
        Drag-to-rotate + auto-spin
        ─────────────────────────────────────────────── */
     let isDragging = false;
@@ -1006,6 +1327,18 @@
       velX = dy * 0.005;
       lastInputT = performance.now();
     };
+    /* Desktop hover over a presence pin → show its tooltip (no click needed).
+       Throttled to pointer-move; ignored while dragging or on touch. */
+    const onHoverMove = e => {
+      if (isDragging || e.pointerType === "touch") return;
+      if (typeof window.__globe.onPinHover !== "function") return;
+      if (!presencePins.length) { window.__globe.onPinHover(null); return; }
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      const hits = raycaster.intersectObjects(presencePins.map(p => p.mesh), false);
+      window.__globe.onPinHover(hits.length ? hits[0].object.userData.presence : null, e.clientX, e.clientY);
+    };
     const onPointerLeave = () => { isDragging = false; };
     const onWheel = e => { lastInputT = performance.now(); };
     const onPointerUp = e => {
@@ -1019,17 +1352,43 @@
       mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
       raycaster.setFromCamera(mouse, camera);
+
+      // 1) City pins → open the AI panel.
       const groups = Object.values(pinObjects);
       const meshes = [];
       groups.forEach(g => g.traverse(o => { if (o.isMesh) { o.userData.cityKey = g.userData.cityKey; meshes.push(o); } }));
-      const hits = raycaster.intersectObjects(meshes, false);
-      if (hits.length) {
-        const cityKey = hits[0].object.userData.cityKey;
+      const cityHits = raycaster.intersectObjects(meshes, false);
+      if (cityHits.length) {
+        const cityKey = cityHits[0].object.userData.cityKey;
         if (cityKey) openAiPanel(cityKey);
+        return;
+      }
+
+      // 2) Presence pins → toggle that pin's tooltip (delegated to PB module).
+      const pinMeshes = presencePins.map(p => p.mesh);
+      if (pinMeshes.length) {
+        const pinHits = raycaster.intersectObjects(pinMeshes, false);
+        if (pinHits.length) {
+          const rec = pinHits[0].object.userData.presence;
+          if (rec && typeof window.__globe.onPinTap === "function") {
+            window.__globe.onPinTap(rec, e.clientX, e.clientY);
+          }
+          return;
+        }
+      }
+
+      // 3) Empty globe surface, and place-mode armed → report lat/lon.
+      if (window.__globe.placeArmed && typeof window.__globe.onPlace === "function") {
+        const surf = raycaster.intersectObject(globe, false);
+        if (surf.length) {
+          const { lat, lon } = pointToLatLon(surf[0].point);
+          window.__globe.onPlace(lat, lon);
+        }
       }
     };
     container.addEventListener("pointerdown", onPointerDown);
     container.addEventListener("pointermove", onPointerMove);
+    container.addEventListener("pointermove", onHoverMove);
     container.addEventListener("pointerup", onPointerUp);
     container.addEventListener("pointerleave", onPointerLeave);
     container.addEventListener("wheel", onWheel, { passive: true });
@@ -1123,6 +1482,9 @@
         }
       });
 
+      /* Let the presence layer reposition its open tooltip as the globe spins. */
+      if (typeof window.__globe.onFrame === "function") window.__globe.onFrame();
+
       renderer.render(scene, camera);
       requestAnimationFrame(tick);
     }
@@ -1148,6 +1510,7 @@
       window.removeEventListener("resize", onResize);
       container.removeEventListener("pointerdown", onPointerDown);
       container.removeEventListener("pointermove", onPointerMove);
+      container.removeEventListener("pointermove", onHoverMove);
       container.removeEventListener("pointerup", onPointerUp);
       container.removeEventListener("pointerleave", onPointerLeave);
       container.removeEventListener("wheel", onWheel);
@@ -1618,6 +1981,397 @@ Return strict JSON:
       return { ko: fmt(obj.ko), en: fmt(obj.en) };
     }
 
+  </script>
+
+  <script type="module">
+    /* ============================================================
+       PRESENCE LAYER (PocketBase, Tier 1 public)
+       "Who's looking right now." Isolated from the Three.js globe
+       module above — it talks to the globe ONLY through the
+       window.__globe bridge (addPin / clearPins / projectPin / lat-lon
+       helpers / pointer-event hooks). The globe never awaits this layer;
+       it is purely additive and degrades to locally-saved pins offline.
+
+       Collection: globe_ping (base)  — https://live-globe.pb.gurum.se/_/
+         city      (text, required, max 40)
+         note      (text, max 80)
+         lat       (number, required)   ← -90..90
+         lon       (number, required)   ← -180..180
+         player_id (text)   ← anonymous UUID, used only to highlight "you"
+         Rules: list="" view="" create="" update=null delete=null
+       ============================================================ */
+
+    // PocketBase SDK loaded lazily by full URL via dynamic import() — NOT a
+    // static import + importmap. The page's importmap is owned by Three.js; a
+    // static `import "pocketbase"` would force-edit it and a resolve failure
+    // would kill this whole module. Dynamic import of a full URL works on any
+    // ES-module browser and lets us degrade gracefully if the CDN is down.
+    const PB_URL = "https://live-globe.pb.gurum.se";
+    const PB_ESM = "https://cdn.jsdelivr.net/npm/pocketbase@0.25.0/dist/pocketbase.es.mjs";
+    const COLLECTION = "globe_ping";
+    const LS_PINS = "vibe.live-globe.pins";       // local-first cache of my pins
+    const LS_PID  = "vibe.live-globe.player-id";  // anonymous identity
+    const MAX_CITY = 40, MAX_NOTE = 80, FETCH_N = 50;
+
+    let pb = null;
+    let online = false;
+    let _pbPromise = null;
+    function getPB() {
+      if (pb) return Promise.resolve(pb);
+      if (!_pbPromise) {
+        _pbPromise = import(PB_ESM)
+          .then((m) => { pb = new m.default(PB_URL); return pb; })
+          .catch(() => { _pbPromise = null; return null; });
+      }
+      return _pbPromise;
+    }
+
+    // Anonymous identity — NOT access control (rules are public). Used only to
+    // highlight the viewer's own pins ("you") in the list and on the globe.
+    function playerId() {
+      let id = null;
+      try { id = localStorage.getItem(LS_PID); } catch (e) {}
+      if (!id) {
+        id = (crypto.randomUUID ? crypto.randomUUID()
+              : String(Date.now()) + "-" + Math.round(performance.now()));
+        try { localStorage.setItem(LS_PID, id); } catch (e) {}
+      }
+      return id;
+    }
+
+    // Local-first cache of MY pins so the demo shows something with no backend
+    // (or offline). Capped + newest-first.
+    function localPins() {
+      try { return JSON.parse(localStorage.getItem(LS_PINS) || "[]"); }
+      catch (e) { return []; }
+    }
+    function saveLocalPin(rec) {
+      const arr = localPins();
+      arr.unshift(rec);
+      try { localStorage.setItem(LS_PINS, JSON.stringify(arr.slice(0, FETCH_N))); } catch (e) {}
+    }
+
+    // One-time, best-effort health check. NO reconnection polling (per CLAUDE.md).
+    async function checkHealth() {
+      try {
+        const c = await getPB();
+        if (!c) { online = false; return online; }
+        await c.health.check(); online = true;
+      } catch (e) { online = false; }
+      return online;
+    }
+
+    /* ── DOM ── */
+    const $id = (id) => document.getElementById(id);
+    const presence = $id("presence");
+    const pHead    = $id("pHead");
+    const pStatus  = $id("pStatus");
+    const pList    = $id("pList");
+    const pEmpty   = $id("pEmpty");
+    const pCity    = $id("pCity");
+    const pNote    = $id("pNote");
+    const pSubmit  = $id("pSubmit");
+    const pHint    = $id("pHint");
+    const pinTip   = $id("pinTip");
+    const tipCity  = $id("tipCity");
+    const tipNote  = $id("tipNote");
+
+    // Wait for the globe bridge — the Three.js module above creates it
+    // synchronously at eval, but module execution order isn't guaranteed, so
+    // poll briefly. If it never appears (globe failed to init), the presence
+    // list + form still work; only the on-globe markers are skipped.
+    function whenGlobe() {
+      return new Promise((resolve) => {
+        if (window.__globe) return resolve(window.__globe);
+        let n = 0;
+        const t = setInterval(() => {
+          if (window.__globe || ++n > 60) { clearInterval(t); resolve(window.__globe || null); }
+        }, 50);
+      });
+    }
+
+    /* ── A tiny built-in city → lat/lon lookup (no external geocoding API). ──
+       Keys are lowercased; we also match the city the viewer typed loosely.
+       If unknown and the user didn't click the globe, we drop near a gentle
+       default (mid-Atlantic) so the pin still appears — and we hint them to
+       click the globe for accuracy. */
+    const CITY_LOOKUP = {
+      "seoul": [37.5665, 126.9780], "서울": [37.5665, 126.9780],
+      "stockholm": [59.3293, 18.0686], "stockholm sweden": [59.3293, 18.0686],
+      "tokyo": [35.6762, 139.6503], "도쿄": [35.6762, 139.6503],
+      "new york": [40.7128, -74.0060], "nyc": [40.7128, -74.0060],
+      "san francisco": [37.7749, -122.4194], "sf": [37.7749, -122.4194],
+      "los angeles": [34.0522, -118.2437], "la": [34.0522, -118.2437],
+      "london": [51.5074, -0.1278], "paris": [48.8566, 2.3522],
+      "berlin": [52.5200, 13.4050], "amsterdam": [52.3676, 4.9041],
+      "madrid": [40.4168, -3.7038], "rome": [41.9028, 12.4964],
+      "lisbon": [38.7223, -9.1393], "dublin": [53.3498, -6.2603],
+      "oslo": [59.9139, 10.7522], "copenhagen": [55.6761, 12.5683],
+      "helsinki": [60.1699, 24.9384], "moscow": [55.7558, 37.6173],
+      "istanbul": [41.0082, 28.9784], "dubai": [25.2048, 55.2708],
+      "mumbai": [19.0760, 72.8777], "delhi": [28.6139, 77.2090],
+      "bangkok": [13.7563, 100.5018], "singapore": [1.3521, 103.8198],
+      "hong kong": [22.3193, 114.1694], "beijing": [39.9042, 116.4074],
+      "shanghai": [31.2304, 121.4737], "taipei": [25.0330, 121.5654],
+      "osaka": [34.6937, 135.5023], "busan": [35.1796, 129.0756],
+      "부산": [35.1796, 129.0756], "sydney": [-33.8688, 151.2093],
+      "melbourne": [-37.8136, 144.9631], "auckland": [-36.8485, 174.7633],
+      "toronto": [43.6532, -79.3832], "vancouver": [49.2827, -123.1207],
+      "chicago": [41.8781, -87.6298], "mexico city": [19.4326, -99.1332],
+      "são paulo": [-23.5505, -46.6333], "sao paulo": [-23.5505, -46.6333],
+      "buenos aires": [-34.6037, -58.3816], "rio de janeiro": [-22.9068, -43.1729],
+      "cape town": [-33.9249, 18.4241], "cairo": [30.0444, 31.2357],
+      "lagos": [6.5244, 3.3792], "nairobi": [-1.2921, 36.8219],
+      "barcelona": [41.3851, 2.1734], "munich": [48.1351, 11.5820],
+      "vienna": [48.2082, 16.3738], "zurich": [47.3769, 8.5417],
+      "warsaw": [52.2297, 21.0122], "prague": [50.0755, 14.4378],
+      "athens": [37.9838, 23.7275], "reykjavik": [64.1466, -21.9426]
+    };
+    const DEFAULT_LATLON = [25, -40]; // mid-Atlantic — visible, clearly "unplaced"
+    function lookupCity(name) {
+      const k = (name || "").trim().toLowerCase();
+      if (CITY_LOOKUP[k]) return CITY_LOOKUP[k];
+      // loose: try first token before a comma (e.g. "Paris, France")
+      const head = k.split(",")[0].trim();
+      if (CITY_LOOKUP[head]) return CITY_LOOKUP[head];
+      return null;
+    }
+
+    /* ── Render the list + globe markers from a set of records. ──
+       Records: { id?, city, note, lat, lon, player_id }. XSS-safe via
+       textContent only. */
+    let allRecords = [];
+    function renderList(records) {
+      const pid = playerId();
+      pList.innerHTML = "";
+      if (!records.length) { pEmpty.hidden = false; return; }
+      pEmpty.hidden = true;
+      for (const r of records) {
+        const mine = r.player_id === pid;
+        const li = document.createElement("li");
+        if (mine) li.classList.add("mine");
+        const d = document.createElement("span"); d.className = "p-pindot"; d.setAttribute("aria-hidden", "true");
+        const city = document.createElement("span"); city.className = "p-city"; city.textContent = r.city || "—";
+        const note = document.createElement("span"); note.className = "p-note"; note.textContent = r.note || "";
+        li.append(d, city, note);
+        li.addEventListener("click", () => focusPin(r));
+        pList.appendChild(li);
+      }
+    }
+
+    function renderGlobePins(records) {
+      const g = window.__globe;
+      if (!g) return;
+      g.clearPins();
+      const pid = playerId();
+      for (const r of records) {
+        if (typeof r.lat !== "number" || typeof r.lon !== "number") continue;
+        g.addPin({ city: r.city, note: r.note, lat: r.lat, lon: r.lon, mine: r.player_id === pid });
+      }
+    }
+
+    function renderAll(records) {
+      allRecords = records;
+      renderList(records);
+      renderGlobePins(records);
+    }
+
+    function setOnline(v) {
+      online = v;
+      presence.classList.toggle("online", v);
+      pStatus.textContent = v ? "● live" : "○ local";
+    }
+
+    /* ── Tooltip ── */
+    let tipRec = null;      // record the tooltip is currently bound to
+    let tipPinned = false;  // tapped (sticky) vs hovered (transient)
+    function showTip(rec, x, y) {
+      tipRec = rec;
+      tipCity.textContent = rec.city || "—";
+      tipNote.textContent = rec.note || "";
+      tipNote.style.display = rec.note ? "" : "none";
+      placeTipAt(x, y);
+      pinTip.classList.add("on");
+    }
+    function placeTipAt(x, y) {
+      const pad = 12, w = pinTip.offsetWidth || 200, h = pinTip.offsetHeight || 44;
+      let left = x + 14, top = y - h - 10;
+      if (left + w + pad > window.innerWidth) left = x - w - 14;
+      if (top < pad) top = y + 16;
+      pinTip.style.left = Math.max(pad, left) + "px";
+      pinTip.style.top = Math.max(pad, top) + "px";
+    }
+    function hideTip() { tipRec = null; tipPinned = false; pinTip.classList.remove("on"); }
+
+    // Hover (desktop): transient tooltip. Ignored while a pin is tapped-open.
+    function onPinHover(rec, x, y) {
+      if (tipPinned) return;
+      if (!rec) { hideTip(); return; }
+      showTip(rec, x, y);
+    }
+    // Tap (touch/click): sticky tooltip until next tap elsewhere.
+    function onPinTap(rec, x, y) { tipPinned = true; showTip(rec, x, y); }
+    // Per-frame: keep an open tooltip glued to its (rotating) pin.
+    function onFrame() {
+      if (!tipRec) return;
+      const g = window.__globe;
+      if (!g) return;
+      const p = g.pins.find(pp => pp.rec === tipRec
+        || (pp.rec.lat === tipRec.lat && pp.rec.lon === tipRec.lon && pp.rec.city === tipRec.city));
+      if (!p) { hideTip(); return; }
+      const xy = g.projectPin(p);
+      if (!xy) { pinTip.classList.remove("on"); return; } // occluded on far side
+      pinTip.classList.add("on");
+      placeTipAt(xy.x, xy.y);
+    }
+    function bindGlobeHooks(g) {
+      if (!g) return;
+      g.onPinHover = onPinHover;
+      g.onPinTap = onPinTap;
+      g.onFrame = onFrame;
+    }
+    // Bind eagerly if the bridge already exists (it usually does — same document,
+    // earlier module). init() re-binds after whenGlobe() to cover late init.
+    bindGlobeHooks(window.__globe);
+
+    // Tapping empty space (off any pin) dismisses a pinned tooltip.
+    document.addEventListener("pointerdown", (e) => {
+      if (tipPinned && !e.target.closest("#presence")) {
+        // onPinTap will re-pin if the tap actually hit a pin (fires on pointerup);
+        // clear here and let a genuine pin-tap re-open it.
+        tipPinned = false; hideTip();
+      }
+    });
+
+    function focusPin(rec) {
+      const g = window.__globe;
+      if (!g) return;
+      const p = g.pins.find(pp => pp.rec.lat === rec.lat && pp.rec.lon === rec.lon && pp.rec.city === rec.city);
+      if (!p) return;
+      const xy = g.projectPin(p);
+      tipPinned = true;
+      if (xy) showTip(rec, xy.x, xy.y);
+      else { showTip(rec, window.innerWidth / 2, window.innerHeight / 2); pinTip.classList.remove("on"); }
+    }
+
+    /* ── Collapse / expand the panel ── */
+    function toggleCollapse() {
+      const collapsed = presence.classList.toggle("collapsed");
+      pHead.setAttribute("aria-expanded", String(!collapsed));
+    }
+    pHead.addEventListener("click", toggleCollapse);
+    pHead.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleCollapse(); }
+    });
+
+    /* ── Click-to-place: arm when the city field is focused / has focus-intent.
+       We keep place mode armed whenever the panel is expanded so a click on the
+       globe sets a chosen lat/lon; the next submit uses it. ── */
+    let chosen = null; // { lat, lon } from a globe click
+    function setHint(msg, warn) {
+      pHint.textContent = msg;
+      pHint.classList.toggle("warn", !!warn);
+    }
+
+    async function init() {
+      const g = await whenGlobe();
+      // (Re)bind hooks now that the bridge is certainly present (covers the
+      // case where __globe didn't exist when this module first evaluated).
+      if (g) {
+        bindGlobeHooks(g);
+        g.placeArmed = true;
+        g.onPlace = (lat, lon) => {
+          chosen = { lat: +lat.toFixed(4), lon: +lon.toFixed(4) };
+          setHint(`Placed at ${chosen.lat}, ${chosen.lon} — add a note + drop.`);
+          if (!pCity.value.trim()) pCity.focus();
+        };
+      }
+
+      // Show local pins immediately (local-first), then health-check + fetch.
+      const mine = localPins();
+      if (mine.length) renderAll(mine);
+
+      const ok = await checkHealth();
+      setOnline(ok);
+      if (ok) { await refresh(); }
+      else if (!mine.length) { renderAll([]); }
+    }
+
+    async function refresh() {
+      try {
+        const c = await getPB();
+        if (!c) throw new Error("sdk unavailable");
+        const recs = await c.collection(COLLECTION).getList(1, FETCH_N, {
+          sort: "-created",
+          fields: "id,city,note,lat,lon,player_id,created"
+        });
+        setOnline(true);
+        // Merge: server records are authoritative; if the server has none,
+        // still show my local pins so the demo never looks empty.
+        const items = recs.items || [];
+        renderAll(items.length ? items : localPins());
+      } catch (e) {
+        setOnline(false);
+        renderAll(localPins());
+      }
+    }
+
+    async function submit() {
+      let city = (pCity.value || "").trim().slice(0, MAX_CITY);
+      let note = (pNote.value || "").trim().slice(0, MAX_NOTE);
+      if (!city) { setHint("Enter your city first.", true); pCity.focus(); return; }
+
+      // Resolve lat/lon: globe-click wins; else built-in lookup; else default.
+      let lat, lon;
+      if (chosen) { lat = chosen.lat; lon = chosen.lon; }
+      else {
+        const ll = lookupCity(city);
+        if (ll) { lat = ll[0]; lon = ll[1]; }
+        else { lat = DEFAULT_LATLON[0]; lon = DEFAULT_LATLON[1];
+               setHint("Unknown city — placed mid-ocean. Click the globe for accuracy.", true); }
+      }
+
+      const rec = { city, note, lat, lon, player_id: playerId() };
+      pSubmit.disabled = true;
+      if (!pHint.classList.contains("warn")) setHint("Dropping…");
+
+      // Always save locally so the pin survives offline + browser-clear of server.
+      saveLocalPin(rec);
+
+      let created = false;
+      if (online) {
+        try {
+          const c = await getPB();
+          if (!c) throw new Error("sdk unavailable");
+          await c.collection(COLLECTION).create(rec);
+          created = true;
+        } catch (e) { setOnline(false); }
+      }
+
+      // Refresh from server if we just wrote; otherwise render local + the new one.
+      if (created) { await refresh(); }
+      else {
+        const merged = [rec, ...allRecords.filter(r => !(r.lat === rec.lat && r.lon === rec.lon && r.city === rec.city))];
+        renderAll(merged.slice(0, FETCH_N));
+      }
+
+      pNote.value = "";
+      chosen = null;
+      pSubmit.disabled = false;
+      if (!pHint.classList.contains("warn") || created) setHint(created ? "Dropped ✓ — you're on the globe." : "Saved locally (offline).");
+      // expand if collapsed so the user sees their pin land
+      presence.classList.remove("collapsed");
+      pHead.setAttribute("aria-expanded", "true");
+    }
+
+    pSubmit.addEventListener("click", submit);
+    pNote.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); submit(); } });
+    pCity.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); pNote.focus(); } });
+
+    // Expose a couple of handles for quick console checks (parity w/ tinywings).
+    window.__presence = { getPB, refresh, get online() { return online; }, playerId };
+
+    init();
   </script>
 
   <script>

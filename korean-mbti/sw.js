@@ -1,4 +1,4 @@
-const CACHE = "vibe-korean-mbti-v14";
+const CACHE = "vibe-korean-mbti-v15";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
   // Canned-demo portraits (women set, the default) so the showcase flow is
@@ -23,8 +23,10 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
-  // Never cache the live Anthropic API.
-  if (req.url.includes("api.anthropic.com")) return;
+  // Never intercept cross-origin requests — the live Anthropic API, the
+  // PocketBase type-distribution backend, and the PocketBase CDN ESM module all
+  // must hit the network untouched so data is always fresh.
+  if (new URL(req.url).origin !== self.location.origin) return;
   if (req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html")) {
     e.respondWith(
       fetch(req).then(r => {

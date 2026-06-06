@@ -1,5 +1,5 @@
 /* sweden-food-guide — minimal offline shell SW */
-const CACHE = "vibe-sweden-food-guide-v6";
+const CACHE = "vibe-sweden-food-guide-v7";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
   // First-tab dish photos so the initial paint is instant offline.
@@ -22,6 +22,9 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
+  // Never intercept cross-origin requests (PocketBase API, CDN ESM) — let them
+  // hit the network untouched so community data is always fresh.
+  if (new URL(req.url).origin !== self.location.origin) return;
   // Network-first for HTML so updates land; cache-first for everything else.
   if (req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html")) {
     e.respondWith(

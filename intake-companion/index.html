@@ -448,6 +448,248 @@
     }
     .demo-note em { font-style: italic; }
 
+    /* ── 다른 상담 사례 (shared anonymized case corpus) ───────────── */
+    .cases-launch {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 26px;
+      padding: 16px 18px;
+      border: 1px dashed var(--line-2);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.32);
+    }
+    .cases-launch .cl-copy { flex: 1 1 240px; min-width: 0; }
+    .cases-launch .cl-title {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .cases-launch .cl-sub {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .cases-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9.5px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--celadon-d);
+    }
+    .cases-status.off { color: var(--faint); }
+    .cases-status .dot { font-size: 10px; line-height: 1; }
+
+    .cases-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(31,38,32,0.42);
+      backdrop-filter: blur(3px);
+    }
+    .cases-overlay.live { display: flex; }
+    .cases-modal {
+      position: relative;
+      width: 100%;
+      max-width: 620px;
+      max-height: 86vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--paper);
+      border: 1px solid var(--line-2);
+      border-radius: 12px;
+      box-shadow: 0 24px 60px rgba(31,38,32,0.32);
+      overflow: hidden;
+    }
+    .cases-modal .cm-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 20px 22px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .cases-modal .cm-head .lbl {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    .cases-modal .cm-head h2 {
+      font-family: "Noto Serif KR", serif;
+      font-weight: 500;
+      font-size: 21px;
+      line-height: 1.25;
+    }
+    .cases-modal .cm-head h2 em {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      color: var(--celadon-d);
+    }
+    .cm-demo-pill {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 3px 9px;
+      border: 1px dashed var(--celadon);
+      border-radius: 999px;
+      background: rgba(107,148,130,0.08);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--celadon-d);
+    }
+    .cm-close {
+      flex: none;
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: 1px solid var(--line-2);
+      background: rgba(255,255,255,0.4);
+      color: var(--ink);
+      font-size: 17px;
+      line-height: 1;
+      cursor: pointer;
+      transition: background .2s, color .2s, border-color .2s;
+    }
+    .cm-close:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .cm-body { overflow-y: auto; padding: 8px 22px 22px; }
+
+    .cm-list { list-style: none; display: flex; flex-direction: column; }
+    .cm-list li {
+      border-bottom: 1px solid var(--line);
+    }
+    .cm-list .case-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 4px 14px;
+      align-items: baseline;
+      width: 100%;
+      text-align: left;
+      padding: 13px 4px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font: inherit;
+      color: inherit;
+    }
+    .cm-list .case-row:hover { background: rgba(107,148,130,0.07); }
+    .cm-list .case-row.me { background: rgba(181,74,50,0.06); }
+    .cm-list .cr-pattern {
+      font-family: "Noto Serif KR", serif;
+      font-size: 15.5px;
+      font-weight: 500;
+      color: var(--ink);
+    }
+    .cm-list .cr-rx {
+      font-family: "Noto Serif KR", serif;
+      font-size: 13px;
+      color: var(--celadon-d);
+      text-align: right;
+    }
+    .cm-list .cr-cc {
+      grid-column: 1 / -1;
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: 13.5px;
+      color: var(--muted);
+    }
+    .cm-list .cr-cc .mine {
+      font-family: "JetBrains Mono", monospace;
+      font-style: normal;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--rust);
+      margin-left: 8px;
+    }
+
+    .cm-empty, .cm-error {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: 15px;
+      color: var(--muted);
+      padding: 24px 4px;
+      text-align: center;
+    }
+    .cm-skel { display: flex; flex-direction: column; }
+    .cm-skel .row {
+      height: 14px;
+      margin: 16px 4px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, rgba(31,38,32,0.06) 25%, rgba(31,38,32,0.12) 37%, rgba(31,38,32,0.06) 63%);
+      background-size: 400% 100%;
+      animation: cmShimmer 1.3s ease infinite;
+    }
+    .cm-skel .row:nth-child(even) { width: 78%; }
+    @keyframes cmShimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+
+    /* Detail view inside the modal */
+    .cm-detail .cd-back {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--celadon-d);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 12px 0;
+    }
+    .cm-detail .cd-back:hover { color: var(--rust); }
+    .cm-detail .cd-block { margin-bottom: 16px; }
+    .cm-detail .cd-block h4 {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .cm-detail .cd-pattern {
+      font-family: "Noto Serif KR", serif;
+      font-size: 19px;
+      font-weight: 500;
+    }
+    .cm-detail .cd-rx {
+      font-family: "Noto Serif KR", serif;
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--celadon-d);
+    }
+    .cm-detail .cd-cc {
+      font-family: "Noto Serif KR", serif;
+      font-size: 15px;
+    }
+    .cm-detail .cd-points { display: flex; flex-wrap: wrap; gap: 8px; }
+    .cm-detail .cd-points .pt {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      padding: 6px 10px;
+      border: 1px solid rgba(107,148,130,0.4);
+      border-radius: 3px;
+      background: rgba(107,148,130,0.08);
+      color: var(--ink-2);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .cm-skel .row { animation: none; }
+    }
+
     .section h3 {
       font-family: "JetBrains Mono", monospace;
       font-size: 10px;
@@ -1377,6 +1619,16 @@
               <span class="dot"></span> 한방 차트로 인쇄
             </button>
           </div>
+
+          <!-- ── Shared anonymized case corpus launcher ──────────── -->
+          <div class="cases-launch">
+            <div class="cl-copy">
+              <div class="cl-title">다른 상담 사례 · Other cases</div>
+              <div class="cl-sub">A shared library of anonymized sample briefs — see the range without re-running.</div>
+            </div>
+            <span class="cases-status off" id="casesStatus"><span class="dot">○</span><span id="casesStatusText">local</span></span>
+            <button class="btn" id="casesOpenBtn" type="button">사례 둘러보기 →</button>
+          </div>
         </div>
       </div>
 
@@ -1445,6 +1697,21 @@
 
     <!-- ── Hidden chart-for-print container ─────────────────────── -->
     <section class="chart-print" id="chartPrint" aria-hidden="true"></section>
+
+    <!-- ── 다른 상담 사례 overlay (anonymized shared corpus) ─────── -->
+    <div class="cases-overlay" id="casesOverlay" role="dialog" aria-modal="true" aria-labelledby="casesTitle">
+      <div class="cases-modal">
+        <div class="cm-head">
+          <div>
+            <div class="lbl">04 · 공유 사례</div>
+            <h2 id="casesTitle">다른 상담 <em>사례</em></h2>
+            <span class="cm-demo-pill">데모 · 샘플 사례 · No real patients</span>
+          </div>
+          <button class="cm-close" id="casesCloseBtn" type="button" aria-label="닫기">×</button>
+        </div>
+        <div class="cm-body" id="casesBody"></div>
+      </div>
+    </div>
 
     <div class="footer-note">
       <span>한방 Intake Companion · Live demo · 데모 도구입니다</span>
@@ -1845,6 +2112,9 @@
       }
       state.currentBrief = brief;
       renderBrief(brief);
+      // Additive: save an anonymized snapshot to the shared corpus + local store.
+      // Purely fire-and-forget — never blocks or breaks brief rendering.
+      try { if (window.__caseOnBrief) window.__caseOnBrief(brief, { live: !!(state.liveMode && getKey()) }); } catch (e) {}
     } catch (err) {
       $("#outputProgress").classList.remove("on");
       if (err.status === 401) {
@@ -2847,6 +3117,311 @@ Now read the patient narrative and produce the JSON.`;
     return JSON.parse(m[0]);
   }
 
+  </script>
+
+  <script type="module">
+    /* ============================================================
+       SHARED CASE CORPUS (PocketBase, Tier 1 public)
+
+       Anonymized "다른 상담 사례" library. Each generated brief
+       (canned OR live) is saved as a de-identified row — the 변증
+       pattern, the 처방 formula, the 경혈 points, and a short generic
+       chief-complaint label. NO patient-identifying free text. This is
+       PURE DEMO DATA — no real patients.
+
+       This layer is purely ADDITIVE. The AI brief generation, key
+       handling, model toggle, and canned-first flow are untouched. It
+       talks to the classic page script only via the window.__caseOnBrief
+       hook (called after renderBrief). The demo works fully with no
+       backend — locally-saved cases render from localStorage.
+
+       Collection: case_brief (base) — https://intake-companion.pb.gurum.se/_/
+         pattern         (text, required, max 120)  ← 변증
+         prescription    (text, required, max 120)  ← 처방
+         points          (text, max 200)            ← 경혈, comma-joined
+         chief_complaint (text, max 80)             ← short generic label (demo)
+         player_id       (text)  ← anonymous UUID, marks "your own" cases only
+         Rules: list="" view="" create="" update=null delete=null
+
+       PB SDK loaded LAZILY by full CDN URL via dynamic import() — NOT a
+       static importmap import. A static bare-specifier import throws at
+       module-eval time if it can't resolve and would kill every handler
+       below; dynamic import of a full URL degrades gracefully if the CDN
+       or backend is down, leaving the local-first path intact.
+       ============================================================ */
+    const PB_URL = "https://intake-companion.pb.gurum.se";
+    const PB_ESM = "https://cdn.jsdelivr.net/npm/pocketbase@0.25.0/dist/pocketbase.es.mjs";
+    const LOCAL_KEY = "vibe.intake-companion.cases";
+    const PID_KEY   = "vibe.intake-companion.player-id";
+    const MAX_LOCAL = 30;
+
+    let pb = null;
+    let online = false;
+    let _pbPromise = null;
+
+    function getPB() {
+      if (pb) return Promise.resolve(pb);
+      if (!_pbPromise) {
+        _pbPromise = import(PB_ESM)
+          .then((m) => { pb = new m.default(PB_URL); return pb; })
+          .catch(() => { _pbPromise = null; return null; });
+      }
+      return _pbPromise;
+    }
+
+    // Anonymous identity — NOT access control (rules are public). Used only
+    // to mark the visitor's own cases in the browser.
+    function playerId() {
+      let id = null;
+      try { id = localStorage.getItem(PID_KEY); } catch (e) {}
+      if (!id) {
+        id = (crypto.randomUUID ? crypto.randomUUID()
+              : String(Date.now()) + "-" + Math.round(performance.now()));
+        try { localStorage.setItem(PID_KEY, id); } catch (e) {}
+      }
+      return id;
+    }
+
+    // One-time, best-effort health check. No reconnection polling (CLAUDE.md).
+    async function checkHealth() {
+      try {
+        const c = await getPB();
+        if (!c) { online = false; setStatus(); return online; }
+        await c.health.check(); online = true;
+      } catch (e) { online = false; }
+      setStatus();
+      return online;
+    }
+
+    /* ── Local-first store (always works, even with no backend) ── */
+    function loadLocal() {
+      try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || "[]"); }
+      catch (e) { return []; }
+    }
+    function saveLocal(cases) {
+      try { localStorage.setItem(LOCAL_KEY, JSON.stringify(cases.slice(0, MAX_LOCAL))); } catch (e) {}
+    }
+
+    /* ── Map a brief object → anonymized row (demo data only) ── */
+    function briefToRow(brief) {
+      const pattern = (brief && brief.pattern && brief.pattern.ko) || "—";
+      const prescription = (brief && brief.formula && brief.formula.name) || "—";
+      const pts = (brief && Array.isArray(brief.points) ? brief.points : [])
+        .map(p => [p.code, p.ko].filter(Boolean).join(" ").trim())
+        .filter(Boolean);
+      const points = pts.join(", ");
+      // Short generic complaint label from the FIRST chief complaint only —
+      // never the patient's free-text narrative.
+      const cc = (brief && Array.isArray(brief.complaints) && brief.complaints[0])
+        ? (brief.complaints[0].ko || brief.complaints[0].en || "") : "";
+      return {
+        pattern:         String(pattern).slice(0, 120),
+        prescription:    String(prescription).slice(0, 120),
+        points:          String(points).slice(0, 200),
+        chief_complaint: String(cc).slice(0, 80),
+        player_id:       playerId(),
+      };
+    }
+
+    let cacheDirty = true; // refetch the corpus next time the overlay opens
+
+    /* Called by the classic script after every rendered brief (canned/live). */
+    window.__caseOnBrief = function (brief, opts) {
+      if (!brief) return;
+      const row = briefToRow(brief);
+      const local = { ...row, id: "local-" + Date.now(), _local: true };
+      // Always record locally so the browser has something even offline.
+      const cases = loadLocal();
+      cases.unshift(local);
+      saveLocal(cases);
+      cacheDirty = true;
+      // Best-effort push to the shared corpus. Fire-and-forget.
+      (async () => {
+        if (!online) return;
+        try {
+          const c = await getPB();
+          if (!c) return;
+          await c.collection("case_brief").create(row);
+          cacheDirty = true;
+        } catch (e) { online = false; setStatus(); }
+      })();
+    };
+
+    /* ── UI ── */
+    const $id = (id) => document.getElementById(id);
+    const overlay = $id("casesOverlay");
+    const body = $id("casesBody");
+    let corpusCache = null; // last fetched remote rows
+
+    function setStatus() {
+      const s = $id("casesStatus"), t = $id("casesStatusText");
+      if (!s || !t) return;
+      s.classList.toggle("off", !online);
+      const dot = s.querySelector(".dot");
+      if (dot) dot.textContent = online ? "●" : "○";
+      t.textContent = online ? "connected" : "local";
+    }
+
+    function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); }
+
+    function renderSkeleton() {
+      clear(body);
+      const wrap = document.createElement("div");
+      wrap.className = "cm-skel";
+      for (let i = 0; i < 6; i++) {
+        const r = document.createElement("div");
+        r.className = "row";
+        wrap.appendChild(r);
+      }
+      body.appendChild(wrap);
+    }
+
+    function renderList(rows) {
+      clear(body);
+      if (!rows || rows.length === 0) {
+        const p = document.createElement("p");
+        p.className = "cm-empty";
+        p.textContent = "아직 저장된 사례가 없습니다 — 진료 노트를 생성하면 여기에 쌓입니다.";
+        body.appendChild(p);
+        return;
+      }
+      const me = playerId();
+      const ul = document.createElement("ul");
+      ul.className = "cm-list";
+      rows.forEach((r) => {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "case-row";
+        const mine = r.player_id && r.player_id === me;
+        if (mine) btn.classList.add("me");
+
+        const pat = document.createElement("span");
+        pat.className = "cr-pattern";
+        pat.textContent = r.pattern || "—"; // textContent → XSS-safe
+
+        const rx = document.createElement("span");
+        rx.className = "cr-rx";
+        rx.textContent = r.prescription || "";
+
+        const cc = document.createElement("span");
+        cc.className = "cr-cc";
+        cc.textContent = r.chief_complaint || "";
+        if (mine) {
+          const tag = document.createElement("span");
+          tag.className = "mine";
+          tag.textContent = "내 사례";
+          cc.appendChild(tag);
+        }
+
+        btn.appendChild(pat);
+        btn.appendChild(rx);
+        btn.appendChild(cc);
+        btn.addEventListener("click", () => renderDetail(r));
+        li.appendChild(btn);
+        ul.appendChild(li);
+      });
+      body.appendChild(ul);
+    }
+
+    function renderDetail(r) {
+      clear(body);
+      const wrap = document.createElement("div");
+      wrap.className = "cm-detail";
+
+      const back = document.createElement("button");
+      back.type = "button";
+      back.className = "cd-back";
+      back.textContent = "← 목록으로";
+      back.addEventListener("click", () => loadCases());
+      wrap.appendChild(back);
+
+      const block = (label, value, valueClass) => {
+        const b = document.createElement("div");
+        b.className = "cd-block";
+        const h = document.createElement("h4");
+        h.textContent = label;
+        const v = document.createElement("div");
+        v.className = valueClass;
+        v.textContent = value || "—"; // textContent → XSS-safe
+        b.appendChild(h);
+        b.appendChild(v);
+        return b;
+      };
+
+      if (r.chief_complaint) wrap.appendChild(block("주소 · Chief complaint", r.chief_complaint, "cd-cc"));
+      wrap.appendChild(block("변증 · Pattern", r.pattern, "cd-pattern"));
+      wrap.appendChild(block("처방 · Formula", r.prescription, "cd-rx"));
+
+      const ptsRaw = (r.points || "").split(",").map(s => s.trim()).filter(Boolean);
+      if (ptsRaw.length) {
+        const b = document.createElement("div");
+        b.className = "cd-block";
+        const h = document.createElement("h4");
+        h.textContent = "경혈 · Points";
+        b.appendChild(h);
+        const list = document.createElement("div");
+        list.className = "cd-points";
+        ptsRaw.forEach(p => {
+          const span = document.createElement("span");
+          span.className = "pt";
+          span.textContent = p; // textContent → XSS-safe
+          list.appendChild(span);
+        });
+        b.appendChild(list);
+        wrap.appendChild(b);
+      }
+
+      body.appendChild(wrap);
+    }
+
+    async function loadCases() {
+      const local = loadLocal();
+      // Try the shared corpus first; fall back to local on any failure.
+      if (!online) { await checkHealth(); }
+      if (online) {
+        if (corpusCache && !cacheDirty) { renderList(mergeRows(corpusCache, local)); return; }
+        renderSkeleton();
+        try {
+          const c = await getPB();
+          if (!c) throw new Error("sdk unavailable");
+          const res = await c.collection("case_brief").getList(1, 30, { sort: "-created" });
+          corpusCache = res.items || [];
+          cacheDirty = false;
+          renderList(mergeRows(corpusCache, local));
+          return;
+        } catch (e) {
+          online = false; setStatus();
+        }
+      }
+      // Offline path — local-only.
+      renderList(local);
+    }
+
+    // Merge remote + local, de-duping the local rows that already came back
+    // from the server (same player_id is fine — these are my own pushes that
+    // round-tripped). We keep remote as canonical and prepend only the local
+    // rows that haven't synced yet (still flagged _local but already in remote
+    // by content). Simplest robust approach: show remote, then any local rows
+    // whose content isn't present in remote.
+    function mergeRows(remote, local) {
+      const seen = new Set(remote.map(r => `${r.pattern}|${r.prescription}|${r.chief_complaint}`));
+      const extras = local.filter(r => !seen.has(`${r.pattern}|${r.prescription}|${r.chief_complaint}`));
+      return [...extras, ...remote].slice(0, 30);
+    }
+
+    function openCases() { if (overlay) { overlay.classList.add("live"); loadCases(); } }
+    function closeCases() { if (overlay) overlay.classList.remove("live"); }
+
+    const openBtn = $id("casesOpenBtn");
+    if (openBtn) openBtn.addEventListener("click", openCases);
+    const closeBtn = $id("casesCloseBtn");
+    if (closeBtn) closeBtn.addEventListener("click", closeCases);
+    if (overlay) overlay.addEventListener("click", (e) => { if (e.target === overlay) closeCases(); });
+    window.addEventListener("keydown", (e) => { if (e.key === "Escape") closeCases(); });
+
+    // One-time health check on load (no polling).
+    checkHealth();
   </script>
 
   <script>

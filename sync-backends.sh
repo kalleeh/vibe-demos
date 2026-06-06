@@ -33,7 +33,11 @@ fi
 # Build Caddyfile from config
 CADDYFILE="*.${SERVER_DOMAIN} {\n  tls {\n    dns route53\n  }\n"
 
-while IFS=' ' read -r SLUG PORT; do
+# NOTE: the loop reads the backend list on FD 3 (not stdin). The `ssh` calls
+# inside the loop would otherwise consume the remaining list from stdin (FD 0)
+# — the classic "ssh in a while-read loop eats input" bug — so only the first
+# backend would ever be processed.
+while IFS=' ' read -r SLUG PORT <&3; do
   DEMO_PB_DIR="$SCRIPT_DIR/$SLUG/pb"
 
   echo "--- [$SLUG] port=$PORT ---"
@@ -80,7 +84,7 @@ EOF
   # Add to Caddyfile
   CADDYFILE+="  @${SLUG} host ${SLUG}.${SERVER_DOMAIN}\n  handle @${SLUG} {\n    reverse_proxy localhost:${PORT}\n  }\n"
 
-done <<< "$BACKENDS"
+done 3<<< "$BACKENDS"
 
 # Default handler for unknown subdomains
 CADDYFILE+="  handle {\n    respond \"Not found\" 404\n  }\n}\n"
