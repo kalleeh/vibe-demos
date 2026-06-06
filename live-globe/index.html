@@ -2417,7 +2417,8 @@ Return strict JSON:
     // Called when a live pin arrives — re-derive the count from current records.
     function bumpActivity() { renderActivity(); }
 
-    let _sub = null; // unsubscribe fn returned by pb.subscribe
+    let _sub = null; // unsubscribe fn returned by pb.subscribe (or `true` while in-flight)
+    let _subAborted = false; // set by unsubscribeLive to cancel an in-flight subscribe
 
     // Subscribe to live create events. Each new record is added incrementally
     // (addRecord de-dupes our own echoed create). PB SDK auto-reconnects; we do
@@ -2425,10 +2426,11 @@ Return strict JSON:
     async function subscribeLive() {
       if (_sub) return;
       _sub = true; // sentinel: subscribe in-flight — closes the async re-entry race
+      _subAborted = false;
       try {
         const c = await getPB();
         if (!c) { _sub = null; return; }
-        _sub = await c.collection(COLLECTION).subscribe("*", (e) => {
+        const unsub = await c.collection(COLLECTION).subscribe("*", (e) => {
           if (e.action !== "create" || !e.record) return;
           const r = e.record;
           addRecord({
@@ -2437,11 +2439,17 @@ Return strict JSON:
           });
           bumpActivity();
         });
+        // If a teardown (tab hidden / pagehide) landed while we were awaiting
+        // the handshake, the unsubscribe ran against the `true` sentinel and
+        // no-op'd. Tear down this now-live connection instead of leaking it.
+        if (_subAborted) { try { unsub(); } catch (e) {} _sub = null; return; }
+        _sub = unsub;
       } catch (e) { _sub = null; }
     }
 
     function unsubscribeLive() {
-      if (_sub) { try { _sub(); } catch (e) {} _sub = null; }
+      _subAborted = true; // cancels a subscribe that's mid-handshake (see subscribeLive)
+      if (_sub) { try { if (typeof _sub === "function") _sub(); } catch (e) {} _sub = null; }
     }
 
     async function submit() {
