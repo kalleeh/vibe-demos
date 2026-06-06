@@ -771,6 +771,34 @@
       font-weight: 600;
       font-size: 12px;
       font-feature-settings: "tnum";
+      position: relative;
+    }
+    /* +1 climbing animation (triggered by JS on vote) */
+    .comm-vote .plus-one {
+      position: absolute;
+      left: 100%;
+      top: -2px;
+      margin-left: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--pine);
+      pointer-events: none;
+      animation: climbFade 1.2s ease-out forwards;
+    }
+    @keyframes climbFade {
+      0% { opacity: 0; transform: translateY(0); }
+      20% { opacity: 1; }
+      100% { opacity: 0; transform: translateY(-8px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .comm-vote .plus-one {
+        animation: climbFadeReduced 0.8s ease-out forwards;
+      }
+      @keyframes climbFadeReduced {
+        0% { opacity: 0; }
+        30% { opacity: 1; }
+        100% { opacity: 0; }
+      }
     }
     .comm-spot .src {
       font-family: "JetBrains Mono", monospace;
@@ -3545,6 +3573,13 @@
         rememberVote(spot.id);
         spot.votes = (spot.votes || 0) + 1;
         nEl.textContent = String(spot.votes);
+        // Trigger +1 animation
+        const plus = document.createElement("span");
+        plus.className = "plus-one";
+        plus.textContent = "+1";
+        plus.setAttribute("aria-hidden", "true"); // decorative, not announced
+        nEl.parentElement.appendChild(plus);
+        setTimeout(() => { if (plus.parentElement) plus.parentElement.removeChild(plus); }, 1300); // cleanup after animation
         labelEl.textContent = "가봤어요";
         btn.classList.add("voted");
         return;
@@ -3559,6 +3594,13 @@
         rememberVote(spot.id);
         spot.votes = (spot.votes || 0) + 1;
         nEl.textContent = String(spot.votes);
+        // Trigger +1 animation
+        const plus = document.createElement("span");
+        plus.className = "plus-one";
+        plus.textContent = "+1";
+        plus.setAttribute("aria-hidden", "true"); // decorative, not announced
+        nEl.parentElement.appendChild(plus);
+        setTimeout(() => { if (plus.parentElement) plus.parentElement.removeChild(plus); }, 1300); // cleanup after animation
         labelEl.textContent = "가봤어요";
         btn.classList.add("voted");
         // Re-sort so the bumped spot moves up. Cheap: re-render current DOM order
