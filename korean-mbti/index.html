@@ -844,8 +844,26 @@ header.top {
 .social.is-loading .dist-fill {
   opacity: 0.4;
 }
+.social:not(.is-loading) .rarity,
+.social:not(.is-loading) .rarity-sub {
+  animation: socialFadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.social:not(.is-loading) .dist-fill {
+  animation: socialBarIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+}
+@keyframes socialFadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes socialBarIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
 @media (prefers-reduced-motion: reduce) {
   .social .dist-fill { transition: none; }
+  .social:not(.is-loading) .rarity,
+  .social:not(.is-loading) .rarity-sub,
+  .social:not(.is-loading) .dist-fill { animation: none; }
 }
 
 /* ---------- function-stack dial (cognitive functions) ---------- */
@@ -1793,6 +1811,7 @@ const STR = {
     socialRarityRare: "전체 중 {PCT}% — 흔치 않은 결입니다.",
     socialRarityCommon: "응답자의 {PCT}%가 같은 결과를 봤어요.",
     socialSampleNote: "지금까지 {N}명의 응답 기준",
+    socialCompanions: "지금까지 {N}명 중 · {NICK} 동료 {MYN}명",
     fnStackHeading: "인지 기능 스택 — Function Stack",
     fnStackSubHTML: "같은 성향을 <em>쓰는 순서</em>로 — 가장 기대는 결(#1)부터 가장 서툰 결(#4)까지.",
     fnOffStackTip: "이 유형의 기본 스택에는 없는 결.",
@@ -1860,6 +1879,7 @@ const STR = {
     socialRarityRare: "Just {PCT}% of takers — an uncommon grain.",
     socialRarityCommon: "{PCT}% of takers saw the same result.",
     socialSampleNote: "Based on {N} responses so far",
+    socialCompanions: "{MYN} {NICK} companions among {N} so far",
     fnStackHeading: "Cognitive Function Stack",
     fnStackSubHTML: "The same traits in <em>order of use</em> — from the one you lean on most (#1) to the clumsiest (#4).",
     fnOffStackTip: "Not part of this type's core stack.",
@@ -4424,7 +4444,7 @@ window.__mbtiI18n = {
     return (Math.round(n * 10) / 10).toString();
   }
 
-  function render(root, tally, myType, connected) {
+  function render(root, tally, myType, connected, nickname) {
     setStatus(root, connected);
     const total = ORDER.reduce((s, tp) => s + (tally[tp] || 0), 0);
     const max = Math.max(1, ...ORDER.map(tp => tally[tp] || 0));
@@ -4463,7 +4483,16 @@ window.__mbtiI18n = {
         rarityEl.appendChild(accent);
         rarityEl.appendChild(document.createTextNode(parts[1] || ""));
       }
-      if (subEl) subEl.textContent = T("socialSampleNote").replace("{N}", String(total));
+      if (subEl) {
+        if (nickname) {
+          subEl.textContent = T("socialCompanions")
+            .replace("{N}", String(total))
+            .replace("{NICK}", nickname)
+            .replace("{MYN}", String(myCount));
+        } else {
+          subEl.textContent = T("socialSampleNote").replace("{N}", String(total));
+        }
+      }
     }
 
     // distribution bars (heights relative to the most-common type for contrast)
@@ -4513,17 +4542,17 @@ window.__mbtiI18n = {
     }
 
     // Paint local immediately (offline-correct), then upgrade to live if we can.
-    render(root, localTally, type, online);
+    render(root, localTally, type, online, nickname);
 
     if (!online) { await checkHealth(); }
     if (!online) return; // local paint already correct
 
     try {
       const live = await fetchAggregate();
-      render(root, live, type, true);
+      render(root, live, type, true, nickname);
     } catch (e) {
       online = false;
-      render(root, readLocalTally(), type, false);
+      render(root, readLocalTally(), type, false, nickname);
     }
   };
 </script>
