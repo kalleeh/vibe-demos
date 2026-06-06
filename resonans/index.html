@@ -1085,7 +1085,9 @@
       for (let i = others.length - 1; i >= 0; i--) {
         const r = others[i];
         const n = Math.max(1, Math.min(5, Math.round(r.mode || 1)));
-        const amp = Math.max(0, Math.min(5, +(r.amplitude || 0))) * 90; // same scale as curveAmp
+        // Clamp to ~2 (not 5) so a stray high-amplitude record can't draw a giant
+        // spike; stored amplitudes land ~1.5-2, matching the live curve's 90px scale.
+        const amp = Math.max(0, Math.min(2, +(r.amplitude || 0))) * 90;
 
         // Fade opacity based on age: recent = more visible, old = near-invisible.
         // Parse created (space-separated; Safari NaN gotcha).
