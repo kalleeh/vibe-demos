@@ -3308,6 +3308,23 @@
       });
     }
 
+    // Aggregate vote counts per spot. If afterTimestamp is provided (ms since epoch),
+    // only count votes created after that timestamp (for trending-window computation).
+    // CRITICAL: PocketBase 'created' timestamps are space-separated ("2026-06-06 10:13:34.219Z").
+    // Safari's Date.parse() returns NaN on that form. Always use .replace(" ", "T").
+    function aggregateVoteCounts(voteRows, afterTimestamp = null) {
+      const counts = {};
+      voteRows.forEach((v) => {
+        if (afterTimestamp !== null) {
+          // Parse the timestamp safely across browsers (Safari gotcha).
+          const voteTime = Date.parse((v.created || "").replace(" ", "T"));
+          if (isNaN(voteTime) || voteTime < afterTimestamp) return; // skip votes outside window
+        }
+        counts[v.spot] = (counts[v.spot] || 0) + 1;
+      });
+      return counts;
+    }
+
     function sortSpots(spots) {
       return spots.slice().sort((a, b) => (b.votes || 0) - (a.votes || 0)
         || String(a.name).localeCompare(String(b.name)));
@@ -3332,8 +3349,7 @@
           c.collection("community_spot").getFullList({ sort: "-created" }),
           c.collection("spot_vote").getFullList(),
         ]);
-        const counts = {};
-        voteRes.forEach((v) => { counts[v.spot] = (counts[v.spot] || 0) + 1; });
+        const counts = aggregateVoteCounts(voteRes);
         const remote = spotRes.map((r) => ({
           id: r.id, name: r.name, city: r.city, note: r.note || "",
           player_id: r.player_id, votes: counts[r.id] || 0, source: "remote",
