@@ -2352,7 +2352,7 @@ Return strict JSON:
 
       const ok = await checkHealth();
       setOnline(ok);
-      if (ok) { await refresh(); }
+      if (ok) { await refresh(); await subscribeLive(); }
       else if (!mine.length) { renderAll([]); }
     }
 
@@ -2373,6 +2373,34 @@ Return strict JSON:
         setOnline(false);
         renderAll(localPins());
       }
+    }
+
+    function bumpActivity() {} // replaced in Task 4 with real activity-count logic
+
+    let _sub = null; // unsubscribe fn returned by pb.subscribe
+
+    // Subscribe to live create events. Each new record is added incrementally
+    // (addRecord de-dupes our own echoed create). PB SDK auto-reconnects; we do
+    // NOT poll. Safe to call repeatedly — it no-ops if already subscribed.
+    async function subscribeLive() {
+      if (_sub) return;
+      try {
+        const c = await getPB();
+        if (!c) return;
+        _sub = await c.collection(COLLECTION).subscribe("*", (e) => {
+          if (e.action !== "create" || !e.record) return;
+          const r = e.record;
+          addRecord({
+            id: r.id, city: r.city, note: r.note,
+            lat: +r.lat, lon: +r.lon, player_id: r.player_id, created: r.created
+          });
+          bumpActivity();
+        });
+      } catch (e) { _sub = null; }
+    }
+
+    function unsubscribeLive() {
+      if (_sub) { try { _sub(); } catch (e) {} _sub = null; }
     }
 
     async function submit() {
@@ -2427,8 +2455,16 @@ Return strict JSON:
     pNote.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); submit(); } });
     pCity.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); pNote.focus(); } });
 
+    // Tidy up the realtime connection when the tab goes away. (No reconnect
+    // polling; the SDK reconnects on its own while the page is alive.)
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") unsubscribeLive();
+      else if (online) subscribeLive();
+    });
+    window.addEventListener("pagehide", unsubscribeLive);
+
     // Expose a couple of handles for quick console checks (parity w/ tinywings).
-    window.__presence = { getPB, refresh, get online() { return online; }, playerId };
+    window.__presence = { getPB, refresh, subscribeLive, unsubscribeLive, addRecord, get online() { return online; }, playerId };
 
     init();
   </script>
