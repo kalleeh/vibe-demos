@@ -2176,6 +2176,32 @@ Return strict JSON:
       renderGlobePins(records);
     }
 
+    // Stable-ish identity for a record across local/server variants. Server
+    // recs have a real `id`; local-only recs don't, so fall back to geo+city.
+    function recKey(r) {
+      return r.id || `${r.lat}|${r.lon}|${r.city}`;
+    }
+
+    // Incrementally add ONE record (used by realtime). No full clear/redraw:
+    // prepends to the list, adds a single globe pin, and triggers its glow.
+    // Ignores records we already have (e.g. our own create echoed back).
+    function addRecord(rec) {
+      const key = recKey(rec);
+      if (allRecords.some(r => recKey(r) === key)) return false;
+      allRecords = [rec, ...allRecords].slice(0, FETCH_N);
+      // Re-render the list (cheap, capped at FETCH_N) so "mine" highlighting
+      // and click handlers stay correct.
+      renderList(allRecords);
+      // Add just this pin to the globe + glow it, without clearing others.
+      const g = window.__globe;
+      if (g && typeof rec.lat === "number" && typeof rec.lon === "number") {
+        const mine = rec.player_id === playerId();
+        g.addPin({ city: rec.city, note: rec.note, lat: rec.lat, lon: rec.lon, mine });
+        if (typeof g.glowLastPin === "function") g.glowLastPin();
+      }
+      return true;
+    }
+
     function setOnline(v) {
       online = v;
       presence.classList.toggle("online", v);
