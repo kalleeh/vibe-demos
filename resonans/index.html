@@ -1070,9 +1070,13 @@
     // Draw faint, drifting ghost lines of others' locked waves — ambient presence only.
     // NO counts, NO names, NO ranking. Fetch-on-open only, NO realtime.
     function drawGhostLines(now) {
+      const ghostWaves = window.__resonansGhostWaves || [];
       if (!ghostWaves || ghostWaves.length === 0) return;
-      const me = playerId();
       // Filter out own waves (ghost lines are "others", not self-echo).
+      // playerId is in module scope, so compare against localStorage directly.
+      const me = (() => {
+        try { return localStorage.getItem("vibe.resonans.player-id"); } catch { return null; }
+      })();
       const others = ghostWaves.filter(r => r.player_id !== me);
       if (others.length === 0) return;
 
@@ -1685,7 +1689,8 @@
     let pb = null;
     let online = false;
     let _pbPromise = null;
-    let ghostWaves = [];  // cached locked_wave records from others
+    // Expose ghostWaves to main game script via window (module script is isolated).
+    window.__resonansGhostWaves = [];  // cached locked_wave records from others
 
     function getPB() {
       if (pb) return Promise.resolve(pb);
@@ -1881,7 +1886,7 @@
       if (!online) await checkHealth();
       if (!online) {
         // Offline: only your own waves, no ghosts from others.
-        ghostWaves = [];
+        window.__resonansGhostWaves = [];
         renderRows(localList(), "local");
         return;
       }
@@ -1890,11 +1895,11 @@
         const c = await getPB();
         if (!c) throw new Error("sdk unavailable");
         const res = await c.collection("locked_wave").getList(1, 30, { sort: "-created" });
-        ghostWaves = res.items || [];  // cache for ghost rendering
+        window.__resonansGhostWaves = res.items || [];  // cache for ghost rendering
         renderRows(res.items || [], "shared");
       } catch (e) {
         online = false;
-        ghostWaves = [];  // offline fallback
+        window.__resonansGhostWaves = [];  // offline fallback
         renderRows(localList(), "local");
       }
     }
@@ -1933,7 +1938,7 @@
         const c = await getPB();
         if (!c) return;
         const res = await c.collection("locked_wave").getList(1, 30, { sort: "-created" });
-        ghostWaves = res.items || [];
+        window.__resonansGhostWaves = res.items || [];
       } catch (e) { /* silent — ghosts are additive */ }
     })();
   </script>
