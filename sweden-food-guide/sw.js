@@ -1,5 +1,5 @@
 /* sweden-food-guide — minimal offline shell SW */
-const CACHE = "vibe-sweden-food-guide-v7";
+const CACHE = "vibe-sweden-food-guide-v8";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
   // First-tab dish photos so the initial paint is instant offline.
