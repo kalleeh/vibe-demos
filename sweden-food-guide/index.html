@@ -573,6 +573,73 @@
     }
 
     /* ── Community spots (PocketBase, Tier 1) ── */
+    /* ── Trending rail (이번 주 인기) ── */
+    .comm-trending {
+      border: 1px solid var(--line);
+      border-bottom: 0;
+      padding: 18px 22px 16px;
+      background: rgba(254, 204, 2, 0.03);
+      display: none; /* shown only when online + trending data exists */
+    }
+    .comm-trending.show { display: block; }
+    .comm-trending .head {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 12px;
+    }
+    .comm-trending .rail {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--gold) transparent;
+    }
+    .comm-trending .rail::-webkit-scrollbar { height: 4px; }
+    .comm-trending .rail::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 2px; }
+    .comm-trending .rail::-webkit-scrollbar-track { background: transparent; }
+    .trending-spot {
+      flex-shrink: 0;
+      width: 200px;
+      border: 1px solid var(--line-strong);
+      padding: 14px 16px 12px;
+      background: var(--paper);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .trending-spot .name {
+      font-family: "Fraunces", "Noto Serif KR", serif;
+      font-weight: 500;
+      font-size: 16px;
+      letter-spacing: -0.005em;
+      line-height: 1.2;
+    }
+    .trending-spot .city {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--frost);
+    }
+    .trending-spot .votes {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--gold);
+      letter-spacing: 0.1em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .trending-spot .votes .heart { font-size: 12px; color: var(--berry); }
+    .trending-spot .votes .n { font-weight: 600; font-feature-settings: "tnum"; }
+    @media (prefers-reduced-motion: reduce) {
+      .comm-trending .rail { scroll-behavior: auto; }
+    }
+
     .comm-status {
       display: inline-flex;
       align-items: center;
@@ -2311,6 +2378,11 @@
         </div>
         <p class="comm-note" id="commAddNote" role="status" aria-live="polite"></p>
 
+        <div class="comm-trending" id="commTrending">
+          <div class="head">이번 주 인기 · Trending This Week</div>
+          <div class="rail" id="trendingRail"></div>
+        </div>
+
         <div class="comm-grid" id="commGrid"></div>
       </section>
 
@@ -3330,6 +3402,37 @@
         || String(a.name).localeCompare(String(b.name)));
     }
 
+    // Render the trending rail (top 3-5 spots by votes in the last 7 days).
+    // Called only when online; offline mode hides the rail.
+    function renderTrending(trendingSpots) {
+      const container = $id("commTrending");
+      const rail = $id("trendingRail");
+      if (!container || !rail) return;
+      rail.textContent = ""; // clear
+      if (!trendingSpots || trendingSpots.length === 0) {
+        container.classList.remove("show");
+        return;
+      }
+      container.classList.add("show");
+      // Top 5 trending (or fewer if list is short)
+      const top = trendingSpots.slice(0, 5);
+      top.forEach((s) => {
+        const card = document.createElement("div");
+        card.className = "trending-spot";
+        const name = document.createElement("div"); name.className = "name";
+        name.textContent = s.name; // XSS-safe
+        const city = document.createElement("div"); city.className = "city";
+        city.textContent = citySigil(s.city) + " · " + s.city;
+        const votes = document.createElement("div"); votes.className = "votes";
+        const heart = document.createElement("span"); heart.className = "heart"; heart.textContent = "♥";
+        const n = document.createElement("span"); n.className = "n"; n.textContent = String(s.votes || 0);
+        const label = document.createElement("span"); label.textContent = "이번 주";
+        votes.appendChild(heart); votes.appendChild(n); votes.appendChild(label);
+        card.appendChild(name); card.appendChild(city); card.appendChild(votes);
+        rail.appendChild(card);
+      });
+    }
+
     // ── Load (fetch-on-open semantics: runs once on first paint) ──
     let _loaded = false;
     async function loadSpots() {
@@ -3337,6 +3440,8 @@
       await checkHealth();
       if (!online) {
         setStatus(false, "로컬 모드 — 이 기기에만 저장");
+        const container = $id("commTrending");
+        if (container) container.classList.remove("show");
         renderSpots(sortSpots(localSpots().map((s) => ({ ...s, source: "local" }))));
         _loaded = true;
         return;
@@ -3349,16 +3454,37 @@
           c.collection("community_spot").getFullList({ sort: "-created" }),
           c.collection("spot_vote").getFullList(),
         ]);
+        // All-time counts for the main grid
         const counts = aggregateVoteCounts(voteRes);
+
+        // Trending window: last 7 days (rolling)
+        const now = Date.now();
+        const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
+        const trendingCounts = aggregateVoteCounts(voteRes, sevenDaysAgo);
+
+        // Build remote spots with all-time vote counts
         const remote = spotRes.map((r) => ({
           id: r.id, name: r.name, city: r.city, note: r.note || "",
           player_id: r.player_id, votes: counts[r.id] || 0, source: "remote",
         }));
+
+        // Build trending list (spots with votes in the last 7 days, sorted desc)
+        const trending = spotRes
+          .map((r) => ({
+            id: r.id, name: r.name, city: r.city,
+            votes: trendingCounts[r.id] || 0, source: "remote",
+          }))
+          .filter((s) => s.votes > 0) // only spots with at least 1 vote this week
+          .sort((a, b) => b.votes - a.votes); // desc by trending votes
+
+        renderTrending(trending);
         renderSpots(sortSpots(remote));
         _loaded = true;
       } catch (e) {
         online = false;
         setStatus(false, "로컬 모드 — 이 기기에만 저장");
+        const container = $id("commTrending");
+        if (container) container.classList.remove("show");
         renderSpots(sortSpots(localSpots().map((s) => ({ ...s, source: "local" }))));
         _loaded = true;
       }
