@@ -1274,6 +1274,11 @@
       glowLastPin() {
         const p = presencePins[presencePins.length - 1];
         if (!p) return;
+        // Respect reduced-motion: skip the animated flare, just nudge opacity.
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            p.halo.material.opacity = 0.35;
+            return;
+        }
         glowing.push({ halo: p.halo, dot: p.mesh, t0: performance.now() });
       },
       // Called every frame from tick(); advances + retires arrival flares.
