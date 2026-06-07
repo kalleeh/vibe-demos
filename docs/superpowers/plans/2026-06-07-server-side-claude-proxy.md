@@ -2,7 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Stand up one shared `ai.pb.gurum.se` PocketBase proxy that injects the owner's Anthropic key and forwards (dumb-proxy) to the Messages API, gated by origin check + per-IP rate limit + a daily budget cap; then wire the four AI demos to a hybrid flow (canned → proxied → BYO-key) so casual viewers get live AI with no key, degrading gracefully on 429/503.
+**Goal:** Stand up one shared `ai.pb.gurum.se` PocketBase proxy that injects the owner's Anthropic key and forwards (dumb-proxy) to the Messages API, **hardened so it is not a public wallet drain**: Haiku-only on the proxy path, a dollar-bounded daily budget, per-IP rate limit, origin check, and a **proof-of-work gate** (the frontend solves a hash puzzle per call). Then wire the four AI demos to a hybrid flow (canned → proxied-Haiku → BYO-key-any-model) so casual viewers get live AI with no key, degrading gracefully on 429/503.
+
+**Security posture (why these layers):** the endpoint is reachable by anyone on the internet — PB auth can't gate a public static frontend (any credential is in view-source). So we don't try to authenticate callers; we (a) make each call cheap (Haiku-only → ~10–20× less than Opus), (b) bound the daily dollar loss below the $5/mo cap, (c) make each call *cost the abuser CPU* via proof-of-work (~200ms for a real viewer, expensive at scale). Worst case becomes "a few dollars + demo falls back to BYO," not "blank check." See spec §2.
 
 **Architecture:** A dedicated PB 0.25.8 instance (port 8098) with a single `pb_hooks` route `POST /api/claude`. The hook reads the key from `$os.getenv("ANTHROPIC_PROXY_KEY")`, validates origin/model/body, enforces rate + daily budget, and forwards via `$http.send` (verified working on the live box). Frontends branch in their existing `callClaude()`: if the viewer pasted a key → direct call to api.anthropic.com (unchanged); else → keyless call to the proxy, which returns the identical Anthropic JSON so all downstream parsing is untouched.
 
@@ -87,9 +89,11 @@ Build the route in two tasks: this task does the forward + the cheap guards; Tas
 // systemd env (0600 drop-in), never in this repo. Returns Anthropic's JSON verbatim.
 // Verified on PB 0.25.8: $os.getenv + $http.send both work and reach api.anthropic.com.
 
-const ALLOWED_MODELS = ["claude-opus-4-7", "claude-sonnet-4-6", "claude-haiku-4-5"];
+// Haiku-only on the proxy path — Opus/Sonnet are available ONLY via BYO-key
+// (the viewer pays). This caps per-call cost ~10-20x so the $5/mo stretches far.
+const PROXY_MODEL = "claude-haiku-4-5";
 const ALLOWED_ORIGINS = ["https://kalleeh.github.io", "http://localhost", "http://127.0.0.1"];
-const MAX_TOKENS_CEILING = 2048;
+const MAX_TOKENS_CEILING = 1024; // Haiku, short demo outputs
 
 function originAllowed(origin) {
   if (!origin) return false;
@@ -119,8 +123,8 @@ routerAdd("POST", "/api/claude", (e) => {
   }
 
   const model = String(body.model || "");
-  if (ALLOWED_MODELS.indexOf(model) === -1) {
-    return e.json(400, { error: "model not allowed" });
+  if (model !== PROXY_MODEL) {
+    return e.json(400, { error: "proxy path is Haiku-only — use your own key for other models" });
   }
   if (body.stream === true) {
     return e.json(400, { error: "streaming not supported" });
@@ -213,9 +217,13 @@ migrate((app) => {
 - [ ] **Step 2: Add rate-limit + budget logic to the hook.** Insert into `proxy.pb.js` — after the origin check, before the forward. Add these constants near the top:
 
 ```javascript
-const DAILY_CALL_CAP = 500;          // global demo budget per day
+// DOLLAR-BOUNDED, not arbitrary: at Haiku rates with max_tokens<=1024, a call is
+// well under a cent. 250/day worst-case is a few cents/day → even a fully-abused
+// month stays comfortably under the $5 cap. Recompute from current Haiku pricing
+// at build time; keep the number such that 30 * (cost-per-call * DAILY_CALL_CAP) << $5.
+const DAILY_CALL_CAP = 250;          // global demo budget per day (dollar-sized)
 const RATE_WINDOW_MS = 60 * 1000;    // per-IP window
-const RATE_MAX = 10;                 // per-IP calls per window
+const RATE_MAX = 8;                  // per-IP calls per window
 const ipHits = new Map();            // ip -> [timestamps] (in-memory; resets on restart)
 ```
 
@@ -267,7 +275,97 @@ Expected: `HOOK SYNTAX OK`.
 - [ ] **Step 4: Commit.**
 ```bash
 git add ai/pb/pb_hooks/proxy.pb.js ai/pb/pb_migrations/001_init_proxy_budget.js
-git commit -m "ai-proxy: per-IP rate limit + persisted daily budget cap"
+git commit -m "ai-proxy: per-IP rate limit + dollar-bounded daily budget cap"
+```
+
+---
+
+## Task 3b: Proof-of-work gate — challenge endpoint + verify in hook
+
+**Files:**
+- Modify: `ai/pb/pb_hooks/proxy.pb.js`
+
+The frontend must prove it spent CPU before each call. The proxy issues a signed nonce; the client hashes `nonce:counter` until the SHA-256 digest has N leading zero bits, then sends `counter` + `nonce`. The hook verifies in one hash. Server secret is `$os.getenv("PROXY_POW_SECRET")` (set alongside the key in Task 7). Verify the JSVM crypto API at deploy — PB exposes `$security.hs256(...)` for HMAC and the goja runtime has no native SHA-256 over arbitrary strings unless PB provides it; **confirm `$security` helpers in Task 6 Step 1 and adjust** (fallback: use `$security.randomString` for the nonce and `$security.hs256` for both the signature AND as the PoW hash function — i.e. PoW = find counter s.t. `hs256(nonce:counter, secret)` has N leading hex zeros; the frontend mirrors this with Web Crypto HMAC-SHA256 using a PUBLIC per-challenge salt, NOT the secret — see note).
+
+> **Design note (important):** the PoW hash the *client* computes must NOT require the server secret (the client can't have it). Two clean options — pick at build time:
+> - **(A) Plain SHA-256 PoW + signed nonce (preferred):** client finds `counter` s.t. `SHA256(nonce + ":" + counter)` has N leading zero bits (Web Crypto `crypto.subtle.digest`, universally available). The server *separately* HMAC-signs the nonce (`sig = hs256(nonce, secret)`) when issuing it and verifies that sig on submit (so nonces can't be forged/replayed), then recomputes the same SHA-256 to check the work. Server needs a SHA-256 over a string — confirm goja/PB provides one (`$security` or a crypto global) in Task 6; if absent, use option B.
+> - **(B) HMAC-with-public-salt PoW:** each challenge includes a random PUBLIC `salt`; client finds `counter` s.t. `HMAC-SHA256(salt, nonce:counter)` has N leading zeros (Web Crypto HMAC, also universal). Server verifies with the same public salt. The nonce's *authenticity* is still protected by a separate `hs256(nonce, SECRET)` signature. This avoids needing a bare SHA-256 on the server if only HMAC is exposed.
+
+- [ ] **Step 1: Add the challenge endpoint + PoW constants.** Add near the top of `proxy.pb.js`:
+
+```javascript
+const POW_DIFFICULTY = 16;            // leading zero BITS — tune so a phone solves in ~150-300ms
+const POW_TTL_MS = 2 * 60 * 1000;     // a challenge is valid 2 minutes
+const usedNonces = new Map();         // nonce -> expiry ms (replay guard; in-memory, pruned)
+
+function powSecret() { return $os.getenv("PROXY_POW_SECRET") || ""; }
+
+// Issue a signed challenge. sig binds the nonce + expiry to our secret so it
+// can't be forged; the client never sees the secret.
+routerAdd("GET", "/api/claude-challenge", (e) => {
+  const secret = powSecret();
+  if (!secret) return e.json(503, { error: "live proxy not configured" });
+  const origin = e.request.header.get("Origin") || e.request.header.get("Referer") || "";
+  if (!originAllowed(origin)) return e.json(403, { error: "origin not allowed" });
+  const nonce = $security.randomString(24);
+  const salt  = $security.randomString(16);            // PUBLIC (option B); harmless for option A
+  const exp   = String(Date.now() + POW_TTL_MS);
+  const sig   = $security.hs256(nonce + ":" + salt + ":" + exp, secret);
+  return e.json(200, { nonce, salt, exp, sig, difficulty: POW_DIFFICULTY });
+});
+```
+
+- [ ] **Step 2: Verify the PoW on `POST /api/claude`.** Insert at the very top of the POST handler (before origin/model/body — cheapest valid-reject after the not-configured check). Reads PoW fields from headers `X-PoW-Nonce`, `X-PoW-Salt`, `X-PoW-Exp`, `X-PoW-Sig`, `X-PoW-Counter`:
+
+```javascript
+  // --- proof-of-work gate ---
+  const secret = powSecret();
+  if (!secret) return e.json(503, { error: "live proxy not configured" });
+  const h = e.request.header;
+  const pNonce = h.get("X-PoW-Nonce") || "", pSalt = h.get("X-PoW-Salt") || "",
+        pExp = h.get("X-PoW-Exp") || "", pSig = h.get("X-PoW-Sig") || "",
+        pCounter = h.get("X-PoW-Counter") || "";
+  // 1) signature authentic + not expired
+  const expectSig = $security.hs256(pNonce + ":" + pSalt + ":" + pExp, secret);
+  if (pSig !== expectSig) return e.json(403, { error: "bad challenge" });
+  if (!pExp || Date.now() > Number(pExp)) return e.json(403, { error: "challenge expired" });
+  // 2) not already spent (replay guard) — prune expired entries cheaply
+  const nowp = Date.now();
+  for (const [k, v] of usedNonces) { if (v < nowp) usedNonces.delete(k); }
+  if (usedNonces.has(pNonce)) return e.json(403, { error: "challenge already used" });
+  // 3) the work itself: HMAC(salt, nonce:counter) must have POW_DIFFICULTY leading zero bits
+  //    (option B — uses only $security.hs256, no bare SHA-256 needed server-side)
+  const digestHex = $security.hs256(pNonce + ":" + pCounter, pSalt); // salt as the (public) key
+  if (leadingZeroBits(digestHex) < POW_DIFFICULTY) {
+    return e.json(403, { error: "insufficient proof-of-work" });
+  }
+  usedNonces.set(pNonce, Number(pExp));
+```
+
+And add the helper (top of file):
+
+```javascript
+// Count leading zero BITS in a hex string.
+function leadingZeroBits(hex) {
+  let bits = 0;
+  for (let i = 0; i < hex.length; i++) {
+    const nibble = parseInt(hex[i], 16);
+    if (nibble === 0) { bits += 4; continue; }
+    if (nibble < 2) bits += 3; else if (nibble < 4) bits += 2; else if (nibble < 8) bits += 1;
+    break;
+  }
+  return bits;
+}
+```
+
+> The client mirrors step 3 with Web Crypto `HMAC-SHA256(key=salt, msg=nonce:counter)`, incrementing `counter` until the hex digest has `difficulty` leading zero bits (Task 5). `$security.hs256` returns a hex string in PB 0.25 — confirm format in Task 6 and align `leadingZeroBits` (hex) accordingly. If it returns base64, hex-encode or adjust the bit-count.
+
+- [ ] **Step 3: Syntax-check + commit.**
+```bash
+cd /home/ubuntu/projects/vibe-demos
+node --check ai/pb/pb_hooks/proxy.pb.js && echo "HOOK SYNTAX OK"
+git add ai/pb/pb_hooks/proxy.pb.js
+git commit -m "ai-proxy: proof-of-work gate (signed challenge + HMAC work + replay guard)"
 ```
 
 ---
@@ -300,57 +398,88 @@ Expected: `{"error":"live proxy not configured"}` with 503. This confirms the ho
 
 ---
 
-## Task 5: Wire the four frontends to the hybrid flow
+## Task 5: Wire the four frontends to the hybrid flow (proxy = Haiku + PoW)
 
-Each demo gets the SAME minimal change: in its Claude `fetch`, branch on whether the viewer has a pasted key. The proxy returns identical Anthropic JSON, so ONLY the fetch (URL + headers + whether the key is present) changes — all downstream parsing is untouched.
+Each demo branches in its Claude call: BYO-key → direct path (any model, unchanged); no key → proxy path (fetch a PoW challenge, solve it, POST to the proxy with Haiku forced + PoW headers). The proxy returns identical Anthropic JSON, so downstream parsing is untouched.
 
-**Files:** `intake-companion/index.html`, `live-globe/index.html`, `clinic-admin/index.html`, `korean-mbti/index.html`
+**Files:** `intake-companion/index.html`, `live-globe/index.html`, `clinic-admin/index.html`, `korean-mbti/index.html` (+ each `sw.js`).
 
-Do these one demo per sub-step, committing each, so a regression is isolatable. Below is the pattern using intake-companion's exact code (line ~3092); apply the equivalent to each demo (find each demo's `fetch("https://api.anthropic.com/v1/messages", {...})`).
+- [ ] **Step 1: Add a shared PoW-solver helper to each demo.** Demos are self-contained (no shared JS), so paste this ~25-line helper into each demo's relevant `<script>` once. It fetches a challenge and solves it with Web Crypto HMAC-SHA256 (mirrors the server's option-B verify):
 
-- [ ] **Step 1 (intake-companion): add a `PROXY_URL` const + branch the fetch.**
-  Near the top of the relevant script, add:
 ```javascript
-  const CLAUDE_PROXY_URL = "https://ai.pb.gurum.se/api/claude";
+  const CLAUDE_PROXY = "https://ai.pb.gurum.se";
+  // Fetch a signed challenge and brute-force a counter whose HMAC has `difficulty`
+  // leading zero bits. ~150-300ms on a phone. Returns the headers to send, or null.
+  async function solveProxyPoW() {
+    const r = await fetch(CLAUDE_PROXY + "/api/claude-challenge");
+    if (!r.ok) { const e = new Error("challenge"); e.status = r.status; throw e; }
+    const { nonce, salt, exp, sig, difficulty } = await r.json();
+    const enc = new TextEncoder();
+    const keyMat = await crypto.subtle.importKey("raw", enc.encode(salt),
+      { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+    const lead = (bytes) => { // leading zero bits of a Uint8Array
+      let b = 0; for (const x of bytes) { if (x === 0) { b += 8; continue; }
+        let v = x, c = 0; while ((v & 0x80) === 0) { c++; v <<= 1; } b += c; break; } return b;
+    };
+    for (let counter = 0; ; counter++) {
+      const mac = new Uint8Array(await crypto.subtle.sign("HMAC", keyMat, enc.encode(nonce + ":" + counter)));
+      if (lead(mac) >= difficulty) {
+        return { "X-PoW-Nonce": nonce, "X-PoW-Salt": salt, "X-PoW-Exp": exp,
+                 "X-PoW-Sig": sig, "X-PoW-Counter": String(counter) };
+      }
+      if (counter > 5_000_000) throw new Error("pow-timeout"); // safety valve
+    }
+  }
 ```
-  Replace the existing `fetch("https://api.anthropic.com/v1/messages", { ... })` block. The current code (line ~3092) passes `key` in the header. Change to: if `key` is truthy → direct call (existing headers, unchanged); else → proxy call (no key header, proxy URL, no `anthropic-dangerous-direct-browser-access`). Body is identical in both. Concretely:
+
+> Server/client hash MUST agree. The server uses `$security.hs256(nonce + ":" + counter, salt)` and counts leading zero bits of its hex output; the client uses HMAC-SHA256(key=salt, msg=`nonce:counter`) over raw bytes. Confirm in Task 6 that `$security.hs256` is HMAC-SHA256 hex with the 2nd arg as key — if its signature differs, align the client (and the server's `leadingZeroBits` hex vs the client's byte count) so both measure the same bits. This is the one cross-environment agreement to verify before trusting the gate.
+
+- [ ] **Step 2 (intake-companion): branch the fetch.** Add `const CLAUDE_PROXY_URL = CLAUDE_PROXY + "/api/claude";` and replace the existing `fetch("https://api.anthropic.com/v1/messages", {...})` (line ~3092). BYO path unchanged; proxy path forces Haiku + attaches PoW headers:
 
 ```javascript
     const useProxy = !key;
-    const res = await fetch(useProxy ? CLAUDE_PROXY_URL : "https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: useProxy
-        ? { "Content-Type": "application/json" }
-        : {
-            "Content-Type": "application/json",
-            "x-api-key": key,
-            "anthropic-version": "2023-06-01",
-            "anthropic-dangerous-direct-browser-access": "true",
-          },
-      body: JSON.stringify({
-        model,
-        max_tokens: 2000,
-        system: sys,
-        messages: [{ role: "user", content: narrative }],
-      }),
-    });
+    let res;
+    if (useProxy) {
+      const powHeaders = await solveProxyPoW(); // ~200ms; show a "thinking…" state around the whole call
+      res = await fetch(CLAUDE_PROXY_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...powHeaders },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5",              // proxy is Haiku-only
+          max_tokens: 1024,                        // <= proxy ceiling
+          system: sys,
+          messages: [{ role: "user", content: narrative }],
+        }),
+      });
+    } else {
+      res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": key,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true",
+        },
+        body: JSON.stringify({ model, max_tokens: 2000, system: sys, messages: [{ role: "user", content: narrative }] }),
+      });
+    }
 ```
-  The existing `if (!res.ok) { ... e.status = res.status; throw }` block stays — it already surfaces 503/429 as errors the caller can catch. (The caller should, on proxy 429/503, fall back to canned and/or reveal the BYO-key panel — verify the existing catch does something graceful; if it only shows a generic error, add a branch: on `status === 429 || status === 503` while `useProxy`, show "live demo budget reached — paste your own key" and reveal the key panel.)
 
-- [ ] **Step 2 (intake-companion): confirm `max_tokens` ≤ 2048.** The proxy ceiling is 2048; intake-companion sends 2000 ✓. If any demo sends >2048, the proxy will clamp it — but lower the frontend value to match so behavior is predictable. Check each demo's `max_tokens`.
+  Keep the existing `if (!res.ok) { e.status = res.status; throw }`. Then ensure the CALLER degrades gracefully: on `useProxy && (status === 429 || status === 503)` → show "live demo budget reached — paste your own key for unlimited" and reveal the BYO key panel, falling back to canned. Verify/extend the existing catch to do this.
 
 - [ ] **Step 3 (intake-companion): syntax + commit.**
 ```bash
 cd /home/ubuntu/projects/vibe-demos
-# extract the classic <script> containing callClaude and node --check it (no bare imports here)
-node -e "const h=require('fs').readFileSync('intake-companion/index.html','utf8'); /* manual: ensure file still parses by checking the demo loads */ console.log('ok')"
+node -e "require('fs').readFileSync('intake-companion/index.html','utf8'); console.log('readable')"
 git add intake-companion/index.html
-git commit -m "intake-companion: hybrid Claude flow (proxy when no BYO key)"
+git commit -m "intake-companion: hybrid Claude flow — proxy (Haiku+PoW) when no BYO key"
 ```
 
-- [ ] **Step 4: Repeat Steps 1–3 for `live-globe`, `clinic-admin`, `korean-mbti`.** Each: find the `api.anthropic.com/v1/messages` fetch, add the `CLAUDE_PROXY_URL` const, branch on key presence, verify max_tokens ≤ 2048, ensure graceful 429/503 fallback, commit per demo. NOTE the demos differ: live-globe/korean-mbti may build the body differently (check each); preserve each demo's exact body, only change URL+headers+key-branch.
+- [ ] **Step 4: Repeat Steps 1–3 for `live-globe`, `clinic-admin`, `korean-mbti`.** Each: paste the PoW helper, find the `api.anthropic.com/v1/messages` fetch, branch on key presence (proxy → Haiku + PoW headers; BYO → unchanged, full model), preserve each demo's exact body/system/messages shape (only the model+max_tokens+URL+headers change on the proxy branch), wire graceful 429/503 fallback, commit per demo. Demos differ in how they build the body — preserve each.
 
-- [ ] **Step 5: Bump each demo's SW cache** (so the frontend change deploys): `intake-companion`, `live-globe`, `clinic-admin`, `korean-mbti` sw.js — increment the version. Commit (can be one commit for all four SW bumps).
+- [ ] **Step 5: Show the PoW solve as "thinking", honestly label Haiku.** Around the proxy call, ensure the existing loading state (per CLAUDE.md: visible motion, no static "Loading…") covers the ~200ms solve. Where the demo names the model on a live run, the proxy path should read as Haiku (don't imply Opus). Small per-demo copy check.
+
+- [ ] **Step 6: Bump each demo's SW cache** (`intake-companion`, `live-globe`, `clinic-admin`, `korean-mbti` sw.js — increment version). One commit for all four.
 
 ---
 
@@ -360,26 +489,30 @@ git commit -m "intake-companion: hybrid Claude flow (proxy when no BYO key)"
 
 **Files:** none (verification)
 
-- [ ] **Step 1 (pre-key): confirm 503 + guards work** (no key needed):
+- [ ] **Step 0 (probe the JSVM crypto + body API — do this FIRST, before trusting the PoW math).** Drop a throwaway probe hook on the deployed `ai` instance (or a /tmp test instance like the spec's §7 verification) exposing the values we depend on, then curl it:
+  - `typeof $security`, `typeof $security.hs256`, `typeof $security.randomString`
+  - `$security.hs256("a:1", "saltkey")` → record the EXACT output (hex? base64? length?) — the PoW bit-counting on both server and client must match this encoding.
+  - whether `e.requestInfo().body` returns parsed JSON for a POST (vs needing raw read).
+  - whether the DAO is `e.app` or `$app` for `findFirstRecordByData` / `save` / `new Record(col)`.
+  **Adjust proxy.pb.js + the frontend `solveProxyPoW` to match the real `$security.hs256` encoding before proceeding.** If `$security.hs256` isn't HMAC-SHA256-hex, switch both sides to whatever it is, or to option A (plain SHA-256) if a bare SHA-256 is available. This step de-risks the one cross-environment agreement.
+
+- [ ] **Step 1 (pre-key): confirm the gate order works.** With NO PoW headers, the POST should reject at the PoW gate (403 "bad challenge") or 503 if key/secret unset — it should NOT reach the model/forward. Then fetch a real challenge and solve it (use a tiny node script reusing the `solveProxyPoW` logic, pointed at the deployed challenge endpoint) and confirm a solved-but-pre-key POST returns 503 (configured-gate) while origin-mismatch returns 403:
 ```bash
-# 503 when... actually once key is set this returns 200; pre-key it's 503:
+# no PoW → 403 (or 503 if secret unset):
 curl -s -w "\n%{http_code}\n" -X POST https://ai.pb.gurum.se/api/claude -H "Origin: https://kalleeh.github.io" -H "Content-Type: application/json" -d '{"model":"claude-haiku-4-5","max_tokens":16,"messages":[{"role":"user","content":"hi"}]}'
-# origin reject:
-curl -s -w "\n%{http_code}\n" -X POST https://ai.pb.gurum.se/api/claude -H "Origin: https://evil.example" -H "Content-Type: application/json" -d '{"model":"claude-haiku-4-5","max_tokens":16,"messages":[{"role":"user","content":"hi"}]}'
-# bad model reject:
-curl -s -w "\n%{http_code}\n" -X POST https://ai.pb.gurum.se/api/claude -H "Origin: https://kalleeh.github.io" -H "Content-Type: application/json" -d '{"model":"gpt-4","max_tokens":16,"messages":[{"role":"user","content":"hi"}]}'
+# challenge endpoint reachable:
+curl -s -w "\n%{http_code}\n" "https://ai.pb.gurum.se/api/claude-challenge" -H "Origin: https://kalleeh.github.io"
+# origin reject on challenge:
+curl -s -w "\n%{http_code}\n" "https://ai.pb.gurum.se/api/claude-challenge" -H "Origin: https://evil.example"
 ```
-Expected: 503 (or 200 if key already set); 403 (origin); 400 (model). This validates the body-accessor + guards. **If the first curl errors on body parsing (500), fix the `e.requestInfo().body` accessor in proxy.pb.js per the Task 2 note, re-`./sync-backends.sh`, re-test.**
+Expected: POST → 403/503; challenge → 200 with `{nonce,salt,exp,sig,difficulty}` (or 503 pre-secret); evil origin → 403.
 
-- [ ] **Step 2 (post-key): real call returns a Claude completion** (after Task 7):
-```bash
-curl -s -X POST https://ai.pb.gurum.se/api/claude -H "Origin: https://kalleeh.github.io" -H "Content-Type: application/json" -d '{"model":"claude-haiku-4-5","max_tokens":16,"messages":[{"role":"user","content":"say hi in 3 words"}]}' --max-time 30
-```
-Expected: a real Anthropic JSON response with `content[0].text`. **This spends a few cents against the $5 cap — that's the intended test.**
+- [ ] **Step 2 (post-key): a fully-solved real call returns a completion** (after Task 7). Use a node script that fetches the challenge, solves the PoW (same algorithm as `solveProxyPoW`), and POSTs with the headers + `model:"claude-haiku-4-5"`:
+Expected: real Anthropic JSON with `content[0].text`. **Spends a fraction of a cent (Haiku) against the $5 cap — the intended test.** Also confirm: an UNSOLVED POST → 403; a model other than Haiku (even with valid PoW) → 400; reusing the same nonce twice → 403 "already used".
 
-- [ ] **Step 3 (post-key): budget increments.** Repeat the call; confirm in the PB admin (or a second call) that `proxy_budget` for today incremented. Confirm rate-limit triggers after >10 calls/min from one IP (optional, costs a few cents).
+- [ ] **Step 3 (post-key): budget + rate.** Confirm `proxy_budget` for today increments per successful call (PB admin or repeat). Confirm >8 calls/60s from one IP → 429. (A few solved calls = a few sub-cent charges.)
 
-- [ ] **Step 4: frontend live check.** Open each demo (deployed or local), use "try it live" WITHOUT pasting a key → confirm a real response renders. Paste a key → confirm it uses the direct path. Block the proxy / exceed budget → confirm graceful fallback to canned + BYO panel.
+- [ ] **Step 4: frontend live check.** Open each demo (deployed/local), "try it live" with NO key → confirm the PoW solves (~200ms, shown as "thinking") and a real Haiku response renders. Paste a key → confirm direct path (full model). Force budget/rate/503 → confirm graceful fallback to canned + BYO panel.
 
 ---
 
@@ -396,12 +529,13 @@ sudo install -m 0600 /dev/null /etc/systemd/system/pocketbase@ai.service.d/env.c
 sudo tee /etc/systemd/system/pocketbase@ai.service.d/env.conf >/dev/null <<'EOF'
 [Service]
 Environment=ANTHROPIC_PROXY_KEY=<YOUR_KEY>
+Environment=PROXY_POW_SECRET=<RANDOM_STRING>
 EOF
 sudo chmod 0600 /etc/systemd/system/pocketbase@ai.service.d/env.conf
 sudo systemctl daemon-reload
 sudo systemctl restart pocketbase@ai
 ```
-(The `env.conf` is separate from the `port.conf` that `sync-backends.sh` manages, so future syncs won't touch or expose it.)
+Two values: `<YOUR_KEY>` is the Anthropic key; `<RANDOM_STRING>` is any long random string for signing PoW challenges (generate with `openssl rand -hex 32` — it's not an Anthropic secret, just needs to be unguessable and stable). Both live ONLY here. (The `env.conf` is separate from the `port.conf` that `sync-backends.sh` manages, so future syncs won't touch or expose it.)
 
 - [ ] **Step 3 (owner): confirm.** Tell the agent "key is set" — the agent then runs Task 6 Step 2–4 post-key checks.
 
@@ -409,12 +543,13 @@ sudo systemctl restart pocketbase@ai
 
 ## Self-review notes (verify before "done")
 
-1. **Key hygiene:** the key value appears in ZERO committed files, this plan, and no agent output. Only in the server's 0600 `env.conf`. ✓
+1. **Key hygiene:** the key + PoW secret appear in ZERO committed files, this plan, and no agent output. Only in the server's 0600 `env.conf`. ✓
 2. **Safe-before-key:** all code (Tasks 1–5) ships and deploys with the proxy returning 503; demos fall back to canned + BYO. No demo breaks pre-key. ✓
-3. **Abuse layers all present:** origin check (403) + per-IP rate (429) + daily budget (429) + Anthropic $5 cap (owner). ✓
-4. **Dumb proxy:** no system prompt server-side; frontend sends full body minus key. ✓
-5. **Non-streaming:** hook rejects stream:true; demos unchanged (non-streaming). ✓
-6. **Downstream untouched:** proxy returns identical Anthropic JSON, so each demo's response parsing needs no change — only the fetch URL/headers/key-branch. ✓
-7. **PB-version-sensitive spots flagged:** the `requestInfo().body` accessor and the DAO `e.app`/`Record` APIs are the two spots to confirm at deploy (Task 6 Step 1); both have a documented fallback. ✓
-8. **sync-backends.sh NOT modified to carry the key** — env is a manual, separate drop-in. ✓
+3. **Wallet-protection layers all present:** Haiku-only on proxy (2a, ~10–20× cheaper) + proof-of-work gate (2c, raises abuse CPU cost) + per-IP rate 429 (8/min) + dollar-bounded daily budget 429 (~250/day, sized < $5/mo) + origin 403 + Anthropic $5 cap (owner). The honest worst case = a few dollars + fallback to BYO, not a blank check. ✓
+4. **Frontend auth correctly NOT used:** public static client can't hold a secret; PoW (prove effort) replaces auth (prove identity). ✓
+5. **Dumb proxy:** no system prompt server-side; frontend sends full body minus key. Opus/Sonnet only via BYO; proxy path is Haiku. ✓
+6. **Non-streaming:** hook rejects stream:true; demos unchanged. ✓
+7. **Downstream untouched:** proxy returns identical Anthropic JSON; only the fetch (URL/headers/model/PoW) changes. ✓
+8. **The crypto-agreement risk is front-loaded:** Task 6 Step 0 probes `$security.hs256` encoding + body/DAO accessors BEFORE trusting the gate; server `leadingZeroBits(hex)` and client byte-bit-count must measure the same bits — verified before post-key testing. This is the one spot that, if mismatched, would make the PoW gate either always-pass (insecure) or always-fail (broken). ✓
+9. **sync-backends.sh NOT modified to carry secrets** — env is a manual, separate drop-in. ✓
 ```
