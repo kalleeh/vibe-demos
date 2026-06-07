@@ -1,0 +1,16 @@
+{
+  "name": "창원 아파트 파인더 — Changwon Home Finder",
+  "short_name": "창원 아파트",
+  "description": "창원시 아파트를 지도에서 찾고 동일 조건(지역·평형·연식·학군) 평균과 비교해 가치점수를 확인합니다.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f5f1e8",
+  "theme_color": "#2f6f6b",
+  "lang": "ko",
+  "categories": ["utilities", "lifestyle", "finance"],
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

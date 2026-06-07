@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>창원 아파트 파인더 — Changwon Home Finder</title>
+
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2f6f6b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="창원 아파트">
+
+<meta name="description" content="창원시 아파트를 지도에서 찾고, 동일 조건(지역·평형·연식·학군) 평균과 비교해 가치점수를 확인하는 데모.">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+
+<style>
+  :root{
+    --paper:#f5f1e8; --panel:#fbf8f0; --ink:#23211c; --muted:#6f6a5d;
+    --line:#e3dcca; --line-strong:#d3c9b1;
+    --teal:#2f6f6b; --teal-deep:#235552;
+    --good:#3f8f5b; --mid:#d9a441; --bad:#c0492f;
+    --shadow:0 8px 28px rgba(35,33,28,.14);
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    font-family:"Inter",-apple-system,system-ui,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+    color:var(--ink); background:var(--paper);
+    -webkit-font-smoothing:antialiased; overflow:hidden;
+  }
+  @import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700&display=swap");
+
+  /* ---------- layout ---------- */
+  .app{display:grid;grid-template-rows:auto 1fr;height:100%}
+  header.bar{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);
+    z-index:1200;position:relative;
+  }
+  .brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
+  .brand h1{
+    font-family:"Fraunces",serif;font-weight:500;font-size:19px;margin:0;letter-spacing:-.01em;
+    white-space:nowrap;
+  }
+  .brand .ko{font-weight:700}
+  .brand em{font-style:italic;color:var(--teal)}
+  .brand .sub{font-size:11px;color:var(--muted);font-family:var(--mono);white-space:nowrap}
+
+  .controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:999px;overflow:hidden;background:#fff}
+  .seg button{
+    border:0;background:transparent;font:inherit;font-size:13px;font-weight:600;
+    padding:7px 16px;cursor:pointer;color:var(--muted);
+  }
+  .seg button.on{background:var(--teal);color:#fff}
+  select,.search input{
+    font:inherit;font-size:13px;border:1px solid var(--line-strong);border-radius:999px;
+    padding:7px 12px;background:#fff;color:var(--ink);cursor:pointer;
+  }
+  .search{position:relative;display:flex;align-items:center}
+  .search input{cursor:text;width:138px;padding-left:30px}
+  .search svg{position:absolute;left:10px;width:14px;height:14px;opacity:.5;pointer-events:none}
+
+  .demo-pill{
+    font-family:var(--mono);font-size:11px;color:var(--teal-deep);
+    border:1px solid var(--teal);border-radius:999px;padding:4px 10px;
+    display:inline-flex;align-items:center;gap:6px;background:rgba(47,111,107,.07);white-space:nowrap;
+  }
+  .demo-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--teal);
+    animation:pulse 2.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+
+  /* ---------- map + panel ---------- */
+  .stage{position:relative;min-height:0}
+  #map{position:absolute;inset:0;background:#e9e3d4}
+  .leaflet-container{font-family:inherit;background:#e9e3d4}
+
+  /* value legend */
+  .legend{
+    position:absolute;left:12px;bottom:12px;z-index:900;background:var(--panel);
+    border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:var(--shadow);
+    font-size:11.5px;color:var(--muted);max-width:210px;
+  }
+  .legend b{color:var(--ink);font-size:12px;display:block;margin-bottom:6px;font-weight:600}
+  .legend .scale{height:9px;border-radius:5px;margin:6px 0 4px;
+    background:linear-gradient(90deg,var(--bad),var(--mid),var(--good))}
+  .legend .ends{display:flex;justify-content:space-between;font-size:10.5px}
+  .legend .row{display:flex;align-items:center;gap:6px;margin-top:6px}
+  .legend .star{color:var(--teal);font-size:13px}
+
+  .countpill{
+    position:absolute;right:12px;top:12px;z-index:900;background:var(--panel);
+    border:1px solid var(--line);border-radius:999px;padding:6px 12px;box-shadow:var(--shadow);
+    font-size:12px;font-weight:600;
+  }
+  .countpill span{color:var(--teal);font-variant-numeric:tabular-nums}
+
+  /* marker */
+  .mk{border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);
+    display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;
+    font-size:11px;font-family:var(--mono);transition:transform .12s}
+  .mk.rec{box-shadow:0 0 0 3px rgba(47,111,107,.45),0 1px 4px rgba(0,0,0,.35)}
+  .mk.sel{transform:scale(1.18);box-shadow:0 0 0 4px rgba(47,111,107,.6),0 2px 6px rgba(0,0,0,.4)}
+
+  /* ---------- detail panel ---------- */
+  .panel{
+    position:absolute;top:0;right:0;height:100%;width:380px;max-width:90vw;
+    background:var(--panel);border-left:1px solid var(--line);box-shadow:var(--shadow);
+    z-index:1000;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
+    display:flex;flex-direction:column;
+  }
+  .panel.open{transform:translateX(0)}
+  .panel .ph{padding:16px 18px 12px;border-bottom:1px solid var(--line);position:relative}
+  .panel .close{position:absolute;top:12px;right:12px;border:0;background:#fff;border:1px solid var(--line);
+    width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;color:var(--muted);line-height:1}
+  .panel h2{font-family:"Fraunces",serif;font-weight:500;font-size:21px;margin:0 36px 4px 0;letter-spacing:-.01em}
+  .panel .loc{font-size:12.5px;color:var(--muted);font-family:var(--mono)}
+  .pbody{padding:16px 18px;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch}
+
+  .price-head{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
+  .price-head .big{font-family:"Fraunces",serif;font-size:30px;font-weight:500}
+  .price-head .lbl{font-size:12px;color:var(--muted)}
+
+  .cmp{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff;margin-bottom:14px}
+  .cmp h3{margin:0 0 10px;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .barwrap{position:relative;margin:10px 0 4px}
+  .bar{height:30px;border-radius:8px;background:linear-gradient(90deg,#eef3ee,#f3ece0);position:relative;overflow:hidden;border:1px solid var(--line)}
+  .bar .fill{height:100%;border-radius:7px 0 0 7px;transition:width .5s ease}
+  .bar .avgline{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);z-index:3}
+  .bar .avgflag{position:absolute;top:-19px;transform:translateX(-50%);font-size:10px;font-family:var(--mono);
+    color:var(--ink);white-space:nowrap;background:var(--panel);padding:0 3px}
+  .bar .val{position:absolute;top:50%;transform:translateY(-50%);left:8px;color:#fff;font-weight:700;font-size:13px;
+    text-shadow:0 1px 2px rgba(0,0,0,.3);font-variant-numeric:tabular-nums}
+  .delta{font-size:13px;font-weight:600;margin-top:8px}
+  .delta.up{color:var(--bad)} .delta.down{color:var(--good)} .delta.flat{color:var(--muted)}
+  .cmp .sub{font-size:12px;color:var(--muted);margin-top:2px}
+
+  .metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+  .metric{border:1px solid var(--line);border-radius:11px;padding:10px 12px;background:#fff}
+  .metric .k{font-size:11px;color:var(--muted)}
+  .metric .v{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
+  .metric .v small{font-size:11px;color:var(--muted);font-weight:400}
+
+  .score{display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:14px;
+    padding:14px;background:#fff;margin-bottom:6px}
+  .score .ring{position:relative;width:64px;height:64px;flex:none}
+  .score .ring svg{transform:rotate(-90deg)}
+  .score .ring .n{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-family:"Fraunces",serif;font-size:20px;font-weight:500}
+  .score .txt .verdict{font-weight:600;font-size:14px}
+  .score .txt .pct{font-size:12.5px;color:var(--muted);margin-top:3px}
+
+  .stars{display:inline-flex;gap:2px;vertical-align:middle}
+  .stars i{width:13px;height:13px;display:inline-block;background:var(--line-strong);
+    clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);font-style:normal}
+  .stars i.f{background:var(--teal)}
+
+  .peers{margin-top:14px}
+  .peers summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--teal-deep);
+    padding:10px 0;list-style:none;display:flex;align-items:center;gap:6px;border-top:1px solid var(--line)}
+  .peers summary::-webkit-details-marker{display:none}
+  .peers summary .chev{transition:transform .2s}
+  .peers[open] summary .chev{transform:rotate(90deg)}
+  .peer{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);
+    font-size:12.5px;cursor:pointer}
+  .peer:hover{background:rgba(47,111,107,.05)}
+  .peer .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .peer .nm small{color:var(--muted);font-family:var(--mono);font-size:10.5px}
+  .peer .pr{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+  .peer .vd{width:42px;text-align:right;font-family:var(--mono);font-size:11px}
+  .peer.self{background:rgba(47,111,107,.09);margin:0 -8px;padding:9px 8px;border-radius:8px;border-bottom:0}
+
+  .empty{padding:40px 24px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6}
+
+  /* hint when nothing selected */
+  .hint{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:850;
+    background:var(--ink);color:var(--paper);font-size:12.5px;padding:8px 16px;border-radius:999px;
+    box-shadow:var(--shadow);opacity:.92;pointer-events:none;transition:opacity .3s}
+  .hint.gone{opacity:0}
+
+  @media (max-width:720px){
+    .brand .sub{display:none}
+    .controls{width:100%;justify-content:flex-start}
+    .search input{flex:1;width:auto}
+    .panel{width:100%;max-width:100%;height:64%;top:auto;bottom:0;border-left:0;border-top:1px solid var(--line);
+      border-radius:18px 18px 0 0;transform:translateY(100%)}
+    .panel.open{transform:translateY(0)}
+    .panel::before{content:"";position:absolute;top:7px;left:50%;transform:translateX(-50%);
+      width:38px;height:4px;border-radius:2px;background:var(--line-strong)}
+    .legend{max-width:160px;font-size:11px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important;animation:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <div class="brand">
+      <h1><span class="ko">창원</span> 아파트 <em>파인더</em></h1>
+      <span class="sub">Changwon · 동일조건 가치 비교</span>
+    </div>
+    <div class="controls">
+      <div class="seg" id="modeSeg" role="group" aria-label="거래 유형">
+        <button data-mode="sale" class="on">매매</button>
+        <button data-mode="jeonse">전세</button>
+      </div>
+      <select id="sizeSel" aria-label="평형">
+        <option value="all">평형 전체</option>
+        <option value="0-24">~24평</option>
+        <option value="24-33">24~33평</option>
+        <option value="33-43">33~43평</option>
+        <option value="43-200">43평~</option>
+      </select>
+      <select id="guSel" aria-label="구">
+        <option value="all">구 전체</option>
+      </select>
+      <label class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="q" type="search" placeholder="단지·동 검색" autocomplete="off">
+      </label>
+      <span class="demo-pill"><span class="dot"></span>데모 데이터</span>
+    </div>
+  </header>
+
+  <div class="stage">
+    <div id="map"></div>
+
+    <div class="countpill"><span id="cnt">0</span>개 단지</div>
+
+    <div class="legend">
+      <b>가성비 (가치점수)</b>
+      <div class="scale"></div>
+      <div class="ends"><span>비쌈 0</span><span>좋음 10</span></div>
+      <div class="row"><span class="star">★</span> 동일조건 대비 추천 단지</div>
+      <div class="row">원 크기 = 평형</div>
+    </div>
+
+    <div class="hint" id="hint">지도의 단지를 눌러 상세·비교를 확인하세요</div>
+
+    <aside class="panel" id="panel" aria-hidden="true"></aside>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+/* =====================================================================
+   창원 아파트 파인더 — fully client-side, no backend, no API key.
+   Dataset is SYNTHETIC but uses real Changwon 구/동 names and plausible
+   prices/sizes/years. Comparison is deterministic math (no LLM).
+   ===================================================================== */
+
+/* ---- District clusters (approx real coords) + adjacency ---- */
+const GU = {
+  "성산구":   {c:[35.2210,128.6810], adj:["의창구"]},
+  "의창구":   {c:[35.2540,128.6420], adj:["성산구","마산회원구"]},
+  "마산회원구":{c:[35.2230,128.5790], adj:["마산합포구","의창구"]},
+  "마산합포구":{c:[35.1860,128.5640], adj:["마산회원구"]},
+  "진해구":   {c:[35.1340,128.7050], adj:["성산구"]},
+};
+
+/* ---- Synthetic complexes. price in 억(매매), jeonse in 억. size in 평.
+        sc=학군 1..5, tr=교통 1..5. dx/dy = small offset from gu centre. ---- */
+const RAW = [
+  // 성산구 — newest, priciest core
+  ["용지더샵레이크파크","성산구","용지동",34,2017,8.9,5.2,5,4, .004,.010],
+  ["용지아이파크","성산구","용지동",43,2017,11.6,6.6,5,4, .009,.006],
+  ["가음한국아델리움","성산구","가음동",33,2016,7.4,4.4,4,4, -.012,.004],
+  ["가음꿈에그린","성산구","가음동",25,2015,5.3,3.5,4,4, -.016,-.002],
+  ["성산반지동대동","성산구","반지동",32,2003,5.1,3.6,3,3, .018,-.010],
+  ["사파현대","성산구","사파동",30,1996,3.9,2.9,3,3, -.022,-.016],
+  ["남양e편한세상","성산구","남양동",34,2009,5.6,3.8,3,3, .014,.018],
+  ["상남prado","성산구","상남동",24,2011,5.0,3.4,4,5, -.006,.014],
+  ["대방대동그린","성산구","대방동",28,1998,3.6,2.6,3,2, -.026,.020],
+  ["가음정주공","성산구","가음정동",23,1992,3.0,2.2,3,3, -.010,-.020],
+  ["용지롯데캐슬센텀","성산구","용지동",38,2018,10.2,6.0,5,4, .013,.013],
+  ["중앙동시티세븐","성산구","중앙동",45,2009,9.1,5.4,4,5, .000,-.006],
+
+  // 의창구 — 중동 신도시 + 상남 상권
+  ["창원중동유니시티1","의창구","중동",34,2019,9.4,5.6,5,5, .006,.008],
+  ["창원중동유니시티4","의창구","중동",43,2019,12.1,7.0,5,5, .010,.012],
+  ["대원효성해링턴","의창구","대원동",33,2014,6.6,4.2,4,4, -.014,-.006],
+  ["봉곡한신","의창구","봉곡동",30,1995,3.8,2.8,3,3, -.020,.016],
+  ["명서주공","의창구","명서동",24,1993,3.1,2.3,3,3, -.026,.006],
+  ["팔용한라비발디","의창구","팔용동",32,2008,4.9,3.4,3,3, .020,-.014],
+  ["사림한일","의창구","사림동",29,1994,3.7,2.7,4,4, .002,-.020],
+  ["도계동우림","의창구","도계동",27,2001,3.9,2.9,3,3, .024,.000],
+  ["중동sk뷰","의창구","중동",29,2019,7.7,4.7,5,5, .002,.004],
+  ["서곡지구푸르지오","의창구","서곡동",36,2020,8.3,5.0,4,4, -.018,.020],
+
+  // 마산회원구
+  ["양덕동메트로시티1","마산회원구","양덕동",33,2014,5.4,3.6,4,4, .010,.006],
+  ["양덕동메트로시티2","마산회원구","양덕동",43,2016,7.2,4.6,4,4, .013,.010],
+  ["합성동롯데캐슬","마산회원구","합성동",34,2012,5.0,3.4,3,4, -.008,.014],
+  ["회원동현대","마산회원구","회원동",28,1999,3.0,2.3,3,3, -.018,-.010],
+  ["석전동삼성","마산회원구","석전동",25,1997,2.7,2.1,3,3, .016,-.016],
+  ["내서읍중리데시앙","마산회원구","내서읍",32,2010,4.0,2.9,3,3, -.024,.022],
+  ["내서읍삼계서희","마산회원구","내서읍",30,2007,3.5,2.6,3,3, -.028,.016],
+  ["양덕동코오롱하늘채","마산회원구","양덕동",29,2013,4.7,3.2,4,4, .007,.012],
+
+  // 마산합포구 — bay, older stock
+  ["월영동무학자이","마산합포구","월영동",34,2013,4.8,3.3,3,3, .010,.012],
+  ["월영동마린애시앙","마산합포구","월영동",43,2019,6.6,4.2,3,4, .014,.016],
+  ["산호동롯데","마산합포구","산호동",28,2002,3.0,2.3,3,3, -.006,-.008],
+  ["해운동신세계","마산합포구","해운동",26,1996,2.5,1.9,2,3, -.014,-.014],
+  ["가포동한신휴플러스","마산합포구","가포동",33,2017,5.2,3.5,3,3, .018,.022],
+  ["반월동코아루","마산합포구","반월동",24,2008,2.8,2.1,3,3, .006,-.018],
+  ["완월동대우","마산합포구","완월동",30,1994,2.6,2.0,2,3, -.010,.006],
+
+  // 진해구 — navy town, value end
+  ["자은동중흥s클래스","진해구","자은동",34,2018,5.4,3.6,4,4, -.006,.012],
+  ["자은동한라비발디","진해구","자은동",43,2017,6.8,4.4,4,4, -.002,.016],
+  ["풍호동대동다숲","진해구","풍호동",32,2015,4.4,3.1,3,4, .012,.006],
+  ["석동주공","진해구","석동",24,1995,2.2,1.7,3,3, .016,-.012],
+  ["여좌동벚꽃","진해구","여좌동",29,2004,3.0,2.3,3,3, -.016,-.006],
+  ["경화동e편한세상","진해구","경화동",33,2011,4.0,2.9,3,3, .008,.018],
+  ["용원동롯데캐슬","진해구","용원동",30,2009,3.6,2.7,3,3, .022,.024],
+  ["자은동꿈에그린","진해구","자은동",28,2016,4.6,3.2,4,4, -.010,.008],
+];
+
+let SEQ = 0;
+const HOMES = RAW.map(r => {
+  const [name,gu,dong,size,built,sale,jeonse,sc,tr,dx,dy] = r;
+  const c = GU[gu].c;
+  return {
+    id:"h"+(SEQ++), name, gu, dong, size, built, sale, jeonse, sc, tr,
+    lat:c[0]+dy, lng:c[1]+dx,
+  };
+});
+
+/* ---- comparison engine ---- */
+let mode = "sale"; // 'sale' | 'jeonse'
+const priceOf = h => mode==="sale" ? h.sale : h.jeonse;
+const ppp     = h => priceOf(h)*10000/h.size; // 만원/평
+
+function peersOf(h){
+  const okGu = new Set([h.gu, ...GU[h.gu].adj]);
+  let p = HOMES.filter(o => o.id!==h.id
+    && okGu.has(o.gu)
+    && Math.abs(o.size - h.size) <= 5
+    && Math.abs(o.built - h.built) <= 8
+    && Math.abs((o.sc+o.tr) - (h.sc+h.tr)) <= 2);
+  if (p.length < 4){ // relax: same gu, wider size
+    p = HOMES.filter(o => o.id!==h.id && o.gu===h.gu && Math.abs(o.size-h.size) <= 8);
+  }
+  if (p.length < 3){ // last resort: nearest by size in same/adjacent gu
+    p = HOMES.filter(o => o.id!==h.id && okGu.has(o.gu))
+        .sort((a,b)=>Math.abs(a.size-h.size)-Math.abs(b.size-h.size)).slice(0,6);
+  }
+  return p;
+}
+
+function valueScore(h, peers){
+  if(!peers.length) return 5;
+  const peerAvgPPP = peers.reduce((s,o)=>s+ppp(o),0)/peers.length;
+  const priceDelta = (peerAvgPPP - ppp(h))/peerAvgPPP;       // +ve = cheaper than peers
+  const qualityBonus = ((h.sc+h.tr) - 6)/6 * 1.0;
+  const recency = (h.built - 2005)/20 * 0.8;
+  return Math.max(0.5, Math.min(9.8, 5 + priceDelta*15 + qualityBonus + recency));
+}
+
+/* attach derived fields for current mode */
+function recompute(){
+  for(const h of HOMES){
+    h._peers = peersOf(h);
+    h._avgPPP = h._peers.length ? h._peers.reduce((s,o)=>s+ppp(o),0)/h._peers.length : ppp(h);
+    h._avgPrice = h._peers.length ? h._peers.reduce((s,o)=>s+priceOf(o),0)/h._peers.length : priceOf(h);
+    h._ppp = ppp(h);
+    h._score = valueScore(h, h._peers);
+  }
+  // recommended = top-tertile score AND cheaper-or-equal vs peers
+  const scores = HOMES.map(h=>h._score).sort((a,b)=>b-a);
+  const cut = scores[Math.floor(scores.length*0.22)] ?? 8;
+  for(const h of HOMES) h._rec = h._score >= cut && h._ppp <= h._avgPPP*1.02;
+}
+
+/* score -> colour on red→amber→green ramp */
+function scoreColor(s){
+  const t = Math.max(0,Math.min(1,s/10));
+  const stops = [[192,73,47],[217,164,65],[63,143,91]]; // bad, mid, good
+  let a,b,f;
+  if(t<.5){a=stops[0];b=stops[1];f=t/.5;} else {a=stops[1];b=stops[2];f=(t-.5)/.5;}
+  const mix=i=>Math.round(a[i]+(b[i]-a[i])*f);
+  return `rgb(${mix(0)},${mix(1)},${mix(2)})`;
+}
+
+/* ---- map ---- */
+const map = L.map("map",{zoomControl:true,attributionControl:true}).setView([35.215,128.62],11.5);
+L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{
+  maxZoom:19, subdomains:"abcd",
+  attribution:'&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a> · 데이터는 데모용 합성',
+}).addTo(map);
+
+let markers = new Map(); // id -> L.marker
+let selected = null;
+
+function markerIcon(h, sel){
+  const r = 9 + (h.size-24)/3;             // size ↦ radius
+  const d = Math.max(16, Math.min(34, r*2));
+  const cls = "mk"+(h._rec?" rec":"")+(sel?" sel":"");
+  const txt = h._score>=9 ? "★" : "";
+  return L.divIcon({
+    className:"", iconSize:[d,d], iconAnchor:[d/2,d/2],
+    html:`<div class="${cls}" style="width:${d}px;height:${d}px;background:${scoreColor(h._score)}">${txt}</div>`,
+  });
+}
+
+function visibleHomes(){
+  const sz = sizeSel.value, gu = guSel.value, q = qInput.value.trim().toLowerCase();
+  return HOMES.filter(h=>{
+    if(gu!=="all" && h.gu!==gu) return false;
+    if(sz!=="all"){ const [a,b]=sz.split("-").map(Number); if(!(h.size>=a && h.size<b)) return false; }
+    if(q && !(`${h.name}${h.gu}${h.dong}`.toLowerCase().includes(q))) return false;
+    return true;
+  });
+}
+
+function renderMarkers(){
+  for(const m of markers.values()) m.remove();
+  markers.clear();
+  const vis = visibleHomes();
+  for(const h of vis){
+    const m = L.marker([h.lat,h.lng],{icon:markerIcon(h, h.id===selected)})
+      .addTo(map)
+      .on("click",()=>openPanel(h.id));
+    m.bindTooltip(`${h.name}<br>${h.size}평 · ${fmtPrice(priceOf(h))}`,{direction:"top",offset:[0,-10],opacity:.95});
+    markers.set(h.id, m);
+  }
+  cnt.textContent = vis.length;
+  if(selected && !vis.find(h=>h.id===selected)) closePanel();
+}
+
+/* ---- formatting ---- */
+function fmtPrice(eok){
+  // eok in 억 → "8.9억" or "8억 5,000" style kept simple: "8.9억"
+  return (Math.round(eok*10)/10).toFixed(1).replace(/\.0$/,"") + "억";
+}
+function fmtPPP(v){ return Math.round(v).toLocaleString("ko-KR")+"만/평"; }
+function pct(n){ return (n>=0?"+":"")+Math.round(n)+"%"; }
+const modeLabel = ()=> mode==="sale" ? "매매가" : "전세가";
+
+/* ---- detail panel ---- */
+const panel = document.getElementById("panel");
+
+function starRow(n){ // n out of 5
+  let s="<span class='stars'>";
+  for(let i=1;i<=5;i++) s+=`<i class="${i<=n?"f":""}"></i>`;
+  return s+"</span>";
+}
+
+function openPanel(id){
+  const h = HOMES.find(x=>x.id===id); if(!h) return;
+  const prev = selected; selected = id;
+  // refresh marker styles
+  if(prev && markers.has(prev)) markers.get(prev).setIcon(markerIcon(HOMES.find(x=>x.id===prev),false));
+  if(markers.has(id)) markers.get(id).setIcon(markerIcon(h,true));
+
+  const price = priceOf(h);
+  const avg = h._avgPrice;
+  const deltaPct = (price-avg)/avg*100;
+  const pppDeltaPct = (h._ppp - h._avgPPP)/h._avgPPP*100;
+
+  // bar: scale so peer-avg sits near 55%; clamp this unit 5..95%
+  const ratio = price/ (avg*1.8);
+  const fillW = Math.max(6, Math.min(96, ratio*100));
+  const avgPos = Math.max(6, Math.min(96, (avg/(avg*1.8))*100)); // = 55.5%
+
+  const dirCls = deltaPct>2.5?"up":deltaPct<-2.5?"down":"flat";
+  const dirWord = deltaPct>2.5?`평균보다 ${pct(deltaPct)} 비쌈`
+                : deltaPct<-2.5?`평균보다 ${pct(Math.abs(deltaPct)*-1)} 저렴`
+                : "평균과 거의 동일";
+
+  // percentile among peers+self by score (lower % = better value)
+  const pool = [...h._peers, h].sort((a,b)=>b._score-a._score);
+  const rank = pool.findIndex(x=>x.id===h.id)+1;
+  const topPct = Math.max(1, Math.round(rank/pool.length*100));
+
+  let verdict;
+  if(h._score>=8.5) verdict="동일조건 최상위 가성비";
+  else if(h._score>=7) verdict="평균보다 좋은 조건";
+  else if(h._score>=5) verdict="평균 수준";
+  else if(h._score>=3.5) verdict="다소 비싼 편";
+  else verdict="가격 부담이 큼";
+
+  // peer list
+  const peerRows = [...h._peers].sort((a,b)=>priceOf(a)-priceOf(b)).map(p=>`
+    <div class="peer" data-id="${p.id}">
+      <span class="nm">${esc(p.name)} <small>${p.size}평·${p.built}</small></span>
+      <span class="pr">${fmtPrice(priceOf(p))}</span>
+      <span class="vd" style="color:${scoreColor(p._score)}">${p._score.toFixed(1)}</span>
+    </div>`).join("");
+
+  const ringLen = 2*Math.PI*28;
+  const ringOff = ringLen*(1 - h._score/10);
+
+  panel.innerHTML = `
+    <div class="ph">
+      <button class="close" aria-label="닫기">×</button>
+      <h2>${esc(h.name)}</h2>
+      <div class="loc">${h.gu} ${h.dong} · ${h.size}평 · ${h.built}년 준공</div>
+    </div>
+    <div class="pbody">
+      <div class="price-head">
+        <span class="big" style="color:${scoreColor(h._score)}">${fmtPrice(price)}</span>
+        <span class="lbl">${modeLabel()} · ${fmtPPP(h._ppp)}</span>
+      </div>
+
+      <div class="cmp">
+        <h3>동일조건 평균 대비 <span style="text-transform:none;font-weight:400;color:var(--muted)">(${h._peers.length}개 단지)</span></h3>
+        <div class="barwrap">
+          <div class="bar">
+            <div class="fill" style="width:${fillW}%;background:${scoreColor(h._score)}"></div>
+            <div class="avgline" style="left:${avgPos}%"></div>
+            <div class="avgflag" style="left:${avgPos}%">평균 ${fmtPrice(avg)}</div>
+            <div class="val">${fmtPrice(price)}</div>
+          </div>
+        </div>
+        <div class="delta ${dirCls}">${dirWord}</div>
+        <div class="sub">평단가 ${fmtPPP(h._ppp)} · 평균 ${fmtPPP(h._avgPPP)} (${pct(pppDeltaPct)})</div>
+      </div>
+
+      <div class="score">
+        <div class="ring">
+          <svg width="64" height="64" viewBox="0 0 64 64">
+            <circle cx="32" cy="32" r="28" fill="none" stroke="var(--line)" stroke-width="6"/>
+            <circle cx="32" cy="32" r="28" fill="none" stroke="${scoreColor(h._score)}" stroke-width="6"
+              stroke-linecap="round" stroke-dasharray="${ringLen}" stroke-dashoffset="${ringOff}"/>
+          </svg>
+          <span class="n">${h._score.toFixed(1)}</span>
+        </div>
+        <div class="txt">
+          <div class="verdict">${verdict}</div>
+          <div class="pct">동일조건 ${pool.length}개 중 가치 <b>상위 ${topPct}%</b>${h._rec?" · ★ 추천":""}</div>
+        </div>
+      </div>
+
+      <div class="metrics">
+        <div class="metric"><div class="k">학군</div><div class="v">${starRow(h.sc)}</div></div>
+        <div class="metric"><div class="k">교통</div><div class="v">${starRow(h.tr)}</div></div>
+        <div class="metric"><div class="k">평형</div><div class="v">${h.size}<small> 평</small></div></div>
+        <div class="metric"><div class="k">연식</div><div class="v">${2026-h.built}<small> 년차 (${h.built})</small></div></div>
+      </div>
+
+      <details class="peers" open>
+        <summary><span class="chev">›</span> 동일조건 ${h._peers.length}개 단지 비교 (저가순)</summary>
+        ${peerRows || '<div class="empty">비교 가능한 동일조건 단지가 부족합니다.</div>'}
+      </details>
+    </div>`;
+
+  panel.classList.add("open"); panel.setAttribute("aria-hidden","false");
+  hint.classList.add("gone");
+  panel.querySelector(".close").onclick = closePanel;
+  panel.querySelectorAll(".peer").forEach(el=>el.onclick=()=>{
+    const p = HOMES.find(x=>x.id===el.dataset.id);
+    if(p){ map.panTo([p.lat,p.lng]); openPanel(p.id); }
+  });
+  if(window.innerWidth>720) map.panTo([h.lat,h.lng]);
+}
+
+function closePanel(){
+  panel.classList.remove("open"); panel.setAttribute("aria-hidden","true");
+  const prev = selected; selected=null;
+  if(prev && markers.has(prev)) markers.get(prev).setIcon(markerIcon(HOMES.find(x=>x.id===prev),false));
+}
+function esc(s){ const d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+
+/* ---- controls ---- */
+const sizeSel=document.getElementById("sizeSel");
+const guSel=document.getElementById("guSel");
+const qInput=document.getElementById("q");
+const cnt=document.getElementById("cnt");
+const hint=document.getElementById("hint");
+
+Object.keys(GU).forEach(g=>{ const o=document.createElement("option"); o.value=g; o.textContent=g; guSel.appendChild(o); });
+
+document.getElementById("modeSeg").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  document.querySelectorAll("#modeSeg button").forEach(x=>x.classList.toggle("on",x===b));
+  mode=b.dataset.mode; recompute(); renderMarkers();
+  if(selected) openPanel(selected);
+});
+sizeSel.onchange=renderMarkers;
+guSel.onchange=()=>{ renderMarkers(); if(guSel.value!=="all") map.flyTo(GU[guSel.value].c,12.6,{duration:.6}); };
+let qt; qInput.oninput=()=>{ clearTimeout(qt); qt=setTimeout(renderMarkers,120); };
+
+map.on("click",()=>{ /* clicking empty map keeps selection; tap close to dismiss */ });
+
+/* ---- boot ---- */
+recompute();
+renderMarkers();
+setTimeout(()=>hint.classList.add("gone"),6000);
+
+/* ---- PWA ---- */
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
