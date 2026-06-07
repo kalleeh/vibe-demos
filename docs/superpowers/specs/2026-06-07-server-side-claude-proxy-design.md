@@ -30,7 +30,7 @@ Moving the key server-side does not remove risk — it **changes its shape**, fr
 |---|---|---|---|
 | 1. Key in systemd `Environment=`, never in repo/frontend/logs | server | trivial | hides the key (the literal ask) |
 | 2. Abuse control: per-IP rate limit + global daily cap + origin check | hook | **the real work** | stops a leaked URL from draining the account |
-| 3. Anthropic-side spend cap ($10/mo) + model allow-list | console | trivial (manual) | the hard backstop when 1–2 fail |
+| 3. Anthropic-side spend cap ($5/mo) + model allow-list | console | trivial (manual) | the hard backstop when 1–2 fail |
 | 4. ~~Streaming passthrough~~ | — | n/a | **eliminated** — demos are non-streaming |
 
 Layer 1 alone is NOT "secure" — it just relocates risk. Layers 2 + 3 are what make it safe. Decided abuse posture: **layered + generous** (casual viewers never hit limits; scripted abuse stops fast).
@@ -68,7 +68,7 @@ IP for rate-limiting comes from Caddy's `X-Forwarded-For` (Caddy is the TLS term
 ### 3.4 Anthropic-side backstop (Layer 3 — manual, owner-only)
 
 These are **console steps the owner performs; never automated, never in the repo:**
-- Dedicated workspace + a per-key **monthly spend cap ($10)**.
+- Dedicated workspace + a per-key **monthly spend cap ($5)**.
 - Restrict the key to the three allow-listed models.
 - Email alerts at $1 / $3 / $5.
 - The key value is set ONLY in the server's systemd unit `Environment=ANTHROPIC_PROXY_KEY=...` (or an `EnvironmentFile=` with 0600 perms), never committed, never echoed.
@@ -112,12 +112,16 @@ Until those manual steps are done, the proxy returns a clean 503 ("live proxy no
 
 ---
 
-## 7. Open questions (resolve at plan/implementation)
+## 7. Verified against the live server (2026-06-07)
 
-- **PB 0.25 built-in rate limiter vs. in-hook sliding window** for per-IP — prefer built-in if it covers custom routes; verify against 0.25.8.
-- **Budget counter store** — tiny collection vs. pb_data JSON file. Lean collection (survives restart, queryable).
-- **`$http.send` in PB 0.25.8 JSVM** — confirm the exact API (timeout, header passing, response shape) before writing the forward; it's the one PB-version-sensitive piece.
-- **sync-backends.sh env injection** — does it support per-backend env, or is a manual systemd override the path? Confirm before claiming the deploy is one-command.
+A throwaway PB 0.25.8 instance on the actual box confirmed the two load-bearing unknowns:
+- ✅ **`$os.getenv` works** — returned a real env value. The key-from-env approach is sound.
+- ✅ **`$http.send` works and forwards to Anthropic** — a probe with a deliberately-invalid key reached `api.anthropic.com/v1/messages` and relayed back a structured `401 invalid x-api-key` with the request_id. The dumb-forward (headers in, status+body out) is proven end-to-end. This was the one PB-version-sensitive piece.
+- ✅ **systemd env injection** — units use a template + per-instance `.d/` drop-ins (`port.conf` written by `sync-backends.sh`). The key goes in a SEPARATE, manually-managed `.d/env.conf` (`Environment=ANTHROPIC_PROXY_KEY=...`, 0600) that coexists with and survives syncs — and stays out of the repo/script entirely. `sync-backends.sh` is NOT modified to carry the key.
+
+Remaining minor choices (decide at plan time, low risk):
+- **PB 0.25 built-in rate limiter vs. in-hook sliding window** for per-IP — prefer built-in if it cleanly covers custom routes; in-hook map is the fallback.
+- **Budget counter store** — lean a tiny collection (survives restart, queryable) over a pb_data JSON file.
 
 ---
 
