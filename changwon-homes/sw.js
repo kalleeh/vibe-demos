@@ -1,6 +1,6 @@
 /* changwon-homes — offline shell SW (network-first HTML, cache-first assets) */
-const CACHE = "vibe-changwon-homes-v1";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
+const CACHE = "vibe-changwon-homes-v2";
+const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./data.json"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

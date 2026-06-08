@@ -177,6 +177,22 @@
   .peer .vd{width:42px;text-align:right;font-family:var(--mono);font-size:11px}
   .peer.self{background:rgba(47,111,107,.09);margin:0 -8px;padding:9px 8px;border-radius:8px;border-bottom:0}
 
+  /* per-size-band comparison cards */
+  .bandtitle{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.05em;margin:16px 0 10px}
+  .bandcard{border:1px solid var(--line);border-radius:14px;padding:13px 14px;background:#fff;margin-bottom:11px}
+  .bandhead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px}
+  .bandhead .bp{font-size:15px;font-weight:600}
+  .bandhead .bp small{font-size:11px;color:var(--muted);font-weight:400;font-family:var(--mono)}
+  .bandhead .bprice{font-family:"Fraunces",serif;font-size:21px;font-weight:500;font-variant-numeric:tabular-nums}
+  .bandfoot{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:10px}
+  .ringmini{position:relative;width:40px;height:40px;flex:none;display:inline-flex;align-items:center;justify-content:center}
+  .ringmini svg{transform:rotate(-90deg);position:absolute;inset:0}
+  .ringmini b{font-family:"Fraunces",serif;font-size:13px;font-weight:500}
+  .bandcard .sub{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.5}
+  .bandcard .peers{margin-top:10px}
+  .bandcard .peers summary{padding:8px 0;font-size:12px}
+
   .empty{padding:40px 24px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6}
 
   /* hint when nothing selected */
@@ -268,119 +284,117 @@ const GU = {
   "진해구":   {c:[35.1340,128.7050], adj:["성산구"]},
 };
 
-/* ---- Synthetic complexes. price in 억(매매), jeonse in 억. size in 평.
-        sc=학군 1..5, tr=교통 1..5. dx/dy = small offset from gu centre. ---- */
-const RAW = [
-  // 성산구 — newest, priciest core
-  ["용지더샵레이크파크","성산구","용지동",34,2017,8.9,5.2,5,4, .004,.010],
-  ["용지아이파크","성산구","용지동",43,2017,11.6,6.6,5,4, .009,.006],
-  ["가음한국아델리움","성산구","가음동",33,2016,7.4,4.4,4,4, -.012,.004],
-  ["가음꿈에그린","성산구","가음동",25,2015,5.3,3.5,4,4, -.016,-.002],
-  ["성산반지동대동","성산구","반지동",32,2003,5.1,3.6,3,3, .018,-.010],
-  ["사파현대","성산구","사파동",30,1996,3.9,2.9,3,3, -.022,-.016],
-  ["남양e편한세상","성산구","남양동",34,2009,5.6,3.8,3,3, .014,.018],
-  ["상남prado","성산구","상남동",24,2011,5.0,3.4,4,5, -.006,.014],
-  ["대방대동그린","성산구","대방동",28,1998,3.6,2.6,3,2, -.026,.020],
-  ["가음정주공","성산구","가음정동",23,1992,3.0,2.2,3,3, -.010,-.020],
-  ["용지롯데캐슬센텀","성산구","용지동",38,2018,10.2,6.0,5,4, .013,.013],
-  ["중앙동시티세븐","성산구","중앙동",45,2009,9.1,5.4,4,5, .000,-.006],
+/* ---- Tiny synthetic fallback (offline / data.json fetch failure only).
+        Real data lives in data.json — 829 complexes from MOLIT 실거래가.
+        Each complex: {name,gu,dong,built,lat,lng,dealCount,sizes:[{pyeong,area_m2,sale,jeonse,n}]} ---- */
+const FALLBACK = { meta:{ period:"표본", fallback:true }, complexes:[
+  {name:"트리비앙",gu:"성산구",dong:"반림동",built:2006,lat:35.2344,lng:128.6729,dealCount:417,
+   sizes:[{pyeong:18,area_m2:60,sale:5.6,jeonse:3.8,n:82},{pyeong:26,area_m2:85,sale:6.9,jeonse:4.7,n:183},{pyeong:39,area_m2:130,sale:8.9,jeonse:6.5,n:21}]},
+  {name:"창원센텀푸르지오",gu:"성산구",dong:"가음동",built:2018,lat:35.2097,lng:128.6896,dealCount:121,
+   sizes:[{pyeong:18,area_m2:60,sale:6.61,jeonse:4.2,n:37},{pyeong:26,area_m2:85,sale:8.08,jeonse:5.4,n:40}]},
+  {name:"중동유니시티",gu:"의창구",dong:"중동",built:2019,lat:35.2558,lng:128.6259,dealCount:96,
+   sizes:[{pyeong:26,area_m2:85,sale:8.4,jeonse:5.2,n:30},{pyeong:34,area_m2:113,sale:9.4,jeonse:6.0,n:18}]},
+  {name:"양덕메트로시티",gu:"마산회원구",dong:"양덕동",built:2014,lat:35.2200,lng:128.5977,dealCount:74,
+   sizes:[{pyeong:25,area_m2:84,sale:5.4,jeonse:3.6,n:20},{pyeong:33,area_m2:110,sale:6.2,jeonse:4.2,n:14}]},
+  {name:"자은중흥S클래스",gu:"진해구",dong:"자은동",built:2018,lat:35.1480,lng:128.6890,dealCount:60,
+   sizes:[{pyeong:26,area_m2:84,sale:4.6,jeonse:3.2,n:18},{pyeong:34,area_m2:113,sale:5.4,jeonse:3.8,n:10}]},
+  {name:"월영마린애시앙",gu:"마산합포구",dong:"월영동",built:2019,lat:35.1845,lng:128.5638,dealCount:55,
+   sizes:[{pyeong:26,area_m2:84,sale:4.2,jeonse:3.0,n:16},{pyeong:34,area_m2:113,sale:5.0,jeonse:3.5,n:9}]},
+]};
 
-  // 의창구 — 중동 신도시 + 상남 상권
-  ["창원중동유니시티1","의창구","중동",34,2019,9.4,5.6,5,5, .006,.008],
-  ["창원중동유니시티4","의창구","중동",43,2019,12.1,7.0,5,5, .010,.012],
-  ["대원효성해링턴","의창구","대원동",33,2014,6.6,4.2,4,4, -.014,-.006],
-  ["봉곡한신","의창구","봉곡동",30,1995,3.8,2.8,3,3, -.020,.016],
-  ["명서주공","의창구","명서동",24,1993,3.1,2.3,3,3, -.026,.006],
-  ["팔용한라비발디","의창구","팔용동",32,2008,4.9,3.4,3,3, .020,-.014],
-  ["사림한일","의창구","사림동",29,1994,3.7,2.7,4,4, .002,-.020],
-  ["도계동우림","의창구","도계동",27,2001,3.9,2.9,3,3, .024,.000],
-  ["중동sk뷰","의창구","중동",29,2019,7.7,4.7,5,5, .002,.004],
-  ["서곡지구푸르지오","의창구","서곡동",36,2020,8.3,5.0,4,4, -.018,.020],
-
-  // 마산회원구
-  ["양덕동메트로시티1","마산회원구","양덕동",33,2014,5.4,3.6,4,4, .010,.006],
-  ["양덕동메트로시티2","마산회원구","양덕동",43,2016,7.2,4.6,4,4, .013,.010],
-  ["합성동롯데캐슬","마산회원구","합성동",34,2012,5.0,3.4,3,4, -.008,.014],
-  ["회원동현대","마산회원구","회원동",28,1999,3.0,2.3,3,3, -.018,-.010],
-  ["석전동삼성","마산회원구","석전동",25,1997,2.7,2.1,3,3, .016,-.016],
-  ["내서읍중리데시앙","마산회원구","내서읍",32,2010,4.0,2.9,3,3, -.024,.022],
-  ["내서읍삼계서희","마산회원구","내서읍",30,2007,3.5,2.6,3,3, -.028,.016],
-  ["양덕동코오롱하늘채","마산회원구","양덕동",29,2013,4.7,3.2,4,4, .007,.012],
-
-  // 마산합포구 — bay, older stock
-  ["월영동무학자이","마산합포구","월영동",34,2013,4.8,3.3,3,3, .010,.012],
-  ["월영동마린애시앙","마산합포구","월영동",43,2019,6.6,4.2,3,4, .014,.016],
-  ["산호동롯데","마산합포구","산호동",28,2002,3.0,2.3,3,3, -.006,-.008],
-  ["해운동신세계","마산합포구","해운동",26,1996,2.5,1.9,2,3, -.014,-.014],
-  ["가포동한신휴플러스","마산합포구","가포동",33,2017,5.2,3.5,3,3, .018,.022],
-  ["반월동코아루","마산합포구","반월동",24,2008,2.8,2.1,3,3, .006,-.018],
-  ["완월동대우","마산합포구","완월동",30,1994,2.6,2.0,2,3, -.010,.006],
-
-  // 진해구 — navy town, value end
-  ["자은동중흥s클래스","진해구","자은동",34,2018,5.4,3.6,4,4, -.006,.012],
-  ["자은동한라비발디","진해구","자은동",43,2017,6.8,4.4,4,4, -.002,.016],
-  ["풍호동대동다숲","진해구","풍호동",32,2015,4.4,3.1,3,4, .012,.006],
-  ["석동주공","진해구","석동",24,1995,2.2,1.7,3,3, .016,-.012],
-  ["여좌동벚꽃","진해구","여좌동",29,2004,3.0,2.3,3,3, -.016,-.006],
-  ["경화동e편한세상","진해구","경화동",33,2011,4.0,2.9,3,3, .008,.018],
-  ["용원동롯데캐슬","진해구","용원동",30,2009,3.6,2.7,3,3, .022,.024],
-  ["자은동꿈에그린","진해구","자은동",28,2016,4.6,3.2,4,4, -.010,.008],
-];
+/* HOMES = one entry per complex. Each carries its size-bands. Value scores are
+   computed per (complex,size) against same-size peers in the same/adjacent 구. */
+let HOMES = [];
+let DATA_META = {};
+let mode = "sale"; // 'sale' | 'jeonse'
 
 let SEQ = 0;
-const HOMES = RAW.map(r => {
-  const [name,gu,dong,size,built,sale,jeonse,sc,tr,dx,dy] = r;
-  const c = GU[gu].c;
-  return {
-    id:"h"+(SEQ++), name, gu, dong, size, built, sale, jeonse, sc, tr,
-    lat:c[0]+dy, lng:c[1]+dx,
-  };
-});
-
-/* ---- comparison engine ---- */
-let mode = "sale"; // 'sale' | 'jeonse'
-const priceOf = h => mode==="sale" ? h.sale : h.jeonse;
-const ppp     = h => priceOf(h)*10000/h.size; // 만원/평
-
-function peersOf(h){
-  const okGu = new Set([h.gu, ...GU[h.gu].adj]);
-  let p = HOMES.filter(o => o.id!==h.id
-    && okGu.has(o.gu)
-    && Math.abs(o.size - h.size) <= 5
-    && Math.abs(o.built - h.built) <= 8
-    && Math.abs((o.sc+o.tr) - (h.sc+h.tr)) <= 2);
-  if (p.length < 4){ // relax: same gu, wider size
-    p = HOMES.filter(o => o.id!==h.id && o.gu===h.gu && Math.abs(o.size-h.size) <= 8);
-  }
-  if (p.length < 3){ // last resort: nearest by size in same/adjacent gu
-    p = HOMES.filter(o => o.id!==h.id && okGu.has(o.gu))
-        .sort((a,b)=>Math.abs(a.size-h.size)-Math.abs(b.size-h.size)).slice(0,6);
-  }
-  return p;
+function ingest(data){
+  DATA_META = data.meta || {};
+  HOMES = (data.complexes||[]).map(c => ({
+    id:"h"+(SEQ++),
+    name:c.name, gu:c.gu, dong:c.dong, built:c.built,
+    lat:c.lat, lng:c.lng, dealCount:c.dealCount||0,
+    sizes:c.sizes||[],
+  }));
 }
 
-function valueScore(h, peers){
-  if(!peers.length) return 5;
-  const peerAvgPPP = peers.reduce((s,o)=>s+ppp(o),0)/peers.length;
-  const priceDelta = (peerAvgPPP - ppp(h))/peerAvgPPP;       // +ve = cheaper than peers
-  const qualityBonus = ((h.sc+h.tr) - 6)/6 * 1.0;
-  const recency = (h.built - 2005)/20 * 0.8;
-  return Math.max(0.5, Math.min(9.8, 5 + priceDelta*15 + qualityBonus + recency));
+/* price of a size-band in the current mode */
+const bandPrice = b => mode==="sale" ? b.sale : b.jeonse;
+const bandPPP   = b => { const p=bandPrice(b); return p? p*10000/b.pyeong : null; };
+/* a complex "has" the current mode if any band is priced in it */
+function pricedSizes(h){ return h.sizes.filter(b => bandPrice(b)!=null); }
+
+/* peers for ONE size-band of a complex. Locality matters enormously: 평단가
+   varies 2-3× between 동, so a fair "good deal?" comparison must be against
+   nearby units of similar size — NOT the whole 구 (which just measures whether
+   the 동 is pricey). Strategy, widening only if a tier is too thin:
+     1. same 동, similar 평 (±4)
+     2. + adjacent dong by geographic distance (≤2.5km), similar 평
+     3. same 구, similar 평 (±5) as a last resort
+   All filtered to bands priced in the current mode. Returns [{h,b}]. */
+function distKm(a,b){
+  const dy=(a.lat-b.lat)*111, dx=(a.lng-b.lng)*89; // ~Changwon lat
+  return Math.sqrt(dy*dy+dx*dx);
+}
+function collect(h,b,pred,span){
+  const out=[];
+  for(const o of HOMES){
+    if(o.id===h.id || !pred(o)) continue;
+    for(const ob of o.sizes){
+      if(bandPrice(ob)==null) continue;
+      if(Math.abs(ob.pyeong-b.pyeong)<=span) out.push({h:o,b:ob});
+    }
+  }
+  return out;
+}
+function ageOk(o,h){ return o.built==null||h.built==null||Math.abs(o.built-h.built)<=12; }
+function bandPeers(h, b){
+  // tier 1: same 동, similar 평, similar age — the fairest comparison
+  let out = collect(h,b,o=>o.dong===h.dong && ageOk(o,h), 4);
+  // tier 2: nearby (≤2.5km), similar 평+age
+  if(out.length<4) out = collect(h,b,o=>distKm(o,h)<=2.5 && ageOk(o,h), 4);
+  // tier 3: same 동 any age (drop age before dropping locality — locality matters more)
+  if(out.length<4) out = collect(h,b,o=>o.dong===h.dong, 5);
+  // tier 4: same 구, last resort
+  if(out.length<4) out = collect(h,b,o=>o.gu===h.gu, 5);
+  return out;
 }
 
-/* attach derived fields for current mode */
+/* value score for one size-band (0.5..9.8): cheaper-than-peers + newer = higher */
+function bandScore(h, b, peers){
+  const ppp = bandPPP(b);
+  if(!peers.length || ppp==null) return 5;
+  const avg = peers.reduce((s,p)=>s+bandPPP(p.b),0)/peers.length;
+  const priceDelta = (avg - ppp)/avg;                  // +ve = cheaper than local peers
+  const recency = h.built!=null ? (h.built-2005)/20*0.8 : 0;
+  // *9 fits the realistic ±30% local 평단가 spread without flooring/ceiling-ing.
+  return Math.max(0.5, Math.min(9.8, 5 + priceDelta*9 + recency));
+}
+
+/* attach derived per-band + per-complex fields for current mode.
+   A complex's headline score = its BEST band score (the standout deal). */
 function recompute(){
   for(const h of HOMES){
-    h._peers = peersOf(h);
-    h._avgPPP = h._peers.length ? h._peers.reduce((s,o)=>s+ppp(o),0)/h._peers.length : ppp(h);
-    h._avgPrice = h._peers.length ? h._peers.reduce((s,o)=>s+priceOf(o),0)/h._peers.length : priceOf(h);
-    h._ppp = ppp(h);
-    h._score = valueScore(h, h._peers);
+    h._bands = [];
+    for(const b of h.sizes){
+      if(bandPrice(b)==null) continue;
+      const peers = bandPeers(h,b);
+      const avgPrice = peers.length ? peers.reduce((s,p)=>s+bandPrice(p.b),0)/peers.length : bandPrice(b);
+      const avgPPP   = peers.length ? peers.reduce((s,p)=>s+bandPPP(p.b),0)/peers.length : bandPPP(b);
+      h._bands.push({ b, peers, avgPrice, avgPPP, ppp:bandPPP(b), score:bandScore(h,b,peers) });
+    }
+    h._score = h._bands.length ? Math.max(...h._bands.map(x=>x.score)) : null;
+    h._minPyeong = h._bands.length ? Math.min(...h._bands.map(x=>x.b.pyeong)) : null;
+    h._maxPyeong = h._bands.length ? Math.max(...h._bands.map(x=>x.b.pyeong)) : null;
   }
-  // recommended = top-tertile score AND cheaper-or-equal vs peers
-  const scores = HOMES.map(h=>h._score).sort((a,b)=>b-a);
-  const cut = scores[Math.floor(scores.length*0.22)] ?? 8;
-  for(const h of HOMES) h._rec = h._score >= cut && h._ppp <= h._avgPPP*1.02;
+  const scored = HOMES.filter(h=>h._score!=null);
+  const scores = scored.map(h=>h._score).sort((a,b)=>b-a);
+  const cut = scores[Math.floor(scores.length*0.20)] ?? 8;
+  for(const h of HOMES){
+    const best = h._bands.length ? h._bands.reduce((a,x)=>x.score>a.score?x:a) : null;
+    h._rec = h._score!=null && h._score>=cut && best && best.ppp<=best.avgPPP*1.02;
+  }
 }
 
 /* score -> colour on red→amber→green ramp */
@@ -397,28 +411,34 @@ function scoreColor(s){
 const map = L.map("map",{zoomControl:true,attributionControl:true}).setView([35.215,128.62],11.5);
 L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{
   maxZoom:19, subdomains:"abcd",
-  attribution:'&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a> · 데이터는 데모용 합성',
+  attribution:'&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a> · 실거래가: 국토교통부',
 }).addTo(map);
 
 let markers = new Map(); // id -> L.marker
 let selected = null;
 
 function markerIcon(h, sel){
-  const r = 9 + (h.size-24)/3;             // size ↦ radius
-  const d = Math.max(16, Math.min(34, r*2));
+  const pv = h._maxPyeong || 26;
+  const r = 8 + (pv-20)/4;                  // largest size ↦ radius
+  const d = Math.max(15, Math.min(32, r*2));
   const cls = "mk"+(h._rec?" rec":"")+(sel?" sel":"");
-  const txt = h._score>=9 ? "★" : "";
+  const txt = (h._score!=null && h._score>=9) ? "★" : "";
   return L.divIcon({
     className:"", iconSize:[d,d], iconAnchor:[d/2,d/2],
-    html:`<div class="${cls}" style="width:${d}px;height:${d}px;background:${scoreColor(h._score)}">${txt}</div>`,
+    html:`<div class="${cls}" style="width:${d}px;height:${d}px;background:${scoreColor(h._score!=null?h._score:5)}">${txt}</div>`,
   });
 }
 
+/* representative (best-scoring) band of a complex in current mode */
+function bestBand(h){ return h._bands.length ? h._bands.reduce((a,x)=>x.score>a.score?x:a) : null; }
+
 function visibleHomes(){
   const sz = sizeSel.value, gu = guSel.value, q = qInput.value.trim().toLowerCase();
+  const [lo,hi] = sz!=="all" ? sz.split("-").map(Number) : [null,null];
   return HOMES.filter(h=>{
+    if(!h._bands.length) return false;                 // not priced in this mode
     if(gu!=="all" && h.gu!==gu) return false;
-    if(sz!=="all"){ const [a,b]=sz.split("-").map(Number); if(!(h.size>=a && h.size<b)) return false; }
+    if(sz!=="all" && !h._bands.some(x=>x.b.pyeong>=lo && x.b.pyeong<hi)) return false;
     if(q && !(`${h.name}${h.gu}${h.dong}`.toLowerCase().includes(q))) return false;
     return true;
   });
@@ -432,7 +452,9 @@ function renderMarkers(){
     const m = L.marker([h.lat,h.lng],{icon:markerIcon(h, h.id===selected)})
       .addTo(map)
       .on("click",()=>openPanel(h.id));
-    m.bindTooltip(`${h.name}<br>${h.size}평 · ${fmtPrice(priceOf(h))}`,{direction:"top",offset:[0,-10],opacity:.95});
+    const bb = bestBand(h);
+    const range = h._minPyeong===h._maxPyeong ? `${h._maxPyeong}평` : `${h._minPyeong}~${h._maxPyeong}평`;
+    m.bindTooltip(`${h.name}<br>${range} · ${bb?fmtPrice(bandPrice(bb.b)):"-"}~`,{direction:"top",offset:[0,-10],opacity:.95});
     markers.set(h.id, m);
   }
   cnt.textContent = vis.length;
@@ -451,83 +473,84 @@ const modeLabel = ()=> mode==="sale" ? "매매가" : "전세가";
 /* ---- detail panel ---- */
 const panel = document.getElementById("panel");
 
-function starRow(n){ // n out of 5
-  let s="<span class='stars'>";
-  for(let i=1;i<=5;i++) s+=`<i class="${i<=n?"f":""}"></i>`;
-  return s+"</span>";
+/* render the comparison block for a single size-band */
+function bandBlock(h, x){
+  const price = bandPrice(x.b), avg = x.avgPrice;
+  const deltaPct = (price-avg)/avg*100;
+  const pppDeltaPct = (x.ppp - x.avgPPP)/x.avgPPP*100;
+  const fillW = Math.max(6, Math.min(96, (price/(avg*1.8))*100));
+  const avgPos = Math.max(6, Math.min(96, (avg/(avg*1.8))*100));
+  const dirCls = deltaPct>2.5?"up":deltaPct<-2.5?"down":"flat";
+  const dirWord = deltaPct>2.5?`평균보다 ${pct(deltaPct)} 비쌈`
+                : deltaPct<-2.5?`평균보다 ${pct(deltaPct)} 저렴`
+                : "평균과 거의 동일";
+  // value rank among peers+self for this band
+  const pool=[...x.peers.map(p=>({score:bandScore(p.h,p.b,[])})), {score:x.score}]; // light
+  const ringLen=2*Math.PI*22, ringOff=ringLen*(1-x.score/10);
+  return `
+    <div class="bandcard">
+      <div class="bandhead">
+        <span class="bp">${x.b.pyeong}평 <small>(${x.b.area_m2}㎡)</small></span>
+        <span class="bprice" style="color:${scoreColor(x.score)}">${fmtPrice(price)}</span>
+      </div>
+      <div class="barwrap">
+        <div class="bar">
+          <div class="fill" style="width:${fillW}%;background:${scoreColor(x.score)}"></div>
+          <div class="avgline" style="left:${avgPos}%"></div>
+          <div class="avgflag" style="left:${avgPos}%">평균 ${fmtPrice(avg)}</div>
+          <div class="val">${fmtPrice(price)}</div>
+        </div>
+      </div>
+      <div class="bandfoot">
+        <span class="delta ${dirCls}">${dirWord}</span>
+        <span class="ringmini" title="가치점수 ${x.score.toFixed(1)}/10" style="--c:${scoreColor(x.score)}">
+          <svg width="40" height="40" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="none" stroke="var(--line)" stroke-width="4"/><circle cx="24" cy="24" r="22" fill="none" stroke="${scoreColor(x.score)}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${ringLen}" stroke-dashoffset="${ringOff}"/></svg>
+          <b>${x.score.toFixed(1)}</b>
+        </span>
+      </div>
+      <div class="sub">평단가 ${fmtPPP(x.ppp)} · 동일조건 평균 ${fmtPPP(x.avgPPP)} (${pct(pppDeltaPct)}) · 비교 ${x.peers.length}개 단지 · 거래 ${x.b.n}건</div>
+      <details class="peers">
+        <summary><span class="chev">›</span> 동일조건 단지 비교 (저가순)</summary>
+        ${[...x.peers].sort((a,b)=>bandPrice(a.b)-bandPrice(b.b)).slice(0,12).map(p=>`
+          <div class="peer" data-id="${p.h.id}">
+            <span class="nm">${esc(p.h.name)} <small>${p.b.pyeong}평·${p.h.built||"-"}</small></span>
+            <span class="pr">${fmtPrice(bandPrice(p.b))}</span>
+          </div>`).join("") || '<div class="empty">비교 단지 부족</div>'}
+      </details>
+    </div>`;
 }
 
 function openPanel(id){
   const h = HOMES.find(x=>x.id===id); if(!h) return;
   const prev = selected; selected = id;
-  // refresh marker styles
   if(prev && markers.has(prev)) markers.get(prev).setIcon(markerIcon(HOMES.find(x=>x.id===prev),false));
   if(markers.has(id)) markers.get(id).setIcon(markerIcon(h,true));
 
-  const price = priceOf(h);
-  const avg = h._avgPrice;
-  const deltaPct = (price-avg)/avg*100;
-  const pppDeltaPct = (h._ppp - h._avgPPP)/h._avgPPP*100;
+  if(!h._bands.length){
+    panel.innerHTML = `<div class="ph"><button class="close">×</button><h2>${esc(h.name)}</h2>
+      <div class="loc">${h.gu} ${h.dong}</div></div>
+      <div class="pbody"><div class="empty">이 단지는 현재 모드(${modeLabel()})의 실거래 데이터가 없습니다.<br>매매/전세 토글을 바꿔보세요.</div></div>`;
+    panel.classList.add("open"); panel.querySelector(".close").onclick=closePanel; return;
+  }
 
-  // bar: scale so peer-avg sits near 55%; clamp this unit 5..95%
-  const ratio = price/ (avg*1.8);
-  const fillW = Math.max(6, Math.min(96, ratio*100));
-  const avgPos = Math.max(6, Math.min(96, (avg/(avg*1.8))*100)); // = 55.5%
-
-  const dirCls = deltaPct>2.5?"up":deltaPct<-2.5?"down":"flat";
-  const dirWord = deltaPct>2.5?`평균보다 ${pct(deltaPct)} 비쌈`
-                : deltaPct<-2.5?`평균보다 ${pct(Math.abs(deltaPct)*-1)} 저렴`
-                : "평균과 거의 동일";
-
-  // percentile among peers+self by score (lower % = better value)
-  const pool = [...h._peers, h].sort((a,b)=>b._score-a._score);
-  const rank = pool.findIndex(x=>x.id===h.id)+1;
-  const topPct = Math.max(1, Math.round(rank/pool.length*100));
-
+  const best = h._bands.reduce((a,x)=>x.score>a.score?x:a);
   let verdict;
   if(h._score>=8.5) verdict="동일조건 최상위 가성비";
   else if(h._score>=7) verdict="평균보다 좋은 조건";
   else if(h._score>=5) verdict="평균 수준";
   else if(h._score>=3.5) verdict="다소 비싼 편";
   else verdict="가격 부담이 큼";
-
-  // peer list
-  const peerRows = [...h._peers].sort((a,b)=>priceOf(a)-priceOf(b)).map(p=>`
-    <div class="peer" data-id="${p.id}">
-      <span class="nm">${esc(p.name)} <small>${p.size}평·${p.built}</small></span>
-      <span class="pr">${fmtPrice(priceOf(p))}</span>
-      <span class="vd" style="color:${scoreColor(p._score)}">${p._score.toFixed(1)}</span>
-    </div>`).join("");
-
-  const ringLen = 2*Math.PI*28;
-  const ringOff = ringLen*(1 - h._score/10);
+  const ringLen=2*Math.PI*28, ringOff=ringLen*(1-h._score/10);
+  const age = h.built!=null ? `${2026-h.built}년차 <small>(${h.built})</small>` : "—";
+  const bands = [...h._bands].sort((a,b)=>a.b.pyeong-b.b.pyeong);
 
   panel.innerHTML = `
     <div class="ph">
       <button class="close" aria-label="닫기">×</button>
       <h2>${esc(h.name)}</h2>
-      <div class="loc">${h.gu} ${h.dong} · ${h.size}평 · ${h.built}년 준공</div>
+      <div class="loc">${h.gu} ${h.dong} · ${h._minPyeong===h._maxPyeong?h._maxPyeong+"평":h._minPyeong+"~"+h._maxPyeong+"평"} · ${h.built||"-"}년 준공</div>
     </div>
     <div class="pbody">
-      <div class="price-head">
-        <span class="big" style="color:${scoreColor(h._score)}">${fmtPrice(price)}</span>
-        <span class="lbl">${modeLabel()} · ${fmtPPP(h._ppp)}</span>
-      </div>
-
-      <div class="cmp">
-        <h3>동일조건 평균 대비 <span style="text-transform:none;font-weight:400;color:var(--muted)">(${h._peers.length}개 단지)</span></h3>
-        <div class="barwrap">
-          <div class="bar">
-            <div class="fill" style="width:${fillW}%;background:${scoreColor(h._score)}"></div>
-            <div class="avgline" style="left:${avgPos}%"></div>
-            <div class="avgflag" style="left:${avgPos}%">평균 ${fmtPrice(avg)}</div>
-            <div class="val">${fmtPrice(price)}</div>
-          </div>
-        </div>
-        <div class="delta ${dirCls}">${dirWord}</div>
-        <div class="sub">평단가 ${fmtPPP(h._ppp)} · 평균 ${fmtPPP(h._avgPPP)} (${pct(pppDeltaPct)})</div>
-      </div>
-
       <div class="score">
         <div class="ring">
           <svg width="64" height="64" viewBox="0 0 64 64">
@@ -539,21 +562,17 @@ function openPanel(id){
         </div>
         <div class="txt">
           <div class="verdict">${verdict}</div>
-          <div class="pct">동일조건 ${pool.length}개 중 가치 <b>상위 ${topPct}%</b>${h._rec?" · ★ 추천":""}</div>
+          <div class="pct">대표 ${best.b.pyeong}평 기준 · ${modeLabel()}${h._rec?" · ★ 추천":""}</div>
         </div>
       </div>
 
       <div class="metrics">
-        <div class="metric"><div class="k">학군</div><div class="v">${starRow(h.sc)}</div></div>
-        <div class="metric"><div class="k">교통</div><div class="v">${starRow(h.tr)}</div></div>
-        <div class="metric"><div class="k">평형</div><div class="v">${h.size}<small> 평</small></div></div>
-        <div class="metric"><div class="k">연식</div><div class="v">${2026-h.built}<small> 년차 (${h.built})</small></div></div>
+        <div class="metric"><div class="k">연식</div><div class="v">${age}</div></div>
+        <div class="metric"><div class="k">거래량 <small>(1년)</small></div><div class="v">${h.dealCount}<small> 건</small></div></div>
       </div>
 
-      <details class="peers" open>
-        <summary><span class="chev">›</span> 동일조건 ${h._peers.length}개 단지 비교 (저가순)</summary>
-        ${peerRows || '<div class="empty">비교 가능한 동일조건 단지가 부족합니다.</div>'}
-      </details>
+      <h3 class="bandtitle">평형별 ${modeLabel()} · 동일조건 비교</h3>
+      ${bands.map(x=>bandBlock(h,x)).join("")}
     </div>`;
 
   panel.classList.add("open"); panel.setAttribute("aria-hidden","false");
@@ -594,9 +613,22 @@ let qt; qInput.oninput=()=>{ clearTimeout(qt); qt=setTimeout(renderMarkers,120);
 
 map.on("click",()=>{ /* clicking empty map keeps selection; tap close to dismiss */ });
 
-/* ---- boot ---- */
-recompute();
-renderMarkers();
+/* ---- boot: fetch real data.json, fall back to tiny synthetic sample ---- */
+function boot(data){
+  ingest(data);
+  recompute();
+  renderMarkers();
+  // demo pill text reflects real vs fallback
+  const pill = document.querySelector(".demo-pill");
+  if(pill){
+    if(DATA_META.fallback){ pill.innerHTML = '<span class="dot"></span>오프라인 표본'; }
+    else { pill.innerHTML = '<span class="dot"></span>실거래가 · ' + (DATA_META.complexes||HOMES.length) + '개 단지'; }
+  }
+}
+fetch("./data.json", {cache:"no-cache"})
+  .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
+  .then(boot)
+  .catch(err => { console.warn("data.json load failed, using fallback:", err); boot(FALLBACK); });
 setTimeout(()=>hint.classList.add("gone"),6000);
 
 /* ---- PWA ---- */
