@@ -116,14 +116,25 @@ def main(paths):
 
             if is_rent:
                 kind = get(row, idx, "전월세구분")
-                deposit = eok(get(row, idx, "보증금(만원)"))
-                monthly = get(row, idx, "월세금(만원)").replace(",", "").strip()
-                is_jeonse = (monthly in ("", "0", "-")) or kind == "전세"
+                deposit = eok(get(row, idx, "보증금(만원)"))   # 억
+                mon_raw = get(row, idx, "월세금(만원)").replace(",", "").strip()
+                try:
+                    monthly = int(mon_raw) if mon_raw not in ("", "-") else 0
+                except ValueError:
+                    monthly = 0
+                is_jeonse = (monthly == 0) or kind == "전세"
                 if is_jeonse and deposit is not None:
                     n_jeonse += 1
                     if ym > slot.get("jeonse_ym", ""):
                         slot["jeonse"] = round(deposit, 2)
                         slot["jeonse_ym"] = ym
+                elif deposit is not None and monthly > 0:
+                    # 월세: keep latest {deposit 억, monthly 만원}
+                    n_wolse += 1
+                    if ym > slot.get("wolse_ym", ""):
+                        slot["wDeposit"] = round(deposit, 2)
+                        slot["wMonthly"] = monthly
+                        slot["wolse_ym"] = ym
                 else:
                     n_wolse += 1
             else:
@@ -135,19 +146,20 @@ def main(paths):
                         slot["sale_ym"] = ym
 
     out = list(complexes.values())
-    # drop size bands that ended up with neither a sale nor jeonse price
+    # drop size bands with no price in any mode (sale / jeonse / wolse)
     for c in out:
         c["sizes"] = {b: s for b, s in c["sizes"].items()
-                      if "sale" in s or "jeonse" in s}
+                      if "sale" in s or "jeonse" in s or "wMonthly" in s}
     out = [c for c in out if c["sizes"]]
 
     bands = sum(len(c["sizes"]) for c in out)
     with_sale = sum(1 for c in out for s in c["sizes"].values() if "sale" in s)
     with_jeo  = sum(1 for c in out for s in c["sizes"].values() if "jeonse" in s)
+    with_wol  = sum(1 for c in out for s in c["sizes"].values() if "wMonthly" in s)
     sys.stderr.write(f"deals: sale={n_sale} jeonse={n_jeonse} wolse={n_wolse}\n")
     sys.stderr.write(
         f"→ {len(out)} complexes, {bands} size-bands "
-        f"(bands w/ sale={with_sale}, w/ jeonse={with_jeo})\n")
+        f"(sale={with_sale}, jeonse={with_jeo}, wolse={with_wol})\n")
     print(json.dumps(out, ensure_ascii=False, indent=1))
 
 if __name__ == "__main__":

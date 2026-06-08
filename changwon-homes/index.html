@@ -228,6 +228,7 @@
       <div class="seg" id="modeSeg" role="group" aria-label="거래 유형">
         <button data-mode="sale" class="on">매매</button>
         <button data-mode="jeonse">전세</button>
+        <button data-mode="wolse">월세</button>
       </div>
       <select id="sizeSel" aria-label="평형">
         <option value="all">평형 전체</option>
@@ -306,11 +307,14 @@ const FALLBACK = { meta:{ period:"표본", fallback:true }, complexes:[
    computed per (complex,size) against same-size peers in the same/adjacent 구. */
 let HOMES = [];
 let DATA_META = {};
-let mode = "sale"; // 'sale' | 'jeonse'
+let mode = "sale"; // 'sale' | 'jeonse' | 'wolse'
+/* 전월세전환율 (deposit→monthly); overwritten from data.json meta on load. */
+let WOLSE_RATE = 0.052;
 
 let SEQ = 0;
 function ingest(data){
   DATA_META = data.meta || {};
+  if(DATA_META.wolseConvRate) WOLSE_RATE = DATA_META.wolseConvRate;
   HOMES = (data.complexes||[]).map(c => ({
     id:"h"+(SEQ++),
     name:c.name, gu:c.gu, dong:c.dong, built:c.built,
@@ -319,11 +323,23 @@ function ingest(data){
   }));
 }
 
-/* price of a size-band in the current mode */
-const bandPrice = b => mode==="sale" ? b.sale : b.jeonse;
-const bandPPP   = b => { const p=bandPrice(b); return p? p*10000/b.pyeong : null; };
+/* The COMPARABLE metric for a size-band in the current mode:
+   - sale/jeonse: price in 억
+   - wolse: 환산월세 = monthly + deposit×rate/12, in 만원/month
+   Returns null if the band has no data in this mode. */
+function bandMetric(b){
+  if(mode==="sale")   return b.sale ?? null;
+  if(mode==="jeonse") return b.jeonse ?? null;
+  // wolse
+  if(b.wMon==null) return null;
+  return b.wMon + (b.wDep||0)*10000*WOLSE_RATE/12;   // 만원/month
+}
+const bandPrice = bandMetric;   // alias: "price" = comparable metric
+/* metric per 평, in 만원: sale/jeonse 억→만원 (×10000); wolse 환산월세 already 만원 */
+const bandPPP   = b => { const p=bandMetric(b); if(p==null) return null;
+  return (mode==="wolse" ? p : p*10000)/b.pyeong; };
 /* a complex "has" the current mode if any band is priced in it */
-function pricedSizes(h){ return h.sizes.filter(b => bandPrice(b)!=null); }
+function pricedSizes(h){ return h.sizes.filter(b => bandMetric(b)!=null); }
 
 /* peers for ONE size-band of a complex. Locality matters enormously: 평단가
    varies 2-3× between 동, so a fair "good deal?" comparison must be against
@@ -454,7 +470,7 @@ function renderMarkers(){
       .on("click",()=>openPanel(h.id));
     const bb = bestBand(h);
     const range = h._minPyeong===h._maxPyeong ? `${h._maxPyeong}평` : `${h._minPyeong}~${h._maxPyeong}평`;
-    m.bindTooltip(`${h.name}<br>${range} · ${bb?fmtPrice(bandPrice(bb.b)):"-"}~`,{direction:"top",offset:[0,-10],opacity:.95});
+    m.bindTooltip(`${h.name}<br>${range} · ${bb?priceLabel(bb.b):"-"}`,{direction:"top",offset:[0,-10],opacity:.95});
     markers.set(h.id, m);
   }
   cnt.textContent = vis.length;
@@ -462,13 +478,27 @@ function renderMarkers(){
 }
 
 /* ---- formatting ---- */
-function fmtPrice(eok){
-  // eok in 억 → "8.9억" or "8억 5,000" style kept simple: "8.9억"
-  return (Math.round(eok*10)/10).toFixed(1).replace(/\.0$/,"") + "억";
+function fmtEok(eok){ return (Math.round(eok*10)/10).toFixed(1).replace(/\.0$/,"") + "억"; }
+/* headline price for a specific BAND (unit). sale/jeonse → "8.9억";
+   wolse → "보증금/월세" e.g. "1.5억/35". */
+function priceLabel(b){
+  if(mode!=="wolse") return fmtEok(bandMetric(b));
+  const dep = b.wDep!=null ? fmtEok(b.wDep) : "-";
+  return `${dep}/${b.wMon}`;
 }
-function fmtPPP(v){ return Math.round(v).toLocaleString("ko-KR")+"만/평"; }
+/* a computed/averaged METRIC value (a number, not a band).
+   sale/jeonse → 억; wolse → 환산월세 "62만/월". */
+function fmtMetric(v){
+  if(mode==="wolse") return Math.round(v).toLocaleString("ko-KR")+"만/월";
+  return fmtEok(v);
+}
+/* per-평 unit, mode-aware. sale/jeonse 만/평; wolse 환산월세 만/평·월 */
+function fmtPPP(v){
+  if(mode==="wolse") return (Math.round(v*10)/10).toLocaleString("ko-KR")+"만/평·월";
+  return Math.round(v).toLocaleString("ko-KR")+"만/평";
+}
 function pct(n){ return (n>=0?"+":"")+Math.round(n)+"%"; }
-const modeLabel = ()=> mode==="sale" ? "매매가" : "전세가";
+const modeLabel = ()=> mode==="sale" ? "매매가" : mode==="jeonse" ? "전세가" : "월세(환산)";
 
 /* ---- detail panel ---- */
 const panel = document.getElementById("panel");
@@ -491,14 +521,14 @@ function bandBlock(h, x){
     <div class="bandcard">
       <div class="bandhead">
         <span class="bp">${x.b.pyeong}평 <small>(${x.b.area_m2}㎡)</small></span>
-        <span class="bprice" style="color:${scoreColor(x.score)}">${fmtPrice(price)}</span>
+        <span class="bprice" style="color:${scoreColor(x.score)}">${priceLabel(x.b)}</span>
       </div>
       <div class="barwrap">
         <div class="bar">
           <div class="fill" style="width:${fillW}%;background:${scoreColor(x.score)}"></div>
           <div class="avgline" style="left:${avgPos}%"></div>
-          <div class="avgflag" style="left:${avgPos}%">평균 ${fmtPrice(avg)}</div>
-          <div class="val">${fmtPrice(price)}</div>
+          <div class="avgflag" style="left:${avgPos}%">평균 ${fmtMetric(avg)}</div>
+          <div class="val">${mode==="wolse"?fmtMetric(price):priceLabel(x.b)}</div>
         </div>
       </div>
       <div class="bandfoot">
@@ -508,13 +538,13 @@ function bandBlock(h, x){
           <b>${x.score.toFixed(1)}</b>
         </span>
       </div>
-      <div class="sub">평단가 ${fmtPPP(x.ppp)} · 동일조건 평균 ${fmtPPP(x.avgPPP)} (${pct(pppDeltaPct)}) · 비교 ${x.peers.length}개 단지 · 거래 ${x.b.n}건</div>
+      <div class="sub">${mode==="wolse"?"환산월세 ":"평단가 "}${fmtPPP(x.ppp)} · 동일조건 평균 ${fmtPPP(x.avgPPP)} (${pct(pppDeltaPct)}) · 비교 ${x.peers.length}개 단지 · 거래 ${x.b.n}건${mode==="wolse"?` · 보증금 ${fmtEok(x.b.wDep||0)}+월 ${x.b.wMon}만`:""}</div>
       <details class="peers">
-        <summary><span class="chev">›</span> 동일조건 단지 비교 (저가순)</summary>
+        <summary><span class="chev">›</span> 동일조건 단지 비교 (${mode==="wolse"?"환산월세 ":""}저가순)</summary>
         ${[...x.peers].sort((a,b)=>bandPrice(a.b)-bandPrice(b.b)).slice(0,12).map(p=>`
           <div class="peer" data-id="${p.h.id}">
             <span class="nm">${esc(p.h.name)} <small>${p.b.pyeong}평·${p.h.built||"-"}</small></span>
-            <span class="pr">${fmtPrice(bandPrice(p.b))}</span>
+            <span class="pr">${priceLabel(p.b)}</span>
           </div>`).join("") || '<div class="empty">비교 단지 부족</div>'}
       </details>
     </div>`;

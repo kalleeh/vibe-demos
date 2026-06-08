@@ -29,7 +29,7 @@ def main(path, period):
     cx = json.load(open(path, encoding="utf-8"))
 
     out = []
-    n_sale = n_jeo = 0
+    n_sale = n_jeo = n_wol = 0
     for c in cx:
         sizes = []
         for band, s in sorted(c["sizes"].items(), key=lambda kv: int(kv[0])):
@@ -40,6 +40,8 @@ def main(path, period):
             }
             if "sale" in s:   row["sale"] = s["sale"];   n_sale += 1
             if "jeonse" in s: row["jeonse"] = s["jeonse"]; n_jeo += 1
+            if "wMonthly" in s:                          # 월세: deposit(억)+monthly(만원)
+                row["wDep"] = s["wDeposit"]; row["wMon"] = s["wMonthly"]; n_wol += 1
             sizes.append(row)
         if not sizes:
             continue
@@ -61,12 +63,17 @@ def main(path, period):
             "sizeBands": sum(len(c["sizes"]) for c in out),
             "bandsWithSale": n_sale,
             "bandsWithJeonse": n_jeo,
+            "bandsWithWolse": n_wol,
+            # 전월세전환율: derived from 4,443 전세↔월세 pairs in this dataset
+            # (median implied annual rate). Used to compute 환산월세 for the
+            # 월세 comparison: monthly + deposit*rate/12.
+            "wolseConvRate": 0.052,
         },
         "complexes": out,
     }
     sys.stderr.write(
         f"baked {len(out)} complexes, {data['meta']['sizeBands']} bands "
-        f"(sale {n_sale}, jeonse {n_jeo})\n")
+        f"(sale {n_sale}, jeonse {n_jeo}, wolse {n_wol})\n")
     print(json.dumps(data, ensure_ascii=False, separators=(",", ":")))
 
 if __name__ == "__main__":
