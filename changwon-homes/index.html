@@ -202,6 +202,10 @@
   .bandcard .sub{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.5}
   .bandcard .peers{margin-top:10px}
   .bandcard .peers summary{padding:8px 0;font-size:12px}
+  .ratio{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:11.5px;color:var(--muted)}
+  .ratio .bar2{flex:1;height:6px;border-radius:3px;background:var(--line);overflow:hidden;max-width:120px}
+  .ratio .bar2 i{display:block;height:100%;border-radius:3px}
+  .ratio b{font-family:var(--mono)}
 
   /* factor chips */
   .chips{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0 2px}
@@ -260,6 +264,43 @@
     box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
   .toast.show{opacity:.96;transform:translateX(-50%) translateY(0)}
 
+  /* list view */
+  #listView{position:absolute;inset:0;z-index:800;background:var(--paper);overflow-y:auto;
+    -webkit-overflow-scrolling:touch}
+  /* hide map-only chrome when the list is up */
+  .stage.listmode .legend,.stage.listmode .countpill,.stage.listmode .hint{display:none}
+  .list-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding:12px 18px;background:var(--panel);border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}
+  .list-head select{font:inherit;font-size:13px;border:1px solid var(--line-strong);border-radius:8px;padding:4px 8px;background:#fff}
+  .list-head .list-hint{margin-left:auto;font-size:11.5px;font-family:var(--mono)}
+  .lrow{display:grid;grid-template-columns:30px 1fr auto auto;align-items:center;gap:12px;
+    padding:11px 18px;border-bottom:1px solid var(--line);cursor:pointer}
+  .lrow:hover{background:rgba(47,111,107,.04)}
+  .lrow input{width:18px;height:18px;accent-color:var(--teal)}
+  .lrow .nm{min-width:0}
+  .lrow .nm b{font-size:14px;font-weight:600}
+  .lrow .nm .meta{font-size:11.5px;color:var(--muted);font-family:var(--mono);margin-top:2px}
+  .lrow .pr{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;font-size:14px;white-space:nowrap}
+  .lrow .pr small{display:block;color:var(--muted);font-weight:400;font-size:10.5px}
+  .lrow .sc{width:42px;height:42px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:700;font-family:var(--mono);font-size:14px;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+
+  /* compare tray */
+  #compareBar{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:1100;
+    display:flex;align-items:center;gap:10px;background:var(--ink);color:var(--paper);
+    padding:9px 12px 9px 16px;border-radius:999px;box-shadow:var(--shadow);max-width:92vw}
+  #compareChips{display:flex;gap:6px;font-size:12px;flex-wrap:wrap}
+  #compareChips span{background:rgba(255,255,255,.16);padding:3px 9px;border-radius:999px;white-space:nowrap}
+  #compareBar button{font:inherit;font-size:12.5px;font-weight:600;border:0;border-radius:999px;
+    padding:7px 14px;cursor:pointer;background:var(--teal);color:#fff}
+  #compareBar .ghostbtn{background:transparent;color:var(--paper);opacity:.7;padding:7px 8px}
+  .cmp-table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .cmp-table th,.cmp-table td{padding:8px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  .cmp-table th{font-weight:600;font-family:"Fraunces",serif;font-size:13px}
+  .cmp-table td{font-variant-numeric:tabular-nums}
+  .cmp-table tr td:first-child,.cmp-table tr th:first-child{color:var(--muted);font-size:11.5px;font-family:var(--mono);width:84px}
+  .cmp-sc{display:inline-block;min-width:30px;text-align:center;padding:1px 6px;border-radius:6px;color:#fff;font-weight:600}
+
   @media (max-width:720px){
     .brand .sub{display:none}
     .controls{width:100%;justify-content:flex-start}
@@ -311,6 +352,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         <input id="q" type="search" placeholder="단지·동 검색" autocomplete="off">
       </label>
+      <div class="seg" id="viewSeg" role="group" aria-label="보기 방식">
+        <button data-view="map" class="on">지도</button>
+        <button data-view="list">목록</button>
+      </div>
       <button class="iconbtn" id="prefBtn" title="내 우선순위">⚙ 우선순위</button>
       <button class="iconbtn" id="infoBtn" title="데이터·점수 설명">ℹ︎ 설명</button>
       <button class="iconbtn" id="shareBtn" title="현재 화면 링크 복사">🔗 공유</button>
@@ -342,6 +387,25 @@
   <div class="stage">
     <div id="map"></div>
 
+    <!-- list view (hidden until 목록 toggled) -->
+    <div id="listView" hidden>
+      <div class="list-head">
+        <span id="listCount">0</span>개 단지 ·
+        <label>정렬
+          <select id="sortSel">
+            <option value="score">가치점수</option>
+            <option value="priceAsc">가격 낮은순</option>
+            <option value="priceDesc">가격 높은순</option>
+            <option value="trend">시세 상승순</option>
+            <option value="ratio">전세가율순</option>
+            <option value="newest">신축순</option>
+          </select>
+        </label>
+        <span class="list-hint">최대 3개 선택해 비교</span>
+      </div>
+      <div id="listRows"></div>
+    </div>
+
     <div class="countpill"><span id="cnt">0</span>개 단지</div>
 
     <div class="legend">
@@ -355,6 +419,17 @@
     <div class="hint" id="hint">지도의 단지를 눌러 상세·비교를 확인하세요</div>
 
     <aside class="panel" id="panel" aria-hidden="true"></aside>
+
+    <!-- compare tray (appears when complexes are checked) -->
+    <div id="compareBar" hidden>
+      <span id="compareChips"></span>
+      <button id="compareGo">비교하기</button>
+      <button id="compareClear" class="ghostbtn">초기화</button>
+    </div>
+    <div class="pop wide" id="comparePop" hidden>
+      <div class="pop-h">단지 비교 <button class="pop-x" data-pop="comparePop">×</button></div>
+      <div class="pop-body" id="compareBody"></div>
+    </div>
   </div>
 </div>
 
@@ -654,6 +729,22 @@ function fmtPPP(v){
 }
 function pct(n){ return (n>=0?"+":"")+Math.round(n)+"%"; }
 const modeLabel = ()=> mode==="sale" ? "매매가" : mode==="jeonse" ? "전세가" : "월세(환산)";
+/* 전세가율 = 전세 ÷ 매매 (only when a band has both real prices). A high ratio
+   means little cash gap between owning and 전세 — a classic Korean gap-investing
+   / rental-demand signal. */
+function jeonseRatio(b){
+  return (b.sale && b.jeonse) ? b.jeonse/b.sale*100 : null;
+}
+function jeonseRatioHTML(b){
+  const r = jeonseRatio(b);
+  if(r==null) return "";
+  const rr = Math.round(r);                       // label off the displayed value
+  const lvl = rr>=75 ? "높음 (갭 작음)" : rr>=60 ? "보통" : "낮음 (갭 큼)";
+  const col = rr>=75 ? "var(--bad)" : rr>=60 ? "var(--mid)" : "var(--teal)";
+  return `<div class="ratio"><span>전세가율</span>
+    <span class="bar2"><i style="width:${Math.min(100,r)}%;background:${col}"></i></span>
+    <b style="color:${col}">${r.toFixed(0)}%</b> <small>${lvl}</small></div>`;
+}
 /* price-trend chip: ▲ +x% (rust), ▼ −x% (teal), flat, or — when too few deals */
 function trendHTML(t){
   if(t==null) return '<span style="color:var(--muted)">—<small> 데이터 부족</small></span>';
@@ -703,6 +794,7 @@ function bandBlock(h, x){
       </div>
       <div class="chips">${chips}</div>
       <div class="sub">${mode==="wolse"?"환산월세 ":"평단가 "}${fmtPPP(x.ppp)} · 동일조건 평균 ${fmtPPP(x.avgPPP)} (${pct(pppDeltaPct)}) · 비교 ${x.peers.length}개 단지 · 거래 ${x.b.n}건${x.b.floor!=null?` · 중간층 ${x.b.floor}F`:""}${mode==="wolse"?` · 보증금 ${fmtEok(x.b.wDep||0)}+월 ${x.b.wMon}만`:""}</div>
+      ${jeonseRatioHTML(x.b)}
       <details class="peers">
         <summary><span class="chev">›</span> 동일조건 단지 비교 (${mode==="wolse"?"환산월세 ":""}저가순)</summary>
         ${[...x.peers].sort((a,b)=>bandPrice(a.b)-bandPrice(b.b)).slice(0,12).map(p=>`
@@ -833,16 +925,126 @@ const hint=document.getElementById("hint");
 
 Object.keys(GU).forEach(g=>{ const o=document.createElement("option"); o.value=g; o.textContent=g; guSel.appendChild(o); });
 
+/* render whichever view is active (map markers or the list) */
+function refreshView(){ renderMarkers(); if(viewMode==="list") renderList(); }
+
 document.getElementById("modeSeg").addEventListener("click",e=>{
   const b=e.target.closest("button"); if(!b) return;
   document.querySelectorAll("#modeSeg button").forEach(x=>x.classList.toggle("on",x===b));
-  mode=b.dataset.mode; recompute(); renderMarkers();
+  mode=b.dataset.mode; recompute(); refreshView();
   if(selected) openPanel(selected);
   writeURL();
 });
-sizeSel.onchange=()=>{ renderMarkers(); writeURL(); };
-guSel.onchange=()=>{ renderMarkers(); if(guSel.value!=="all") map.flyTo(GU[guSel.value].c,12.6,{duration:.6}); writeURL(); };
-let qt; qInput.oninput=()=>{ clearTimeout(qt); qt=setTimeout(()=>{renderMarkers();writeURL();},120); };
+sizeSel.onchange=()=>{ refreshView(); writeURL(); };
+guSel.onchange=()=>{ refreshView(); if(guSel.value!=="all") map.flyTo(GU[guSel.value].c,12.6,{duration:.6}); writeURL(); };
+let qt; qInput.oninput=()=>{ clearTimeout(qt); qt=setTimeout(()=>{refreshView();writeURL();},120); };
+
+/* ---- list view + compare ---- */
+let viewMode = "map";          // 'map' | 'list'
+const compareSet = new Set();  // complex ids selected for compare (max 3)
+
+document.getElementById("viewSeg").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  document.querySelectorAll("#viewSeg button").forEach(x=>x.classList.toggle("on",x===b));
+  viewMode=b.dataset.view;
+  const lv=document.getElementById("listView");
+  const stage=document.querySelector(".stage");
+  if(viewMode==="list"){ lv.hidden=false; stage.classList.add("listmode"); renderList(); }
+  else { lv.hidden=true; stage.classList.remove("listmode"); setTimeout(()=>map.invalidateSize(),50); }
+  writeURL();
+});
+document.getElementById("sortSel").onchange=renderList;
+
+function sortHomes(vis){
+  const s=document.getElementById("sortSel").value;
+  const price=h=>{const bb=bestBand(h);return bb?bandMetric(bb.b):Infinity;};
+  const arr=[...vis];
+  if(s==="score") arr.sort((a,b)=>(b._score??0)-(a._score??0));
+  else if(s==="priceAsc") arr.sort((a,b)=>price(a)-price(b));
+  else if(s==="priceDesc") arr.sort((a,b)=>price(b)-price(a));
+  else if(s==="trend") arr.sort((a,b)=>(b.trend??-99)-(a.trend??-99));
+  else if(s==="ratio") arr.sort((a,b)=>(jeonseRatioOf(b)??-1)-(jeonseRatioOf(a)??-1));
+  else if(s==="newest") arr.sort((a,b)=>(b.built??0)-(a.built??0));
+  return arr;
+}
+function jeonseRatioOf(h){
+  const bb=bestBand(h); return bb? jeonseRatio(bb.b) : null;
+}
+function renderList(){
+  const vis=sortHomes(visibleHomes());
+  document.getElementById("listCount").textContent=vis.length;
+  const rows=document.getElementById("listRows");
+  rows.innerHTML=vis.slice(0,400).map(h=>{
+    const bb=bestBand(h);
+    const range=h._minPyeong===h._maxPyeong?`${h._maxPyeong}평`:`${h._minPyeong}~${h._maxPyeong}평`;
+    const rr=jeonseRatioOf(h);
+    const tr=h.trend!=null?(h.trend>1.5?`▲${h.trend.toFixed(0)}%`:h.trend<-1.5?`▼${h.trend.toFixed(0)}%`:"보합"):"";
+    return `<div class="lrow" data-id="${h.id}">
+      <input type="checkbox" data-cb="${h.id}" ${compareSet.has(h.id)?"checked":""}>
+      <div class="nm"><b>${esc(h.name)}</b>
+        <div class="meta">${h.gu} ${h.dong} · ${range} · ${h.built||"-"}년${tr?" · "+tr:""}${rr!=null?" · 전세가율 "+rr.toFixed(0)+"%":""}</div></div>
+      <div class="pr">${bb?priceLabel(bb.b):"-"}<small>${modeLabel()}${bb?" "+bb.b.pyeong+"평":""}</small></div>
+      <div class="sc" style="background:${scoreColor(h._score??5)}">${h._score!=null?h._score.toFixed(1):"-"}</div>
+    </div>`;
+  }).join("") || '<div class="empty">조건에 맞는 단지가 없습니다.</div>';
+  // wire rows
+  rows.querySelectorAll(".lrow").forEach(el=>{
+    el.onclick=(e)=>{
+      if(e.target.matches("input")) return;       // checkbox handled separately
+      openPanel(el.dataset.id);
+    };
+  });
+  rows.querySelectorAll("input[data-cb]").forEach(cb=>{
+    cb.onclick=(e)=>{ e.stopPropagation(); toggleCompare(cb.dataset.cb, cb); };
+  });
+}
+
+function toggleCompare(id, cb){
+  if(compareSet.has(id)){ compareSet.delete(id); }
+  else {
+    if(compareSet.size>=3){ if(cb) cb.checked=false; toast("최대 3개까지 비교할 수 있어요"); return; }
+    compareSet.add(id);
+  }
+  renderCompareBar();
+}
+function renderCompareBar(){
+  const bar=document.getElementById("compareBar");
+  if(!compareSet.size){ bar.hidden=true; return; }
+  bar.hidden=false;
+  document.getElementById("compareChips").innerHTML=
+    [...compareSet].map(id=>{const h=HOMES.find(x=>x.id===id);return `<span>${esc(h?h.name:"")}</span>`;}).join("");
+}
+document.getElementById("compareClear").onclick=()=>{
+  compareSet.clear(); renderCompareBar();
+  document.querySelectorAll("input[data-cb]").forEach(c=>c.checked=false);
+};
+document.getElementById("compareGo").onclick=()=>{ renderCompare(); openPop("comparePop"); };
+
+function renderCompare(){
+  const hs=[...compareSet].map(id=>HOMES.find(x=>x.id===id)).filter(Boolean);
+  const cell=(h,fn)=>`<td>${fn(h)}</td>`;
+  const bb=h=>bestBand(h);
+  const scTag=v=>`<span class="cmp-sc" style="background:${scoreColor(v)}">${v.toFixed(1)}</span>`;
+  const rows=[
+    ["단지", h=>`<b>${esc(h.name)}</b>`],
+    ["위치", h=>`${h.gu} ${h.dong}`],
+    ["가치점수", h=>scTag(h._score??5)],
+    [modeLabel(), h=>bb(h)?priceLabel(bb(h).b)+` <small>(${bb(h).b.pyeong}평)</small>`:"-"],
+    ["평단가", h=>bb(h)?fmtPPP(bb(h).ppp):"-"],
+    ["연식", h=>h.built?`${2026-h.built}년차 (${h.built})`:"-"],
+    ["1년 시세", h=>h.trend!=null?(h.trend>0?"+":"")+h.trend.toFixed(1)+"%":"—"],
+    ["전세가율", h=>{const r=jeonseRatioOf(h);return r!=null?r.toFixed(0)+"%":"—";}],
+    ["신도시 거리", h=>h.dcore!=null?h.dcore+" km":"—"],
+    ["거래량", h=>h.dealCount+"건"],
+    ["브랜드", h=>h.brand?"1군 ✓":"—"],
+  ];
+  document.getElementById("compareBody").innerHTML=
+    `<table class="cmp-table"><tr><th></th>${hs.map(h=>`<th>${esc(h.name.length>8?h.name.slice(0,8)+"…":h.name)}</th>`).join("")}</tr>`+
+    rows.map(([lab,fn])=>`<tr><td>${lab}</td>${hs.map(h=>cell(h,fn)).join("")}</tr>`).join("")+
+    `</table>`;
+}
+
+map.on("click",()=>{ /* clicking empty map keeps selection; tap close to dismiss */ });
 
 map.on("click",()=>{ /* clicking empty map keeps selection; tap close to dismiss */ });
 
@@ -875,7 +1077,7 @@ function buildSliders(){
 function setWeights(w){ WEIGHTS={...w}; buildSliders(); applyWeights(); }
 let reWt;
 function applyWeights(){ clearTimeout(reWt); reWt=setTimeout(()=>{
-  recompute(); renderMarkers(); if(selected) openPanel(selected); writeURL();
+  recompute(); refreshView(); if(selected) openPanel(selected); writeURL();
 },90); }
 
 document.getElementById("presets").addEventListener("click",e=>{
@@ -940,7 +1142,10 @@ function fillInfo(){
     로열층 프리미엄은 통계적으로 유의하지 않아 제외했습니다.</p>
     <h4>포함하지 않은 것 <span class="muted">(데이터 없음)</span></h4>
     <p class="muted">세대수, 학군 배정, 실제 조망·향, 재건축 정비구역 여부는 실거래 데이터에
-    없어 반영하지 못했습니다. 월세는 전월세전환율 ${(m.wolseConvRate*100||5.2).toFixed(1)}%로 환산월세를 비교합니다.</p>`;
+    없어 반영하지 못했습니다. 월세는 전월세전환율 ${(m.wolseConvRate*100||5.2).toFixed(1)}%로 환산월세를 비교합니다.</p>
+    <h4>전세가율은 무엇인가요</h4>
+    <p class="muted">전세가 ÷ 매매가. 높을수록(75%+) 매매·전세 가격차(갭)가 작아 갭투자·전세
+    수요가 강한 단지로 봅니다. 매매·전세 실거래가 모두 있는 평형에만 표시됩니다.</p>`;
 }
 
 /* ---- shareable URL state ----
@@ -955,6 +1160,7 @@ function writeURL(){
   if(guSel.value!=="all") p.set("gu", guSel.value);
   if(sizeSel.value!=="all") p.set("sz", sizeSel.value);
   if(qInput.value.trim()) p.set("q", qInput.value.trim());
+  if(viewMode!=="map") p.set("v", viewMode);
   const w = AXES.map(([k])=>Math.round(WEIGHTS[k]*100)).join(",");
   if(w!=="55,15,20,5,5") p.set("w", w);
   if(selected){ const h=HOMES.find(x=>x.id===selected); if(h) p.set("c", h.name+"|"+h.dong); }
@@ -978,6 +1184,12 @@ function readURL(){
       document.querySelectorAll("#presets button").forEach(b=>b.classList.remove("on"));
     }
   }
+  if(p.get("v")==="list"){
+    viewMode="list";
+    document.querySelectorAll("#viewSeg button").forEach(b=>b.classList.toggle("on",b.dataset.view==="list"));
+    document.getElementById("listView").hidden=false;
+    document.querySelector(".stage").classList.add("listmode");
+  }
   _restoring = false;
   return p.get("c");   // "name|dong" to select after render
 }
@@ -990,6 +1202,7 @@ function boot(data){
   recompute();
   if(guSel.value!=="all" && GU[guSel.value]) map.setView(GU[guSel.value].c,12.6);
   renderMarkers();
+  if(viewMode==="list") renderList();
   if(wantSel){
     const [nm,dong]=wantSel.split("|");
     const h=HOMES.find(x=>x.name===nm && (!dong||x.dong===dong));
