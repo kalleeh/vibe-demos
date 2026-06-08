@@ -410,6 +410,13 @@ Every demo that does background work — LLM call, OCR, 3D asset load, audio ana
 
 PocketBase is the backend for vibe-demos that need shared/persistent state. Local-first: every demo MUST work without it. The backend enhances — it never gates.
 
+> **ALWAYS check Context7 for current PocketBase docs before any backend work.** PocketBase ships breaking changes frequently (collection schema API, migration helpers, JSVM hooks, SDK methods all churn across minor versions), so the snippets in this file WILL drift. Before writing a migration, a JSVM hook, or SDK frontend code, query Context7 to confirm current syntax — do not rely on this file or training memory alone. The libraries (all High reputation, verified present):
+> - `/websites/pocketbase_io_jsvm` — JSVM (migrations, hooks, cron) — the one you'll need most for backend files
+> - `/pocketbase/js-sdk` — official JS SDK (frontend `fetch`/auth/upload)
+> - `/websites/pocketbase_io` — main docs · `/pocketbase/pocketbase` — Go core (carries the latest version tags)
+>
+> If a Context7 query contradicts an example below, Context7 wins — and update this file in the same commit so the docs stop drifting.
+
 ### Decision tree (start here)
 
 ```
@@ -447,7 +454,10 @@ When adding a PocketBase backend to a demo, create/modify these files:
 - **Migration naming:** `NNN_<description>.js` — sequential, never renumbered (`001_init_leaderboard.js`, `002_add_combo_field.js`)
 - **Migrations are the source of truth.** Admin UI edits are for prototyping only — snapshot them back to files with `ssh pb-backends "cd /opt/pocketbase/<slug> && ./pocketbase migrate collections"` before committing.
 - **Ports:** always increment from 8091. Never reuse a port even if a backend is removed.
-- **PB SDK version:** use `@0.25.0` (tested with this project). Pin exactly, never `@latest`.
+- **PB SDK version:** **pin exactly, never `@latest`** — but pin to a *recent* version, not a frozen one. Before adding/upgrading a backend, query Context7 (`/pocketbase/js-sdk` for the SDK tag, `/pocketbase/pocketbase` for the core tag) to find current latest, then pin that exact version. PocketBase moves fast, so re-check each time rather than copying the number below.
+  - **Current state (verified 2026-06-08, re-verify via Context7):** server binary `/opt/pocketbase/pocketbase` is **`0.25.8`**; the 7 existing backends' frontends pin SDK **`0.25.0`**. SDK `0.25.x` and `0.26.x` talk to a `0.25.8` server fine. Core has since reached **`0.35.x`**.
+  - **Bumping the server binary affects ALL deployed backends at once** (single shared binary) — treat a version jump as a coordinated migration: read the PocketBase release notes for breaking changes between the installed and target version, test against a non-critical backend first, and bump the SDK pins to match. Don't bump the binary casually mid-feature.
+  - For a brand-new isolated backend, pinning the latest verified SDK is fine; just keep it ≥ the server's major.minor.
 
 ### SDK import
 
@@ -455,11 +465,13 @@ When adding a PocketBase backend to a demo, create/modify these files:
 <script type="importmap">
   {
     "imports": {
-      "pocketbase": "https://cdn.jsdelivr.net/npm/pocketbase@0.25.0/dist/pocketbase.es.mjs"
+      "pocketbase": "https://cdn.jsdelivr.net/npm/pocketbase@0.26.2/dist/pocketbase.es.mjs"
     }
   }
 </script>
 ```
+
+(`0.26.2` was the latest SDK tag verified via Context7 on 2026-06-08 — re-check `/pocketbase/js-sdk` and pin whatever is current when you add a new backend. The 7 pre-existing demos still pin `0.25.0`; leave them unless you're deliberately upgrading and re-testing them.)
 
 The importmap goes in `<head>`. If the demo has no module script yet (e.g. a classic-`<script>` game like tinywings), this is the page's first importmap — add it and put the PocketBase logic in its own `<script type="module">`; it talks to the classic script via a `window.__*` hook, not shared scope. With no browser to hand, sanity-check a module-script body with `node --check` (it validates syntax without resolving the bare `pocketbase` specifier).
 
@@ -471,7 +483,7 @@ Combine with Three.js if needed (one importmap per page):
     "imports": {
       "three":         "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
       "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
-      "pocketbase":    "https://cdn.jsdelivr.net/npm/pocketbase@0.25.0/dist/pocketbase.es.mjs"
+      "pocketbase":    "https://cdn.jsdelivr.net/npm/pocketbase@0.26.2/dist/pocketbase.es.mjs"
     }
   }
 </script>
