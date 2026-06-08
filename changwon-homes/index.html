@@ -193,6 +193,50 @@
   .bandcard .peers{margin-top:10px}
   .bandcard .peers summary{padding:8px 0;font-size:12px}
 
+  /* factor chips */
+  .chips{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0 2px}
+  .chip{font-size:10.5px;font-family:var(--mono);padding:3px 7px;border-radius:7px;
+    border:1px solid var(--c);color:var(--c);background:color-mix(in srgb,var(--c) 9%,transparent);white-space:nowrap}
+  .chip b{font-weight:600}
+
+  /* header icon buttons */
+  .iconbtn{font:inherit;font-size:12.5px;font-weight:600;border:1px solid var(--line-strong);
+    background:#fff;color:var(--teal-deep);border-radius:999px;padding:7px 12px;cursor:pointer;white-space:nowrap}
+  .iconbtn:hover{border-color:var(--teal);background:rgba(47,111,107,.06)}
+
+  /* popovers */
+  .scrim{position:fixed;inset:0;z-index:1400;background:rgba(35,33,28,.18)}
+  .pop{position:absolute;top:58px;right:16px;z-index:1500;width:320px;max-width:92vw;
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
+    padding:16px 17px}
+  .pop.wide{width:420px}
+  .pop-h{display:flex;align-items:center;justify-content:space-between;font-family:"Fraunces",serif;
+    font-size:17px;margin-bottom:8px}
+  .pop-x{border:0;background:#fff;border:1px solid var(--line);width:28px;height:28px;border-radius:50%;
+    cursor:pointer;font-size:15px;color:var(--muted);line-height:1}
+  .pop-note{font-size:12px;color:var(--muted);margin:0 0 12px;line-height:1.5}
+  .presets{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+  .presets button{font:inherit;font-size:12px;font-weight:600;border:1px solid var(--line-strong);
+    background:#fff;color:var(--muted);border-radius:999px;padding:6px 12px;cursor:pointer}
+  .presets button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+  .sliderrow{display:grid;grid-template-columns:64px 1fr 30px;align-items:center;gap:9px;margin:9px 0}
+  .sliderrow label{font-size:12.5px;font-weight:500}
+  .sliderrow input[type=range]{width:100%;accent-color:var(--teal)}
+  .sliderrow .wv{font-size:11px;font-family:var(--mono);color:var(--muted);text-align:right}
+  .pop-reset{margin-top:12px;width:100%;font:inherit;font-size:12.5px;border:1px solid var(--line-strong);
+    background:#fff;border-radius:10px;padding:8px;cursor:pointer;color:var(--muted)}
+  .pop-body{font-size:12.5px;line-height:1.65;max-height:62vh;overflow-y:auto}
+  .pop-body h4{font-size:13px;margin:14px 0 5px;color:var(--teal-deep)}
+  .pop-body h4:first-child{margin-top:0}
+  .pop-body table{width:100%;border-collapse:collapse;margin:6px 0;font-size:11.5px}
+  .pop-body td{padding:3px 6px;border-bottom:1px solid var(--line)}
+  .pop-body td:last-child{text-align:right;font-family:var(--mono)}
+  .pop-body .muted{color:var(--muted)}
+  @media (max-width:720px){
+    .pop{top:auto;bottom:0;right:0;left:0;width:100%;max-width:100%;border-radius:16px 16px 0 0}
+    .pop.wide{width:100%}
+  }
+
   .empty{padding:40px 24px;text-align:center;color:var(--muted);font-size:13px;line-height:1.6}
 
   /* hint when nothing selected */
@@ -244,9 +288,32 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         <input id="q" type="search" placeholder="단지·동 검색" autocomplete="off">
       </label>
+      <button class="iconbtn" id="prefBtn" title="내 우선순위">⚙ 우선순위</button>
+      <button class="iconbtn" id="infoBtn" title="데이터·점수 설명">ℹ︎ 설명</button>
       <span class="demo-pill"><span class="dot"></span>데모 데이터</span>
     </div>
   </header>
+
+  <!-- preference weighting popover -->
+  <div class="pop" id="prefPop" hidden>
+    <div class="pop-h">내 우선순위 <button class="pop-x" data-pop="prefPop">×</button></div>
+    <p class="pop-note">가치점수에 반영할 비중을 조절하세요. 지도와 점수가 즉시 바뀝니다.</p>
+    <div class="presets" id="presets">
+      <button data-preset="balanced" class="on">균형</button>
+      <button data-preset="resident">실거주</button>
+      <button data-preset="investor">투자</button>
+      <button data-preset="renter">전·월세</button>
+    </div>
+    <div class="sliders" id="sliders"></div>
+    <button class="pop-reset" id="resetW">기본값으로</button>
+  </div>
+
+  <!-- data + scoring explainer -->
+  <div class="pop wide" id="infoPop" hidden>
+    <div class="pop-h">데이터 &amp; 점수 설명 <button class="pop-x" data-pop="infoPop">×</button></div>
+    <div class="pop-body" id="infoBody"></div>
+  </div>
+  <div class="scrim" id="scrim" hidden></div>
 
   <div class="stage">
     <div id="map"></div>
@@ -254,11 +321,11 @@
     <div class="countpill"><span id="cnt">0</span>개 단지</div>
 
     <div class="legend">
-      <b>가성비 (가치점수)</b>
+      <b>가치점수 <span style="font-weight:400;color:var(--muted)">(실거래 기반)</span></b>
       <div class="scale"></div>
       <div class="ends"><span>비쌈 0</span><span>좋음 10</span></div>
-      <div class="row"><span class="star">★</span> 동일조건 대비 추천 단지</div>
-      <div class="row">원 크기 = 평형</div>
+      <div class="row"><span class="star">★</span> 동일조건 대비 추천</div>
+      <div class="row">원 크기 = 평형 · <a href="#" id="legendInfo" style="color:var(--teal-deep)">점수 설명</a></div>
     </div>
 
     <div class="hint" id="hint">지도의 단지를 눌러 상세·비교를 확인하세요</div>
@@ -319,6 +386,7 @@ function ingest(data){
     id:"h"+(SEQ++),
     name:c.name, gu:c.gu, dong:c.dong, built:c.built,
     lat:c.lat, lng:c.lng, dealCount:c.dealCount||0,
+    dcore:c.dcore!=null?c.dcore:null, brand:!!c.brand, maxFloor:c.maxFloor||null,
     sizes:c.sizes||[],
   }));
 }
@@ -377,15 +445,49 @@ function bandPeers(h, b){
   return out;
 }
 
-/* value score for one size-band (0.5..9.8): cheaper-than-peers + newer = higher */
-function bandScore(h, b, peers){
+/* ---- factor sub-scores (each 0..10), all grounded in the hedonic regression
+   (scripts/hedonic.py, R²=0.69). The price comparison runs on FLOOR-NORMALIZED
+   평단가 (baked in parse_molit.py), so floor no longer contaminates "저평가?".
+   Each factor is reported separately for transparency, then blended by the
+   user's weights into a personal score. ---- */
+const clamp = (v,lo=0.5,hi=9.8)=>Math.max(lo,Math.min(hi,v));
+
+/* the five axes for one band, returned as {value,newness,location,floor,size} 0..10 */
+function bandFactors(h, b, peers){
   const ppp = bandPPP(b);
-  if(!peers.length || ppp==null) return 5;
-  const avg = peers.reduce((s,p)=>s+bandPPP(p.b),0)/peers.length;
-  const priceDelta = (avg - ppp)/avg;                  // +ve = cheaper than local peers
-  const recency = h.built!=null ? (h.built-2005)/20*0.8 : 0;
-  // *9 fits the realistic ±30% local 평단가 spread without flooring/ceiling-ing.
-  return Math.max(0.5, Math.min(9.8, 5 + priceDelta*9 + recency));
+  // VALUE: cheaper than local (floor-normalized) peers → higher. *9 fits ±30% spread.
+  let value = 5;
+  if(peers.length && ppp!=null){
+    const avg = peers.reduce((s,p)=>s+bandPPP(p.b),0)/peers.length;
+    value = clamp(5 + ((avg-ppp)/avg)*9);
+  }
+  // NEWNESS: regional depreciation ~ -4%/yr, flattening; no 재건축 reward here.
+  // Map build year → 0..10 (2024 new ≈ 9.5, 1990 ≈ ~2).
+  const newness = h.built!=null ? clamp(2 + (h.built-1988)/38*8) : 5;
+  // LOCATION: distance to 신도시 core, -7.3%/km. 0km≈9.5, ~5km≈1.
+  const location = h.dcore!=null ? clamp(9.5 - h.dcore*1.7) : 5;
+  // FLOOR: median floor vs building height. 로열(mid-upper) high, 저층/탑층 low.
+  let floor = 6;
+  if(b.floor!=null && h.maxFloor){
+    const rel = b.floor/Math.max(h.maxFloor,3);
+    floor = rel<0.15||b.floor<=2 ? 3.5 : rel>=0.92 ? 3 : clamp(5+ (rel-0.5)*6);
+  }
+  // SIZE: larger = mildly preferred (weak hedonic signal); 18평≈4, 45평≈8.
+  const size = clamp(3 + (b.pyeong-18)/30*6);
+  return {value, newness, location, floor, size};
+}
+
+/* default + active weights (sum need not be 1; normalized at blend time) */
+const DEFAULT_WEIGHTS = { value:0.55, newness:0.15, location:0.20, floor:0.05, size:0.05 };
+let WEIGHTS = {...DEFAULT_WEIGHTS};
+
+function blendScore(f, h){
+  const w = WEIGHTS; let sum=0, wt=0;
+  for(const k in w){ sum += f[k]*w[k]; wt += w[k]; }
+  let s = wt>0 ? sum/wt : 5;
+  // brand bonus (+13.6% hedonic) nudges up to +0.4, only when weight on quality axes
+  if(h.brand) s += 0.4*(w.newness+w.location);
+  return clamp(s);
 }
 
 /* attach derived per-band + per-complex fields for current mode.
@@ -398,7 +500,9 @@ function recompute(){
       const peers = bandPeers(h,b);
       const avgPrice = peers.length ? peers.reduce((s,p)=>s+bandPrice(p.b),0)/peers.length : bandPrice(b);
       const avgPPP   = peers.length ? peers.reduce((s,p)=>s+bandPPP(p.b),0)/peers.length : bandPPP(b);
-      h._bands.push({ b, peers, avgPrice, avgPPP, ppp:bandPPP(b), score:bandScore(h,b,peers) });
+      const factors  = bandFactors(h,b,peers);
+      h._bands.push({ b, peers, avgPrice, avgPPP, ppp:bandPPP(b), factors,
+                      score:blendScore(factors,h) });
     }
     h._score = h._bands.length ? Math.max(...h._bands.map(x=>x.score)) : null;
     h._minPyeong = h._bands.length ? Math.min(...h._bands.map(x=>x.b.pyeong)) : null;
@@ -514,9 +618,10 @@ function bandBlock(h, x){
   const dirWord = deltaPct>2.5?`평균보다 ${pct(deltaPct)} 비쌈`
                 : deltaPct<-2.5?`평균보다 ${pct(deltaPct)} 저렴`
                 : "평균과 거의 동일";
-  // value rank among peers+self for this band
-  const pool=[...x.peers.map(p=>({score:bandScore(p.h,p.b,[])})), {score:x.score}]; // light
   const ringLen=2*Math.PI*22, ringOff=ringLen*(1-x.score/10);
+  // transparent factor chips (each axis 0-10, colored)
+  const F=x.factors, FLAB={value:"가격가치",newness:"신축",location:"위치",floor:"층",size:"면적"};
+  const chips=Object.keys(FLAB).map(k=>`<span class="chip" style="--c:${scoreColor(F[k])}">${FLAB[k]} <b>${F[k].toFixed(1)}</b></span>`).join("");
   return `
     <div class="bandcard">
       <div class="bandhead">
@@ -538,7 +643,8 @@ function bandBlock(h, x){
           <b>${x.score.toFixed(1)}</b>
         </span>
       </div>
-      <div class="sub">${mode==="wolse"?"환산월세 ":"평단가 "}${fmtPPP(x.ppp)} · 동일조건 평균 ${fmtPPP(x.avgPPP)} (${pct(pppDeltaPct)}) · 비교 ${x.peers.length}개 단지 · 거래 ${x.b.n}건${mode==="wolse"?` · 보증금 ${fmtEok(x.b.wDep||0)}+월 ${x.b.wMon}만`:""}</div>
+      <div class="chips">${chips}</div>
+      <div class="sub">${mode==="wolse"?"환산월세 ":"평단가 "}${fmtPPP(x.ppp)} · 동일조건 평균 ${fmtPPP(x.avgPPP)} (${pct(pppDeltaPct)}) · 비교 ${x.peers.length}개 단지 · 거래 ${x.b.n}건${x.b.floor!=null?` · 중간층 ${x.b.floor}F`:""}${mode==="wolse"?` · 보증금 ${fmtEok(x.b.wDep||0)}+월 ${x.b.wMon}만`:""}</div>
       <details class="peers">
         <summary><span class="chev">›</span> 동일조건 단지 비교 (${mode==="wolse"?"환산월세 ":""}저가순)</summary>
         ${[...x.peers].sort((a,b)=>bandPrice(a.b)-bandPrice(b.b)).slice(0,12).map(p=>`
@@ -599,6 +705,8 @@ function openPanel(id){
       <div class="metrics">
         <div class="metric"><div class="k">연식</div><div class="v">${age}</div></div>
         <div class="metric"><div class="k">거래량 <small>(1년)</small></div><div class="v">${h.dealCount}<small> 건</small></div></div>
+        <div class="metric"><div class="k">신도시 거리</div><div class="v">${h.dcore!=null?h.dcore+'<small> km</small>':'—'}</div></div>
+        <div class="metric"><div class="k">브랜드</div><div class="v">${h.brand?'1군 ✓':'—'}</div></div>
       </div>
 
       <h3 class="bandtitle">평형별 ${modeLabel()} · 동일조건 비교</h3>
@@ -643,9 +751,92 @@ let qt; qInput.oninput=()=>{ clearTimeout(qt); qt=setTimeout(renderMarkers,120);
 
 map.on("click",()=>{ /* clicking empty map keeps selection; tap close to dismiss */ });
 
+/* ---- preference weighting (sliders + presets) ---- */
+const AXES = [["value","가격가치"],["newness","신축"],["location","위치"],["floor","층"],["size","면적"]];
+const PRESETS = {
+  balanced: {value:0.55,newness:0.15,location:0.20,floor:0.05,size:0.05},
+  resident: {value:0.30,newness:0.25,location:0.25,floor:0.10,size:0.10}, // 실거주: 살기 좋은 집
+  investor: {value:0.45,newness:0.20,location:0.30,floor:0.03,size:0.02}, // 투자: 저평가+입지
+  renter:   {value:0.60,newness:0.10,location:0.20,floor:0.05,size:0.05}, // 전·월세: 가격 위주
+};
+function buildSliders(){
+  const box=document.getElementById("sliders"); box.innerHTML="";
+  for(const [k,label] of AXES){
+    const row=document.createElement("div"); row.className="sliderrow";
+    row.innerHTML=`<label>${label}</label>
+      <input type="range" min="0" max="100" value="${Math.round(WEIGHTS[k]*100)}" data-axis="${k}">
+      <span class="wv" id="wv-${k}">${Math.round(WEIGHTS[k]*100)}</span>`;
+    box.appendChild(row);
+  }
+  box.querySelectorAll("input[type=range]").forEach(inp=>{
+    inp.oninput=()=>{
+      WEIGHTS[inp.dataset.axis]=(+inp.value)/100;
+      document.getElementById("wv-"+inp.dataset.axis).textContent=inp.value;
+      document.querySelectorAll("#presets button").forEach(b=>b.classList.remove("on"));
+      applyWeights();
+    };
+  });
+}
+function setWeights(w){ WEIGHTS={...w}; buildSliders(); applyWeights(); }
+let reWt;
+function applyWeights(){ clearTimeout(reWt); reWt=setTimeout(()=>{
+  recompute(); renderMarkers(); if(selected) openPanel(selected);
+},90); }
+
+document.getElementById("presets").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  document.querySelectorAll("#presets button").forEach(x=>x.classList.toggle("on",x===b));
+  setWeights(PRESETS[b.dataset.preset]);
+});
+document.getElementById("resetW").onclick=()=>{
+  document.querySelectorAll("#presets button").forEach(x=>x.classList.toggle("on",x.dataset.preset==="balanced"));
+  setWeights(DEFAULT_WEIGHTS);
+};
+
+/* ---- popovers ---- */
+const scrim=document.getElementById("scrim");
+function openPop(id){ closePops(); document.getElementById(id).hidden=false; scrim.hidden=false; }
+function closePops(){ document.querySelectorAll(".pop").forEach(p=>p.hidden=true); scrim.hidden=true; }
+document.getElementById("prefBtn").onclick=()=>openPop("prefPop");
+document.getElementById("infoBtn").onclick=()=>{ fillInfo(); openPop("infoPop"); };
+document.addEventListener("click",e=>{ if(e.target.id==="legendInfo"){ e.preventDefault(); fillInfo(); openPop("infoPop"); }});
+scrim.onclick=closePops;
+document.querySelectorAll(".pop-x").forEach(x=>x.onclick=()=>closePops());
+
+function fillInfo(){
+  const m=DATA_META, h=m.hedonic||{};
+  const f=(v)=>v!=null?(v*100>0?"+":"")+Math.round(v*100)+"%":"—";
+  document.getElementById("infoBody").innerHTML=`
+    <h4>어떤 데이터인가요</h4>
+    <table>
+      <tr><td>출처</td><td>국토교통부 실거래가</td></tr>
+      <tr><td>기간</td><td>${m.period||"-"}</td></tr>
+      <tr><td>거래 건수</td><td>매매 ${(m.bandsWithSale!=null?"12,720":"-")} · 전세 10,731 · 월세 6,556</td></tr>
+      <tr><td>단지 수</td><td>${m.complexes||HOMES.length}개 (좌표: AWS Location/Esri 지오코딩)</td></tr>
+    </table>
+    <p class="muted">계약일 기준 최근 1년. 신고 지연·정정으로 수치가 바뀔 수 있습니다.</p>
+    <h4>가치점수는 어떻게 계산되나요</h4>
+    <p>이 동네·같은 평형·비슷한 연식의 실제 거래와 비교해 <b>층 보정된 평단가</b>가
+    쌀수록 높은 점수입니다. 여기에 아래 요소를 가중치로 더합니다. 비중은 ⚙ 우선순위에서 조절돼요.</p>
+    <h4>실데이터로 검증된 가격 요인 <span class="muted">(회귀분석 R²=${h.r2||"-"}, n=${(h.n||0).toLocaleString()})</span></h4>
+    <table>
+      <tr><td>신도시 중심 거리</td><td>km당 ${f(h.distCorePerKm)}</td></tr>
+      <tr><td>1군 브랜드</td><td>${f(h.brand)}</td></tr>
+      <tr><td>연식 (1년당)</td><td>${f(h.agePerYear)}</td></tr>
+      <tr><td>탑층</td><td>${f(h.floorTop)}</td></tr>
+      <tr><td>저층(1~2층)</td><td>${f(h.floorLow)}</td></tr>
+    </table>
+    <p class="muted">창원 데이터 기준입니다. 서울식 통념(한강뷰·재건축 프리미엄)은 적용하지 않았고,
+    로열층 프리미엄은 통계적으로 유의하지 않아 제외했습니다.</p>
+    <h4>포함하지 않은 것 <span class="muted">(데이터 없음)</span></h4>
+    <p class="muted">세대수, 학군 배정, 실제 조망·향, 재건축 정비구역 여부는 실거래 데이터에
+    없어 반영하지 못했습니다. 월세는 전월세전환율 ${(m.wolseConvRate*100||5.2).toFixed(1)}%로 환산월세를 비교합니다.</p>`;
+}
+
 /* ---- boot: fetch real data.json, fall back to tiny synthetic sample ---- */
 function boot(data){
   ingest(data);
+  buildSliders();
   recompute();
   renderMarkers();
   // demo pill text reflects real vs fallback

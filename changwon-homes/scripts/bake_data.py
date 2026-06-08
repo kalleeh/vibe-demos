@@ -28,6 +28,13 @@ import sys, json
 def main(path, period):
     cx = json.load(open(path, encoding="utf-8"))
 
+    # 신도시 cores (hedonic: each km from nearest core ≈ -7.3% 평단가)
+    import math
+    CORE = [(35.232079, 128.681025),   # 용지호수공원 (성산 신도시)
+            (35.256943, 128.626998)]   # 중동 유니시티 (의창 신도시)
+    def dist_core(lat, lng):
+        return round(min(math.hypot((lat-cy)*111, (lng-cx)*89) for cy, cx in CORE), 2)
+
     out = []
     n_sale = n_jeo = n_wol = 0
     for c in cx:
@@ -38,6 +45,7 @@ def main(path, period):
                 "area_m2": s["area_m2"],
                 "n": s["n"],
             }
+            if s.get("medFloor") is not None: row["floor"] = s["medFloor"]
             if "sale" in s:   row["sale"] = s["sale"];   n_sale += 1
             if "jeonse" in s: row["jeonse"] = s["jeonse"]; n_jeo += 1
             if "wMonthly" in s:                          # 월세: deposit(억)+monthly(만원)
@@ -50,7 +58,9 @@ def main(path, period):
             "built": c["built"],
             "lat": round(c["lat"], 6), "lng": round(c["lng"], 6),
             "dealCount": c["deal_count"],
-            "geoSrc": c.get("geo_src"),
+            "brand": bool(c.get("brand")),
+            "maxFloor": c.get("maxFloor"),
+            "dcore": dist_core(c["lat"], c["lng"]),
             "sizes": sizes,
         })
 
@@ -68,6 +78,17 @@ def main(path, period):
             # (median implied annual rate). Used to compute 환산월세 for the
             # 월세 comparison: monthly + deposit*rate/12.
             "wolseConvRate": 0.052,
+            # Hedonic coefficients measured on 12,720 sale deals (scripts/hedonic.py,
+            # R²=0.69, all *** p<0.01). DV = log(만원/평). Used for transparent
+            # factor chips + as priors for the model. % ≈ coef×100.
+            "hedonic": {
+                "r2": 0.69, "n": 12720,
+                "distCorePerKm": -0.073,   # -7.3% 평단가 per km from 신도시 core
+                "brand": 0.136,            # +13.6% for 1군 brand
+                "agePerYear": -0.041,      # -4.1%/yr (flattens; no redevelopment U here)
+                "floorLow": -0.037,        # 저층 -3.7%
+                "floorTop": -0.091,        # 탑층 -9.1%
+            },
         },
         "complexes": out,
     }
