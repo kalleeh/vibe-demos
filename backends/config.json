@@ -13,6 +13,7 @@
     "live-globe": { "port": 8094 },
     "intake-companion": { "port": 8095 },
     "sweden-food-guide": { "port": 8096 },
-    "resonans": { "port": 8097 }
+    "resonans": { "port": 8097 },
+    "changwon-homes": { "port": 8098 }
   }
 }

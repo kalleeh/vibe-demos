@@ -78,6 +78,15 @@ UNIT
     systemctl daemon-reload
     systemctl enable pocketbase@${SLUG} --now
     systemctl restart pocketbase@${SLUG}
+
+    # Re-chown AFTER first boot. PocketBase creates pb_data/ and pb_data/storage/
+    # on its first serve; if the unit ran even once before the chown above (or the
+    # dirs were created in a root context), storage/ ends up root-owned and the
+    # pocketbase user can't write uploaded files — every file upload then 400s
+    # with an opaque "Failed to create record." This second pass fixes it
+    # idempotently for backends that use file fields.
+    sleep 2
+    chown -R pocketbase:pocketbase /opt/pocketbase/${SLUG}
 EOF
   echo "  ✓ pocketbase@${SLUG} running on port ${PORT}"
 
