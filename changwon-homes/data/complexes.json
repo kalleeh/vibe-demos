@@ -27,7 +27,8 @@
   },
   "deal_count": 763,
   "brand": false,
-  "maxFloor": 29
+  "maxFloor": 29,
+  "trend": null
  },
  {
   "name": "진해석동푸르지오",
@@ -70,7 +71,8 @@
   },
   "deal_count": 38,
   "brand": true,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -12.7
  },
  {
   "name": "사랑으로부영4단지아파트",
@@ -91,7 +93,8 @@
   },
   "deal_count": 458,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": null
  },
  {
   "name": "사랑으로부영3단지아파트",
@@ -112,7 +115,8 @@
   },
   "deal_count": 372,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": null
  },
  {
   "name": "진해신항만경남아너스빌",
@@ -143,7 +147,8 @@
   },
   "deal_count": 15,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -1.7
  },
  {
   "name": "사랑으로부영2단지아파트",
@@ -173,7 +178,8 @@
   },
   "deal_count": 364,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": null
  },
  {
   "name": "부산신항13단지부영아파트",
@@ -203,7 +209,8 @@
   },
   "deal_count": 455,
   "brand": false,
-  "maxFloor": 29
+  "maxFloor": 29,
+  "trend": null
  },
  {
   "name": "시티프라디움2차",
@@ -247,7 +254,8 @@
   },
   "deal_count": 70,
   "brand": false,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": 0.0
  },
  {
   "name": "풍호시영",
@@ -270,7 +278,8 @@
   },
   "deal_count": 60,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 0.0
  },
  {
   "name": "부산신항사랑으로부영5단지",
@@ -291,7 +300,8 @@
   },
   "deal_count": 173,
   "brand": false,
-  "maxFloor": 23
+  "maxFloor": 23,
+  "trend": null
  },
  {
   "name": "벚꽃마을주공",
@@ -332,7 +342,8 @@
   },
   "deal_count": 24,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": 5.2
  },
  {
   "name": "진해장천대동다:숲",
@@ -391,7 +402,8 @@
   },
   "deal_count": 95,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -0.5
  },
  {
   "name": "시티프라디움1차아파트",
@@ -414,7 +426,8 @@
   },
   "deal_count": 176,
   "brand": false,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": 0.0
  },
  {
   "name": "부산신항사랑으로부영6단지",
@@ -435,7 +448,8 @@
   },
   "deal_count": 306,
   "brand": false,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": null
  },
  {
   "name": "진해자이",
@@ -476,7 +490,8 @@
   },
   "deal_count": 22,
   "brand": true,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 0.2
  },
  {
   "name": "부산신항만이지더원2단지",
@@ -510,7 +525,8 @@
   },
   "deal_count": 63,
   "brand": false,
-  "maxFloor": 28
+  "maxFloor": 28,
+  "trend": 0.6
  },
  {
   "name": "성원",
@@ -533,7 +549,8 @@
   },
   "deal_count": 134,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": -7.3
  },
  {
   "name": "STX칸",
@@ -556,7 +573,8 @@
   },
   "deal_count": 40,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": null
  },
  {
   "name": "창원마린푸르지오1단지",
@@ -626,7 +644,8 @@
   },
   "deal_count": 175,
   "brand": true,
-  "maxFloor": 29
+  "maxFloor": 29,
+  "trend": -2.8
  },
  {
   "name": "창원마린2차푸르지오",
@@ -670,7 +689,8 @@
   },
   "deal_count": 42,
   "brand": true,
-  "maxFloor": 21
+  "maxFloor": 21,
+  "trend": 4.0
  },
  {
   "name": "남문리젠시빌란트더웰",
@@ -704,7 +724,8 @@
   },
   "deal_count": 51,
   "brand": false,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": -1.3
  },
  {
   "name": "우림필유",
@@ -758,7 +779,8 @@
   },
   "deal_count": 101,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -2.9
  },
  {
   "name": "남문동일스위트TheOcean2단지",
@@ -805,7 +827,8 @@
   },
   "deal_count": 31,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": null
  },
  {
   "name": "창원자은에일린의뜰",
@@ -848,7 +871,8 @@
   },
   "deal_count": 39,
   "brand": false,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": 4.5
  },
  {
   "name": "석동주공",
@@ -893,7 +917,8 @@
   },
   "deal_count": 108,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 9.1
  },
  {
   "name": "진해이동디에스아이존빌",
@@ -916,7 +941,8 @@
   },
   "deal_count": 9,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "벚꽃그린빌3단지",
@@ -948,7 +974,8 @@
   },
   "deal_count": 31,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": -4.5
  },
  {
   "name": "창원자은3엘에이치천년나무아파트",
@@ -992,7 +1019,8 @@
   },
   "deal_count": 23,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": null
  },
  {
   "name": "청안그린빌",
@@ -1014,7 +1042,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "경화베스티움",
@@ -1045,7 +1074,8 @@
   },
   "deal_count": 20,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": -2.8
  },
  {
   "name": "창원석동엘에이치아파트",
@@ -1081,7 +1111,8 @@
   },
   "deal_count": 62,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "자은솔라움",
@@ -1112,7 +1143,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "진해이동미소지움",
@@ -1157,7 +1189,8 @@
   },
   "deal_count": 9,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "남성파크A",
@@ -1176,7 +1209,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "풍호주공",
@@ -1210,7 +1244,8 @@
   },
   "deal_count": 49,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "경화동두산위브",
@@ -1261,7 +1296,8 @@
   },
   "deal_count": 50,
   "brand": true,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -10.9
  },
  {
   "name": "남문호반베르디움",
@@ -1295,7 +1331,8 @@
   },
   "deal_count": 113,
   "brand": true,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": -2.6
  },
  {
   "name": "해인로즈빌",
@@ -1318,7 +1355,8 @@
   },
   "deal_count": 94,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 2.9
  },
  {
   "name": "창원마린푸르지오2단지",
@@ -1341,7 +1379,8 @@
   },
   "deal_count": 19,
   "brand": true,
-  "maxFloor": 24
+  "maxFloor": 24,
+  "trend": 1.0
  },
  {
   "name": "수창블루안",
@@ -1363,7 +1402,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "남명플럼빌리지",
@@ -1396,7 +1436,8 @@
   },
   "deal_count": 34,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": -12.5
  },
  {
   "name": "일신님",
@@ -1438,7 +1479,8 @@
   },
   "deal_count": 48,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -1.4
  },
  {
   "name": "부영3차",
@@ -1472,7 +1514,8 @@
   },
   "deal_count": 153,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 4.3
  },
  {
   "name": "풍림",
@@ -1495,7 +1538,8 @@
   },
   "deal_count": 145,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 1.5
  },
  {
   "name": "남문동일스위트TheOcean1단지",
@@ -1544,7 +1588,8 @@
   },
   "deal_count": 181,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": null
  },
  {
   "name": "부영1차",
@@ -1567,7 +1612,8 @@
   },
   "deal_count": 49,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": -1.3
  },
  {
   "name": "평화마을",
@@ -1590,7 +1636,8 @@
   },
   "deal_count": 14,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": -17.5
  },
  {
   "name": "코아루",
@@ -1622,7 +1669,8 @@
   },
   "deal_count": 52,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -3.2
  },
  {
   "name": "경화주공",
@@ -1656,7 +1704,8 @@
   },
   "deal_count": 41,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": -19.7
  },
  {
   "name": "태인아네트",
@@ -1676,7 +1725,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "우성",
@@ -1741,7 +1791,8 @@
   },
   "deal_count": 144,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": -0.3
  },
  {
   "name": "창원한신휴플러스오션파크",
@@ -1775,7 +1826,8 @@
   },
   "deal_count": 83,
   "brand": false,
-  "maxFloor": 23
+  "maxFloor": 23,
+  "trend": 0.2
  },
  {
   "name": "보람더좋은큐브",
@@ -1795,7 +1847,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "창원진해비전시티우방아이유쉘아파트",
@@ -1818,7 +1871,8 @@
   },
   "deal_count": 90,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 6.7
  },
  {
   "name": "대동다:숲",
@@ -1847,7 +1901,8 @@
   },
   "deal_count": 23,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 9.0
  },
  {
   "name": "뉴중앙하이츠",
@@ -1870,7 +1925,8 @@
   },
   "deal_count": 21,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": 1.3
  },
  {
   "name": "샛별마을",
@@ -1902,7 +1958,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": null
  },
  {
   "name": "삼익유토피아",
@@ -1930,7 +1987,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "퀸스스테이",
@@ -1958,7 +2016,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "상지약수",
@@ -1981,7 +2040,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": null
  },
  {
   "name": "부산신항만이지더원1단지",
@@ -2014,7 +2074,8 @@
   },
   "deal_count": 34,
   "brand": false,
-  "maxFloor": 28
+  "maxFloor": 28,
+  "trend": 0.4
  },
  {
   "name": "진해유진에코블루스카이",
@@ -2036,7 +2097,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 17
+  "maxFloor": 17,
+  "trend": 2.6
  },
  {
   "name": "헤븐하임",
@@ -2065,7 +2127,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "석동빌라",
@@ -2086,7 +2149,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "금화골든파크",
@@ -2124,7 +2188,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "남흥",
@@ -2166,7 +2231,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "자은동더샵",
@@ -2205,7 +2271,8 @@
   },
   "deal_count": 18,
   "brand": true,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 11.5
  },
  {
   "name": "부영2차",
@@ -2228,7 +2295,8 @@
   },
   "deal_count": 35,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": 6.8
  },
  {
   "name": "센트럴빌리지",
@@ -2267,7 +2335,8 @@
   },
   "deal_count": 44,
   "brand": false,
-  "maxFloor": 22
+  "maxFloor": 22,
+  "trend": null
  },
  {
   "name": "녹수빌라",
@@ -2299,7 +2368,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "자은프라임",
@@ -2344,7 +2414,8 @@
   },
   "deal_count": 126,
   "brand": false,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": 1.5
  },
  {
   "name": "청안해오름",
@@ -2374,7 +2445,8 @@
   },
   "deal_count": 16,
   "brand": false,
-  "maxFloor": 17
+  "maxFloor": 17,
+  "trend": null
  },
  {
   "name": "경화동더샵",
@@ -2397,7 +2469,8 @@
   },
   "deal_count": 19,
   "brand": true,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": -10.6
  },
  {
   "name": "협성DS.이아이존빌",
@@ -2431,7 +2504,8 @@
   },
   "deal_count": 37,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": -7.9
  },
  {
   "name": "진해남문하우스디",
@@ -2461,7 +2535,8 @@
   },
   "deal_count": 32,
   "brand": false,
-  "maxFloor": 24
+  "maxFloor": 24,
+  "trend": -6.0
  },
  {
   "name": "성호에코허니문",
@@ -2492,7 +2567,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "대신한울",
@@ -2523,7 +2599,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "진해녹산현대",
@@ -2546,7 +2623,8 @@
   },
   "deal_count": 39,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -6.9
  },
  {
   "name": "대풍맨션",
@@ -2566,7 +2644,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "아델펠리스",
@@ -2585,7 +2664,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "대동빌라트",
@@ -2616,7 +2696,8 @@
   },
   "deal_count": 12,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": 25.6
  },
  {
   "name": "리젠시빌란트",
@@ -2642,7 +2723,8 @@
   },
   "deal_count": 58,
   "brand": false,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": null
  },
  {
   "name": "대림",
@@ -2664,7 +2746,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "삼정그린코아1단지",
@@ -2685,7 +2768,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "원창베스트빌",
@@ -2716,7 +2800,8 @@
   },
   "deal_count": 9,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": 20.3
  },
  {
   "name": "마린힐즈",
@@ -2744,7 +2829,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "자은중흥에스-클래스",
@@ -2778,7 +2864,8 @@
   },
   "deal_count": 55,
   "brand": false,
-  "maxFloor": 21
+  "maxFloor": 21,
+  "trend": -2.9
  },
  {
   "name": "만송하이빌",
@@ -2806,7 +2893,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "벽산이솔렌스힐",
@@ -2846,7 +2934,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": -6.3
  },
  {
   "name": "경화",
@@ -2868,7 +2957,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "동화맨션A동",
@@ -2896,7 +2986,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "한결예다움",
@@ -2918,7 +3009,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "정원아트빌",
@@ -2940,7 +3032,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "데시앙",
@@ -2969,7 +3062,8 @@
   },
   "deal_count": 15,
   "brand": true,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": 8.7
  },
  {
   "name": "더프라임",
@@ -2988,7 +3082,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "신광",
@@ -3018,7 +3113,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "신항마린애시앙",
@@ -3038,7 +3134,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "유림빌",
@@ -3060,7 +3157,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "초원빌라(923)",
@@ -3096,7 +3194,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "디에스아이존빌",
@@ -3147,7 +3246,8 @@
   },
   "deal_count": 14,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": -12.4
  },
  {
   "name": "한림리츠빌",
@@ -3184,7 +3284,8 @@
   },
   "deal_count": 29,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 12.1
  },
  {
   "name": "자은주공",
@@ -3204,7 +3305,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "미성빌리지4차",
@@ -3227,7 +3329,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "삼성아파트1단지",
@@ -3256,7 +3359,8 @@
   },
   "deal_count": 12,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": 9.0
  },
  {
   "name": "삼성아파트2단지",
@@ -3277,7 +3381,8 @@
   },
   "deal_count": 10,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": 0.5
  },
  {
   "name": "대풍",
@@ -3299,7 +3404,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": -7.9
  },
  {
   "name": "창남상가빌라",
@@ -3319,7 +3425,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "화천타워",
@@ -3339,7 +3446,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "월드메르디앙",
@@ -3368,7 +3476,8 @@
   },
   "deal_count": 12,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": 15.7
  },
  {
   "name": "자은3주공",
@@ -3404,7 +3513,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "평화그린파크",
@@ -3431,7 +3541,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "좋은아침",
@@ -3453,7 +3564,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": null
  },
  {
   "name": "수진빌라트",
@@ -3472,7 +3584,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "삼정그린코아2단지",
@@ -3493,7 +3606,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "미래골든빌",
@@ -3522,7 +3636,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "송림홈타운",
@@ -3544,7 +3659,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "한솔솔파크1단지",
@@ -3565,7 +3681,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": -0.9
  },
  {
   "name": "오름텔",
@@ -3585,7 +3702,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "삼양프라자5차",
@@ -3607,7 +3725,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "세진맨션",
@@ -3637,7 +3756,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "대광",
@@ -3677,7 +3797,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "시인의마을",
@@ -3700,7 +3821,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "한림",
@@ -3735,7 +3857,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "보람더-좋은",
@@ -3763,7 +3886,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "부길",
@@ -3784,7 +3908,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "위드필오션베이",
@@ -3806,7 +3931,8 @@
   },
   "deal_count": 10,
   "brand": false,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": 2.4
  },
  {
   "name": "원창훼미리",
@@ -3829,7 +3955,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "한동더푸름",
@@ -3860,7 +3987,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "덕산빌라",
@@ -3880,7 +4008,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "경화보람아름채CITY",
@@ -3902,7 +4031,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "씨스위트빌",
@@ -3923,7 +4053,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "미르빌",
@@ -3943,7 +4074,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "로얄스톤2차",
@@ -3964,7 +4096,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "덕진그린빌A",
@@ -3984,7 +4117,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "준영빌",
@@ -4003,7 +4137,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "신생비치",
@@ -4025,7 +4160,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": null
  },
  {
   "name": "태연1차",
@@ -4046,7 +4182,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "덕진디딤돌",
@@ -4075,7 +4212,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "금화빌라",
@@ -4103,7 +4241,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "마산가포부영아파트",
@@ -4124,7 +4263,8 @@
   },
   "deal_count": 357,
   "brand": false,
-  "maxFloor": 32
+  "maxFloor": 32,
+  "trend": null
  },
  {
   "name": "상록",
@@ -4154,7 +4294,8 @@
   },
   "deal_count": 213,
   "brand": false,
-  "maxFloor": 21
+  "maxFloor": 21,
+  "trend": null
  },
  {
   "name": "현대3",
@@ -4188,7 +4329,8 @@
   },
   "deal_count": 27,
   "brand": false,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": -12.6
  },
  {
   "name": "창원롯데캐슬프리미어",
@@ -4252,7 +4394,8 @@
   },
   "deal_count": 198,
   "brand": true,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": -1.4
  },
  {
   "name": "무학산벽산블루밍2단지",
@@ -4316,7 +4459,8 @@
   },
   "deal_count": 52,
   "brand": false,
-  "maxFloor": 22
+  "maxFloor": 22,
+  "trend": -2.9
  },
  {
   "name": "현대2",
@@ -4357,7 +4501,8 @@
   },
   "deal_count": 35,
   "brand": false,
-  "maxFloor": 22
+  "maxFloor": 22,
+  "trend": -13.8
  },
  {
   "name": "화인아트빌라2",
@@ -4399,7 +4544,8 @@
   },
   "deal_count": 27,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 9.1
  },
  {
   "name": "마창대교반도유보라아이비파크",
@@ -4433,7 +4579,8 @@
   },
   "deal_count": 136,
   "brand": false,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": -0.4
  },
  {
   "name": "중흥S클래스프라디움3차",
@@ -4482,7 +4629,8 @@
   },
   "deal_count": 86,
   "brand": false,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": 0.1
  },
  {
   "name": "창원푸르지오더플래티넘2단지",
@@ -4545,7 +4693,8 @@
   },
   "deal_count": 153,
   "brand": true,
-  "maxFloor": 26
+  "maxFloor": 26,
+  "trend": 1.2
  },
  {
   "name": "창원푸르지오더플래티넘3단지",
@@ -4606,7 +4755,8 @@
   },
   "deal_count": 158,
   "brand": true,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": 3.6
  },
  {
   "name": "성원",
@@ -4636,7 +4786,8 @@
   },
   "deal_count": 9,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": 18.9
  },
  {
   "name": "삼익",
@@ -4708,7 +4859,8 @@
   },
   "deal_count": 34,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": 5.6
  },
  {
   "name": "산호경동리인",
@@ -4759,7 +4911,8 @@
   },
   "deal_count": 77,
   "brand": false,
-  "maxFloor": 34
+  "maxFloor": 34,
+  "trend": 0.8
  },
  {
   "name": "경동메르빌",
@@ -4812,7 +4965,8 @@
   },
   "deal_count": 49,
   "brand": false,
-  "maxFloor": 24
+  "maxFloor": 24,
+  "trend": 7.6
  },
  {
   "name": "마린애시앙부영",
@@ -4857,7 +5011,8 @@
   },
   "deal_count": 694,
   "brand": false,
-  "maxFloor": 31
+  "maxFloor": 31,
+  "trend": 5.2
  },
  {
   "name": "두산2",
@@ -4898,7 +5053,8 @@
   },
   "deal_count": 25,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": -2.9
  },
  {
   "name": "엘에이치그린품애",
@@ -4943,7 +5099,8 @@
   },
   "deal_count": 43,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": -3.5
  },
  {
   "name": "화인",
@@ -4983,7 +5140,8 @@
   },
   "deal_count": 22,
   "brand": false,
-  "maxFloor": 16
+  "maxFloor": 16,
+  "trend": -3.7
  },
  {
   "name": "한일비치맨션아파트",
@@ -5026,7 +5184,8 @@
   },
   "deal_count": 12,
   "brand": false,
-  "maxFloor": 17
+  "maxFloor": 17,
+  "trend": null
  },
  {
   "name": "현대건설1차",
@@ -5060,7 +5219,8 @@
   },
   "deal_count": 40,
   "brand": false,
-  "maxFloor": 21
+  "maxFloor": 21,
+  "trend": -8.2
  },
  {
   "name": "신화하니엘더마린2단지",
@@ -5082,7 +5242,8 @@
   },
   "deal_count": 13,
   "brand": false,
-  "maxFloor": 24
+  "maxFloor": 24,
+  "trend": 0.7
  },
  {
   "name": "한일유앤아이",
@@ -5130,7 +5291,8 @@
   },
   "deal_count": 42,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 5.9
  },
  {
   "name": "경남",
@@ -5172,7 +5334,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "두산3",
@@ -5206,7 +5369,8 @@
   },
   "deal_count": 52,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": 0.3
  },
  {
   "name": "신포동이담채",
@@ -5243,7 +5407,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "국제비치타운",
@@ -5284,7 +5449,8 @@
   },
   "deal_count": 25,
   "brand": false,
-  "maxFloor": 21
+  "maxFloor": 21,
+  "trend": 3.3
  },
  {
   "name": "월영동SK오션뷰",
@@ -5346,7 +5512,8 @@
   },
   "deal_count": 85,
   "brand": false,
-  "maxFloor": 31
+  "maxFloor": 31,
+  "trend": -0.2
  },
  {
   "name": "월영동아",
@@ -5380,7 +5547,8 @@
   },
   "deal_count": 57,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": -1.5
  },
  {
   "name": "산호베스티움",
@@ -5420,7 +5588,8 @@
   },
   "deal_count": 29,
   "brand": false,
-  "maxFloor": 27
+  "maxFloor": 27,
+  "trend": -0.9
  },
  {
   "name": "오동동다:숲",
@@ -5451,7 +5620,8 @@
   },
   "deal_count": 15,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": -4.7
  },
  {
   "name": "창원칸타빌오션뷰",
@@ -5483,7 +5653,8 @@
   },
   "deal_count": 87,
   "brand": false,
-  "maxFloor": 40
+  "maxFloor": 40,
+  "trend": -0.3
  },
  {
   "name": "마산진동협성엠파이어",
@@ -5526,7 +5697,8 @@
   },
   "deal_count": 31,
   "brand": false,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": -9.0
  },
  {
   "name": "현대5",
@@ -5580,7 +5752,8 @@
   },
   "deal_count": 44,
   "brand": false,
-  "maxFloor": 22
+  "maxFloor": 22,
+  "trend": -4.6
  },
  {
   "name": "우성",
@@ -5603,7 +5776,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "월영동아2",
@@ -5660,7 +5834,8 @@
   },
   "deal_count": 89,
   "brand": false,
-  "maxFloor": 22
+  "maxFloor": 22,
+  "trend": -7.9
  },
  {
   "name": "신추산",
@@ -5693,7 +5868,8 @@
   },
   "deal_count": 19,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": -15.5
  },
  {
   "name": "무학자이",
@@ -5754,7 +5930,8 @@
   },
   "deal_count": 55,
   "brand": true,
-  "maxFloor": 23
+  "maxFloor": 23,
+  "trend": 0.1
  },
  {
   "name": "대내주공그린빌",
@@ -5797,7 +5974,8 @@
   },
   "deal_count": 31,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": 5.7
  },
  {
   "name": "대동씨코아상가",
@@ -5820,7 +5998,8 @@
   },
   "deal_count": 22,
   "brand": false,
-  "maxFloor": 21
+  "maxFloor": 21,
+  "trend": -9.2
  },
  {
   "name": "창원현동휴튼",
@@ -5848,7 +6027,8 @@
   },
   "deal_count": 439,
   "brand": false,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": null
  },
  {
   "name": "창원가포안단테",
@@ -5871,7 +6051,8 @@
   },
   "deal_count": 19,
   "brand": false,
-  "maxFloor": 17
+  "maxFloor": 17,
+  "trend": 6.7
  },
  {
   "name": "삼부햇살마루",
@@ -5900,7 +6081,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "중앙마린파이브아파트",
@@ -5934,7 +6116,8 @@
   },
   "deal_count": 41,
   "brand": false,
-  "maxFloor": 29
+  "maxFloor": 29,
+  "trend": 0.2
  },
  {
   "name": "중흥S클래스프라디움1차",
@@ -5957,7 +6140,8 @@
   },
   "deal_count": 23,
   "brand": false,
-  "maxFloor": 22
+  "maxFloor": 22,
+  "trend": 2.6
  },
  {
   "name": "한우아파트",
@@ -6032,7 +6216,8 @@
   },
   "deal_count": 46,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": -5.5
  },
  {
   "name": "롯데빌리지",
@@ -6081,7 +6266,8 @@
   },
   "deal_count": 51,
   "brand": false,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": null
  },
  {
   "name": "평화리버타운",
@@ -6113,7 +6299,8 @@
   },
   "deal_count": 42,
   "brand": false,
-  "maxFloor": 17
+  "maxFloor": 17,
+  "trend": null
  },
  {
   "name": "자산씨티빌",
@@ -6133,7 +6320,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "경동메르빌2차",
@@ -6165,7 +6353,8 @@
   },
   "deal_count": 23,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 16.0
  },
  {
   "name": "마산신화하니엘더마린",
@@ -6209,7 +6398,8 @@
   },
   "deal_count": 24,
   "brand": false,
-  "maxFloor": 26
+  "maxFloor": 26,
+  "trend": -2.1
  },
  {
   "name": "창원현동엘에이치아파트",
@@ -6261,7 +6451,8 @@
   },
   "deal_count": 32,
   "brand": false,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": null
  },
  {
   "name": "무궁화",
@@ -6292,7 +6483,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "동하라일락",
@@ -6312,7 +6504,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "다조맨션",
@@ -6339,7 +6532,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "창원가포엘에이치아파트1단지",
@@ -6383,7 +6577,8 @@
   },
   "deal_count": 34,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": null
  },
  {
   "name": "한성가고파",
@@ -6405,7 +6600,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "월영마크리움주상복합",
@@ -6428,7 +6624,8 @@
   },
   "deal_count": 18,
   "brand": false,
-  "maxFloor": 27
+  "maxFloor": 27,
+  "trend": 3.0
  },
  {
   "name": "기산상가",
@@ -6467,7 +6664,8 @@
   },
   "deal_count": 12,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": -5.1
  },
  {
   "name": "자산경남상가",
@@ -6498,7 +6696,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "현대",
@@ -6530,7 +6729,8 @@
   },
   "deal_count": 13,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": null
  },
  {
   "name": "센트럴",
@@ -6573,7 +6773,8 @@
   },
   "deal_count": 47,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": 4.3
  },
  {
   "name": "해운한백",
@@ -6619,7 +6820,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": null
  },
  {
   "name": "성모아일린",
@@ -6648,7 +6850,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "교방",
@@ -6668,7 +6871,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "우방",
@@ -6728,7 +6932,8 @@
   },
   "deal_count": 20,
   "brand": false,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": 0.6
  },
  {
   "name": "전원파크맨션아파트",
@@ -6769,7 +6974,8 @@
   },
   "deal_count": 9,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": null
  },
  {
   "name": "청안펠리스빌",
@@ -6789,7 +6995,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "자산",
@@ -6811,7 +7018,8 @@
   },
   "deal_count": 9,
   "brand": false,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": -16.7
  },
  {
   "name": "평화궁전",
@@ -6848,7 +7056,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "대양파크맨션",
@@ -6868,7 +7077,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "두산1차",
@@ -6900,7 +7110,8 @@
   },
   "deal_count": 21,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -6.3
  },
  {
   "name": "배진파크",
@@ -6920,7 +7131,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "무학산벽산블루밍1단지",
@@ -6941,7 +7153,8 @@
   },
   "deal_count": 14,
   "brand": false,
-  "maxFloor": 17
+  "maxFloor": 17,
+  "trend": 8.7
  },
  {
   "name": "화인아트빌라1",
@@ -6992,7 +7205,8 @@
   },
   "deal_count": 10,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -15.3
  },
  {
   "name": "해오름",
@@ -7022,7 +7236,8 @@
   },
   "deal_count": 16,
   "brand": false,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": -1.8
  },
  {
   "name": "일양맨션",
@@ -7049,7 +7264,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "가포금호어울림엔에이치에프",
@@ -7077,7 +7293,8 @@
   },
   "deal_count": 86,
   "brand": false,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": null
  },
  {
   "name": "장안리츠빌",
@@ -7099,7 +7316,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "명동파크",
@@ -7120,7 +7338,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "리치클하우스",
@@ -7150,7 +7369,8 @@
   },
   "deal_count": 55,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": 0.2
  },
  {
   "name": "해운동성",
@@ -7190,7 +7410,8 @@
   },
   "deal_count": 21,
   "brand": false,
-  "maxFloor": 21
+  "maxFloor": 21,
+  "trend": 5.9
  },
  {
   "name": "창원푸르지오더플래티넘1단지",
@@ -7235,7 +7456,8 @@
   },
   "deal_count": 71,
   "brand": true,
-  "maxFloor": 24
+  "maxFloor": 24,
+  "trend": 3.5
  },
  {
   "name": "동성",
@@ -7256,7 +7478,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "남명세비앙",
@@ -7277,7 +7500,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": null
  },
  {
   "name": "교수",
@@ -7306,7 +7530,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "신흥그린빌라4",
@@ -7326,7 +7551,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "우신뉴타워",
@@ -7355,7 +7581,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": null
  },
  {
   "name": "벽산블루밍",
@@ -7398,7 +7625,8 @@
   },
   "deal_count": 36,
   "brand": false,
-  "maxFloor": 21
+  "maxFloor": 21,
+  "trend": 11.2
  },
  {
   "name": "용마맨션",
@@ -7428,7 +7656,8 @@
   },
   "deal_count": 9,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "혜성미",
@@ -7451,7 +7680,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "월영동성",
@@ -7473,7 +7703,8 @@
   },
   "deal_count": 10,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 1.3
  },
  {
   "name": "삼성타운",
@@ -7511,7 +7742,8 @@
   },
   "deal_count": 13,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": -7.6
  },
  {
   "name": "창포경민",
@@ -7542,7 +7774,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": null
  },
  {
   "name": "한백가든빌라",
@@ -7564,7 +7797,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "라인아파트",
@@ -7592,7 +7826,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "성원이화맨션",
@@ -7631,7 +7866,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "진달래국민주택",
@@ -7660,7 +7896,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "신우희가로베스트",
@@ -7692,7 +7929,8 @@
   },
   "deal_count": 13,
   "brand": false,
-  "maxFloor": 17
+  "maxFloor": 17,
+  "trend": 9.1
  },
  {
   "name": "환웅수빌리지",
@@ -7713,7 +7951,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "월영대동타운",
@@ -7753,7 +7992,8 @@
   },
   "deal_count": 20,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": 11.4
  },
  {
   "name": "엘렌시아주상복합",
@@ -7783,7 +8023,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "마산만I'PARK",
@@ -7827,7 +8068,8 @@
   },
   "deal_count": 79,
   "brand": false,
-  "maxFloor": 36
+  "maxFloor": 36,
+  "trend": 6.9
  },
  {
   "name": "중흥S클래스프라디움2차",
@@ -7850,7 +8092,8 @@
   },
   "deal_count": 24,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": -0.6
  },
  {
   "name": "한백푸른",
@@ -7888,7 +8131,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": null
  },
  {
   "name": "평화골든타워",
@@ -7928,7 +8172,8 @@
   },
   "deal_count": 19,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": 1.1
  },
  {
   "name": "서광아침의빛",
@@ -7959,7 +8204,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 2.5
  },
  {
   "name": "학성아트빌리지",
@@ -7978,7 +8224,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "팔도맨션",
@@ -8016,7 +8263,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": null
  },
  {
   "name": "두월동상우the헤라우스",
@@ -8046,7 +8294,8 @@
   },
   "deal_count": 10,
   "brand": false,
-  "maxFloor": 17
+  "maxFloor": 17,
+  "trend": -3.6
  },
  {
   "name": "창원현동하늘채",
@@ -8069,7 +8318,8 @@
   },
   "deal_count": 31,
   "brand": false,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": 0.2
  },
  {
   "name": "서광2",
@@ -8099,7 +8349,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": null
  },
  {
   "name": "상강",
@@ -8119,7 +8370,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "삼우",
@@ -8142,7 +8394,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "연화",
@@ -8164,7 +8417,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "배진",
@@ -8201,7 +8455,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "대동한마음",
@@ -8222,7 +8477,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "신월경남",
@@ -8260,7 +8516,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "새롬미리내아파트",
@@ -8292,7 +8549,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": 7.3
  },
  {
   "name": "헤븐하임",
@@ -8319,7 +8577,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "대한맨션",
@@ -8352,7 +8611,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "동성가든",
@@ -8371,7 +8631,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "신우희가로밀리온",
@@ -8393,7 +8654,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": null
  },
  {
   "name": "정우빌라",
@@ -8415,7 +8677,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "월영라이프",
@@ -8460,7 +8723,8 @@
   },
   "deal_count": 9,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": null
  },
  {
   "name": "국제파크",
@@ -8488,7 +8752,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "청구제네스",
@@ -8525,7 +8790,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": 14.9
  },
  {
   "name": "산호국민주택",
@@ -8545,7 +8811,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "한백힐사이드빌라",
@@ -8565,7 +8832,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "동성아파트",
@@ -8610,7 +8878,8 @@
   },
   "deal_count": 14,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": 7.3
  },
  {
   "name": "뜨란채빌",
@@ -8632,7 +8901,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "대권한빛",
@@ -8652,7 +8922,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "해바라기",
@@ -8685,7 +8956,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "신우빌라",
@@ -8704,7 +8976,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "신포경남",
@@ -8727,7 +9000,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": null
  },
  {
   "name": "해창아트빌",
@@ -8754,7 +9028,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "한라해말금",
@@ -8775,7 +9050,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "무학",
@@ -8805,7 +9081,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "대창",
@@ -8825,7 +9102,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "리코그린맨션",
@@ -8855,7 +9133,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "반월동르메이에르",
@@ -8874,7 +9153,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "우경씨사이드빌",
@@ -8896,7 +9176,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "창동스카이아파트",
@@ -8917,7 +9198,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "건우맨션",
@@ -8947,7 +9229,8 @@
   },
   "deal_count": 9,
   "brand": false,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": -9.9
  },
  {
   "name": "현대가동",
@@ -8969,7 +9252,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "수영",
@@ -8996,7 +9280,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "진웅네스빌",
@@ -9018,7 +9303,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "수성퀸즈빌",
@@ -9038,7 +9324,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "대성",
@@ -9073,7 +9360,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "혜창한마음비치",
@@ -9103,7 +9391,8 @@
   },
   "deal_count": 12,
   "brand": false,
-  "maxFloor": 22
+  "maxFloor": 22,
+  "trend": 22.0
  },
  {
   "name": "일신",
@@ -9124,7 +9413,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "중리근로복지",
@@ -9158,7 +9448,8 @@
   },
   "deal_count": 59,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 6.3
  },
  {
   "name": "현대",
@@ -9210,7 +9501,8 @@
   },
   "deal_count": 20,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -5.0
  },
  {
   "name": "창원롯데캐슬센텀골드",
@@ -9264,7 +9556,8 @@
   },
   "deal_count": 206,
   "brand": true,
-  "maxFloor": 39
+  "maxFloor": 39,
+  "trend": 2.6
  },
  {
   "name": "메트로시티2단지",
@@ -9320,7 +9613,8 @@
   },
   "deal_count": 255,
   "brand": false,
-  "maxFloor": 53
+  "maxFloor": 53,
+  "trend": 2.4
  },
  {
   "name": "경민인터빌",
@@ -9357,7 +9651,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 16
+  "maxFloor": 16,
+  "trend": null
  },
  {
   "name": "현대성우",
@@ -9386,7 +9681,8 @@
   },
   "deal_count": 13,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": -4.6
  },
  {
   "name": "대동다:숲",
@@ -9418,7 +9714,8 @@
   },
   "deal_count": 15,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": -2.8
  },
  {
   "name": "숲속마을주공그린빌4단지",
@@ -9465,7 +9762,8 @@
   },
   "deal_count": 17,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 4.1
  },
  {
   "name": "양덕지오피아",
@@ -9495,7 +9793,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "롯데캐슬더퍼스트",
@@ -9546,7 +9845,8 @@
   },
   "deal_count": 164,
   "brand": true,
-  "maxFloor": 29
+  "maxFloor": 29,
+  "trend": 1.8
  },
  {
   "name": "메트로시티",
@@ -9621,7 +9921,8 @@
   },
   "deal_count": 173,
   "brand": false,
-  "maxFloor": 39
+  "maxFloor": 39,
+  "trend": 0.6
  },
  {
   "name": "한성(1344)",
@@ -9644,7 +9945,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "마산양덕동동아위드필하임",
@@ -9681,7 +9983,8 @@
   },
   "deal_count": 15,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": -1.4
  },
  {
   "name": "중리백로",
@@ -9704,7 +10007,8 @@
   },
   "deal_count": 21,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -7.4
  },
  {
   "name": "우성",
@@ -9755,7 +10059,8 @@
   },
   "deal_count": 68,
   "brand": false,
-  "maxFloor": 23
+  "maxFloor": 23,
+  "trend": 5.6
  },
  {
   "name": "창원메트로시티석전",
@@ -9829,7 +10134,8 @@
   },
   "deal_count": 330,
   "brand": false,
-  "maxFloor": 33
+  "maxFloor": 33,
+  "trend": 3.7
  },
  {
   "name": "대양",
@@ -9873,7 +10179,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "마산양덕4차한일타운",
@@ -9914,7 +10221,8 @@
   },
   "deal_count": 78,
   "brand": false,
-  "maxFloor": 24
+  "maxFloor": 24,
+  "trend": 0.6
  },
  {
   "name": "한효이화맨션",
@@ -9944,7 +10252,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "양덕코오롱하늘채",
@@ -9975,7 +10284,8 @@
   },
   "deal_count": 69,
   "brand": true,
-  "maxFloor": 29
+  "maxFloor": 29,
+  "trend": 9.0
  },
  {
   "name": "숲속마을(6단지)",
@@ -10016,7 +10326,8 @@
   },
   "deal_count": 32,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 2.8
  },
  {
   "name": "신성미소지움",
@@ -10048,7 +10359,8 @@
   },
   "deal_count": 15,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -0.2
  },
  {
   "name": "THE-푸른",
@@ -10093,7 +10405,8 @@
   },
   "deal_count": 118,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -1.4
  },
  {
   "name": "e-편한세상창원파크센트럴",
@@ -10164,7 +10477,8 @@
   },
   "deal_count": 157,
   "brand": false,
-  "maxFloor": 29
+  "maxFloor": 29,
+  "trend": 1.0
  },
  {
   "name": "대동",
@@ -10209,7 +10523,8 @@
   },
   "deal_count": 57,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -0.9
  },
  {
   "name": "창원두산위브더센트럴",
@@ -10247,7 +10562,8 @@
   },
   "deal_count": 21,
   "brand": true,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": null
  },
  {
   "name": "코오롱하늘채2차",
@@ -10296,7 +10612,8 @@
   },
   "deal_count": 77,
   "brand": true,
-  "maxFloor": 23
+  "maxFloor": 23,
+  "trend": -1.9
  },
  {
   "name": "대동이미지1단지",
@@ -10339,7 +10656,8 @@
   },
   "deal_count": 48,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": 7.0
  },
  {
   "name": "화성아파트",
@@ -10370,7 +10688,8 @@
   },
   "deal_count": 10,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": -5.4
  },
  {
   "name": "크라운",
@@ -10393,7 +10712,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "삼계서진",
@@ -10423,7 +10743,8 @@
   },
   "deal_count": 27,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 4.4
  },
  {
   "name": "희성아트빌A",
@@ -10455,7 +10776,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "한일타운2",
@@ -10489,7 +10811,8 @@
   },
   "deal_count": 67,
   "brand": false,
-  "maxFloor": 23
+  "maxFloor": 23,
+  "trend": -3.6
  },
  {
   "name": "은하",
@@ -10511,7 +10834,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "대진",
@@ -10533,7 +10857,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "코오롱하늘채1차아파트",
@@ -10598,7 +10923,8 @@
   },
   "deal_count": 104,
   "brand": true,
-  "maxFloor": 23
+  "maxFloor": 23,
+  "trend": -4.3
  },
  {
   "name": "일우근주맨션",
@@ -10637,7 +10963,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 16
+  "maxFloor": 16,
+  "trend": null
  },
  {
   "name": "송촌e'누리채아파트",
@@ -10667,7 +10994,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": null
  },
  {
   "name": "봉암서광",
@@ -10690,7 +11018,8 @@
   },
   "deal_count": 17,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": 5.3
  },
  {
   "name": "한우리",
@@ -10713,7 +11042,8 @@
   },
   "deal_count": 65,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 4.4
  },
  {
   "name": "석보",
@@ -10736,7 +11066,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "숲속마을(507-1)",
@@ -10777,7 +11108,8 @@
   },
   "deal_count": 17,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": -1.7
  },
  {
   "name": "무학",
@@ -10822,7 +11154,8 @@
   },
   "deal_count": 38,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 12.0
  },
  {
   "name": "현대",
@@ -10863,7 +11196,8 @@
   },
   "deal_count": 41,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 13.6
  },
  {
   "name": "삼성프리텔",
@@ -10885,7 +11219,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "중리2차서광",
@@ -10936,7 +11271,8 @@
   },
   "deal_count": 20,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 0.5
  },
  {
   "name": "거북",
@@ -10959,7 +11295,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "동신2",
@@ -10993,7 +11330,8 @@
   },
   "deal_count": 21,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 4.7
  },
  {
   "name": "삼성버킹궁",
@@ -11024,7 +11362,8 @@
   },
   "deal_count": 16,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 3.4
  },
  {
   "name": "회원주공",
@@ -11056,7 +11395,8 @@
   },
   "deal_count": 9,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": null
  },
  {
   "name": "드림타워",
@@ -11096,7 +11436,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": null
  },
  {
   "name": "신우주상복합",
@@ -11118,7 +11459,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": null
  },
  {
   "name": "백조",
@@ -11146,7 +11488,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "동남타운",
@@ -11168,7 +11511,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "보라맨션",
@@ -11191,7 +11535,8 @@
   },
   "deal_count": 10,
   "brand": false,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": -10.8
  },
  {
   "name": "정일맨션",
@@ -11211,7 +11556,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "화인태양",
@@ -11260,7 +11606,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": null
  },
  {
   "name": "세한그린파크",
@@ -11291,7 +11638,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": null
  },
  {
   "name": "삼성메르빌",
@@ -11313,7 +11661,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": 0.0
  },
  {
   "name": "한효",
@@ -11352,7 +11701,8 @@
   },
   "deal_count": 10,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": 36.4
  },
  {
   "name": "동신1",
@@ -11394,7 +11744,8 @@
   },
   "deal_count": 15,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": 5.0
  },
  {
   "name": "가고파",
@@ -11427,7 +11778,8 @@
   },
   "deal_count": 14,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": -7.3
  },
  {
   "name": "시영장미",
@@ -11450,7 +11802,8 @@
   },
   "deal_count": 28,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": 1.0
  },
  {
   "name": "코리아타코마사원아파트",
@@ -11470,7 +11823,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "태양",
@@ -11500,7 +11854,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "한우리2",
@@ -11523,7 +11878,8 @@
   },
   "deal_count": 22,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": 16.3
  },
  {
   "name": "태화",
@@ -11550,7 +11906,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "수피아",
@@ -11589,7 +11946,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "국제한마음",
@@ -11655,7 +12013,8 @@
   },
   "deal_count": 30,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -0.5
  },
  {
   "name": "한일타운",
@@ -11698,7 +12057,8 @@
   },
   "deal_count": 52,
   "brand": false,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": -3.7
  },
  {
   "name": "대림하이빌",
@@ -11741,7 +12101,8 @@
   },
   "deal_count": 42,
   "brand": false,
-  "maxFloor": 23
+  "maxFloor": 23,
+  "trend": 4.8
  },
  {
   "name": "마산삼계주공3단지",
@@ -11764,7 +12125,8 @@
   },
   "deal_count": 27,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -1.8
  },
  {
   "name": "장미",
@@ -11795,7 +12157,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "구암대동",
@@ -11827,7 +12190,8 @@
   },
   "deal_count": 35,
   "brand": false,
-  "maxFloor": 22
+  "maxFloor": 22,
+  "trend": 7.9
  },
  {
   "name": "남아그린빌라",
@@ -11855,7 +12219,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "한일유엔아이",
@@ -11878,7 +12243,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": null
  },
  {
   "name": "팔육국민주택",
@@ -11898,7 +12264,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "대동다:숲",
@@ -11927,7 +12294,8 @@
   },
   "deal_count": 16,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": -2.3
  },
  {
   "name": "구암대동2",
@@ -11956,7 +12324,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": 21.6
  },
  {
   "name": "한일3",
@@ -11990,7 +12359,8 @@
   },
   "deal_count": 41,
   "brand": false,
-  "maxFloor": 23
+  "maxFloor": 23,
+  "trend": -1.9
  },
  {
   "name": "대동이미지2단지",
@@ -12033,7 +12403,8 @@
   },
   "deal_count": 32,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": 1.3
  },
  {
   "name": "경일",
@@ -12053,7 +12424,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "덕천파크",
@@ -12082,7 +12454,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "한일사원",
@@ -12108,7 +12481,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "경남(28-5)",
@@ -12128,7 +12502,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "강남디지털",
@@ -12148,7 +12523,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "장미파크",
@@ -12168,7 +12544,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "옥산",
@@ -12195,7 +12572,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "배진",
@@ -12225,7 +12603,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "정우맨션",
@@ -12248,7 +12627,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "한효국화",
@@ -12286,7 +12666,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "일산",
@@ -12315,7 +12696,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "연화맨션",
@@ -12337,7 +12719,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "마산삼계2주공",
@@ -12365,7 +12748,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "리치",
@@ -12384,7 +12768,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "배진",
@@ -12405,7 +12790,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": null
  },
  {
   "name": "백화아트빌",
@@ -12425,7 +12811,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "삼우",
@@ -12447,7 +12834,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "중앙캐스빌",
@@ -12468,7 +12856,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": null
  },
  {
   "name": "세화A.P.T",
@@ -12497,7 +12886,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "부영국민주택",
@@ -12526,7 +12916,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "신우",
@@ -12547,7 +12938,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "경남아파트2동3동",
@@ -12577,7 +12969,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "타워맨션",
@@ -12598,7 +12991,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "다담웰빙필",
@@ -12620,7 +13014,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "합성동림맨션가",
@@ -12642,7 +13037,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "동도센트리움",
@@ -12680,7 +13076,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 23
+  "maxFloor": 23,
+  "trend": null
  },
  {
   "name": "교직원",
@@ -12700,7 +13097,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "제일",
@@ -12730,7 +13128,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "대화빌아트",
@@ -12758,7 +13157,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "대호",
@@ -12794,7 +13194,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "경남(1336)",
@@ -12817,7 +13218,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 6.8
  },
  {
   "name": "한주",
@@ -12847,7 +13249,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "대상",
@@ -12885,7 +13288,8 @@
   },
   "deal_count": 9,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": 5.9
  },
  {
   "name": "남광B동",
@@ -12906,7 +13310,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "청우",
@@ -12926,7 +13331,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "일우",
@@ -12948,7 +13354,8 @@
   },
   "deal_count": 13,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": 2.0
  },
  {
   "name": "이미지피렌체",
@@ -12969,7 +13376,8 @@
   },
   "deal_count": 9,
   "brand": false,
-  "maxFloor": 17
+  "maxFloor": 17,
+  "trend": 0.0
  },
  {
   "name": "고려화이트빌",
@@ -12990,7 +13398,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "소라1",
@@ -13012,7 +13421,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "경남(1335)",
@@ -13035,7 +13445,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "라임하우스2차",
@@ -13065,7 +13476,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "건우만복",
@@ -13086,7 +13498,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": null
  },
  {
   "name": "동명빌라",
@@ -13105,7 +13518,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "한효코스모스",
@@ -13141,7 +13555,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "성일빌리지",
@@ -13161,7 +13576,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "유신",
@@ -13189,7 +13605,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "양덕이담채아파트",
@@ -13212,7 +13629,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 22
+  "maxFloor": 22,
+  "trend": null
  },
  {
   "name": "누리터빌",
@@ -13232,7 +13650,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "산동",
@@ -13252,7 +13671,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "서광빌라맨션",
@@ -13275,7 +13695,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "세일로얄파크",
@@ -13294,7 +13715,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "한우",
@@ -13324,7 +13746,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "킹스타운",
@@ -13345,7 +13768,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "무학",
@@ -13379,7 +13803,8 @@
   },
   "deal_count": 219,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 22.1
  },
  {
   "name": "용지더샵레이크파크",
@@ -13435,7 +13860,8 @@
   },
   "deal_count": 247,
   "brand": true,
-  "maxFloor": 29
+  "maxFloor": 29,
+  "trend": 6.7
  },
  {
   "name": "포레나대원",
@@ -13502,7 +13928,8 @@
   },
   "deal_count": 258,
   "brand": true,
-  "maxFloor": 35
+  "maxFloor": 35,
+  "trend": 9.4
  },
  {
   "name": "노블파크",
@@ -13597,7 +14024,8 @@
   },
   "deal_count": 366,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": 6.2
  },
  {
   "name": "까치2차",
@@ -13620,7 +14048,8 @@
   },
   "deal_count": 44,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -6.6
  },
  {
   "name": "대방동성",
@@ -13661,7 +14090,8 @@
   },
   "deal_count": 63,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": -2.8
  },
  {
   "name": "동성",
@@ -13716,7 +14146,8 @@
   },
   "deal_count": 277,
   "brand": false,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": -0.1
  },
  {
   "name": "대방그린빌",
@@ -13750,7 +14181,8 @@
   },
   "deal_count": 195,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": 6.7
  },
  {
   "name": "대동황토방",
@@ -13793,7 +14225,8 @@
   },
   "deal_count": 58,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": 6.1
  },
  {
   "name": "남산효성해링턴플레이스",
@@ -13835,7 +14268,8 @@
   },
   "deal_count": 81,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -9.2
  },
  {
   "name": "현대2차",
@@ -13889,7 +14323,8 @@
   },
   "deal_count": 216,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 9.9
  },
  {
   "name": "럭키",
@@ -13945,7 +14380,8 @@
   },
   "deal_count": 234,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 13.0
  },
  {
   "name": "대동",
@@ -13998,7 +14434,8 @@
   },
   "deal_count": 282,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": -2.4
  },
  {
   "name": "용지아이파크",
@@ -14065,7 +14502,8 @@
   },
   "deal_count": 230,
   "brand": true,
-  "maxFloor": 28
+  "maxFloor": 28,
+  "trend": 8.3
  },
  {
   "name": "성산반도유보라아이비파크",
@@ -14126,7 +14564,8 @@
   },
   "deal_count": 198,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 10.4
  },
  {
   "name": "은아",
@@ -14149,7 +14588,8 @@
   },
   "deal_count": 103,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 19.7
  },
  {
   "name": "삼익",
@@ -14234,7 +14674,8 @@
   },
   "deal_count": 154,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 15.3
  },
  {
   "name": "은아",
@@ -14320,7 +14761,8 @@
   },
   "deal_count": 256,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 11.4
  },
  {
   "name": "성원남산3차",
@@ -14365,7 +14807,8 @@
   },
   "deal_count": 336,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": 9.1
  },
  {
   "name": "무궁화",
@@ -14399,7 +14842,8 @@
   },
   "deal_count": 148,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 21.9
  },
  {
   "name": "성원",
@@ -14444,7 +14888,8 @@
   },
   "deal_count": 45,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 16.4
  },
  {
   "name": "일동",
@@ -14478,7 +14923,8 @@
   },
   "deal_count": 154,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 31.5
  },
  {
   "name": "덕산타운1",
@@ -14527,7 +14973,8 @@
   },
   "deal_count": 95,
   "brand": false,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": -1.2
  },
  {
   "name": "안민동위드필하임",
@@ -14550,7 +14997,8 @@
   },
   "deal_count": 14,
   "brand": false,
-  "maxFloor": 21
+  "maxFloor": 21,
+  "trend": -1.5
  },
  {
   "name": "개나리1차",
@@ -14584,7 +15032,8 @@
   },
   "deal_count": 216,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -4.4
  },
  {
   "name": "힐스테이트창원더퍼스트",
@@ -14640,7 +15089,8 @@
   },
   "deal_count": 112,
   "brand": true,
-  "maxFloor": 33
+  "maxFloor": 33,
+  "trend": -8.4
  },
  {
   "name": "대동그린파크",
@@ -14691,7 +15141,8 @@
   },
   "deal_count": 84,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -2.0
  },
  {
   "name": "트리비앙",
@@ -14766,7 +15217,8 @@
   },
   "deal_count": 417,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": 10.9
  },
  {
   "name": "현대1차",
@@ -14822,7 +15274,8 @@
   },
   "deal_count": 206,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 14.5
  },
  {
   "name": "대동",
@@ -14898,7 +15351,8 @@
   },
   "deal_count": 402,
   "brand": false,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": 8.2
  },
  {
   "name": "대동",
@@ -14976,7 +15430,8 @@
   },
   "deal_count": 154,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 18.5
  },
  {
   "name": "피오르빌",
@@ -15010,7 +15465,8 @@
   },
   "deal_count": 291,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -6.7
  },
  {
   "name": "소라",
@@ -15042,7 +15498,8 @@
   },
   "deal_count": 33,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": -1.2
  },
  {
   "name": "창원더샵센트럴파크3단지",
@@ -15087,7 +15544,8 @@
   },
   "deal_count": 63,
   "brand": true,
-  "maxFloor": 27
+  "maxFloor": 27,
+  "trend": 10.2
  },
  {
   "name": "롯데1단지",
@@ -15167,7 +15625,8 @@
   },
   "deal_count": 111,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 13.9
  },
  {
   "name": "성원",
@@ -15241,7 +15700,8 @@
   },
   "deal_count": 1096,
   "brand": false,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": 2.9
  },
  {
   "name": "프리빌리지",
@@ -15300,7 +15760,8 @@
   },
   "deal_count": 120,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": 3.7
  },
  {
   "name": "에일린의뜰1단지",
@@ -15356,7 +15817,8 @@
   },
   "deal_count": 103,
   "brand": false,
-  "maxFloor": 23
+  "maxFloor": 23,
+  "trend": 4.7
  },
  {
   "name": "한림풀에버",
@@ -15386,7 +15848,8 @@
   },
   "deal_count": 37,
   "brand": false,
-  "maxFloor": 29
+  "maxFloor": 29,
+  "trend": -6.5
  },
  {
   "name": "월드메르디앙웨스턴애비뉴",
@@ -15428,7 +15891,8 @@
   },
   "deal_count": 47,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -2.6
  },
  {
   "name": "삼정그린코아",
@@ -15462,7 +15926,8 @@
   },
   "deal_count": 13,
   "brand": false,
-  "maxFloor": 22
+  "maxFloor": 22,
+  "trend": 10.1
  },
  {
   "name": "위드파크아파트",
@@ -15496,7 +15961,8 @@
   },
   "deal_count": 104,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -2.3
  },
  {
   "name": "우성",
@@ -15539,7 +16005,8 @@
   },
   "deal_count": 101,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 23.0
  },
  {
   "name": "창원자이",
@@ -15569,7 +16036,8 @@
   },
   "deal_count": 15,
   "brand": true,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": 14.6
  },
  {
   "name": "창원자이시그니처",
@@ -15612,7 +16080,8 @@
   },
   "deal_count": 17,
   "brand": true,
-  "maxFloor": 28
+  "maxFloor": 28,
+  "trend": -2.3
  },
  {
   "name": "롯데",
@@ -15655,7 +16124,8 @@
   },
   "deal_count": 28,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -9.7
  },
  {
   "name": "프리빌리지2차",
@@ -15704,7 +16174,8 @@
   },
   "deal_count": 60,
   "brand": false,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": -1.6
  },
  {
   "name": "대동디지털황토방",
@@ -15747,7 +16218,8 @@
   },
   "deal_count": 51,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": 0.6
  },
  {
   "name": "동서",
@@ -15796,7 +16268,8 @@
   },
   "deal_count": 60,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 20.1
  },
  {
   "name": "형진한아름",
@@ -15830,7 +16303,8 @@
   },
   "deal_count": 38,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 19.2
  },
  {
   "name": "대동청솔",
@@ -15881,7 +16355,8 @@
   },
   "deal_count": 48,
   "brand": false,
-  "maxFloor": 23
+  "maxFloor": 23,
+  "trend": 3.2
  },
  {
   "name": "롯데2단지",
@@ -15952,7 +16427,8 @@
   },
   "deal_count": 55,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 9.1
  },
  {
   "name": "한림푸르지오",
@@ -16002,7 +16478,8 @@
   },
   "deal_count": 41,
   "brand": true,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": -2.4
  },
  {
   "name": "힐스테이트마크로엔",
@@ -16046,7 +16523,8 @@
   },
   "deal_count": 26,
   "brand": true,
-  "maxFloor": 32
+  "maxFloor": 32,
+  "trend": 11.5
  },
  {
   "name": "센트럴시티",
@@ -16069,7 +16547,8 @@
   },
   "deal_count": 44,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 31.5
  },
  {
   "name": "덕산타운2",
@@ -16114,7 +16593,8 @@
   },
   "deal_count": 54,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": -3.1
  },
  {
   "name": "성원1차",
@@ -16165,7 +16645,8 @@
   },
   "deal_count": 104,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -0.4
  },
  {
   "name": "대원파크빌",
@@ -16188,7 +16669,8 @@
   },
   "deal_count": 77,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -6.5
  },
  {
   "name": "월드메르디앙이스턴애비뉴",
@@ -16230,7 +16712,8 @@
   },
   "deal_count": 45,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": 0.7
  },
  {
   "name": "창원가음한화꿈에그린",
@@ -16295,7 +16778,8 @@
   },
   "deal_count": 127,
   "brand": true,
-  "maxFloor": 28
+  "maxFloor": 28,
+  "trend": 7.6
  },
  {
   "name": "성원2차",
@@ -16367,7 +16851,8 @@
   },
   "deal_count": 96,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": -0.8
  },
  {
   "name": "양곡상가",
@@ -16400,7 +16885,8 @@
   },
   "deal_count": 14,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": 4.7
  },
  {
   "name": "까치1차",
@@ -16434,7 +16920,8 @@
   },
   "deal_count": 82,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 16.7
  },
  {
   "name": "미지루",
@@ -16456,7 +16943,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": -3.0
  },
  {
   "name": "대도",
@@ -16479,7 +16967,8 @@
   },
   "deal_count": 10,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "창원센텀푸르지오",
@@ -16533,7 +17022,8 @@
   },
   "deal_count": 181,
   "brand": true,
-  "maxFloor": 30
+  "maxFloor": 30,
+  "trend": 6.0
  },
  {
   "name": "대우2차아파트",
@@ -16576,7 +17066,8 @@
   },
   "deal_count": 24,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": 1.8
  },
  {
   "name": "꿈에그린",
@@ -16630,7 +17121,8 @@
   },
   "deal_count": 119,
   "brand": true,
-  "maxFloor": 26
+  "maxFloor": 26,
+  "trend": 5.7
  },
  {
   "name": "태주실업",
@@ -16663,7 +17155,8 @@
   },
   "deal_count": 15,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "대동1차황토방",
@@ -16697,7 +17190,8 @@
   },
   "deal_count": 31,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": 0.0
  },
  {
   "name": "동성빌라1차",
@@ -16719,7 +17213,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "삼선",
@@ -16753,7 +17248,8 @@
   },
   "deal_count": 34,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 4.8
  },
  {
   "name": "삼미특수강",
@@ -16776,7 +17272,8 @@
   },
   "deal_count": 9,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "신촌동원로얄듀크",
@@ -16805,7 +17302,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -0.7
  },
  {
   "name": "대호타워",
@@ -16854,7 +17352,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": -7.8
  },
  {
   "name": "동성",
@@ -16897,7 +17396,8 @@
   },
   "deal_count": 32,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -5.8
  },
  {
   "name": "내동주공1단지",
@@ -16919,7 +17419,8 @@
   },
   "deal_count": 42,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 10.6
  },
  {
   "name": "유신",
@@ -16941,7 +17442,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "유니온빌리지",
@@ -17002,7 +17504,8 @@
   },
   "deal_count": 101,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": 4.6
  },
  {
   "name": "창원더샵센트럴파크1단지",
@@ -17045,7 +17548,8 @@
   },
   "deal_count": 46,
   "brand": true,
-  "maxFloor": 26
+  "maxFloor": 26,
+  "trend": 4.1
  },
  {
   "name": "영흥",
@@ -17067,7 +17571,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "월드산업개발아파트",
@@ -17089,7 +17594,8 @@
   },
   "deal_count": 20,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 22.8
  },
  {
   "name": "창원더샵센트럴파크2단지",
@@ -17134,7 +17640,8 @@
   },
   "deal_count": 99,
   "brand": true,
-  "maxFloor": 29
+  "maxFloor": 29,
+  "trend": 12.6
  },
  {
   "name": "대동한솔마을",
@@ -17164,7 +17671,8 @@
   },
   "deal_count": 42,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": 4.0
  },
  {
   "name": "동부산아이존빌",
@@ -17197,7 +17705,8 @@
   },
   "deal_count": 15,
   "brand": false,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": 1.6
  },
  {
   "name": "상림",
@@ -17238,7 +17747,8 @@
   },
   "deal_count": 9,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "성산삼정그린코아웰레스트",
@@ -17271,7 +17781,8 @@
   },
   "deal_count": 80,
   "brand": false,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": null
  },
  {
   "name": "대동화천",
@@ -17293,7 +17804,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "청실",
@@ -17316,7 +17828,8 @@
   },
   "deal_count": 12,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 21.3
  },
  {
   "name": "형진빌라",
@@ -17339,7 +17852,8 @@
   },
   "deal_count": 10,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "대우사원",
@@ -17372,7 +17886,8 @@
   },
   "deal_count": 9,
   "brand": false,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": null
  },
  {
   "name": "동성샛별타운",
@@ -17401,7 +17916,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "한양",
@@ -17440,7 +17956,8 @@
   },
   "deal_count": 13,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": -12.0
  },
  {
   "name": "두산기계사원",
@@ -17463,7 +17980,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "한림엘리시온",
@@ -17484,7 +18002,8 @@
   },
   "deal_count": 13,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": -3.1
  },
  {
   "name": "효성가든",
@@ -17523,7 +18042,8 @@
   },
   "deal_count": 9,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "일성그라미",
@@ -17557,7 +18077,8 @@
   },
   "deal_count": 22,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": -0.9
  },
  {
   "name": "동성1차",
@@ -17580,7 +18101,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "목련",
@@ -17620,7 +18142,8 @@
   },
   "deal_count": 45,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 6.3
  },
  {
   "name": "동성2차",
@@ -17643,7 +18166,8 @@
   },
   "deal_count": 21,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 15.5
  },
  {
   "name": "경남맨션",
@@ -17675,7 +18199,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "한화기계사원",
@@ -17698,7 +18223,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "동성빌라2차",
@@ -17719,7 +18245,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "동부산아이존빌2단지",
@@ -17740,7 +18267,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "문창팀버빌리지",
@@ -17767,7 +18295,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "조광하우젠",
@@ -17788,7 +18317,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": null
  },
  {
   "name": "삼미종합특수강",
@@ -17820,7 +18350,8 @@
   },
   "deal_count": 21,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 7.6
  },
  {
   "name": "대원2차대동",
@@ -17841,7 +18372,8 @@
   },
   "deal_count": 9,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": -6.0
  },
  {
   "name": "비앤지스틸(주)내동사원",
@@ -17863,7 +18395,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "삼성그렌드",
@@ -17884,7 +18417,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "현대아파트",
@@ -17905,7 +18439,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "올림픽",
@@ -17927,7 +18462,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "벽산블루밍B",
@@ -17972,7 +18508,8 @@
   },
   "deal_count": 199,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": 3.0
  },
  {
   "name": "창원중동유니시티3단지",
@@ -18028,7 +18565,8 @@
   },
   "deal_count": 191,
   "brand": true,
-  "maxFloor": 41
+  "maxFloor": 41,
+  "trend": 6.5
  },
  {
   "name": "창원무동동원로얄듀크",
@@ -18058,7 +18596,8 @@
   },
   "deal_count": 98,
   "brand": false,
-  "maxFloor": 22
+  "maxFloor": 22,
+  "trend": null
  },
  {
   "name": "창원중동유니시티2단지",
@@ -18125,7 +18664,8 @@
   },
   "deal_count": 161,
   "brand": true,
-  "maxFloor": 40
+  "maxFloor": 40,
+  "trend": 9.0
  },
  {
   "name": "사화롯데캐슬포레스트2단지",
@@ -18153,7 +18693,8 @@
   },
   "deal_count": 20,
   "brand": true,
-  "maxFloor": 28
+  "maxFloor": 28,
+  "trend": null
  },
  {
   "name": "창원중동유니시티4단지",
@@ -18235,7 +18776,8 @@
   },
   "deal_count": 231,
   "brand": true,
-  "maxFloor": 41
+  "maxFloor": 41,
+  "trend": 9.3
  },
  {
   "name": "감계아내에코프리미엄1차",
@@ -18258,7 +18800,8 @@
   },
   "deal_count": 66,
   "brand": false,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": -2.0
  },
  {
   "name": "창원감계힐스테이트4차",
@@ -18325,7 +18868,8 @@
   },
   "deal_count": 217,
   "brand": true,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": -0.5
  },
  {
   "name": "대동중앙",
@@ -18348,7 +18892,8 @@
   },
   "deal_count": 144,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": -3.6
  },
  {
   "name": "창원의봄",
@@ -18374,7 +18919,8 @@
   },
   "deal_count": 53,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": null
  },
  {
   "name": "형제아트빌라",
@@ -18394,7 +18940,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "극동",
@@ -18450,7 +18997,8 @@
   },
   "deal_count": 105,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": 3.5
  },
  {
   "name": "창원감계푸르지오",
@@ -18495,7 +19043,8 @@
   },
   "deal_count": 66,
   "brand": true,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": -0.1
  },
  {
   "name": "창원감계힐스테이트2차",
@@ -18557,7 +19106,8 @@
   },
   "deal_count": 115,
   "brand": true,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": -2.7
  },
  {
   "name": "힐스테이트아티움시티",
@@ -18580,7 +19130,8 @@
   },
   "deal_count": 235,
   "brand": true,
-  "maxFloor": 49
+  "maxFloor": 49,
+  "trend": 5.3
  },
  {
   "name": "창원무동STX칸1차",
@@ -18613,7 +19164,8 @@
   },
   "deal_count": 115,
   "brand": false,
-  "maxFloor": 22
+  "maxFloor": 22,
+  "trend": -2.2
  },
  {
   "name": "한효해바라기",
@@ -18635,7 +19187,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "창원중동유니시티1단지",
@@ -18723,7 +19276,8 @@
   },
   "deal_count": 237,
   "brand": true,
-  "maxFloor": 42
+  "maxFloor": 42,
+  "trend": 9.9
  },
  {
   "name": "창원감계힐스테이트1차",
@@ -18765,7 +19319,8 @@
   },
   "deal_count": 87,
   "brand": true,
-  "maxFloor": 22
+  "maxFloor": 22,
+  "trend": -0.3
  },
  {
   "name": "벽산블루밍A",
@@ -18797,7 +19352,8 @@
   },
   "deal_count": 107,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": 3.0
  },
  {
   "name": "창원무동센텀파라디아",
@@ -18842,7 +19398,8 @@
   },
   "deal_count": 116,
   "brand": false,
-  "maxFloor": 23
+  "maxFloor": 23,
+  "trend": 1.1
  },
  {
   "name": "중동대동다숲",
@@ -18884,7 +19441,8 @@
   },
   "deal_count": 49,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 1.4
  },
  {
   "name": "무학서문마을",
@@ -18905,7 +19463,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "창원감계힐스테이트3차",
@@ -18939,7 +19498,8 @@
   },
   "deal_count": 62,
   "brand": true,
-  "maxFloor": 23
+  "maxFloor": 23,
+  "trend": -0.7
  },
  {
   "name": "감계아내에코프리미엄2차",
@@ -18984,7 +19544,8 @@
   },
   "deal_count": 231,
   "brand": false,
-  "maxFloor": 23
+  "maxFloor": 23,
+  "trend": 1.4
  },
  {
   "name": "동부산훼미리타운4차",
@@ -19014,7 +19575,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "대동차룡",
@@ -19037,7 +19599,8 @@
   },
   "deal_count": 20,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": 7.8
  },
  {
   "name": "성진까치빌라트2",
@@ -19067,7 +19630,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "송림",
@@ -19095,7 +19659,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "도계휴먼시아",
@@ -19131,7 +19696,8 @@
   },
   "deal_count": 15,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": null
  },
  {
   "name": "창원반계엘에이치아파트",
@@ -19159,7 +19725,8 @@
   },
   "deal_count": 87,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": null
  },
  {
   "name": "명곡두산위브",
@@ -19251,7 +19818,8 @@
   },
   "deal_count": 139,
   "brand": true,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 7.9
  },
  {
   "name": "봉림휴먼시아2단지",
@@ -19295,7 +19863,8 @@
   },
   "deal_count": 22,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "휴먼빌",
@@ -19327,7 +19896,8 @@
   },
   "deal_count": 53,
   "brand": false,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": -1.6
  },
  {
   "name": "팔용원풍",
@@ -19348,7 +19918,8 @@
   },
   "deal_count": 15,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": 6.0
  },
  {
   "name": "휴먼빌3단지",
@@ -19381,7 +19952,8 @@
   },
   "deal_count": 36,
   "brand": false,
-  "maxFloor": 21
+  "maxFloor": 21,
+  "trend": -3.7
  },
  {
   "name": "상아리더스맨션",
@@ -19411,7 +19983,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": null
  },
  {
   "name": "동진그린빌",
@@ -19439,7 +20012,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "대풍훼미리",
@@ -19461,7 +20035,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "상강한주맨션",
@@ -19497,7 +20072,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "창원포레힐스데시앙",
@@ -19542,7 +20118,8 @@
   },
   "deal_count": 45,
   "brand": true,
-  "maxFloor": 25
+  "maxFloor": 25,
+  "trend": 3.2
  },
  {
   "name": "휴먼빌1단지",
@@ -19574,7 +20151,8 @@
   },
   "deal_count": 66,
   "brand": false,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": -3.0
  },
  {
   "name": "화목그린타워",
@@ -19612,7 +20190,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "벽산블루밍C단지",
@@ -19653,7 +20232,8 @@
   },
   "deal_count": 62,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": 5.4
  },
  {
   "name": "동부산훼미리타운1차",
@@ -19683,7 +20263,8 @@
   },
   "deal_count": 9,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 3.9
  },
  {
   "name": "성산빌라",
@@ -19705,7 +20286,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "동보미리내타운",
@@ -19725,7 +20307,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "봉림휴먼시아1단지",
@@ -19769,7 +20352,8 @@
   },
   "deal_count": 22,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": null
  },
  {
   "name": "서상",
@@ -19807,7 +20391,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "춘광2",
@@ -19839,7 +20424,8 @@
   },
   "deal_count": 20,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 18.3
  },
  {
   "name": "해바라기맨션",
@@ -19879,7 +20465,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "휴먼빌2단지",
@@ -19911,7 +20498,8 @@
   },
   "deal_count": 45,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": -8.9
  },
  {
   "name": "한빛드림빌",
@@ -19932,7 +20520,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "세원",
@@ -19962,7 +20551,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "원창호수",
@@ -20001,7 +20591,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "금아",
@@ -20020,7 +20611,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "서전파크빌라",
@@ -20042,7 +20634,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "영남양지맨션",
@@ -20073,7 +20666,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "창원동전월드메르디앙",
@@ -20117,7 +20711,8 @@
   },
   "deal_count": 25,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": -2.9
  },
  {
   "name": "진보",
@@ -20147,7 +20742,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "남아그린타워",
@@ -20179,7 +20775,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -7.4
  },
  {
   "name": "영남초원",
@@ -20211,7 +20808,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "성원전원맨션",
@@ -20241,7 +20839,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "경상",
@@ -20261,7 +20860,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "대경",
@@ -20281,7 +20881,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "서광",
@@ -20312,7 +20913,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "엘에이치피닉스포레",
@@ -20362,7 +20964,8 @@
   },
   "deal_count": 42,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -1.2
  },
  {
   "name": "리코팔레스",
@@ -20382,7 +20985,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "한마음코아",
@@ -20405,7 +21009,8 @@
   },
   "deal_count": 14,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": -2.3
  },
  {
   "name": "초원빌라",
@@ -20433,7 +21038,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "청송빌라",
@@ -20454,7 +21060,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "창원무동STX칸2차",
@@ -20487,7 +21094,8 @@
   },
   "deal_count": 22,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": 8.7
  },
  {
   "name": "유진에코블루하임",
@@ -20516,7 +21124,8 @@
   },
   "deal_count": 10,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 0.1
  },
  {
   "name": "창원무동코아루파크",
@@ -20539,7 +21148,8 @@
   },
   "deal_count": 24,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 0.7
  },
  {
   "name": "상아그로리아맨션",
@@ -20569,7 +21179,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "성산그린빌라",
@@ -20599,7 +21210,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "한효로얄코아",
@@ -20621,7 +21233,8 @@
   },
   "deal_count": 9,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": null
  },
  {
   "name": "해강그린",
@@ -20651,7 +21264,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": -4.4
  },
  {
   "name": "강남훼미리",
@@ -20680,7 +21294,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "형제상가빌라",
@@ -20700,7 +21315,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "국도무궁화맨션",
@@ -20722,7 +21338,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "엔에이치에프창원대산1단지",
@@ -20742,7 +21359,8 @@
   },
   "deal_count": 14,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "성진까치빌라트3",
@@ -20773,7 +21391,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": null
  },
  {
   "name": "삼진",
@@ -20815,7 +21434,8 @@
   },
   "deal_count": 25,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": -4.3
  },
  {
   "name": "창원2차비룡벨로스텔라",
@@ -20843,7 +21463,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "오션빌리지",
@@ -20866,7 +21487,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "청림빌라",
@@ -20885,7 +21507,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "금강장미",
@@ -20913,7 +21536,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "동부산훼미리타운5차",
@@ -20945,7 +21569,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": null
  },
  {
   "name": "국도개나리맨션",
@@ -20964,7 +21589,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "동읍다숲아파트",
@@ -20994,7 +21620,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": null
  },
  {
   "name": "우성전원",
@@ -21042,7 +21669,8 @@
   },
   "deal_count": 9,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "동정오성아파트",
@@ -21081,7 +21709,8 @@
   },
   "deal_count": 15,
   "brand": false,
-  "maxFloor": 16
+  "maxFloor": 16,
+  "trend": -0.9
  },
  {
   "name": "흥한웰가",
@@ -21110,7 +21739,8 @@
   },
   "deal_count": 22,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": -4.4
  },
  {
   "name": "대호",
@@ -21132,7 +21762,8 @@
   },
   "deal_count": 17,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": 3.9
  },
  {
   "name": "행운빌라",
@@ -21154,7 +21785,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "건우맨션",
@@ -21177,7 +21809,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "부민상가빌라",
@@ -21197,7 +21830,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "태봉빌라",
@@ -21217,7 +21851,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "금강목화",
@@ -21239,7 +21874,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "유일파크",
@@ -21259,7 +21895,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "영남2",
@@ -21281,7 +21918,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "청방그린",
@@ -21309,7 +21947,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "대한맨션",
@@ -21345,7 +21984,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "보광드림빌",
@@ -21368,7 +22008,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "동광빌아트",
@@ -21396,7 +22037,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "신한2",
@@ -21418,7 +22060,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "성진까치빌라트5",
@@ -21475,7 +22118,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "신우빌라",
@@ -21495,7 +22139,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "대한",
@@ -21535,7 +22180,8 @@
   },
   "deal_count": 20,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": 2.9
  },
  {
   "name": "춘광상가맨션3",
@@ -21564,7 +22210,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": null
  },
  {
   "name": "신우",
@@ -21597,7 +22244,8 @@
   },
   "deal_count": 10,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -20.4
  },
  {
   "name": "춘광1",
@@ -21626,7 +22274,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "송정주공",
@@ -21646,7 +22295,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "영남1",
@@ -21676,7 +22326,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "명곡포레드림",
@@ -21720,7 +22371,8 @@
   },
   "deal_count": 160,
   "brand": false,
-  "maxFloor": 23
+  "maxFloor": 23,
+  "trend": null
  },
  {
   "name": "백영빌라",
@@ -21742,7 +22394,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "늘푸른마을코오롱",
@@ -21765,7 +22418,8 @@
   },
   "deal_count": 24,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": -0.2
  },
  {
   "name": "소답대림맨션",
@@ -21787,7 +22441,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "창원명곡포엘른",
@@ -21809,7 +22464,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": null
  },
  {
   "name": "초원맨션",
@@ -21831,7 +22487,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "진보녹원맨션",
@@ -21858,7 +22515,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "정원",
@@ -21880,7 +22538,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "소답진보그린빌라나",
@@ -21900,7 +22559,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "금강한마음빌라",
@@ -21922,7 +22582,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "무학",
@@ -21949,7 +22610,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "한울파크맨션",
@@ -21969,7 +22631,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "춘광파크맨션1",
@@ -21998,7 +22661,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "럭키",
@@ -22036,7 +22700,8 @@
   },
   "deal_count": 10,
   "brand": false,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": -4.8
  },
  {
   "name": "수정맨션",
@@ -22056,7 +22721,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "금강빌라라동",
@@ -22084,7 +22750,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "창원",
@@ -22106,7 +22773,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "동일그린맨션",
@@ -22134,7 +22802,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "익산빌라",
@@ -22153,7 +22822,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "제일파크",
@@ -22174,7 +22844,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "보람",
@@ -22204,7 +22875,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": null
  },
  {
   "name": "동부산훼미리2차",
@@ -22244,7 +22916,8 @@
   },
   "deal_count": 10,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": -5.3
  },
  {
   "name": "장미",
@@ -22266,7 +22939,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "라푸름",
@@ -22286,7 +22960,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "영진맨션",
@@ -22305,7 +22980,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "강남빌라",
@@ -22332,7 +23008,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "신한그린파크맨션",
@@ -22354,7 +23031,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "신우한빛",
@@ -22376,7 +23054,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": null
  },
  {
   "name": "금강연화",
@@ -22404,7 +23083,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "금강금화빌라",
@@ -22423,7 +23103,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "신안맨션",
@@ -22453,7 +23134,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": -4.8
  },
  {
   "name": "남산빌라",
@@ -22473,7 +23155,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "무지개파크",
@@ -22495,7 +23178,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "팔도맨션",
@@ -22523,7 +23207,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": null
  },
  {
   "name": "평화맨션",
@@ -22545,7 +23230,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "대창빌라",
@@ -22565,7 +23251,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "대암그린비치맨션A동",
@@ -22609,7 +23296,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "여명",
@@ -22637,7 +23325,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "장미빌라",
@@ -22657,7 +23346,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "신한빌",
@@ -22677,7 +23367,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "한솔솔파크2단지",
@@ -22697,7 +23388,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "동원스카이뷰",
@@ -22717,7 +23409,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "경동윈츠빌",
@@ -22745,7 +23438,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": 16.0
  },
  {
   "name": "동양상가빌라2차",
@@ -22765,7 +23459,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "진해미진이지비아",
@@ -22785,7 +23480,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "그린밀레니엄빌라",
@@ -22805,7 +23501,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "씨베스트빌",
@@ -22833,7 +23530,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "속천한울비치",
@@ -22853,7 +23551,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "중앙아파트",
@@ -22881,7 +23580,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "희가로",
@@ -22909,7 +23609,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": -0.7
  },
  {
   "name": "태성빌라",
@@ -22929,7 +23630,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "서후빌",
@@ -22949,7 +23651,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "태평로얄스톤아파트",
@@ -22969,7 +23672,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "우정빌라",
@@ -22989,7 +23693,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "평화빌라트",
@@ -23009,7 +23714,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "성신아트빌라",
@@ -23037,7 +23743,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "동산그린빌라",
@@ -23057,7 +23764,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "경인빌라",
@@ -23077,7 +23785,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "재상베네스타운",
@@ -23097,7 +23806,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "보람더좋은퍼스트",
@@ -23125,7 +23835,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "우성빌라",
@@ -23145,7 +23856,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "동원베이힐즈",
@@ -23165,7 +23877,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "부건IDEA",
@@ -23185,7 +23898,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "한빛프라자",
@@ -23213,7 +23927,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "무학맨션",
@@ -23233,7 +23948,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "부건2차IDEA",
@@ -23253,7 +23969,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "현대그린파크",
@@ -23273,7 +23990,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "케이제이",
@@ -23293,7 +24011,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "조선빌라",
@@ -23313,7 +24032,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "금화베스트타운",
@@ -23333,7 +24053,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "중앙네이빌",
@@ -23353,7 +24074,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "평화그린빌라",
@@ -23373,7 +24095,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "덕산타워맨션",
@@ -23393,7 +24116,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "일루스빌",
@@ -23413,7 +24137,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "금화스위트빌",
@@ -23433,7 +24158,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "일우",
@@ -23453,7 +24179,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": -36.2
  },
  {
   "name": "기공",
@@ -23473,7 +24200,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": null
  },
  {
   "name": "한백마리나타운",
@@ -23509,7 +24237,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": null
  },
  {
   "name": "대림공작1",
@@ -23529,7 +24258,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": null
  },
  {
   "name": "완월경남",
@@ -23549,7 +24279,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": null
  },
  {
   "name": "한백3",
@@ -23569,7 +24300,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "새롬미리내",
@@ -23597,7 +24329,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": -8.1
  },
  {
   "name": "서원",
@@ -23617,7 +24350,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "창포한백",
@@ -23653,7 +24387,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": 20.3
  },
  {
   "name": "한백렉스빌라",
@@ -23673,7 +24408,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "완월서광1",
@@ -23701,7 +24437,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": null
  },
  {
   "name": "한백",
@@ -23729,7 +24466,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 19
+  "maxFloor": 19,
+  "trend": null
  },
  {
   "name": "신한토탈",
@@ -23765,7 +24503,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 16
+  "maxFloor": 16,
+  "trend": null
  },
  {
   "name": "청송",
@@ -23785,7 +24524,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "건화그린맨션",
@@ -23813,7 +24553,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": null
  },
  {
   "name": "자산빌리지",
@@ -23833,7 +24574,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "선화",
@@ -23853,7 +24595,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "한려미리내빌라",
@@ -23873,7 +24616,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "현대하이츠빌라",
@@ -23893,7 +24637,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "월영맨션",
@@ -23913,7 +24658,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "상강",
@@ -23933,7 +24679,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "자산우성빌라",
@@ -23953,7 +24700,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "익산약수빌라",
@@ -23973,7 +24721,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "대양팔레스",
@@ -23993,7 +24742,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "금강제이드",
@@ -24013,7 +24763,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "서광",
@@ -24041,7 +24792,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "무학빌라맨션",
@@ -24061,7 +24813,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "보양빌라",
@@ -24081,7 +24834,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "대림하이츠빌라",
@@ -24101,7 +24855,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "동서프라임",
@@ -24121,7 +24876,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "영승",
@@ -24141,7 +24897,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "현대나동",
@@ -24161,7 +24918,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "대천브레셋",
@@ -24181,7 +24939,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "월영현대3",
@@ -24201,7 +24960,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 22
+  "maxFloor": 22,
+  "trend": null
  },
  {
   "name": "대림공작2",
@@ -24221,7 +24981,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "참조은빌라트",
@@ -24241,7 +25002,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "신안빌라",
@@ -24261,7 +25023,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "형제",
@@ -24281,7 +25044,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "안성",
@@ -24301,7 +25065,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "대성",
@@ -24321,7 +25086,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": null
  },
  {
   "name": "성원맨션",
@@ -24341,7 +25107,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "대양아파트",
@@ -24361,7 +25128,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "대은시티빌",
@@ -24381,7 +25149,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "시영1",
@@ -24401,7 +25170,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "경민시티빌",
@@ -24429,7 +25199,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": null
  },
  {
   "name": "대산빌라",
@@ -24449,7 +25220,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "진흥빌라",
@@ -24469,7 +25241,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "라레스빌라",
@@ -24489,7 +25262,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "서원파크빌라",
@@ -24509,7 +25283,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "합포만품으로",
@@ -24529,7 +25304,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "동북하이얏트빌",
@@ -24549,7 +25325,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "청석",
@@ -24569,7 +25346,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "신우",
@@ -24589,7 +25367,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "전원파크맨션",
@@ -24617,7 +25396,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "한효무궁화",
@@ -24645,7 +25425,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": 4.6
  },
  {
   "name": "조은나오스빌",
@@ -24665,7 +25446,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": null
  },
  {
   "name": "한백",
@@ -24701,7 +25483,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 18
+  "maxFloor": 18,
+  "trend": -16.1
  },
  {
   "name": "삼계블루힐스",
@@ -24737,7 +25520,8 @@
   },
   "deal_count": 11,
   "brand": false,
-  "maxFloor": 17
+  "maxFloor": 17,
+  "trend": -1.3
  },
  {
   "name": "서광맨션",
@@ -24765,7 +25549,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "동림",
@@ -24785,7 +25570,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "양덕하이아트빌",
@@ -24805,7 +25591,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "신성",
@@ -24833,7 +25620,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": null
  },
  {
   "name": "올림픽",
@@ -24853,7 +25641,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "개나리",
@@ -24881,7 +25670,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "중앙하이츠",
@@ -24909,7 +25699,8 @@
   },
   "deal_count": 10,
   "brand": false,
-  "maxFloor": 14
+  "maxFloor": 14,
+  "trend": -2.6
  },
  {
   "name": "비젼",
@@ -24937,7 +25728,8 @@
   },
   "deal_count": 8,
   "brand": false,
-  "maxFloor": 20
+  "maxFloor": 20,
+  "trend": -3.6
  },
  {
   "name": "다임아크로빌",
@@ -24957,7 +25749,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "경남아파트4동",
@@ -24977,7 +25770,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "대백빌라",
@@ -24997,7 +25791,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "석전동다움",
@@ -25025,7 +25820,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 22
+  "maxFloor": 22,
+  "trend": null
  },
  {
   "name": "수홍하이랜드",
@@ -25045,7 +25841,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "서안타운",
@@ -25073,7 +25870,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 17
+  "maxFloor": 17,
+  "trend": null
  },
  {
   "name": "삼광네스트",
@@ -25093,7 +25891,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "문화",
@@ -25113,7 +25912,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "고려맨션",
@@ -25141,7 +25941,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "보람아파트아름채",
@@ -25177,7 +25978,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "주영",
@@ -25197,7 +25999,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 17
+  "maxFloor": 17,
+  "trend": null
  },
  {
   "name": "C.K밸리1",
@@ -25217,7 +26020,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": null
  },
  {
   "name": "은마",
@@ -25237,7 +26041,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "봉암푸르내",
@@ -25257,7 +26062,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "양덕엘렌시아",
@@ -25277,7 +26083,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "한얼골든뷰",
@@ -25297,7 +26104,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "한일타운",
@@ -25317,7 +26125,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": null
  },
  {
   "name": "신대림하이트빌",
@@ -25337,7 +26146,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "건우만복빌라",
@@ -25357,7 +26167,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "한빛타운",
@@ -25385,7 +26196,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "동아",
@@ -25405,7 +26217,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "원양토탈",
@@ -25425,7 +26238,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "신우빌리지",
@@ -25453,7 +26267,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "합성",
@@ -25473,7 +26288,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "화인맥스빌",
@@ -25493,7 +26309,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "하이츠빌라",
@@ -25513,7 +26330,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "조양하이빌",
@@ -25533,7 +26351,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "한효국화",
@@ -25561,7 +26380,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "무학",
@@ -25589,7 +26409,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "신우",
@@ -25609,7 +26430,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": null
  },
  {
   "name": "금호",
@@ -25629,7 +26451,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "금성",
@@ -25649,7 +26472,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "유한미소안",
@@ -25677,7 +26501,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "동마",
@@ -25697,7 +26522,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "세화맨션",
@@ -25717,7 +26543,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "아델존",
@@ -25745,7 +26572,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "경창가고파",
@@ -25765,7 +26593,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "우정",
@@ -25785,7 +26614,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "서광2",
@@ -25813,7 +26643,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "개나리(285-1)",
@@ -25833,7 +26664,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "현대국민주택",
@@ -25853,7 +26685,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "코스모스",
@@ -25873,7 +26706,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "대우",
@@ -25925,7 +26759,8 @@
   },
   "deal_count": 57,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": 17.5
  },
  {
   "name": "서광파크빌",
@@ -25945,7 +26780,8 @@
   },
   "deal_count": 10,
   "brand": false,
-  "maxFloor": 15
+  "maxFloor": 15,
+  "trend": -2.4
  },
  {
   "name": "안민한스빌",
@@ -25965,7 +26801,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "신우에이스타운",
@@ -25993,7 +26830,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "삼성빌라",
@@ -26013,7 +26851,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "대동시티빌",
@@ -26033,7 +26872,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "한일유엔아이오르젠",
@@ -26061,7 +26901,8 @@
   },
   "deal_count": 7,
   "brand": false,
-  "maxFloor": 13
+  "maxFloor": 13,
+  "trend": -2.2
  },
  {
   "name": "에코센트럴빌",
@@ -26081,7 +26922,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "디에스아이존빌",
@@ -26101,7 +26943,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 12
+  "maxFloor": 12,
+  "trend": null
  },
  {
   "name": "동원로얄듀크2단지",
@@ -26121,7 +26964,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "성진까치빌라1",
@@ -26149,7 +26993,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "창원한양립스더퍼스트아파트",
@@ -26169,7 +27014,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "국제소답빌라",
@@ -26189,7 +27035,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "신우빌라",
@@ -26209,7 +27056,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "영남보화맨션",
@@ -26237,7 +27085,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "아람빌라",
@@ -26257,7 +27106,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "대화빌라",
@@ -26277,7 +27127,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "국도그랜드맨션",
@@ -26305,7 +27156,8 @@
   },
   "deal_count": 6,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": 19.4
  },
  {
   "name": "국제빌라",
@@ -26325,7 +27177,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "명성빌라(147-4)",
@@ -26345,7 +27198,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "금강빌라",
@@ -26365,7 +27219,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "창원1차비룡벨로스텔라",
@@ -26393,7 +27248,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 11
+  "maxFloor": 11,
+  "trend": null
  },
  {
   "name": "삼오빌라",
@@ -26421,7 +27277,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "대한맨션",
@@ -26441,7 +27298,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "영신빌라",
@@ -26461,7 +27319,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "협성파크맨션",
@@ -26489,7 +27348,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "성동",
@@ -26517,7 +27377,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "수림맨션",
@@ -26537,7 +27398,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "청우",
@@ -26557,7 +27419,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "청호",
@@ -26585,7 +27448,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "국도그린맨션",
@@ -26621,7 +27485,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "금강빌라가동",
@@ -26641,7 +27506,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "국도수정빌라",
@@ -26661,7 +27527,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "삼우",
@@ -26681,7 +27548,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "진보백화맨션",
@@ -26701,7 +27569,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "영남3",
@@ -26721,7 +27590,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "송원상가빌라",
@@ -26741,7 +27611,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "소답서광빌라",
@@ -26761,7 +27632,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "춘광파크맨션2",
@@ -26797,7 +27669,8 @@
   },
   "deal_count": 5,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "국도하이츠빌라",
@@ -26817,7 +27690,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "동하라일락",
@@ -26837,7 +27711,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 10
+  "maxFloor": 10,
+  "trend": null
  },
  {
   "name": "금강국화",
@@ -26857,7 +27732,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "동부산3",
@@ -26877,7 +27753,8 @@
   },
   "deal_count": 4,
   "brand": false,
-  "maxFloor": 9
+  "maxFloor": 9,
+  "trend": null
  },
  {
   "name": "거림훼미리",
@@ -26897,7 +27774,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "중앙맨션",
@@ -26917,7 +27795,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 8
+  "maxFloor": 8,
+  "trend": null
  },
  {
   "name": "동영아트빌라",
@@ -26937,7 +27816,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "강남씨티빌",
@@ -26957,7 +27837,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "상아데파트",
@@ -26977,7 +27858,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "익산동양",
@@ -26997,7 +27879,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "금강수련",
@@ -27017,7 +27900,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "성진초원빌라",
@@ -27045,7 +27929,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "일심골든타워",
@@ -27065,7 +27950,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "일흥빌라",
@@ -27093,7 +27979,8 @@
   },
   "deal_count": 3,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "보금",
@@ -27113,7 +28000,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "강남뉴라이자",
@@ -27133,7 +28021,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 7
+  "maxFloor": 7,
+  "trend": null
  },
  {
   "name": "청구그린빌라",
@@ -27153,7 +28042,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "성원빌라",
@@ -27173,7 +28063,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "성창빌라",
@@ -27193,7 +28084,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 6
+  "maxFloor": 6,
+  "trend": null
  },
  {
   "name": "대호빌라",
@@ -27213,7 +28105,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "신세계맨션",
@@ -27233,7 +28126,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "금강빌라나동",
@@ -27253,7 +28147,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  },
  {
   "name": "협성빌라맨션",
@@ -27273,7 +28168,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "리즈트",
@@ -27293,7 +28189,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "목화맨션",
@@ -27313,7 +28210,8 @@
   },
   "deal_count": 2,
   "brand": false,
-  "maxFloor": 1
+  "maxFloor": 1,
+  "trend": null
  },
  {
   "name": "진우빌라",
@@ -27333,7 +28231,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 4
+  "maxFloor": 4,
+  "trend": null
  },
  {
   "name": "정우빌라",
@@ -27353,7 +28252,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 5
+  "maxFloor": 5,
+  "trend": null
  },
  {
   "name": "대동맨션",
@@ -27373,7 +28273,8 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 3
+  "maxFloor": 3,
+  "trend": null
  },
  {
   "name": "성진파크맨션",
@@ -27393,6 +28294,7 @@
   },
   "deal_count": 1,
   "brand": false,
-  "maxFloor": 2
+  "maxFloor": 2,
+  "trend": null
  }
 ]

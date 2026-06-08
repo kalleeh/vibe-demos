@@ -61,6 +61,7 @@ def main(path, period):
             "brand": bool(c.get("brand")),
             "maxFloor": c.get("maxFloor"),
             "dcore": dist_core(c["lat"], c["lng"]),
+            "trend": c.get("trend"),    # YoY % change in median 평단가 (sale), or null
             "sizes": sizes,
         })
 

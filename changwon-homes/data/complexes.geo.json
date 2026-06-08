@@ -28,6 +28,7 @@
   "deal_count": 763,
   "brand": false,
   "maxFloor": 29,
+  "trend": null,
   "lat": 35.089896942996,
   "lng": 128.814390715591,
   "geo_src": "esri"
@@ -74,6 +75,7 @@
   "deal_count": 38,
   "brand": true,
   "maxFloor": 15,
+  "trend": -12.7,
   "lat": 35.160902643186,
   "lng": 128.695976551946,
   "geo_src": "esri"
@@ -98,6 +100,7 @@
   "deal_count": 458,
   "brand": false,
   "maxFloor": 20,
+  "trend": null,
   "lat": 35.087117084808,
   "lng": 128.802923350038,
   "geo_src": "esri"
@@ -122,6 +125,7 @@
   "deal_count": 372,
   "brand": false,
   "maxFloor": 20,
+  "trend": null,
   "lat": 35.088504541241,
   "lng": 128.803789452093,
   "geo_src": "esri"
@@ -156,6 +160,7 @@
   "deal_count": 15,
   "brand": false,
   "maxFloor": 15,
+  "trend": -1.7,
   "lat": 35.127725855041,
   "lng": 128.784610148885,
   "geo_src": "esri"
@@ -189,6 +194,7 @@
   "deal_count": 364,
   "brand": false,
   "maxFloor": 20,
+  "trend": null,
   "lat": 35.089149947785,
   "lng": 128.805058639871,
   "geo_src": "esri"
@@ -222,6 +228,7 @@
   "deal_count": 455,
   "brand": false,
   "maxFloor": 29,
+  "trend": null,
   "lat": 35.090290347622,
   "lng": 128.816141276069,
   "geo_src": "esri"
@@ -269,6 +276,7 @@
   "deal_count": 70,
   "brand": false,
   "maxFloor": 25,
+  "trend": 0.0,
   "lat": 35.103280537344,
   "lng": 128.751739090659,
   "geo_src": "esri"
@@ -295,6 +303,7 @@
   "deal_count": 60,
   "brand": false,
   "maxFloor": 5,
+  "trend": 0.0,
   "lat": 35.136080181755,
   "lng": 128.711758334521,
   "geo_src": "esri"
@@ -319,6 +328,7 @@
   "deal_count": 173,
   "brand": false,
   "maxFloor": 23,
+  "trend": null,
   "lat": 35.087254422292,
   "lng": 128.806870304424,
   "geo_src": "esri"
@@ -363,6 +373,7 @@
   "deal_count": 24,
   "brand": false,
   "maxFloor": 8,
+  "trend": 5.2,
   "lat": 35.146809059729,
   "lng": 128.709527323353,
   "geo_src": "esri"
@@ -425,6 +436,7 @@
   "deal_count": 95,
   "brand": false,
   "maxFloor": 15,
+  "trend": -0.5,
   "lat": 35.129639611174,
   "lng": 128.70606048438,
   "geo_src": "esri"
@@ -451,6 +463,7 @@
   "deal_count": 176,
   "brand": false,
   "maxFloor": 25,
+  "trend": 0.0,
   "lat": 35.105561714203,
   "lng": 128.755669365058,
   "geo_src": "esri"
@@ -475,6 +488,7 @@
   "deal_count": 306,
   "brand": false,
   "maxFloor": 25,
+  "trend": null,
   "lat": 35.087658136658,
   "lng": 128.808424141634,
   "geo_src": "esri"
@@ -519,6 +533,7 @@
   "deal_count": 22,
   "brand": true,
   "maxFloor": 15,
+  "trend": 0.2,
   "lat": 35.155861640887,
   "lng": 128.699310202477,
   "geo_src": "esri"
@@ -556,6 +571,7 @@
   "deal_count": 63,
   "brand": false,
   "maxFloor": 28,
+  "trend": 0.6,
   "lat": 35.08662519282,
   "lng": 128.812587432942,
   "geo_src": "esri"
@@ -582,6 +598,7 @@
   "deal_count": 134,
   "brand": false,
   "maxFloor": 5,
+  "trend": -7.3,
   "lat": 35.152747219034,
   "lng": 128.708804803299,
   "geo_src": "esri"
@@ -608,6 +625,7 @@
   "deal_count": 40,
   "brand": false,
   "maxFloor": 15,
+  "trend": null,
   "lat": 35.119339719005,
   "lng": 128.780430429047,
   "geo_src": "esri"
@@ -681,6 +699,7 @@
   "deal_count": 175,
   "brand": true,
   "maxFloor": 29,
+  "trend": -2.8,
   "lat": 35.133650770939,
   "lng": 128.706089569584,
   "geo_src": "esri"
@@ -728,6 +747,7 @@
   "deal_count": 42,
   "brand": true,
   "maxFloor": 21,
+  "trend": 4.0,
   "lat": 35.098097671335,
   "lng": 128.80671222173,
   "geo_src": "esri"
@@ -765,6 +785,7 @@
   "deal_count": 51,
   "brand": false,
   "maxFloor": 25,
+  "trend": -1.3,
   "lat": 35.106639794589,
   "lng": 128.757502990196,
   "geo_src": "esri"
@@ -822,6 +843,7 @@
   "deal_count": 101,
   "brand": false,
   "maxFloor": 15,
+  "trend": -2.9,
   "lat": 35.156388653049,
   "lng": 128.694712141852,
   "geo_src": "esri"
@@ -872,6 +894,7 @@
   "deal_count": 31,
   "brand": false,
   "maxFloor": 20,
+  "trend": null,
   "lat": 35.102075219668,
   "lng": 128.744590416897,
   "geo_src": "esri"
@@ -918,6 +941,7 @@
   "deal_count": 39,
   "brand": false,
   "maxFloor": 19,
+  "trend": 4.5,
   "lat": 35.154925885217,
   "lng": 128.721444042735,
   "geo_src": "esri"
@@ -966,6 +990,7 @@
   "deal_count": 108,
   "brand": false,
   "maxFloor": 5,
+  "trend": 9.1,
   "lat": 35.14975747799,
   "lng": 128.704673782319,
   "geo_src": "esri"
@@ -992,6 +1017,7 @@
   "deal_count": 9,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.155847852657,
   "lng": 128.693854924614,
   "geo_src": "esri"
@@ -1027,6 +1053,7 @@
   "deal_count": 31,
   "brand": false,
   "maxFloor": 7,
+  "trend": -4.5,
   "lat": 35.154797851646,
   "lng": 128.706569098265,
   "geo_src": "esri"
@@ -1074,6 +1101,7 @@
   "deal_count": 23,
   "brand": false,
   "maxFloor": 14,
+  "trend": null,
   "lat": 35.15591679381,
   "lng": 128.717373036182,
   "geo_src": "esri"
@@ -1099,6 +1127,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.127516852285,
   "lng": 128.781957360349,
   "geo_src": "esri"
@@ -1133,6 +1162,7 @@
   "deal_count": 20,
   "brand": false,
   "maxFloor": 14,
+  "trend": -2.8,
   "lat": 35.161506265943,
   "lng": 128.685959842375,
   "geo_src": "esri"
@@ -1172,6 +1202,7 @@
   "deal_count": 62,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.155067120285,
   "lng": 128.709350213739,
   "geo_src": "esri"
@@ -1206,6 +1237,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.149087931565,
   "lng": 128.710453188378,
   "geo_src": "esri"
@@ -1254,6 +1286,7 @@
   "deal_count": 9,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.155587133558,
   "lng": 128.698490033251,
   "geo_src": "esri"
@@ -1276,6 +1309,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.159083015825,
   "lng": 128.680475982223,
   "geo_src": "esri"
@@ -1313,6 +1347,7 @@
   "deal_count": 49,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.14263985918,
   "lng": 128.702786010086,
   "geo_src": "esri"
@@ -1367,6 +1402,7 @@
   "deal_count": 50,
   "brand": true,
   "maxFloor": 15,
+  "trend": -10.9,
   "lat": 35.160464646835,
   "lng": 128.685221145249,
   "geo_src": "esri"
@@ -1404,6 +1440,7 @@
   "deal_count": 113,
   "brand": true,
   "maxFloor": 25,
+  "trend": -2.6,
   "lat": 35.10359511017,
   "lng": 128.757852934654,
   "geo_src": "esri"
@@ -1430,6 +1467,7 @@
   "deal_count": 94,
   "brand": false,
   "maxFloor": 15,
+  "trend": 2.9,
   "lat": 35.106380626143,
   "lng": 128.80623956621,
   "geo_src": "esri"
@@ -1456,6 +1494,7 @@
   "deal_count": 19,
   "brand": true,
   "maxFloor": 24,
+  "trend": 1.0,
   "lat": 35.13108653721,
   "lng": 128.706539342509,
   "geo_src": "esri"
@@ -1481,6 +1520,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.141928193691,
   "lng": 128.669753851681,
   "geo_src": "esri"
@@ -1517,6 +1557,7 @@
   "deal_count": 34,
   "brand": false,
   "maxFloor": 18,
+  "trend": -12.5,
   "lat": 35.124938159774,
   "lng": 128.783118170119,
   "geo_src": "esri"
@@ -1562,6 +1603,7 @@
   "deal_count": 48,
   "brand": false,
   "maxFloor": 15,
+  "trend": -1.4,
   "lat": 35.102593682288,
   "lng": 128.807912091169,
   "geo_src": "esri"
@@ -1599,6 +1641,7 @@
   "deal_count": 153,
   "brand": false,
   "maxFloor": 15,
+  "trend": 4.3,
   "lat": 35.10497074812,
   "lng": 128.805376984554,
   "geo_src": "esri"
@@ -1625,6 +1668,7 @@
   "deal_count": 145,
   "brand": false,
   "maxFloor": 15,
+  "trend": 1.5,
   "lat": 35.105448977605,
   "lng": 128.80695370436,
   "geo_src": "esri"
@@ -1677,6 +1721,7 @@
   "deal_count": 181,
   "brand": false,
   "maxFloor": 20,
+  "trend": null,
   "lat": 35.103537903681,
   "lng": 128.741825562316,
   "geo_src": "esri"
@@ -1703,6 +1748,7 @@
   "deal_count": 49,
   "brand": false,
   "maxFloor": 14,
+  "trend": -1.3,
   "lat": 35.101459610789,
   "lng": 128.803674787657,
   "geo_src": "esri"
@@ -1729,6 +1775,7 @@
   "deal_count": 14,
   "brand": false,
   "maxFloor": 14,
+  "trend": -17.5,
   "lat": 35.135373796865,
   "lng": 128.703393614247,
   "geo_src": "esri"
@@ -1764,6 +1811,7 @@
   "deal_count": 52,
   "brand": false,
   "maxFloor": 15,
+  "trend": -3.2,
   "lat": 35.101392765111,
   "lng": 128.807007180903,
   "geo_src": "esri"
@@ -1801,6 +1849,7 @@
   "deal_count": 41,
   "brand": false,
   "maxFloor": 5,
+  "trend": -19.7,
   "lat": 35.158177854101,
   "lng": 128.688969867625,
   "geo_src": "esri"
@@ -1824,6 +1873,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.15222469119,
   "lng": 128.658503325963,
   "geo_src": "esri"
@@ -1892,6 +1942,7 @@
   "deal_count": 144,
   "brand": false,
   "maxFloor": 13,
+  "trend": -0.3,
   "lat": 35.139354111226,
   "lng": 128.705602832467,
   "geo_src": "esri"
@@ -1929,6 +1980,7 @@
   "deal_count": 83,
   "brand": false,
   "maxFloor": 23,
+  "trend": 0.2,
   "lat": 35.128661987897,
   "lng": 128.708950732233,
   "geo_src": "esri"
@@ -1952,6 +2004,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.157375747877,
   "lng": 128.691354938173,
   "geo_src": "esri"
@@ -1978,6 +2031,7 @@
   "deal_count": 90,
   "brand": false,
   "maxFloor": 15,
+  "trend": 6.7,
   "lat": 35.119834251292,
   "lng": 128.77855422384,
   "geo_src": "esri"
@@ -2010,6 +2064,7 @@
   "deal_count": 23,
   "brand": false,
   "maxFloor": 15,
+  "trend": 9.0,
   "lat": 35.161054774728,
   "lng": 128.680264590625,
   "geo_src": "esri"
@@ -2036,6 +2091,7 @@
   "deal_count": 21,
   "brand": false,
   "maxFloor": 7,
+  "trend": 1.3,
   "lat": 35.151948339842,
   "lng": 128.693671277116,
   "geo_src": "esri"
@@ -2071,6 +2127,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 11,
+  "trend": null,
   "lat": 35.141452562595,
   "lng": 128.703690501258,
   "geo_src": "esri"
@@ -2102,6 +2159,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.126581599529,
   "lng": 128.783881342404,
   "geo_src": "esri"
@@ -2133,6 +2191,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.145423321587,
   "lng": 128.65840400041,
   "geo_src": "esri"
@@ -2159,6 +2218,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 15,
+  "trend": null,
   "lat": 35.16082611641,
   "lng": 128.694246108036,
   "geo_src": "esri"
@@ -2195,6 +2255,7 @@
   "deal_count": 34,
   "brand": false,
   "maxFloor": 28,
+  "trend": 0.4,
   "lat": 35.088103006169,
   "lng": 128.81156869643,
   "geo_src": "esri"
@@ -2220,6 +2281,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 17,
+  "trend": 2.6,
   "lat": 35.143227304864,
   "lng": 128.669579089,
   "geo_src": "esri"
@@ -2252,6 +2314,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.152328040056,
   "lng": 128.668290371386,
   "geo_src": "esri"
@@ -2276,6 +2339,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.158933608401,
   "lng": 128.701458987175,
   "geo_src": "esri"
@@ -2317,6 +2381,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.152911336698,
   "lng": 128.660846822272,
   "geo_src": "esri"
@@ -2362,6 +2427,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.153965822027,
   "lng": 128.694366723622,
   "geo_src": "esri"
@@ -2404,6 +2470,7 @@
   "deal_count": 18,
   "brand": true,
   "maxFloor": 15,
+  "trend": 11.5,
   "lat": 35.142283167291,
   "lng": 128.709475187915,
   "geo_src": "esri"
@@ -2430,6 +2497,7 @@
   "deal_count": 35,
   "brand": false,
   "maxFloor": 14,
+  "trend": 6.8,
   "lat": 35.10338132973,
   "lng": 128.80368928835,
   "geo_src": "esri"
@@ -2472,6 +2540,7 @@
   "deal_count": 44,
   "brand": false,
   "maxFloor": 22,
+  "trend": null,
   "lat": 35.156476327757,
   "lng": 128.717171870506,
   "geo_src": "esri"
@@ -2507,6 +2576,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.137488928222,
   "lng": 128.709573591458,
   "geo_src": "esri"
@@ -2555,6 +2625,7 @@
   "deal_count": 126,
   "brand": false,
   "maxFloor": 25,
+  "trend": 1.5,
   "lat": 35.153069964216,
   "lng": 128.720165970139,
   "geo_src": "esri"
@@ -2588,6 +2659,7 @@
   "deal_count": 16,
   "brand": false,
   "maxFloor": 17,
+  "trend": null,
   "lat": 35.120531080812,
   "lng": 128.790592061724,
   "geo_src": "esri"
@@ -2614,6 +2686,7 @@
   "deal_count": 19,
   "brand": true,
   "maxFloor": 14,
+  "trend": -10.6,
   "lat": 35.160028620232,
   "lng": 128.679962506834,
   "geo_src": "esri"
@@ -2651,6 +2724,7 @@
   "deal_count": 37,
   "brand": false,
   "maxFloor": 14,
+  "trend": -7.9,
   "lat": 35.140154205794,
   "lng": 128.703875657499,
   "geo_src": "esri"
@@ -2684,6 +2758,7 @@
   "deal_count": 32,
   "brand": false,
   "maxFloor": 24,
+  "trend": -6.0,
   "lat": 35.104556430646,
   "lng": 128.753151860439,
   "geo_src": "esri"
@@ -2718,6 +2793,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.158161760847,
   "lng": 128.69013637709,
   "geo_src": "esri"
@@ -2752,6 +2828,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.146742465509,
   "lng": 128.662513731356,
   "geo_src": "esri"
@@ -2778,6 +2855,7 @@
   "deal_count": 39,
   "brand": false,
   "maxFloor": 15,
+  "trend": -6.9,
   "lat": 35.103777123198,
   "lng": 128.809946630527,
   "geo_src": "esri"
@@ -2801,6 +2879,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.156715463454,
   "lng": 128.694074698116,
   "geo_src": "esri"
@@ -2823,6 +2902,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.145220730987,
   "lng": 128.658418501103,
   "geo_src": "esri"
@@ -2857,6 +2937,7 @@
   "deal_count": 12,
   "brand": false,
   "maxFloor": 4,
+  "trend": 25.6,
   "lat": 35.151589594386,
   "lng": 128.70768196355,
   "geo_src": "esri"
@@ -2886,6 +2967,7 @@
   "deal_count": 58,
   "brand": false,
   "maxFloor": 25,
+  "trend": null,
   "lat": 35.104383931078,
   "lng": 128.758574700336,
   "geo_src": "esri"
@@ -2911,6 +2993,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.16008503044,
   "lng": 128.699037120072,
   "geo_src": "esri"
@@ -2935,6 +3018,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.161475755815,
   "lng": 128.68223442169,
   "geo_src": "esri"
@@ -2969,6 +3053,7 @@
   "deal_count": 9,
   "brand": false,
   "maxFloor": 6,
+  "trend": 20.3,
   "lat": 35.141575399386,
   "lng": 128.704559620798,
   "geo_src": "esri"
@@ -3000,6 +3085,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.152367057815,
   "lng": 128.658104263553,
   "geo_src": "esri"
@@ -3037,6 +3123,7 @@
   "deal_count": 55,
   "brand": false,
   "maxFloor": 21,
+  "trend": -2.9,
   "lat": 35.152749440238,
   "lng": 128.718318598679,
   "geo_src": "esri"
@@ -3068,6 +3155,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.145774062325,
   "lng": 128.658661492476,
   "geo_src": "esri"
@@ -3111,6 +3199,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 12,
+  "trend": -6.3,
   "lat": 35.130256393519,
   "lng": 128.7097812112,
   "geo_src": "esri"
@@ -3136,6 +3225,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.156605073789,
   "lng": 128.691118149409,
   "geo_src": "esri"
@@ -3167,6 +3257,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.126545641165,
   "lng": 128.778627146398,
   "geo_src": "esri"
@@ -3192,6 +3283,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.12331274111,
   "lng": 128.787375674018,
   "geo_src": "esri"
@@ -3217,6 +3309,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.152234372288,
   "lng": 128.658341890508,
   "geo_src": "esri"
@@ -3249,6 +3342,7 @@
   "deal_count": 15,
   "brand": true,
   "maxFloor": 11,
+  "trend": 8.7,
   "lat": 35.147453418536,
   "lng": 128.661810573499,
   "geo_src": "esri"
@@ -3271,6 +3365,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.151801195532,
   "lng": 128.669596439539,
   "geo_src": "esri"
@@ -3304,6 +3399,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.135537411615,
   "lng": 128.706709998058,
   "geo_src": "esri"
@@ -3327,6 +3423,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.086918098427,
   "lng": 128.807983421165,
   "geo_src": "esri"
@@ -3352,6 +3449,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.149871513783,
   "lng": 128.665817123216,
   "geo_src": "esri"
@@ -3391,6 +3489,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.157049901391,
   "lng": 128.688962156274,
   "geo_src": "esri"
@@ -3445,6 +3544,7 @@
   "deal_count": 14,
   "brand": false,
   "maxFloor": 6,
+  "trend": -12.4,
   "lat": 35.138692527608,
   "lng": 128.706469521255,
   "geo_src": "esri"
@@ -3485,6 +3585,7 @@
   "deal_count": 29,
   "brand": false,
   "maxFloor": 15,
+  "trend": 12.1,
   "lat": 35.139535453701,
   "lng": 128.708668262096,
   "geo_src": "esri"
@@ -3508,6 +3609,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.149295928492,
   "lng": 128.70850431207,
   "geo_src": "esri"
@@ -3534,6 +3636,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.140380810546,
   "lng": 128.671711780444,
   "geo_src": "esri"
@@ -3566,6 +3669,7 @@
   "deal_count": 12,
   "brand": false,
   "maxFloor": 10,
+  "trend": 9.0,
   "lat": 35.147923056571,
   "lng": 128.708459887984,
   "geo_src": "esri"
@@ -3590,6 +3694,7 @@
   "deal_count": 10,
   "brand": false,
   "maxFloor": 8,
+  "trend": 0.5,
   "lat": 35.147933240583,
   "lng": 128.709837202313,
   "geo_src": "esri"
@@ -3615,6 +3720,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 12,
+  "trend": -7.9,
   "lat": 35.11502207495,
   "lng": 128.747773360809,
   "geo_src": "esri"
@@ -3638,6 +3744,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.156724138724,
   "lng": 128.688499139942,
   "geo_src": "esri"
@@ -3661,6 +3768,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.151890378982,
   "lng": 128.657647282191,
   "geo_src": "esri"
@@ -3693,6 +3801,7 @@
   "deal_count": 12,
   "brand": false,
   "maxFloor": 14,
+  "trend": 15.7,
   "lat": 35.15094431357,
   "lng": 128.712162509892,
   "geo_src": "esri"
@@ -3732,6 +3841,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.142852047059,
   "lng": 128.709802920329,
   "geo_src": "esri"
@@ -3762,6 +3872,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.146135280442,
   "lng": 128.669487893893,
   "geo_src": "esri"
@@ -3787,6 +3898,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 11,
+  "trend": null,
   "lat": 35.160809939336,
   "lng": 128.699649418099,
   "geo_src": "esri"
@@ -3809,6 +3921,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.147812122082,
   "lng": 128.660159422392,
   "geo_src": "esri"
@@ -3833,6 +3946,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.16130996177,
   "lng": 128.682706490477,
   "geo_src": "esri"
@@ -3865,6 +3979,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.146406351191,
   "lng": 128.659944761852,
   "geo_src": "esri"
@@ -3890,6 +4005,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.145010177579,
   "lng": 128.702754075035,
   "geo_src": "esri"
@@ -3914,6 +4030,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 12,
+  "trend": -0.9,
   "lat": 35.159305764902,
   "lng": 128.703870963633,
   "geo_src": "esri"
@@ -3937,6 +4054,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.147952057956,
   "lng": 128.658664509961,
   "geo_src": "esri"
@@ -3962,6 +4080,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.149384650937,
   "lng": 128.702280329867,
   "geo_src": "esri"
@@ -3995,6 +4114,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.128147171404,
   "lng": 128.776923859854,
   "geo_src": "esri"
@@ -4038,6 +4158,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.153995074869,
   "lng": 128.658313475856,
   "geo_src": "esri"
@@ -4064,6 +4185,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.155991518477,
   "lng": 128.672870494739,
   "geo_src": "esri"
@@ -4102,6 +4224,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.157763075623,
   "lng": 128.693827012877,
   "geo_src": "esri"
@@ -4133,6 +4256,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.157807625438,
   "lng": 128.694310145776,
   "geo_src": "esri"
@@ -4157,6 +4281,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.137109856651,
   "lng": 128.704202970818,
   "geo_src": "esri"
@@ -4182,6 +4307,7 @@
   "deal_count": 10,
   "brand": false,
   "maxFloor": 19,
+  "trend": 2.4,
   "lat": 35.139383070701,
   "lng": 128.672485933021,
   "geo_src": "esri"
@@ -4208,6 +4334,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.160719750058,
   "lng": 128.693403140033,
   "geo_src": "esri"
@@ -4242,6 +4369,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.157436684313,
   "lng": 128.692205701346,
   "geo_src": "esri"
@@ -4265,6 +4393,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.157716723698,
   "lng": 128.688191859372,
   "geo_src": "esri"
@@ -4290,6 +4419,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.157112807574,
   "lng": 128.691119155237,
   "geo_src": "esri"
@@ -4314,6 +4444,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.157186400684,
   "lng": 128.684848904929,
   "geo_src": "esri"
@@ -4337,6 +4468,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.150020711659,
   "lng": 128.657981384852,
   "geo_src": "esri"
@@ -4361,6 +4493,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.152003702313,
   "lng": 128.657453241133,
   "geo_src": "esri"
@@ -4384,6 +4517,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.156978780942,
   "lng": 128.693783929895,
   "geo_src": "esri"
@@ -4406,6 +4540,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.146666483556,
   "lng": 128.6598176922,
   "geo_src": "esri"
@@ -4431,6 +4566,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 14,
+  "trend": null,
   "lat": 35.143527418908,
   "lng": 128.670928826868,
   "geo_src": "esri"
@@ -4455,6 +4591,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.151882541902,
   "lng": 128.65820660659,
   "geo_src": "esri"
@@ -4487,6 +4624,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.159126392174,
   "lng": 128.680084379707,
   "geo_src": "esri"
@@ -4518,6 +4656,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.154729455316,
   "lng": 128.658558311248,
   "geo_src": "esri"
@@ -4542,6 +4681,7 @@
   "deal_count": 357,
   "brand": false,
   "maxFloor": 32,
+  "trend": null,
   "lat": 35.171154171774,
   "lng": 128.562235826888,
   "geo_src": "esri"
@@ -4575,6 +4715,7 @@
   "deal_count": 213,
   "brand": false,
   "maxFloor": 21,
+  "trend": null,
   "lat": 35.213701299026,
   "lng": 128.563407616952,
   "geo_src": "esri"
@@ -4612,6 +4753,7 @@
   "deal_count": 27,
   "brand": false,
   "maxFloor": 25,
+  "trend": -12.6,
   "lat": 35.171869106205,
   "lng": 128.558167251087,
   "geo_src": "esri"
@@ -4679,6 +4821,7 @@
   "deal_count": 198,
   "brand": true,
   "maxFloor": 25,
+  "trend": -1.4,
   "lat": 35.215395407386,
   "lng": 128.567020720135,
   "geo_src": "esri"
@@ -4746,6 +4889,7 @@
   "deal_count": 52,
   "brand": false,
   "maxFloor": 22,
+  "trend": -2.9,
   "lat": 35.215518495634,
   "lng": 128.561879512184,
   "geo_src": "esri"
@@ -4790,6 +4934,7 @@
   "deal_count": 35,
   "brand": false,
   "maxFloor": 22,
+  "trend": -13.8,
   "lat": 35.173970700788,
   "lng": 128.558154929689,
   "geo_src": "esri"
@@ -4835,6 +4980,7 @@
   "deal_count": 27,
   "brand": false,
   "maxFloor": 15,
+  "trend": 9.1,
   "lat": 35.174391220871,
   "lng": 128.555741779765,
   "geo_src": "esri"
@@ -4872,6 +5018,7 @@
   "deal_count": 136,
   "brand": false,
   "maxFloor": 25,
+  "trend": -0.4,
   "lat": 35.15708116589,
   "lng": 128.574877580895,
   "geo_src": "esri"
@@ -4924,6 +5071,7 @@
   "deal_count": 86,
   "brand": false,
   "maxFloor": 25,
+  "trend": 0.1,
   "lat": 35.147979173413,
   "lng": 128.559696026407,
   "geo_src": "esri"
@@ -4990,6 +5138,7 @@
   "deal_count": 153,
   "brand": true,
   "maxFloor": 26,
+  "trend": 1.2,
   "lat": 35.210572418389,
   "lng": 128.569656912503,
   "geo_src": "esri"
@@ -5054,6 +5203,7 @@
   "deal_count": 158,
   "brand": true,
   "maxFloor": 25,
+  "trend": 3.6,
   "lat": 35.210572418389,
   "lng": 128.569656912503,
   "geo_src": "esri"
@@ -5087,6 +5237,7 @@
   "deal_count": 9,
   "brand": false,
   "maxFloor": 9,
+  "trend": 18.9,
   "lat": 35.117209584041,
   "lng": 128.463365663059,
   "geo_src": "esri"
@@ -5162,6 +5313,7 @@
   "deal_count": 34,
   "brand": false,
   "maxFloor": 12,
+  "trend": 5.6,
   "lat": 35.201198726521,
   "lng": 128.571264561532,
   "geo_src": "esri"
@@ -5216,6 +5368,7 @@
   "deal_count": 77,
   "brand": false,
   "maxFloor": 34,
+  "trend": 0.8,
   "lat": 35.215451817594,
   "lng": 128.58879992207,
   "geo_src": "esri"
@@ -5272,6 +5425,7 @@
   "deal_count": 49,
   "brand": false,
   "maxFloor": 24,
+  "trend": 7.6,
   "lat": 35.192933457528,
   "lng": 128.567699151378,
   "geo_src": "esri"
@@ -5320,6 +5474,7 @@
   "deal_count": 694,
   "brand": false,
   "maxFloor": 31,
+  "trend": 5.2,
   "lat": 35.174365236971,
   "lng": 128.567391954627,
   "geo_src": "esri"
@@ -5364,6 +5519,7 @@
   "deal_count": 25,
   "brand": false,
   "maxFloor": 18,
+  "trend": -2.9,
   "lat": 35.179292161567,
   "lng": 128.564377319331,
   "geo_src": "esri"
@@ -5412,6 +5568,7 @@
   "deal_count": 43,
   "brand": false,
   "maxFloor": 18,
+  "trend": -3.5,
   "lat": 35.14293594991,
   "lng": 128.556809382772,
   "geo_src": "esri"
@@ -5455,6 +5612,7 @@
   "deal_count": 22,
   "brand": false,
   "maxFloor": 16,
+  "trend": -3.7,
   "lat": 35.195627065932,
   "lng": 128.557666180915,
   "geo_src": "esri"
@@ -5501,6 +5659,7 @@
   "deal_count": 12,
   "brand": false,
   "maxFloor": 17,
+  "trend": null,
   "lat": 35.177953026806,
   "lng": 128.566633643846,
   "geo_src": "esri"
@@ -5538,6 +5697,7 @@
   "deal_count": 40,
   "brand": false,
   "maxFloor": 21,
+  "trend": -8.2,
   "lat": 35.174837305758,
   "lng": 128.557370802647,
   "geo_src": "esri"
@@ -5563,6 +5723,7 @@
   "deal_count": 13,
   "brand": false,
   "maxFloor": 24,
+  "trend": 0.7,
   "lat": 35.111921944242,
   "lng": 128.488755621244,
   "geo_src": "esri"
@@ -5614,6 +5775,7 @@
   "deal_count": 42,
   "brand": false,
   "maxFloor": 15,
+  "trend": 5.9,
   "lat": 35.120912289769,
   "lng": 128.488361504156,
   "geo_src": "esri"
@@ -5659,6 +5821,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.18372845146,
   "lng": 128.562087383383,
   "geo_src": "esri"
@@ -5696,6 +5859,7 @@
   "deal_count": 52,
   "brand": false,
   "maxFloor": 18,
+  "trend": 0.3,
   "lat": 35.178244633217,
   "lng": 128.56521450382,
   "geo_src": "esri"
@@ -5736,6 +5900,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.203146890366,
   "lng": 128.574276598438,
   "geo_src": "esri"
@@ -5780,6 +5945,7 @@
   "deal_count": 25,
   "brand": false,
   "maxFloor": 21,
+  "trend": 3.3,
   "lat": 35.209589263056,
   "lng": 128.584674433146,
   "geo_src": "esri"
@@ -5845,6 +6011,7 @@
   "deal_count": 85,
   "brand": false,
   "maxFloor": 31,
+  "trend": -0.2,
   "lat": 35.176150917623,
   "lng": 128.559467703365,
   "geo_src": "esri"
@@ -5882,6 +6049,7 @@
   "deal_count": 57,
   "brand": false,
   "maxFloor": 20,
+  "trend": -1.5,
   "lat": 35.172951251815,
   "lng": 128.560462216176,
   "geo_src": "esri"
@@ -5925,6 +6093,7 @@
   "deal_count": 29,
   "brand": false,
   "maxFloor": 27,
+  "trend": -0.9,
   "lat": 35.208948257011,
   "lng": 128.582029607418,
   "geo_src": "esri"
@@ -5959,6 +6128,7 @@
   "deal_count": 15,
   "brand": false,
   "maxFloor": 18,
+  "trend": -4.7,
   "lat": 35.208015267368,
   "lng": 128.58062614155,
   "geo_src": "esri"
@@ -5994,6 +6164,7 @@
   "deal_count": 87,
   "brand": false,
   "maxFloor": 40,
+  "trend": -0.3,
   "lat": 35.211059239326,
   "lng": 128.585260495816,
   "geo_src": "esri"
@@ -6040,6 +6211,7 @@
   "deal_count": 31,
   "brand": false,
   "maxFloor": 19,
+  "trend": -9.0,
   "lat": 35.120251544342,
   "lng": 128.487590117607,
   "geo_src": "esri"
@@ -6097,6 +6269,7 @@
   "deal_count": 44,
   "brand": false,
   "maxFloor": 22,
+  "trend": -4.6,
   "lat": 35.171641747081,
   "lng": 128.558158533908,
   "geo_src": "esri"
@@ -6123,6 +6296,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.203966179492,
   "lng": 128.559769870974,
   "geo_src": "esri"
@@ -6183,6 +6357,7 @@
   "deal_count": 89,
   "brand": false,
   "maxFloor": 22,
+  "trend": -7.9,
   "lat": 35.17185745536,
   "lng": 128.558464473373,
   "geo_src": "esri"
@@ -6219,6 +6394,7 @@
   "deal_count": 19,
   "brand": false,
   "maxFloor": 9,
+  "trend": -15.5,
   "lat": 35.207024526413,
   "lng": 128.570195030687,
   "geo_src": "esri"
@@ -6283,6 +6459,7 @@
   "deal_count": 55,
   "brand": true,
   "maxFloor": 23,
+  "trend": 0.1,
   "lat": 35.215173538409,
   "lng": 128.56893347044,
   "geo_src": "esri"
@@ -6329,6 +6506,7 @@
   "deal_count": 31,
   "brand": false,
   "maxFloor": 18,
+  "trend": 5.7,
   "lat": 35.181965192399,
   "lng": 128.557639358825,
   "geo_src": "esri"
@@ -6355,6 +6533,7 @@
   "deal_count": 22,
   "brand": false,
   "maxFloor": 21,
+  "trend": -9.2,
   "lat": 35.179759117393,
   "lng": 128.562475549319,
   "geo_src": "esri"
@@ -6386,6 +6565,7 @@
   "deal_count": 439,
   "brand": false,
   "maxFloor": 25,
+  "trend": null,
   "lat": 35.145321691011,
   "lng": 128.548261769371,
   "geo_src": "esri"
@@ -6412,6 +6592,7 @@
   "deal_count": 19,
   "brand": false,
   "maxFloor": 17,
+  "trend": 6.7,
   "lat": 35.157187406513,
   "lng": 128.582094483349,
   "geo_src": "esri"
@@ -6444,6 +6625,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.186942031228,
   "lng": 128.556314347571,
   "geo_src": "esri"
@@ -6481,6 +6663,7 @@
   "deal_count": 41,
   "brand": false,
   "maxFloor": 29,
+  "trend": 0.2,
   "lat": 35.206599228646,
   "lng": 128.583548743549,
   "geo_src": "esri"
@@ -6507,6 +6690,7 @@
   "deal_count": 23,
   "brand": false,
   "maxFloor": 22,
+  "trend": 2.6,
   "lat": 35.150767832599,
   "lng": 128.551958104853,
   "geo_src": "esri"
@@ -6585,6 +6769,7 @@
   "deal_count": 46,
   "brand": false,
   "maxFloor": 5,
+  "trend": -5.5,
   "lat": 35.202859432997,
   "lng": 128.559499303139,
   "geo_src": "esri"
@@ -6637,6 +6822,7 @@
   "deal_count": 51,
   "brand": false,
   "maxFloor": 11,
+  "trend": null,
   "lat": 35.181761428333,
   "lng": 128.560946019628,
   "geo_src": "esri"
@@ -6672,6 +6858,7 @@
   "deal_count": 42,
   "brand": false,
   "maxFloor": 17,
+  "trend": null,
   "lat": 35.180163460402,
   "lng": 128.565519688914,
   "geo_src": "esri"
@@ -6695,6 +6882,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.204573364558,
   "lng": 128.560018394403,
   "geo_src": "esri"
@@ -6730,6 +6918,7 @@
   "deal_count": 23,
   "brand": false,
   "maxFloor": 15,
+  "trend": 16.0,
   "lat": 35.194303186235,
   "lng": 128.567131864171,
   "geo_src": "esri"
@@ -6777,6 +6966,7 @@
   "deal_count": 24,
   "brand": false,
   "maxFloor": 26,
+  "trend": -2.1,
   "lat": 35.111613741662,
   "lng": 128.487235227827,
   "geo_src": "esri"
@@ -6832,6 +7022,7 @@
   "deal_count": 32,
   "brand": false,
   "maxFloor": 19,
+  "trend": null,
   "lat": 35.152343839944,
   "lng": 128.554142009725,
   "geo_src": "esri"
@@ -6866,6 +7057,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.21732986682,
   "lng": 128.588752731955,
   "geo_src": "esri"
@@ -6889,6 +7081,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.199660563469,
   "lng": 128.568666087728,
   "geo_src": "esri"
@@ -6919,6 +7112,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.213020562759,
   "lng": 128.566048754643,
   "geo_src": "esri"
@@ -6966,6 +7160,7 @@
   "deal_count": 34,
   "brand": false,
   "maxFloor": 14,
+  "trend": null,
   "lat": 35.158633242901,
   "lng": 128.583930203963,
   "geo_src": "esri"
@@ -6991,6 +7186,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.190011777538,
   "lng": 128.564593572432,
   "geo_src": "esri"
@@ -7017,6 +7213,7 @@
   "deal_count": 18,
   "brand": false,
   "maxFloor": 27,
+  "trend": 3.0,
   "lat": 35.181296903259,
   "lng": 128.558248220272,
   "geo_src": "esri"
@@ -7059,6 +7256,7 @@
   "deal_count": 12,
   "brand": false,
   "maxFloor": 13,
+  "trend": -5.1,
   "lat": 35.205269733074,
   "lng": 128.580814315277,
   "geo_src": "esri"
@@ -7093,6 +7291,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.206307328868,
   "lng": 128.565113501886,
   "geo_src": "esri"
@@ -7128,6 +7327,7 @@
   "deal_count": 13,
   "brand": false,
   "maxFloor": 20,
+  "trend": null,
   "lat": 35.179958900055,
   "lng": 128.565618092458,
   "geo_src": "esri"
@@ -7174,6 +7374,7 @@
   "deal_count": 47,
   "brand": false,
   "maxFloor": 20,
+  "trend": 4.3,
   "lat": 35.199493847415,
   "lng": 128.569919601348,
   "geo_src": "esri"
@@ -7223,6 +7424,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 18,
+  "trend": null,
   "lat": 35.181538427799,
   "lng": 128.562828762719,
   "geo_src": "esri"
@@ -7255,6 +7457,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.199240672029,
   "lng": 128.568200724464,
   "geo_src": "esri"
@@ -7278,6 +7481,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.213553861349,
   "lng": 128.564634392301,
   "geo_src": "esri"
@@ -7341,6 +7545,7 @@
   "deal_count": 20,
   "brand": false,
   "maxFloor": 19,
+  "trend": 0.6,
   "lat": 35.1961259149,
   "lng": 128.567716753375,
   "geo_src": "esri"
@@ -7385,6 +7590,7 @@
   "deal_count": 9,
   "brand": false,
   "maxFloor": 15,
+  "trend": null,
   "lat": 35.198667727038,
   "lng": 128.557371137923,
   "geo_src": "esri"
@@ -7408,6 +7614,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.204311346265,
   "lng": 128.560656424873,
   "geo_src": "esri"
@@ -7433,6 +7640,7 @@
   "deal_count": 9,
   "brand": false,
   "maxFloor": 11,
+  "trend": -16.7,
   "lat": 35.200710229203,
   "lng": 128.557989890016,
   "geo_src": "esri"
@@ -7473,6 +7681,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.200731183961,
   "lng": 128.559278272353,
   "geo_src": "esri"
@@ -7496,6 +7705,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.215533834517,
   "lng": 128.560513429605,
   "geo_src": "esri"
@@ -7531,6 +7741,7 @@
   "deal_count": 21,
   "brand": false,
   "maxFloor": 15,
+  "trend": -6.3,
   "lat": 35.178623327603,
   "lng": 128.56336973075,
   "geo_src": "esri"
@@ -7554,6 +7765,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.185636675537,
   "lng": 128.558676451705,
   "geo_src": "esri"
@@ -7578,6 +7790,7 @@
   "deal_count": 14,
   "brand": false,
   "maxFloor": 17,
+  "trend": 8.7,
   "lat": 35.216300443381,
   "lng": 128.562122168281,
   "geo_src": "esri"
@@ -7632,6 +7845,7 @@
   "deal_count": 10,
   "brand": false,
   "maxFloor": 15,
+  "trend": -15.3,
   "lat": 35.176090651739,
   "lng": 128.554952288305,
   "geo_src": "esri"
@@ -7665,6 +7879,7 @@
   "deal_count": 16,
   "brand": false,
   "maxFloor": 19,
+  "trend": -1.8,
   "lat": 35.178741051433,
   "lng": 128.566465921964,
   "geo_src": "esri"
@@ -7695,6 +7910,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.190560498829,
   "lng": 128.565030772502,
   "geo_src": "esri"
@@ -7726,6 +7942,7 @@
   "deal_count": 86,
   "brand": false,
   "maxFloor": 25,
+  "trend": null,
   "lat": 35.155811559016,
   "lng": 128.578143840925,
   "geo_src": "esri"
@@ -7751,6 +7968,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.183604944117,
   "lng": 128.559346836321,
   "geo_src": "esri"
@@ -7775,6 +7993,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.184292218268,
   "lng": 128.555906484162,
   "geo_src": "esri"
@@ -7808,6 +8027,7 @@
   "deal_count": 55,
   "brand": false,
   "maxFloor": 9,
+  "trend": 0.2,
   "lat": 35.182273520707,
   "lng": 128.560137836523,
   "geo_src": "esri"
@@ -7851,6 +8071,7 @@
   "deal_count": 21,
   "brand": false,
   "maxFloor": 21,
+  "trend": 5.9,
   "lat": 35.18311389032,
   "lng": 128.563893934974,
   "geo_src": "esri"
@@ -7899,6 +8120,7 @@
   "deal_count": 71,
   "brand": true,
   "maxFloor": 24,
+  "trend": 3.5,
   "lat": 35.210572418389,
   "lng": 128.569656912503,
   "geo_src": "esri"
@@ -7923,6 +8145,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.200419377163,
   "lng": 128.558643678463,
   "geo_src": "esri"
@@ -7947,6 +8170,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 15,
+  "trend": null,
   "lat": 35.194792479833,
   "lng": 128.565911626707,
   "geo_src": "esri"
@@ -7979,6 +8203,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.195066777614,
   "lng": 128.568549998369,
   "geo_src": "esri"
@@ -8002,6 +8227,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.217421648659,
   "lng": 128.584244106237,
   "geo_src": "esri"
@@ -8034,6 +8260,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 18,
+  "trend": null,
   "lat": 35.211459894297,
   "lng": 128.572621843113,
   "geo_src": "esri"
@@ -8080,6 +8307,7 @@
   "deal_count": 36,
   "brand": false,
   "maxFloor": 21,
+  "trend": 11.2,
   "lat": 35.192358710427,
   "lng": 128.566306833442,
   "geo_src": "esri"
@@ -8113,6 +8341,7 @@
   "deal_count": 9,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.21782758423,
   "lng": 128.586031966184,
   "geo_src": "esri"
@@ -8139,6 +8368,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.198598953522,
   "lng": 128.568328716126,
   "geo_src": "esri"
@@ -8164,6 +8394,7 @@
   "deal_count": 10,
   "brand": false,
   "maxFloor": 15,
+  "trend": 1.3,
   "lat": 35.190221786122,
   "lng": 128.556386431938,
   "geo_src": "esri"
@@ -8205,6 +8436,7 @@
   "deal_count": 13,
   "brand": false,
   "maxFloor": 18,
+  "trend": -7.6,
   "lat": 35.217238755532,
   "lng": 128.583979657192,
   "geo_src": "esri"
@@ -8239,6 +8471,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 11,
+  "trend": null,
   "lat": 35.182130567349,
   "lng": 128.561382297688,
   "geo_src": "esri"
@@ -8264,6 +8497,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.184754270681,
   "lng": 128.558685336522,
   "geo_src": "esri"
@@ -8295,6 +8529,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.116682781427,
   "lng": 128.464304100938,
   "geo_src": "esri"
@@ -8337,6 +8572,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.112732809555,
   "lng": 128.485169172513,
   "geo_src": "esri"
@@ -8369,6 +8605,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.178987730843,
   "lng": 128.557358145973,
   "geo_src": "esri"
@@ -8404,6 +8641,7 @@
   "deal_count": 13,
   "brand": false,
   "maxFloor": 17,
+  "trend": 9.1,
   "lat": 35.197556412405,
   "lng": 128.567862011757,
   "geo_src": "esri"
@@ -8428,6 +8666,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.199408813007,
   "lng": 128.571701091049,
   "geo_src": "esri"
@@ -8471,6 +8710,7 @@
   "deal_count": 20,
   "brand": false,
   "maxFloor": 20,
+  "trend": 11.4,
   "lat": 35.175208917435,
   "lng": 128.558098435662,
   "geo_src": "esri"
@@ -8504,6 +8744,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.185349846811,
   "lng": 128.561107790359,
   "geo_src": "esri"
@@ -8551,6 +8792,7 @@
   "deal_count": 79,
   "brand": false,
   "maxFloor": 36,
+  "trend": 6.9,
   "lat": 35.198041976056,
   "lng": 128.573888013407,
   "geo_src": "esri"
@@ -8577,6 +8819,7 @@
   "deal_count": 24,
   "brand": false,
   "maxFloor": 18,
+  "trend": -0.6,
   "lat": 35.145184563075,
   "lng": 128.554784398784,
   "geo_src": "esri"
@@ -8618,6 +8861,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 19,
+  "trend": null,
   "lat": 35.206633762087,
   "lng": 128.566465921964,
   "geo_src": "esri"
@@ -8661,6 +8905,7 @@
   "deal_count": 19,
   "brand": false,
   "maxFloor": 18,
+  "trend": 1.1,
   "lat": 35.177239098203,
   "lng": 128.566394843425,
   "geo_src": "esri"
@@ -8695,6 +8940,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 15,
+  "trend": 2.5,
   "lat": 35.207164671834,
   "lng": 128.581848642128,
   "geo_src": "esri"
@@ -8717,6 +8963,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.206590804833,
   "lng": 128.562774196529,
   "geo_src": "esri"
@@ -8758,6 +9005,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 18,
+  "trend": null,
   "lat": 35.206665906686,
   "lng": 128.563648848126,
   "geo_src": "esri"
@@ -8791,6 +9039,7 @@
   "deal_count": 10,
   "brand": false,
   "maxFloor": 17,
+  "trend": -3.6,
   "lat": 35.186110169248,
   "lng": 128.560570761822,
   "geo_src": "esri"
@@ -8817,6 +9066,7 @@
   "deal_count": 31,
   "brand": false,
   "maxFloor": 25,
+  "trend": 0.2,
   "lat": 35.144361376364,
   "lng": 128.55769861888,
   "geo_src": "esri"
@@ -8850,6 +9100,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 20,
+  "trend": null,
   "lat": 35.197657875343,
   "lng": 128.556729587054,
   "geo_src": "esri"
@@ -8873,6 +9124,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.216359745346,
   "lng": 128.581352768737,
   "geo_src": "esri"
@@ -8899,6 +9151,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.19664098285,
   "lng": 128.568727778536,
   "geo_src": "esri"
@@ -8924,6 +9177,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.200659686327,
   "lng": 128.56789461736,
   "geo_src": "esri"
@@ -8964,6 +9218,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.21332000625,
   "lng": 128.563873818407,
   "geo_src": "esri"
@@ -8988,6 +9243,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.194997501185,
   "lng": 128.563537201175,
   "geo_src": "esri"
@@ -9029,6 +9285,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.194125741345,
   "lng": 128.561126482003,
   "geo_src": "esri"
@@ -9064,6 +9321,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 19,
+  "trend": 7.3,
   "lat": 35.199817095511,
   "lng": 128.571302447734,
   "geo_src": "esri"
@@ -9094,6 +9352,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.184922663115,
   "lng": 128.560758264996,
   "geo_src": "esri"
@@ -9130,6 +9389,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.219990576254,
   "lng": 128.58577179191,
   "geo_src": "esri"
@@ -9152,6 +9412,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.201049109549,
   "lng": 128.558413008488,
   "geo_src": "esri"
@@ -9177,6 +9438,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 20,
+  "trend": null,
   "lat": 35.1982390346,
   "lng": 128.571222484378,
   "geo_src": "esri"
@@ -9202,6 +9464,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.214259533777,
   "lng": 128.571151489658,
   "geo_src": "esri"
@@ -9250,6 +9513,7 @@
   "deal_count": 9,
   "brand": false,
   "maxFloor": 15,
+  "trend": null,
   "lat": 35.17703248429,
   "lng": 128.554633524527,
   "geo_src": "esri"
@@ -9281,6 +9545,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.19804076068,
   "lng": 128.557851420975,
   "geo_src": "esri"
@@ -9321,6 +9586,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 20,
+  "trend": 14.9,
   "lat": 35.196975043601,
   "lng": 128.556643085813,
   "geo_src": "esri"
@@ -9344,6 +9610,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.221489092904,
   "lng": 128.58451475789,
   "geo_src": "esri"
@@ -9367,6 +9634,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.205979512635,
   "lng": 128.564294506127,
   "geo_src": "esri"
@@ -9415,6 +9683,7 @@
   "deal_count": 14,
   "brand": false,
   "maxFloor": 14,
+  "trend": 7.3,
   "lat": 35.185293268964,
   "lng": 128.561874566861,
   "geo_src": "esri"
@@ -9440,6 +9709,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.205005954581,
   "lng": 128.571064150227,
   "geo_src": "esri"
@@ -9463,6 +9733,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.117152168004,
   "lng": 128.488801218797,
   "geo_src": "esri"
@@ -9499,6 +9770,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.186804651835,
   "lng": 128.563021881768,
   "geo_src": "esri"
@@ -9521,6 +9793,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.212532316899,
   "lng": 128.563904244715,
   "geo_src": "esri"
@@ -9547,6 +9820,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 14,
+  "trend": null,
   "lat": 35.200991148688,
   "lng": 128.570261080084,
   "geo_src": "esri"
@@ -9577,6 +9851,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.189977579373,
   "lng": 128.564970003704,
   "geo_src": "esri"
@@ -9601,6 +9876,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.177262148437,
   "lng": 128.554234797393,
   "geo_src": "esri"
@@ -9634,6 +9910,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.207668508034,
   "lng": 128.584126256678,
   "geo_src": "esri"
@@ -9657,6 +9934,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.186148223088,
   "lng": 128.553741187115,
   "geo_src": "esri"
@@ -9690,6 +9968,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.20639546458,
   "lng": 128.562873605901,
   "geo_src": "esri"
@@ -9712,6 +9991,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.192573748153,
   "lng": 128.561361426749,
   "geo_src": "esri"
@@ -9737,6 +10017,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.202577298136,
   "lng": 128.573393062024,
   "geo_src": "esri"
@@ -9761,6 +10042,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.208261779141,
   "lng": 128.573676705628,
   "geo_src": "esri"
@@ -9794,6 +10076,7 @@
   "deal_count": 9,
   "brand": false,
   "maxFloor": 19,
+  "trend": -9.9,
   "lat": 35.110402598563,
   "lng": 128.484148424344,
   "geo_src": "esri"
@@ -9819,6 +10102,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.193977214021,
   "lng": 128.565887654464,
   "geo_src": "esri"
@@ -9849,6 +10133,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.212922620221,
   "lng": 128.56275684599,
   "geo_src": "esri"
@@ -9874,6 +10159,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.209776640502,
   "lng": 128.582489438626,
   "geo_src": "esri"
@@ -9897,6 +10183,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.204605844433,
   "lng": 128.573978286504,
   "geo_src": "esri"
@@ -9935,6 +10222,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.213891693956,
   "lng": 128.571992446003,
   "geo_src": "esri"
@@ -9968,6 +10256,7 @@
   "deal_count": 12,
   "brand": false,
   "maxFloor": 22,
+  "trend": 22.0,
   "lat": 35.111676061112,
   "lng": 128.49117547669,
   "geo_src": "esri"
@@ -9992,6 +10281,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.237849729712,
   "lng": 128.579233823614,
   "geo_src": "esri"
@@ -10029,6 +10319,7 @@
   "deal_count": 59,
   "brand": false,
   "maxFloor": 15,
+  "trend": 6.3,
   "lat": 35.243796941472,
   "lng": 128.499489234993,
   "geo_src": "esri"
@@ -10084,6 +10375,7 @@
   "deal_count": 20,
   "brand": false,
   "maxFloor": 15,
+  "trend": -5.0,
   "lat": 35.233954952673,
   "lng": 128.502358108993,
   "geo_src": "esri"
@@ -10141,6 +10433,7 @@
   "deal_count": 206,
   "brand": true,
   "maxFloor": 39,
+  "trend": 2.6,
   "lat": 35.22361034305,
   "lng": 128.592448396884,
   "geo_src": "esri"
@@ -10200,6 +10493,7 @@
   "deal_count": 255,
   "brand": false,
   "maxFloor": 53,
+  "trend": 2.4,
   "lat": 35.224555444543,
   "lng": 128.585364599053,
   "geo_src": "esri"
@@ -10240,6 +10534,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 16,
+  "trend": null,
   "lat": 35.231903062776,
   "lng": 128.583819059927,
   "geo_src": "esri"
@@ -10272,6 +10567,7 @@
   "deal_count": 13,
   "brand": false,
   "maxFloor": 20,
+  "trend": -4.6,
   "lat": 35.255040803577,
   "lng": 128.519178074095,
   "geo_src": "esri"
@@ -10307,6 +10603,7 @@
   "deal_count": 15,
   "brand": false,
   "maxFloor": 14,
+  "trend": -2.8,
   "lat": 35.229765803194,
   "lng": 128.503680354219,
   "geo_src": "esri"
@@ -10357,6 +10654,7 @@
   "deal_count": 17,
   "brand": false,
   "maxFloor": 15,
+  "trend": 4.1,
   "lat": 35.230996266581,
   "lng": 128.496092468731,
   "geo_src": "esri"
@@ -10390,6 +10688,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.229128443277,
   "lng": 128.587523693492,
   "geo_src": "esri"
@@ -10444,6 +10743,7 @@
   "deal_count": 164,
   "brand": true,
   "maxFloor": 29,
+  "trend": 1.8,
   "lat": 35.245016927479,
   "lng": 128.586880885338,
   "geo_src": "esri"
@@ -10522,6 +10822,7 @@
   "deal_count": 173,
   "brand": false,
   "maxFloor": 39,
+  "trend": 0.6,
   "lat": 35.227488188645,
   "lng": 128.58312017684,
   "geo_src": "esri"
@@ -10548,6 +10849,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.256399887268,
   "lng": 128.595808282772,
   "geo_src": "esri"
@@ -10588,6 +10890,7 @@
   "deal_count": 15,
   "brand": false,
   "maxFloor": 20,
+  "trend": -1.4,
   "lat": 35.22959129197,
   "lng": 128.581042219224,
   "geo_src": "esri"
@@ -10614,6 +10917,7 @@
   "deal_count": 21,
   "brand": false,
   "maxFloor": 15,
+  "trend": -7.4,
   "lat": 35.244166541493,
   "lng": 128.505622273546,
   "geo_src": "esri"
@@ -10668,6 +10972,7 @@
   "deal_count": 68,
   "brand": false,
   "maxFloor": 23,
+  "trend": 5.6,
   "lat": 35.229026100239,
   "lng": 128.578226821766,
   "geo_src": "esri"
@@ -10745,6 +11050,7 @@
   "deal_count": 330,
   "brand": false,
   "maxFloor": 33,
+  "trend": 3.7,
   "lat": 35.22830580139,
   "lng": 128.572402404888,
   "geo_src": "esri"
@@ -10792,6 +11098,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.220292073311,
   "lng": 128.571466146303,
   "geo_src": "esri"
@@ -10836,6 +11143,7 @@
   "deal_count": 78,
   "brand": false,
   "maxFloor": 24,
+  "trend": 0.6,
   "lat": 35.229199857092,
   "lng": 128.580583310025,
   "geo_src": "esri"
@@ -10869,6 +11177,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.244297592549,
   "lng": 128.591590592913,
   "geo_src": "esri"
@@ -10903,6 +11212,7 @@
   "deal_count": 69,
   "brand": true,
   "maxFloor": 29,
+  "trend": 9.0,
   "lat": 35.227127096256,
   "lng": 128.579743024232,
   "geo_src": "esri"
@@ -10947,6 +11257,7 @@
   "deal_count": 32,
   "brand": false,
   "maxFloor": 15,
+  "trend": 2.8,
   "lat": 35.22815773507,
   "lng": 128.498163385549,
   "geo_src": "esri"
@@ -10982,6 +11293,7 @@
   "deal_count": 15,
   "brand": false,
   "maxFloor": 15,
+  "trend": -0.2,
   "lat": 35.233327064306,
   "lng": 128.584325997431,
   "geo_src": "esri"
@@ -11030,6 +11342,7 @@
   "deal_count": 118,
   "brand": false,
   "maxFloor": 15,
+  "trend": -1.4,
   "lat": 35.235001181827,
   "lng": 128.503818068888,
   "geo_src": "esri"
@@ -11104,6 +11417,7 @@
   "deal_count": 157,
   "brand": false,
   "maxFloor": 29,
+  "trend": 1.0,
   "lat": 35.220425303662,
   "lng": 128.56910915513,
   "geo_src": "esri"
@@ -11152,6 +11466,7 @@
   "deal_count": 57,
   "brand": false,
   "maxFloor": 15,
+  "trend": -0.9,
   "lat": 35.231552196309,
   "lng": 128.501928452636,
   "geo_src": "esri"
@@ -11193,6 +11508,7 @@
   "deal_count": 21,
   "brand": true,
   "maxFloor": 20,
+  "trend": null,
   "lat": 35.237935518491,
   "lng": 128.587853940478,
   "geo_src": "esri"
@@ -11245,6 +11561,7 @@
   "deal_count": 77,
   "brand": true,
   "maxFloor": 23,
+  "trend": -1.9,
   "lat": 35.263120581053,
   "lng": 128.523251092305,
   "geo_src": "esri"
@@ -11291,6 +11608,7 @@
   "deal_count": 48,
   "brand": false,
   "maxFloor": 20,
+  "trend": 7.0,
   "lat": 35.222695961233,
   "lng": 128.501291260357,
   "geo_src": "esri"
@@ -11325,6 +11643,7 @@
   "deal_count": 10,
   "brand": false,
   "maxFloor": 14,
+  "trend": -5.4,
   "lat": 35.233754834735,
   "lng": 128.499370211968,
   "geo_src": "esri"
@@ -11351,6 +11670,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.25645856059,
   "lng": 128.596772620732,
   "geo_src": "esri"
@@ -11384,6 +11704,7 @@
   "deal_count": 27,
   "brand": false,
   "maxFloor": 15,
+  "trend": 4.4,
   "lat": 35.241414427404,
   "lng": 128.504392145436,
   "geo_src": "esri"
@@ -11419,6 +11740,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.253282196472,
   "lng": 128.521966062729,
   "geo_src": "esri"
@@ -11456,6 +11778,7 @@
   "deal_count": 67,
   "brand": false,
   "maxFloor": 23,
+  "trend": -3.6,
   "lat": 35.232478941433,
   "lng": 128.581798434528,
   "geo_src": "esri"
@@ -11481,6 +11804,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.248272961587,
   "lng": 128.590120239458,
   "geo_src": "esri"
@@ -11506,6 +11830,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.246777252875,
   "lng": 128.593787489735,
   "geo_src": "esri"
@@ -11574,6 +11899,7 @@
   "deal_count": 104,
   "brand": true,
   "maxFloor": 23,
+  "trend": -4.3,
   "lat": 35.268219963307,
   "lng": 128.527093105264,
   "geo_src": "esri"
@@ -11616,6 +11942,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 16,
+  "trend": null,
   "lat": 35.231974308953,
   "lng": 128.569006895911,
   "geo_src": "esri"
@@ -11649,6 +11976,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 19,
+  "trend": null,
   "lat": 35.22217506786,
   "lng": 128.586757587542,
   "geo_src": "esri"
@@ -11675,6 +12003,7 @@
   "deal_count": 17,
   "brand": false,
   "maxFloor": 20,
+  "trend": 5.3,
   "lat": 35.21651786995,
   "lng": 128.612959919783,
   "geo_src": "esri"
@@ -11701,6 +12030,7 @@
   "deal_count": 65,
   "brand": false,
   "maxFloor": 15,
+  "trend": 4.4,
   "lat": 35.229427635311,
   "lng": 128.504166588422,
   "geo_src": "esri"
@@ -11727,6 +12057,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.249411140219,
   "lng": 128.591851102464,
   "geo_src": "esri"
@@ -11771,6 +12102,7 @@
   "deal_count": 17,
   "brand": false,
   "maxFloor": 14,
+  "trend": -1.7,
   "lat": 35.22969086898,
   "lng": 128.497069211908,
   "geo_src": "esri"
@@ -11819,6 +12151,7 @@
   "deal_count": 38,
   "brand": false,
   "maxFloor": 5,
+  "trend": 12.0,
   "lat": 35.239575982671,
   "lng": 128.57893718806,
   "geo_src": "esri"
@@ -11863,6 +12196,7 @@
   "deal_count": 41,
   "brand": false,
   "maxFloor": 15,
+  "trend": 13.6,
   "lat": 35.25013558811,
   "lng": 128.523656944057,
   "geo_src": "esri"
@@ -11888,6 +12222,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.233415451475,
   "lng": 128.581973281029,
   "geo_src": "esri"
@@ -11942,6 +12277,7 @@
   "deal_count": 20,
   "brand": false,
   "maxFloor": 15,
+  "trend": 0.5,
   "lat": 35.257997100827,
   "lng": 128.520863926281,
   "geo_src": "esri"
@@ -11968,6 +12304,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.236183784546,
   "lng": 128.586215446045,
   "geo_src": "esri"
@@ -12005,6 +12342,7 @@
   "deal_count": 21,
   "brand": false,
   "maxFloor": 15,
+  "trend": 4.7,
   "lat": 35.25097273069,
   "lng": 128.51166009368,
   "geo_src": "esri"
@@ -12039,6 +12377,7 @@
   "deal_count": 16,
   "brand": false,
   "maxFloor": 15,
+  "trend": 3.4,
   "lat": 35.224401888076,
   "lng": 128.586742332478,
   "geo_src": "esri"
@@ -12074,6 +12413,7 @@
   "deal_count": 9,
   "brand": false,
   "maxFloor": 20,
+  "trend": null,
   "lat": 35.217245922059,
   "lng": 128.559590833522,
   "geo_src": "esri"
@@ -12117,6 +12457,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 15,
+  "trend": null,
   "lat": 35.221917156699,
   "lng": 128.587934574386,
   "geo_src": "esri"
@@ -12142,6 +12483,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 18,
+  "trend": null,
   "lat": 35.232619086854,
   "lng": 128.579197194697,
   "geo_src": "esri"
@@ -12173,6 +12515,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.242584541087,
   "lng": 128.58906998699,
   "geo_src": "esri"
@@ -12198,6 +12541,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.24210987391,
   "lng": 128.503722347554,
   "geo_src": "esri"
@@ -12224,6 +12568,7 @@
   "deal_count": 10,
   "brand": false,
   "maxFloor": 11,
+  "trend": -10.8,
   "lat": 35.258192105805,
   "lng": 128.520252466444,
   "geo_src": "esri"
@@ -12247,6 +12592,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.25519289321,
   "lng": 128.521334234868,
   "geo_src": "esri"
@@ -12299,6 +12645,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 14,
+  "trend": null,
   "lat": 35.268736246633,
   "lng": 128.524389522394,
   "geo_src": "esri"
@@ -12333,6 +12680,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 14,
+  "trend": null,
   "lat": 35.256843289946,
   "lng": 128.519874610249,
   "geo_src": "esri"
@@ -12358,6 +12706,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 14,
+  "trend": 0.0,
   "lat": 35.218539082081,
   "lng": 128.570207016808,
   "geo_src": "esri"
@@ -12400,6 +12749,7 @@
   "deal_count": 10,
   "brand": false,
   "maxFloor": 20,
+  "trend": 36.4,
   "lat": 35.217714302809,
   "lng": 128.571136066956,
   "geo_src": "esri"
@@ -12445,6 +12795,7 @@
   "deal_count": 15,
   "brand": false,
   "maxFloor": 14,
+  "trend": 5.0,
   "lat": 35.250116896466,
   "lng": 128.511141421511,
   "geo_src": "esri"
@@ -12481,6 +12832,7 @@
   "deal_count": 14,
   "brand": false,
   "maxFloor": 14,
+  "trend": -7.3,
   "lat": 35.242872710918,
   "lng": 128.501148265088,
   "geo_src": "esri"
@@ -12507,6 +12859,7 @@
   "deal_count": 28,
   "brand": false,
   "maxFloor": 14,
+  "trend": 1.0,
   "lat": 35.24279123882,
   "lng": 128.505436782029,
   "geo_src": "esri"
@@ -12530,6 +12883,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.246531956478,
   "lng": 128.589843720472,
   "geo_src": "esri"
@@ -12563,6 +12917,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.235301714966,
   "lng": 128.583664581451,
   "geo_src": "esri"
@@ -12589,6 +12944,7 @@
   "deal_count": 22,
   "brand": false,
   "maxFloor": 14,
+  "trend": 16.3,
   "lat": 35.227307265265,
   "lng": 128.504342105475,
   "geo_src": "esri"
@@ -12619,6 +12975,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.244334095737,
   "lng": 128.590288296617,
   "geo_src": "esri"
@@ -12661,6 +13018,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.221979098964,
   "lng": 128.588404631516,
   "geo_src": "esri"
@@ -12730,6 +13088,7 @@
   "deal_count": 30,
   "brand": false,
   "maxFloor": 15,
+  "trend": -0.5,
   "lat": 35.26446348767,
   "lng": 128.52190110298,
   "geo_src": "esri"
@@ -12776,6 +13135,7 @@
   "deal_count": 52,
   "brand": false,
   "maxFloor": 19,
+  "trend": -3.7,
   "lat": 35.231307738103,
   "lng": 128.579115219684,
   "geo_src": "esri"
@@ -12822,6 +13182,7 @@
   "deal_count": 42,
   "brand": false,
   "maxFloor": 23,
+  "trend": 4.8,
   "lat": 35.225083881628,
   "lng": 128.58888558512,
   "geo_src": "esri"
@@ -12848,6 +13209,7 @@
   "deal_count": 27,
   "brand": false,
   "maxFloor": 15,
+  "trend": -1.8,
   "lat": 35.232071371391,
   "lng": 128.496291538932,
   "geo_src": "esri"
@@ -12882,6 +13244,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.229047013088,
   "lng": 128.586165070807,
   "geo_src": "esri"
@@ -12917,6 +13280,7 @@
   "deal_count": 35,
   "brand": false,
   "maxFloor": 22,
+  "trend": 7.9,
   "lat": 35.249699561507,
   "lng": 128.600613544043,
   "geo_src": "esri"
@@ -12948,6 +13312,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.258891491806,
   "lng": 128.595176119635,
   "geo_src": "esri"
@@ -12974,6 +13339,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 14,
+  "trend": null,
   "lat": 35.231812161036,
   "lng": 128.506045894933,
   "geo_src": "esri"
@@ -12997,6 +13363,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.219764851602,
   "lng": 128.563316840941,
   "geo_src": "esri"
@@ -13029,6 +13396,7 @@
   "deal_count": 16,
   "brand": false,
   "maxFloor": 14,
+  "trend": -2.3,
   "lat": 35.229615641399,
   "lng": 128.506394079191,
   "geo_src": "esri"
@@ -13061,6 +13429,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 18,
+  "trend": 21.6,
   "lat": 35.245936296529,
   "lng": 128.593243336581,
   "geo_src": "esri"
@@ -13098,6 +13467,7 @@
   "deal_count": 41,
   "brand": false,
   "maxFloor": 23,
+  "trend": -1.9,
   "lat": 35.226152909559,
   "lng": 128.574851680815,
   "geo_src": "esri"
@@ -13144,6 +13514,7 @@
   "deal_count": 32,
   "brand": false,
   "maxFloor": 20,
+  "trend": 1.3,
   "lat": 35.223318778548,
   "lng": 128.503449768062,
   "geo_src": "esri"
@@ -13167,6 +13538,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.220039275112,
   "lng": 128.56326495696,
   "geo_src": "esri"
@@ -13199,6 +13571,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.229896686613,
   "lng": 128.565605603422,
   "geo_src": "esri"
@@ -13228,6 +13601,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.227925807809,
   "lng": 128.585979160194,
   "geo_src": "esri"
@@ -13251,6 +13625,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.245442183337,
   "lng": 128.592464154862,
   "geo_src": "esri"
@@ -13274,6 +13649,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.218344705747,
   "lng": 128.572385557262,
   "geo_src": "esri"
@@ -13297,6 +13673,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.254841230463,
   "lng": 128.519690878931,
   "geo_src": "esri"
@@ -13327,6 +13704,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.222466883819,
   "lng": 128.588122496655,
   "geo_src": "esri"
@@ -13360,6 +13738,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.249618508504,
   "lng": 128.603440843804,
   "geo_src": "esri"
@@ -13386,6 +13765,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.22613643912,
   "lng": 128.588543938747,
   "geo_src": "esri"
@@ -13427,6 +13807,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.233629986287,
   "lng": 128.557646315805,
   "geo_src": "esri"
@@ -13459,6 +13840,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.232615817912,
   "lng": 128.498382237041,
   "geo_src": "esri"
@@ -13484,6 +13866,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.231193995677,
   "lng": 128.582856314528,
   "geo_src": "esri"
@@ -13515,6 +13898,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.229185146852,
   "lng": 128.502480652417,
   "geo_src": "esri"
@@ -13537,6 +13921,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.233296973274,
   "lng": 128.576457234368,
   "geo_src": "esri"
@@ -13561,6 +13946,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 14,
+  "trend": null,
   "lat": 35.222447940718,
   "lng": 128.586154593428,
   "geo_src": "esri"
@@ -13584,6 +13970,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.244087500146,
   "lng": 128.587461164495,
   "geo_src": "esri"
@@ -13609,6 +13996,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.249961537891,
   "lng": 128.601028029155,
   "geo_src": "esri"
@@ -13633,6 +14021,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 11,
+  "trend": null,
   "lat": 35.218778720693,
   "lng": 128.572076432673,
   "geo_src": "esri"
@@ -13665,6 +14054,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.248884211876,
   "lng": 128.592029050268,
   "geo_src": "esri"
@@ -13697,6 +14087,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.237612396124,
   "lng": 128.579132318766,
   "geo_src": "esri"
@@ -13721,6 +14112,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.252669311712,
   "lng": 128.602174841148,
   "geo_src": "esri"
@@ -13754,6 +14146,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.234580033102,
   "lng": 128.590780984885,
   "geo_src": "esri"
@@ -13778,6 +14171,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.229648163183,
   "lng": 128.586532868718,
   "geo_src": "esri"
@@ -13803,6 +14197,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.236861545237,
   "lng": 128.579505648734,
   "geo_src": "esri"
@@ -13828,6 +14223,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.238747976366,
   "lng": 128.586704278638,
   "geo_src": "esri"
@@ -13869,6 +14265,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 23,
+  "trend": null,
   "lat": 35.233668165856,
   "lng": 128.579922480779,
   "geo_src": "esri"
@@ -13892,6 +14289,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.248061779536,
   "lng": 128.590868324316,
   "geo_src": "esri"
@@ -13925,6 +14323,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.234025905483,
   "lng": 128.576612131939,
   "geo_src": "esri"
@@ -13956,6 +14355,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.236620188335,
   "lng": 128.588357860496,
   "geo_src": "esri"
@@ -13995,6 +14395,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.232373455182,
   "lng": 128.559885625057,
   "geo_src": "esri"
@@ -14021,6 +14422,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 5,
+  "trend": 6.8,
   "lat": 35.257506843311,
   "lng": 128.597065065334,
   "geo_src": "esri"
@@ -14054,6 +14456,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.248535524704,
   "lng": 128.520670807232,
   "geo_src": "esri"
@@ -14095,6 +14498,7 @@
   "deal_count": 9,
   "brand": false,
   "maxFloor": 13,
+  "trend": 5.9,
   "lat": 35.235963843407,
   "lng": 128.583184717495,
   "geo_src": "esri"
@@ -14119,6 +14523,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.219205862479,
   "lng": 128.575770253584,
   "geo_src": "esri"
@@ -14142,6 +14547,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.216099403434,
   "lng": 128.560491888114,
   "geo_src": "esri"
@@ -14167,6 +14573,7 @@
   "deal_count": 13,
   "brand": false,
   "maxFloor": 12,
+  "trend": 2.0,
   "lat": 35.226451598679,
   "lng": 128.57094177444,
   "geo_src": "esri"
@@ -14191,6 +14598,7 @@
   "deal_count": 9,
   "brand": false,
   "maxFloor": 17,
+  "trend": 0.0,
   "lat": 35.226836160397,
   "lng": 128.574623609229,
   "geo_src": "esri"
@@ -14215,6 +14623,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.223135466326,
   "lng": 128.570906067533,
   "geo_src": "esri"
@@ -14240,6 +14649,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.242386560534,
   "lng": 128.588358866325,
   "geo_src": "esri"
@@ -14266,6 +14676,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.257172656831,
   "lng": 128.597889341692,
   "geo_src": "esri"
@@ -14299,6 +14710,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.220650022487,
   "lng": 128.500926479931,
   "geo_src": "esri"
@@ -14323,6 +14735,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 11,
+  "trend": null,
   "lat": 35.22500928269,
   "lng": 128.56978096467,
   "geo_src": "esri"
@@ -14345,6 +14758,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.256486472327,
   "lng": 128.519914675746,
   "geo_src": "esri"
@@ -14384,6 +14798,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.236684854718,
   "lng": 128.586249560391,
   "geo_src": "esri"
@@ -14407,6 +14822,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.221763097319,
   "lng": 128.565989075492,
   "geo_src": "esri"
@@ -14438,6 +14854,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.24722610379,
   "lng": 128.593547012933,
   "geo_src": "esri"
@@ -14464,6 +14881,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 22,
+  "trend": null,
   "lat": 35.223536917578,
   "lng": 128.586907958885,
   "geo_src": "esri"
@@ -14487,6 +14905,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.220383813242,
   "lng": 128.577268686414,
   "geo_src": "esri"
@@ -14510,6 +14929,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.249632925377,
   "lng": 128.602591002641,
   "geo_src": "esri"
@@ -14536,6 +14956,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.234908184612,
   "lng": 128.583613703299,
   "geo_src": "esri"
@@ -14558,6 +14979,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.265652628274,
   "lng": 128.518785130474,
   "geo_src": "esri"
@@ -14591,6 +15013,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.258012774986,
   "lng": 128.597142765577,
   "geo_src": "esri"
@@ -14615,6 +15038,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.222071718994,
   "lng": 128.58696034578,
   "geo_src": "esri"
@@ -14652,6 +15076,7 @@
   "deal_count": 219,
   "brand": false,
   "maxFloor": 5,
+  "trend": 22.1,
   "lat": 35.235481087694,
   "lng": 128.676707562374,
   "geo_src": "esri"
@@ -14711,6 +15136,7 @@
   "deal_count": 247,
   "brand": true,
   "maxFloor": 29,
+  "trend": 6.7,
   "lat": 35.23256669996,
   "lng": 128.674595574231,
   "geo_src": "esri"
@@ -14781,6 +15207,7 @@
   "deal_count": 258,
   "brand": true,
   "maxFloor": 35,
+  "trend": 9.4,
   "lat": 35.234837944263,
   "lng": 128.649955042009,
   "geo_src": "esri"
@@ -14879,6 +15306,7 @@
   "deal_count": 366,
   "brand": false,
   "maxFloor": 18,
+  "trend": 6.2,
   "lat": 35.236853959615,
   "lng": 128.66753256352,
   "geo_src": "esri"
@@ -14905,6 +15333,7 @@
   "deal_count": 44,
   "brand": false,
   "maxFloor": 15,
+  "trend": -6.6,
   "lat": 35.245354299082,
   "lng": 128.66673703709,
   "geo_src": "esri"
@@ -14949,6 +15378,7 @@
   "deal_count": 63,
   "brand": false,
   "maxFloor": 20,
+  "trend": -2.8,
   "lat": 35.204089561107,
   "lng": 128.706949301393,
   "geo_src": "esri"
@@ -15007,6 +15437,7 @@
   "deal_count": 277,
   "brand": false,
   "maxFloor": 25,
+  "trend": -0.1,
   "lat": 35.219897956224,
   "lng": 128.703887978896,
   "geo_src": "esri"
@@ -15044,6 +15475,7 @@
   "deal_count": 195,
   "brand": false,
   "maxFloor": 20,
+  "trend": 6.7,
   "lat": 35.205093671198,
   "lng": 128.711339826096,
   "geo_src": "esri"
@@ -15090,6 +15522,7 @@
   "deal_count": 58,
   "brand": false,
   "maxFloor": 18,
+  "trend": 6.1,
   "lat": 35.208075197976,
   "lng": 128.710040295827,
   "geo_src": "esri"
@@ -15135,6 +15568,7 @@
   "deal_count": 81,
   "brand": false,
   "maxFloor": 15,
+  "trend": -9.2,
   "lat": 35.200031881779,
   "lng": 128.699697697861,
   "geo_src": "esri"
@@ -15192,6 +15626,7 @@
   "deal_count": 216,
   "brand": false,
   "maxFloor": 15,
+  "trend": 9.9,
   "lat": 35.236903957667,
   "lng": 128.674944345222,
   "geo_src": "esri"
@@ -15251,6 +15686,7 @@
   "deal_count": 234,
   "brand": false,
   "maxFloor": 15,
+  "trend": 13.0,
   "lat": 35.239044989105,
   "lng": 128.66917047122,
   "geo_src": "esri"
@@ -15307,6 +15743,7 @@
   "deal_count": 282,
   "brand": false,
   "maxFloor": 20,
+  "trend": -2.4,
   "lat": 35.212143480411,
   "lng": 128.709346190425,
   "geo_src": "esri"
@@ -15377,6 +15814,7 @@
   "deal_count": 230,
   "brand": true,
   "maxFloor": 28,
+  "trend": 8.3,
   "lat": 35.229668531208,
   "lng": 128.677524462658,
   "geo_src": "esri"
@@ -15441,6 +15879,7 @@
   "deal_count": 198,
   "brand": false,
   "maxFloor": 15,
+  "trend": 10.4,
   "lat": 35.218123088227,
   "lng": 128.709659505966,
   "geo_src": "esri"
@@ -15467,6 +15906,7 @@
   "deal_count": 103,
   "brand": false,
   "maxFloor": 5,
+  "trend": 19.7,
   "lat": 35.207221207771,
   "lng": 128.693997752245,
   "geo_src": "esri"
@@ -15555,6 +15995,7 @@
   "deal_count": 154,
   "brand": false,
   "maxFloor": 5,
+  "trend": 15.3,
   "lat": 35.218712880844,
   "lng": 128.694720859032,
   "geo_src": "esri"
@@ -15644,6 +16085,7 @@
   "deal_count": 256,
   "brand": false,
   "maxFloor": 5,
+  "trend": 11.4,
   "lat": 35.224707031262,
   "lng": 128.686215993336,
   "geo_src": "esri"
@@ -15692,6 +16134,7 @@
   "deal_count": 336,
   "brand": false,
   "maxFloor": 20,
+  "trend": 9.1,
   "lat": 35.215087162897,
   "lng": 128.707104869516,
   "geo_src": "esri"
@@ -15729,6 +16172,7 @@
   "deal_count": 148,
   "brand": false,
   "maxFloor": 5,
+  "trend": 21.9,
   "lat": 35.220439888174,
   "lng": 128.693980569343,
   "geo_src": "esri"
@@ -15777,6 +16221,7 @@
   "deal_count": 45,
   "brand": false,
   "maxFloor": 5,
+  "trend": 16.4,
   "lat": 35.197924964688,
   "lng": 128.629089802797,
   "geo_src": "esri"
@@ -15814,6 +16259,7 @@
   "deal_count": 154,
   "brand": false,
   "maxFloor": 5,
+  "trend": 31.5,
   "lat": 35.236277284676,
   "lng": 128.679453222397,
   "geo_src": "esri"
@@ -15866,6 +16312,7 @@
   "deal_count": 95,
   "brand": false,
   "maxFloor": 19,
+  "trend": -1.2,
   "lat": 35.212803848653,
   "lng": 128.706803875373,
   "geo_src": "esri"
@@ -15892,6 +16339,7 @@
   "deal_count": 14,
   "brand": false,
   "maxFloor": 21,
+  "trend": -1.5,
   "lat": 35.189985290724,
   "lng": 128.686361922271,
   "geo_src": "esri"
@@ -15929,6 +16377,7 @@
   "deal_count": 216,
   "brand": false,
   "maxFloor": 15,
+  "trend": -4.4,
   "lat": 35.21310622581,
   "lng": 128.708340445863,
   "geo_src": "esri"
@@ -15988,6 +16437,7 @@
   "deal_count": 112,
   "brand": true,
   "maxFloor": 33,
+  "trend": -8.4,
   "lat": 35.221577270525,
   "lng": 128.672926402033,
   "geo_src": "esri"
@@ -16042,6 +16492,7 @@
   "deal_count": 84,
   "brand": false,
   "maxFloor": 15,
+  "trend": -2.0,
   "lat": 35.244338831512,
   "lng": 128.671696776837,
   "geo_src": "esri"
@@ -16120,6 +16571,7 @@
   "deal_count": 417,
   "brand": false,
   "maxFloor": 18,
+  "trend": 10.9,
   "lat": 35.234432721154,
   "lng": 128.67287468569,
   "geo_src": "esri"
@@ -16179,6 +16631,7 @@
   "deal_count": 206,
   "brand": false,
   "maxFloor": 15,
+  "trend": 14.5,
   "lat": 35.238456998597,
   "lng": 128.675942462252,
   "geo_src": "esri"
@@ -16258,6 +16711,7 @@
   "deal_count": 402,
   "brand": false,
   "maxFloor": 25,
+  "trend": 8.2,
   "lat": 35.218470308566,
   "lng": 128.686641710199,
   "geo_src": "esri"
@@ -16339,6 +16793,7 @@
   "deal_count": 154,
   "brand": false,
   "maxFloor": 5,
+  "trend": 18.5,
   "lat": 35.222166183042,
   "lng": 128.694788165714,
   "geo_src": "esri"
@@ -16376,6 +16831,7 @@
   "deal_count": 291,
   "brand": false,
   "maxFloor": 15,
+  "trend": -6.7,
   "lat": 35.209865237218,
   "lng": 128.700827326952,
   "geo_src": "esri"
@@ -16411,6 +16867,7 @@
   "deal_count": 33,
   "brand": false,
   "maxFloor": 12,
+  "trend": -1.2,
   "lat": 35.209314061424,
   "lng": 128.683747926744,
   "geo_src": "esri"
@@ -16459,6 +16916,7 @@
   "deal_count": 63,
   "brand": true,
   "maxFloor": 27,
+  "trend": 10.2,
   "lat": 35.210739302081,
   "lng": 128.697183294546,
   "geo_src": "esri"
@@ -16542,6 +17000,7 @@
   "deal_count": 111,
   "brand": false,
   "maxFloor": 5,
+  "trend": 13.9,
   "lat": 35.235038313658,
   "lng": 128.684139041549,
   "geo_src": "esri"
@@ -16619,6 +17078,7 @@
   "deal_count": 1096,
   "brand": false,
   "maxFloor": 25,
+  "trend": 2.9,
   "lat": 35.216025014043,
   "lng": 128.693044310758,
   "geo_src": "esri"
@@ -16681,6 +17141,7 @@
   "deal_count": 120,
   "brand": false,
   "maxFloor": 20,
+  "trend": 3.7,
   "lat": 35.202656800487,
   "lng": 128.711204542178,
   "geo_src": "esri"
@@ -16740,6 +17201,7 @@
   "deal_count": 103,
   "brand": false,
   "maxFloor": 23,
+  "trend": 4.7,
   "lat": 35.234462435001,
   "lng": 128.652731463617,
   "geo_src": "esri"
@@ -16773,6 +17235,7 @@
   "deal_count": 37,
   "brand": false,
   "maxFloor": 29,
+  "trend": -6.5,
   "lat": 35.210684693982,
   "lng": 128.687673271023,
   "geo_src": "esri"
@@ -16818,6 +17281,7 @@
   "deal_count": 47,
   "brand": false,
   "maxFloor": 15,
+  "trend": -2.6,
   "lat": 35.223915989149,
   "lng": 128.657576622748,
   "geo_src": "esri"
@@ -16855,6 +17319,7 @@
   "deal_count": 13,
   "brand": false,
   "maxFloor": 22,
+  "trend": 10.1,
   "lat": 35.18531271498,
   "lng": 128.687292481161,
   "geo_src": "esri"
@@ -16892,6 +17357,7 @@
   "deal_count": 104,
   "brand": false,
   "maxFloor": 15,
+  "trend": -2.3,
   "lat": 35.210286427853,
   "lng": 128.703560917035,
   "geo_src": "esri"
@@ -16938,6 +17404,7 @@
   "deal_count": 101,
   "brand": false,
   "maxFloor": 15,
+  "trend": 23.0,
   "lat": 35.213598453074,
   "lng": 128.699258234677,
   "geo_src": "esri"
@@ -16971,6 +17438,7 @@
   "deal_count": 15,
   "brand": true,
   "maxFloor": 13,
+  "trend": 14.6,
   "lat": 35.207085546668,
   "lng": 128.696535205793,
   "geo_src": "esri"
@@ -17017,6 +17485,7 @@
   "deal_count": 17,
   "brand": true,
   "maxFloor": 28,
+  "trend": -2.3,
   "lat": 35.209868673799,
   "lng": 128.69401024128,
   "geo_src": "esri"
@@ -17063,6 +17532,7 @@
   "deal_count": 28,
   "brand": false,
   "maxFloor": 15,
+  "trend": -9.7,
   "lat": 35.214423022798,
   "lng": 128.70223163101,
   "geo_src": "esri"
@@ -17115,6 +17585,7 @@
   "deal_count": 60,
   "brand": false,
   "maxFloor": 25,
+  "trend": -1.6,
   "lat": 35.195212161725,
   "lng": 128.717119902706,
   "geo_src": "esri"
@@ -17161,6 +17632,7 @@
   "deal_count": 51,
   "brand": false,
   "maxFloor": 20,
+  "trend": 0.6,
   "lat": 35.207092000734,
   "lng": 128.709918255317,
   "geo_src": "esri"
@@ -17213,6 +17685,7 @@
   "deal_count": 60,
   "brand": false,
   "maxFloor": 5,
+  "trend": 20.1,
   "lat": 35.2212054493,
   "lng": 128.695518397119,
   "geo_src": "esri"
@@ -17250,6 +17723,7 @@
   "deal_count": 38,
   "brand": false,
   "maxFloor": 5,
+  "trend": 19.2,
   "lat": 35.208129197761,
   "lng": 128.694570707494,
   "geo_src": "esri"
@@ -17304,6 +17778,7 @@
   "deal_count": 48,
   "brand": false,
   "maxFloor": 23,
+  "trend": 3.2,
   "lat": 35.187972292857,
   "lng": 128.68969833883,
   "geo_src": "esri"
@@ -17378,6 +17853,7 @@
   "deal_count": 55,
   "brand": false,
   "maxFloor": 5,
+  "trend": 9.1,
   "lat": 35.235986185793,
   "lng": 128.68477897148,
   "geo_src": "esri"
@@ -17431,6 +17907,7 @@
   "deal_count": 41,
   "brand": true,
   "maxFloor": 19,
+  "trend": -2.4,
   "lat": 35.201539367066,
   "lng": 128.708580755027,
   "geo_src": "esri"
@@ -17478,6 +17955,7 @@
   "deal_count": 26,
   "brand": true,
   "maxFloor": 32,
+  "trend": 11.5,
   "lat": 35.235419899801,
   "lng": 128.650787951728,
   "geo_src": "esri"
@@ -17504,6 +17982,7 @@
   "deal_count": 44,
   "brand": false,
   "maxFloor": 5,
+  "trend": 31.5,
   "lat": 35.207678284713,
   "lng": 128.695359458259,
   "geo_src": "esri"
@@ -17552,6 +18031,7 @@
   "deal_count": 54,
   "brand": false,
   "maxFloor": 20,
+  "trend": -3.1,
   "lat": 35.204136374036,
   "lng": 128.70985396612,
   "geo_src": "esri"
@@ -17606,6 +18086,7 @@
   "deal_count": 104,
   "brand": false,
   "maxFloor": 15,
+  "trend": -0.4,
   "lat": 35.211865452683,
   "lng": 128.700707801013,
   "geo_src": "esri"
@@ -17632,6 +18113,7 @@
   "deal_count": 77,
   "brand": false,
   "maxFloor": 15,
+  "trend": -6.5,
   "lat": 35.225189032604,
   "lng": 128.65575758212,
   "geo_src": "esri"
@@ -17677,6 +18159,7 @@
   "deal_count": 45,
   "brand": false,
   "maxFloor": 14,
+  "trend": 0.7,
   "lat": 35.21273222529,
   "lng": 128.67707846159,
   "geo_src": "esri"
@@ -17745,6 +18228,7 @@
   "deal_count": 127,
   "brand": true,
   "maxFloor": 28,
+  "trend": 7.6,
   "lat": 35.207658826936,
   "lng": 128.692033369416,
   "geo_src": "esri"
@@ -17820,6 +18304,7 @@
   "deal_count": 96,
   "brand": false,
   "maxFloor": 18,
+  "trend": -0.8,
   "lat": 35.211748692771,
   "lng": 128.703109300091,
   "geo_src": "esri"
@@ -17856,6 +18341,7 @@
   "deal_count": 14,
   "brand": false,
   "maxFloor": 12,
+  "trend": 4.7,
   "lat": 35.202225132474,
   "lng": 128.628157232249,
   "geo_src": "esri"
@@ -17893,6 +18379,7 @@
   "deal_count": 82,
   "brand": false,
   "maxFloor": 5,
+  "trend": 16.7,
   "lat": 35.244722764587,
   "lng": 128.667009113667,
   "geo_src": "esri"
@@ -17918,6 +18405,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 12,
+  "trend": -3.0,
   "lat": 35.210594127518,
   "lng": 128.681893110593,
   "geo_src": "esri"
@@ -17944,6 +18432,7 @@
   "deal_count": 10,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.207093425657,
   "lng": 128.698970316303,
   "geo_src": "esri"
@@ -18001,6 +18490,7 @@
   "deal_count": 181,
   "brand": true,
   "maxFloor": 30,
+  "trend": 6.0,
   "lat": 35.20974214897,
   "lng": 128.689630445414,
   "geo_src": "esri"
@@ -18047,6 +18537,7 @@
   "deal_count": 24,
   "brand": false,
   "maxFloor": 12,
+  "trend": 1.8,
   "lat": 35.203812539207,
   "lng": 128.693467345412,
   "geo_src": "esri"
@@ -18104,6 +18595,7 @@
   "deal_count": 119,
   "brand": true,
   "maxFloor": 26,
+  "trend": 5.7,
   "lat": 35.216576962367,
   "lng": 128.679717671443,
   "geo_src": "esri"
@@ -18140,6 +18632,7 @@
   "deal_count": 15,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.206531460959,
   "lng": 128.698495481489,
   "geo_src": "esri"
@@ -18177,6 +18670,7 @@
   "deal_count": 31,
   "brand": false,
   "maxFloor": 14,
+  "trend": 0.0,
   "lat": 35.226253911493,
   "lng": 128.65451622226,
   "geo_src": "esri"
@@ -18202,6 +18696,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.199401981756,
   "lng": 128.628891486967,
   "geo_src": "esri"
@@ -18239,6 +18734,7 @@
   "deal_count": 34,
   "brand": false,
   "maxFloor": 5,
+  "trend": 4.8,
   "lat": 35.207678284713,
   "lng": 128.695359458259,
   "geo_src": "esri"
@@ -18265,6 +18761,7 @@
   "deal_count": 9,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.204833664561,
   "lng": 128.628377005751,
   "geo_src": "esri"
@@ -18297,6 +18794,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 15,
+  "trend": -0.7,
   "lat": 35.199371010624,
   "lng": 128.627947936127,
   "geo_src": "esri"
@@ -18349,6 +18847,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 19,
+  "trend": -7.8,
   "lat": 35.217081846305,
   "lng": 128.677886896151,
   "geo_src": "esri"
@@ -18395,6 +18894,7 @@
   "deal_count": 32,
   "brand": false,
   "maxFloor": 15,
+  "trend": -5.8,
   "lat": 35.214834197059,
   "lng": 128.703584470182,
   "geo_src": "esri"
@@ -18420,6 +18920,7 @@
   "deal_count": 42,
   "brand": false,
   "maxFloor": 5,
+  "trend": 10.6,
   "lat": 35.222091667923,
   "lng": 128.661040947149,
   "geo_src": "esri"
@@ -18445,6 +18946,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.208684185151,
   "lng": 128.626069300168,
   "geo_src": "esri"
@@ -18509,6 +19011,7 @@
   "deal_count": 101,
   "brand": false,
   "maxFloor": 20,
+  "trend": 4.6,
   "lat": 35.200385137089,
   "lng": 128.714044247155,
   "geo_src": "esri"
@@ -18555,6 +19058,7 @@
   "deal_count": 46,
   "brand": true,
   "maxFloor": 26,
+  "trend": 4.1,
   "lat": 35.207720559653,
   "lng": 128.699466273514,
   "geo_src": "esri"
@@ -18580,6 +19084,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.199632484093,
   "lng": 128.628878075922,
   "geo_src": "esri"
@@ -18605,6 +19110,7 @@
   "deal_count": 20,
   "brand": false,
   "maxFloor": 5,
+  "trend": 22.8,
   "lat": 35.206823360737,
   "lng": 128.699597031204,
   "geo_src": "esri"
@@ -18653,6 +19159,7 @@
   "deal_count": 99,
   "brand": true,
   "maxFloor": 29,
+  "trend": 12.6,
   "lat": 35.208267562654,
   "lng": 128.69855591501,
   "geo_src": "esri"
@@ -18686,6 +19193,7 @@
   "deal_count": 42,
   "brand": false,
   "maxFloor": 20,
+  "trend": 4.0,
   "lat": 35.185308733576,
   "lng": 128.691701781327,
   "geo_src": "esri"
@@ -18722,6 +19230,7 @@
   "deal_count": 15,
   "brand": false,
   "maxFloor": 19,
+  "trend": 1.6,
   "lat": 35.186821080366,
   "lng": 128.688741209306,
   "geo_src": "esri"
@@ -18766,6 +19275,7 @@
   "deal_count": 9,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.202666649224,
   "lng": 128.628492759833,
   "geo_src": "esri"
@@ -18802,6 +19312,7 @@
   "deal_count": 80,
   "brand": false,
   "maxFloor": 25,
+  "trend": null,
   "lat": 35.185793710493,
   "lng": 128.686605416558,
   "geo_src": "esri"
@@ -18827,6 +19338,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.223003032255,
   "lng": 128.659928668598,
   "geo_src": "esri"
@@ -18853,6 +19365,7 @@
   "deal_count": 12,
   "brand": false,
   "maxFloor": 5,
+  "trend": 21.3,
   "lat": 35.207678284713,
   "lng": 128.695359458259,
   "geo_src": "esri"
@@ -18879,6 +19392,7 @@
   "deal_count": 10,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.202469464951,
   "lng": 128.628768692086,
   "geo_src": "esri"
@@ -18915,6 +19429,7 @@
   "deal_count": 9,
   "brand": false,
   "maxFloor": 11,
+  "trend": null,
   "lat": 35.200635881722,
   "lng": 128.699000407336,
   "geo_src": "esri"
@@ -18947,6 +19462,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.218894810052,
   "lng": 128.666766709027,
   "geo_src": "esri"
@@ -18989,6 +19505,7 @@
   "deal_count": 13,
   "brand": false,
   "maxFloor": 10,
+  "trend": -12.0,
   "lat": 35.201451189444,
   "lng": 128.69782015155,
   "geo_src": "esri"
@@ -19015,6 +19532,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.213231325714,
   "lng": 128.67696589263,
   "geo_src": "esri"
@@ -19039,6 +19557,7 @@
   "deal_count": 13,
   "brand": false,
   "maxFloor": 18,
+  "trend": -3.1,
   "lat": 35.213381822786,
   "lng": 128.698115781275,
   "geo_src": "esri"
@@ -19081,6 +19600,7 @@
   "deal_count": 9,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.19742783401,
   "lng": 128.628637850577,
   "geo_src": "esri"
@@ -19118,6 +19638,7 @@
   "deal_count": 22,
   "brand": false,
   "maxFloor": 12,
+  "trend": -0.9,
   "lat": 35.217788566471,
   "lng": 128.668630006103,
   "geo_src": "esri"
@@ -19144,6 +19665,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.201249185578,
   "lng": 128.629453325937,
   "geo_src": "esri"
@@ -19187,6 +19709,7 @@
   "deal_count": 45,
   "brand": false,
   "maxFloor": 5,
+  "trend": 6.3,
   "lat": 35.221618886675,
   "lng": 128.662223046954,
   "geo_src": "esri"
@@ -19213,6 +19736,7 @@
   "deal_count": 21,
   "brand": false,
   "maxFloor": 5,
+  "trend": 15.5,
   "lat": 35.204163028488,
   "lng": 128.628205176735,
   "geo_src": "esri"
@@ -19248,6 +19772,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.211975004157,
   "lng": 128.678634645733,
   "geo_src": "esri"
@@ -19274,6 +19799,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.224574345734,
   "lng": 128.657409655236,
   "geo_src": "esri"
@@ -19298,6 +19824,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.206038269776,
   "lng": 128.628083471501,
   "geo_src": "esri"
@@ -19322,6 +19849,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.201405927167,
   "lng": 128.627579383844,
   "geo_src": "esri"
@@ -19352,6 +19880,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.196669062225,
   "lng": 128.625799989619,
   "geo_src": "esri"
@@ -19376,6 +19905,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 15,
+  "trend": null,
   "lat": 35.186006359377,
   "lng": 128.693676557715,
   "geo_src": "esri"
@@ -19411,6 +19941,7 @@
   "deal_count": 21,
   "brand": false,
   "maxFloor": 5,
+  "trend": 7.6,
   "lat": 35.219455894651,
   "lng": 128.664999803838,
   "geo_src": "esri"
@@ -19435,6 +19966,7 @@
   "deal_count": 9,
   "brand": false,
   "maxFloor": 12,
+  "trend": -6.0,
   "lat": 35.226656033297,
   "lng": 128.653335295922,
   "geo_src": "esri"
@@ -19460,6 +19992,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.219745405586,
   "lng": 128.665814608646,
   "geo_src": "esri"
@@ -19484,6 +20017,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.187919361139,
   "lng": 128.693526437829,
   "geo_src": "esri"
@@ -19508,6 +20042,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.235419899801,
   "lng": 128.650787951728,
   "geo_src": "esri"
@@ -19533,6 +20068,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.223688504297,
   "lng": 128.658939101109,
   "geo_src": "esri"
@@ -19581,6 +20117,7 @@
   "deal_count": 199,
   "brand": false,
   "maxFloor": 20,
+  "trend": 3.0,
   "lat": 35.252627150739,
   "lng": 128.618195675601,
   "geo_src": "esri"
@@ -19640,6 +20177,7 @@
   "deal_count": 191,
   "brand": true,
   "maxFloor": 41,
+  "trend": 6.5,
   "lat": 35.257472016503,
   "lng": 128.630896438207,
   "geo_src": "esri"
@@ -19673,6 +20211,7 @@
   "deal_count": 98,
   "brand": false,
   "maxFloor": 22,
+  "trend": null,
   "lat": 35.319880105238,
   "lng": 128.58029723567,
   "geo_src": "esri"
@@ -19743,6 +20282,7 @@
   "deal_count": 161,
   "brand": true,
   "maxFloor": 40,
+  "trend": 9.0,
   "lat": 35.257150025692,
   "lng": 128.626699786925,
   "geo_src": "esri"
@@ -19774,6 +20314,7 @@
   "deal_count": 20,
   "brand": true,
   "maxFloor": 28,
+  "trend": null,
   "lat": 35.2382663103,
   "lng": 128.641531983689,
   "geo_src": "esri"
@@ -19859,6 +20400,7 @@
   "deal_count": 231,
   "brand": true,
   "maxFloor": 41,
+  "trend": 9.3,
   "lat": 35.254710472773,
   "lng": 128.63102686062,
   "geo_src": "esri"
@@ -19885,6 +20427,7 @@
   "deal_count": 66,
   "brand": false,
   "maxFloor": 19,
+  "trend": -2.0,
   "lat": 35.302593016672,
   "lng": 128.591121876888,
   "geo_src": "esri"
@@ -19955,6 +20498,7 @@
   "deal_count": 217,
   "brand": true,
   "maxFloor": 25,
+  "trend": -0.5,
   "lat": 35.30232307748,
   "lng": 128.585125295718,
   "geo_src": "esri"
@@ -19981,6 +20525,7 @@
   "deal_count": 144,
   "brand": false,
   "maxFloor": 20,
+  "trend": -3.6,
   "lat": 35.256109244775,
   "lng": 128.616073210079,
   "geo_src": "esri"
@@ -20010,6 +20555,7 @@
   "deal_count": 53,
   "brand": false,
   "maxFloor": 14,
+  "trend": null,
   "lat": 35.315620505864,
   "lng": 128.580105625363,
   "geo_src": "esri"
@@ -20033,6 +20579,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.259736932469,
   "lng": 128.638233285694,
   "geo_src": "esri"
@@ -20092,6 +20639,7 @@
   "deal_count": 105,
   "brand": false,
   "maxFloor": 20,
+  "trend": 3.5,
   "lat": 35.255073954004,
   "lng": 128.613697946357,
   "geo_src": "esri"
@@ -20140,6 +20688,7 @@
   "deal_count": 66,
   "brand": true,
   "maxFloor": 25,
+  "trend": -0.1,
   "lat": 35.301032599668,
   "lng": 128.585989553754,
   "geo_src": "esri"
@@ -20205,6 +20754,7 @@
   "deal_count": 115,
   "brand": true,
   "maxFloor": 25,
+  "trend": -2.7,
   "lat": 35.303561671313,
   "lng": 128.598832138162,
   "geo_src": "esri"
@@ -20231,6 +20781,7 @@
   "deal_count": 235,
   "brand": true,
   "maxFloor": 49,
+  "trend": 5.3,
   "lat": 35.23545799555,
   "lng": 128.641481440813,
   "geo_src": "esri"
@@ -20267,6 +20818,7 @@
   "deal_count": 115,
   "brand": false,
   "maxFloor": 22,
+  "trend": -2.2,
   "lat": 35.322663441916,
   "lng": 128.581886444512,
   "geo_src": "esri"
@@ -20292,6 +20844,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.2600528464,
   "lng": 128.635197192726,
   "geo_src": "esri"
@@ -20383,6 +20936,7 @@
   "deal_count": 237,
   "brand": true,
   "maxFloor": 42,
+  "trend": 9.9,
   "lat": 35.252901658068,
   "lng": 128.623332022048,
   "geo_src": "esri"
@@ -20428,6 +20982,7 @@
   "deal_count": 87,
   "brand": true,
   "maxFloor": 22,
+  "trend": -0.3,
   "lat": 35.303553498957,
   "lng": 128.596357884163,
   "geo_src": "esri"
@@ -20463,6 +21018,7 @@
   "deal_count": 107,
   "brand": false,
   "maxFloor": 20,
+  "trend": 3.0,
   "lat": 35.254233291025,
   "lng": 128.617541970973,
   "geo_src": "esri"
@@ -20511,6 +21067,7 @@
   "deal_count": 116,
   "brand": false,
   "maxFloor": 23,
+  "trend": 1.1,
   "lat": 35.318026153984,
   "lng": 128.581952577728,
   "geo_src": "esri"
@@ -20556,6 +21113,7 @@
   "deal_count": 49,
   "brand": false,
   "maxFloor": 15,
+  "trend": 1.4,
   "lat": 35.260706551029,
   "lng": 128.620131559959,
   "geo_src": "esri"
@@ -20580,6 +21138,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.262185454025,
   "lng": 128.62269474595,
   "geo_src": "esri"
@@ -20617,6 +21176,7 @@
   "deal_count": 62,
   "brand": true,
   "maxFloor": 23,
+  "trend": -0.7,
   "lat": 35.302559237602,
   "lng": 128.589610033012,
   "geo_src": "esri"
@@ -20665,6 +21225,7 @@
   "deal_count": 231,
   "brand": false,
   "maxFloor": 23,
+  "trend": 1.4,
   "lat": 35.301948071132,
   "lng": 128.59787743939,
   "geo_src": "esri"
@@ -20698,6 +21259,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.277096566408,
   "lng": 128.702105734824,
   "geo_src": "esri"
@@ -20724,6 +21286,7 @@
   "deal_count": 20,
   "brand": false,
   "maxFloor": 12,
+  "trend": 7.8,
   "lat": 35.254350302394,
   "lng": 128.614864539641,
   "geo_src": "esri"
@@ -20757,6 +21320,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.275615526026,
   "lng": 128.705579698414,
   "geo_src": "esri"
@@ -20788,6 +21352,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.262755884446,
   "lng": 128.625600332686,
   "geo_src": "esri"
@@ -20827,6 +21392,7 @@
   "deal_count": 15,
   "brand": false,
   "maxFloor": 15,
+  "trend": null,
   "lat": 35.254521587986,
   "lng": 128.634530279529,
   "geo_src": "esri"
@@ -20858,6 +21424,7 @@
   "deal_count": 87,
   "brand": false,
   "maxFloor": 15,
+  "trend": null,
   "lat": 35.253229139025,
   "lng": 128.603596579565,
   "geo_src": "esri"
@@ -20953,6 +21520,7 @@
   "deal_count": 139,
   "brand": true,
   "maxFloor": 15,
+  "trend": 7.9,
   "lat": 35.253082120443,
   "lng": 128.643021699341,
   "geo_src": "esri"
@@ -21000,6 +21568,7 @@
   "deal_count": 22,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.251052484499,
   "lng": 128.66538486847,
   "geo_src": "esri"
@@ -21035,6 +21604,7 @@
   "deal_count": 53,
   "brand": false,
   "maxFloor": 19,
+  "trend": -1.6,
   "lat": 35.303173044372,
   "lng": 128.594853919276,
   "geo_src": "esri"
@@ -21059,6 +21629,7 @@
   "deal_count": 15,
   "brand": false,
   "maxFloor": 12,
+  "trend": 6.0,
   "lat": 35.251575640986,
   "lng": 128.614543009836,
   "geo_src": "esri"
@@ -21095,6 +21666,7 @@
   "deal_count": 36,
   "brand": false,
   "maxFloor": 21,
+  "trend": -3.7,
   "lat": 35.317873016613,
   "lng": 128.584183337439,
   "geo_src": "esri"
@@ -21128,6 +21700,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 14,
+  "trend": null,
   "lat": 35.263189061202,
   "lng": 128.640416771472,
   "geo_src": "esri"
@@ -21159,6 +21732,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.258164403615,
   "lng": 128.634317595807,
   "geo_src": "esri"
@@ -21184,6 +21758,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.263220325701,
   "lng": 128.639571205079,
   "geo_src": "esri"
@@ -21223,6 +21798,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.259632074861,
   "lng": 128.639996419027,
   "geo_src": "esri"
@@ -21271,6 +21847,7 @@
   "deal_count": 45,
   "brand": true,
   "maxFloor": 25,
+  "trend": 3.2,
   "lat": 35.297818349347,
   "lng": 128.584162382681,
   "geo_src": "esri"
@@ -21306,6 +21883,7 @@
   "deal_count": 66,
   "brand": false,
   "maxFloor": 19,
+  "trend": -3.0,
   "lat": 35.31883509146,
   "lng": 128.583415052194,
   "geo_src": "esri"
@@ -21347,6 +21925,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.255858709689,
   "lng": 128.638453645929,
   "geo_src": "esri"
@@ -21391,6 +21970,7 @@
   "deal_count": 62,
   "brand": false,
   "maxFloor": 18,
+  "trend": 5.4,
   "lat": 35.258565310044,
   "lng": 128.612829162093,
   "geo_src": "esri"
@@ -21424,6 +22004,7 @@
   "deal_count": 9,
   "brand": false,
   "maxFloor": 15,
+  "trend": 3.9,
   "lat": 35.276190105489,
   "lng": 128.705345591859,
   "geo_src": "esri"
@@ -21449,6 +22030,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.25715631212,
   "lng": 128.635777807159,
   "geo_src": "esri"
@@ -21472,6 +22054,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.289892924619,
   "lng": 128.697234424156,
   "geo_src": "esri"
@@ -21519,6 +22102,7 @@
   "deal_count": 22,
   "brand": false,
   "maxFloor": 14,
+  "trend": null,
   "lat": 35.254025042641,
   "lng": 128.669549752339,
   "geo_src": "esri"
@@ -21560,6 +22144,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.262709532521,
   "lng": 128.616974432309,
   "geo_src": "esri"
@@ -21595,6 +22180,7 @@
   "deal_count": 20,
   "brand": false,
   "maxFloor": 15,
+  "trend": 18.3,
   "lat": 35.347094217011,
   "lng": 128.608998129428,
   "geo_src": "esri"
@@ -21638,6 +22224,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.26019219554,
   "lng": 128.636050973384,
   "geo_src": "esri"
@@ -21673,6 +22260,7 @@
   "deal_count": 45,
   "brand": false,
   "maxFloor": 14,
+  "trend": -8.9,
   "lat": 35.320470442679,
   "lng": 128.582769645649,
   "geo_src": "esri"
@@ -21697,6 +22285,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.275341144425,
   "lng": 128.704706471742,
   "geo_src": "esri"
@@ -21730,6 +22319,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.268084427932,
   "lng": 128.6268335621,
   "geo_src": "esri"
@@ -21772,6 +22362,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.276466414927,
   "lng": 128.684508264384,
   "geo_src": "esri"
@@ -21794,6 +22385,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.259647078467,
   "lng": 128.636201680003,
   "geo_src": "esri"
@@ -21819,6 +22411,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.262716238044,
   "lng": 128.64062464267,
   "geo_src": "esri"
@@ -21853,6 +22446,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.256474067111,
   "lng": 128.641724264548,
   "geo_src": "esri"
@@ -21900,6 +22494,7 @@
   "deal_count": 25,
   "brand": false,
   "maxFloor": 7,
+  "trend": -2.9,
   "lat": 35.31519407654,
   "lng": 128.600132841896,
   "geo_src": "esri"
@@ -21933,6 +22528,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.259575497014,
   "lng": 128.63526785217,
   "geo_src": "esri"
@@ -21968,6 +22564,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 15,
+  "trend": -7.4,
   "lat": 35.262368221424,
   "lng": 128.612688932853,
   "geo_src": "esri"
@@ -22003,6 +22600,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.255011508826,
   "lng": 128.637761803641,
   "geo_src": "esri"
@@ -22036,6 +22634,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.27517711058,
   "lng": 128.704618461758,
   "geo_src": "esri"
@@ -22059,6 +22658,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.25869288261,
   "lng": 128.597447699214,
   "geo_src": "esri"
@@ -22082,6 +22682,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.255594805468,
   "lng": 128.638867879584,
   "geo_src": "esri"
@@ -22116,6 +22717,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.281606114135,
   "lng": 128.689994052374,
   "geo_src": "esri"
@@ -22169,6 +22771,7 @@
   "deal_count": 42,
   "brand": false,
   "maxFloor": 15,
+  "trend": -1.2,
   "lat": 35.251690682607,
   "lng": 128.664666790825,
   "geo_src": "esri"
@@ -22192,6 +22795,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.262112908653,
   "lng": 128.636578278913,
   "geo_src": "esri"
@@ -22218,6 +22822,7 @@
   "deal_count": 14,
   "brand": false,
   "maxFloor": 14,
+  "trend": -2.3,
   "lat": 35.260461170813,
   "lng": 128.635824578179,
   "geo_src": "esri"
@@ -22249,6 +22854,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.263799682848,
   "lng": 128.641906487123,
   "geo_src": "esri"
@@ -22273,6 +22879,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.267103074709,
   "lng": 128.628239207262,
   "geo_src": "esri"
@@ -22309,6 +22916,7 @@
   "deal_count": 22,
   "brand": false,
   "maxFloor": 14,
+  "trend": 8.7,
   "lat": 35.315601604672,
   "lng": 128.579433564367,
   "geo_src": "esri"
@@ -22341,6 +22949,7 @@
   "deal_count": 10,
   "brand": false,
   "maxFloor": 5,
+  "trend": 0.1,
   "lat": 35.25791722129,
   "lng": 128.63982048288,
   "geo_src": "esri"
@@ -22367,6 +22976,7 @@
   "deal_count": 24,
   "brand": false,
   "maxFloor": 15,
+  "trend": 0.7,
   "lat": 35.315550852248,
   "lng": 128.585815377806,
   "geo_src": "esri"
@@ -22400,6 +23010,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.259994592173,
   "lng": 128.639487302229,
   "geo_src": "esri"
@@ -22433,6 +23044,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.262976789504,
   "lng": 128.642100109086,
   "geo_src": "esri"
@@ -22458,6 +23070,7 @@
   "deal_count": 9,
   "brand": false,
   "maxFloor": 15,
+  "trend": null,
   "lat": 35.260230752295,
   "lng": 128.636348530946,
   "geo_src": "esri"
@@ -22491,6 +23104,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 14,
+  "trend": -4.4,
   "lat": 35.338675768738,
   "lng": 128.708333321246,
   "geo_src": "esri"
@@ -22523,6 +23137,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.261166026439,
   "lng": 128.639034381712,
   "geo_src": "esri"
@@ -22546,6 +23161,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.267590608107,
   "lng": 128.628220096523,
   "geo_src": "esri"
@@ -22571,6 +23187,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.25677887502,
   "lng": 128.640898311809,
   "geo_src": "esri"
@@ -22594,6 +23211,7 @@
   "deal_count": 14,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.329665977196,
   "lng": 128.705632169128,
   "geo_src": "esri"
@@ -22628,6 +23246,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 15,
+  "trend": null,
   "lat": 35.274817107839,
   "lng": 128.70605444941,
   "geo_src": "esri"
@@ -22673,6 +23292,7 @@
   "deal_count": 25,
   "brand": false,
   "maxFloor": 5,
+  "trend": -4.3,
   "lat": 35.279971768744,
   "lng": 128.691783337245,
   "geo_src": "esri"
@@ -22704,6 +23324,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.279288559816,
   "lng": 128.689993214183,
   "geo_src": "esri"
@@ -22730,6 +23351,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.268050187858,
   "lng": 128.62548390805,
   "geo_src": "esri"
@@ -22752,6 +23374,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.26225343126,
   "lng": 128.624488305591,
   "geo_src": "esri"
@@ -22783,6 +23406,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.260402497491,
   "lng": 128.632923266214,
   "geo_src": "esri"
@@ -22818,6 +23442,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 14,
+  "trend": null,
   "lat": 35.276169737464,
   "lng": 128.70443221587,
   "geo_src": "esri"
@@ -22840,6 +23465,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.266414249906,
   "lng": 128.627175292292,
   "geo_src": "esri"
@@ -22873,6 +23499,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 18,
+  "trend": null,
   "lat": 35.279610885903,
   "lng": 128.686483795143,
   "geo_src": "esri"
@@ -22924,6 +23551,7 @@
   "deal_count": 9,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.289198190574,
   "lng": 128.697888799337,
   "geo_src": "esri"
@@ -22966,6 +23594,7 @@
   "deal_count": 15,
   "brand": false,
   "maxFloor": 16,
+  "trend": -0.9,
   "lat": 35.26339005924,
   "lng": 128.616659524206,
   "geo_src": "esri"
@@ -22998,6 +23627,7 @@
   "deal_count": 22,
   "brand": false,
   "maxFloor": 20,
+  "trend": -4.4,
   "lat": 35.264554976143,
   "lng": 128.616792125915,
   "geo_src": "esri"
@@ -23023,6 +23653,7 @@
   "deal_count": 17,
   "brand": false,
   "maxFloor": 15,
+  "trend": 3.9,
   "lat": 35.345306315154,
   "lng": 128.605355102851,
   "geo_src": "esri"
@@ -23048,6 +23679,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.26368091128,
   "lng": 128.626855271229,
   "geo_src": "esri"
@@ -23074,6 +23706,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.25798213913,
   "lng": 128.638289695903,
   "geo_src": "esri"
@@ -23097,6 +23730,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.262986722059,
   "lng": 128.639820399061,
   "geo_src": "esri"
@@ -23120,6 +23754,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.268201858396,
   "lng": 128.628712617154,
   "geo_src": "esri"
@@ -23145,6 +23780,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.266659881578,
   "lng": 128.627742160404,
   "geo_src": "esri"
@@ -23168,6 +23804,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.257184559133,
   "lng": 128.641430981756,
   "geo_src": "esri"
@@ -23193,6 +23830,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.258308362802,
   "lng": 128.639331985563,
   "geo_src": "esri"
@@ -23224,6 +23862,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.260808977886,
   "lng": 128.640616260767,
   "geo_src": "esri"
@@ -23263,6 +23902,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.25762892573,
   "lng": 128.641197126657,
   "geo_src": "esri"
@@ -23289,6 +23929,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.279625554234,
   "lng": 128.689035414108,
   "geo_src": "esri"
@@ -23320,6 +23961,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.260473743668,
   "lng": 128.633287124631,
   "geo_src": "esri"
@@ -23345,6 +23987,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.348821014794,
   "lng": 128.607254777386,
   "geo_src": "esri"
@@ -23405,6 +24048,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.273708684963,
   "lng": 128.706191409708,
   "geo_src": "esri"
@@ -23428,6 +24072,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.266913853244,
   "lng": 128.628225209484,
   "geo_src": "esri"
@@ -23471,6 +24116,7 @@
   "deal_count": 20,
   "brand": false,
   "maxFloor": 20,
+  "trend": 2.9,
   "lat": 35.285290756861,
   "lng": 128.68285946021,
   "geo_src": "esri"
@@ -23503,6 +24149,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 11,
+  "trend": null,
   "lat": 35.279022057205,
   "lng": 128.686786884762,
   "geo_src": "esri"
@@ -23539,6 +24186,7 @@
   "deal_count": 10,
   "brand": false,
   "maxFloor": 15,
+  "trend": -20.4,
   "lat": 35.347049792924,
   "lng": 128.608108641863,
   "geo_src": "esri"
@@ -23571,6 +24219,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.347108550066,
   "lng": 128.609966909797,
   "geo_src": "esri"
@@ -23594,6 +24243,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.278400790542,
   "lng": 128.701203506766,
   "geo_src": "esri"
@@ -23627,6 +24277,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.258803775189,
   "lng": 128.639987785667,
   "geo_src": "esri"
@@ -23674,6 +24325,7 @@
   "deal_count": 160,
   "brand": false,
   "maxFloor": 23,
+  "trend": null,
   "lat": 35.255011341188,
   "lng": 128.647771053318,
   "geo_src": "esri"
@@ -23699,6 +24351,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.266897718081,
   "lng": 128.629018137524,
   "geo_src": "esri"
@@ -23725,6 +24378,7 @@
   "deal_count": 24,
   "brand": false,
   "maxFloor": 12,
+  "trend": -0.2,
   "lat": 35.24820259551,
   "lng": 128.656582277574,
   "geo_src": "esri"
@@ -23750,6 +24404,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.267615921454,
   "lng": 128.625230439298,
   "geo_src": "esri"
@@ -23775,6 +24430,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 19,
+  "trend": null,
   "lat": 35.255198509086,
   "lng": 128.646844098646,
   "geo_src": "esri"
@@ -23800,6 +24456,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.257033517238,
   "lng": 128.600166956242,
   "geo_src": "esri"
@@ -23830,6 +24487,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.264621486545,
   "lng": 128.630229657809,
   "geo_src": "esri"
@@ -23855,6 +24513,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.257455085058,
   "lng": 128.599887419771,
   "geo_src": "esri"
@@ -23878,6 +24537,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.26711937751,
   "lng": 128.627473939502,
   "geo_src": "esri"
@@ -23903,6 +24563,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.263103356242,
   "lng": 128.627999149555,
   "geo_src": "esri"
@@ -23933,6 +24594,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.263477817766,
   "lng": 128.613746393758,
   "geo_src": "esri"
@@ -23956,6 +24618,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.262664354063,
   "lng": 128.641550172419,
   "geo_src": "esri"
@@ -23988,6 +24651,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.280305158943,
   "lng": 128.688795943134,
   "geo_src": "esri"
@@ -24029,6 +24693,7 @@
   "deal_count": 10,
   "brand": false,
   "maxFloor": 11,
+  "trend": -4.8,
   "lat": 35.260931018396,
   "lng": 128.600767519605,
   "geo_src": "esri"
@@ -24052,6 +24717,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.257992784147,
   "lng": 128.59789386792,
   "geo_src": "esri"
@@ -24083,6 +24749,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.263006599448,
   "lng": 128.629382845815,
   "geo_src": "esri"
@@ -24108,6 +24775,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.256886079561,
   "lng": 128.641343139411,
   "geo_src": "esri"
@@ -24139,6 +24807,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.264588461846,
   "lng": 128.627844922537,
   "geo_src": "esri"
@@ -24161,6 +24830,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.262383979402,
   "lng": 128.638875507116,
   "geo_src": "esri"
@@ -24185,6 +24855,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.263173470862,
   "lng": 128.641512621493,
   "geo_src": "esri"
@@ -24218,6 +24889,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 11,
+  "trend": null,
   "lat": 35.265660339624,
   "lng": 128.628340376834,
   "geo_src": "esri"
@@ -24261,6 +24933,7 @@
   "deal_count": 10,
   "brand": false,
   "maxFloor": 12,
+  "trend": -5.3,
   "lat": 35.277439553885,
   "lng": 128.70279606837,
   "geo_src": "esri"
@@ -24286,6 +24959,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.261745990842,
   "lng": 128.638268405869,
   "geo_src": "esri"
@@ -24309,6 +24983,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.279991089031,
   "lng": 128.687656339578,
   "geo_src": "esri"
@@ -24331,6 +25006,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.264567213722,
   "lng": 128.629694054196,
   "geo_src": "esri"
@@ -24361,6 +25037,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.261587447143,
   "lng": 128.634755047334,
   "geo_src": "esri"
@@ -24386,6 +25063,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.349335496011,
   "lng": 128.608337886915,
   "geo_src": "esri"
@@ -24411,6 +25089,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 14,
+  "trend": null,
   "lat": 35.281081239358,
   "lng": 128.689384688013,
   "geo_src": "esri"
@@ -24442,6 +25121,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.264261022799,
   "lng": 128.62933019578,
   "geo_src": "esri"
@@ -24464,6 +25144,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.265430256382,
   "lng": 128.62461395032,
   "geo_src": "esri"
@@ -24497,6 +25178,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 14,
+  "trend": -4.8,
   "lat": 35.277952149174,
   "lng": 128.683444936147,
   "geo_src": "esri"
@@ -24520,6 +25202,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.259202418504,
   "lng": 128.614720370907,
   "geo_src": "esri"
@@ -24545,6 +25228,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.257275670421,
   "lng": 128.640988417268,
   "geo_src": "esri"
@@ -24576,6 +25260,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 11,
+  "trend": null,
   "lat": 35.267949018287,
   "lng": 128.628462417344,
   "geo_src": "esri"
@@ -24601,6 +25286,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.276690295561,
   "lng": 128.683514673581,
   "geo_src": "esri"
@@ -24624,6 +25310,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.256938466456,
   "lng": 128.635685857681,
   "geo_src": "esri"
@@ -24671,6 +25358,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.144260081064,
   "lng": 128.67163592422,
   "geo_src": "esri"
@@ -24702,6 +25390,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.127409773472,
   "lng": 128.783579426251,
   "geo_src": "esri"
@@ -24725,6 +25414,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.16336512061,
   "lng": 128.663584770944,
   "geo_src": "esri"
@@ -24748,6 +25438,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.14779410099,
   "lng": 128.710389737371,
   "geo_src": "esri"
@@ -24771,6 +25462,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.158490289542,
   "lng": 128.702489709809,
   "geo_src": "esri"
@@ -24794,6 +25486,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.145326007691,
   "lng": 128.659796653623,
   "geo_src": "esri"
@@ -24825,6 +25518,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 12,
+  "trend": 16.0,
   "lat": 35.140715164664,
   "lng": 128.702149907454,
   "geo_src": "esri"
@@ -24848,6 +25542,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.144699083243,
   "lng": 128.660285821492,
   "geo_src": "esri"
@@ -24871,6 +25566,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.147839572815,
   "lng": 128.660463182563,
   "geo_src": "esri"
@@ -24894,6 +25590,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.145080920842,
   "lng": 128.660060180658,
   "geo_src": "esri"
@@ -24925,6 +25622,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.157375035415,
   "lng": 128.68481244365,
   "geo_src": "esri"
@@ -24948,6 +25646,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.142020394626,
   "lng": 128.670330023705,
   "geo_src": "esri"
@@ -24979,6 +25678,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.151910705097,
   "lng": 128.658016253569,
   "geo_src": "esri"
@@ -25010,6 +25710,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 10,
+  "trend": -0.7,
   "lat": 35.118584677167,
   "lng": 128.791999802362,
   "geo_src": "esri"
@@ -25033,6 +25734,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.150334111019,
   "lng": 128.666262118456,
   "geo_src": "esri"
@@ -25056,6 +25758,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.145850002368,
   "lng": 128.658495111698,
   "geo_src": "esri"
@@ -25079,6 +25782,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.145834831123,
   "lng": 128.660345333005,
   "geo_src": "esri"
@@ -25102,6 +25806,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.155334964001,
   "lng": 128.660643309662,
   "geo_src": "esri"
@@ -25125,6 +25830,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.14661418048,
   "lng": 128.660650685737,
   "geo_src": "esri"
@@ -25156,6 +25862,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.144817519535,
   "lng": 128.661925070296,
   "geo_src": "esri"
@@ -25179,6 +25886,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.149987184047,
   "lng": 128.667367104752,
   "geo_src": "esri"
@@ -25202,6 +25910,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.158121946807,
   "lng": 128.693888871322,
   "geo_src": "esri"
@@ -25225,6 +25934,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.095160945829,
   "lng": 128.818755591669,
   "geo_src": "esri"
@@ -25256,6 +25966,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.155396403352,
   "lng": 128.69229186731,
   "geo_src": "esri"
@@ -25279,6 +25990,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.158991401623,
   "lng": 128.699440960167,
   "geo_src": "esri"
@@ -25302,6 +26014,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.153645717145,
   "lng": 128.656549671971,
   "geo_src": "esri"
@@ -25325,6 +26038,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.158102039787,
   "lng": 128.691826084951,
   "geo_src": "esri"
@@ -25356,6 +26070,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.153705773481,
   "lng": 128.687603198312,
   "geo_src": "esri"
@@ -25379,6 +26094,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.146959305344,
   "lng": 128.664137222182,
   "geo_src": "esri"
@@ -25402,6 +26118,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.157329312133,
   "lng": 128.691749390537,
   "geo_src": "esri"
@@ -25425,6 +26142,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.155640903467,
   "lng": 128.682006098648,
   "geo_src": "esri"
@@ -25448,6 +26166,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.149399612634,
   "lng": 128.710095784026,
   "geo_src": "esri"
@@ -25471,6 +26190,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.156926100681,
   "lng": 128.659414690295,
   "geo_src": "esri"
@@ -25494,6 +26214,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.151443875,
   "lng": 128.660366623039,
   "geo_src": "esri"
@@ -25517,6 +26238,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.150174226216,
   "lng": 128.710318491194,
   "geo_src": "esri"
@@ -25540,6 +26262,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.135446719423,
   "lng": 128.704161312759,
   "geo_src": "esri"
@@ -25563,6 +26286,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.145732697633,
   "lng": 128.702359371214,
   "geo_src": "esri"
@@ -25586,6 +26310,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.155878320875,
   "lng": 128.698120223683,
   "geo_src": "esri"
@@ -25609,6 +26334,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.155105928497,
   "lng": 128.661049748147,
   "geo_src": "esri"
@@ -25632,6 +26358,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 5,
+  "trend": -36.2,
   "lat": 35.208090914045,
   "lng": 128.584097674388,
   "geo_src": "esri"
@@ -25655,6 +26382,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 11,
+  "trend": null,
   "lat": 35.19951584991,
   "lng": 128.557675568647,
   "geo_src": "esri"
@@ -25694,6 +26422,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 18,
+  "trend": null,
   "lat": 35.201631190815,
   "lng": 128.576480871335,
   "geo_src": "esri"
@@ -25717,6 +26446,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 11,
+  "trend": null,
   "lat": 35.207287257168,
   "lng": 128.564387629071,
   "geo_src": "esri"
@@ -25740,6 +26470,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 11,
+  "trend": null,
   "lat": 35.197418404369,
   "lng": 128.562340181583,
   "geo_src": "esri"
@@ -25763,6 +26494,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.20647165608,
   "lng": 128.56430381004,
   "geo_src": "esri"
@@ -25794,6 +26526,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 19,
+  "trend": -8.1,
   "lat": 35.203022880109,
   "lng": 128.579827681454,
   "geo_src": "esri"
@@ -25817,6 +26550,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.210448911046,
   "lng": 128.564932033683,
   "geo_src": "esri"
@@ -25856,6 +26590,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 20,
+  "trend": 20.3,
   "lat": 35.184940600388,
   "lng": 128.5623732901,
   "geo_src": "esri"
@@ -25879,6 +26614,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.200601725467,
   "lng": 128.558317538611,
   "geo_src": "esri"
@@ -25910,6 +26646,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 15,
+  "trend": null,
   "lat": 35.19676474165,
   "lng": 128.562699765229,
   "geo_src": "esri"
@@ -25941,6 +26678,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 19,
+  "trend": null,
   "lat": 35.186192437627,
   "lng": 128.552479878325,
   "geo_src": "esri"
@@ -25980,6 +26718,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 16,
+  "trend": null,
   "lat": 35.19620470479,
   "lng": 128.566046240072,
   "geo_src": "esri"
@@ -26003,6 +26742,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.212839262193,
   "lng": 128.564169531951,
   "geo_src": "esri"
@@ -26034,6 +26774,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 11,
+  "trend": null,
   "lat": 35.169923331202,
   "lng": 128.563089356089,
   "geo_src": "esri"
@@ -26057,6 +26798,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.205619258436,
   "lng": 128.561259418987,
   "geo_src": "esri"
@@ -26080,6 +26822,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.200403074362,
   "lng": 128.567995451655,
   "geo_src": "esri"
@@ -26103,6 +26846,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.207839876044,
   "lng": 128.564497096727,
   "geo_src": "esri"
@@ -26126,6 +26870,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.20497049913,
   "lng": 128.561376262718,
   "geo_src": "esri"
@@ -26149,6 +26894,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.189357276628,
   "lng": 128.563401917258,
   "geo_src": "esri"
@@ -26172,6 +26918,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.198353489488,
   "lng": 128.556559602058,
   "geo_src": "esri"
@@ -26195,6 +26942,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.207741262954,
   "lng": 128.565180892388,
   "geo_src": "esri"
@@ -26218,6 +26966,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.204869120012,
   "lng": 128.56292305913,
   "geo_src": "esri"
@@ -26241,6 +26990,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.207906302627,
   "lng": 128.563988566661,
   "geo_src": "esri"
@@ -26264,6 +27014,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.200044328906,
   "lng": 128.566711763184,
   "geo_src": "esri"
@@ -26295,6 +27046,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.21406021212,
   "lng": 128.572926692931,
   "geo_src": "esri"
@@ -26318,6 +27070,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.18641040902,
   "lng": 128.560143200941,
   "geo_src": "esri"
@@ -26341,6 +27094,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.195035848392,
   "lng": 128.564032404015,
   "geo_src": "esri"
@@ -26364,6 +27118,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.208186132465,
   "lng": 128.564222170303,
   "geo_src": "esri"
@@ -26387,6 +27142,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.204108923303,
   "lng": 128.57328434874,
   "geo_src": "esri"
@@ -26410,6 +27166,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.205485064166,
   "lng": 128.564109182248,
   "geo_src": "esri"
@@ -26433,6 +27190,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.194639593919,
   "lng": 128.565553048889,
   "geo_src": "esri"
@@ -26456,6 +27214,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.187128235207,
   "lng": 128.559391511865,
   "geo_src": "esri"
@@ -26479,6 +27238,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 22,
+  "trend": null,
   "lat": 35.172033852512,
   "lng": 128.556919688618,
   "geo_src": "esri"
@@ -26502,6 +27262,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.20645778403,
   "lng": 128.565767206515,
   "geo_src": "esri"
@@ -26525,6 +27286,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.221087054918,
   "lng": 128.584334966067,
   "geo_src": "esri"
@@ -26548,6 +27310,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.209955803682,
   "lng": 128.584350640226,
   "geo_src": "esri"
@@ -26571,6 +27334,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.205291358384,
   "lng": 128.562652575114,
   "geo_src": "esri"
@@ -26594,6 +27358,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.199833649769,
   "lng": 128.55791503962,
   "geo_src": "esri"
@@ -26617,6 +27382,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 14,
+  "trend": null,
   "lat": 35.206114838461,
   "lng": 128.561846738943,
   "geo_src": "esri"
@@ -26640,6 +27406,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.11701407615,
   "lng": 128.488458734233,
   "geo_src": "esri"
@@ -26663,6 +27430,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.197971400431,
   "lng": 128.564116390685,
   "geo_src": "esri"
@@ -26686,6 +27454,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.193016606007,
   "lng": 128.564894398937,
   "geo_src": "esri"
@@ -26709,6 +27478,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.206938695725,
   "lng": 128.564315377066,
   "geo_src": "esri"
@@ -26740,6 +27510,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 18,
+  "trend": null,
   "lat": 35.184095327362,
   "lng": 128.563448101545,
   "geo_src": "esri"
@@ -26763,6 +27534,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.185287778818,
   "lng": 128.556316359228,
   "geo_src": "esri"
@@ -26786,6 +27558,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.206288679133,
   "lng": 128.565673664476,
   "geo_src": "esri"
@@ -26809,6 +27582,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.205501618425,
   "lng": 128.561065545567,
   "geo_src": "esri"
@@ -26832,6 +27606,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.194733974149,
   "lng": 128.559230495505,
   "geo_src": "esri"
@@ -26855,6 +27630,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.217342774951,
   "lng": 128.586678630014,
   "geo_src": "esri"
@@ -26878,6 +27654,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.205087217132,
   "lng": 128.563054906467,
   "geo_src": "esri"
@@ -26901,6 +27678,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.209843528089,
   "lng": 128.564473375941,
   "geo_src": "esri"
@@ -26924,6 +27702,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.224926385668,
   "lng": 128.569481898364,
   "geo_src": "esri"
@@ -26955,6 +27734,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.228765884055,
   "lng": 128.568533234563,
   "geo_src": "esri"
@@ -26986,6 +27766,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 4,
+  "trend": 4.6,
   "lat": 35.231050623223,
   "lng": 128.580096153813,
   "geo_src": "esri"
@@ -27009,6 +27790,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 13,
+  "trend": null,
   "lat": 35.226296365832,
   "lng": 128.504429864001,
   "geo_src": "esri"
@@ -27048,6 +27830,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 18,
+  "trend": -16.1,
   "lat": 35.267587506803,
   "lng": 128.523201555257,
   "geo_src": "esri"
@@ -27087,6 +27870,7 @@
   "deal_count": 11,
   "brand": false,
   "maxFloor": 17,
+  "trend": -1.3,
   "lat": 35.222058810863,
   "lng": 128.502722721781,
   "geo_src": "esri"
@@ -27118,6 +27902,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.253781967449,
   "lng": 128.519782157857,
   "geo_src": "esri"
@@ -27141,6 +27926,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.23234768083,
   "lng": 128.587970951846,
   "geo_src": "esri"
@@ -27164,6 +27950,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.232667492345,
   "lng": 128.585304919903,
   "geo_src": "esri"
@@ -27195,6 +27982,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 15,
+  "trend": null,
   "lat": 35.242557006535,
   "lng": 128.502751052614,
   "geo_src": "esri"
@@ -27218,6 +28006,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.243406302875,
   "lng": 128.503275508295,
   "geo_src": "esri"
@@ -27249,6 +28038,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.226903802355,
   "lng": 128.569150561732,
   "geo_src": "esri"
@@ -27280,6 +28070,7 @@
   "deal_count": 10,
   "brand": false,
   "maxFloor": 14,
+  "trend": -2.6,
   "lat": 35.247255901456,
   "lng": 128.595073860416,
   "geo_src": "esri"
@@ -27311,6 +28102,7 @@
   "deal_count": 8,
   "brand": false,
   "maxFloor": 20,
+  "trend": -3.6,
   "lat": 35.221649438712,
   "lng": 128.588929338655,
   "geo_src": "esri"
@@ -27334,6 +28126,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.233906505273,
   "lng": 128.562484182679,
   "geo_src": "esri"
@@ -27357,6 +28150,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.234737570973,
   "lng": 128.590599265225,
   "geo_src": "esri"
@@ -27380,6 +28174,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.241884945539,
   "lng": 128.588682575425,
   "geo_src": "esri"
@@ -27411,6 +28206,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 22,
+  "trend": null,
   "lat": 35.236615201103,
   "lng": 128.580264797704,
   "geo_src": "esri"
@@ -27434,6 +28230,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.234558156335,
   "lng": 128.577172629804,
   "geo_src": "esri"
@@ -27465,6 +28262,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 17,
+  "trend": null,
   "lat": 35.234236375072,
   "lng": 128.589138467139,
   "geo_src": "esri"
@@ -27488,6 +28286,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.225343720627,
   "lng": 128.571829920901,
   "geo_src": "esri"
@@ -27511,6 +28310,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.223099549871,
   "lng": 128.568558883187,
   "geo_src": "esri"
@@ -27542,6 +28342,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.244546032159,
   "lng": 128.589485813207,
   "geo_src": "esri"
@@ -27581,6 +28382,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.233638326281,
   "lng": 128.576895356447,
   "geo_src": "esri"
@@ -27604,6 +28406,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 17,
+  "trend": null,
   "lat": 35.233897662365,
   "lng": 128.575652404025,
   "geo_src": "esri"
@@ -27627,6 +28430,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 15,
+  "trend": null,
   "lat": 35.2343135724,
   "lng": 128.576068062603,
   "geo_src": "esri"
@@ -27650,6 +28454,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.247308455988,
   "lng": 128.589075099951,
   "geo_src": "esri"
@@ -27673,6 +28478,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.216171781167,
   "lng": 128.597649619262,
   "geo_src": "esri"
@@ -27696,6 +28502,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.235314245911,
   "lng": 128.587232925271,
   "geo_src": "esri"
@@ -27719,6 +28526,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.224657242757,
   "lng": 128.587715722894,
   "geo_src": "esri"
@@ -27742,6 +28550,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 11,
+  "trend": null,
   "lat": 35.235802449861,
   "lng": 128.589684967226,
   "geo_src": "esri"
@@ -27765,6 +28574,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.237458420562,
   "lng": 128.579863975095,
   "geo_src": "esri"
@@ -27788,6 +28598,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.224140372697,
   "lng": 128.569952206952,
   "geo_src": "esri"
@@ -27819,6 +28630,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.233624328502,
   "lng": 128.591004278786,
   "geo_src": "esri"
@@ -27842,6 +28654,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.232530573957,
   "lng": 128.579647721993,
   "geo_src": "esri"
@@ -27865,6 +28678,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.223585113521,
   "lng": 128.571772253407,
   "geo_src": "esri"
@@ -27896,6 +28710,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.233551741221,
   "lng": 128.582499832186,
   "geo_src": "esri"
@@ -27919,6 +28734,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.242720369828,
   "lng": 128.587411627447,
   "geo_src": "esri"
@@ -27942,6 +28758,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.220641221488,
   "lng": 128.599026598315,
   "geo_src": "esri"
@@ -27965,6 +28782,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.236954290996,
   "lng": 128.585573895176,
   "geo_src": "esri"
@@ -27988,6 +28806,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.267266689459,
   "lng": 128.51719089249,
   "geo_src": "esri"
@@ -28019,6 +28838,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.232766105436,
   "lng": 128.579994732784,
   "geo_src": "esri"
@@ -28050,6 +28870,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.234842219034,
   "lng": 128.586547285592,
   "geo_src": "esri"
@@ -28073,6 +28894,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 11,
+  "trend": null,
   "lat": 35.26628923382,
   "lng": 128.526379972941,
   "geo_src": "esri"
@@ -28096,6 +28918,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.234897581504,
   "lng": 128.576635182172,
   "geo_src": "esri"
@@ -28119,6 +28942,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.220558282556,
   "lng": 128.563410718256,
   "geo_src": "esri"
@@ -28150,6 +28974,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.231239677049,
   "lng": 128.586800251429,
   "geo_src": "esri"
@@ -28173,6 +28998,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.246699678361,
   "lng": 128.592612263091,
   "geo_src": "esri"
@@ -28196,6 +29022,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.249364620656,
   "lng": 128.592162406348,
   "geo_src": "esri"
@@ -28227,6 +29054,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.245762581586,
   "lng": 128.507081311432,
   "geo_src": "esri"
@@ -28250,6 +29078,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.22550268342,
   "lng": 128.569910297436,
   "geo_src": "esri"
@@ -28273,6 +29102,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.232402372748,
   "lng": 128.575060641661,
   "geo_src": "esri"
@@ -28304,6 +29134,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.219237629892,
   "lng": 128.561869370081,
   "geo_src": "esri"
@@ -28327,6 +29158,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.227108614159,
   "lng": 128.568196114417,
   "geo_src": "esri"
@@ -28350,6 +29182,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.217950001926,
   "lng": 128.563225813472,
   "geo_src": "esri"
@@ -28373,6 +29206,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.222005166682,
   "lng": 128.565457579012,
   "geo_src": "esri"
@@ -28428,6 +29262,7 @@
   "deal_count": 57,
   "brand": false,
   "maxFloor": 5,
+  "trend": 17.5,
   "lat": 35.217775364973,
   "lng": 128.680027382765,
   "geo_src": "esri"
@@ -28451,6 +29286,7 @@
   "deal_count": 10,
   "brand": false,
   "maxFloor": 15,
+  "trend": -2.4,
   "lat": 35.187953517394,
   "lng": 128.693983000095,
   "geo_src": "esri"
@@ -28474,6 +29310,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.1858338179,
   "lng": 128.689949795925,
   "geo_src": "esri"
@@ -28505,6 +29342,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.185418955602,
   "lng": 128.69033117252,
   "geo_src": "esri"
@@ -28528,6 +29366,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.197242761588,
   "lng": 128.626341544383,
   "geo_src": "esri"
@@ -28551,6 +29390,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.212186228117,
   "lng": 128.679142421428,
   "geo_src": "esri"
@@ -28582,6 +29422,7 @@
   "deal_count": 7,
   "brand": false,
   "maxFloor": 13,
+  "trend": -2.2,
   "lat": 35.210072773141,
   "lng": 128.682738928442,
   "geo_src": "esri"
@@ -28605,6 +29446,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.212557881704,
   "lng": 128.678309008795,
   "geo_src": "esri"
@@ -28628,6 +29470,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 12,
+  "trend": null,
   "lat": 35.2011796996,
   "lng": 128.627592543432,
   "geo_src": "esri"
@@ -28651,6 +29494,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.199371010624,
   "lng": 128.627947936127,
   "geo_src": "esri"
@@ -28682,6 +29526,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.276557316667,
   "lng": 128.705517085598,
   "geo_src": "esri"
@@ -28705,6 +29550,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.276897999121,
   "lng": 128.687006155349,
   "geo_src": "esri"
@@ -28728,6 +29574,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.267810339698,
   "lng": 128.62886441342,
   "geo_src": "esri"
@@ -28751,6 +29598,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.257428765882,
   "lng": 128.640502183065,
   "geo_src": "esri"
@@ -28782,6 +29630,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.262553587212,
   "lng": 128.624111958139,
   "geo_src": "esri"
@@ -28805,6 +29654,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.263355232432,
   "lng": 128.631035996895,
   "geo_src": "esri"
@@ -28828,6 +29678,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.262758399017,
   "lng": 128.624203823797,
   "geo_src": "esri"
@@ -28859,6 +29710,7 @@
   "deal_count": 6,
   "brand": false,
   "maxFloor": 10,
+  "trend": 19.4,
   "lat": 35.263277196914,
   "lng": 128.624173984222,
   "geo_src": "esri"
@@ -28882,6 +29734,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.260237583546,
   "lng": 128.614940731141,
   "geo_src": "esri"
@@ -28905,6 +29758,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.267097542652,
   "lng": 128.628950076471,
   "geo_src": "esri"
@@ -28928,6 +29782,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.260346987631,
   "lng": 128.63345229679,
   "geo_src": "esri"
@@ -28959,6 +29814,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 11,
+  "trend": null,
   "lat": 35.279285500422,
   "lng": 128.689593648859,
   "geo_src": "esri"
@@ -28990,6 +29846,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.26014379005,
   "lng": 128.632794687819,
   "geo_src": "esri"
@@ -29013,6 +29870,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.266657325098,
   "lng": 128.628275417084,
   "geo_src": "esri"
@@ -29036,6 +29894,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.336090538342,
   "lng": 128.598880082648,
   "geo_src": "esri"
@@ -29067,6 +29926,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.257832857435,
   "lng": 128.60092375828,
   "geo_src": "esri"
@@ -29098,6 +29958,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.262904034584,
   "lng": 128.623582473315,
   "geo_src": "esri"
@@ -29121,6 +29982,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.262909021817,
   "lng": 128.637744117825,
   "geo_src": "esri"
@@ -29144,6 +30006,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.347835428709,
   "lng": 128.606570730268,
   "geo_src": "esri"
@@ -29175,6 +30038,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.263531336218,
   "lng": 128.642443683298,
   "geo_src": "esri"
@@ -29214,6 +30078,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.255147547114,
   "lng": 128.639779579192,
   "geo_src": "esri"
@@ -29237,6 +30102,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.266643662595,
   "lng": 128.629368501077,
   "geo_src": "esri"
@@ -29260,6 +30126,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.254102784793,
   "lng": 128.637749398424,
   "geo_src": "esri"
@@ -29283,6 +30150,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.310655527427,
   "lng": 128.601732611936,
   "geo_src": "esri"
@@ -29306,6 +30174,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.259994592173,
   "lng": 128.639487302229,
   "geo_src": "esri"
@@ -29329,6 +30198,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.260388625441,
   "lng": 128.640417609662,
   "geo_src": "esri"
@@ -29352,6 +30222,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.265153485939,
   "lng": 128.624693662219,
   "geo_src": "esri"
@@ -29375,6 +30246,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.267643623644,
   "lng": 128.626972534054,
   "geo_src": "esri"
@@ -29414,6 +30286,7 @@
   "deal_count": 5,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.280261908323,
   "lng": 128.689900761791,
   "geo_src": "esri"
@@ -29437,6 +30310,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.2555495851,
   "lng": 128.638092385902,
   "geo_src": "esri"
@@ -29460,6 +30334,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 10,
+  "trend": null,
   "lat": 35.261800850398,
   "lng": 128.635294841898,
   "geo_src": "esri"
@@ -29483,6 +30358,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.260371568268,
   "lng": 128.638385752513,
   "geo_src": "esri"
@@ -29506,6 +30382,7 @@
   "deal_count": 4,
   "brand": false,
   "maxFloor": 9,
+  "trend": null,
   "lat": 35.275927416643,
   "lng": 128.704947619096,
   "geo_src": "esri"
@@ -29529,6 +30406,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.280884474181,
   "lng": 128.688985793241,
   "geo_src": "esri"
@@ -29552,6 +30430,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 8,
+  "trend": null,
   "lat": 35.25764975476,
   "lng": 128.64056060493,
   "geo_src": "esri"
@@ -29575,6 +30454,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.257768484418,
   "lng": 128.634728392882,
   "geo_src": "esri"
@@ -29598,6 +30478,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.26714972,
   "lng": 128.626835825214,
   "geo_src": "esri"
@@ -29621,6 +30502,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.259131884789,
   "lng": 128.610906688781,
   "geo_src": "esri"
@@ -29644,6 +30526,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.267360818231,
   "lng": 128.628826694856,
   "geo_src": "esri"
@@ -29667,6 +30550,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.264360264532,
   "lng": 128.630445575635,
   "geo_src": "esri"
@@ -29698,6 +30582,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.266287054525,
   "lng": 128.628564425105,
   "geo_src": "esri"
@@ -29721,6 +30606,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.262123805127,
   "lng": 128.61757859989,
   "geo_src": "esri"
@@ -29752,6 +30638,7 @@
   "deal_count": 3,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.263564319007,
   "lng": 128.641602475495,
   "geo_src": "esri"
@@ -29775,6 +30662,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.259823391801,
   "lng": 128.640135055706,
   "geo_src": "esri"
@@ -29798,6 +30686,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 7,
+  "trend": null,
   "lat": 35.260705712838,
   "lng": 128.637766162231,
   "geo_src": "esri"
@@ -29821,6 +30710,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.258170270947,
   "lng": 128.640762441159,
   "geo_src": "esri"
@@ -29844,6 +30734,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.2661662713,
   "lng": 128.629401441957,
   "geo_src": "esri"
@@ -29867,6 +30758,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 6,
+  "trend": null,
   "lat": 35.26796255506,
   "lng": 128.624567766033,
   "geo_src": "esri"
@@ -29890,6 +30782,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.256691954684,
   "lng": 128.636785311921,
   "geo_src": "esri"
@@ -29913,6 +30806,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.263258169993,
   "lng": 128.638700660616,
   "geo_src": "esri"
@@ -29936,6 +30830,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.266168450595,
   "lng": 128.628887128378,
   "geo_src": "esri"
@@ -29959,6 +30854,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.258497584266,
   "lng": 128.601536978316,
   "geo_src": "esri"
@@ -29982,6 +30878,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.259001001371,
   "lng": 128.640533699021,
   "geo_src": "esri"
@@ -30005,6 +30902,7 @@
   "deal_count": 2,
   "brand": false,
   "maxFloor": 1,
+  "trend": null,
   "lat": 35.259698333805,
   "lng": 128.637947881891,
   "geo_src": "esri"
@@ -30028,6 +30926,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 4,
+  "trend": null,
   "lat": 35.257783152749,
   "lng": 128.636194890661,
   "geo_src": "esri"
@@ -30051,6 +30950,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 5,
+  "trend": null,
   "lat": 35.263991209336,
   "lng": 128.626006352075,
   "geo_src": "esri"
@@ -30074,6 +30974,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 3,
+  "trend": null,
   "lat": 35.261496754951,
   "lng": 128.640000777617,
   "geo_src": "esri"
@@ -30097,6 +30998,7 @@
   "deal_count": 1,
   "brand": false,
   "maxFloor": 2,
+  "trend": null,
   "lat": 35.260032310737,
   "lng": 128.640078729317,
   "geo_src": "esri"

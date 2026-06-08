@@ -18,6 +18,7 @@
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
 
 <style>
   :root{
@@ -112,6 +113,10 @@
     font-size:11px;font-family:var(--mono);transition:transform .12s}
   .mk.rec{box-shadow:0 0 0 3px rgba(47,111,107,.45),0 1px 4px rgba(0,0,0,.35)}
   .mk.sel{transform:scale(1.18);box-shadow:0 0 0 4px rgba(47,111,107,.6),0 2px 6px rgba(0,0,0,.4)}
+  /* cluster bubble — tinted by mean value score of children */
+  .cl{border-radius:50%;border:2.5px solid #fff;box-shadow:0 2px 7px rgba(0,0,0,.3);
+    display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;
+    font-size:13px;font-family:var(--mono);text-shadow:0 1px 2px rgba(0,0,0,.35)}
 
   /* ---------- detail panel ---------- */
   .panel{
@@ -250,6 +255,11 @@
     box-shadow:var(--shadow);opacity:.92;pointer-events:none;transition:opacity .3s}
   .hint.gone{opacity:0}
 
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(10px);z-index:2000;
+    background:var(--ink);color:var(--paper);font-size:13px;padding:10px 18px;border-radius:999px;
+    box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+  .toast.show{opacity:.96;transform:translateX(-50%) translateY(0)}
+
   @media (max-width:720px){
     .brand .sub{display:none}
     .controls{width:100%;justify-content:flex-start}
@@ -303,6 +313,7 @@
       </label>
       <button class="iconbtn" id="prefBtn" title="내 우선순위">⚙ 우선순위</button>
       <button class="iconbtn" id="infoBtn" title="데이터·점수 설명">ℹ︎ 설명</button>
+      <button class="iconbtn" id="shareBtn" title="현재 화면 링크 복사">🔗 공유</button>
       <span class="demo-pill"><span class="dot"></span>데모 데이터</span>
     </div>
   </header>
@@ -349,6 +360,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 /* =====================================================================
    창원 아파트 파인더 — fully client-side, no backend, no API key.
@@ -400,6 +412,7 @@ function ingest(data){
     name:c.name, gu:c.gu, dong:c.dong, built:c.built,
     lat:c.lat, lng:c.lng, dealCount:c.dealCount||0,
     dcore:c.dcore!=null?c.dcore:null, brand:!!c.brand, maxFloor:c.maxFloor||null,
+    trend:c.trend!=null?c.trend:null,
     sizes:c.sizes||[],
   }));
 }
@@ -550,6 +563,27 @@ L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r
 let markers = new Map(); // id -> L.marker
 let selected = null;
 
+/* Cluster group: declutters ~780 pins at city zoom. Each cluster bubble is
+   tinted by the mean value-score of its children, so the map reads as a value
+   heat-map when zoomed out, and resolves to individual complexes as you zoom in. */
+const cluster = L.markerClusterGroup({
+  maxClusterRadius: 48,
+  spiderfyOnMaxZoom: true,
+  showCoverageOnHover: false,
+  disableClusteringAtZoom: 16,
+  iconCreateFunction: (cl)=>{
+    const ms = cl.getAllChildMarkers();
+    const avg = ms.reduce((s,m)=>s+(m.options._score ?? 5),0)/ms.length;
+    const n = cl.getChildCount();
+    const d = n<10?38:n<50?46:54;
+    return L.divIcon({
+      className:"", iconSize:[d,d], iconAnchor:[d/2,d/2],
+      html:`<div class="cl" style="width:${d}px;height:${d}px;background:${scoreColor(avg)}">${n}</div>`,
+    });
+  },
+}).on("clusterclick", ()=>{}); // default: zoom in
+map.addLayer(cluster);
+
 function markerIcon(h, sel){
   const pv = h._maxPyeong || 26;
   const r = 8 + (pv-20)/4;                  // largest size ↦ radius
@@ -578,18 +612,22 @@ function visibleHomes(){
 }
 
 function renderMarkers(){
-  for(const m of markers.values()) m.remove();
+  cluster.clearLayers();
   markers.clear();
   const vis = visibleHomes();
+  const batch = [];
   for(const h of vis){
-    const m = L.marker([h.lat,h.lng],{icon:markerIcon(h, h.id===selected)})
-      .addTo(map)
-      .on("click",()=>openPanel(h.id));
+    const m = L.marker([h.lat,h.lng],{
+      icon:markerIcon(h, h.id===selected),
+      _score: h._score,                      // read by the cluster tint fn
+    }).on("click",()=>openPanel(h.id));
     const bb = bestBand(h);
     const range = h._minPyeong===h._maxPyeong ? `${h._maxPyeong}평` : `${h._minPyeong}~${h._maxPyeong}평`;
     m.bindTooltip(`${h.name}<br>${range} · ${bb?priceLabel(bb.b):"-"}`,{direction:"top",offset:[0,-10],opacity:.95});
     markers.set(h.id, m);
+    batch.push(m);
   }
+  cluster.addLayers(batch);
   cnt.textContent = vis.length;
   if(selected && !vis.find(h=>h.id===selected)) closePanel();
 }
@@ -616,6 +654,13 @@ function fmtPPP(v){
 }
 function pct(n){ return (n>=0?"+":"")+Math.round(n)+"%"; }
 const modeLabel = ()=> mode==="sale" ? "매매가" : mode==="jeonse" ? "전세가" : "월세(환산)";
+/* price-trend chip: ▲ +x% (rust), ▼ −x% (teal), flat, or — when too few deals */
+function trendHTML(t){
+  if(t==null) return '<span style="color:var(--muted)">—<small> 데이터 부족</small></span>';
+  if(t>1.5)  return `<span style="color:var(--bad)">▲ +${t.toFixed(1)}%</span>`;
+  if(t<-1.5) return `<span style="color:var(--teal)">▼ ${t.toFixed(1)}%</span>`;
+  return `<span style="color:var(--muted)">→ 보합 ${t>0?'+':''}${t.toFixed(1)}%</span>`;
+}
 
 /* ---- detail panel ---- */
 const panel = document.getElementById("panel");
@@ -720,7 +765,7 @@ function openPanel(id){
         <div class="metric"><div class="k">연식</div><div class="v">${age}</div></div>
         <div class="metric"><div class="k">거래량 <small>(1년)</small></div><div class="v">${h.dealCount}<small> 건</small></div></div>
         <div class="metric"><div class="k">신도시 거리</div><div class="v">${h.dcore!=null?h.dcore+'<small> km</small>':'—'}</div></div>
-        <div class="metric"><div class="k">브랜드</div><div class="v">${h.brand?'1군 ✓':'—'}</div></div>
+        <div class="metric"><div class="k">1년 시세 <small>(매매)</small></div><div class="v">${trendHTML(h.trend)}</div></div>
       </div>
 
       <h3 class="bandtitle">평형별 ${modeLabel()} · 동일조건 비교</h3>
@@ -736,6 +781,7 @@ function openPanel(id){
   });
   attachGrab();
   if(window.innerWidth>720) map.panTo([h.lat,h.lng]);
+  writeURL();
 }
 
 /* ---- mobile bottom-sheet drag-to-dismiss ----
@@ -774,6 +820,7 @@ function closePanel(){
   panel.setAttribute("aria-hidden","true");
   const prev = selected; selected=null;
   if(prev && markers.has(prev)) markers.get(prev).setIcon(markerIcon(HOMES.find(x=>x.id===prev),false));
+  writeURL();
 }
 function esc(s){ const d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
 
@@ -791,10 +838,11 @@ document.getElementById("modeSeg").addEventListener("click",e=>{
   document.querySelectorAll("#modeSeg button").forEach(x=>x.classList.toggle("on",x===b));
   mode=b.dataset.mode; recompute(); renderMarkers();
   if(selected) openPanel(selected);
+  writeURL();
 });
-sizeSel.onchange=renderMarkers;
-guSel.onchange=()=>{ renderMarkers(); if(guSel.value!=="all") map.flyTo(GU[guSel.value].c,12.6,{duration:.6}); };
-let qt; qInput.oninput=()=>{ clearTimeout(qt); qt=setTimeout(renderMarkers,120); };
+sizeSel.onchange=()=>{ renderMarkers(); writeURL(); };
+guSel.onchange=()=>{ renderMarkers(); if(guSel.value!=="all") map.flyTo(GU[guSel.value].c,12.6,{duration:.6}); writeURL(); };
+let qt; qInput.oninput=()=>{ clearTimeout(qt); qt=setTimeout(()=>{renderMarkers();writeURL();},120); };
 
 map.on("click",()=>{ /* clicking empty map keeps selection; tap close to dismiss */ });
 
@@ -827,7 +875,7 @@ function buildSliders(){
 function setWeights(w){ WEIGHTS={...w}; buildSliders(); applyWeights(); }
 let reWt;
 function applyWeights(){ clearTimeout(reWt); reWt=setTimeout(()=>{
-  recompute(); renderMarkers(); if(selected) openPanel(selected);
+  recompute(); renderMarkers(); if(selected) openPanel(selected); writeURL();
 },90); }
 
 document.getElementById("presets").addEventListener("click",e=>{
@@ -846,6 +894,21 @@ function openPop(id){ closePops(); document.getElementById(id).hidden=false; scr
 function closePops(){ document.querySelectorAll(".pop").forEach(p=>p.hidden=true); scrim.hidden=true; }
 document.getElementById("prefBtn").onclick=()=>openPop("prefPop");
 document.getElementById("infoBtn").onclick=()=>{ fillInfo(); openPop("infoPop"); };
+document.getElementById("shareBtn").onclick=async()=>{
+  writeURL();
+  const url=location.href;
+  try{
+    if(navigator.share && window.innerWidth<=720){ await navigator.share({title:"창원 아파트 파인더",url}); return; }
+    await navigator.clipboard.writeText(url); toast("링크가 복사되었습니다");
+  }catch(e){ toast("복사 실패 — 주소창을 직접 복사하세요"); }
+};
+let toastT;
+function toast(msg){
+  let el=document.getElementById("toast");
+  if(!el){ el=document.createElement("div"); el.id="toast"; el.className="toast"; document.body.appendChild(el); }
+  el.textContent=msg; el.classList.add("show");
+  clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove("show"),2200);
+}
 document.addEventListener("click",e=>{ if(e.target.id==="legendInfo"){ e.preventDefault(); fillInfo(); openPop("infoPop"); }});
 scrim.onclick=closePops;
 document.querySelectorAll(".pop-x").forEach(x=>x.onclick=()=>closePops());
@@ -880,12 +943,58 @@ function fillInfo(){
     없어 반영하지 못했습니다. 월세는 전월세전환율 ${(m.wolseConvRate*100||5.2).toFixed(1)}%로 환산월세를 비교합니다.</p>`;
 }
 
+/* ---- shareable URL state ----
+   Encodes mode + filters + slider weights + selected complex into the hash, so
+   a link reproduces exactly what someone is looking at, with their priorities.
+   Compact form: #m=sale&gu=성산구&sz=24-33&q=트리&w=55,15,20,5,5&c=트리비앙|반림동 */
+let _restoring = false;
+function writeURL(){
+  if(_restoring) return;
+  const p = new URLSearchParams();
+  if(mode!=="sale") p.set("m", mode);
+  if(guSel.value!=="all") p.set("gu", guSel.value);
+  if(sizeSel.value!=="all") p.set("sz", sizeSel.value);
+  if(qInput.value.trim()) p.set("q", qInput.value.trim());
+  const w = AXES.map(([k])=>Math.round(WEIGHTS[k]*100)).join(",");
+  if(w!=="55,15,20,5,5") p.set("w", w);
+  if(selected){ const h=HOMES.find(x=>x.id===selected); if(h) p.set("c", h.name+"|"+h.dong); }
+  const s = p.toString();
+  history.replaceState(null,"", s ? "#"+s : location.pathname+location.search);
+}
+function readURL(){
+  const raw = location.hash.replace(/^#/,"");
+  if(!raw) return;
+  const p = new URLSearchParams(raw);
+  _restoring = true;
+  if(p.get("m")){ mode=p.get("m");
+    document.querySelectorAll("#modeSeg button").forEach(b=>b.classList.toggle("on",b.dataset.mode===mode)); }
+  if(p.get("gu")) guSel.value=p.get("gu");
+  if(p.get("sz")) sizeSel.value=p.get("sz");
+  if(p.get("q")) qInput.value=p.get("q");
+  if(p.get("w")){
+    const v=p.get("w").split(",").map(Number);
+    if(v.length===AXES.length && v.every(n=>!isNaN(n))){
+      AXES.forEach(([k],i)=>WEIGHTS[k]=v[i]/100); buildSliders();
+      document.querySelectorAll("#presets button").forEach(b=>b.classList.remove("on"));
+    }
+  }
+  _restoring = false;
+  return p.get("c");   // "name|dong" to select after render
+}
+
 /* ---- boot: fetch real data.json, fall back to tiny synthetic sample ---- */
 function boot(data){
   ingest(data);
+  const wantSel = readURL();      // restore filters/weights BEFORE first compute
   buildSliders();
   recompute();
+  if(guSel.value!=="all" && GU[guSel.value]) map.setView(GU[guSel.value].c,12.6);
   renderMarkers();
+  if(wantSel){
+    const [nm,dong]=wantSel.split("|");
+    const h=HOMES.find(x=>x.name===nm && (!dong||x.dong===dong));
+    if(h){ map.setView([h.lat,h.lng],15); openPanel(h.id); }
+  }
   // demo pill text reflects real vs fallback
   const pill = document.querySelector(".demo-pill");
   if(pill){

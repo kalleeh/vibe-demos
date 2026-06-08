@@ -104,6 +104,25 @@ def finalize(complexes):
         c.pop("_maxfloor", None)
         c["brand"] = is_brand(c["name"])
         c["maxFloor"] = mf or None
+        # ---- complex-level price trend (sale only) ----
+        # Collect dated, size-normalized 평단가 across all bands, split the year
+        # into earlier/recent halves, compare medians. More robust than any
+        # single band; only reported when both halves have enough deals.
+        trend_pts = []  # (yyyymm, 평단가 만원)
+        for s in c["sizes"].values():
+            for (ym, price, fl) in s.get("_sale", []):
+                ppp = price * 10000 / s["pyeong"]      # 만원/평
+                trend_pts.append((ym[:6], ppp))
+        c["trend"] = None
+        if len(trend_pts) >= 6:
+            yms = sorted(set(p[0] for p in trend_pts))
+            mid = yms[len(yms)//2]
+            earlier = [p[1] for p in trend_pts if p[0] < mid]
+            recent  = [p[1] for p in trend_pts if p[0] >= mid]
+            if len(earlier) >= 2 and len(recent) >= 2:
+                e, r = statistics.median(earlier), statistics.median(recent)
+                if e > 0:
+                    c["trend"] = round((r - e) / e * 100, 1)   # % change
         for s in c["sizes"].values():
             floors = s.pop("_floors", [])
             s["medFloor"] = int(statistics.median(floors)) if floors else None
