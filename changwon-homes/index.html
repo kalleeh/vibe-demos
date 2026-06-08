@@ -41,7 +41,11 @@
   .app{display:grid;grid-template-rows:auto 1fr;height:100%}
   header.bar{
     display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-    padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);
+    padding:10px 16px;
+    padding-top:max(10px, env(safe-area-inset-top));
+    padding-left:max(16px, env(safe-area-inset-left));
+    padding-right:max(16px, env(safe-area-inset-right));
+    background:var(--panel);border-bottom:1px solid var(--line);
     z-index:1200;position:relative;
   }
   .brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
@@ -117,6 +121,7 @@
     display:flex;flex-direction:column;
   }
   .panel.open{transform:translateX(0)}
+  .panel .grab{display:none}   /* mobile-only drag handle (shown in @media below) */
   .panel .ph{padding:16px 18px 12px;border-bottom:1px solid var(--line);position:relative}
   .panel .close{position:absolute;top:12px;right:12px;border:0;background:#fff;border:1px solid var(--line);
     width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;color:var(--muted);line-height:1}
@@ -249,11 +254,19 @@
     .brand .sub{display:none}
     .controls{width:100%;justify-content:flex-start}
     .search input{flex:1;width:auto}
-    .panel{width:100%;max-width:100%;height:64%;top:auto;bottom:0;border-left:0;border-top:1px solid var(--line);
-      border-radius:18px 18px 0 0;transform:translateY(100%)}
+    .panel{width:100%;max-width:100%;height:72%;top:auto;bottom:0;border-left:0;border-top:1px solid var(--line);
+      border-radius:18px 18px 0 0;transform:translateY(100%);
+      touch-action:pan-y;}
     .panel.open{transform:translateY(0)}
-    .panel::before{content:"";position:absolute;top:7px;left:50%;transform:translateX(-50%);
-      width:38px;height:4px;border-radius:2px;background:var(--line-strong)}
+    .panel.dragging{transition:none}
+    /* real, grabbable handle zone at the top of the sheet */
+    .panel .grab{display:block;position:absolute;top:0;left:0;right:0;height:26px;
+      cursor:grab;touch-action:none;z-index:5}
+    .panel .grab::before{content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);
+      width:40px;height:5px;border-radius:3px;background:var(--line-strong)}
+    .panel .ph{padding-top:22px}
+    .panel .close{top:18px}
+    .pbody{padding-bottom:calc(20px + env(safe-area-inset-bottom))}
     .legend{max-width:160px;font-size:11px}
   }
   @media (prefers-reduced-motion:reduce){
@@ -663,10 +676,10 @@ function openPanel(id){
   if(markers.has(id)) markers.get(id).setIcon(markerIcon(h,true));
 
   if(!h._bands.length){
-    panel.innerHTML = `<div class="ph"><button class="close">×</button><h2>${esc(h.name)}</h2>
+    panel.innerHTML = `<div class="grab"></div><div class="ph"><button class="close">×</button><h2>${esc(h.name)}</h2>
       <div class="loc">${h.gu} ${h.dong}</div></div>
       <div class="pbody"><div class="empty">이 단지는 현재 모드(${modeLabel()})의 실거래 데이터가 없습니다.<br>매매/전세 토글을 바꿔보세요.</div></div>`;
-    panel.classList.add("open"); panel.querySelector(".close").onclick=closePanel; return;
+    panel.classList.add("open"); panel.querySelector(".close").onclick=closePanel; attachGrab(); return;
   }
 
   const best = h._bands.reduce((a,x)=>x.score>a.score?x:a);
@@ -681,6 +694,7 @@ function openPanel(id){
   const bands = [...h._bands].sort((a,b)=>a.b.pyeong-b.b.pyeong);
 
   panel.innerHTML = `
+    <div class="grab"></div>
     <div class="ph">
       <button class="close" aria-label="닫기">×</button>
       <h2>${esc(h.name)}</h2>
@@ -720,11 +734,44 @@ function openPanel(id){
     const p = HOMES.find(x=>x.id===el.dataset.id);
     if(p){ map.panTo([p.lat,p.lng]); openPanel(p.id); }
   });
+  attachGrab();
   if(window.innerWidth>720) map.panTo([h.lat,h.lng]);
 }
 
+/* ---- mobile bottom-sheet drag-to-dismiss ----
+   The grab handle is real: drag the sheet down past ~⅓ its height (or flick)
+   to close; otherwise it springs back. Pointer Events cover touch + mouse. */
+function attachGrab(){
+  const grab = panel.querySelector(".grab");
+  if(!grab) return;
+  let startY=0, dy=0, h=0, t0=0, dragging=false;
+  grab.onpointerdown = (e)=>{
+    if(window.innerWidth>720) return;     // sheet drag is a mobile affordance
+    dragging=true; startY=e.clientY; dy=0; t0=Date.now();
+    h=panel.getBoundingClientRect().height;
+    panel.classList.add("dragging");
+    grab.setPointerCapture(e.pointerId);
+  };
+  grab.onpointermove = (e)=>{
+    if(!dragging) return;
+    dy=Math.max(0, e.clientY-startY);     // only downward
+    panel.style.transform=`translateY(${dy}px)`;
+  };
+  const end = ()=>{
+    if(!dragging) return;
+    dragging=false; panel.classList.remove("dragging");
+    panel.style.transform="";
+    const vy = dy/Math.max(1, Date.now()-t0);   // px/ms (flick velocity)
+    if(dy > h*0.33 || vy > 0.6) closePanel();    // dismiss
+    // else: class transition springs it back to translateY(0)
+  };
+  grab.onpointerup = end;
+  grab.onpointercancel = end;
+}
+
 function closePanel(){
-  panel.classList.remove("open"); panel.setAttribute("aria-hidden","true");
+  panel.classList.remove("open","dragging"); panel.style.transform="";
+  panel.setAttribute("aria-hidden","true");
   const prev = selected; selected=null;
   if(prev && markers.has(prev)) markers.get(prev).setIcon(markerIcon(HOMES.find(x=>x.id===prev),false));
 }
