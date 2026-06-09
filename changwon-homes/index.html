@@ -214,6 +214,13 @@
   .fair .lrow{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0ebdf}
   .fair .lrow.tot{font-weight:700;border-bottom:0;border-top:1px solid var(--line);padding-top:6px;font-family:inherit}
   .fair .lrow .up{color:var(--good)} .fair .lrow .dn{color:var(--bad)}
+  .fair .aibtn{margin-top:9px;border:1px solid var(--line);background:#fdf6f0;color:var(--teal-deep);
+    border-radius:8px;padding:7px 11px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;width:100%}
+  .fair .aibtn:disabled{opacity:.6;cursor:default}
+  .fair .aitext{margin-top:9px;font-size:12.5px;line-height:1.6;color:#5a4536;background:#fdf6f0;
+    border:1px dashed #cfae9a;border-radius:9px;padding:11px;display:none}
+  .fair .aitext.on{display:block}
+  .fair .aitext .tag{font-size:10px;color:var(--accent,#b04a2f);font-weight:600;display:block;margin-bottom:4px}
   .bandhead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px}
   .bandhead .bp{font-size:15px;font-weight:600}
   .bandhead .bp small{font-size:11px;color:var(--muted);font-weight:400;font-family:var(--mono)}
@@ -500,6 +507,22 @@ let DATA_META = {};
 let mode = "sale"; // 'sale' | 'jeonse' | 'wolse'
 /* 전월세전환율 (deposit→monthly); overwritten from data.json meta on load. */
 let WOLSE_RATE = 0.052;
+
+/* ── shared Bedrock proxy (PoW-gated) — identical pattern to the 4 AI demos ── */
+const CLAUDE_PROXY = "https://ai.pb.gurum.se";
+async function solveProxyPoW() {
+  const r = await fetch(CLAUDE_PROXY + "/api/claude-challenge");
+  if (!r.ok) { const e = new Error("challenge " + r.status); e.status = r.status; throw e; }
+  const { nonce, exp, sig, difficulty } = await r.json();
+  const enc = new TextEncoder();
+  const leadBits = (buf) => { const b = new Uint8Array(buf); let bits = 0;
+    for (const x of b) { if (x === 0) { bits += 8; continue; } let v = x, c = 0; while ((v & 0x80) === 0) { c++; v <<= 1; } bits += c; break; } return bits; };
+  for (let counter = 0; ; counter++) {
+    const d = await crypto.subtle.digest("SHA-256", enc.encode(nonce + ":" + counter));
+    if (leadBits(d) >= difficulty) return { "X-PoW-Nonce": nonce, "X-PoW-Exp": exp, "X-PoW-Sig": sig, "X-PoW-Counter": String(counter) };
+    if (counter > 5000000) throw new Error("pow-timeout");
+  }
+}
 
 let SEQ = 0;
 function ingest(data){
@@ -847,6 +870,36 @@ function trendHTML(t){
 /* ---- detail panel ---- */
 const panel = document.getElementById("panel");
 
+/* Layer 3: on-demand AI explanation of a fair-price card. Delegated ONCE here
+   (the panel re-renders per openPanel, so per-render binding would stack). The
+   button carries its own numbers in data-ctx — fed to Sonnet via the proxy. */
+panel.addEventListener("click", async (e) => {
+  const btn = e.target.closest(".fair .aibtn");
+  if (!btn) return;
+  const card = btn.closest(".fair");
+  const out = card.querySelector(".aitext"), body = card.querySelector(".aibody");
+  btn.disabled = true; btn.textContent = "AI 평가 생성 중…";
+  try {
+    const sys = "당신은 한국 부동산 평가를 쉽게 설명하는 도우미입니다. 주어진 수치(실거래가, 모델 예상 적정가 범위, 산출 요인별 가감, 비교 단지 수)를 근거로, 이 매물이 비슷한 인근 단지 대비 싼지/비싼지와 그 이유를 2~3문장의 자연스러운 한국어로 설명하세요. 수치를 지어내지 말고 주어진 값만 사용하세요. 감정평가가 아닌 참고용 추정임을 한 번 가볍게 언급하세요.";
+    const pow = await solveProxyPoW();
+    const res = await fetch(CLAUDE_PROXY + "/api/claude", {
+      method: "POST", headers: { "Content-Type": "application/json", ...pow },
+      body: JSON.stringify({ model: "sonnet", max_tokens: 400, system: sys,
+        messages: [{ role: "user", content: btn.dataset.ctx || "수치 정보 없음" }] }),
+    });
+    if (!res.ok) { const er = new Error("proxy " + res.status); er.status = res.status; throw er; }
+    const j = await res.json();
+    const txt = (j.content && j.content[0] && j.content[0].text) || "";
+    body.textContent = txt;
+    out.classList.add("on");
+    btn.style.display = "none";
+  } catch (err) {
+    body.textContent = "AI 평가를 지금 불러올 수 없어요 — 위 수치로 판단해 주세요.";
+    out.classList.add("on");
+    btn.disabled = false; btn.textContent = "🤖 AI 평가 보기";
+  }
+});
+
 /* Layer 1: fair-price headline. Returns "" for wolse or when no estimate. */
 function fairCard(h, x){
   if(mode==="wolse" || !x.fair) return "";
@@ -865,6 +918,15 @@ function fairCard(h, x){
   const obsW = Math.max(4, Math.min(98, obs/scale*100));
   const expW = Math.max(4, Math.min(98, expMid/scale*100));
   const obsColor = scoreColor(d < -2.5 ? 8 : d > 2.5 ? 2.5 : 5);
+  // compact Korean summary of the computed numbers — travels with the DOM (no global state)
+  const ctxStr = [
+    `실거래 ${fmtEok(obs)}`,
+    `모델 예상 적정가 ${fmtEok(lo)}~${fmtEok(hi)} (중앙값 ${fmtEok(expMid)})`,
+    `평가: ${vword.replace(/[↓↑]/g,'').trim()}`,
+    `산출요인: ${f.ledger.filter(l=>l.pct!=null).map(l=>`${l.label} ${l.pct>=0?'+':''}${l.pct.toFixed(1)}%`).join(', ')}`,
+    `비교 단지 ${x.peers.length}곳`,
+    `단지: ${h.name} ${x.b.pyeong}평 ${h.built||''}년식`,
+  ].join(' · ');
   return `
     <div class="fair">
       <div class="lbl">적정가 평가</div>
@@ -878,7 +940,10 @@ function fairCard(h, x){
         <div class="fexp" style="left:${expW}%"></div>
       </div>
       <div class="caveat">공개 실거래가 기반 모델 추정치 · 감정평가 아님</div>
-      <div class="fair-explain"></div>
+      <div class="fair-explain">
+        <button class="aibtn" type="button" data-ctx="${esc(ctxStr)}">🤖 AI 평가 보기</button>
+        <div class="aitext"><span class="tag">🤖 AI · Sonnet via Bedrock</span><span class="aibody"></span></div>
+      </div>
       <details class="ledger">
         <summary><span class="chev">›</span> 적정가 산출 근거</summary>
         <div class="ltable">
