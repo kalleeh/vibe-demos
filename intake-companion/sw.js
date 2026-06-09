@@ -1,5 +1,5 @@
 /* intake-companion — minimal offline shell SW */
-const CACHE = "vibe-intake-companion-v7";
+const CACHE = "vibe-intake-companion-v8";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
   // Watercolor herb vignettes (small WebP) that float in the page margins.

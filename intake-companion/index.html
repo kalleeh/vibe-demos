@@ -866,83 +866,6 @@
       color: var(--paper);
     }
 
-    /* Model toggle */
-    .model-seg {
-      display: inline-flex;
-      background: rgba(255,255,255,0.4);
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 3px;
-    }
-    .model-seg button {
-      padding: 5px 11px;
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-family: "JetBrains Mono", monospace;
-      font-size: 10px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      cursor: pointer;
-      border-radius: 999px;
-    }
-    .model-seg button.active {
-      background: var(--celadon);
-      color: var(--paper);
-    }
-
-    /* Key panel */
-    .key-panel {
-      display: none;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 14px;
-      padding: 16px 18px;
-      background: rgba(107,148,130,0.08);
-      border: 1px solid rgba(107,148,130,0.30);
-      border-radius: 3px;
-    }
-    .key-panel.open { display: flex; }
-    .key-panel .panel-title {
-      font-family: "JetBrains Mono", monospace;
-      font-size: 10px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--celadon-d);
-      font-weight: 600;
-      margin-bottom: 2px;
-    }
-    .key-panel .help {
-      font-family: "JetBrains Mono", monospace;
-      font-size: 10px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-    .key-panel .help a { color: var(--celadon-d); }
-    .key-panel .row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .key-panel input {
-      flex: 1;
-      min-width: 200px;
-      background: rgba(255,255,255,0.7);
-      border: 1px solid var(--line);
-      color: var(--ink);
-      padding: 9px 12px;
-      border-radius: 3px;
-      font-family: "JetBrains Mono", monospace;
-      font-size: 12px;
-      outline: none;
-    }
-    .key-panel input:focus { border-color: var(--celadon); }
-    .key-panel .err {
-      color: var(--rust);
-      font-family: "JetBrains Mono", monospace;
-      font-size: 10px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      display: none;
-    }
-    .key-panel.error .err { display: block; }
 
     .footer-note {
       padding: 24px 0 60px;
@@ -1520,7 +1443,7 @@
   <header class="topbar" id="topbar">
     <div class="frame" style="display:flex;justify-content:space-between;align-items:center;padding:0;border:none;width:100%;">
       <a href="../" class="mark">Vibe Studio</a>
-      <button class="mode-toggle" id="modeToggle" title="Toggle between canned demo output and live Claude API calls">Use my Claude key →</button>
+      <button class="mode-toggle" id="modeToggle" title="Toggle between canned demo output and live Claude Opus calls">Try live mode →</button>
     </div>
   </header>
 
@@ -1569,21 +1492,6 @@
           </div>
         </div>
 
-        <div class="key-panel" id="keyPanel">
-          <div class="panel-title">Live mode · Anthropic API key</div>
-          <div class="help">
-            Pasted key stays only on this device (localStorage). Direct call to api.anthropic.com — no server. <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Get a key →</a>
-          </div>
-          <div class="row">
-            <input type="password" id="keyInput" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
-            <button class="btn" id="keyPaste" type="button">Paste</button>
-            <button class="btn primary" id="keySave" type="button">Save key</button>
-          </div>
-          <div class="row" style="align-items:center;justify-content:space-between;">
-            <button class="btn" id="keyForget" type="button">Forget my key</button>
-            <span class="err" id="keyErr">Key was rejected — try another</span>
-          </div>
-        </div>
       </div>
 
       <!-- Output panel -->
@@ -1598,11 +1506,6 @@
             <div class="lang-seg" id="langSeg">
               <button data-lang="ko" class="active">한국어</button>
               <button data-lang="en">English</button>
-            </div>
-            <div class="model-seg" id="modelSeg">
-              <button data-model="claude-opus-4-7" class="active">Opus 4.7</button>
-              <button data-model="claude-sonnet-4-6">Sonnet 4.6</button>
-              <button data-model="claude-haiku-4-5">Haiku 4.5</button>
             </div>
           </div>
         </header>
@@ -1938,10 +1841,24 @@
   /* ───────────────────────────────────────────────
      State
      ─────────────────────────────────────────────── */
-  const KEY_STORAGE = "vibe.intake-companion.key";
+  const CLAUDE_PROXY = "https://ai.pb.gurum.se";
+  // Solve the server's proof-of-work challenge (plain SHA-256 over "nonce:counter").
+  // ~750ms one-time; the existing loading state covers it.
+  async function solveProxyPoW() {
+    const r = await fetch(CLAUDE_PROXY + "/api/claude-challenge");
+    if (!r.ok) { const e = new Error("challenge " + r.status); e.status = r.status; throw e; }
+    const { nonce, exp, sig, difficulty } = await r.json();
+    const enc = new TextEncoder();
+    const leadBits = (buf) => { const b = new Uint8Array(buf); let bits = 0;
+      for (const x of b) { if (x === 0) { bits += 8; continue; } let v = x, c = 0; while ((v & 0x80) === 0) { c++; v <<= 1; } bits += c; break; } return bits; };
+    for (let counter = 0; ; counter++) {
+      const d = await crypto.subtle.digest("SHA-256", enc.encode(nonce + ":" + counter));
+      if (leadBits(d) >= difficulty) return { "X-PoW-Nonce": nonce, "X-PoW-Exp": exp, "X-PoW-Sig": sig, "X-PoW-Counter": String(counter) };
+      if (counter > 5000000) throw new Error("pow-timeout");
+    }
+  }
   const state = {
     liveMode: false,
-    model: "claude-opus-4-7",
     lang: "ko",
     currentBrief: null
   };
@@ -1950,20 +1867,10 @@
   /* ── Top bar mode toggle ── */
   const topbar = $("#topbar");
   const modeToggle = $("#modeToggle");
-  const keyPanel = $("#keyPanel");
   modeToggle.addEventListener("click", () => {
     state.liveMode = !state.liveMode;
     topbar.classList.toggle("live", state.liveMode);
-    keyPanel.classList.toggle("open", state.liveMode);
-    modeToggle.textContent = state.liveMode ? "Live · canned mode ←" : "Use my Claude key →";
-    if (state.liveMode) {
-      // Scroll the key panel into view so the user can find it on mobile
-      requestAnimationFrame(() => {
-        keyPanel.scrollIntoView({ behavior: "smooth", block: "center" });
-        const input = document.getElementById("keyInput");
-        if (!getKey()) input.focus();
-      });
-    }
+    modeToggle.textContent = state.liveMode ? "Live (Opus) · canned mode ←" : "Try live mode →";
     if (state.currentBrief) renderBrief(state.currentBrief);
   });
 
@@ -2054,39 +1961,7 @@
     if (state.currentBrief) renderBrief(state.currentBrief);
   });
 
-  /* ── Model toggle ── */
-  $("#modelSeg").addEventListener("click", e => {
-    if (e.target.tagName !== "BUTTON") return;
-    document.querySelectorAll("#modelSeg button").forEach(b => b.classList.remove("active"));
-    e.target.classList.add("active");
-    state.model = e.target.dataset.model;
-    /* Don't auto-rerun — user can click Analyze again */
-  });
-
-  /* ── Key handling ── */
-  function getKey()   { return localStorage.getItem(KEY_STORAGE) || ""; }
-  function setKey(v)  { localStorage.setItem(KEY_STORAGE, v); }
-  function clearKey() { localStorage.removeItem(KEY_STORAGE); }
-
-  $("#keyInput").value = getKey() ? "•".repeat(20) : "";
-  $("#keySave").addEventListener("click", () => {
-    const v = $("#keyInput").value.trim();
-    if (!v || v.startsWith("•")) return;
-    setKey(v);
-    $("#keyInput").value = "•".repeat(20);
-    keyPanel.classList.remove("error");
-  });
-  $("#keyPaste").addEventListener("click", async () => {
-    try {
-      const t = await navigator.clipboard.readText();
-      $("#keyInput").value = t.trim();
-    } catch { $("#keyInput").focus(); }
-  });
-  $("#keyForget").addEventListener("click", () => {
-    clearKey();
-    $("#keyInput").value = "";
-    keyPanel.classList.remove("error");
-  });
+  /* Model toggle removed — proxy model is fixed to opus */
 
   /* ── Analyze button ── */
   $("#analyzeBtn").addEventListener("click", analyze);
@@ -2102,8 +1977,8 @@
 
     try {
       let brief;
-      if (state.liveMode && getKey()) {
-        brief = await callClaude(text, getKey(), state.model);
+      if (state.liveMode) {
+        brief = await callClaude(text);
       } else {
         // Canned: pick the closest example, or default to case 0 if free-form
         const idx = matchExample(text);
@@ -2114,12 +1989,18 @@
       renderBrief(brief);
       // Additive: save an anonymized snapshot to the shared corpus + local store.
       // Purely fire-and-forget — never blocks or breaks brief rendering.
-      try { if (window.__caseOnBrief) window.__caseOnBrief(brief, { live: !!(state.liveMode && getKey()) }); } catch (e) {}
+      try { if (window.__caseOnBrief) window.__caseOnBrief(brief, { live: state.liveMode }); } catch (e) {}
     } catch (err) {
       $("#outputProgress").classList.remove("on");
-      if (err.status === 401) {
-        clearKey();
-        keyPanel.classList.add("error");
+      if (err.status === 403 || err.status === 429 || err.status === 503) {
+        // Proxy busy — fall back to canned
+        $("#emptyState p").textContent = "라이브 데모가 잠시 바쁩니다 — 예시 결과를 보여드릴게요";
+        const idx = matchExample(text);
+        await new Promise(r => setTimeout(r, 300));
+        state.currentBrief = CANNED_BRIEFS[idx];
+        renderBrief(CANNED_BRIEFS[idx]);
+        try { if (window.__caseOnBrief) window.__caseOnBrief(CANNED_BRIEFS[idx], { live: false }); } catch (e) {}
+        return;
       }
       $("#emptyState").style.display = "flex";
       $("#emptyState p").textContent = err.message || "요청 실패";
@@ -2926,8 +2807,8 @@
   initAtlas();
   initWuxing();
 
-  /* ── Browser-direct Claude call ── */
-  async function callClaude(narrative, key, model) {
+  /* ── Proxy-backed Claude call (Opus via Bedrock) ── */
+  async function callClaude(narrative) {
     const sys = `<role>
 You are a licensed 한의사 (한국 한의학 전문의) practising in Korea. You trained at a Korean 한의과대학 and your clinical reasoning is rooted in the Korean canon — 동의보감 (許浚, 1613), 동의수세보원 (李濟馬, 1894), 방약합편 (黃度淵, 1884), and modern Korean 한의학 textbooks. You are NOT a TCM (中醫) practitioner; do not adopt the voice or formulary of mainland Chinese 中醫. A working 한의사 will read this brief — generic-translated TCM language will read as obviously foreign.
 </role>
@@ -3089,27 +2970,13 @@ This is the calibration target — confident, specifically Korean, source-ground
 
 Now read the patient narrative and produce the JSON.`;
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const pow = await solveProxyPoW();
+    const res = await fetch(CLAUDE_PROXY + "/api/claude", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": key,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: 2000,
-        system: sys,
-        messages: [{ role: "user", content: narrative }]
-      })
+      headers: { "Content-Type": "application/json", ...pow },
+      body: JSON.stringify({ model: "opus", max_tokens: 2000, system: sys, messages: [{ role: "user", content: narrative }] }),
     });
-    if (!res.ok) {
-      const txt = await res.text().catch(() => "");
-      const e = new Error(`Claude API ${res.status}: ${txt.slice(0, 200)}`);
-      e.status = res.status;
-      throw e;
-    }
+    if (!res.ok) { const e = new Error("Proxy " + res.status); e.status = res.status; throw e; }
     const data = await res.json();
     const text = (data.content?.[0]?.text) || "";
     const m = text.match(/\{[\s\S]*\}/);
