@@ -191,6 +191,20 @@
   .bandtitle{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;
     letter-spacing:.05em;margin:16px 0 10px}
   .bandcard{border:1px solid var(--line);border-radius:14px;padding:13px 14px;background:#fff;margin-bottom:11px}
+  /* ── fair-price evaluator card ── */
+  .fair{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 12px;background:#fff}
+  .fair .lbl{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .fair .row{display:flex;align-items:baseline;gap:8px;margin-top:5px}
+  .fair .obs{font-family:"Fraunces",serif;font-size:26px;font-weight:500;font-variant-numeric:tabular-nums}
+  .fair .obs small{font-size:12px;color:var(--muted);font-weight:400;font-family:inherit}
+  .fair .verdict{margin-left:auto;font-weight:700;font-size:13px;white-space:nowrap}
+  .fair .verdict.under{color:var(--good)} .fair .verdict.over{color:var(--bad)} .fair .verdict.fair{color:var(--muted)}
+  .fair .est{font-size:12px;color:var(--muted);margin-top:3px}
+  .fair .est b{color:var(--ink)}
+  .fair .fbar{position:relative;height:7px;background:#eee7d8;border-radius:4px;margin-top:9px}
+  .fair .fbar .fobs{position:absolute;top:0;height:100%;border-radius:4px}
+  .fair .fbar .fexp{position:absolute;top:-3px;width:2px;height:13px;background:var(--bad)}
+  .fair .caveat{font-size:10px;color:var(--muted);margin-top:7px;font-style:italic}
   .bandhead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px}
   .bandhead .bp{font-size:15px;font-weight:600}
   .bandhead .bp small{font-size:11px;color:var(--muted);font-weight:400;font-family:var(--mono)}
@@ -586,6 +600,7 @@ function bandFactors(h, b, peers){
    no usable peer baseline. Pure (no DOM) — unit-tested in _fairprice.test.mjs. ---- */
 const REF_YEAR = 2026; // contract-period reference for age (data is 2025-06~2026-06)
 function fairPrice(h, x, H){
+  if(!H || H.agePerYear==null) return null;   // no hedonic coefficients (e.g. offline FALLBACK) → no estimate
   const baseline = x.avgPPP;            // peer-average 평단가 (만원/평), already floor-normalized
   const ppp = x.ppp;                    // this unit's 평단가
   if(baseline==null || ppp==null || !x.peers || !x.peers.length) return null;
@@ -823,6 +838,41 @@ function trendHTML(t){
 /* ---- detail panel ---- */
 const panel = document.getElementById("panel");
 
+/* Layer 1: fair-price headline. Returns "" for wolse or when no estimate. */
+function fairCard(h, x){
+  if(mode==="wolse" || !x.fair) return "";
+  const f = x.fair;
+  // observed/predicted in 억 for sale/jeonse (bandPrice metric is 억). predPPP is 만원/평
+  // → convert back to 억 via this band's pyeong: 억 = ppp(만원/평)*pyeong/10000.
+  const toEok = ppp => ppp * x.b.pyeong / 10000;
+  const obs = bandPrice(x.b);                 // 억
+  const lo = toEok(f.lowPPP), hi = toEok(f.highPPP);
+  const d = f.deltaPct;
+  const vcls = d < -2.5 ? "under" : d > 2.5 ? "over" : "fair";
+  const vword = d < -2.5 ? `${Math.abs(Math.round(d))}% 저평가 ↓`
+              : d > 2.5 ? `${Math.round(d)}% 고평가 ↑` : "적정가 수준";
+  // bar: observed vs the expected midpoint, scaled to expected*2
+  const expMid = toEok(f.predPPP), scale = expMid*2;
+  const obsW = Math.max(4, Math.min(98, obs/scale*100));
+  const expW = Math.max(4, Math.min(98, expMid/scale*100));
+  const obsColor = scoreColor(d < -2.5 ? 8 : d > 2.5 ? 2.5 : 5);
+  return `
+    <div class="fair">
+      <div class="lbl">적정가 평가</div>
+      <div class="row">
+        <span class="obs">${fmtEok(obs)}<small> 실거래</small></span>
+        <span class="verdict ${vcls}">${vword}</span>
+      </div>
+      <div class="est">예상 적정가 <b>${fmtEok(lo)}–${fmtEok(hi)}</b> · 회귀모델 (R²=0.69, 실거래 ${DATA_META.hedonic.n.toLocaleString()}건)</div>
+      <div class="fbar">
+        <div class="fobs" style="width:${obsW}%;background:${obsColor}"></div>
+        <div class="fexp" style="left:${expW}%"></div>
+      </div>
+      <div class="caveat">공개 실거래가 기반 모델 추정치 · 감정평가 아님</div>
+      <div class="fair-explain"></div>
+    </div>`;
+}
+
 /* render the comparison block for a single size-band */
 function bandBlock(h, x){
   const price = bandPrice(x.b), avg = x.avgPrice;
@@ -840,6 +890,7 @@ function bandBlock(h, x){
   const chips=Object.keys(FLAB).map(k=>`<span class="chip" style="--c:${scoreColor(F[k])}">${FLAB[k]} <b>${F[k].toFixed(1)}</b></span>`).join("");
   return `
     <div class="bandcard">
+      ${fairCard(h, x)}
       <div class="bandhead">
         <span class="bp">${x.b.pyeong}평 <small>(${x.b.area_m2}㎡)</small></span>
         <span class="bprice" style="color:${scoreColor(x.score)}">${priceLabel(x.b)}</span>
