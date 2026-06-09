@@ -3767,7 +3767,34 @@ async function runAnalyze() {
   } catch (e) {
     $("#loading-bar").classList.remove("active");
     $("#stage-label").classList.remove("active");
-    showError(e.message || t("errGeneric"));
+    // Canned-first ethos: if the live proxy is busy/unavailable (429/503/etc),
+    // fall back to a canned deep-read rather than dead-ending on an error.
+    try {
+      const canned = pickCanned(text);
+      const pullQuote = pickPullQuote(text, canned);
+      window.__lastAIResult = {
+        ...canned,
+        fromCanned: true,
+        modelLabel: "데모 모드",
+        _saveCardPayload: {
+          type: canned.type,
+          nickname_ko: canned.nickname_ko,
+          pull_quote: pullQuote,
+          fromTest: false
+        }
+      };
+      $("#ai-result").innerHTML = renderResultHTML(window.__lastAIResult);
+      requestAnimationFrame(() => {
+        $$("#ai-result .axis-fill").forEach(fill => { fill.style.width = fill.dataset.target + "%"; });
+      });
+      $("#ai-result [data-action=restart]")?.addEventListener("click", () => {
+        $("#ai-result").innerHTML = ""; $("#ai-input").focus();
+      });
+      wireSaveCard($("#ai-result"), window.__lastAIResult._saveCardPayload);
+      wireGenderToggle($("#ai-result"));
+    } catch (e2) {
+      showError(e.message || t("errGeneric"));
+    }
   }
 }
 
