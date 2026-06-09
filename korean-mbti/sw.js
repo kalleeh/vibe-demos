@@ -1,4 +1,4 @@
-const CACHE = "vibe-korean-mbti-v16";
+const CACHE = "vibe-korean-mbti-v17";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
   // Canned-demo portraits (women set, the default) so the showcase flow is

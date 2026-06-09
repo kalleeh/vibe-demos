@@ -1388,32 +1388,6 @@ textarea.ai-input::placeholder {
 }
 .controls .grow { flex: 1; }
 
-.model-toggle {
-  display: inline-flex;
-  border: 1px solid var(--line-strong);
-  border-radius: 2px;
-  overflow: hidden;
-}
-.model-toggle button {
-  background: transparent;
-  border: none;
-  color: rgba(31, 38, 32, 0.6);
-  padding: 9px 14px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  cursor: pointer;
-  transition: background 0.18s, color 0.18s;
-}
-.model-toggle button:hover { color: var(--ink); }
-.model-toggle button.active {
-  background: var(--accent);
-  color: var(--paper);
-}
-.model-toggle button + button {
-  border-left: 1px solid var(--line-strong);
-}
-
 .mode-pill {
   display: inline-flex;
   align-items: center;
@@ -1440,45 +1414,6 @@ textarea.ai-input::placeholder {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.4; }
 }
-
-/* key prompt */
-.key-prompt {
-  background: rgba(181, 74, 50, 0.08);
-  border: 1px solid rgba(181, 74, 50, 0.4);
-  border-radius: 4px;
-  padding: 22px 24px;
-  margin-bottom: 18px;
-}
-.key-prompt h3 {
-  font-family: "Noto Serif KR", serif;
-  font-weight: 500;
-  font-size: 17px;
-  margin-bottom: 8px;
-}
-.key-prompt p {
-  font-size: 13.5px;
-  color: rgba(31, 38, 32, 0.7);
-  line-height: 1.6;
-  margin-bottom: 12px;
-}
-.key-prompt p a {
-  color: var(--accent-2);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.key-row { display: flex; gap: 8px; flex-wrap: wrap; }
-.key-input {
-  flex: 1;
-  min-width: 200px;
-  background: rgba(31, 38, 32, 0.05);
-  border: 1px solid var(--line-strong);
-  color: var(--ink);
-  padding: 11px 14px;
-  border-radius: 2px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 13px;
-}
-.key-input:focus { outline: none; border-color: var(--accent-2); }
 
 /* loading bar */
 .loading-bar {
@@ -1550,7 +1485,6 @@ footer.bottom {
   .axes, .reading, .ai-intro { padding: 20px 20px; }
   .controls { flex-direction: column; align-items: stretch; }
   .controls > * { width: 100%; }
-  .model-toggle button { flex: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1692,30 +1626,12 @@ footer.bottom {
   <div class="mic-hint" id="mic-hint"></div>
 
   <div class="controls">
-    <span class="mode-pill" id="mode-pill"><span class="dot"></span><span id="mode-pill-text" data-i18n="modeDemoPill">데모 모드</span></span>
-    <div class="model-toggle" id="model-toggle">
-      <button data-model="claude-sonnet-4-6" class="active">Sonnet 4.6</button>
-      <button data-model="claude-haiku-4-5">Haiku 4.5</button>
-    </div>
+    <span class="mode-pill live" id="mode-pill"><span class="dot"></span><span id="mode-pill-text">실시간 AI · Sonnet 4.6</span></span>
     <button class="mic-button" id="btn-mic" type="button" aria-pressed="false">
       <span class="mic-dot"></span><span class="mic-label" data-i18n="micLabel">말하기</span>
     </button>
     <div class="grow"></div>
-    <button class="btn secondary" id="btn-toggle-key" data-i18n="keyBtn">키 입력 / 해제</button>
     <button class="btn" id="btn-analyze" data-i18n="readBtn">읽어줘 →</button>
-  </div>
-
-  <div class="key-prompt" id="key-prompt" style="display:none">
-    <h3 data-i18n="keyPanelH">본인의 Anthropic API 키를 사용합니다</h3>
-    <p data-i18n="keyPanelP">키는 이 브라우저의 localStorage에만 저장되며 어디로도 전송되지 않습니다.</p>
-    <p><span data-i18n="keyIssue">키 발급 →</span>
-    <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a></p>
-    <div class="key-row">
-      <input type="password" class="key-input" id="key-input" placeholder="sk-ant-…" autocomplete="off">
-      <button class="btn secondary" id="btn-paste" data-i18n="keyPaste">붙여넣기</button>
-      <button class="btn" id="btn-save-key" data-i18n="keySave">저장</button>
-      <button class="btn secondary" id="btn-forget-key" data-i18n="keyForget">잊기</button>
-    </div>
   </div>
 
   <div class="error" id="error"></div>
@@ -2697,8 +2613,6 @@ const CANNED = [
 // STATE & UTILITIES
 // ============================================================
 
-const KEY_STORAGE = "vibe.korean-mbti.key";
-const MODEL_STORAGE = "vibe.korean-mbti.model";
 const GENDER_STORAGE = "vibe.korean-mbti.gender"; // "women" | "men" — which portrait set to show
 
 function getGender() {
@@ -2717,19 +2631,26 @@ const state = {
   answers: [], // per-question "a"|"b" picks; length matches the chosen question list
   testLength: "quick", // "quick" | "full"
   axisConf: {}, // EI, SN, TF, JP — 0..1 confidence after test
-  facetConf: {}, // facetKey → { lean: "L"|"R", conf: 0..1 } after test
-  model: localStorage.getItem(MODEL_STORAGE) || "claude-sonnet-4-6"
+  facetConf: {} // facetKey → { lean: "L"|"R", conf: 0..1 } after test
 };
 
 const $  = sel => document.querySelector(sel);
 const $$ = sel => document.querySelectorAll(sel);
 
-function getKey() { return localStorage.getItem(KEY_STORAGE) || ""; }
-function setKey(k) { if (k) localStorage.setItem(KEY_STORAGE, k); else localStorage.removeItem(KEY_STORAGE); updateModePill(); }
-function updateModePill() {
-  const pill = $("#mode-pill"), text = $("#mode-pill-text");
-  if (getKey()) { pill.classList.add("live"); text.textContent = t("modeLivePill"); }
-  else          { pill.classList.remove("live"); text.textContent = t("modeDemoPill"); }
+// Proxy AI endpoint + PoW challenge solver
+const CLAUDE_PROXY = "https://ai.pb.gurum.se";
+async function solveProxyPoW() {
+  const r = await fetch(CLAUDE_PROXY + "/api/claude-challenge");
+  if (!r.ok) { const e = new Error("challenge " + r.status); e.status = r.status; throw e; }
+  const { nonce, exp, sig, difficulty } = await r.json();
+  const enc = new TextEncoder();
+  const leadBits = (buf) => { const b = new Uint8Array(buf); let bits = 0;
+    for (const x of b) { if (x === 0) { bits += 8; continue; } let v = x, c = 0; while ((v & 0x80) === 0) { c++; v <<= 1; } bits += c; break; } return bits; };
+  for (let counter = 0; ; counter++) {
+    const d = await crypto.subtle.digest("SHA-256", enc.encode(nonce + ":" + counter));
+    if (leadBits(d) >= difficulty) return { "X-PoW-Nonce": nonce, "X-PoW-Exp": exp, "X-PoW-Sig": sig, "X-PoW-Counter": String(counter) };
+    if (counter > 5000000) throw new Error("pow-timeout");
+  }
 }
 
 // ============================================================
@@ -3628,45 +3549,6 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
 // ============================================================
 // AI DEEP-READ
 // ============================================================
-$("#btn-toggle-key").addEventListener("click", () => {
-  const p = $("#key-prompt");
-  p.style.display = p.style.display === "none" ? "block" : "none";
-  if (p.style.display === "block") {
-    $("#key-input").value = "";
-    $("#key-input").focus();
-  }
-});
-$("#btn-paste").addEventListener("click", async () => {
-  try {
-    const txt = await navigator.clipboard.readText();
-    if (txt) $("#key-input").value = txt.trim();
-  } catch (e) {
-    showError(t("errClipboard"));
-  }
-});
-$("#btn-save-key").addEventListener("click", () => {
-  const v = $("#key-input").value.trim();
-  if (!v) return showError(t("errNoKey"));
-  setKey(v);
-  $("#key-prompt").style.display = "none";
-  $("#error").classList.remove("active");
-});
-$("#btn-forget-key").addEventListener("click", () => {
-  setKey("");
-  $("#key-input").value = "";
-});
-
-// model toggle
-$$("#model-toggle button").forEach(btn => {
-  if (btn.dataset.model === state.model) btn.classList.add("active");
-  else btn.classList.remove("active");
-  btn.addEventListener("click", () => {
-    $$("#model-toggle button").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    state.model = btn.dataset.model;
-    localStorage.setItem(MODEL_STORAGE, state.model);
-  });
-});
 
 // ---------- sample passages ----------
 const SAMPLES = {
@@ -3852,23 +3734,15 @@ async function runAnalyze() {
   $("#stage-label").classList.add("active");
 
   try {
-    const key = getKey();
-    let result, fromCanned = false, modelLabel;
-    if (key) {
-      modelLabel = $("#model-toggle button.active").textContent.trim();
-      result = await callClaude(text, key, state.model);
-    } else {
-      // canned mode
-      await new Promise(r => setTimeout(r, 900));
-      result = pickCanned(text);
-      fromCanned = true;
-    }
+    // Live mode: always call proxy. No canned fallback.
+    const modelLabel = "Sonnet 4.6 (Bedrock)";
+    const result = await callClaude(text);
     $("#loading-bar").classList.remove("active");
     $("#stage-label").classList.remove("active");
     const pullQuote = pickPullQuote(text, result);
     window.__lastAIResult = {
       ...result,
-      fromCanned,
+      fromCanned: false,
       modelLabel,
       _saveCardPayload: {
         type: result.type,
@@ -3893,13 +3767,7 @@ async function runAnalyze() {
   } catch (e) {
     $("#loading-bar").classList.remove("active");
     $("#stage-label").classList.remove("active");
-    if (e.status === 401) {
-      setKey("");
-      $("#key-prompt").style.display = "block";
-      showError(t("errKeyRejected"));
-    } else {
-      showError(e.message || t("errGeneric"));
-    }
+    showError(e.message || t("errGeneric"));
   }
 }
 
@@ -3927,7 +3795,7 @@ function showError(msg) {
 // ============================================================
 // CLAUDE PROMPT — domain-tuned per CLAUDE.md methodology
 // ============================================================
-async function callClaude(narrative, key, model) {
+async function callClaude(narrative) {
   const SYS_KO = `<role>
 You are a Korean MBTI culture interpreter trained on the 어세스타(Assesta) Step II / Form Q facet system. You read free-form Korean text — 일기, 카톡, SNS — and infer the writer's 4-letter type AND the lean on all 20 하위척도 (subscales / facets) the way a Step II 결과지 would report them. You are NOT translating Western personality clichés; you are reading the writer the way a 한국MBTI연구소-trained 검사 해석자 would, in current Korean MBTI culture's natural register.
 </role>
@@ -4277,24 +4145,20 @@ Now read the user's text and return JSON.`;
 
   const sys = (LANG === "en") ? SYS_EN : SYS_KO;
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const pow = await solveProxyPoW();
+  const res = await fetch(CLAUDE_PROXY + "/api/claude", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": key,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true"
-    },
+    headers: { "Content-Type": "application/json", ...pow },
     body: JSON.stringify({
-      model,
-      max_tokens: 3000,
+      model: "sonnet",
+      max_tokens: 2048,
       system: sys,
       messages: [{ role: "user", content: narrative }]
     })
   });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
-    const e = new Error(`Claude API ${res.status}: ${txt.slice(0, 200)}`);
+    const e = new Error(`Proxy ${res.status}: ${txt.slice(0, 200)}`);
     e.status = res.status;
     throw e;
   }
@@ -4308,7 +4172,6 @@ Now read the user's text and return JSON.`;
 // ============================================================
 // INIT
 // ============================================================
-updateModePill();
 
 // Bridge to the PocketBase module script (separate scope). The module needs
 // the i18n string lookup + current language to localise the rarity framing.
