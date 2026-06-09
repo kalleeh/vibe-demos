@@ -57,6 +57,18 @@ while IFS=' ' read -r SLUG PORT <&3; do
     rsync -avz --delete -e "ssh" --rsync-path="sudo rsync" \
       "$DEMO_PB_DIR/pb_migrations/" \
       "${SERVER_HOST}:/opt/pocketbase/${SLUG}/pb_migrations/"
+
+    # Rsync JS hooks if the demo has any. PocketBase auto-loads pb_hooks/ next to
+    # the working dir (no --hooksDir flag needed). Migrations alone don't cover
+    # custom routes/hooks (e.g. the ai proxy's pb_hooks/proxy.pb.js), so a backend
+    # whose behavior lives in a hook would silently lose it on re-sync without this.
+    if [ -d "$DEMO_PB_DIR/pb_hooks" ]; then
+      echo "  Syncing hooks..."
+      $SSH "sudo mkdir -p /opt/pocketbase/${SLUG}/pb_hooks"
+      rsync -avz --delete -e "ssh" --rsync-path="sudo rsync" \
+        "$DEMO_PB_DIR/pb_hooks/" \
+        "${SERVER_HOST}:/opt/pocketbase/${SLUG}/pb_hooks/"
+    fi
   fi
 
   # Ensure backend is provisioned and running on server
