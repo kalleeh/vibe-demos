@@ -54,6 +54,13 @@ predicted_price = predicted_ppp * pyeong→price conversion (mirror bandPrice's 
 **UI (in `bandBlock`, above the existing score ring):** a fair-price card —
 `실거래 {observed}억  ·  예상 적정가 {low}–{high}억  →  {N}% 저평가/고평가`, plus an observed-vs-expected bar. Color reuses `scoreColor` semantics (green = undervalued).
 
+**Visual stacking order within the card (decided):**
+1. **Fair-price headline** (this layer) — the number + over/under.
+2. **AI friendly explanation** (Layer 3, on-demand) sits **directly under the headline** — the plain-language "why" as the immediate human translation of the number.
+3. **Detailed factor ledger** (Layer 2) below, collapsible — the "show your work" for anyone who wants the exact math.
+
+So reading order is: *the number → a friendly explanation of it → the precise breakdown*. (Note: Layer 3 is generative + on-demand, so before the AI button is tapped, the card shows headline → [AI 평가 보기 button] → ledger; after tap, the AI paragraph fills the slot between headline and ledger.)
+
 **Honesty (decided):** always a **range + caveat** — "공개 실거래가 기반 모델 추정치 · 감정평가 아님". Never a bare point estimate implying appraisal precision.
 
 ### Layer 2 — Per-factor rationale (the "clear rationale", deterministic)
@@ -69,6 +76,8 @@ Render `x.fair.ledger` as a transparent ledger inside the band card (collapsible
 Each row = one coefficient × this unit's attribute delta, formatted as a %. The `ledger[]` is built inside `fairPrice()` (one entry per non-trivial adjustment) so UI just maps it. Fully traceable; no black box.
 
 ### Layer 3 — AI natural-language read (optional, on-demand, generative)
+
+**Placement:** directly under the Layer-1 fair-price headline (above the Layer-2 ledger) — it's the friendly, immediate explanation of the number, with the precise ledger as the deeper "show your work" below it. (See Layer 1's "Visual stacking order.")
 
 A "🤖 AI 평가 보기" button in the band card. On tap:
 1. Solve the proxy proof-of-work (`solveProxyPoW`, the same helper the 4 AI demos use — added fresh here against `https://ai.pb.gurum.se`).
