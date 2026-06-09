@@ -578,6 +578,71 @@ function bandFactors(h, b, peers){
   return {value, newness, location, floor, size};
 }
 
+/* ---- FAIR-PRICE ESTIMATE (hedonic prediction) ----
+   Predict this unit's fair 평단가 by adjusting the peer-average 평단가 with the
+   published regression coefficients (data.json.meta.hedonic) for THIS unit's
+   attribute deltas vs. its peers. DV is log(만원/평) → adjustments are
+   multiplicative: predicted = baseline * exp(Σ coef·Δ). Returns null when there's
+   no usable peer baseline. Pure (no DOM) — unit-tested in _fairprice.test.mjs. ---- */
+const REF_YEAR = 2026; // contract-period reference for age (data is 2025-06~2026-06)
+function fairPrice(h, x, H){
+  const baseline = x.avgPPP;            // peer-average 평단가 (만원/평), already floor-normalized
+  const ppp = x.ppp;                    // this unit's 평단가
+  if(baseline==null || ppp==null || !x.peers || !x.peers.length) return null;
+
+  // peer means/fractions over the peer COMPLEXES (p.h) for the attributes we adjust on
+  const peers = x.peers;
+  const mean = (sel) => { let s=0,n=0; for(const p of peers){ const v=sel(p); if(v!=null){s+=v;n++;} } return n?s/n:null; };
+  const peerDcore = mean(p=>p.h.dcore);
+  const peerAge   = mean(p=>p.h.built!=null ? (REF_YEAR - p.h.built) : null);
+  const peerBrand = mean(p=>p.h.brand?1:0);
+
+  const ledger = [{ label:"인근 평균 평단가", ppp: baseline, pct: null }];
+  let logAdj = 0;
+
+  // LOCATION: distance to 신도시 core, coef<0 (farther → cheaper)
+  if(h.dcore!=null && peerDcore!=null){
+    const d = h.dcore - peerDcore;
+    if(Math.abs(d) > 0.05){ const a = H.distCorePerKm * d; logAdj += a;
+      ledger.push({ label:`신도시 코어 ${h.dcore.toFixed(1)}km`, pct: (Math.exp(a)-1)*100 }); }
+  }
+  // AGE: coef<0 per year of age (older → cheaper). age = REF_YEAR - built.
+  if(h.built!=null && peerAge!=null){
+    const thisAge = REF_YEAR - h.built;
+    const dAge = thisAge - peerAge;     // older-than-peers → positive → ×(−)→ down
+    if(Math.abs(dAge) >= 1){ const a = H.agePerYear * dAge; logAdj += a;
+      ledger.push({ label:`${h.built}년식${dAge<0?" (신축 편)":dAge>0?" (구축 편)":""}`, pct:(Math.exp(a)-1)*100 }); }
+  }
+  // BRAND: coef>0 (branded → pricier)
+  if(peerBrand!=null){
+    const d = (h.brand?1:0) - peerBrand;
+    if(Math.abs(d) > 0.05){ const a = H.brand * d; logAdj += a;
+      ledger.push({ label: h.brand?"브랜드 단지":"비브랜드", pct:(Math.exp(a)-1)*100 }); }
+  }
+  // FLOOR: low/top penalties (coef<0). Uses this band's median floor vs building height.
+  if(x.b.floor!=null && h.maxFloor){
+    const rel = x.b.floor/Math.max(h.maxFloor,3);
+    let a = 0, lab = null;
+    if(x.b.floor<=2 || rel<0.15){ a = H.floorLow; lab = `저층(${x.b.floor}층)`; }
+    else if(rel>=0.92){ a = H.floorTop; lab = `탑층(${x.b.floor}층)`; }
+    if(a){ logAdj += a; ledger.push({ label: lab, pct:(Math.exp(a)-1)*100 }); }
+  }
+
+  const predPPP = baseline * Math.exp(logAdj);
+  ledger.push({ label:"예상 적정 평단가", ppp: predPPP, pct: null, total:true });
+
+  // observed vs predicted (positive deltaPct = OVER fair, negative = UNDER fair = 저평가)
+  const deltaPct = (ppp - predPPP) / predPPP * 100;
+
+  // confidence band: fixed ±9% (model uncertainty at R²=0.69; NOT a per-unit interval)
+  const BAND = 0.09;
+  return {
+    predPPP,
+    lowPPP: predPPP*(1-BAND), highPPP: predPPP*(1+BAND),
+    deltaPct, ledger,
+  };
+}
+
 /* default + active weights (sum need not be 1; normalized at blend time) */
 const DEFAULT_WEIGHTS = { value:0.55, newness:0.15, location:0.20, floor:0.05, size:0.05 };
 let WEIGHTS = {...DEFAULT_WEIGHTS};
