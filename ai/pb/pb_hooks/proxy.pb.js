@@ -16,7 +16,9 @@
 routerAdd("GET", "/api/claude-challenge", (e) => {
   const ALLOWED_ORIGINS = ["https://kalleeh.github.io", "http://localhost", "http://127.0.0.1"];
   const POW_TTL_MS = 2 * 60 * 1000;
-  const POW_DIFFICULTY = 12;
+  const POW_DIFFICULTY = 14;
+  const CH_WINDOW_MS = 60 * 1000;
+  const CH_MAX = 20; // challenges/min/IP — generous (a real user needs 1 per call) but stops farming
   const originAllowed = (o) => !!o && ALLOWED_ORIGINS.some(a => o === a || o.indexOf(a) === 0);
 
   const secret = $os.getenv("PROXY_POW_SECRET") || "";
@@ -24,8 +26,19 @@ routerAdd("GET", "/api/claude-challenge", (e) => {
   const origin = e.request.header.get("Origin") || e.request.header.get("Referer") || "";
   if (!originAllowed(origin)) return e.json(403, { error: "origin not allowed" });
 
+  // Rate-limit challenge issuance too (was previously unguarded → free nonce farming).
+  const ip = (e.request.header.get("X-Forwarded-For") || "").split(",")[0].trim() || "unknown";
+  const now = Date.now();
+  const chl = $app.store().get("ch_rate") || {};
+  const recent = (chl[ip] || []).filter(t => now - t < CH_WINDOW_MS);
+  if (recent.length >= CH_MAX) return e.json(429, { error: "slow down" });
+  recent.push(now);
+  for (const k in chl) { if (!chl[k].length || now - chl[k][chl[k].length - 1] > CH_WINDOW_MS) delete chl[k]; }
+  chl[ip] = recent;
+  $app.store().set("ch_rate", chl);
+
   const nonce = $security.randomString(24);
-  const exp = String(Date.now() + POW_TTL_MS);
+  const exp = String(now + POW_TTL_MS);
   const sig = $security.hs256(nonce + ":" + exp, secret);
   return e.json(200, { nonce: nonce, exp: exp, sig: sig, difficulty: POW_DIFFICULTY });
 });
@@ -34,9 +47,11 @@ routerAdd("POST", "/api/claude", (e) => {
   // --- everything inline: handlers can't see file-scope decls in PB's JSVM ---
   const ALLOWED_ORIGINS = ["https://kalleeh.github.io", "http://localhost", "http://127.0.0.1"];
   const MAX_TOKENS_CEILING = 2048;
-  const POW_DIFFICULTY = 12;
+  const POW_DIFFICULTY = 14;
   const RATE_WINDOW_MS = 60 * 1000;
   const RATE_MAX = 8;
+  const DAILY_CAP = 800; // global calls/day across ALL callers — the hard backstop that
+                         // bounds total abuse regardless of IP rotation or cracked PoW.
   const MODEL_MAP = {
     opus:   "eu.anthropic.claude-opus-4-8",
     sonnet: "eu.anthropic.claude-sonnet-4-6",
@@ -92,6 +107,16 @@ routerAdd("POST", "/api/claude", (e) => {
   rl[ip] = recent;
   $app.store().set("rate", rl);
 
+  // --- global daily cap (the hard backstop: bounds TOTAL calls/day across everyone,
+  //     regardless of IP rotation or cracked PoW). Resets at UTC midnight by day key. ---
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
+  const budget = $app.store().get("daily") || {};
+  if (budget.day !== today) { budget.day = today; budget.calls = 0; }
+  if (budget.calls >= DAILY_CAP) {
+    return e.json(429, { error: "daily demo budget reached — try again tomorrow" });
+  }
+  $app.store().set("daily", budget);
+
   // --- origin check ---
   const origin = h.get("Origin") || h.get("Referer") || "";
   if (!originAllowed(origin)) return e.json(403, { error: "origin not allowed" });
@@ -124,6 +149,13 @@ routerAdd("POST", "/api/claude", (e) => {
       }),
       timeout: 60,
     });
+    // Count only calls that actually reached Bedrock (2xx) toward the daily cap.
+    if ((res.statusCode || 0) < 400) {
+      const b = $app.store().get("daily") || { day: today, calls: 0 };
+      if (b.day !== today) { b.day = today; b.calls = 0; }
+      b.calls += 1;
+      $app.store().set("daily", b);
+    }
     return e.json(res.statusCode || 200, res.json);
   } catch (err) {
     return e.json(502, { error: "upstream request failed" });
