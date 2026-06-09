@@ -667,8 +667,10 @@ function recompute(){
       const avgPrice = peers.length ? peers.reduce((s,p)=>s+bandPrice(p.b),0)/peers.length : bandPrice(b);
       const avgPPP   = peers.length ? peers.reduce((s,p)=>s+bandPPP(p.b),0)/peers.length : bandPPP(b);
       const factors  = bandFactors(h,b,peers);
-      h._bands.push({ b, peers, avgPrice, avgPPP, ppp:bandPPP(b), factors,
-                      score:blendScore(factors,h) });
+      const band = { b, peers, avgPrice, avgPPP, ppp:bandPPP(b), factors,
+                     score:blendScore(factors,h) };
+      band.fair = fairPrice(h, band, DATA_META.hedonic);   // hedonic fair-price estimate (null if no peers)
+      h._bands.push(band);
     }
     h._score = h._bands.length ? Math.max(...h._bands.map(x=>x.score)) : null;
     h._minPyeong = h._bands.length ? Math.min(...h._bands.map(x=>x.b.pyeong)) : null;
