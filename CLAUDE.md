@@ -623,11 +623,19 @@ migrate((app) => {
 
 ### Deploy
 
-`sync-backends.sh` is the single deploy command. It reads `backends/config.json`, rsyncs migrations from `<slug>/pb/pb_migrations/` to the server, provisions systemd units, and regenerates the Caddyfile. Idempotent — safe to run anytime.
+`sync-backends.sh` is the single deploy command. It reads `backends/config.json`, rsyncs `<slug>/pb/pb_migrations/` **and `<slug>/pb/pb_hooks/`** (if present) to the server, provisions systemd units, and regenerates the Caddyfile. Idempotent — safe to run anytime.
 
 ```bash
 ./sync-backends.sh    # run from the vibe-demos repo root
 ```
+
+**JS hooks (custom routes / `routerAdd`) — gotchas learned building the `ai` proxy:**
+- Put hook files at `<slug>/pb/pb_hooks/*.pb.js`. PocketBase auto-loads `pb_hooks/` next to the instance working dir — no `--hooksDir` flag needed. `sync-backends.sh` rsyncs them (added after the proxy's hook silently failed to deploy when the script only handled migrations).
+- **Handler scope is ISOLATED.** A `routerAdd("POST", "/x", (e) => {...})` handler **cannot see file-scope `const`/`function` declarations** — referencing one throws `ReferenceError` at request time (surfaces as a generic `400 {"data":{},"message":"Something went wrong"}`, not your own error). Define every helper + constant **inside** each handler.
+- **Cross-call state** (rate-limit windows, used-nonce sets) can't live in a module-level `Map` (same scoping reason + not concurrency-safe). Use `$app.store().get(k)` / `.set(k, v)`.
+- **Read a JSON body** with `e.requestInfo().body` (a parsed map). `e.bindBody({})` into a plain JS object does NOT populate it.
+- **Return responses** with `e.json(status, obj)`. **Call out** with `$http.send({method,url,headers,body,timeout})` → read `res.statusCode` + `res.json`. Env vars via `$os.getenv(name)`; crypto via `$security.sha256/hs256/randomString/equal`.
+- **Secrets** (API tokens, signing secrets) go in a **0600 systemd drop-in** `/etc/systemd/system/pocketbase@<slug>.service.d/env.conf` (`Environment=FOO=...`), set out-of-band on the server — NEVER in the repo and NOT written by `sync-backends.sh` (which only writes `port.conf`). The hook reads them via `$os.getenv`. Reference impl: `ai/pb/pb_hooks/proxy.pb.js` (Bedrock proxy: bearer-token auth + proof-of-work anti-spam gate).
 
 **Infrastructure context** (the deploy script handles all of this; rarely touched directly):
 - Server: Lightsail `pb-backends` (13.61.133.93), 2GB RAM, eu-north-1
