@@ -205,6 +205,15 @@
   .fair .fbar .fobs{position:absolute;top:0;height:100%;border-radius:4px}
   .fair .fbar .fexp{position:absolute;top:-3px;width:2px;height:13px;background:var(--bad)}
   .fair .caveat{font-size:10px;color:var(--muted);margin-top:7px;font-style:italic}
+  .fair .ledger{margin-top:10px}
+  .fair .ledger summary{cursor:pointer;font-size:11.5px;font-weight:600;color:var(--teal-deep);list-style:none}
+  .fair .ledger summary::-webkit-details-marker{display:none}
+  .fair .ledger .chev{display:inline-block;transition:transform .2s}
+  .fair .ledger[open] summary .chev{transform:rotate(90deg)}
+  .fair .ltable{font-family:var(--mono,monospace);font-size:11.5px;margin-top:8px}
+  .fair .lrow{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0ebdf}
+  .fair .lrow.tot{font-weight:700;border-bottom:0;border-top:1px solid var(--line);padding-top:6px;font-family:inherit}
+  .fair .lrow .up{color:var(--good)} .fair .lrow .dn{color:var(--bad)}
   .bandhead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px}
   .bandhead .bp{font-size:15px;font-weight:600}
   .bandhead .bp small{font-size:11px;color:var(--muted);font-weight:400;font-family:var(--mono)}
@@ -870,6 +879,17 @@ function fairCard(h, x){
       </div>
       <div class="caveat">공개 실거래가 기반 모델 추정치 · 감정평가 아님</div>
       <div class="fair-explain"></div>
+      <details class="ledger">
+        <summary><span class="chev">›</span> 적정가 산출 근거</summary>
+        <div class="ltable">
+          ${f.ledger.map(l=>{
+            const right = l.ppp!=null
+              ? `${Math.round(l.ppp).toLocaleString()}만/평`
+              : `<span class="${l.pct>=0?'up':'dn'}">${l.pct>=0?'+':''}${l.pct.toFixed(1)}%</span>`;
+            return `<div class="lrow${l.total?' tot':''}"><span>${l.total?'= ':''}${esc(l.label)}</span><span>${right}</span></div>`;
+          }).join("")}
+        </div>
+      </details>
     </div>`;
 }
 
