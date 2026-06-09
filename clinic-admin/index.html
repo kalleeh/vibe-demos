@@ -3392,21 +3392,7 @@
               </button>
             </div>
             <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;">
-              <div class="model-toggle" id="ai-model">
-                <button data-model="claude-opus-4-7" class="active">Opus 4.7</button>
-                <button data-model="claude-sonnet-4-6">Sonnet 4.6</button>
-                <button data-model="claude-haiku-4-5">Haiku 4.5</button>
-              </div>
               <button class="btn" id="ai-run">코드 추천 <span class="arrow">→</span></button>
-            </div>
-            <div class="key-prompt" id="ai-key-prompt">
-              <strong>진짜 AI로 한 번 써보고 싶으세요?</strong> — Anthropic 키를 붙여넣으면 위에 입력한 메모를 <em>실제 Claude AI</em>가 분석합니다. 키는 이 브라우저에만 저장되고, 환자 메모도 키도 다른 곳으로 보내지 않습니다. <a class="small-link" href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer">키 발급 →</a>
-              <div class="key-row">
-                <input id="ai-key" type="password" placeholder="sk-ant-...">
-                <button class="btn secondary" id="ai-key-save">저장 · 라이브 전환</button>
-                <button class="btn secondary" id="ai-key-paste">📋 붙여넣기</button>
-                <button class="btn secondary" id="ai-key-forget" style="display:none">키 삭제</button>
-              </div>
             </div>
           </div>
         </div>
@@ -6300,69 +6286,39 @@
     /* ─────────────────────────────────────────────────────────
        Tab 7 — AI 코딩 어시스트
        Pastes 진료 메모 → KCD-8 + 자보 + 비급여 추천 with
-       citations. Canned-first; live mode if user pastes
-       Anthropic API key. Non-streaming (structured JSON brief).
+       citations. Proxy-only live mode via Bedrock Opus.
+       Non-streaming (structured JSON brief).
        ───────────────────────────────────────────────────────── */
     function initTab7() {
-      const KEY_STORE = "ai.key";
-      const MODEL_STORE = "ai.model";
-      let model = Store.get(MODEL_STORE) || "claude-opus-4-7";
-      let key = Store.get(KEY_STORE) || "";
+      const CLAUDE_PROXY = "https://ai.pb.gurum.se";
+      async function solveProxyPoW() {
+        const r = await fetch(CLAUDE_PROXY + "/api/claude-challenge");
+        if (!r.ok) { const e = new Error("challenge " + r.status); e.status = r.status; throw e; }
+        const { nonce, exp, sig, difficulty } = await r.json();
+        const enc = new TextEncoder();
+        const leadBits = (buf) => { const b = new Uint8Array(buf); let bits = 0;
+          for (const x of b) { if (x === 0) { bits += 8; continue; } let v = x, c = 0; while ((v & 0x80) === 0) { c++; v <<= 1; } bits += c; break; } return bits; };
+        for (let counter = 0; ; counter++) {
+          const d = await crypto.subtle.digest("SHA-256", enc.encode(nonce + ":" + counter));
+          if (leadBits(d) >= difficulty) return { "X-PoW-Nonce": nonce, "X-PoW-Exp": exp, "X-PoW-Sig": sig, "X-PoW-Counter": String(counter) };
+          if (counter > 5000000) throw new Error("pow-timeout");
+        }
+      }
 
       const setMode = (live) => {
         const pill = $("#ai-mode-pill");
         const badge = $("#ai-mode-badge");
-        const forgetBtn = $("#ai-key-forget");
         if (live) {
-          pill.textContent = "라이브";
+          pill.textContent = "라이브 — Opus 4.8";
           pill.classList.add("live");
-          badge.textContent = "라이브 — Claude 직접 호출";
-          forgetBtn.style.display = "inline-flex";
+          badge.textContent = "라이브 — Claude Opus 4.8 via Bedrock";
         } else {
           pill.textContent = "데모 모드";
           pill.classList.remove("live");
           badge.textContent = "데모 모드";
-          forgetBtn.style.display = "none";
         }
       };
-      setMode(!!key);
-
-      // Restore selected model UI
-      $$("#ai-model button").forEach(b => {
-        b.classList.toggle("active", b.dataset.model === model);
-        b.addEventListener("click", () => {
-          $$("#ai-model button").forEach(x => x.classList.remove("active"));
-          b.classList.add("active");
-          model = b.dataset.model;
-          Store.set(MODEL_STORE, model);
-        });
-      });
-
-      $("#ai-key-save").addEventListener("click", () => {
-        const k = $("#ai-key").value.trim();
-        if (!k.startsWith("sk-ant-")) {
-          alert("올바른 Anthropic API 키 형식이 아닙니다 (sk-ant- 로 시작).");
-          return;
-        }
-        Store.set(KEY_STORE, k);
-        key = k;
-        $("#ai-key").value = "";
-        setMode(true);
-        ActivityLog.push("ai", "AI 라이브 모드 전환", {});
-      });
-      $("#ai-key-forget").addEventListener("click", () => {
-        Store.remove(KEY_STORE);
-        key = "";
-        setMode(false);
-      });
-      $("#ai-key-paste").addEventListener("click", async () => {
-        try {
-          const text = await navigator.clipboard.readText();
-          $("#ai-key").value = text.trim();
-        } catch {
-          alert("클립보드 접근 권한이 필요합니다.");
-        }
-      });
+      setMode(false); // starts in canned mode
 
       bindPersist("#ai-input", "ai.draft");
 
@@ -6440,7 +6396,7 @@
           </div>`).join("")}</div>`);
 
         if (opts.live) {
-          lines.unshift(`<h5 style="color:var(--accent)">라이브 — ${model}</h5>`);
+          lines.unshift(`<h5 style="color:var(--accent)">라이브 — Opus 4.8</h5>`);
         }
 
         $("#ai-output").innerHTML = lines.join("");
@@ -6554,38 +6510,41 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
 </exemplar>`;
         $("#ai-output").innerHTML = `<div class="ai-shimmer"></div><div class="ai-shimmer" style="width:80%"></div><div class="ai-shimmer" style="width:60%"></div>`;
         try {
-          const res = await fetch("https://api.anthropic.com/v1/messages", {
+          const pow = await solveProxyPoW();
+          const res = await fetch(CLAUDE_PROXY + "/api/claude", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-api-key": key,
-              "anthropic-version": "2023-06-01",
-              "anthropic-dangerous-direct-browser-access": "true",
-            },
+            headers: { "Content-Type": "application/json", ...pow },
             body: JSON.stringify({
-              model, max_tokens: 1200,
+              model: "opus",
+              max_tokens: 1200,
               system: sys,
               messages: [{ role: "user", content: `진료 메모:\n\n${note}\n\n위 메모에 맞는 KCD/자보/비급여 코드를 추천해주세요. JSON만 응답.` }]
             })
           });
-          if (res.status === 401) {
-            Store.remove(KEY_STORE);
-            key = "";
-            setMode(false);
-            $("#ai-output").innerHTML = `<div class="placeholder">키가 거부되었습니다 — 다시 입력해주세요.</div>`;
-            return;
+          if (!res.ok) {
+            const errText = res.status === 403 ? "프록시 인증 실패" :
+                            res.status === 429 ? "요청 제한 초과 — 잠시 후 다시 시도" :
+                            res.status === 503 ? "프록시 서버 점검 중" :
+                            `프록시 오류 ${res.status}`;
+            throw new Error(errText);
           }
-          if (!res.ok) throw new Error("API error " + res.status);
           const data = await res.json();
           const text = data.content?.[0]?.text || "";
           const jsonMatch = text.match(/\{[\s\S]*\}/);
           if (!jsonMatch) throw new Error("응답에 JSON 없음");
           const rec = JSON.parse(jsonMatch[0]);
           renderRecommendation(rec, { live: true });
-          ActivityLog.push("ai", `AI 라이브 코드 추천 (${model})`, {});
+          ActivityLog.push("ai", "AI 라이브 코드 추천 (Opus 4.8 / Bedrock)", {});
         } catch (err) {
           console.error(err);
-          $("#ai-output").innerHTML = `<div class="placeholder" style="color:var(--accent)">호출 실패 — ${err.message}</div>`;
+          const fallbackNote = err.status >= 500 ? " — 데모 모드로 대체됩니다." : "";
+          $("#ai-output").innerHTML = `<div class="placeholder" style="color:var(--accent)">라이브 호출 실패: ${err.message}${fallbackNote}</div>`;
+          if (err.status >= 500) {
+            setTimeout(() => {
+              const rec = cannedFor(note);
+              renderRecommendation(rec, { live: false });
+            }, 1000);
+          }
         }
       };
 
@@ -6595,7 +6554,8 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
           $("#ai-output").innerHTML = `<div class="placeholder">진료 메모를 입력해주세요.</div>`;
           return;
         }
-        if (key) runLive(note); else runCanned(note);
+        setMode(true); // proxy-only mode
+        runLive(note);
       });
 
       $('[data-action="run-ai"]').addEventListener("click", () => {
