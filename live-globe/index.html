@@ -484,30 +484,6 @@
       padding-top: 14px;
       border-top: 1px solid var(--line);
     }
-    .ai-panel .seg {
-      display: inline-flex;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 3px;
-    }
-    .ai-panel .seg button {
-      padding: 6px 12px;
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-family: "JetBrains Mono", monospace;
-      font-size: 10px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      cursor: pointer;
-      border-radius: 999px;
-      transition: background .2s, color .2s;
-    }
-    .ai-panel .seg button.active {
-      background: var(--accent);
-      color: var(--bg);
-    }
     .ai-panel .controls .mode-toggle {
       margin-left: auto;
       font-family: "JetBrains Mono", monospace;
@@ -521,67 +497,6 @@
       transition: color .2s;
     }
     .ai-panel .controls .mode-toggle:hover { color: var(--accent); }
-
-    /* Key prompt */
-    .key-prompt {
-      display: none;
-      flex-direction: column;
-      gap: 10px;
-      padding: 14px 0 0;
-      border-top: 1px solid var(--line);
-    }
-    .ai-panel.live .key-prompt { display: flex; }
-    .key-prompt .row { display: flex; gap: 8px; }
-    .key-prompt input {
-      flex: 1;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--line-2);
-      color: var(--ink);
-      padding: 9px 12px;
-      border-radius: 4px;
-      font-family: "JetBrains Mono", monospace;
-      font-size: 12px;
-      outline: none;
-    }
-    .key-prompt input:focus { border-color: var(--accent); }
-    .key-prompt button {
-      background: var(--accent);
-      color: var(--bg);
-      border: none;
-      padding: 9px 14px;
-      border-radius: 4px;
-      font-family: "JetBrains Mono", monospace;
-      font-size: 10px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: background .2s;
-    }
-    .key-prompt button:hover { background: #fff; }
-    .key-prompt button.ghost {
-      background: none;
-      color: var(--muted);
-      padding: 9px 10px;
-    }
-    .key-prompt button.ghost:hover { color: var(--accent); }
-    .key-prompt .help {
-      font-family: "JetBrains Mono", monospace;
-      font-size: 9px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-    .key-prompt .help a { color: var(--accent); text-decoration: none; }
-    .key-prompt .help a:hover { text-decoration: underline; }
-    .key-prompt .err {
-      color: var(--seoul);
-      font-family: "JetBrains Mono", monospace;
-      font-size: 10px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      display: none;
-    }
-    .key-prompt.error .err { display: block; }
 
     /* ── Presence layer ("who's looking right now") ── */
     /* A compact panel, centered low, listing the recent visitor pins + a
@@ -900,25 +815,7 @@
     <div class="progress" id="aiProgress"></div>
     <div class="blurb" id="aiBlurb"></div>
     <div class="controls">
-      <div class="seg" role="tablist" aria-label="Model">
-        <button data-model="claude-sonnet-4-6" class="active">Sonnet 4.6</button>
-        <button data-model="claude-haiku-4-5">Haiku 4.5</button>
-      </div>
-      <button class="mode-toggle" id="modeToggle">Use my own key →</button>
-    </div>
-    <div class="key-prompt" id="keyPrompt">
-      <div class="help">
-        Browser-direct API call. Your key stays on your device. <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Get one →</a>
-      </div>
-      <div class="row">
-        <input type="password" id="keyInput" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
-        <button id="keyPaste" type="button">Paste</button>
-        <button id="keySave" type="button">Save</button>
-      </div>
-      <div class="row">
-        <button id="keyForget" class="ghost" type="button">Forget my key</button>
-        <span class="err" id="keyErr">Key was rejected — try another</span>
-      </div>
+      <button class="mode-toggle" id="modeToggle">Try live mode →</button>
     </div>
   </div>
 
@@ -1729,22 +1626,24 @@
     const aiProgress = document.getElementById("aiProgress");
     const demoPill   = document.getElementById("demoPill");
     const modeToggle = document.getElementById("modeToggle");
-    const keyPrompt  = document.getElementById("keyPrompt");
-    const keyInput   = document.getElementById("keyInput");
-    const keySave    = document.getElementById("keySave");
-    const keyPaste   = document.getElementById("keyPaste");
-    const keyForget  = document.getElementById("keyForget");
-    const keyErr     = document.getElementById("keyErr");
 
     let currentCity = null;
-    let currentModel = "claude-sonnet-4-6";
     let liveMode = false;
 
-    const KEY_STORAGE = "vibe.live-globe.key";
-
-    function getKey()  { return localStorage.getItem(KEY_STORAGE) || ""; }
-    function setKey(v) { localStorage.setItem(KEY_STORAGE, v); }
-    function clearKey(){ localStorage.removeItem(KEY_STORAGE); }
+    const CLAUDE_PROXY = "https://ai.pb.gurum.se";
+    async function solveProxyPoW() {
+      const r = await fetch(CLAUDE_PROXY + "/api/claude-challenge");
+      if (!r.ok) { const e = new Error("challenge " + r.status); e.status = r.status; throw e; }
+      const { nonce, exp, sig, difficulty } = await r.json();
+      const enc = new TextEncoder();
+      const leadBits = (buf) => { const b = new Uint8Array(buf); let bits = 0;
+        for (const x of b) { if (x === 0) { bits += 8; continue; } let v = x, c = 0; while ((v & 0x80) === 0) { c++; v <<= 1; } bits += c; break; } return bits; };
+      for (let counter = 0; ; counter++) {
+        const d = await crypto.subtle.digest("SHA-256", enc.encode(nonce + ":" + counter));
+        if (leadBits(d) >= difficulty) return { "X-PoW-Nonce": nonce, "X-PoW-Exp": exp, "X-PoW-Sig": sig, "X-PoW-Counter": String(counter) };
+        if (counter > 5000000) throw new Error("pow-timeout");
+      }
+    }
 
     document.querySelectorAll(".ai-btn").forEach(b => {
       b.addEventListener("click", () => openAiPanel(b.dataset.ai));
@@ -1772,51 +1671,18 @@
       }
     });
 
-    document.querySelectorAll(".ai-panel .seg button").forEach(b => {
-      b.addEventListener("click", () => {
-        document.querySelectorAll(".ai-panel .seg button").forEach(x => x.classList.remove("active"));
-        b.classList.add("active");
-        currentModel = b.dataset.model;
-        if (currentCity) renderBlurb(currentCity);
-      });
-    });
-
     modeToggle.addEventListener("click", () => {
       liveMode = !liveMode;
       aiPanel.classList.toggle("live", liveMode);
       if (liveMode) {
-        demoPill.textContent = "live mode · using your key";
+        demoPill.textContent = "live mode · Sonnet 4.6 via Bedrock";
         modeToggle.textContent = "Back to demo mode ←";
-        keyInput.value = getKey() ? "•".repeat(20) : "";
-        if (currentCity && getKey()) renderBlurb(currentCity);
+        if (currentCity) renderBlurb(currentCity);
       } else {
         demoPill.textContent = "demo mode · canned output";
-        modeToggle.textContent = "Use my own key →";
+        modeToggle.textContent = "Try live mode →";
         if (currentCity) renderBlurb(currentCity);
       }
-    });
-
-    keySave.addEventListener("click", () => {
-      const v = keyInput.value.trim();
-      if (!v || v.startsWith("•")) return;
-      setKey(v);
-      keyInput.value = "•".repeat(20);
-      keyPrompt.classList.remove("error");
-      if (currentCity) renderBlurb(currentCity);
-    });
-    keyPaste.addEventListener("click", async () => {
-      try {
-        const text = await navigator.clipboard.readText();
-        keyInput.value = text.trim();
-      } catch {
-        keyInput.focus();
-      }
-    });
-    keyForget.addEventListener("click", () => {
-      clearKey();
-      keyInput.value = "";
-      keyPrompt.classList.remove("error");
-      if (currentCity) renderBlurb(currentCity);
     });
 
     function openAiPanel(cityKey) {
@@ -1878,23 +1744,15 @@
         paintBlurb(cannedBlurb(c));
         return;
       }
-      const key = getKey();
-      if (!key) {
-        aiBlurb.innerHTML = `<span class="ko" style="color:var(--muted)">Paste your Anthropic API key below to generate a live "right now" blurb. Stays on your device.</span>`;
-        aiProgress.classList.remove("on");
-        return;
-      }
       aiBlurb.innerHTML = `<span class="ko" style="color:var(--muted)">Asking Claude…</span>`;
       aiProgress.classList.add("on");
       try {
-        const blurb = await callClaude(c, key, currentModel);
+        const blurb = await callClaude(c);
         paintBlurb(blurb);
       } catch (err) {
         aiProgress.classList.remove("on");
-        if (err.status === 401) {
-          clearKey();
-          keyPrompt.classList.add("error");
-          aiBlurb.innerHTML = `<span class="ko" style="color:var(--seoul)">Key was rejected. Paste a valid key below.</span>`;
+        if (err.status === 403 || err.status === 429 || err.status === 503) {
+          paintBlurb(cannedBlurb(c));
         } else {
           aiBlurb.innerHTML = `<span class="ko" style="color:var(--seoul)">${err.message || "Request failed"}</span>`;
         }
@@ -1903,8 +1761,8 @@
       }
     }
 
-    /* ── Browser-direct Claude call per CLAUDE.md AI demo pattern ── */
-    async function callClaude(c, key, model) {
+    /* ── Proxy-only Claude call via Bedrock (Sonnet 4.6) ── */
+    async function callClaude(c) {
       const now = new Date();
       const localTime = fmtTime(now, c.tz);
       const w = c.weather;
@@ -1998,27 +1856,13 @@ Write a short snapshot of what's likely happening in the city right now. Be vivi
 Return strict JSON:
 {"ko": "<two short Korean paragraphs separated by \\n\\n>", "en": "<two short English paragraphs separated by \\n\\n>"}`;
 
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const pow = await solveProxyPoW();
+      const res = await fetch(CLAUDE_PROXY + "/api/claude", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": key,
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true"
-        },
-        body: JSON.stringify({
-          model,
-          max_tokens: 900,
-          system: sys,
-          messages: [{ role: "user", content: user }]
-        })
+        headers: { "Content-Type": "application/json", ...pow },
+        body: JSON.stringify({ model: "sonnet", max_tokens: 900, system: sys, messages: [{ role: "user", content: user }] }),
       });
-      if (!res.ok) {
-        const txt = await res.text().catch(() => "");
-        const err = new Error(`Claude API ${res.status}: ${txt.slice(0, 200)}`);
-        err.status = res.status;
-        throw err;
-      }
+      if (!res.ok) { const e = new Error("Proxy " + res.status); e.status = res.status; throw e; }
       const data = await res.json();
       const text = (data.content && data.content[0] && data.content[0].text) || "";
       const m = text.match(/\{[\s\S]*\}/);
