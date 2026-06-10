@@ -227,7 +227,7 @@ window.BOOKS = [
   },
   {
     id: "kr-baekgu", lang: "ko",
-    title: "백구", author: "김재홍", publisher: "보림",
+    title: "백구", author: "김민기", publisher: "사계절",
     ages: ["5-6","7-9"], level: "그림책",
     themes: ["동물","가족","감정"], mood: ["잔잔한","따뜻한"],
     blurb: "한 아이와 흰둥이 백구가 함께 자라며 나누는 우정과 이별을 노랫말처럼 잔잔하게 그렸어요.",
@@ -236,13 +236,13 @@ window.BOOKS = [
     source: "curated"
   },
   {
-    id: "kr-uri-momi", lang: "ko",
-    title: "솔이의 추석빔", author: "이춘희", publisher: "사파리",
-    ages: ["3-4","5-6"], level: "그림책",
-    themes: ["가족","일상"], mood: ["따뜻한","학습"],
-    blurb: "우리 옛 명절 옷과 풍습을 정겨운 그림으로 보여 주며 전통문화를 자연스럽게 익히게 해 줘요.",
-    readAloud: "한복의 색과 모양을 짚으며 \"이건 무슨 색이야?\" 물어보세요.",
-    cover: { emoji: "👘", palette: ["#c44a52","#f0d59a"] },
+    id: "kr-assibang", lang: "ko",
+    title: "아씨방 일곱 동무", author: "이영경", publisher: "비룡소",
+    ages: ["5-6","7-9"], level: "그림책",
+    themes: ["일상","유머","환상"], mood: ["웃긴","학습"],
+    blurb: "바늘·실·가위·자·골무·인두·다리미 일곱 바느질 동무가 서로 제일이라 다투는 우리 옛이야기로, 옛 살림살이를 정겹게 만나요.",
+    readAloud: "바느질 도구를 하나씩 가리키며 \"이건 뭐 하는 물건일까?\" 하고 물어보세요.",
+    cover: { emoji: "🧵", palette: ["#c44a52","#f0d59a"] },
     source: "curated"
   },
   {
@@ -257,14 +257,14 @@ window.BOOKS = [
     source: "curated"
   },
   {
-    id: "kr-mokyok-il", lang: "ko",
-    title: "구두 신은 강아지", author: "고미 타로", publisher: "한림출판사",
-    titleRoman: "(KR ed.)",
+    id: "kr-geumbungeo", lang: "ko",
+    title: "금붕어가 달아나네", author: "고미 타로", publisher: "한림출판사",
+    titleRoman: "Where's the Fish? (KR ed.)",
     ages: ["0-2","3-4"], level: "보드북",
     themes: ["동물","일상","유머"], mood: ["웃긴","잔잔한"],
-    blurb: "고미 타로 특유의 단순하고 밝은 그림으로 아기가 처음 보기에 딱 좋은 일상 동물 이야기예요.",
-    readAloud: "그림이 단순하니 손가락으로 동물을 짚으며 이름을 함께 말해 보세요.",
-    cover: { emoji: "🐶", palette: ["#f4c430","#e8595e"] },
+    blurb: "달아난 금붕어가 비슷하게 생긴 물건들 사이에 숨는 숨은그림찾기 구성으로, 아기가 손끝으로 짚으며 까르르 즐겨요.",
+    readAloud: "페이지마다 \"금붕어 어디 있지?\" 하고 아이가 직접 찾게 해 보세요.",
+    cover: { emoji: "🐟", palette: ["#f4c430","#e85d75"] },
     source: "curated"
   },
   {
@@ -289,7 +289,7 @@ window.BOOKS = [
   },
   {
     id: "kr-kkachi", lang: "ko",
-    title: "팥이 영감과 우르르 산토끼", author: "이춘희", publisher: "사파리",
+    title: "팥이 영감과 우르르 산토끼", author: "박재철", publisher: "길벗어린이",
     ages: ["3-4","5-6"], level: "그림책",
     themes: ["동물","유머","일상"], mood: ["웃긴","잔잔한"],
     blurb: "우리 옛이야기 특유의 반복과 리듬이 살아 있어 아이가 다음 장면을 예측하며 즐기게 돼요.",
@@ -321,7 +321,7 @@ window.BOOKS = [
   },
   {
     id: "kr-kkokkkok-sumeo", lang: "ko",
-    title: "두드림 똑똑", author: "안나 클라라 티돌름", publisher: "보림",
+    title: "두드려 보아요", author: "안나 클라라 티돌름", publisher: "사계절",
     titleRoman: "Knock! Knock! (KR ed.)",
     ages: ["0-2","3-4"], level: "보드북",
     themes: ["일상","환상","동물"], mood: ["잔잔한","따뜻한"],
@@ -374,18 +374,18 @@ window.BOOKS = [
     source: "curated"
   },
   {
-    id: "kr-hanbyeol-jjok", lang: "ko",
-    title: "솔이의 우주여행", author: "한태희", publisher: "한림출판사",
+    id: "kr-uju-danyeo", lang: "ko",
+    title: "우주 다녀오겠습니다", author: "장선환", publisher: "딸기책방",
     ages: ["5-6","7-9"], level: "그림책",
-    themes: ["우주","자연","환상","모험"], mood: ["모험","학습"],
-    blurb: "별과 행성을 따라 떠나는 상상 여행으로, 우주를 좋아하는 아이의 호기심을 한껏 채워 줘요.",
+    themes: ["우주","환상","모험","자연"], mood: ["모험","학습"],
+    blurb: "우주로 떠나는 상상 여행을 한국 그림책 특유의 따뜻한 그림에 담아, 우주를 좋아하는 아이의 호기심을 한껏 채워 줘요.",
     readAloud: "밤하늘 그림을 보며 \"저 별까지 가 볼까?\" 하고 함께 상상해 보세요.",
     cover: { emoji: "🪐", palette: ["#1a2a55","#f2d94e"] },
     source: "curated"
   },
   {
     id: "kr-baekman-mari", lang: "ko",
-    title: "100만 마리 고양이", author: "완다 가그", publisher: "시공주니어",
+    title: "백만 마리 고양이", author: "완다 가그", publisher: "시공주니어",
     titleRoman: "Millions of Cats (KR ed.)",
     ages: ["5-6","7-9"], level: "그림책",
     themes: ["동물","숫자/글자","유머","환상"], mood: ["웃긴","잔잔한"],
@@ -395,24 +395,23 @@ window.BOOKS = [
     source: "curated"
   },
   {
-    id: "kr-saekomi", lang: "ko",
-    title: "지각 한 번 하지 않은 다람쥐", author: "마리오 라모스", publisher: "주니어김영사",
-    titleRoman: "(KR ed.)",
+    id: "kr-juljuri-horangi", lang: "ko",
+    title: "줄줄이 꿴 호랑이", author: "권문희", publisher: "사계절",
     ages: ["5-6","7-9"], level: "그림책",
-    themes: ["동물","감정","일상","유머"], mood: ["웃긴","따뜻한"],
-    blurb: "늘 완벽하던 다람쥐가 처음으로 늦잠을 자며 겪는 소동을 통해 실수해도 괜찮다는 위로를 건네요.",
-    readAloud: "다람쥐가 허둥대는 장면에서 빠르고 다급한 목소리로 읽어 보세요.",
-    cover: { emoji: "🐿️", palette: ["#b5651d","#e8c07a"] },
+    themes: ["동물","유머","환상","모험"], mood: ["웃긴","모험"],
+    blurb: "꾀로 호랑이들을 줄줄이 엮어 버리는 우리 옛이야기로, 반복되는 리듬과 통쾌한 결말이 아이를 사로잡아요.",
+    readAloud: "호랑이가 한 마리씩 엮일 때마다 \"또 한 마리!\" 하고 손가락으로 세어 보세요.",
+    cover: { emoji: "🐯", palette: ["#b5651d","#e8c07a"] },
     source: "curated"
   },
   {
-    id: "kr-bbaekkomi", lang: "ko",
-    title: "솔이의 동물원", author: "백희나", publisher: "책읽는곰",
+    id: "kr-naneun-gae", lang: "ko",
+    title: "나는 개다", author: "백희나", publisher: "책읽는곰",
     ages: ["3-4","5-6"], level: "그림책",
-    themes: ["동물","환상","일상","가족"], mood: ["따뜻한","웃긴"],
-    blurb: "백희나 특유의 인형 세트로 빚어낸 동물 세계가 아이의 상상력을 폭 감싸 주는 그림책이에요.",
-    readAloud: "동물 인형 사진을 손끝으로 짚으며 울음소리를 함께 흉내 내 보세요.",
-    cover: { emoji: "🦒", palette: ["#e6a23c","#7fb069"] },
+    themes: ["동물","가족","일상","감정"], mood: ["따뜻한","웃긴"],
+    blurb: "강아지 구슬이의 눈으로 바라본 집과 가족 이야기로, 백희나 특유의 입체 인형 그림이 반려견의 마음을 폭 감싸 줘요.",
+    readAloud: "구슬이가 가족을 바라보는 장면에서 \"강아지는 무슨 생각을 할까?\" 하고 물어보세요.",
+    cover: { emoji: "🐶", palette: ["#e6a23c","#cfe3f0"] },
     source: "curated"
   },
   {
@@ -461,7 +460,7 @@ window.BOOKS = [
   },
   {
     id: "kr-momi-ggomjirak", lang: "ko",
-    title: "악어도 깜짝, 치과 선생님도 깜짝", author: "고미 타로", publisher: "비룡소",
+    title: "악어도 깜짝, 치과 의사도 깜짝!", author: "고미 타로", publisher: "비룡소",
     titleRoman: "(KR ed.)",
     ages: ["3-4","5-6"], level: "그림책",
     themes: ["동물","유머","일상"], mood: ["웃긴","학습"],
@@ -482,13 +481,13 @@ window.BOOKS = [
     source: "curated"
   },
   {
-    id: "kr-jaratda", lang: "ko",
-    title: "지각쟁이 너구리", author: "권정생", publisher: "산하",
+    id: "kr-osori-kkotbat", lang: "ko",
+    title: "오소리네 집 꽃밭", author: "권정생", publisher: "길벗어린이",
     ages: ["5-6","7-9"], level: "그림책",
-    themes: ["동물","감정","일상","자연"], mood: ["잔잔한","따뜻한"],
-    blurb: "권정생 특유의 따뜻한 시선으로 작고 약한 존재의 마음을 어루만지는 잔잔한 이야기예요.",
-    readAloud: "느린 호흡으로 천천히 읽어 잔잔한 정서를 살려 주세요.",
-    cover: { emoji: "🦝", palette: ["#8a6d3b","#d9c5a0"] },
+    themes: ["동물","자연","감정","일상"], mood: ["잔잔한","따뜻한"],
+    blurb: "들꽃 가득한 오소리네 마당을 권정생 특유의 따뜻한 시선으로 그려, 우리 산과 들의 정겨운 아름다움을 일깨워 줘요.",
+    readAloud: "그림 속 들꽃 이름을 하나씩 짚으며 \"이 꽃 본 적 있어?\" 하고 물어보세요.",
+    cover: { emoji: "🦡", palette: ["#8a6d3b","#d9c5a0"] },
     source: "curated"
   },
 
