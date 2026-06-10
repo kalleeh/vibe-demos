@@ -169,14 +169,15 @@ function scrollResults(){ document.getElementById("results").scrollIntoView({beh
 /* ── Task 5: optional AI mode via shared Bedrock proxy (non-streaming) ── */
 
 const CLAUDE_PROXY = "https://ai.pb.gurum.se";
-async function solveProxyPoW(){
-  const r = await fetch(CLAUDE_PROXY + "/api/claude-challenge");
+async function solveProxyPoW(signal){
+  const r = await fetch(CLAUDE_PROXY + "/api/claude-challenge", { signal });
   if(!r.ok){ const e=new Error("challenge "+r.status); e.status=r.status; throw e; }
   const { nonce, exp, sig, difficulty } = await r.json();
   const enc = new TextEncoder();
   const leadBits = (buf)=>{ const b=new Uint8Array(buf); let bits=0;
     for(const x of b){ if(x===0){bits+=8;continue;} let v=x,c=0; while((v&0x80)===0){c++;v<<=1;} bits+=c; break; } return bits; };
   for(let counter=0;;counter++){
+    if(signal && signal.aborted) throw new DOMException("aborted","AbortError");
     const d = await crypto.subtle.digest("SHA-256", enc.encode(nonce+":"+counter));
     if(leadBits(d)>=difficulty) return { "X-PoW-Nonce":nonce,"X-PoW-Exp":exp,"X-PoW-Sig":sig,"X-PoW-Counter":String(counter) };
     if(counter>5000000) throw new Error("pow-timeout");
@@ -206,20 +207,26 @@ function buildSys(){
 }
 
 async function aiRecommend(p, books){
-  const sys = buildSys();
-  const candidates = books.map(b => ({ id:b.id, lang:b.lang, title:b.title, author:b.author,
-    ages:b.ages, level:b.level, themes:b.themes, mood:b.mood }));
-  const user = `아이 정보: 나이 ${p.age||"미정"}, 성별 ${p.gender}, 관심사 [${p.themes.join(", ")||"없음"}], 분위기 [${p.moods.join(", ")||"없음"}]\n부모 한마디: ${p.note||"(없음)"}\n\n추천 후보 catalog(JSON):\n${JSON.stringify(candidates)}\n\n각 후보에 대한 추천 이유와 팁을 위 스키마(JSON)로만 답하세요.`;
-  const pow = await solveProxyPoW();
-  const res = await fetch(CLAUDE_PROXY + "/api/claude", {
-    method:"POST", headers:{ "Content-Type":"application/json", ...pow },
-    body: JSON.stringify({ model:"sonnet", max_tokens:1600, system:sys,
-      messages:[{ role:"user", content:user }] })
-  });
-  if(!res.ok){ const e=new Error("proxy "+res.status); e.status=res.status; throw e; }
-  const j = await res.json();
-  const txt = (j.content && j.content[0] && j.content[0].text) || "{}";
-  return JSON.parse(txt.replace(/^```json\s*|\s*```$/g,"").trim());
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 22000);
+  try {
+    const sys = buildSys();
+    const candidates = books.map(b => ({ id:b.id, lang:b.lang, title:b.title, author:b.author,
+      ages:b.ages, level:b.level, themes:b.themes, mood:b.mood }));
+    const user = `아이 정보: 나이 ${p.age||"미정"}, 성별 ${p.gender}, 관심사 [${p.themes.join(", ")||"없음"}], 분위기 [${p.moods.join(", ")||"없음"}]\n부모 한마디: ${p.note||"(없음)"}\n\n추천 후보 catalog(JSON):\n${JSON.stringify(candidates)}\n\n각 후보에 대한 추천 이유와 팁을 위 스키마(JSON)로만 답하세요.`;
+    const pow = await solveProxyPoW(ac.signal);
+    const res = await fetch(CLAUDE_PROXY + "/api/claude", {
+      method:"POST", headers:{ "Content-Type":"application/json", ...pow }, signal: ac.signal,
+      body: JSON.stringify({ model:"sonnet", max_tokens:1600, system:sys,
+        messages:[{ role:"user", content:user }] })
+    });
+    if(!res.ok){ const e=new Error("proxy "+res.status); e.status=res.status; throw e; }
+    const j = await res.json();
+    const txt = (j.content && j.content[0] && j.content[0].text) || "{}";
+    return JSON.parse(txt.replace(/^```json\s*|\s*```$/g,"").trim());
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 document.getElementById("aiToggle").addEventListener("click", function(){
