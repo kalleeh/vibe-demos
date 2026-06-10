@@ -2,25 +2,27 @@
 "use strict";
 // (filled in Tasks 3–5)
 
-const THEME_EMOJI = {
-  "공룡":"🦖","우주":"🚀","동물":"🐱","공주":"👑","자동차":"🚗","탈것":"🚂",
-  "그림그리기":"🎨","잠자리":"🌙","자연":"🌳","음식":"🍪","가족":"👨‍👩‍👧","친구":"🤝",
-  "감정":"💛","일상":"🏠","환상":"✨","모험":"🗺️","숫자/글자":"🔤","유머":"😆"
+// Hand-drawn crayon icons (SD3.5-generated, bg-removed) live in ./icons/<key>.png.
+// Map each theme/mood to its icon key; missing keys fall back to a label-only chip.
+const THEME_ICON = {
+  "공룡":"gongryong","우주":"uju","동물":"dongmul","공주":"gongju","자동차":"jadongcha","탈것":"talgeot",
+  "그림그리기":"geurim","잠자리":"jamjari","자연":"jayeon","음식":"eumsik","가족":"gajok","친구":"chingu",
+  "감정":"gamjeong","일상":"ilsang","환상":"hwansang","모험":"moheom","숫자/글자":"sutja","유머":"yumeo"
 };
-const MOOD_EMOJI = { "웃긴":"😆","따뜻한":"🤗","모험":"🗺️","학습":"📚","잔잔한":"🌿" };
+const MOOD_ICON = { "웃긴":"yumeo","따뜻한":"mood-ttaseuthan","모험":"moheom","학습":"mood-hakseup","잔잔한":"mood-janjan" };
 
-function chip(val, emoji, pressed, label){
-  const text = (emoji ? emoji + " " : "") + (label || val);
-  return `<button type="button" class="chip" data-val="${val}" aria-pressed="${pressed?"true":"false"}">${text}</button>`;
+function chip(val, iconKey, pressed, label){
+  const img = iconKey ? `<img class="chip-ic" src="./icons/${iconKey}.png" alt="" aria-hidden="true">` : "";
+  return `<button type="button" class="chip${iconKey?" has-ic":""}" data-val="${val}" aria-pressed="${pressed?"true":"false"}">${img}<span class="chip-tx">${label || val}</span></button>`;
 }
 
-// Age & gender groups (static vocab); themes & moods from catalog globals.
+// Age & gender groups (static vocab, label-only); themes & moods get crayon icons.
 const AGE_BANDS = ["0-2","3-4","5-6","7-9"];
 const GENDERS = ["남아","여아","상관없음"];
 document.getElementById("ageChips").innerHTML    = AGE_BANDS.map(a => chip(a, "", false, a + "세")).join("");
 document.getElementById("genderChips").innerHTML = GENDERS.map(g => chip(g, "", g==="상관없음")).join("");
-document.getElementById("themeChips").innerHTML  = window.THEME_VOCAB.map(t => chip(t, THEME_EMOJI[t]||"•", false)).join("");
-document.getElementById("moodChips").innerHTML   = window.MOOD_VOCAB.map(m => chip(m, MOOD_EMOJI[m]||"•", false)).join("");
+document.getElementById("themeChips").innerHTML  = window.THEME_VOCAB.map(t => chip(t, THEME_ICON[t]||"", false)).join("");
+document.getElementById("moodChips").innerHTML   = window.MOOD_VOCAB.map(m => chip(m, MOOD_ICON[m]||"", false)).join("");
 
 function wireGroup(containerId, single){
   const el = document.getElementById(containerId);

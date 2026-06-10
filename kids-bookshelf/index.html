@@ -72,6 +72,14 @@
   }
   .chip:hover{transform:translateY(-1px) rotate(-.6deg);}
   .chip:active{transform:scale(.96);}
+  /* crayon icon chips: icon + label side by side */
+  .chip.has-ic{padding-left:10px;gap:6px;}
+  .chip-ic{
+    width:26px;height:26px;object-fit:contain;display:block;flex:0 0 auto;
+    /* the icon is full-color art; the crayon filter would smear it, so leave it un-filtered */
+    pointer-events:none;
+  }
+  .chip-tx{display:inline-block;}
   /* pastel rotation so a row of chips reads like crayons */
   .chips .chip:nth-child(5n+1){background:#fff4dd;}
   .chips .chip:nth-child(5n+2){background:#e7f4fb;}
