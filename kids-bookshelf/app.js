@@ -11,6 +11,45 @@ const THEME_ICON = {
 };
 const MOOD_ICON = { "웃긴":"yumeo","따뜻한":"mood-ttaseuthan","모험":"moheom","학습":"mood-hakseup","잔잔한":"mood-janjan" };
 
+// Free-text → signal lexicon. Maps words a parent types in the note to theme/mood nudges.
+// Deterministic, offline — this is how the note steers recs without any model.
+const NOTE_LEXICON = [
+  { kw: ["공룡","티라노","브라키오","다이노","dino","dinosaur"], theme:"공룡" },
+  { kw: ["우주","로켓","행성","별","space","rocket","planet"], theme:"우주" },
+  { kw: ["동물","강아지","고양이","토끼","곰","사자","animal","puppy","cat"], theme:"동물" },
+  { kw: ["공주","왕자","드레스","princess"], theme:"공주" },
+  { kw: ["자동차","부릉","car"], theme:"자동차" },
+  { kw: ["기차","버스","비행기","탈것","train","bus","plane"], theme:"탈것" },
+  { kw: ["그림","색칠","크레용","draw","paint","color"], theme:"그림그리기" },
+  { kw: ["잠","자기 전","잠들기","재우","잠자리","bedtime","sleep"], theme:"잠자리", mood:"잔잔한" },
+  { kw: ["자연","숲","나무","꽃","바다","nature","forest"], theme:"자연" },
+  { kw: ["음식","먹","요리","빵","과자","food","eat"], theme:"음식" },
+  { kw: ["가족","엄마","아빠","할머니","형제","family"], theme:"가족" },
+  { kw: ["친구","우정","friend"], theme:"친구" },
+  { kw: ["감정","마음","화","슬픔","무서","feeling","emotion"], theme:"감정" },
+  { kw: ["모험","탐험","여행","adventure","explore"], theme:"모험", mood:"모험" },
+  { kw: ["숫자","글자","한글","abc","number","letter","알파벳"], theme:"숫자/글자", mood:"학습" },
+  { kw: ["웃긴","까르르","웃겨","재밌","funny","laugh"], theme:"유머", mood:"웃긴" },
+  { kw: ["따뜻","포근","사랑","warm","cozy"], mood:"따뜻한" },
+  { kw: ["배우","공부","교육","learn","educational"], mood:"학습" },
+  { kw: ["무서워","무서운","scary","afraid"], mood:"모험", dir:-1 }, // downweight scary/adventure
+];
+
+// Returns {themes:{theme:weight}, moods:{mood:weight}} derived from the note text.
+function lexiconSignals(note){
+  const out = { themes:{}, moods:{} };
+  if(!note) return out;
+  const n = note.toLowerCase();
+  for(const e of NOTE_LEXICON){
+    if(e.kw.some(k => n.includes(k.toLowerCase()))){
+      const w = (e.dir===-1) ? -1 : 1;
+      if(e.theme) out.themes[e.theme] = (out.themes[e.theme]||0) + w;
+      if(e.mood)  out.moods[e.mood]   = (out.moods[e.mood]||0) + w;
+    }
+  }
+  return out;
+}
+
 function chip(val, iconKey, pressed, label){
   const img = iconKey ? `<img class="chip-ic" src="./icons/${iconKey}.png" alt="" aria-hidden="true">` : "";
   return `<button type="button" class="chip${iconKey?" has-ic":""}" data-val="${val}" aria-pressed="${pressed?"true":"false"}">${img}<span class="chip-tx">${label || val}</span></button>`;
