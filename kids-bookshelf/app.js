@@ -27,6 +27,8 @@ const NOTE_LEXICON = [
   { kw: ["가족","엄마","아빠","할머니","형제","family"], theme:"가족" },
   { kw: ["친구","우정","friend"], theme:"친구" },
   { kw: ["감정","마음","화","슬픔","무서","feeling","emotion"], theme:"감정" },
+  { kw: ["환상","마법","요정","상상","fantasy","magic"], theme:"환상" },
+  { kw: ["일상","하루","어린이집","유치원","daily","routine"], theme:"일상" },
   { kw: ["모험","탐험","여행","adventure","explore"], theme:"모험", mood:"모험" },
   { kw: ["숫자","글자","한글","abc","number","letter","알파벳"], theme:"숫자/글자", mood:"학습" },
   { kw: ["웃긴","까르르","웃겨","재밌","funny","laugh"], theme:"유머", mood:"웃긴" },
