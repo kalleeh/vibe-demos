@@ -1,5 +1,5 @@
 /* kids-bookshelf — offline shell SW (network-first HTML, cache-first assets) */
-const CACHE = "vibe-kids-bookshelf-v2";
+const CACHE = "vibe-kids-bookshelf-v3";
 const SHELL = ["./", "./index.html", "./app.js", "./catalog.js", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", e => {
