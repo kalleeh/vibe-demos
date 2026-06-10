@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="12" fill="#fbf3e2"/>
+  <!-- open picture-book: two pages meeting at a center spine -->
+  <!-- left page (rust) -->
+  <path d="M32 19 C 26 15, 18 14, 13 16 L 13 45 C 18 43, 26 44, 32 48 Z" fill="#e8643c"/>
+  <!-- right page (yellow) -->
+  <path d="M32 19 C 38 15, 46 14, 51 16 L 51 45 C 46 43, 38 44, 32 48 Z" fill="#f7b733"/>
+  <!-- center spine -->
+  <rect x="30.6" y="18" width="2.8" height="30" rx="1.2" fill="#c9551f"/>
+  <!-- page lines, left -->
+  <path d="M18 23 C 22 22, 26 22.5, 29 24" stroke="#fbf3e2" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <path d="M18 29 C 22 28, 26 28.5, 29 30" stroke="#fbf3e2" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <path d="M18 35 C 22 34, 26 34.5, 29 36" stroke="#fbf3e2" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <!-- page lines, right -->
+  <path d="M35 24 C 38 22.5, 42 22, 46 23" stroke="#fbf3e2" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <path d="M35 30 C 38 28.5, 42 28, 46 29" stroke="#fbf3e2" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <path d="M35 36 C 38 34.5, 42 34, 46 35" stroke="#fbf3e2" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <!-- playful star sparkle in the corner -->
+  <path d="M48 9 L 49.6 13 L 53.6 14.6 L 49.6 16.2 L 48 20.2 L 46.4 16.2 L 42.4 14.6 L 46.4 13 Z" fill="#e8643c"/>
+</svg>
