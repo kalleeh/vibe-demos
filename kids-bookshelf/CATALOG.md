@@ -28,6 +28,7 @@ Every field is required except `titleRoman` and `isbn`.
 | `cover`      | `{emoji, palette[]}`  | SVG placeholder cover; `palette` is 2 hex colors |
 | `isbn`       | string? (optional)    | ISBN-13. EN titles use it to swap in an Open Library cover; omit if unsure |
 | `source`     | `"curated"` \| `"ai"` | launch data is `curated`; promoted AI suggestions are `ai` |
+| `quality`    | number 0–1            | build-time prior — award winners / canonical classics score higher. Used as a small ranking nudge so strong titles surface first on ties. Present on **all generated entries** (the build pipeline assigns it; hand-appended books may omit it and fall back to a neutral default). |
 
 ### Controlled vocabularies
 
@@ -72,6 +73,52 @@ English books are identical in shape, with `lang: "en"`, an English `title`/`aut
 cover at `https://covers.openlibrary.org/b/isbn/<isbn>-L.jpg`). If you are not confident
 an ISBN is real, **omit it** — a missing ISBN just keeps the SVG placeholder cover, which
 is fine. Never fabricate an ISBN.
+
+## Build pipeline (how the catalog is generated)
+
+The bulk of the catalog is now generated, not hand-typed. The pipeline lives at
+`scripts/kids-bookshelf/build-catalog.mjs` and runs in **two phases, build-time only**
+(the deployed demo never calls a model):
+
+1. **Enrich** — `node build-catalog.mjs`
+   Reads the sourced title lists in `scripts/kids-bookshelf/sources/{en,ko}-canon.json`
+   and enriches each title (themes, mood, blurb, readAloud, cover, `quality` prior, …)
+   into `enriched.json` via the Bedrock proxy. This is the only step that touches a
+   model, and it happens on your machine, not in the browser.
+
+2. **Emit** — `node build-catalog.mjs emit`
+   Verifies a sample of `enriched.json`, sanitizes tags (drops anything off-vocab),
+   merges the enriched entries with the existing hand-curated books (append-only — never
+   reuses an `id`), and regenerates `catalog.js`.
+
+To grow the catalog, add titles to the `sources/{en,ko}-canon.json` lists and re-run both
+phases. Hand-appending a single book directly to `catalog.js` (the worked example above)
+still works and is fine for one-offs.
+
+## Recommendation is deterministic & offline
+
+Recommendations are computed entirely in the browser with **no runtime LLM**: a free-text
+keyword→theme lexicon turns the parent's note into scoring signals, a weighted score ranks
+every book, and a diversity pass spreads the final picks across themes/languages. The
+optional **AI 맞춤 추천** layer only *polishes the wording* of books that have already been
+chosen by the deterministic scorer (and may add 1–2 off-catalog "도전" picks) — it never
+does the recommending.
+
+### `NOTE_LEXICON` (in `app.js`)
+
+`NOTE_LEXICON` is the keyword→theme/mood map that turns the parent's free-text note into
+scoring nudges — deterministic and offline. Each entry is:
+
+```js
+{ kw: ["공룡","dino","dinosaur"], theme:"공룡" }          // boosts a theme
+{ kw: ["잠","bedtime","sleep"], theme:"잠자리", mood:"잔잔한" } // boosts theme + mood
+{ kw: ["무서워","scary"], mood:"모험", dir:-1 }            // dir:-1 DOWNweights
+```
+
+To add a keyword, append one `{ kw:[...], theme?, mood?, dir? }` object: `kw` is the list
+of substrings matched case-insensitively against the note, `theme`/`mood` must be valid
+`THEME_VOCAB`/`MOOD_VOCAB` strings, and `dir:-1` flips the signal negative (down-weights a
+theme/mood the parent wants to avoid). Omit `dir` for a normal positive nudge.
 
 ## Validate after editing
 

@@ -1,11 +1,6 @@
-/* 책친구 catalog — append-only book data. See CATALOG.md for the schema.
- * Generated/expanded by scripts/kids-bookshelf/build-catalog.mjs (node build-catalog.mjs emit).
- * Every field except titleRoman/isbn is required. quality (0-1) = build-time prior. */
-window.THEME_VOCAB = ["공룡","우주","동물","공주","자동차","탈것","그림그리기","잠자리","자연","음식","가족","친구","감정","일상","환상","모험","숫자/글자","유머"];
-window.MOOD_VOCAB  = ["웃긴","따뜻한","모험","학습","잔잔한"];
-window.BOOKS = [
+[
  {
-  "id": "kr-gureumppang",
+  "id": "ko-구름빵-a516",
   "lang": "ko",
   "title": "구름빵",
   "author": "백희나",
@@ -23,22 +18,24 @@ window.BOOKS = [
   ],
   "mood": [
    "따뜻한",
-   "잔잔한"
+   "웃긴"
   ],
-  "blurb": "비 오는 날 구름으로 만든 빵을 먹고 하늘을 나는 남매 이야기로, 백희나 특유의 입체 사진 그림이 환상적이에요.",
-  "readAloud": "빵을 먹고 둥실 떠오르는 장면에서 아이를 살짝 안아 올려 보세요.",
+  "blurb": "구름으로 만든 빵을 먹으면 둥실둥실 하늘을 날 수 있어요! 비 오는 날 아침, 고양이 남매가 아빠에게 구름빵을 전해 주는 따뜻하고 신기한 이야기입니다.",
+  "readAloud": "빵을 굽는 장면에서 냄새를 맡는 흉내를 내거나, \"둥실~\" 하며 아이를 살짝 들어 올려 주세요!",
   "cover": {
-   "emoji": "🍞",
+   "emoji": "☁️",
    "palette": [
-    "#cfe3f0",
-    "#e8c98a"
+    "#B0D8F0",
+    "#F5E6C8"
    ]
   },
-  "source": "curated",
-  "quality": 0.7
+  "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
  },
  {
-  "id": "kr-dal-sherbet",
+  "id": "ko-달-샤베트-3230",
   "lang": "ko",
   "title": "달 샤베트",
   "author": "백희나",
@@ -50,27 +47,30 @@ window.BOOKS = [
   "level": "그림책",
   "themes": [
    "환상",
-   "자연",
-   "가족"
+   "음식",
+   "일상",
+   "자연"
   ],
   "mood": [
-   "잔잔한",
-   "따뜻한"
+   "따뜻한",
+   "잔잔한"
   ],
-  "blurb": "무더운 여름밤 녹아내린 달을 받아 샤베트로 만든 반장 할머니의 따뜻한 상상력이 빛나요.",
-  "readAloud": "더운 여름밤 불을 끄고 읽으면 달빛 분위기가 살아나요.",
+  "blurb": "무더운 여름 밤, 할머니가 달빛을 담아 만든 시원한 샤베트를 이웃과 나눠 먹는 마법 같은 이야기예요. 소박하지만 따뜻한 나눔의 마음이 가슴에 오래 남아요.",
+  "readAloud": "샤베트를 먹을 때 \"시원하다~\" 하는 표정을 아이와 함께 지어 보세요!",
   "cover": {
    "emoji": "🌙",
    "palette": [
-    "#2b3a67",
-    "#f2d680"
+    "#1B2A6B",
+    "#F5E6C8"
    ]
   },
-  "source": "curated",
-  "quality": 0.7
+  "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
  },
  {
-  "id": "kr-alsatang",
+  "id": "ko-알사탕-08dc",
   "lang": "ko",
   "title": "알사탕",
   "author": "백희나",
@@ -82,60 +82,66 @@ window.BOOKS = [
   "level": "그림책",
   "themes": [
    "감정",
-   "친구",
-   "가족",
-   "환상"
-  ],
-  "mood": [
-   "따뜻한",
-   "잔잔한"
-  ],
-  "blurb": "마음의 소리가 들리는 알사탕을 먹은 동동이가 아빠와 친구의 진심을 듣게 되는 이야기예요.",
-  "readAloud": "알사탕을 하나씩 먹을 때마다 들리는 목소리를 다른 톤으로 연기해 보세요.",
-  "cover": {
-   "emoji": "🍬",
-   "palette": [
-    "#e85d75",
-    "#f6c453"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-jangsutang",
-  "lang": "ko",
-  "title": "장수탕 선녀님",
-  "author": "백희나",
-  "publisher": "책읽는곰",
-  "ages": [
-   "5-6",
-   "7-9"
-  ],
-  "level": "그림책",
-  "themes": [
    "환상",
    "가족",
    "일상"
   ],
   "mood": [
    "따뜻한",
-   "웃긴"
+   "잔잔한"
   ],
-  "blurb": "오래된 목욕탕 장수탕에서 만난 선녀 할머니와 덕지의 우정을 정겨운 한국 정서로 그렸어요.",
-  "readAloud": "냉탕에 들어가는 장면에서 \"으악, 차가워!\" 하고 함께 소리쳐 보세요.",
+  "blurb": "뽑기 기계에서 나온 신기한 알사탕을 먹으면 주변 사람들의 마음속 목소리가 들려요. 말하지 않아도 서로를 이해할 수 있다는 따뜻한 위로를 전하는 그림책이에요.",
+  "readAloud": "사탕을 먹을 때마다 들리는 목소리를 각 캐릭터별로 다른 톤으로 읽어 주면 아이가 더 몰입할 수 있어요.",
   "cover": {
-   "emoji": "🛁",
+   "emoji": "🍬",
    "palette": [
-    "#9fd3c7",
-    "#e6e6e6"
+    "#F4A7B9",
+    "#FFF8E1"
    ]
   },
-  "source": "curated",
-  "quality": 0.7
+  "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
  },
  {
-  "id": "kr-isanghan-eomma",
+  "id": "ko-장수탕-선녀님-0db1",
+  "lang": "ko",
+  "title": "장수탕 선녀님",
+  "author": "백희나",
+  "publisher": "책읽는곰",
+  "ages": [
+   "3-4",
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "환상",
+   "일상",
+   "가족",
+   "친구"
+  ],
+  "mood": [
+   "따뜻한",
+   "웃긴"
+  ],
+  "blurb": "오래된 동네 목욕탕에서 꼬마 덕지가 진짜 선녀를 만나는 이야기로, 낡고 소박한 일상 속에서 따뜻한 만남과 상상력의 즐거움을 함께 느낄 수 있어요.",
+  "readAloud": "목욕탕 장면에서 물소리·비누 거품 등 의성어·의태어를 신나게 살려 읽어 주세요!",
+  "cover": {
+   "emoji": "🧖‍♀️",
+   "palette": [
+    "#7EC8C8",
+    "#F5E6CA"
+   ]
+  },
+  "quality": 0.97,
+  "real": true,
+  "confidence": 0.98,
+  "source": "curated"
+ },
+ {
+  "id": "ko-이상한-엄마-1aff",
   "lang": "ko",
   "title": "이상한 엄마",
   "author": "백희나",
@@ -153,22 +159,93 @@ window.BOOKS = [
   ],
   "mood": [
    "따뜻한",
-   "잔잔한"
+   "웃긴"
   ],
-  "blurb": "아픈 호호를 돌봐 줄 사람을 찾다 잘못 걸려온 하늘나라 선녀가 엄마가 되어 주는 포근한 이야기예요.",
-  "readAloud": "구름으로 만든 달걀부침 장면을 아이와 함께 상상하며 읽어 보세요.",
+  "blurb": "열이 펄펄 끓는 아이 곁에 나타난 '이상한 엄마'—포근하고 말랑말랑한 그 존재 덕분에 아이는 어느새 씩씩하게 낫는다. 엄마의 사랑이 얼마나 크고 따뜻한지 온몸으로 느끼게 해 주는 그림책이다.",
+  "readAloud": "'이상한 엄마'가 등장하는 장면에서 목소리를 낮고 포근하게 바꿔 읽어 주면 아이가 더 깊이 빠져든다.",
   "cover": {
-   "emoji": "🍳",
+   "emoji": "🌕",
    "palette": [
-    "#bcd4e6",
-    "#f4e1a0"
+    "#F5D07A",
+    "#B2D8D8"
    ]
   },
-  "source": "curated",
-  "quality": 0.7
+  "quality": 0.95,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
  },
  {
-  "id": "kr-gangaji-ddong",
+  "id": "ko-나는-개다-034f",
+  "lang": "ko",
+  "title": "나는 개다",
+  "author": "백희나",
+  "publisher": "책읽는곰",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "감정",
+   "일상",
+   "유머"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "나는 개다! 당당하고 유쾌한 개의 눈으로 바라본 일상이 웃음과 따뜻함을 동시에 전해줍니다.",
+  "readAloud": "아이와 함께 \"나는 개다!\" 대사를 힘차고 우렁차게 따라 읽어 보세요.",
+  "cover": {
+   "emoji": "🐶",
+   "palette": [
+    "#F5C842",
+    "#FFFFFF"
+   ]
+  },
+  "quality": 0.82,
+  "real": true,
+  "confidence": 0.85,
+  "source": "curated"
+ },
+ {
+  "id": "ko-꼬마구름-파랑이-d326",
+  "lang": "ko",
+  "title": "꼬마구름 파랑이",
+  "author": "토미 웅게러",
+  "publisher": "비룡소",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "자연",
+   "환상",
+   "감정"
+  ],
+  "mood": [
+   "잔잔한",
+   "따뜻한"
+  ],
+  "blurb": "하늘을 자유롭게 떠다니는 꼬마 구름 '파랑이'가 세상을 탐험하며 자신만의 자리를 찾아가는 이야기입니다.",
+  "readAloud": "아이와 함께 창밖 구름을 가리키며 \"저 구름은 어떤 기분일까?\" 물어보세요.",
+  "cover": {
+   "emoji": "🌧️",
+   "palette": [
+    "#87CEEB",
+    "#B0C4DE"
+   ]
+  },
+  "quality": 0.6,
+  "real": false,
+  "confidence": 0.15,
+  "source": "curated"
+ },
+ {
+  "id": "ko-강아지똥-0f26",
   "lang": "ko",
   "title": "강아지똥",
   "author": "권정생",
@@ -179,28 +256,31 @@ window.BOOKS = [
   ],
   "level": "그림책",
   "themes": [
+   "동물",
    "자연",
    "감정",
-   "친구"
+   "일상"
   ],
   "mood": [
    "따뜻한",
    "잔잔한"
   ],
-  "blurb": "보잘것없어 보이던 강아지똥이 민들레꽃을 피우며 세상에 쓸모없는 존재는 없다는 걸 알려 줘요.",
-  "readAloud": "마지막 민들레가 피는 장면에서 잠시 멈춰 \"강아지똥이 어떻게 됐을까?\" 물어보세요.",
+  "blurb": "길바닥에 버려진 강아지똥이 민들레꽃을 피워내는 거름이 되기까지, 보잘것없어 보이는 존재도 소중한 쓸모가 있다는 따뜻한 생명 이야기입니다.",
+  "readAloud": "\"나는 쓸모없는 존재일까?\" 책을 읽으며 아이와 함께 내가 소중한 이유를 이야기해 보세요.",
   "cover": {
    "emoji": "🌼",
    "palette": [
-    "#a8763e",
-    "#f2d94e"
+    "#8B5E3C",
+    "#F9E04B"
    ]
   },
-  "source": "curated",
-  "quality": 0.7
+  "quality": 1,
+  "real": true,
+  "confidence": 1,
+  "source": "curated"
  },
  {
-  "id": "kr-mongsil-eonni",
+  "id": "ko-몽실-언니-8462",
   "lang": "ko",
   "title": "몽실 언니",
   "author": "권정생",
@@ -215,1217 +295,30 @@ window.BOOKS = [
    "일상"
   ],
   "mood": [
-   "잔잔한",
    "따뜻한"
   ],
-  "blurb": "전쟁과 가난 속에서도 동생을 보살피는 몽실이의 강인함이 깊은 울림을 주는 한국 동화예요.",
-  "readAloud": "조금 긴 이야기이니 하루 한 장씩 나눠 읽으며 몽실이 마음을 함께 이야기해 보세요.",
+  "blurb": "이 책은 0~9세 어린이 그림책 범위를 벗어난 장편 아동소설로, 그림책 큐레이터 대상 도서가 아닙니다.",
+  "readAloud": "초등 고학년 이상 독자에게 적합하므로, 어린 자녀와의 소리 내어 읽기보다는 부모가 먼저 읽고 이야기 나눠보세요.",
   "cover": {
-   "emoji": "👧",
+   "emoji": "📖",
    "palette": [
-    "#8a6d3b",
-    "#d9c5a0"
+    "#c0392b",
+    "#f5cba7"
    ]
   },
-  "source": "curated",
-  "quality": 0.7
+  "quality": 0.95,
+  "real": false,
+  "confidence": 0.1,
+  "source": "curated"
  },
  {
-  "id": "kr-geurimja-nori",
-  "lang": "ko",
-  "title": "그림자놀이",
-  "author": "이수지",
-  "publisher": "비룡소",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "환상",
-   "그림그리기",
-   "일상"
-  ],
-  "mood": [
-   "잔잔한",
-   "학습"
-  ],
-  "blurb": "불을 켜자 살아나는 그림자들이 펼치는 글 없는 그림책으로, 상상의 세계가 페이지마다 자라나요.",
-  "readAloud": "글이 없으니 아이가 그림을 보며 직접 이야기를 지어내게 해 보세요.",
-  "cover": {
-   "emoji": "🌑",
-   "palette": [
-    "#f2c94c",
-    "#1a1a1a"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-pado-ya",
-  "lang": "ko",
-  "title": "파도야 놀자",
-  "author": "이수지",
-  "publisher": "비룡소",
-  "ages": [
-   "0-2",
-   "3-4"
-  ],
-  "level": "그림책",
-  "themes": [
-   "자연",
-   "감정",
-   "일상"
-  ],
-  "mood": [
-   "잔잔한"
-  ],
-  "blurb": "바닷가에서 파도와 밀고 당기며 노는 아이의 마음을 파랑과 흑백만으로 시원하게 담은 글 없는 그림책이에요.",
-  "readAloud": "파도가 밀려올 때 \"와아\" 하고 손으로 파도를 그려 보여 주세요.",
-  "cover": {
-   "emoji": "🌊",
-   "palette": [
-    "#3aa0d6",
-    "#eef3f6"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-subak-suyeong",
-  "lang": "ko",
-  "title": "수박 수영장",
-  "author": "안녕달",
-  "publisher": "창비",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "음식",
-   "환상",
-   "일상",
-   "자연"
-  ],
-  "mood": [
-   "웃긴",
-   "잔잔한"
-  ],
-  "blurb": "거대한 수박이 수영장이 되는 무더운 여름날의 상상으로, 시원함과 즐거움이 가득해요.",
-  "readAloud": "수박물에 풍덩 빠지는 장면에서 \"첨벙!\" 효과음을 함께 내 보세요.",
-  "cover": {
-   "emoji": "🍉",
-   "palette": [
-    "#e34b54",
-    "#3aaf5c"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-halmeoni-yeoreum",
-  "lang": "ko",
-  "title": "할머니의 여름휴가",
-  "author": "안녕달",
-  "publisher": "창비",
-  "ages": [
-   "5-6",
-   "7-9"
-  ],
-  "level": "그림책",
-  "themes": [
-   "가족",
-   "자연",
-   "환상"
-  ],
-  "mood": [
-   "잔잔한",
-   "따뜻한"
-  ],
-  "blurb": "손주가 주워 온 소라 껍데기에서 흘러나온 바다로 떠나는 할머니의 여름휴가가 잔잔한 위로를 줘요.",
-  "readAloud": "소라를 귀에 대면 바다 소리가 들린다고 알려 주고 함께 흉내 내 보세요.",
-  "cover": {
-   "emoji": "🐚",
-   "palette": [
-    "#6db5c7",
-    "#f0e3c2"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-sol-chuseok",
-  "lang": "ko",
-  "title": "솔이의 추석 이야기",
-  "author": "이억배",
-  "publisher": "길벗어린이",
-  "ages": [
-   "5-6",
-   "7-9"
-  ],
-  "level": "그림책",
-  "themes": [
-   "가족",
-   "일상",
-   "자연"
-  ],
-  "mood": [
-   "따뜻한",
-   "잔잔한"
-  ],
-  "blurb": "추석을 맞아 고향에 내려가는 솔이네 가족의 모습으로 우리 명절 풍경을 정겹게 담았어요.",
-  "readAloud": "그림 속 시골 길과 차례상을 가리키며 우리 가족 명절 이야기를 들려주세요.",
-  "cover": {
-   "emoji": "🌕",
-   "palette": [
-    "#c98a3b",
-    "#f2dca0"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-sonkeun-halmeoni",
-  "lang": "ko",
-  "title": "손 큰 할머니의 만두 만들기",
-  "author": "채인선",
-  "publisher": "재미마주",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "가족",
-   "음식",
-   "일상",
-   "동물"
-  ],
-  "mood": [
-   "따뜻한",
-   "웃긴"
-  ],
-  "blurb": "설을 앞두고 산더미처럼 만두를 빚는 손 큰 할머니와 동물들의 흥겨운 만두 잔치예요.",
-  "readAloud": "만두 빚는 시늉을 손으로 함께 하며 읽으면 더 신나요.",
-  "cover": {
-   "emoji": "🥟",
-   "palette": [
-    "#e8b04b",
-    "#f6efe2"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-jigak-john",
-  "lang": "ko",
-  "title": "지각대장 존",
-  "author": "존 버닝햄",
-  "publisher": "비룡소",
-  "titleRoman": "John Patrick Norman McHennessy (KR ed.)",
-  "ages": [
-   "5-6",
-   "7-9"
-  ],
-  "level": "그림책",
-  "themes": [
-   "유머",
-   "환상",
-   "일상",
-   "모험"
-  ],
-  "mood": [
-   "웃긴",
-   "모험"
-  ],
-  "blurb": "학교 가는 길에 악어와 사자를 만나 늘 지각하는 존의 이야기로, 어른의 불신을 유쾌하게 꼬집어요.",
-  "readAloud": "선생님의 호통과 존의 변명을 서로 다른 목소리로 연기해 보세요.",
-  "cover": {
-   "emoji": "🐊",
-   "palette": [
-    "#5a8f3c",
-    "#e8d49a"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-yonggamhan-irene",
-  "lang": "ko",
-  "title": "용감한 아이린",
-  "author": "윌리엄 스타이그",
-  "publisher": "웅진주니어",
-  "titleRoman": "Brave Irene (KR ed.)",
-  "ages": [
-   "5-6",
-   "7-9"
-  ],
-  "level": "그림책",
-  "themes": [
-   "모험",
-   "가족",
-   "감정",
-   "자연"
-  ],
-  "mood": [
-   "모험",
-   "따뜻한"
-  ],
-  "blurb": "아픈 엄마 대신 눈보라를 뚫고 드레스를 배달하는 아이린의 용기가 가슴을 뭉클하게 해요.",
-  "readAloud": "바람이 거세지는 장면에서 목소리를 점점 크게 해 긴장감을 살려 보세요.",
-  "cover": {
-   "emoji": "❄️",
-   "palette": [
-    "#cfe0ec",
-    "#d65a5a"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-gwaenchana",
-  "lang": "ko",
-  "title": "괜찮아",
-  "author": "최숙희",
-  "publisher": "웅진주니어",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "감정",
-   "동물",
-   "일상"
-  ],
-  "mood": [
-   "따뜻한",
-   "학습"
-  ],
-  "blurb": "느려도, 작아도, 못해도 \"괜찮아\"라고 다독여 주며 아이의 자존감을 따뜻하게 키워 줘요.",
-  "readAloud": "한 장면마다 아이를 보며 \"괜찮아\" 하고 함께 말해 주세요.",
-  "cover": {
-   "emoji": "🤗",
-   "palette": [
-    "#f4b6c2",
-    "#fff3e0"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-eomma-majung",
-  "lang": "ko",
-  "title": "엄마 마중",
-  "author": "이태준",
-  "publisher": "보림",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "가족",
-   "감정",
-   "일상"
-  ],
-  "mood": [
-   "잔잔한",
-   "따뜻한"
-  ],
-  "blurb": "전차 정류장에서 엄마를 기다리는 아기의 모습을 옛 그림으로 담은, 기다림의 정서가 깊은 그림책이에요.",
-  "readAloud": "\"엄마 안 와?\" 하고 묻는 아기 마음을 함께 천천히 따라가 보세요.",
-  "cover": {
-   "emoji": "🚋",
-   "palette": [
-    "#b5651d",
-    "#efe6d3"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-go-nyeoseok",
-  "lang": "ko",
-  "title": "고 녀석 맛있겠다",
-  "author": "미야니시 타츠야",
-  "publisher": "달리",
-  "titleRoman": "You Are Umasou (KR ed.)",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "공룡",
-   "가족",
-   "감정",
-   "모험"
-  ],
-  "mood": [
-   "따뜻한",
-   "모험"
-  ],
-  "blurb": "잡아먹으려던 아기 공룡을 아들로 키우게 된 티라노사우루스의 뭉클한 부정을 그린 인기 공룡 그림책이에요.",
-  "readAloud": "사나운 공룡 목소리와 아기 공룡 \"아빠!\" 목소리를 대비시켜 읽어 보세요.",
-  "cover": {
-   "emoji": "🦖",
-   "palette": [
-    "#3f7d3f",
-    "#e6a23c"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-doseogwan-saja",
-  "lang": "ko",
-  "title": "도서관에 간 사자",
-  "author": "미셸 누드슨",
-  "publisher": "웅진주니어",
-  "titleRoman": "Library Lion (KR ed.)",
-  "ages": [
-   "5-6",
-   "7-9"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "친구",
-   "일상",
-   "감정"
-  ],
-  "mood": [
-   "따뜻한",
-   "웃긴"
-  ],
-  "blurb": "도서관 규칙을 지키며 모두의 친구가 된 사자가 규칙과 마음 사이에서 진짜 중요한 게 뭔지 보여 줘요.",
-  "readAloud": "도서관에서는 작게 말해야 한다고 속삭이듯 읽다가 사자가 포효하는 장면에서 살짝 크게!",
-  "cover": {
-   "emoji": "🦁",
-   "palette": [
-    "#d98a2b",
-    "#efe2c2"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-baekgu",
-  "lang": "ko",
-  "title": "백구",
-  "author": "김민기",
-  "publisher": "사계절",
-  "ages": [
-   "5-6",
-   "7-9"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "가족",
-   "감정"
-  ],
-  "mood": [
-   "잔잔한",
-   "따뜻한"
-  ],
-  "blurb": "한 아이와 흰둥이 백구가 함께 자라며 나누는 우정과 이별을 노랫말처럼 잔잔하게 그렸어요.",
-  "readAloud": "원곡 노래 '백구'를 함께 흥얼거리며 읽으면 감동이 배가돼요.",
-  "cover": {
-   "emoji": "🐕",
-   "palette": [
-    "#e8e2d4",
-    "#9a8f7a"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-assibang",
-  "lang": "ko",
-  "title": "아씨방 일곱 동무",
-  "author": "이영경",
-  "publisher": "비룡소",
-  "ages": [
-   "5-6",
-   "7-9"
-  ],
-  "level": "그림책",
-  "themes": [
-   "일상",
-   "유머",
-   "환상"
-  ],
-  "mood": [
-   "웃긴",
-   "학습"
-  ],
-  "blurb": "바늘·실·가위·자·골무·인두·다리미 일곱 바느질 동무가 서로 제일이라 다투는 우리 옛이야기로, 옛 살림살이를 정겹게 만나요.",
-  "readAloud": "바느질 도구를 하나씩 가리키며 \"이건 뭐 하는 물건일까?\" 하고 물어보세요.",
-  "cover": {
-   "emoji": "🧵",
-   "palette": [
-    "#c44a52",
-    "#f0d59a"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-nuga-naui-seulpeum",
-  "lang": "ko",
-  "title": "누가 내 머리에 똥 쌌어?",
-  "author": "베르너 홀츠바르트",
-  "publisher": "사계절",
-  "titleRoman": "The Story of the Little Mole (KR ed.)",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "유머",
-   "일상"
-  ],
-  "mood": [
-   "웃긴",
-   "학습"
-  ],
-  "blurb": "머리에 똥을 맞은 두더지가 범인을 찾아 나서는 유쾌한 추리로, 아이들이 깔깔 웃으며 동물 똥을 배워요.",
-  "readAloud": "동물들의 똥 모양을 비교하는 장면에서 \"이건 누구 똥일까?\" 퀴즈를 내 보세요.",
-  "cover": {
-   "emoji": "💩",
-   "palette": [
-    "#8a6d3b",
-    "#cbe3a0"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-geumbungeo",
-  "lang": "ko",
-  "title": "금붕어가 달아나네",
-  "author": "고미 타로",
-  "publisher": "한림출판사",
-  "titleRoman": "Where's the Fish? (KR ed.)",
-  "ages": [
-   "0-2",
-   "3-4"
-  ],
-  "level": "보드북",
-  "themes": [
-   "동물",
-   "일상",
-   "유머"
-  ],
-  "mood": [
-   "웃긴",
-   "잔잔한"
-  ],
-  "blurb": "달아난 금붕어가 비슷하게 생긴 물건들 사이에 숨는 숨은그림찾기 구성으로, 아기가 손끝으로 짚으며 까르르 즐겨요.",
-  "readAloud": "페이지마다 \"금붕어 어디 있지?\" 하고 아이가 직접 찾게 해 보세요.",
-  "cover": {
-   "emoji": "🐟",
-   "palette": [
-    "#f4c430",
-    "#e85d75"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-aegyo-jeonseol",
-  "lang": "ko",
-  "title": "이파라파냐무냐무",
-  "author": "이지은",
-  "publisher": "사계절",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "친구",
-   "감정",
-   "유머",
-   "환상"
-  ],
-  "mood": [
-   "웃긴",
-   "따뜻한"
-  ],
-  "blurb": "무섭게만 보였던 솜털 괴물과 마시멜로들이 오해를 풀고 친구가 되는 과정을 통통 튀는 말맛으로 그렸어요.",
-  "readAloud": "\"이파라파냐무냐무\" 주문을 아이와 함께 큰 소리로 외쳐 보세요.",
-  "cover": {
-   "emoji": "👾",
-   "palette": [
-    "#f4a6c0",
-    "#a0d8ef"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-doldol",
-  "lang": "ko",
-  "title": "팥죽 할멈과 호랑이",
-  "author": "박윤규",
-  "publisher": "시공주니어",
-  "ages": [
-   "5-6",
-   "7-9"
-  ],
-  "level": "그림책",
-  "themes": [
-   "환상",
-   "유머",
-   "음식",
-   "동물"
-  ],
-  "mood": [
-   "웃긴",
-   "모험"
-  ],
-  "blurb": "호랑이를 물리치려 팥죽 할멈을 돕는 알밤, 자라, 송곳, 멍석의 활약을 그린 우리 전래동화예요.",
-  "readAloud": "알밤이 튀고 자라가 무는 장면마다 \"퍽! 콱!\" 효과음을 넣어 읽어 보세요.",
-  "cover": {
-   "emoji": "🐯",
-   "palette": [
-    "#b5651d",
-    "#e8c07a"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-kkachi",
-  "lang": "ko",
-  "title": "팥이 영감과 우르르 산토끼",
-  "author": "박재철",
-  "publisher": "길벗어린이",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "유머",
-   "일상"
-  ],
-  "mood": [
-   "웃긴",
-   "잔잔한"
-  ],
-  "blurb": "우리 옛이야기 특유의 반복과 리듬이 살아 있어 아이가 다음 장면을 예측하며 즐기게 돼요.",
-  "readAloud": "반복되는 후렴을 아이가 따라 말하도록 잠깐씩 멈춰 주세요.",
-  "cover": {
-   "emoji": "🐰",
-   "palette": [
-    "#c98a3b",
-    "#e8e0c8"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-sseodeolheun",
-  "lang": "ko",
-  "title": "사과가 쿵!",
-  "author": "다다 히로시",
-  "publisher": "보림",
-  "titleRoman": "(KR ed.)",
-  "ages": [
-   "0-2",
-   "3-4"
-  ],
-  "level": "보드북",
-  "themes": [
-   "동물",
-   "음식",
-   "일상"
-  ],
-  "mood": [
-   "잔잔한",
-   "따뜻한"
-  ],
-  "blurb": "커다란 사과 하나에 동물들이 차례로 모여 나눠 먹는 모습을 큼직한 그림과 짧은 글로 담아 아기에게 좋아요.",
-  "readAloud": "\"쿵!\" 소리에 맞춰 책을 살짝 흔들어 주면 아기가 까르르 웃어요.",
-  "cover": {
-   "emoji": "🍎",
-   "palette": [
-    "#e0413e",
-    "#8bc34a"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-no-david",
-  "lang": "ko",
-  "title": "안 돼, 데이빗!",
-  "author": "데이비드 섀논",
-  "publisher": "지경사",
-  "titleRoman": "No, David! (KR ed.)",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "가족",
-   "감정",
-   "일상",
-   "유머"
-  ],
-  "mood": [
-   "웃긴",
-   "따뜻한"
-  ],
-  "blurb": "온갖 장난을 치는 데이빗에게 \"안 돼!\"를 외치다 결국 \"사랑해\"로 끝나는, 아이 마음을 꼭 안아 주는 책이에요.",
-  "readAloud": "\"안 돼, 데이빗!\"을 아이와 번갈아 외치며 장난스럽게 읽어 보세요.",
-  "cover": {
-   "emoji": "🙅",
-   "palette": [
-    "#e8595e",
-    "#f4d03f"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-kkokkkok-sumeo",
-  "lang": "ko",
-  "title": "두드려 보아요",
-  "author": "안나 클라라 티돌름",
-  "publisher": "사계절",
-  "titleRoman": "Knock! Knock! (KR ed.)",
-  "ages": [
-   "0-2",
-   "3-4"
-  ],
-  "level": "보드북",
-  "themes": [
-   "일상",
-   "환상",
-   "동물"
-  ],
-  "mood": [
-   "잔잔한",
-   "따뜻한"
-  ],
-  "blurb": "문을 똑똑 두드리며 한 장씩 넘기는 반복 구조로 아기가 직접 책장을 넘기고 싶게 만들어요.",
-  "readAloud": "책장을 넘기기 전에 \"똑똑\" 하고 책을 두드려 기대감을 주세요.",
-  "cover": {
-   "emoji": "🚪",
-   "palette": [
-    "#d98a2b",
-    "#f0e3c2"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-jeo-mari",
-  "lang": "ko",
-  "title": "지원이와 병관이",
-  "author": "고대영",
-  "publisher": "길벗어린이",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "일상",
-   "가족",
-   "친구",
-   "감정"
-  ],
-  "mood": [
-   "따뜻한",
-   "웃긴"
-  ],
-  "blurb": "친근한 두 아이의 평범한 하루를 통해 또래 아이가 자기 일상을 책 속에서 만나는 인기 생활 그림책 시리즈예요.",
-  "readAloud": "\"너도 이런 적 있어?\" 하고 아이의 비슷한 경험을 물어보세요.",
-  "cover": {
-   "emoji": "🧒",
-   "palette": [
-    "#7fb069",
-    "#f6c453"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-yuchiwon-ganeun-gil",
-  "lang": "ko",
-  "title": "치과 의사 드소토 선생님",
-  "author": "윌리엄 스타이그",
-  "publisher": "비룡소",
-  "titleRoman": "Doctor De Soto (KR ed.)",
-  "ages": [
-   "5-6",
-   "7-9"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "유머",
-   "일상",
-   "감정"
-  ],
-  "mood": [
-   "웃긴",
-   "모험"
-  ],
-  "blurb": "생쥐 치과의사가 자기를 잡아먹으려는 여우를 꾀로 따돌리는 통쾌하고 영리한 이야기예요.",
-  "readAloud": "여우의 음흉한 속셈과 드소토 부부의 작전을 목소리로 대비시켜 보세요.",
-  "cover": {
-   "emoji": "🦷",
-   "palette": [
-    "#d98a2b",
-    "#cfe0ec"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-nuneun-jakjiman",
-  "lang": "ko",
-  "title": "프레드릭",
-  "author": "레오 리오니",
-  "publisher": "시공주니어",
-  "titleRoman": "Frederick (KR ed.)",
-  "ages": [
-   "5-6",
-   "7-9"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "감정",
-   "자연",
-   "친구"
-  ],
-  "mood": [
-   "잔잔한",
-   "따뜻한"
-  ],
-  "blurb": "겨울을 위해 햇살과 색깔과 이야기를 모은 들쥐 프레드릭이 예술의 가치를 잔잔하게 일깨워 줘요.",
-  "readAloud": "프레드릭이 모은 햇살을 떠올리는 장면에서 잠시 눈을 감고 상상해 보세요.",
-  "cover": {
-   "emoji": "🐭",
-   "palette": [
-    "#9b8cb0",
-    "#e8c07a"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-saekkkal-bipa",
-  "lang": "ko",
-  "title": "무지개 물고기",
-  "author": "마르쿠스 피스터",
-  "publisher": "시공주니어",
-  "titleRoman": "The Rainbow Fish (KR ed.)",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "친구",
-   "감정",
-   "자연"
-  ],
-  "mood": [
-   "따뜻한",
-   "학습"
-  ],
-  "blurb": "반짝이는 비늘을 친구들과 나누며 진짜 행복을 배우는 무지개 물고기 이야기로, 나눔의 기쁨을 알려 줘요.",
-  "readAloud": "반짝이 비늘을 손끝으로 만지며 \"하나 나눠 줄까?\" 흉내 내 보세요.",
-  "cover": {
-   "emoji": "🐠",
-   "palette": [
-    "#3aa0d6",
-    "#c0a0e0"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-uju-danyeo",
-  "lang": "ko",
-  "title": "우주 다녀오겠습니다",
-  "author": "장선환",
-  "publisher": "딸기책방",
-  "ages": [
-   "5-6",
-   "7-9"
-  ],
-  "level": "그림책",
-  "themes": [
-   "우주",
-   "환상",
-   "모험",
-   "자연"
-  ],
-  "mood": [
-   "모험",
-   "학습"
-  ],
-  "blurb": "우주로 떠나는 상상 여행을 한국 그림책 특유의 따뜻한 그림에 담아, 우주를 좋아하는 아이의 호기심을 한껏 채워 줘요.",
-  "readAloud": "밤하늘 그림을 보며 \"저 별까지 가 볼까?\" 하고 함께 상상해 보세요.",
-  "cover": {
-   "emoji": "🪐",
-   "palette": [
-    "#1a2a55",
-    "#f2d94e"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-baekman-mari",
-  "lang": "ko",
-  "title": "백만 마리 고양이",
-  "author": "완다 가그",
-  "publisher": "시공주니어",
-  "titleRoman": "Millions of Cats (KR ed.)",
-  "ages": [
-   "5-6",
-   "7-9"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "숫자/글자",
-   "유머",
-   "환상"
-  ],
-  "mood": [
-   "웃긴",
-   "잔잔한"
-  ],
-  "blurb": "백만 마리 고양이 중 단 한 마리를 고르는 할아버지 이야기로, 오래도록 사랑받아 온 그림책의 고전이에요.",
-  "readAloud": "\"백 마리, 천 마리, 백만 마리!\" 후렴을 점점 크게 외쳐 보세요.",
-  "cover": {
-   "emoji": "🐈",
-   "palette": [
-    "#5b5b5b",
-    "#e8e0c8"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-juljuri-horangi",
-  "lang": "ko",
-  "title": "줄줄이 꿴 호랑이",
-  "author": "권문희",
-  "publisher": "사계절",
-  "ages": [
-   "5-6",
-   "7-9"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "유머",
-   "환상",
-   "모험"
-  ],
-  "mood": [
-   "웃긴",
-   "모험"
-  ],
-  "blurb": "꾀로 호랑이들을 줄줄이 엮어 버리는 우리 옛이야기로, 반복되는 리듬과 통쾌한 결말이 아이를 사로잡아요.",
-  "readAloud": "호랑이가 한 마리씩 엮일 때마다 \"또 한 마리!\" 하고 손가락으로 세어 보세요.",
-  "cover": {
-   "emoji": "🐯",
-   "palette": [
-    "#b5651d",
-    "#e8c07a"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-naneun-gae",
-  "lang": "ko",
-  "title": "나는 개다",
-  "author": "백희나",
-  "publisher": "책읽는곰",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "가족",
-   "일상",
-   "감정"
-  ],
-  "mood": [
-   "따뜻한",
-   "웃긴"
-  ],
-  "blurb": "강아지 구슬이의 눈으로 바라본 집과 가족 이야기로, 백희나 특유의 입체 인형 그림이 반려견의 마음을 폭 감싸 줘요.",
-  "readAloud": "구슬이가 가족을 바라보는 장면에서 \"강아지는 무슨 생각을 할까?\" 하고 물어보세요.",
-  "cover": {
-   "emoji": "🐶",
-   "palette": [
-    "#e6a23c",
-    "#cfe3f0"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-jageun-jip",
-  "lang": "ko",
-  "title": "괴물들이 사는 나라",
-  "author": "모리스 샌닥",
-  "publisher": "시공주니어",
-  "titleRoman": "Where the Wild Things Are (KR ed.)",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "환상",
-   "감정",
-   "모험",
-   "가족"
-  ],
-  "mood": [
-   "모험",
-   "따뜻한"
-  ],
-  "blurb": "화가 난 맥스가 괴물들의 나라로 떠났다 결국 따뜻한 저녁밥이 기다리는 집으로 돌아오는 마음의 모험이에요.",
-  "readAloud": "\"괴물 소동을 시작하자!\" 장면에서 함께 발을 구르며 신나게 읽어 보세요.",
-  "cover": {
-   "emoji": "👹",
-   "palette": [
-    "#5a7d3c",
-    "#e0c98a"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-eojjeonji",
-  "lang": "ko",
-  "title": "치킨 마스크",
-  "author": "우쓰기 미호",
-  "publisher": "책읽는곰",
-  "titleRoman": "(KR ed.)",
-  "ages": [
-   "5-6",
-   "7-9"
-  ],
-  "level": "그림책",
-  "themes": [
-   "감정",
-   "친구",
-   "일상",
-   "유머"
-  ],
-  "mood": [
-   "따뜻한",
-   "잔잔한"
-  ],
-  "blurb": "남들과 달라 속상하던 아이가 자기만의 멋을 찾아가는 과정을 통해 \"나다움\"의 소중함을 알려 줘요.",
-  "readAloud": "\"너는 어떤 게 제일 멋져?\" 하고 아이의 장점을 함께 찾아보세요.",
-  "cover": {
-   "emoji": "🐔",
-   "palette": [
-    "#f4c430",
-    "#e8595e"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-batjul",
-  "lang": "ko",
-  "title": "달님 안녕",
-  "author": "하야시 아키코",
-  "publisher": "한림출판사",
-  "titleRoman": "Good Night, Moon (Hayashi, KR ed.)",
-  "ages": [
-   "0-2",
-   "3-4"
-  ],
-  "level": "보드북",
-  "themes": [
-   "잠자리",
-   "자연",
-   "일상",
-   "가족"
-  ],
-  "mood": [
-   "잔잔한",
-   "따뜻한"
-  ],
-  "blurb": "구름에 가렸다 다시 나타나는 달님에게 인사하는 단순하고 포근한 잠자리 그림책의 대표작이에요.",
-  "readAloud": "\"달님, 안녕\" 하고 창밖 달을 가리키며 마무리하면 잠들기 좋아요.",
-  "cover": {
-   "emoji": "🌝",
-   "palette": [
-    "#2b3a67",
-    "#f4d35e"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-soksak",
-  "lang": "ko",
-  "title": "싹싹싹",
-  "author": "하야시 아키코",
-  "publisher": "한림출판사",
-  "titleRoman": "(KR ed.)",
-  "ages": [
-   "0-2",
-   "3-4"
-  ],
-  "level": "보드북",
-  "themes": [
-   "일상",
-   "음식",
-   "동물"
-  ],
-  "mood": [
-   "잔잔한",
-   "따뜻한"
-  ],
-  "blurb": "밥을 깨끗이 비우는 모습을 정겨운 그림으로 보여 주어 아기의 식사 습관에 좋은 첫 보드북이에요.",
-  "readAloud": "\"싹싹싹\" 소리에 맞춰 숟가락 흉내를 내며 읽어 보세요.",
-  "cover": {
-   "emoji": "🍚",
-   "palette": [
-    "#f0e3c2",
-    "#e8a04b"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-momi-ggomjirak",
-  "lang": "ko",
-  "title": "악어도 깜짝, 치과 의사도 깜짝!",
-  "author": "고미 타로",
-  "publisher": "비룡소",
-  "titleRoman": "(KR ed.)",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "유머",
-   "일상"
-  ],
-  "mood": [
-   "웃긴",
-   "학습"
-  ],
-  "blurb": "악어와 치과의사가 똑같은 대사를 주고받는 거울 구성으로, 양치와 치과의 두려움을 웃음으로 풀어 줘요.",
-  "readAloud": "양쪽 페이지를 번갈아 읽으며 같은 말이 반복되는 재미를 느껴 보세요.",
-  "cover": {
-   "emoji": "🐊",
-   "palette": [
-    "#5a8f3c",
-    "#f4d35e"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-amuto-mollae",
-  "lang": "ko",
-  "title": "사라, 버스를 타다",
-  "author": "윌리엄 밀러",
-  "publisher": "사계절",
-  "titleRoman": "(KR ed.)",
-  "ages": [
-   "7-9"
-  ],
-  "level": "그림책",
-  "themes": [
-   "감정",
-   "가족",
-   "일상"
-  ],
-  "mood": [
-   "잔잔한",
-   "학습"
-  ],
-  "blurb": "버스 앞자리에 앉고 싶었던 사라의 작은 용기를 통해 평등과 정의의 가치를 아이 눈높이로 전해요.",
-  "readAloud": "\"왜 사라는 뒤에 앉아야 했을까?\" 하고 함께 생각해 보세요.",
-  "cover": {
-   "emoji": "🚌",
-   "palette": [
-    "#c98a3b",
-    "#5b5b5b"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "kr-osori-kkotbat",
+  "id": "ko-오소리네-집-꽃밭-eea5",
   "lang": "ko",
   "title": "오소리네 집 꽃밭",
   "author": "권정생",
   "publisher": "길벗어린이",
   "ages": [
+   "3-4",
    "5-6",
    "7-9"
   ],
@@ -1433,1512 +326,26 @@ window.BOOKS = [
   "themes": [
    "동물",
    "자연",
-   "감정",
-   "일상"
-  ],
-  "mood": [
-   "잔잔한",
-   "따뜻한"
-  ],
-  "blurb": "들꽃 가득한 오소리네 마당을 권정생 특유의 따뜻한 시선으로 그려, 우리 산과 들의 정겨운 아름다움을 일깨워 줘요.",
-  "readAloud": "그림 속 들꽃 이름을 하나씩 짚으며 \"이 꽃 본 적 있어?\" 하고 물어보세요.",
-  "cover": {
-   "emoji": "🦡",
-   "palette": [
-    "#8a6d3b",
-    "#d9c5a0"
-   ]
-  },
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-hungry-caterpillar",
-  "lang": "en",
-  "title": "The Very Hungry Caterpillar",
-  "author": "Eric Carle",
-  "publisher": "Philomel Books",
-  "ages": [
-   "0-2",
-   "3-4"
-  ],
-  "level": "보드북",
-  "themes": [
-   "동물",
-   "음식",
-   "자연",
-   "숫자/글자"
-  ],
-  "mood": [
-   "학습",
-   "따뜻한"
-  ],
-  "blurb": "애벌레가 요일마다 과일을 먹어 치우며 나비가 되는 이야기로, 요일·숫자·색을 자연스럽게 익혀요.",
-  "readAloud": "구멍 난 과일 페이지에 손가락을 넣어 \"쏙\" 하고 통과시켜 보세요.",
-  "cover": {
-   "emoji": "🐛",
-   "palette": [
-    "#5cb85c",
-    "#e8595e"
-   ]
-  },
-  "isbn": "9780399226908",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-brown-bear",
-  "lang": "en",
-  "title": "Brown Bear, Brown Bear, What Do You See?",
-  "author": "Bill Martin Jr. & Eric Carle",
-  "publisher": "Henry Holt",
-  "ages": [
-   "0-2",
-   "3-4"
-  ],
-  "level": "보드북",
-  "themes": [
-   "동물",
-   "숫자/글자",
-   "자연"
-  ],
-  "mood": [
-   "학습",
-   "잔잔한"
-  ],
-  "blurb": "반복되는 문장과 선명한 색의 동물들이 이어져 아기의 첫 영어 패턴 읽기에 더없이 좋아요.",
-  "readAloud": "\"What do you see?\"를 부모가 묻고 아이가 다음 동물을 맞히게 해 보세요.",
-  "cover": {
-   "emoji": "🐻",
-   "palette": [
-    "#8a5a2b",
-    "#e8c07a"
-   ]
-  },
-  "isbn": "9780805047905",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-goodnight-moon",
-  "lang": "en",
-  "title": "Goodnight Moon",
-  "author": "Margaret Wise Brown",
-  "publisher": "HarperCollins",
-  "ages": [
-   "0-2",
-   "3-4"
-  ],
-  "level": "보드북",
-  "themes": [
-   "잠자리",
-   "일상",
-   "자연"
-  ],
-  "mood": [
-   "잔잔한",
-   "따뜻한"
-  ],
-  "blurb": "방 안 물건 하나하나에 잘 자라 인사하는 잔잔한 운율이 아기를 스르르 잠들게 하는 잠자리 고전이에요.",
-  "readAloud": "목소리를 점점 작게 낮춰 마지막엔 속삭이듯 \"goodnight\"으로 마무리해요.",
-  "cover": {
-   "emoji": "🌙",
-   "palette": [
-    "#2b6b4f",
-    "#f4d35e"
-   ]
-  },
-  "isbn": "9780060275044",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-gruffalo",
-  "lang": "en",
-  "title": "The Gruffalo",
-  "author": "Julia Donaldson & Axel Scheffler",
-  "publisher": "Macmillan",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "환상",
-   "모험",
-   "유머"
-  ],
-  "mood": [
-   "모험",
-   "웃긴"
-  ],
-  "blurb": "꾀 많은 생쥐가 무서운 괴물 그루팔로를 상상으로 만들어 위기를 넘기는, 운율이 살아 있는 모험담이에요.",
-  "readAloud": "라임이 많으니 끝 단어를 아이가 따라 말하도록 잠깐 멈춰 주세요.",
-  "cover": {
-   "emoji": "👹",
-   "palette": [
-    "#7a5230",
-    "#a8c66c"
-   ]
-  },
-  "isbn": "9780333710937",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-room-on-broom",
-  "lang": "en",
-  "title": "Room on the Broom",
-  "author": "Julia Donaldson & Axel Scheffler",
-  "publisher": "Macmillan",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "환상",
-   "동물",
-   "모험",
-   "친구"
-  ],
-  "mood": [
-   "모험",
-   "웃긴"
-  ],
-  "blurb": "마녀의 빗자루에 동물 친구들이 하나둘 올라타며 협동의 힘을 보여 주는 신나는 운율 그림책이에요.",
-  "readAloud": "빗자루가 점점 무거워지는 만큼 목소리에 힘을 실어 읽어 보세요.",
-  "cover": {
-   "emoji": "🧹",
-   "palette": [
-    "#5b3b8a",
-    "#e8a04b"
-   ]
-  },
-  "isbn": "9780333903384",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-stick-man",
-  "lang": "en",
-  "title": "Stick Man",
-  "author": "Julia Donaldson & Axel Scheffler",
-  "publisher": "Alison Green Books",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "환상",
    "가족",
-   "모험",
-   "자연"
-  ],
-  "mood": [
-   "모험",
-   "따뜻한"
-  ],
-  "blurb": "집으로 돌아가려는 막대기 아빠의 모험을 통해 가족의 소중함을 운율 가득한 이야기로 전해요.",
-  "readAloud": "막대 인간이 이리저리 휩쓸리는 장면에서 책을 함께 흔들어 보세요.",
-  "cover": {
-   "emoji": "🪵",
-   "palette": [
-    "#8a5a2b",
-    "#a8c66c"
-   ]
-  },
-  "isbn": "9781407124100",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-snail-whale",
-  "lang": "en",
-  "title": "The Snail and the Whale",
-  "author": "Julia Donaldson & Axel Scheffler",
-  "publisher": "Macmillan",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "자연",
-   "모험",
-   "친구"
-  ],
-  "mood": [
-   "모험",
-   "잔잔한"
-  ],
-  "blurb": "작은 달팽이가 거대한 고래 등에 올라 온 세상을 누비는 여행으로, 작아도 큰일을 해낼 수 있음을 보여 줘요.",
-  "readAloud": "바다와 빙산, 화산 장면마다 손으로 풍경을 크게 그려 보여 주세요.",
-  "cover": {
-   "emoji": "🐌",
-   "palette": [
-    "#3a7ca5",
-    "#d9c5a0"
-   ]
-  },
-  "isbn": "9780333982235",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-wild-things",
-  "lang": "en",
-  "title": "Where the Wild Things Are",
-  "author": "Maurice Sendak",
-  "publisher": "Harper & Row",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "환상",
-   "감정",
-   "모험",
-   "가족"
-  ],
-  "mood": [
-   "모험",
-   "따뜻한"
-  ],
-  "blurb": "화가 난 맥스가 괴물 나라의 왕이 되었다 따뜻한 집으로 돌아오는, 아이의 감정을 끌어안는 명작이에요.",
-  "readAloud": "\"Let the wild rumpus start!\" 장면에서 함께 쿵쿵 발을 굴러요.",
-  "cover": {
-   "emoji": "🐉",
-   "palette": [
-    "#5a7d3c",
-    "#e0c98a"
-   ]
-  },
-  "isbn": "9780060254926",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-bear-hunt",
-  "lang": "en",
-  "title": "We're Going on a Bear Hunt",
-  "author": "Michael Rosen & Helen Oxenbury",
-  "publisher": "Walker Books",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "모험",
-   "가족",
-   "자연",
-   "동물"
-  ],
-  "mood": [
-   "모험",
-   "웃긴"
-  ],
-  "blurb": "풀밭과 강, 진흙을 헤치며 곰을 찾아 떠나는 가족의 여정이 온몸으로 따라 하기 좋은 리듬으로 펼쳐져요.",
-  "readAloud": "\"Swishy swashy!\" 같은 의성어를 손동작과 함께 크게 따라 해 보세요.",
-  "cover": {
-   "emoji": "🐻",
-   "palette": [
-    "#3a7ca5",
-    "#a8c66c"
-   ]
-  },
-  "isbn": "9780744523232",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-dear-zoo",
-  "lang": "en",
-  "title": "Dear Zoo",
-  "author": "Rod Campbell",
-  "publisher": "Macmillan",
-  "ages": [
-   "0-2",
-   "3-4"
-  ],
-  "level": "보드북",
-  "themes": [
-   "동물",
-   "유머",
-   "일상"
-  ],
-  "mood": [
-   "학습",
-   "웃긴"
-  ],
-  "blurb": "동물원에 애완동물을 보내 달라 편지를 보내자 도착하는 동물들을 플랩 아래 숨겨 둔 인기 보드북이에요.",
-  "readAloud": "플랩을 열기 전에 \"무슨 동물일까?\" 하고 아이가 맞히게 해 보세요.",
-  "cover": {
-   "emoji": "🦒",
-   "palette": [
-    "#e8a04b",
-    "#5cb85c"
-   ]
-  },
-  "isbn": "9780333950135",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-tiger-tea",
-  "lang": "en",
-  "title": "The Tiger Who Came to Tea",
-  "author": "Judith Kerr",
-  "publisher": "HarperCollins",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "음식",
-   "가족",
-   "환상"
-  ],
-  "mood": [
-   "웃긴",
-   "따뜻한"
-  ],
-  "blurb": "느닷없이 찾아와 집 안 음식을 모두 먹어 치우는 호랑이의 황당하고 다정한 방문기를 그렸어요.",
-  "readAloud": "호랑이가 음식을 먹을 때마다 \"또 먹어?\" 하고 놀라는 연기를 해 보세요.",
-  "cover": {
-   "emoji": "🐅",
-   "palette": [
-    "#e8893c",
-    "#f4d35e"
-   ]
-  },
-  "isbn": "9780007215997",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-guess-love",
-  "lang": "en",
-  "title": "Guess How Much I Love You",
-  "author": "Sam McBratney & Anita Jeram",
-  "publisher": "Walker Books",
-  "ages": [
-   "0-2",
-   "3-4"
-  ],
-  "level": "그림책",
-  "themes": [
-   "가족",
-   "감정",
-   "동물",
-   "자연"
-  ],
-  "mood": [
-   "따뜻한",
-   "잔잔한"
-  ],
-  "blurb": "아기 토끼와 큰 토끼가 사랑의 크기를 겨루는 다정한 잠자리 이야기로, 마음을 표현하는 말을 배워요.",
-  "readAloud": "팔을 활짝 벌리며 \"이만큼 사랑해\"를 아이와 함께 흉내 내 보세요.",
-  "cover": {
-   "emoji": "🐰",
-   "palette": [
-    "#7fb069",
-    "#e8c07a"
-   ]
-  },
-  "isbn": "9780763642648",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-press-here",
-  "lang": "en",
-  "title": "Press Here",
-  "author": "Hervé Tullet",
-  "publisher": "Chronicle Books",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "그림그리기",
-   "숫자/글자",
-   "유머",
-   "환상"
-  ],
-  "mood": [
-   "웃긴",
-   "학습"
-  ],
-  "blurb": "점을 누르고 흔들고 부는 대로 다음 장에서 변하는 마법 같은 상호작용으로 아이가 책과 직접 놀아요.",
-  "readAloud": "지시대로 점을 누르고 책을 흔든 뒤 \"우와, 진짜 변했네!\" 하고 함께 놀라요.",
-  "cover": {
-   "emoji": "🔴",
-   "palette": [
-    "#e8595e",
-    "#f4d35e"
-   ]
-  },
-  "isbn": "9780811879545",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-pigeon-bus",
-  "lang": "en",
-  "title": "Don't Let the Pigeon Drive the Bus!",
-  "author": "Mo Willems",
-  "publisher": "Hyperion Books",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "유머",
-   "감정",
-   "탈것",
-   "일상"
-  ],
-  "mood": [
-   "웃긴"
-  ],
-  "blurb": "버스를 몰고 싶어 온갖 떼를 쓰는 비둘기에게 아이가 \"안 돼!\"라고 답하며 깔깔 웃게 되는 책이에요.",
-  "readAloud": "비둘기가 조를 때마다 아이가 \"No!\"라고 크게 외치게 해 보세요.",
-  "cover": {
-   "emoji": "🐦",
-   "palette": [
-    "#3aa0d6",
-    "#f4d35e"
-   ]
-  },
-  "isbn": "9780786819881",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-each-peach",
-  "lang": "en",
-  "title": "Each Peach Pear Plum",
-  "author": "Janet & Allan Ahlberg",
-  "publisher": "Viking Kestrel",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "환상",
-   "숫자/글자",
-   "유머",
-   "자연"
-  ],
-  "mood": [
-   "잔잔한",
-   "학습"
-  ],
-  "blurb": "그림 속에 숨은 동화 속 인물을 찾아내는 \"I spy\" 운율 책으로, 관찰력과 영어 라임을 동시에 길러요.",
-  "readAloud": "\"I spy…\" 다음에 멈춰 아이가 그림 속 인물을 직접 찾게 해 보세요.",
-  "cover": {
-   "emoji": "🍑",
-   "palette": [
-    "#e8893c",
-    "#a8c66c"
-   ]
-  },
-  "isbn": "9780670286973",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-very-busy-spider",
-  "lang": "en",
-  "title": "The Very Busy Spider",
-  "author": "Eric Carle",
-  "publisher": "Philomel Books",
-  "ages": [
-   "0-2",
-   "3-4"
-  ],
-  "level": "보드북",
-  "themes": [
-   "동물",
-   "자연",
-   "일상"
-  ],
-  "mood": [
-   "잔잔한",
-   "학습"
-  ],
-  "blurb": "거미가 묵묵히 거미줄을 완성하는 동안 동물들이 말을 거는 반복 구조로, 집중과 끈기를 보여 줘요.",
-  "readAloud": "거미줄을 손끝으로 따라 그리며 \"점점 커지네\" 하고 짚어 주세요.",
-  "cover": {
-   "emoji": "🕷️",
-   "palette": [
-    "#5b5b5b",
-    "#f4d35e"
-   ]
-  },
-  "isbn": "9780399229190",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-elmer",
-  "lang": "en",
-  "title": "Elmer",
-  "author": "David McKee",
-  "publisher": "Andersen Press",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "감정",
-   "유머",
-   "친구"
-  ],
-  "mood": [
-   "따뜻한",
-   "웃긴"
-  ],
-  "blurb": "알록달록 무늬의 코끼리 엘머가 남과 다른 자신을 받아들이는 이야기로, 다름의 아름다움을 알려 줘요.",
-  "readAloud": "엘머의 색색 무늬를 손가락으로 짚으며 색 이름을 영어로 함께 말해 보세요.",
-  "cover": {
-   "emoji": "🐘",
-   "palette": [
-    "#e8595e",
-    "#5cb85c"
-   ]
-  },
-  "isbn": "9781783446667",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-handa-surprise",
-  "lang": "en",
-  "title": "Handa's Surprise",
-  "author": "Eileen Browne",
-  "publisher": "Walker Books",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "음식",
-   "자연",
-   "유머"
-  ],
-  "mood": [
-   "웃긴",
-   "학습"
-  ],
-  "blurb": "친구에게 과일을 가져가는 동안 동물들이 하나씩 가져가는 줄도 모르는 한다의 이야기가 깜짝 반전을 줘요.",
-  "readAloud": "한다 뒤에서 동물이 과일을 가져갈 때 아이만 보이는 비밀을 함께 속닥여요.",
-  "cover": {
-   "emoji": "🍌",
-   "palette": [
-    "#e8a04b",
-    "#5cb85c"
-   ]
-  },
-  "isbn": "9780744536348",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-very-lonely-firefly",
-  "lang": "en",
-  "title": "The Very Lonely Firefly",
-  "author": "Eric Carle",
-  "publisher": "Philomel Books",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "자연",
-   "감정",
-   "친구"
-  ],
-  "mood": [
-   "잔잔한",
-   "따뜻한"
-  ],
-  "blurb": "친구를 찾아 밤하늘을 헤매는 반딧불이 이야기로, 마지막에 반짝이는 페이지가 감탄을 자아내요.",
-  "readAloud": "어두운 방에서 마지막 반짝이는 장면을 펼치면 효과가 배가돼요.",
-  "cover": {
-   "emoji": "✨",
-   "palette": [
-    "#2b3a67",
-    "#f4d35e"
-   ]
-  },
-  "isbn": "9780399504693",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-mr-gumpy",
-  "lang": "en",
-  "title": "Mr Gumpy's Outing",
-  "author": "John Burningham",
-  "publisher": "Jonathan Cape",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "탈것",
-   "자연",
-   "유머"
-  ],
-  "mood": [
-   "잔잔한",
-   "웃긴"
-  ],
-  "blurb": "검피 아저씨의 작은 배에 동물들이 차례로 올라타다 결국 뒤집히는 유쾌한 강 나들이 이야기예요.",
-  "readAloud": "배에 동물이 탈 때마다 약속을 거는 부분을 아이와 번갈아 읽어 보세요.",
-  "cover": {
-   "emoji": "⛵",
-   "palette": [
-    "#3a7ca5",
-    "#e8c07a"
-   ]
-  },
-  "isbn": "9780099408796",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-rainbow-fish",
-  "lang": "en",
-  "title": "The Rainbow Fish",
-  "author": "Marcus Pfister",
-  "publisher": "NorthSouth Books",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "친구",
-   "감정",
-   "자연"
-  ],
-  "mood": [
-   "따뜻한",
-   "학습"
-  ],
-  "blurb": "반짝 비늘을 나눠 주며 진짜 행복을 찾는 무지개 물고기로, 나눔의 가치를 반짝이는 그림으로 전해요.",
-  "readAloud": "반짝이는 비늘 페이지를 빛에 비춰 보며 \"예쁘다\" 함께 감탄해 보세요.",
-  "cover": {
-   "emoji": "🐠",
-   "palette": [
-    "#3aa0d6",
-    "#c0a0e0"
-   ]
-  },
-  "isbn": "9781558580091",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-gruffalos-child",
-  "lang": "en",
-  "title": "The Gruffalo's Child",
-  "author": "Julia Donaldson & Axel Scheffler",
-  "publisher": "Macmillan",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "환상",
-   "모험",
-   "가족"
-  ],
-  "mood": [
-   "모험",
-   "웃긴"
-  ],
-  "blurb": "겁 없는 그루팔로의 아이가 무서운 생쥐를 찾아 눈 덮인 숲을 헤매는 속편으로, 운율의 재미가 이어져요.",
-  "readAloud": "눈밭을 헤치는 장면에서 발소리 \"crunch crunch\"를 함께 내 보세요.",
-  "cover": {
-   "emoji": "🌲",
-   "palette": [
-    "#3b5a3b",
-    "#e0c98a"
-   ]
-  },
-  "isbn": "9781405020459",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-tooth-fairy",
-  "lang": "en",
-  "title": "Owl Babies",
-  "author": "Martin Waddell & Patrick Benson",
-  "publisher": "Walker Books",
-  "ages": [
-   "0-2",
-   "3-4"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "가족",
-   "감정",
-   "자연"
-  ],
-  "mood": [
-   "따뜻한",
-   "잔잔한"
-  ],
-  "blurb": "엄마를 기다리는 아기 올빼미 삼 남매의 불안과 안도를 통해 분리불안을 다정하게 어루만져요.",
-  "readAloud": "막내 빌이 \"I want my mummy!\"를 외칠 때 살짝 떨리는 목소리로 읽어 보세요.",
-  "cover": {
-   "emoji": "🦉",
-   "palette": [
-    "#3b3b3b",
-    "#e8c07a"
-   ]
-  },
-  "isbn": "9780744531671",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-tiddler",
-  "lang": "en",
-  "title": "Tiddler",
-  "author": "Julia Donaldson & Axel Scheffler",
-  "publisher": "Alison Green Books",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "유머",
-   "자연",
-   "모험"
-  ],
-  "mood": [
-   "웃긴",
-   "모험"
-  ],
-  "blurb": "허풍쟁이 작은 물고기 티들러의 이야기 솜씨가 진짜 위기에서 친구들을 구하는 바닷속 모험담이에요.",
-  "readAloud": "티들러의 과장된 변명을 점점 더 능청스러운 목소리로 읽어 보세요.",
-  "cover": {
-   "emoji": "🐟",
-   "palette": [
-    "#3a7ca5",
-    "#f4d35e"
-   ]
-  },
-  "isbn": "9781407109480",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-knuffle-bunny",
-  "lang": "en",
-  "title": "Knuffle Bunny",
-  "author": "Mo Willems",
-  "publisher": "Hyperion Books",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "가족",
-   "감정",
-   "일상",
-   "유머"
-  ],
-  "mood": [
-   "웃긴",
-   "따뜻한"
-  ],
-  "blurb": "빨래방에 토끼 인형을 두고 온 트릭시가 말로 못 하는 답답함을 온몸으로 표현하는 사랑스러운 이야기예요.",
-  "readAloud": "트릭시가 떼쓰는 \"Aggle flaggle klabble!\"을 신나게 흉내 내 보세요.",
-  "cover": {
-   "emoji": "🐰",
-   "palette": [
-    "#6b8e9e",
-    "#e8c07a"
-   ]
-  },
-  "isbn": "9780786818709",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-lost-found",
-  "lang": "en",
-  "title": "Lost and Found",
-  "author": "Oliver Jeffers",
-  "publisher": "HarperCollins",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "친구",
-   "감정",
-   "모험"
-  ],
-  "mood": [
-   "따뜻한",
-   "모험"
-  ],
-  "blurb": "길 잃은 펭귄을 남극까지 데려다주려는 소년의 여정을 통해 진짜 외로움과 우정의 의미를 잔잔히 그려요.",
-  "readAloud": "노 젓는 장면에서 \"slosh slosh\" 파도 소리를 함께 내 보세요.",
-  "cover": {
-   "emoji": "🐧",
-   "palette": [
-    "#3a7ca5",
-    "#f0e3c2"
-   ]
-  },
-  "isbn": "9780007150366",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-how-catch-star",
-  "lang": "en",
-  "title": "How to Catch a Star",
-  "author": "Oliver Jeffers",
-  "publisher": "HarperCollins",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "우주",
-   "자연",
-   "감정",
-   "환상"
-  ],
-  "mood": [
-   "잔잔한",
-   "따뜻한"
-  ],
-  "blurb": "별을 갖고 싶은 아이가 온갖 방법을 궁리하는 이야기로, 꿈과 끈기를 따뜻한 그림으로 담았어요.",
-  "readAloud": "밤하늘을 올려다보는 마음으로 천천히 읽어 잔잔함을 살려 주세요.",
-  "cover": {
-   "emoji": "⭐",
-   "palette": [
-    "#2b3a67",
-    "#f4d35e"
-   ]
-  },
-  "isbn": "9780007150342",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-incredible-book-eating",
-  "lang": "en",
-  "title": "The Incredible Book Eating Boy",
-  "author": "Oliver Jeffers",
-  "publisher": "HarperCollins",
-  "ages": [
-   "5-6",
-   "7-9"
-  ],
-  "level": "그림책",
-  "themes": [
-   "유머",
-   "숫자/글자",
-   "환상",
-   "일상"
-  ],
-  "mood": [
-   "웃긴",
-   "학습"
-  ],
-  "blurb": "책을 먹어 똑똑해지려던 소년이 결국 책 읽는 즐거움을 발견하는, 책 사랑을 일깨우는 유쾌한 이야기예요.",
-  "readAloud": "\"책을 먹으면 어떨까?\" 하고 엉뚱한 상상을 아이와 함께 펼쳐 보세요.",
-  "cover": {
-   "emoji": "📚",
-   "palette": [
-    "#b5651d",
-    "#e8c07a"
-   ]
-  },
-  "isbn": "9780007182329",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-pout-pout-fish",
-  "lang": "en",
-  "title": "The Pout-Pout Fish",
-  "author": "Deborah Diesen & Dan Hanna",
-  "publisher": "Farrar Straus Giroux",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "감정",
-   "자연",
-   "유머"
-  ],
-  "mood": [
-   "따뜻한",
-   "웃긴"
-  ],
-  "blurb": "늘 시무룩한 물고기가 웃음을 되찾는 이야기로, 운율을 따라 읽으며 감정을 표현하는 법을 배워요.",
-  "readAloud": "\"blub blub blub\" 후렴을 아이와 입을 쭉 내밀고 함께 외쳐 보세요.",
-  "cover": {
-   "emoji": "🐡",
-   "palette": [
-    "#3a7ca5",
-    "#e8a04b"
-   ]
-  },
-  "isbn": "9780374360979",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-dont-feed-the-bear",
-  "lang": "en",
-  "title": "We Don't Eat Our Classmates",
-  "author": "Ryan T. Higgins",
-  "publisher": "Disney-Hyperion",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "공룡",
-   "친구",
-   "감정",
-   "유머"
-  ],
-  "mood": [
-   "웃긴",
-   "따뜻한"
-  ],
-  "blurb": "반 친구를 먹고 싶은 공룡 페넬로페가 우정을 배우는 이야기로, 학교 적응과 공감을 웃음으로 풀어 줘요.",
-  "readAloud": "페넬로페가 친구를 덥석 무는 장면에서 \"안 돼!\" 하고 같이 말려 보세요.",
-  "cover": {
-   "emoji": "🦕",
-   "palette": [
-    "#5cb85c",
-    "#e8595e"
-   ]
-  },
-  "isbn": "9781368003551",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-not-a-box",
-  "lang": "en",
-  "title": "Not a Box",
-  "author": "Antoinette Portis",
-  "publisher": "HarperCollins",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "환상",
-   "그림그리기",
-   "유머",
-   "일상"
-  ],
-  "mood": [
-   "웃긴",
-   "학습"
-  ],
-  "blurb": "그냥 상자가 아니라 자동차도 로켓도 되는 토끼의 상상력을 통해 아이의 창의력을 톡톡 건드려요.",
-  "readAloud": "\"이 상자는 뭐가 될 수 있을까?\" 하고 집 안 상자로 직접 놀아 보세요.",
-  "cover": {
-   "emoji": "📦",
-   "palette": [
-    "#c98a3b",
-    "#e8595e"
-   ]
-  },
-  "isbn": "9780061123221",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-giraffes-cant-dance",
-  "lang": "en",
-  "title": "Giraffes Can't Dance",
-  "author": "Giles Andreae & Guy Parker-Rees",
-  "publisher": "Orchard Books",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "감정",
-   "친구",
-   "유머"
-  ],
-  "mood": [
-   "따뜻한",
-   "웃긴"
-  ],
-  "blurb": "춤 못 추는 기린 제럴드가 자기만의 음악을 찾아 멋지게 춤추는 이야기로, 자신감을 북돋아 줘요.",
-  "readAloud": "마지막 제럴드가 춤추는 장면에서 아이와 함께 일어나 춤춰 보세요.",
-  "cover": {
-   "emoji": "🦒",
-   "palette": [
-    "#e8a04b",
-    "#7fb069"
-   ]
-  },
-  "isbn": "9781841215655",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-tree-house",
-  "lang": "en",
-  "title": "The Day the Crayons Quit",
-  "author": "Drew Daywalt & Oliver Jeffers",
-  "publisher": "Philomel Books",
-  "ages": [
-   "5-6",
-   "7-9"
-  ],
-  "level": "그림책",
-  "themes": [
-   "그림그리기",
-   "감정",
-   "유머",
-   "숫자/글자"
-  ],
-  "mood": [
-   "웃긴",
-   "따뜻한"
-  ],
-  "blurb": "파업을 선언한 크레용들의 편지로 이야기가 펼쳐져, 색과 감정 표현을 유쾌하게 배우게 해요.",
-  "readAloud": "크레용마다 다른 성격이 드러나도록 색깔별로 목소리를 바꿔 읽어 보세요.",
-  "cover": {
-   "emoji": "🖍️",
-   "palette": [
-    "#e8595e",
-    "#3aa0d6"
-   ]
-  },
-  "isbn": "9780399255373",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-tiny-seed",
-  "lang": "en",
-  "title": "The Tiny Seed",
-  "author": "Eric Carle",
-  "publisher": "Simon & Schuster",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "자연",
-   "감정",
-   "숫자/글자"
-  ],
-  "mood": [
-   "잔잔한",
-   "학습"
-  ],
-  "blurb": "작은 씨앗 하나가 사계절을 거쳐 큰 꽃으로 자라는 과정을 통해 생명의 순환을 아름답게 보여 줘요.",
-  "readAloud": "씨앗이 바람에 날리는 장면에서 후 불며 함께 날려 보세요.",
-  "cover": {
-   "emoji": "🌱",
-   "palette": [
-    "#6aa84f",
-    "#e8c07a"
-   ]
-  },
-  "isbn": "9780689842443",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-monkey-puzzle",
-  "lang": "en",
-  "title": "Monkey Puzzle",
-  "author": "Julia Donaldson & Axel Scheffler",
-  "publisher": "Macmillan",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "가족",
-   "모험",
-   "유머"
-  ],
-  "mood": [
-   "모험",
-   "따뜻한"
-  ],
-  "blurb": "엄마를 잃어버린 아기 원숭이가 나비와 함께 엄마를 찾아 나서는 운율 가득한 정글 모험이에요.",
-  "readAloud": "나비가 엉뚱한 동물을 데려올 때마다 \"이게 엄마야?\" 하고 함께 웃어요.",
-  "cover": {
-   "emoji": "🐒",
-   "palette": [
-    "#5a8f3c",
-    "#e8a04b"
-   ]
-  },
-  "isbn": "9780333720011",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-zog",
-  "lang": "en",
-  "title": "Zog",
-  "author": "Julia Donaldson & Axel Scheffler",
-  "publisher": "Alison Green Books",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "환상",
-   "모험",
-   "친구",
-   "유머"
-  ],
-  "mood": [
-   "모험",
-   "웃긴"
-  ],
-  "blurb": "용 학교에서 늘 실수투성이인 조그가 친절한 공주를 만나 자기 길을 찾는 운율 가득한 모험담이에요.",
-  "readAloud": "조그가 다치는 장면마다 \"아야!\" 하고 함께 안타까워해 주세요.",
-  "cover": {
-   "emoji": "🐲",
-   "palette": [
-    "#5cb85c",
-    "#e8a04b"
-   ]
-  },
-  "isbn": "9781407115573",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-naughty-bus",
-  "lang": "en",
-  "title": "Naughty Bus",
-  "author": "Jan Oke & Jerry Oke",
-  "publisher": "Little Knowall",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "탈것",
-   "자동차",
-   "유머",
-   "모험"
-  ],
-  "mood": [
-   "웃긴",
-   "모험"
-  ],
-  "blurb": "장난감 빨간 버스가 집 안 곳곳을 누비며 사고를 치는 이야기로, 탈것 좋아하는 아이가 푹 빠져요.",
-  "readAloud": "버스가 \"붕\" 달리고 \"첨벙\" 빠지는 효과음을 신나게 넣어 읽어 보세요.",
-  "cover": {
-   "emoji": "🚌",
-   "palette": [
-    "#e8595e",
-    "#f4d35e"
-   ]
-  },
-  "isbn": "9780954792114",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-dinosaurs-love",
-  "lang": "en",
-  "title": "Dinosaurs Love Underpants",
-  "author": "Claire Freedman & Ben Cort",
-  "publisher": "Simon & Schuster",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "공룡",
-   "유머",
-   "환상"
-  ],
-  "mood": [
-   "웃긴",
-   "모험"
-  ],
-  "blurb": "공룡이 멸종한 진짜 이유가 팬티 쟁탈전이라는 엉뚱한 상상으로 아이들을 자지러지게 웃겨요.",
-  "readAloud": "\"underpants!\"가 나올 때마다 아이가 큰 소리로 외치게 해 보세요.",
-  "cover": {
-   "emoji": "🦖",
-   "palette": [
-    "#5cb85c",
-    "#3aa0d6"
-   ]
-  },
-  "isbn": "9781416988502",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-hairy-maclary",
-  "lang": "en",
-  "title": "Hairy Maclary from Donaldson's Dairy",
-  "author": "Lynley Dodd",
-  "publisher": "Mallinson Rendel",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "유머",
-   "자연",
-   "일상"
-  ],
-  "mood": [
-   "웃긴",
-   "모험"
-  ],
-  "blurb": "동네 개들을 이끌고 거리를 누비던 헤어리 매클레리가 고양이 한 마리에 혼비백산하는 운율 코미디예요.",
-  "readAloud": "개 이름이 줄줄이 이어지는 후렴을 리듬을 타며 빠르게 읽어 보세요.",
-  "cover": {
-   "emoji": "🐕",
-   "palette": [
-    "#5b5b5b",
-    "#e8c07a"
-   ]
-  },
-  "isbn": "9780140509380",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-aliens-underpants",
-  "lang": "en",
-  "title": "Aliens Love Underpants",
-  "author": "Claire Freedman & Ben Cort",
-  "publisher": "Simon & Schuster",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "우주",
-   "유머",
-   "환상",
-   "모험"
-  ],
-  "mood": [
-   "웃긴",
-   "모험"
-  ],
-  "blurb": "팬티를 모으러 지구에 오는 외계인들의 엉뚱한 이야기로, 우주와 웃음을 동시에 좋아하는 아이에게 딱이에요.",
-  "readAloud": "외계인 우주선이 착륙하는 장면을 \"삐용삐용\" 효과음으로 살려 보세요.",
-  "cover": {
-   "emoji": "👽",
-   "palette": [
-    "#7fb069",
-    "#a0d8ef"
-   ]
-  },
-  "isbn": "9781416917045",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-rosie-walk",
-  "lang": "en",
-  "title": "Rosie's Walk",
-  "author": "Pat Hutchins",
-  "publisher": "Macmillan",
-  "ages": [
-   "0-2",
-   "3-4"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "유머",
-   "자연",
-   "일상"
-  ],
-  "mood": [
-   "웃긴",
-   "잔잔한"
-  ],
-  "blurb": "암탉 로지가 산책하는 동안 뒤에서 쫓던 여우가 줄줄이 사고를 당하는, 글과 그림의 반전이 재미있는 책이에요.",
-  "readAloud": "글에 없는 여우의 수난을 그림에서 찾아 \"어, 여우 봐!\" 하고 짚어 주세요.",
-  "cover": {
-   "emoji": "🐔",
-   "palette": [
-    "#e8a04b",
-    "#7fb069"
-   ]
-  },
-  "isbn": "9780020437505",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-snowman",
-  "lang": "en",
-  "title": "The Snowman",
-  "author": "Raymond Briggs",
-  "publisher": "Hamish Hamilton",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "환상",
-   "자연",
-   "모험",
    "감정"
   ],
   "mood": [
-   "잔잔한",
-   "모험"
+   "따뜻한",
+   "잔잔한"
   ],
-  "blurb": "눈사람과 하늘을 나는 소년의 환상적인 밤을 글 없이 그림만으로 그린, 겨울의 고전이에요.",
-  "readAloud": "글이 없으니 그림을 보며 둘이서 이야기를 만들어 읽어 보세요.",
+  "blurb": "오소리네 식구들이 함께 꽃밭을 가꾸며 나누는 따뜻한 정과 사랑을 담은 이야기로, 권정생 특유의 따뜻하고 소박한 문장이 마음을 포근하게 감싸줍니다.",
+  "readAloud": "꽃 이름을 하나씩 짚으며 읽어 주고, 우리 집 마당이나 화분에도 어떤 꽃을 심고 싶은지 아이와 이야기 나눠 보세요.",
   "cover": {
-   "emoji": "⛄",
+   "emoji": "🌸",
    "palette": [
-    "#3a5a8a",
-    "#eef3f6"
+    "#7DBF8E",
+    "#F9E4B7"
    ]
   },
-  "isbn": "9780241302651",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-very-quiet-cricket",
-  "lang": "en",
-  "title": "The Very Quiet Cricket",
-  "author": "Eric Carle",
-  "publisher": "Philomel Books",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "자연",
-   "감정",
-   "음식"
-  ],
-  "mood": [
-   "잔잔한",
-   "학습"
-  ],
-  "blurb": "소리를 내지 못하던 귀뚜라미가 마침내 노래하게 되는 이야기로, 마지막 페이지의 실제 소리가 깜짝 선물이에요.",
-  "readAloud": "여러 곤충의 울음소리를 입으로 흉내 내며 등장시켜 보세요.",
-  "cover": {
-   "emoji": "🦗",
-   "palette": [
-    "#5a8f3c",
-    "#e8c07a"
-   ]
-  },
-  "isbn": "9780399226847",
-  "source": "curated",
-  "quality": 0.7
- },
- {
-  "id": "en-windy-day",
-  "lang": "en",
-  "title": "Oi Frog!",
-  "author": "Kes Gray & Jim Field",
-  "publisher": "Hodder Children's Books",
-  "ages": [
-   "3-4",
-   "5-6"
-  ],
-  "level": "그림책",
-  "themes": [
-   "동물",
-   "유머",
-   "숫자/글자"
-  ],
-  "mood": [
-   "웃긴",
-   "학습"
-  ],
-  "blurb": "어떤 동물이 어디에 앉아야 하는지 라임으로 정해 주는 고양이와 개구리의 말장난이 아이의 영어 라임 감각을 키워요.",
-  "readAloud": "라임 단어 앞에서 멈춰 아이가 어울리는 단어를 맞히게 해 보세요.",
-  "cover": {
-   "emoji": "🐸",
-   "palette": [
-    "#5cb85c",
-    "#e8595e"
-   ]
-  },
-  "isbn": "9781444910865",
-  "source": "curated",
-  "quality": 0.7
+  "quality": 0.88,
+  "real": true,
+  "confidence": 0.92,
+  "source": "curated"
  },
  {
   "id": "ko-또야-너구리가-기운-바지를-입었어요-c76e",
@@ -2971,6 +378,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.92,
   "source": "curated"
  },
  {
@@ -3004,6 +413,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -3038,6 +449,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.95,
   "source": "curated"
  },
  {
@@ -3071,6 +484,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.95,
   "source": "curated"
  },
  {
@@ -3104,6 +519,78 @@ window.BOOKS = [
    ]
   },
   "quality": 0.8,
+  "real": true,
+  "confidence": 0.82,
+  "source": "curated"
+ },
+ {
+  "id": "ko-그림자놀이-4ef5",
+  "lang": "ko",
+  "title": "그림자놀이",
+  "author": "이수지",
+  "publisher": "비룡소",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "환상",
+   "일상",
+   "감정",
+   "그림그리기"
+  ],
+  "mood": [
+   "잔잔한",
+   "따뜻한"
+  ],
+  "blurb": "빛과 그림자가 만들어 내는 신비로운 세계를 섬세한 그림으로 담아낸 책으로, 아이가 일상 속 빛과 어둠의 경계에서 상상력을 마음껏 펼칠 수 있도록 이끌어 줍니다.",
+  "readAloud": "책을 읽기 전 손전등이나 스탠드로 직접 그림자놀이를 해보며 시작하면 훨씬 생생하게 즐길 수 있어요!",
+  "cover": {
+   "emoji": "🌑",
+   "palette": [
+    "#1a1a2e",
+    "#f5f0e8"
+   ]
+  },
+  "quality": 0.93,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "ko-파도야-놀자-9451",
+  "lang": "ko",
+  "title": "파도야 놀자",
+  "author": "이수지",
+  "publisher": "비룡소",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "자연",
+   "일상",
+   "감정",
+   "가족"
+  ],
+  "mood": [
+   "잔잔한",
+   "따뜻한"
+  ],
+  "blurb": "파도와 숨바꼭질하듯 노는 아이의 하루를 글 없이 그림만으로 담아낸 작품으로, 자연과 교감하는 순수한 기쁨을 느낄 수 있어요.",
+  "readAloud": "책을 펼치며 \"파도가 오면 어떻게 할까?\" 물어보고, 아이가 파도 소리를 직접 표현해 보도록 이끌어 주세요.",
+  "cover": {
+   "emoji": "🌊",
+   "palette": [
+    "#5B9BD5",
+    "#F5F0E8"
+   ]
+  },
+  "quality": 0.95,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -3138,6 +625,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -3171,6 +660,43 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.95,
+  "source": "curated"
+ },
+ {
+  "id": "ko-수박-수영장-599f",
+  "lang": "ko",
+  "title": "수박 수영장",
+  "author": "안녕달",
+  "publisher": "창비",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "음식",
+   "여름",
+   "환상",
+   "친구"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "거대한 수박이 동네 수영장으로 변하는 유쾌한 여름 이야기로, 아이들의 상상력을 마음껏 자극해 줍니다.",
+  "readAloud": "수박 씨를 뱉는 장면에서 아이와 함께 \"퉤!\" 소리를 내며 읽어 보세요!",
+  "cover": {
+   "emoji": "🍉",
+   "palette": [
+    "#F83939",
+    "#3DBD56"
+   ]
+  },
+  "quality": 0.93,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -3204,6 +730,44 @@ window.BOOKS = [
    ]
   },
   "quality": 0.93,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "ko-할머니의-여름휴가-e720",
+  "lang": "ko",
+  "title": "할머니의 여름휴가",
+  "author": "안녕달",
+  "publisher": "창비",
+  "ages": [
+   "3-4",
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "가족",
+   "자연",
+   "일상",
+   "환상"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "할머니 혼자 떠나는 여름휴가를 통해 세대를 넘어선 사랑과 그리움, 그리고 자연 속에서의 소소한 행복을 따뜻하게 담아낸 그림책입니다.",
+  "readAloud": "할머니가 등장하는 장면마다 \"할머니는 어떤 기분일까?\" 하고 아이에게 물어보며 함께 상상해 보세요.",
+  "cover": {
+   "emoji": "👵",
+   "palette": [
+    "#7EC8A4",
+    "#F9E4B7"
+   ]
+  },
+  "quality": 0.93,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -3237,6 +801,44 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.92,
+  "source": "curated"
+ },
+ {
+  "id": "ko-솔이의-추석-이야기-fb6a",
+  "lang": "ko",
+  "title": "솔이의 추석 이야기",
+  "author": "이억배",
+  "publisher": "길벗어린이",
+  "ages": [
+   "3-4",
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "가족",
+   "일상",
+   "자연",
+   "음식"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "추석을 맞아 시골 할머니 댁을 찾아가는 솔이의 하루를 섬세한 그림으로 담아낸 작품으로, 명절의 풍경과 가족의 온기를 고스란히 느낄 수 있어요.",
+  "readAloud": "송편 빚는 장면에서 잠깐 멈추고 \"우리 집 추석은 어때?\" 하고 아이에게 물어보세요.",
+  "cover": {
+   "emoji": "🌕",
+   "palette": [
+    "#E8A838",
+    "#5C8A3C"
+   ]
+  },
+  "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -3271,6 +873,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -3304,6 +908,44 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.93,
+  "source": "curated"
+ },
+ {
+  "id": "ko-손-큰-할머니의-만두-만들기-7840",
+  "lang": "ko",
+  "title": "손 큰 할머니의 만두 만들기",
+  "author": "채인선",
+  "publisher": "재미마주",
+  "ages": [
+   "3-4",
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "음식",
+   "가족",
+   "일상",
+   "유머"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "손이 어마어마하게 큰 할머니가 온 동네 사람이 다 먹고도 남을 만두를 빚는 유쾌한 이야기로, 넉넉한 인심과 가족·이웃 간의 따뜻한 정을 느낄 수 있어요.",
+  "readAloud": "만두 재료가 하나씩 늘어날 때마다 아이와 함께 수량을 크게 외치며 읽으면 더욱 신나요!",
+  "cover": {
+   "emoji": "🥟",
+   "palette": [
+    "#E8A87C",
+    "#F5E6C8"
+   ]
+  },
+  "quality": 0.9,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -3337,6 +979,43 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "ko-괜찮아-3dd5",
+  "lang": "ko",
+  "title": "괜찮아",
+  "author": "최숙희",
+  "publisher": "웅진주니어",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "감정",
+   "가족",
+   "일상",
+   "친구"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "나는 못하는 게 있어도 괜찮아—각자 다른 모습 그대로 소중하다고 따뜻하게 말해주는 그림책이에요.",
+  "readAloud": "아이와 함께 \"나는 ○○를 못해도 괜찮아!\"라고 번갈아 외치며 읽어 보세요.",
+  "cover": {
+   "emoji": "🌼",
+   "palette": [
+    "#F9E04B",
+    "#F4A7B9"
+   ]
+  },
+  "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -3369,6 +1048,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.82,
+  "real": true,
+  "confidence": 0.92,
   "source": "curated"
  },
  {
@@ -3402,6 +1083,43 @@ window.BOOKS = [
    ]
   },
   "quality": 0.91,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "ko-이파라파냐무냐무-c1a2",
+  "lang": "ko",
+  "title": "이파라파냐무냐무",
+  "author": "이지은",
+  "publisher": "사계절",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "친구",
+   "감정",
+   "동물",
+   "유머"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "말이 통하지 않아도 마음은 통할 수 있어요! 낯선 말을 쓰는 동물 친구와 소통하려는 유쾌한 과정이 아이들에게 '다름'을 받아들이는 따뜻한 용기를 줍니다.",
+  "readAloud": "\"이파라파냐무냐무\" 같은 말놀이 구절을 아이와 함께 큰 소리로 따라 읽으며 신나게 즐겨 보세요!",
+  "cover": {
+   "emoji": "🦜",
+   "palette": [
+    "#F4A623",
+    "#5BAD8F"
+   ]
+  },
+  "quality": 0.93,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -3435,6 +1153,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.92,
   "source": "curated"
  },
  {
@@ -3469,6 +1189,217 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.95,
+  "source": "curated"
+ },
+ {
+  "id": "ko-줄줄이-꿴-호랑이-569c",
+  "lang": "ko",
+  "title": "줄줄이 꿴 호랑이",
+  "author": "권문희",
+  "publisher": "사계절",
+  "ages": [
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "유머",
+   "동물",
+   "환상",
+   "모험"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "꾀 많은 할머니가 무시무시한 호랑이를 줄줄이 꿰어버리는 통쾌한 우리 옛이야기! 기지와 용기로 위기를 헤쳐 나가는 할머니의 모습이 유쾌하고 통쾌한 웃음을 선사합니다.",
+  "readAloud": "호랑이가 등장할 때마다 목소리를 낮추고 무섭게, 할머니 대사는 씩씩하고 당차게 읽어 주면 아이가 더욱 신나게 즐길 수 있어요.",
+  "cover": {
+   "emoji": "🐯",
+   "palette": [
+    "#E86B2B",
+    "#F5E6C8"
+   ]
+  },
+  "quality": 0.82,
+  "real": true,
+  "confidence": 0.92,
+  "source": "curated"
+ },
+ {
+  "id": "ko-아씨방-일곱-동무-9756",
+  "lang": "ko",
+  "title": "아씨방 일곱 동무",
+  "author": "이영경",
+  "publisher": "비룡소",
+  "ages": [
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "일상",
+   "가족",
+   "동물",
+   "환상"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "바느질 도구 일곱 가지가 저마다의 목소리로 아씨의 일상을 함께하는 이야기로, 우리 옛 생활 문화와 정겨운 사물의 숨결을 느낄 수 있어요.",
+  "readAloud": "각 도구마다 목소리를 달리해 읽어 주면 아이가 캐릭터를 더 생생하게 느낄 수 있어요.",
+  "cover": {
+   "emoji": "🪡",
+   "palette": [
+    "#C8A97E",
+    "#E8D5B7"
+   ]
+  },
+  "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "ko-우주-다녀오겠습니다-bd0b",
+  "lang": "ko",
+  "title": "우주 다녀오겠습니다",
+  "author": "장선환",
+  "publisher": "딸기책방",
+  "ages": [
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "우주",
+   "모험",
+   "가족",
+   "환상"
+  ],
+  "mood": [
+   "모험",
+   "따뜻한"
+  ],
+  "blurb": "어느 날 우주로 훌쩍 떠나는 아이의 설레는 여정을 통해 꿈과 상상력의 소중함을 일깨워 주는 그림책입니다.",
+  "readAloud": "\"나도 우주에 가고 싶어!\" 하고 묻고, 우주에서 무엇을 하고 싶은지 아이와 함께 상상해 보세요.",
+  "cover": {
+   "emoji": "🚀",
+   "palette": [
+    "#0B1D51",
+    "#F5D547"
+   ]
+  },
+  "quality": 0.6,
+  "real": true,
+  "confidence": 0.55,
+  "source": "curated"
+ },
+ {
+  "id": "ko-엄마-마중-7c47",
+  "lang": "ko",
+  "title": "엄마 마중",
+  "author": "이태준",
+  "publisher": "보림",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "가족",
+   "일상",
+   "감정"
+  ],
+  "mood": [
+   "잔잔한",
+   "따뜻한"
+  ],
+  "blurb": "추운 겨울날 혼자 전차 정류장에서 엄마를 기다리는 아이의 애틋한 마음을 담은 한국 그림책의 고전입니다. 단순하고 서정적인 그림 속에 엄마를 향한 그리움이 잔잔하게 녹아 있습니다.",
+  "readAloud": "아이와 함께 \"엄마가 늦으면 어떤 기분이야?\" 하고 물으며 감정을 나눠 보세요.",
+  "cover": {
+   "emoji": "🚃",
+   "palette": [
+    "#4A6FA5",
+    "#F5E6C8"
+   ]
+  },
+  "quality": 0.93,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "ko-백구-804f",
+  "lang": "ko",
+  "title": "백구",
+  "author": "김민기",
+  "publisher": "사계절",
+  "ages": [
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "가족",
+   "감정",
+   "일상"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "하얀 강아지 백구와 아이의 교감을 통해 생명의 소중함과 이별의 아픔을 잔잔하게 담아낸 그림책입니다.",
+  "readAloud": "강아지를 키워본 경험이 있다면 아이와 함께 그 기억을 나누며 천천히 읽어 보세요.",
+  "cover": {
+   "emoji": "🐶",
+   "palette": [
+    "#F5F0E8",
+    "#A8C5A0"
+   ]
+  },
+  "quality": 0.75,
+  "real": true,
+  "confidence": 0.82,
+  "source": "curated"
+ },
+ {
+  "id": "ko-지원이와-병관이-4dc6",
+  "lang": "ko",
+  "title": "지원이와 병관이",
+  "author": "고대영",
+  "publisher": "길벗어린이",
+  "ages": [
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "친구",
+   "감정",
+   "일상",
+   "유머"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "서로 정반대인 지원이와 병관이, 티격태격하면서도 떼려야 뗄 수 없는 두 아이의 우정을 유쾌하게 담아낸 이야기입니다.",
+  "readAloud": "두 아이의 이름을 번갈아 가며 목소리를 달리해 읽어 주면 생동감이 살아납니다!",
+  "cover": {
+   "emoji": "👫",
+   "palette": [
+    "#F9C74F",
+    "#90BE6D"
+   ]
+  },
+  "quality": 0.82,
+  "real": true,
+  "confidence": 0.92,
   "source": "curated"
  },
  {
@@ -3503,6 +1434,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.82,
+  "real": true,
+  "confidence": 0.92,
   "source": "curated"
  },
  {
@@ -3537,6 +1470,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.92,
   "source": "curated"
  },
  {
@@ -3570,6 +1505,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.8,
+  "real": true,
+  "confidence": 0.82,
   "source": "curated"
  },
  {
@@ -3603,6 +1540,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.78,
+  "real": true,
+  "confidence": 0.92,
   "source": "curated"
  },
  {
@@ -3637,6 +1576,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -3670,6 +1611,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.82,
+  "real": true,
+  "confidence": 0.95,
   "source": "curated"
  },
  {
@@ -3702,6 +1645,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.72,
+  "real": true,
+  "confidence": 0.82,
   "source": "curated"
  },
  {
@@ -3735,6 +1680,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -3767,6 +1714,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.78,
+  "real": true,
+  "confidence": 0.92,
   "source": "curated"
  },
  {
@@ -3799,6 +1748,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.82,
+  "real": true,
+  "confidence": 0.92,
   "source": "curated"
  },
  {
@@ -3831,6 +1782,43 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "ko-지각대장-존-3c55",
+  "lang": "ko",
+  "title": "지각대장 존",
+  "author": "존 버닝햄",
+  "publisher": "비룡소",
+  "ages": [
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "유머",
+   "일상",
+   "모험",
+   "감정"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "학교 가는 길마다 악어, 사자, 파도 같은 황당한 사건을 겪는 존—하지만 아무도 믿어주지 않아요! 아이의 상상력과 억울함을 유쾌하게 담아낸 존 버닝햄의 고전입니다.",
+  "readAloud": "선생님 역할과 존 역할을 나눠 번갈아 읽으며 \"나라면 믿어줄까?\" 이야기를 나눠 보세요.",
+  "cover": {
+   "emoji": "🐊",
+   "palette": [
+    "#F4A623",
+    "#4A90D9"
+   ]
+  },
+  "quality": 0.95,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -3864,6 +1852,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -3898,6 +1888,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -3932,6 +1924,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -3966,6 +1960,78 @@ window.BOOKS = [
    ]
   },
   "quality": 0.91,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "ko-용감한-아이린-e1c5",
+  "lang": "ko",
+  "title": "용감한 아이린",
+  "author": "윌리엄 스타이그",
+  "publisher": "웅진주니어",
+  "ages": [
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "모험",
+   "가족",
+   "감정",
+   "일상"
+  ],
+  "mood": [
+   "따뜻한",
+   "모험"
+  ],
+  "blurb": "눈보라 속에서도 아픈 엄마를 위해 드레스를 배달하러 떠나는 아이린의 용기와 사랑이 가슴을 뭉클하게 합니다. 포기하지 않는 끈기와 가족을 향한 헌신이 아이들에게 깊은 울림을 줍니다.",
+  "readAloud": "눈보라 장면에서 바람 소리를 흉내 내며 읽어 주면 아이가 아이린의 긴장감을 생생하게 느낄 수 있어요!",
+  "cover": {
+   "emoji": "🌨️",
+   "palette": [
+    "#A8C4E0",
+    "#F5E6C8"
+   ]
+  },
+  "quality": 0.92,
+  "real": true,
+  "confidence": 0.95,
+  "source": "curated"
+ },
+ {
+  "id": "ko-치과-의사-드소토-선생님-56b5",
+  "lang": "ko",
+  "title": "치과 의사 드소토 선생님",
+  "author": "윌리엄 스타이그",
+  "publisher": "비룡소",
+  "ages": [
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "유머",
+   "감정",
+   "일상"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "작은 생쥐 치과 의사 드소토 선생님이 교활한 여우 환자를 상대로 지혜롭게 위기를 헤쳐 나가는 유쾌한 이야기로, 약자도 꾀와 용기로 이길 수 있다는 것을 보여줍니다.",
+  "readAloud": "여우가 등장하는 장면에서 목소리를 달리해 읽어 주면 긴장감과 웃음을 동시에 줄 수 있어요!",
+  "cover": {
+   "emoji": "🦷",
+   "palette": [
+    "#F4A836",
+    "#FFFFFF"
+   ]
+  },
+  "quality": 0.93,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -4000,6 +2066,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -4033,6 +2101,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -4066,6 +2136,80 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "ko-괴물들이-사는-나라-d57c",
+  "lang": "ko",
+  "title": "괴물들이 사는 나라",
+  "author": "모리스 샌닥",
+  "publisher": "시공주니어",
+  "ages": [
+   "3-4",
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "환상",
+   "모험",
+   "감정",
+   "동물"
+  ],
+  "mood": [
+   "모험",
+   "웃긴"
+  ],
+  "blurb": "말썽을 부려 방으로 쫓겨난 맥스가 상상 속 괴물 나라의 왕이 되는 환상 모험 이야기로, 아이의 감정과 내면세계를 탁월하게 담아낸 그림책의 고전입니다.",
+  "readAloud": "괴물들의 \"으르렁, 쾅쾅!\" 소리를 함께 크게 흉내 내며 읽으면 더욱 신나요!",
+  "cover": {
+   "emoji": "👑",
+   "palette": [
+    "#4a7c59",
+    "#f5e6c8"
+   ]
+  },
+  "quality": 0.99,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "ko-프레드릭-8c9e",
+  "lang": "ko",
+  "title": "프레드릭",
+  "author": "레오 리오니",
+  "publisher": "시공주니어",
+  "ages": [
+   "3-4",
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "자연",
+   "감정",
+   "일상"
+  ],
+  "mood": [
+   "잔잔한",
+   "따뜻한"
+  ],
+  "blurb": "겨울을 앞두고 동료 들쥐들이 식량을 모을 때, 프레드릭은 햇빛·색깔·이야기를 모읍니다. 예술과 상상력이 삶을 얼마나 풍요롭게 하는지 잔잔하게 일깨워 주는 그림책입니다.",
+  "readAloud": "\"프레드릭, 넌 지금 뭘 모으고 있니?\" 장면에서 아이와 함께 자신만의 '보이지 않는 것'을 모아 보는 이야기를 나눠 보세요.",
+  "cover": {
+   "emoji": "🐭",
+   "palette": [
+    "#D9896A",
+    "#7A9BBF"
+   ]
+  },
+  "quality": 0.97,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -4100,6 +2244,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -4133,6 +2279,114 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "ko-무지개-물고기-0c8a",
+  "lang": "ko",
+  "title": "무지개 물고기",
+  "author": "마르쿠스 피스터",
+  "publisher": "시공주니어",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "친구",
+   "감정",
+   "동물",
+   "환상"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "반짝이는 비늘을 가진 무지개 물고기가 소중한 것을 나누며 진정한 행복과 우정을 배워가는 감동적인 이야기예요.",
+  "readAloud": "반짝이는 비늘 장면에서 아이와 함께 \"나눠주면 어떤 기분일까?\" 이야기 나눠 보세요.",
+  "cover": {
+   "emoji": "🐟",
+   "palette": [
+    "#4A90D9",
+    "#F5C842"
+   ]
+  },
+  "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "ko-백만-마리-고양이-8105",
+  "lang": "ko",
+  "title": "백만 마리 고양이",
+  "author": "완다 가그",
+  "publisher": "시공주니어",
+  "ages": [
+   "3-4",
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "유머",
+   "가족",
+   "환상"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "수백만, 수억, 수조 마리의 고양이 중에서 딱 한 마리를 고르려는 노부부의 이야기로, 반복되는 리듬감 있는 문장이 읽을수록 중독되는 그림책 고전입니다.",
+  "readAloud": "\"수백만, 수억, 수조 마리!\" 구절이 나올 때마다 아이와 함께 크게 따라 외쳐 보세요.",
+  "cover": {
+   "emoji": "🐱",
+   "palette": [
+    "#F5E6C8",
+    "#6B8E5A"
+   ]
+  },
+  "quality": 0.95,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "ko-도서관에-간-사자-1192",
+  "lang": "ko",
+  "title": "도서관에 간 사자",
+  "author": "미셸 누드슨",
+  "publisher": "웅진주니어",
+  "ages": [
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "일상",
+   "친구",
+   "감정"
+  ],
+  "mood": [
+   "따뜻한",
+   "웃긴"
+  ],
+  "blurb": "도서관 규칙을 묵묵히 따르며 사서 선생님과 우정을 쌓아가는 사자의 이야기로, 규칙의 의미와 배려의 가치를 자연스럽게 느끼게 해줍니다.",
+  "readAloud": "사자가 으르렁대는 장면에서 목소리를 크게 바꿔 읽어 주면 아이들이 더욱 즐거워해요!",
+  "cover": {
+   "emoji": "🦁",
+   "palette": [
+    "#C8A97E",
+    "#4A7FB5"
+   ]
+  },
+  "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -4166,6 +2420,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -4199,6 +2455,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -4232,6 +2490,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -4265,6 +2525,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -4298,6 +2560,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -4331,6 +2595,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.8,
+  "real": true,
+  "confidence": 0.82,
   "source": "curated"
  },
  {
@@ -4363,6 +2629,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -4395,6 +2663,146 @@ window.BOOKS = [
    ]
   },
   "quality": 0.98,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "ko-안-돼-데이빗-511a",
+  "lang": "ko",
+  "title": "안 돼, 데이빗!",
+  "author": "데이비드 섀논",
+  "publisher": "지경사",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "일상",
+   "감정",
+   "가족",
+   "유머"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "말썽꾸러기 데이빗이 온갖 못된 짓을 저지를 때마다 엄마의 \"안 돼!\"가 터지지만, 결말엔 따뜻한 사랑이 기다려요. 아이들이 '나도 저래!' 하며 깔깔 웃을 수 있는 책이에요.",
+  "readAloud": "\"안 돼, 데이빗!\" 부분을 엄마 목소리로 흉내 내며 읽어 주면 아이가 더욱 신나게 반응해요.",
+  "cover": {
+   "emoji": "🙅",
+   "palette": [
+    "#E83B2A",
+    "#F5E6C8"
+   ]
+  },
+  "quality": 0.95,
+  "real": true,
+  "confidence": 0.98,
+  "source": "curated"
+ },
+ {
+  "id": "ko-누가-내-머리에-똥-쌌어-1026",
+  "lang": "ko",
+  "title": "누가 내 머리에 똥 쌌어?",
+  "author": "베르너 홀츠바르트",
+  "publisher": "사계절",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "유머",
+   "일상"
+  ],
+  "mood": [
+   "웃긴",
+   "모험"
+  ],
+  "blurb": "두더지 머리 위에 누가 똥을 쌌을까요? 두더지가 범인을 찾아 동물 친구들을 하나하나 찾아가는 좌충우돌 모험이 유쾌한 웃음을 선사합니다.",
+  "readAloud": "각 동물이 등장할 때 특색 있는 목소리와 표정을 연기하며 읽어 주면 아이가 더 크게 웃고 몰입해요!",
+  "cover": {
+   "emoji": "💩",
+   "palette": [
+    "#8B5E3C",
+    "#A8D5A2"
+   ]
+  },
+  "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "ko-금붕어가-달아나네-f51d",
+  "lang": "ko",
+  "title": "금붕어가 달아나네",
+  "author": "고미 타로",
+  "publisher": "한림출판사",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "동물",
+   "환상",
+   "일상"
+  ],
+  "mood": [
+   "웃긴",
+   "잔잔한"
+  ],
+  "blurb": "빨간 금붕어가 어항을 탈출해 양말 속, 찻잔 속, 꽃 속으로 숨어드는 숨바꼭질 그림책으로, 아이가 금붕어를 찾으며 자연스럽게 집중력과 관찰력을 키워요.",
+  "readAloud": "페이지마다 \"어디 있지? 찾았다!\" 하며 아이가 직접 금붕어를 손가락으로 짚어보게 해주세요.",
+  "cover": {
+   "emoji": "🐟",
+   "palette": [
+    "#E8403A",
+    "#FFFFFF"
+   ]
+  },
+  "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "ko-악어도-깜짝-치과-의사도-깜짝-caaa",
+  "lang": "ko",
+  "title": "악어도 깜짝, 치과 의사도 깜짝!",
+  "author": "고미 타로",
+  "publisher": "비룡소",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "유머",
+   "일상",
+   "감정"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "치과가 무서운 건 악어도 마찬가지! 서로를 잡아먹을 것 같은 악어와 치과 의사가 번갈아 깜짝깜짝 놀라는 모습이 유쾌한 반전과 웃음을 선사합니다.",
+  "readAloud": "\"악어도 깜짝!\" 부분에서 아이와 함께 깜짝 놀라는 표정과 몸짓을 따라 해 보세요.",
+  "cover": {
+   "emoji": "🐊",
+   "palette": [
+    "#4CAF50",
+    "#FFFFFF"
+   ]
+  },
+  "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -4427,6 +2835,147 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "ko-사과가-쿵-ded9",
+  "lang": "ko",
+  "title": "사과가 쿵!",
+  "author": "다다 히로시",
+  "publisher": "보림",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "음식",
+   "동물",
+   "가족",
+   "감정"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "커다란 사과 하나가 쿵 떨어지자, 숲속 동물 가족들이 하나둘 모여 함께 나눠 먹는 따뜻한 이야기예요.",
+  "readAloud": "\"쿵!\" 소리가 나올 때마다 아이와 함께 손을 무릎에 탁 치며 읽으면 더욱 신나요!",
+  "cover": {
+   "emoji": "🍎",
+   "palette": [
+    "#D94F3D",
+    "#5A8C3E"
+   ]
+  },
+  "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "ko-고-녀석-맛있겠다-f376",
+  "lang": "ko",
+  "title": "고 녀석 맛있겠다",
+  "author": "미야니시 타츠야",
+  "publisher": "달리",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "공룡",
+   "가족",
+   "감정",
+   "친구"
+  ],
+  "mood": [
+   "따뜻한",
+   "웃긴"
+  ],
+  "blurb": "무시무시한 티라노사우루스가 아기 안킬로사우루스를 잡아먹으려다 그만 정이 들어버리는, 웃음과 감동이 가득한 이야기입니다.",
+  "readAloud": "티라노가 \"고 녀석 맛있겠다!\" 할 때 무서운 표정을 흉내 내다가, 마지막 장면에서 목소리를 부드럽게 바꿔 읽어 주세요.",
+  "cover": {
+   "emoji": "🦖",
+   "palette": [
+    "#E84B2A",
+    "#F5E6C8"
+   ]
+  },
+  "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "ko-달님-안녕-53ca",
+  "lang": "ko",
+  "title": "달님 안녕",
+  "author": "하야시 아키코",
+  "publisher": "한림출판사",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "잠자리",
+   "자연",
+   "일상",
+   "가족"
+  ],
+  "mood": [
+   "잔잔한",
+   "따뜻한"
+  ],
+  "blurb": "구름 사이로 숨었다 나타나는 달님과 아기가 나누는 포근한 밤 인사 — 잠들기 전 아이의 마음을 사르르 녹여 주는 그림책입니다.",
+  "readAloud": "\"달님 안녕!\" 페이지마다 아이와 함께 달을 손가락으로 짚으며 따라 인사해 보세요.",
+  "cover": {
+   "emoji": "🌕",
+   "palette": [
+    "#1B2A4A",
+    "#F5E6C8"
+   ]
+  },
+  "quality": 0.95,
+  "real": true,
+  "confidence": 0.98,
+  "source": "curated"
+ },
+ {
+  "id": "ko-싹싹싹-4edb",
+  "lang": "ko",
+  "title": "싹싹싹",
+  "author": "하야시 아키코",
+  "publisher": "한림출판사",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "일상",
+   "가족",
+   "동물"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "엄마가 아이의 머리를 빗겨 주는 다정한 일상을 담은 그림책으로, 반복되는 리듬감 있는 말소리가 아이의 마음을 포근하게 감싸줍니다.",
+  "readAloud": "\"싹싹싹\" 소리를 실제로 빗질하듯 천천히, 리듬감 있게 읽어 주세요.",
+  "cover": {
+   "emoji": "🪮",
+   "palette": [
+    "#F9E4B7",
+    "#A8D8A8"
+   ]
+  },
+  "quality": 0.88,
+  "real": true,
+  "confidence": 0.95,
   "source": "curated"
  },
  {
@@ -4459,6 +3008,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -4492,6 +3043,43 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.92,
+  "source": "curated"
+ },
+ {
+  "id": "ko-치킨-마스크-d584",
+  "lang": "ko",
+  "title": "치킨 마스크",
+  "author": "우쓰기 미호",
+  "publisher": "책읽는곰",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "유머",
+   "감정",
+   "일상",
+   "동물"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "치킨 마스크를 쓰면 무엇이든 할 수 있을 것 같은 용기가 생긴다! 부끄럼쟁이 아이가 마스크 하나로 자신감을 찾아가는 유쾌한 이야기예요.",
+  "readAloud": "치킨 마스크를 쓸 때와 벗을 때 목소리 톤을 달리해 읽어 주면 아이가 더 신나게 반응해요!",
+  "cover": {
+   "emoji": "🐔",
+   "palette": [
+    "#F6C244",
+    "#FF6B35"
+   ]
+  },
+  "quality": 0.78,
+  "real": true,
+  "confidence": 0.85,
   "source": "curated"
  },
  {
@@ -4525,6 +3113,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -4558,6 +3148,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.9,
+  "real": true,
+  "confidence": 0.95,
   "source": "curated"
  },
  {
@@ -4592,6 +3184,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -4625,6 +3219,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -4658,6 +3254,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.85,
+  "real": true,
+  "confidence": 0.93,
   "source": "curated"
  },
  {
@@ -4691,6 +3289,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -4724,6 +3324,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.95,
   "source": "curated"
  },
  {
@@ -4756,6 +3358,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.92,
   "source": "curated"
  },
  {
@@ -4789,6 +3393,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.91,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -4822,6 +3428,148 @@ window.BOOKS = [
    ]
   },
   "quality": 0.82,
+  "real": true,
+  "confidence": 0.92,
+  "source": "curated"
+ },
+ {
+  "id": "ko-두드려-보아요-c483",
+  "lang": "ko",
+  "title": "두드려 보아요",
+  "author": "안나 클라라 티돌름",
+  "publisher": "사계절",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "일상",
+   "감정",
+   "친구"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "문을 두드리는 작은 용기에서 시작되는 따뜻한 만남 이야기로, 낯선 이에게 먼저 다가가는 것이 얼마나 소중한지 느끼게 해 줍니다.",
+  "readAloud": "\"두드려 볼까?\" 하고 아이와 함께 실제로 문 두드리는 흉내를 내며 읽어 보세요.",
+  "cover": {
+   "emoji": "🚪",
+   "palette": [
+    "#F4A460",
+    "#FFFBEA"
+   ]
+  },
+  "quality": 0.78,
+  "real": true,
+  "confidence": 0.85,
+  "source": "curated"
+ },
+ {
+  "id": "ko-팥죽-할멈과-호랑이-988c",
+  "lang": "ko",
+  "title": "팥죽 할멈과 호랑이",
+  "author": "박윤규",
+  "publisher": "시공주니어",
+  "ages": [
+   "3-4",
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "환상",
+   "가족",
+   "유머"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "무서운 호랑이에게 잡아먹힐 위기에 처한 할멈을 팥죽 한 그릇이 불러온 신기한 친구들이 통쾌하게 물리쳐 주는 우리나라 전래동화의 명작입니다.",
+  "readAloud": "호랑이가 등장할 때마다 목소리를 낮추고 으르렁거리듯 읽어 주면 아이들이 더욱 즐거워해요!",
+  "cover": {
+   "emoji": "🐯",
+   "palette": [
+    "#D94F2B",
+    "#F5E6C8"
+   ]
+  },
+  "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "ko-팥이-영감과-우르르-산토끼-ff0a",
+  "lang": "ko",
+  "title": "팥이 영감과 우르르 산토끼",
+  "author": "박재철",
+  "publisher": "길벗어린이",
+  "ages": [
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "자연",
+   "유머",
+   "환상"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "팥이 영감과 우르르 몰려드는 산토끼들이 펼치는 유쾌한 이야기로, 익살스러운 캐릭터와 생동감 넘치는 전개가 아이들의 웃음을 자아냅니다.",
+  "readAloud": "산토끼 떼가 등장하는 장면에서 아이와 함께 \"우르르르~\" 소리를 크게 따라 내며 읽어 보세요!",
+  "cover": {
+   "emoji": "🐰",
+   "palette": [
+    "#E8352A",
+    "#F5F0DC"
+   ]
+  },
+  "quality": 0.45,
+  "real": false,
+  "confidence": 0.1,
+  "source": "curated"
+ },
+ {
+  "id": "ko-사라-버스를-타다-35de",
+  "lang": "ko",
+  "title": "사라, 버스를 타다",
+  "author": "윌리엄 밀러",
+  "publisher": "사계절",
+  "ages": [
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "일상",
+   "감정",
+   "친구",
+   "모험"
+  ],
+  "mood": [
+   "따뜻한",
+   "모험"
+  ],
+  "blurb": "흑인 소녀 사라가 인종 분리 시대 미국에서 용기 있게 버스 앞자리에 앉으며 차별에 맞서는 이야기로, 어린이에게 용기와 평등의 의미를 자연스럽게 전해줍니다.",
+  "readAloud": "사라가 버스에서 느끼는 감정을 아이와 함께 이야기하며, \"나라면 어떻게 했을까?\"라고 물어보세요.",
+  "cover": {
+   "emoji": "🚌",
+   "palette": [
+    "#1B3A6B",
+    "#F5A623"
+   ]
+  },
+  "quality": 0.78,
+  "real": true,
+  "confidence": 0.82,
   "source": "curated"
  },
  {
@@ -4855,6 +3603,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.78,
+  "real": true,
+  "confidence": 0.85,
   "source": "curated"
  },
  {
@@ -4888,6 +3638,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -4921,6 +3673,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.93,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -4954,6 +3708,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.95,
   "source": "curated"
  },
  {
@@ -4986,6 +3742,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.9,
+  "real": true,
+  "confidence": 0.95,
   "source": "curated"
  },
  {
@@ -5019,6 +3777,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.98,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -5052,6 +3812,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -5086,6 +3848,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.92,
   "source": "curated"
  },
  {
@@ -5118,6 +3882,41 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.92,
+  "source": "curated"
+ },
+ {
+  "id": "ko-마음이-아플까봐-e079",
+  "lang": "ko",
+  "title": "마음이 아플까봐",
+  "author": "올리버 제퍼스",
+  "publisher": "아름다운사람들",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "감정",
+   "가족"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "올리버 제퍼스 특유의 따뜻한 시선으로 아이의 마음 속 감정을 섬세하게 어루만져 주는 그림책입니다.",
+  "readAloud": "책을 읽으며 \"너는 언제 마음이 아팠어?\" 하고 아이의 감정 경험을 함께 나눠 보세요.",
+  "cover": {
+   "emoji": "💛",
+   "palette": [
+    "#F5E6C8",
+    "#7EB5D6"
+   ]
+  },
+  "quality": 0.5,
+  "real": false,
+  "confidence": 0.15,
   "source": "curated"
  },
  {
@@ -5152,6 +3951,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -5184,6 +3985,1588 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.92,
+  "source": "curated"
+ },
+ {
+  "id": "en-the-very-hungry-caterpillar-0025",
+  "lang": "en",
+  "title": "The Very Hungry Caterpillar",
+  "author": "Eric Carle",
+  "publisher": "",
+  "isbn": "9780399226908",
+  "ages": [
+   "0-2",
+   "3-4",
+   "5-6"
+  ],
+  "level": "보드북",
+  "themes": [
+   "동물",
+   "음식",
+   "자연",
+   "숫자/글자"
+  ],
+  "mood": [
+   "따뜻한",
+   "학습"
+  ],
+  "blurb": "알에서 깨어난 아주 배고픈 애벌레가 월요일부터 일요일까지 온갖 음식을 먹으며 아름다운 나비로 변해가는 성장 이야기예요. 숫자·요일·색깔을 자연스럽게 배울 수 있는 그림책의 고전입니다.",
+  "readAloud": "음식 이름을 짚어가며 \"하나, 둘…\" 함께 세어보고, 마지막 나비 장면에서는 \"어떻게 변했지?\" 하고 물어보세요!",
+  "cover": {
+   "emoji": "🐛",
+   "palette": [
+    "#E83B2A",
+    "#4CAF50"
+   ]
+  },
+  "quality": 1,
+  "real": true,
+  "confidence": 1,
+  "source": "curated"
+ },
+ {
+  "id": "en-brown-bear-brown-bear-what-do-yo-7746",
+  "lang": "en",
+  "title": "Brown Bear, Brown Bear, What Do You See?",
+  "author": "Bill Martin Jr. & Eric Carle",
+  "publisher": "",
+  "isbn": "9780805047905",
+  "ages": [
+   "0-2",
+   "3-4",
+   "5-6"
+  ],
+  "level": "보드북",
+  "themes": [
+   "동물",
+   "숫자/글자",
+   "일상"
+  ],
+  "mood": [
+   "잔잔한",
+   "학습"
+  ],
+  "blurb": "갈색 곰부터 황금빛 물고기까지, 색깔과 동물을 반복 리듬으로 배우는 영어 그림책의 고전입니다.",
+  "readAloud": "각 동물 이름과 색깔을 아이와 번갈아 가며 크게 외쳐 보세요!",
+  "cover": {
+   "emoji": "🐻",
+   "palette": [
+    "#8B4513",
+    "#FFFFFF"
+   ]
+  },
+  "quality": 1,
+  "real": true,
+  "confidence": 1,
+  "source": "curated"
+ },
+ {
+  "id": "en-goodnight-moon-5def",
+  "lang": "en",
+  "title": "Goodnight Moon",
+  "author": "Margaret Wise Brown",
+  "publisher": "",
+  "isbn": "9780060275044",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "잠자리",
+   "일상",
+   "동물",
+   "가족"
+  ],
+  "mood": [
+   "잔잔한",
+   "따뜻한"
+  ],
+  "blurb": "초록빛 방 안에서 토끼 아이가 주변의 모든 것에 하나씩 잘 자라고 인사를 건네요. 스르르 잠이 드는 밤의 포근함을 담은 영원한 잠자리 그림책입니다.",
+  "readAloud": "아이와 함께 방 안의 물건을 하나씩 가리키며 \"잘 자, ○○야!\" 하고 따라 말해 보세요.",
+  "cover": {
+   "emoji": "🌙",
+   "palette": [
+    "#4a7c59",
+    "#f5e6c8"
+   ]
+  },
+  "quality": 1,
+  "real": true,
+  "confidence": 1,
+  "source": "curated"
+ },
+ {
+  "id": "en-the-gruffalo-2c92",
+  "lang": "en",
+  "title": "The Gruffalo",
+  "author": "Julia Donaldson & Axel Scheffler",
+  "publisher": "",
+  "isbn": "9780333710937",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "환상",
+   "동물",
+   "모험",
+   "유머"
+  ],
+  "mood": [
+   "웃긴",
+   "모험"
+  ],
+  "blurb": "꾀 많은 생쥐가 무서운 숲 속 동물들을 '그러팔로'라는 상상의 괴물 이야기로 따돌리는, 반전 가득한 유쾌한 이야기예요!",
+  "readAloud": "그러팔로가 등장할 때마다 목소리를 굵고 낮게 바꿔 읽어 주면 아이가 더욱 신나 해요.",
+  "cover": {
+   "emoji": "🦔",
+   "palette": [
+    "#5B7A3C",
+    "#C2440E"
+   ]
+  },
+  "quality": 0.97,
+  "real": true,
+  "confidence": 1,
+  "source": "curated"
+ },
+ {
+  "id": "en-room-on-the-broom-8337",
+  "lang": "en",
+  "title": "Room on the Broom",
+  "author": "Julia Donaldson & Axel Scheffler",
+  "publisher": "",
+  "isbn": "9780333903384",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "환상",
+   "동물",
+   "친구",
+   "모험"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "마녀가 빗자루를 타고 하늘을 날다가 물건을 하나씩 잃어버릴 때마다 친절한 동물 친구들이 하나둘 빗자루에 올라타요. 유쾌한 라임과 함께 우정과 나눔의 따뜻한 메시지를 전하는 사랑스러운 이야기입니다.",
+  "readAloud": "\"There's room on the broom!\" 구절을 아이와 함께 큰 소리로 따라 외쳐 보세요!",
+  "cover": {
+   "emoji": "🧹",
+   "palette": [
+    "#4B2D8A",
+    "#F4A300"
+   ]
+  },
+  "quality": 0.97,
+  "real": true,
+  "confidence": 1,
+  "source": "curated"
+ },
+ {
+  "id": "en-stick-man-f91f",
+  "lang": "en",
+  "title": "Stick Man",
+  "author": "Julia Donaldson & Axel Scheffler",
+  "publisher": "",
+  "isbn": "9781407124100",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "가족",
+   "모험",
+   "환상",
+   "일상"
+  ],
+  "mood": [
+   "따뜻한",
+   "모험"
+  ],
+  "blurb": "나뭇가지 스틱맨이 가족에게 돌아가기 위해 펼치는 좌충우돌 여정을 담은 이야기로, 가족의 소중함과 집으로 돌아오는 따뜻한 감동을 전해줍니다.",
+  "readAloud": "\"나는 스틱맨이야!\" 구절을 아이와 함께 신나게 따라 읽어 보세요!",
+  "cover": {
+   "emoji": "🌿",
+   "palette": [
+    "#5B8C3E",
+    "#F5E6C8"
+   ]
+  },
+  "quality": 0.92,
+  "real": true,
+  "confidence": 0.98,
+  "source": "curated"
+ },
+ {
+  "id": "en-the-snail-and-the-whale-e770",
+  "lang": "en",
+  "title": "The Snail and the Whale",
+  "author": "Julia Donaldson & Axel Scheffler",
+  "publisher": "",
+  "isbn": "9780333982235",
+  "ages": [
+   "3-4",
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "모험",
+   "동물",
+   "자연",
+   "환상"
+  ],
+  "mood": [
+   "따뜻한",
+   "모험"
+  ],
+  "blurb": "작은 달팽이가 거대한 혹등고래의 꼬리에 올라타 온 세상을 여행하는 이야기로, 크기가 달라도 우정과 용기로 세상을 함께 누빌 수 있다는 감동을 전합니다.",
+  "readAloud": "고래와 달팽이의 대화 부분에서 목소리 크기를 달리해 읽어 주면 크기 차이가 실감나요!",
+  "cover": {
+   "emoji": "🐋",
+   "palette": [
+    "#1B6CA8",
+    "#F4E04D"
+   ]
+  },
+  "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-where-the-wild-things-are-0d9a",
+  "lang": "en",
+  "title": "Where the Wild Things Are",
+  "author": "Maurice Sendak",
+  "publisher": "",
+  "isbn": "9780060254926",
+  "ages": [
+   "3-4",
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "환상",
+   "모험",
+   "감정",
+   "동물"
+  ],
+  "mood": [
+   "모험",
+   "웃긴"
+  ],
+  "blurb": "말썽꾸러기 맥스가 상상 속 괴물들의 나라로 떠나는 신나는 모험을 통해, 아이의 거친 감정과 따뜻한 귀환을 담아낸 그림책의 영원한 고전입니다.",
+  "readAloud": "괴물들이 등장하는 장면에서 목소리를 굵고 크게 바꿔 읽어 주면 아이가 훨씬 신나해요!",
+  "cover": {
+   "emoji": "👑",
+   "palette": [
+    "#4a7c59",
+    "#f5e6c8"
+   ]
+  },
+  "quality": 1,
+  "real": true,
+  "confidence": 1,
+  "source": "curated"
+ },
+ {
+  "id": "en-we-re-going-on-a-bear-hunt-62db",
+  "lang": "en",
+  "title": "We're Going on a Bear Hunt",
+  "author": "Michael Rosen & Helen Oxenbury",
+  "publisher": "",
+  "isbn": "9780744523232",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "모험",
+   "동물",
+   "가족",
+   "자연"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "온 가족이 곰을 찾아 숲과 강, 눈보라를 헤쳐 나가는 신나는 모험 이야기로, 반복되는 리듬과 의성어가 읽을수록 더 재미있어요!",
+  "readAloud": "각 장면의 의성어(\"swishy swashy!\", \"splash splosh!\")를 온몸으로 흉내 내며 함께 읽어 보세요.",
+  "cover": {
+   "emoji": "🐻",
+   "palette": [
+    "#5B8E5B",
+    "#D2691E"
+   ]
+  },
+  "quality": 0.98,
+  "real": true,
+  "confidence": 1,
+  "source": "curated"
+ },
+ {
+  "id": "en-dear-zoo-7241",
+  "lang": "en",
+  "title": "Dear Zoo",
+  "author": "Rod Campbell",
+  "publisher": "",
+  "isbn": "9780333950135",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "동물",
+   "일상"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "동물원에 딱 맞는 반려동물을 보내달라고 편지를 쓰면, 동물원은 코끼리, 기린, 사자 등 엉뚱한 동물들을 차례차례 보내줍니다. 플랩을 들춰 어떤 동물이 숨어 있는지 찾아보는 재미가 가득한 고전 보드북입니다.",
+  "readAloud": "각 상자를 열기 전에 \"이번엔 어떤 동물일까?\" 하고 물어보며 아이가 먼저 예측하게 해주세요!",
+  "cover": {
+   "emoji": "🦁",
+   "palette": [
+    "#E8F5E9",
+    "#FF8A65"
+   ]
+  },
+  "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-the-tiger-who-came-to-tea-720a",
+  "lang": "en",
+  "title": "The Tiger Who Came to Tea",
+  "author": "Judith Kerr",
+  "publisher": "",
+  "isbn": "9780007215997",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "음식",
+   "가족",
+   "환상"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "어느 날 갑자기 찾아온 커다란 호랑이가 집 안의 음식을 몽땅 먹어 치운다면?! 엉뚱하고 유쾌한 상상력으로 아이들의 마음을 단숨에 사로잡는 영국의 고전 그림책입니다.",
+  "readAloud": "호랑이가 음식을 먹을 때마다 \"냠냠!\" 소리를 같이 내며 읽으면 더욱 신나요!",
+  "cover": {
+   "emoji": "🐯",
+   "palette": [
+    "#F4A235",
+    "#FFFFFF"
+   ]
+  },
+  "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-guess-how-much-i-love-you-3c2d",
+  "lang": "en",
+  "title": "Guess How Much I Love You",
+  "author": "Sam McBratney & Anita Jeram",
+  "publisher": "",
+  "isbn": "9780763642648",
+  "ages": [
+   "0-2",
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "가족",
+   "감정",
+   "동물",
+   "잠자리"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "아기 토끼와 아빠 토끼가 서로의 사랑이 얼마나 큰지 온몸으로 표현하며 겨루는, 세상 모든 부모와 아이를 위한 포근한 사랑 이야기입니다.",
+  "readAloud": "아이와 번갈아 \"나는 이만큼 사랑해!\" 하며 팔을 쭉 뻗어 보세요 — 책 읽기가 포옹으로 끝납니다.",
+  "cover": {
+   "emoji": "🐰",
+   "palette": [
+    "#8FBC8F",
+    "#F5E6C8"
+   ]
+  },
+  "quality": 0.97,
+  "real": true,
+  "confidence": 1,
+  "source": "curated"
+ },
+ {
+  "id": "en-press-here-93b3",
+  "lang": "en",
+  "title": "Press Here",
+  "author": "Hervé Tullet",
+  "publisher": "",
+  "isbn": "9780811879545",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "유머",
+   "감정",
+   "일상"
+  ],
+  "mood": [
+   "웃긴",
+   "모험"
+  ],
+  "blurb": "노란 점을 누르고, 흔들고, 불면 페이지가 정말로 바뀌는 것 같은 마법 같은 인터랙티브 그림책! 아이가 직접 책 속 세상을 움직이는 주인공이 돼요.",
+  "readAloud": "아이와 함께 실제로 점을 누르고, 책을 흔들고, 후~ 불며 몸으로 반응해 보세요!",
+  "cover": {
+   "emoji": "🟡",
+   "palette": [
+    "#F9D74B",
+    "#FFFFFF"
+   ]
+  },
+  "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-don-t-let-the-pigeon-drive-the-b-a201",
+  "lang": "en",
+  "title": "Don't Let the Pigeon Drive the Bus!",
+  "author": "Mo Willems",
+  "publisher": "",
+  "isbn": "9780786819881",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "탈것",
+   "유머",
+   "감정",
+   "일상"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "버스를 운전하고 싶어 안달 난 비둘기가 온갖 떼쓰기 작전을 펼치는 유쾌한 그림책으로, 아이들이 '안 돼!'라는 말의 힘을 신나게 경험할 수 있어요.",
+  "readAloud": "비둘기의 대사를 점점 크고 억울한 목소리로 읽어 주면 아이가 깔깔 웃으며 \"안 돼!\"를 함께 외쳐요!",
+  "cover": {
+   "emoji": "🐦",
+   "palette": [
+    "#F5D800",
+    "#1560BD"
+   ]
+  },
+  "quality": 0.97,
+  "real": true,
+  "confidence": 1,
+  "source": "curated"
+ },
+ {
+  "id": "en-each-peach-pear-plum-c5cc",
+  "lang": "en",
+  "title": "Each Peach Pear Plum",
+  "author": "Janet & Allan Ahlberg",
+  "publisher": "",
+  "isbn": "9780670286973",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "환상",
+   "친구",
+   "일상"
+  ],
+  "mood": [
+   "따뜻한",
+   "웃긴"
+  ],
+  "blurb": "숨은 그림 찾기처럼 페이지마다 숨어 있는 동화 속 친구들을 찾아보는 재미가 가득한 영국의 고전 그림책이에요. 엄지공주, 로빈 후드, 신데렐라 등 익숙한 캐릭터들이 하나씩 등장해 아이의 상상력을 자극해요.",
+  "readAloud": "\"I spy…\"로 시작하는 라임을 따라 읽으며 아이와 함께 숨은 캐릭터를 손가락으로 찾아보세요!",
+  "cover": {
+   "emoji": "🍑",
+   "palette": [
+    "#F4A460",
+    "#7DBB8A"
+   ]
+  },
+  "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-the-very-busy-spider-0620",
+  "lang": "en",
+  "title": "The Very Busy Spider",
+  "author": "Eric Carle",
+  "publisher": "",
+  "isbn": "9780399229190",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "일상",
+   "자연"
+  ],
+  "mood": [
+   "잔잔한",
+   "학습"
+  ],
+  "blurb": "거미 한 마리가 농장 동물들의 말을 들은 척도 않고 묵묵히 거미줄을 완성해 가는 이야기로, 집중력과 끈기의 소중함을 자연스럽게 느끼게 해줍니다.",
+  "readAloud": "거미줄 페이지마다 손가락으로 돌출된 질감을 함께 만져보며 \"다음엔 어떤 동물이 올까?\" 하고 물어보세요!",
+  "cover": {
+   "emoji": "🕷️",
+   "palette": [
+    "#E8C84A",
+    "#4A7C3F"
+   ]
+  },
+  "quality": 0.92,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-elmer-3139",
+  "lang": "en",
+  "title": "Elmer",
+  "author": "David McKee",
+  "publisher": "",
+  "isbn": "9781783446667",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "감정",
+   "친구"
+  ],
+  "mood": [
+   "따뜻한",
+   "웃긴"
+  ],
+  "blurb": "알록달록 체크무늬 코끼리 엘머가 '평범한 회색'이 되고 싶어 고민하지만, 결국 자신만의 특별함이 가장 큰 선물임을 깨닫는 따뜻한 이야기예요.",
+  "readAloud": "엘머의 다양한 색깔을 짚으며 \"너는 어떤 색이 좋아?\"라고 아이에게 물어보세요!",
+  "cover": {
+   "emoji": "🐘",
+   "palette": [
+    "#E8D44D",
+    "#E74C3C"
+   ]
+  },
+  "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-handa-s-surprise-c686",
+  "lang": "en",
+  "title": "Handa's Surprise",
+  "author": "Eileen Browne",
+  "publisher": "",
+  "isbn": "9780744536348",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "음식",
+   "자연",
+   "모험"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "아프리카 소녀 한다가 친구에게 과일 바구니를 가져가는 길, 동물들이 하나씩 몰래 훔쳐 먹어도 정작 한다는 모른다! 예상치 못한 깜짝 결말이 유쾌한 그림책입니다.",
+  "readAloud": "각 동물이 등장할 때마다 \"다음엔 어떤 동물이 나올까?\" 하고 아이에게 먼저 물어보세요.",
+  "cover": {
+   "emoji": "🧺",
+   "palette": [
+    "#F4A827",
+    "#5BA85A"
+   ]
+  },
+  "quality": 0.88,
+  "real": true,
+  "confidence": 0.98,
+  "source": "curated"
+ },
+ {
+  "id": "en-the-very-lonely-firefly-37d5",
+  "lang": "en",
+  "title": "The Very Lonely Firefly",
+  "author": "Eric Carle",
+  "publisher": "",
+  "isbn": "9780399504693",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "자연",
+   "친구",
+   "감정"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "갓 태어난 반딧불이가 자신처럼 빛나는 친구를 찾아 밤 하늘을 헤매다가, 마침내 같은 반딧불이들과 만나 함께 빛을 내는 따뜻한 이야기입니다. 에릭 칼 특유의 밝고 화려한 콜라주 그림과 함께 마지막 페이지에서 실제로 반짝이는 빛이 등장해 아이들에게 특별한 감동을 선사합니다.",
+  "readAloud": "마지막 페이지의 반짝이는 불빛이 켜질 때 \"우리 반딧불이가 친구를 찾았대!\" 하고 함께 기뻐해 주세요.",
+  "cover": {
+   "emoji": "🌟",
+   "palette": [
+    "#1a1a4e",
+    "#f7e03c"
+   ]
+  },
+  "quality": 0.9,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-mr-gumpy-s-outing-0c96",
+  "lang": "en",
+  "title": "Mr Gumpy's Outing",
+  "author": "John Burningham",
+  "publisher": "",
+  "isbn": "9780099408796",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "모험",
+   "가족",
+   "일상"
+  ],
+  "mood": [
+   "따뜻한",
+   "웃긴"
+  ],
+  "blurb": "검피 아저씨의 배에 동물 친구들이 하나둘 올라타지만 결국 모두 물에 빠지고 말아요 — 그래도 함께여서 즐거운 하루 이야기예요!",
+  "readAloud": "동물들이 배에 탈 때마다 \"안 된다\"고 했던 이유를 아이와 함께 떠올리며 읽어 보세요.",
+  "cover": {
+   "emoji": "⛵",
+   "palette": [
+    "#7BB8D4",
+    "#F5C842"
+   ]
+  },
+  "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-the-rainbow-fish-72e1",
+  "lang": "en",
+  "title": "The Rainbow Fish",
+  "author": "Marcus Pfister",
+  "publisher": "",
+  "isbn": "9781558580091",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "감정",
+   "친구"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "반짝이는 비늘을 가진 무지개 물고기가 나눔의 기쁨을 배우며 진정한 친구를 얻는 아름다운 이야기입니다.",
+  "readAloud": "반짝이 비늘 장면에서 아이에게 \"너라면 소중한 걸 나눠줄 수 있어?\"라고 물어보세요.",
+  "cover": {
+   "emoji": "🐟",
+   "palette": [
+    "#4FC3F7",
+    "#B39DDB"
+   ]
+  },
+  "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-the-gruffalo-s-child-b953",
+  "lang": "en",
+  "title": "The Gruffalo's Child",
+  "author": "Julia Donaldson & Axel Scheffler",
+  "publisher": "",
+  "isbn": "9781405020459",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "환상",
+   "동물",
+   "모험",
+   "감정"
+  ],
+  "mood": [
+   "모험",
+   "따뜻한"
+  ],
+  "blurb": "그러펄로의 아이가 무서운 '빅 배드 마우스'를 찾아 밤 숲 속으로 떠나는 용감한 탐험 이야기로, 용기와 상상력의 힘을 유머러스하게 담아낸 작품입니다.",
+  "readAloud": "어두운 숲 장면에서 목소리를 낮춰 속삭이듯 읽어 주면 아이가 긴장감을 생생하게 느낄 수 있어요!",
+  "cover": {
+   "emoji": "🦷",
+   "palette": [
+    "#1B3A2D",
+    "#F5ECD7"
+   ]
+  },
+  "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-owl-babies-6571",
+  "lang": "en",
+  "title": "Owl Babies",
+  "author": "Martin Waddell & Patrick Benson",
+  "publisher": "",
+  "isbn": "9780744531671",
+  "ages": [
+   "0-2",
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "가족",
+   "감정"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "밤새 엄마를 기다리는 세 아기 올빼미의 이야기로, 분리불안을 느끼는 아이들에게 \"엄마는 반드시 돌아온다\"는 따뜻한 안도감을 전해줍니다.",
+  "readAloud": "엄마를 기다리는 장면에서 아이에게 \"너라면 어떤 기분일까?\" 하고 물으며 감정을 함께 나눠 보세요.",
+  "cover": {
+   "emoji": "🦉",
+   "palette": [
+    "#1B2A4A",
+    "#F5F0E1"
+   ]
+  },
+  "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-tiddler-f48f",
+  "lang": "en",
+  "title": "Tiddler",
+  "author": "Julia Donaldson & Axel Scheffler",
+  "publisher": "",
+  "isbn": "9781407109480",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "모험",
+   "환상",
+   "유머"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "꼬마 물고기 티들러는 매번 학교에 늦으면서 기상천외한 모험 이야기를 지어내는데, 그 거짓말 같은 이야기가 결국 자신을 구해줍니다! 바다 속 세계를 배경으로 상상력과 이야기의 힘을 유쾌하게 담아낸 그림책입니다.",
+  "readAloud": "물고기들의 대사를 각각 다른 목소리로 흉내 내며 읽어주면 아이가 더욱 즐거워해요!",
+  "cover": {
+   "emoji": "🐟",
+   "palette": [
+    "#1A6EA8",
+    "#F5C842"
+   ]
+  },
+  "quality": 0.88,
+  "real": true,
+  "confidence": 0.95,
+  "source": "curated"
+ },
+ {
+  "id": "en-knuffle-bunny-7cbd",
+  "lang": "en",
+  "title": "Knuffle Bunny",
+  "author": "Mo Willems",
+  "publisher": "",
+  "isbn": "9780786818709",
+  "ages": [
+   "1-2",
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "가족",
+   "일상",
+   "감정"
+  ],
+  "mood": [
+   "따뜻한",
+   "웃긴"
+  ],
+  "blurb": "소중한 인형 너플 버니를 잃어버린 아기 트리샤의 좌충우돌 소동을 담은, 아이와 부모 모두 공감할 수 있는 따뜻하고 유머러스한 이야기예요.",
+  "readAloud": "트리샤가 옹알이하는 장면에서 아이와 함께 신나게 따라 해 보세요!",
+  "cover": {
+   "emoji": "🐰",
+   "palette": [
+    "#F5E6C8",
+    "#4A90D9"
+   ]
+  },
+  "quality": 0.95,
+  "real": true,
+  "confidence": 1,
+  "source": "curated"
+ },
+ {
+  "id": "en-lost-and-found-ec18",
+  "lang": "en",
+  "title": "Lost and Found",
+  "author": "Oliver Jeffers",
+  "publisher": "",
+  "isbn": "9780007150366",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "친구",
+   "모험",
+   "감정",
+   "탈것"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "길을 잃은 아기 펭귄을 집에 데려다주려는 소년의 따뜻한 여정을 통해, 진정한 우정이란 함께 있고 싶은 마음임을 조용하고 깊게 전해주는 그림책입니다.",
+  "readAloud": "펭귄과 소년의 표정을 짚어가며 \"지금 기분이 어떨까?\" 묻고 이야기 나눠보세요.",
+  "cover": {
+   "emoji": "🐧",
+   "palette": [
+    "#f4a83a",
+    "#2e6fa3"
+   ]
+  },
+  "quality": 0.92,
+  "real": true,
+  "confidence": 0.98,
+  "source": "curated"
+ },
+ {
+  "id": "en-how-to-catch-a-star-66e3",
+  "lang": "en",
+  "title": "How to Catch a Star",
+  "author": "Oliver Jeffers",
+  "publisher": "",
+  "isbn": "9780007150342",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "우주",
+   "모험",
+   "환상",
+   "자연"
+  ],
+  "mood": [
+   "따뜻한",
+   "모험"
+  ],
+  "blurb": "별을 너무나 사랑하는 한 소년이 직접 별을 잡기 위해 온갖 방법을 시도하는 이야기로, 꿈과 상상력이 가득한 따뜻한 결말이 마음을 사로잡아요.",
+  "readAloud": "소년이 별을 잡으려 할 때마다 \"어떻게 하면 별을 잡을 수 있을까?\" 하고 아이에게 질문을 던져보세요!",
+  "cover": {
+   "emoji": "⭐",
+   "palette": [
+    "#1B2A6B",
+    "#F9E04B"
+   ]
+  },
+  "quality": 0.92,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-the-incredible-book-eating-boy-742f",
+  "lang": "en",
+  "title": "The Incredible Book Eating Boy",
+  "author": "Oliver Jeffers",
+  "publisher": "",
+  "isbn": "9780007182329",
+  "ages": [
+   "3-4",
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "유머",
+   "일상",
+   "감정"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "책을 눈으로 읽는 게 아니라 입으로 먹어치우는 소년 헨리의 엉뚱하고 유쾌한 이야기로, 읽기의 진짜 즐거움을 깨닫게 해줍니다.",
+  "readAloud": "헨리가 책을 우적우적 먹는 장면에서 아이와 함께 씹는 소리를 내며 읽으면 더욱 신나요!",
+  "cover": {
+   "emoji": "📚",
+   "palette": [
+    "#D94F3D",
+    "#F5E6C8"
+   ]
+  },
+  "quality": 0.88,
+  "real": true,
+  "confidence": 0.98,
+  "source": "curated"
+ },
+ {
+  "id": "en-the-pout-pout-fish-81b3",
+  "lang": "en",
+  "title": "The Pout-Pout Fish",
+  "author": "Deborah Diesen & Dan Hanna",
+  "publisher": "",
+  "isbn": "9780374360979",
+  "ages": [
+   "0-2",
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "감정",
+   "동물",
+   "환상",
+   "친구"
+  ],
+  "mood": [
+   "따뜻한",
+   "웃긴"
+  ],
+  "blurb": "항상 찡그리고 시무룩한 표정인 물고기가 친구들의 사랑 덕분에 환한 미소를 되찾는, 감정 표현을 배우기에 딱 좋은 그림책이에요.",
+  "readAloud": "물고기의 \"드림-드림-드림\" 리듬감 있는 반복 구절을 아이와 함께 따라 말하며 읽어보세요!",
+  "cover": {
+   "emoji": "🐟",
+   "palette": [
+    "#4A90D9",
+    "#A8D8EA"
+   ]
+  },
+  "quality": 0.88,
+  "real": true,
+  "confidence": 0.98,
+  "source": "curated"
+ },
+ {
+  "id": "en-we-don-t-eat-our-classmates-9679",
+  "lang": "en",
+  "title": "We Don't Eat Our Classmates",
+  "author": "Ryan T. Higgins",
+  "publisher": "",
+  "isbn": "9781368003551",
+  "ages": [
+   "3-4",
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "친구",
+   "유머",
+   "감정",
+   "일상"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "공룡 소녀 페넬로페는 첫날 학교에 가서 친구들을 먹고 싶은 충동을 느끼지만, 진짜 친구를 사귀는 법을 배워 가는 유쾌한 이야기예요.",
+  "readAloud": "페넬로페가 친구를 꿀꺽 삼키는 장면에서 잠깐 멈추고 \"왜 그러면 안 될까?\" 하고 아이에게 물어보세요!",
+  "cover": {
+   "emoji": "🦕",
+   "palette": [
+    "#4CAF50",
+    "#FF7043"
+   ]
+  },
+  "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "en-not-a-box-d4fd",
+  "lang": "en",
+  "title": "Not a Box",
+  "author": "Antoinette Portis",
+  "publisher": "",
+  "isbn": "9780061123221",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "환상",
+   "일상",
+   "그림그리기",
+   "감정"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "그냥 상자가 아니에요! 토끼의 눈에는 상자가 로켓이 되고, 산이 되고, 불타는 자동차가 되죠. 아이의 무한한 상상력을 톡 건드려 주는 그림책이에요.",
+  "readAloud": "\"이건 그냥 상자야!\"라고 물으면 아이가 \"아니에요, 이건 ___이에요!\"라고 직접 채워 말하게 해보세요.",
+  "cover": {
+   "emoji": "📦",
+   "palette": [
+    "#E83B2A",
+    "#F5F0E8"
+   ]
+  },
+  "quality": 0.93,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-giraffes-can-t-dance-c1f9",
+  "lang": "en",
+  "title": "Giraffes Can't Dance",
+  "author": "Giles Andreae & Guy Parker-Rees",
+  "publisher": "",
+  "isbn": "9781841215655",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "감정",
+   "유머"
+  ],
+  "mood": [
+   "따뜻한",
+   "웃긴"
+  ],
+  "blurb": "기린 제럴드는 춤을 못 춰서 놀림을 받지만, 자신만의 리듬을 찾아 결국 누구보다 멋지게 춤을 추게 되는 자존감 가득한 이야기예요.",
+  "readAloud": "운율이 살아있는 영어 원문을 리듬감 있게 읽어주고, 아이와 함께 제럴드처럼 온몸으로 춤을 춰 보세요!",
+  "cover": {
+   "emoji": "🦒",
+   "palette": [
+    "#F5A623",
+    "#7ED321"
+   ]
+  },
+  "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-the-day-the-crayons-quit-1c47",
+  "lang": "en",
+  "title": "The Day the Crayons Quit",
+  "author": "Drew Daywalt & Oliver Jeffers",
+  "publisher": "",
+  "isbn": "9780399255373",
+  "ages": [
+   "3-4",
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "유머",
+   "감정",
+   "그림그리기",
+   "친구"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "크레용들이 파업을 선언하며 저마다 불만을 담은 편지를 써 보내는 기발한 이야기로, 색깔마다 개성 있는 목소리가 터져 나와 읽는 내내 웃음이 끊이지 않아요.",
+  "readAloud": "각 크레용의 편지를 읽을 때 색깔에 맞는 목소리와 표정을 달리해 보세요!",
+  "cover": {
+   "emoji": "🖍️",
+   "palette": [
+    "#E8453C",
+    "#4A90D9"
+   ]
+  },
+  "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-the-tiny-seed-c3cb",
+  "lang": "en",
+  "title": "The Tiny Seed",
+  "author": "Eric Carle",
+  "publisher": "",
+  "isbn": "9780689842443",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "자연",
+   "동물",
+   "일상"
+  ],
+  "mood": [
+   "잔잔한",
+   "학습"
+  ],
+  "blurb": "아주 작은 씨앗 하나가 바람을 타고 여행하며 꽃으로 피어나는 과정을 통해, 생명의 신비와 자연의 순환을 아름답게 담아낸 그림책입니다.",
+  "readAloud": "씨앗이 날아가는 장면에서 \"휘이잉~\" 하고 바람 소리를 함께 흉내 내며 읽어 보세요!",
+  "cover": {
+   "emoji": "🌱",
+   "palette": [
+    "#F4A832",
+    "#6BBF59"
+   ]
+  },
+  "quality": 0.88,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-monkey-puzzle-9466",
+  "lang": "en",
+  "title": "Monkey Puzzle",
+  "author": "Julia Donaldson & Axel Scheffler",
+  "publisher": "",
+  "isbn": "9780333720011",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "가족",
+   "환상",
+   "자연"
+  ],
+  "mood": [
+   "따뜻한",
+   "웃긴"
+  ],
+  "blurb": "엄마를 잃어버린 아기 원숭이가 나비의 도움으로 엄마를 찾아가는 여정에서, 서로 다른 동물들의 엄마를 번갈아 만나며 웃음과 따뜻함을 선사합니다.",
+  "readAloud": "각 동물이 등장할 때마다 \"이건 내 엄마가 아니야!\" 부분을 아이와 함께 목소리를 바꿔 가며 읽어보세요.",
+  "cover": {
+   "emoji": "🐒",
+   "palette": [
+    "#4A90D9",
+    "#F5A623"
+   ]
+  },
+  "quality": 0.88,
+  "real": true,
+  "confidence": 0.98,
+  "source": "curated"
+ },
+ {
+  "id": "en-zog-8e45",
+  "lang": "en",
+  "title": "Zog",
+  "author": "Julia Donaldson & Axel Scheffler",
+  "publisher": "",
+  "isbn": "9781407115573",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "환상",
+   "모험",
+   "동물",
+   "친구"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "용이 되기 위해 학교에서 열심히 도전하는 아기 용 조그의 유쾌하고 따뜻한 성장 이야기로, 실수를 두려워하지 않는 용기와 우정을 담았어요.",
+  "readAloud": "조그가 넘어지거나 실패할 때마다 아이와 함께 \"괜찮아, 다시 해보자!\" 하고 응원해 주세요.",
+  "cover": {
+   "emoji": "🐉",
+   "palette": [
+    "#E83B2A",
+    "#F4C430"
+   ]
+  },
+  "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "en-naughty-bus-d244",
+  "lang": "en",
+  "title": "Naughty Bus",
+  "author": "Jan Oke & Jerry Oke",
+  "publisher": "",
+  "isbn": "9780954792114",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "탈것",
+   "모험",
+   "유머",
+   "일상"
+  ],
+  "mood": [
+   "웃긴",
+   "모험"
+  ],
+  "blurb": "장난꾸러기 빨간 버스가 부엌 곳곳을 신나게 질주하며 온갖 소동을 일으켜요! 익숙한 일상 공간이 거대한 모험 무대로 변하는 재기발랄한 이야기예요.",
+  "readAloud": "버스가 음식 위를 달릴 때 \"부릉부릉~\" 효과음을 함께 내며 읽으면 더욱 신나요!",
+  "cover": {
+   "emoji": "🚌",
+   "palette": [
+    "#D0021B",
+    "#F5F0E8"
+   ]
+  },
+  "quality": 0.65,
+  "real": true,
+  "confidence": 0.82,
+  "source": "curated"
+ },
+ {
+  "id": "en-dinosaurs-love-underpants-95a1",
+  "lang": "en",
+  "title": "Dinosaurs Love Underpants",
+  "author": "Claire Freedman & Ben Cort",
+  "publisher": "",
+  "isbn": "9781416988502",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "공룡",
+   "유머",
+   "일상"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "공룡이 멸종한 진짜 이유는 팬티 때문?! 알록달록 팬티를 사랑한 공룡들의 엉뚱하고 유쾌한 대소동이 펼쳐집니다.",
+  "readAloud": "공룡 이름을 과장된 목소리로 읽고, 팬티 그림마다 아이와 함께 색깔·무늬를 큰 소리로 외쳐보세요!",
+  "cover": {
+   "emoji": "🦕",
+   "palette": [
+    "#E83A2F",
+    "#F5D547"
+   ]
+  },
+  "quality": 0.82,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "en-hairy-maclary-from-donaldson-s-d-02c7",
+  "lang": "en",
+  "title": "Hairy Maclary from Donaldson's Dairy",
+  "author": "Lynley Dodd",
+  "publisher": "",
+  "isbn": "9780140509380",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "모험",
+   "유머"
+  ],
+  "mood": [
+   "웃긴",
+   "모험"
+  ],
+  "blurb": "작고 털복숭이 강아지 헤어리 맥클러리가 동네 개 친구들과 신나게 산책을 나섰다가 무시무시한 고양이 헤럴드를 만나 혼비백산 도망치는 유쾌한 이야기예요!",
+  "readAloud": "각 강아지 이름을 리드미컬하게 강조하며 읽어 주면 아이들이 박자에 맞춰 따라 하며 더욱 즐거워해요.",
+  "cover": {
+   "emoji": "🐶",
+   "palette": [
+    "#F5C842",
+    "#4A7C3F"
+   ]
+  },
+  "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-aliens-love-underpants-8a8c",
+  "lang": "en",
+  "title": "Aliens Love Underpants",
+  "author": "Claire Freedman & Ben Cort",
+  "publisher": "",
+  "isbn": "9781416917045",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "유머",
+   "환상",
+   "우주",
+   "일상"
+  ],
+  "mood": [
+   "웃긴",
+   "모험"
+  ],
+  "blurb": "외계인들이 지구에 오는 진짜 이유는 바로 팬티 때문?! 알록달록 팬티를 사랑하는 외계인들의 유쾌하고 엉뚱한 소동이 펼쳐집니다.",
+  "readAloud": "팬티 종류가 나올 때마다 목소리를 바꿔가며 과장되게 읽어 주면 아이가 더 깔깔 웃어요!",
+  "cover": {
+   "emoji": "👽",
+   "palette": [
+    "#7B2D8B",
+    "#F4E04D"
+   ]
+  },
+  "quality": 0.82,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "en-rosie-s-walk-8500",
+  "lang": "en",
+  "title": "Rosie's Walk",
+  "author": "Pat Hutchins",
+  "publisher": "",
+  "isbn": "9780020437505",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "모험",
+   "유머",
+   "일상"
+  ],
+  "mood": [
+   "웃긴",
+   "잔잔한"
+  ],
+  "blurb": "암탉 로지가 태평하게 산책하는 동안, 뒤를 몰래 쫓는 여우는 번번이 우스꽝스러운 사고를 당해요. 글과 그림이 전혀 다른 두 이야기를 동시에 담은 유머 넘치는 고전 그림책이에요.",
+  "readAloud": "여우가 등장하는 장면마다 \"어, 어, 어!\" 하며 과장된 목소리로 위기를 표현해 보세요!",
+  "cover": {
+   "emoji": "🐔",
+   "palette": [
+    "#E8A838",
+    "#4A7C3F"
+   ]
+  },
+  "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-the-snowman-35c4",
+  "lang": "en",
+  "title": "The Snowman",
+  "author": "Raymond Briggs",
+  "publisher": "",
+  "isbn": "9780241302651",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "환상",
+   "자연",
+   "일상",
+   "친구"
+  ],
+  "mood": [
+   "잔잔한",
+   "따뜻한"
+  ],
+  "blurb": "눈사람과 함께 하늘을 나는 꿈 같은 하룻밤 — 글 없이 그림만으로 전해지는 순수한 우정과 짧은 이별의 감동이 마음속에 오래 남습니다.",
+  "readAloud": "글이 없으니 아이가 직접 이야기를 만들어 말하게 해보세요!",
+  "cover": {
+   "emoji": "☃️",
+   "palette": [
+    "#A8D8EA",
+    "#FFFAF0"
+   ]
+  },
+  "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-the-very-quiet-cricket-68eb",
+  "lang": "en",
+  "title": "The Very Quiet Cricket",
+  "author": "Eric Carle",
+  "publisher": "",
+  "isbn": "9780399226847",
+  "ages": [
+   "0-2",
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "자연",
+   "일상",
+   "감정"
+  ],
+  "mood": [
+   "잔잔한",
+   "따뜻한"
+  ],
+  "blurb": "아직 소리를 내지 못하는 아기 귀뚜라미가 다양한 곤충들을 만나며 자신만의 목소리를 찾아가는 따뜻한 성장 이야기예요. 마지막 페이지에서 울려 퍼지는 진짜 귀뚜라미 소리가 아이들에게 큰 감동을 줍니다.",
+  "readAloud": "각 곤충이 등장할 때마다 소리를 직접 흉내 내며 읽어 주고, 마지막 귀뚜라미 소리 버튼을 아이가 직접 눌러 보게 해 주세요!",
+  "cover": {
+   "emoji": "🦗",
+   "palette": [
+    "#7DBF5E",
+    "#F5E642"
+   ]
+  },
+  "quality": 0.93,
+  "real": true,
+  "confidence": 0.99,
+  "source": "curated"
+ },
+ {
+  "id": "en-oi-frog-625f",
+  "lang": "en",
+  "title": "Oi Frog!",
+  "author": "Kes Gray & Jim Field",
+  "publisher": "",
+  "isbn": "9781444910865",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "동물",
+   "유머",
+   "일상"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "개구리는 어디에 앉아야 할까요? 고양이가 동물마다 앉을 자리를 정해 주는데, 그 이유가 너무 황당하고 웃겨서 아이들이 배꼽을 잡을 거예요!",
+  "readAloud": "각 동물 이름과 앉는 장소를 신나는 리듬에 맞춰 아이와 번갈아 읽어 보세요!",
+  "cover": {
+   "emoji": "🐸",
+   "palette": [
+    "#5BBF6A",
+    "#F9E04B"
+   ]
+  },
+  "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -5217,6 +5600,8 @@ window.BOOKS = [
    ]
   },
   "quality": 1,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -5251,6 +5636,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.93,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -5284,6 +5671,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.93,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -5317,6 +5706,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -5350,6 +5741,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -5384,6 +5777,8 @@ window.BOOKS = [
    ]
   },
   "quality": 1,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -5418,6 +5813,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.93,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -5452,6 +5849,8 @@ window.BOOKS = [
    ]
   },
   "quality": 1,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -5486,6 +5885,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -5519,6 +5920,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -5552,6 +5955,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -5584,6 +5989,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -5618,6 +6025,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -5653,6 +6062,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -5686,6 +6097,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -5720,6 +6133,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -5754,6 +6169,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -5788,6 +6205,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -5822,6 +6241,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -5855,6 +6276,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.9,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -5890,6 +6313,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -5924,6 +6349,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -5958,6 +6385,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -5991,6 +6420,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -6024,6 +6455,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -6058,6 +6491,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.93,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -6092,6 +6527,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -6126,6 +6563,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -6160,6 +6599,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -6194,6 +6635,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -6228,6 +6671,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -6262,6 +6707,8 @@ window.BOOKS = [
    ]
   },
   "quality": 1,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -6297,6 +6744,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -6331,6 +6780,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -6366,6 +6817,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.93,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -6400,6 +6853,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.93,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -6434,6 +6889,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.93,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -6467,6 +6924,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -6501,6 +6960,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -6536,6 +6997,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -6571,6 +7034,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -6604,6 +7069,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -6638,6 +7105,8 @@ window.BOOKS = [
    ]
   },
   "quality": 1,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -6672,6 +7141,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -6706,6 +7177,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -6739,6 +7212,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -6773,6 +7248,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -6807,6 +7284,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -6840,6 +7319,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -6874,6 +7355,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -6908,6 +7391,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -6943,6 +7428,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -6978,6 +7465,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -7011,6 +7500,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -7045,6 +7536,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -7077,6 +7570,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -7111,6 +7606,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -7145,6 +7642,8 @@ window.BOOKS = [
    ]
   },
   "quality": 1,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -7178,6 +7677,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -7212,6 +7713,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -7246,6 +7749,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.93,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -7279,6 +7784,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.9,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -7313,6 +7820,8 @@ window.BOOKS = [
    ]
   },
   "quality": 1,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -7347,6 +7856,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -7382,6 +7893,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -7416,6 +7929,8 @@ window.BOOKS = [
    ]
   },
   "quality": 1,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -7450,6 +7965,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -7484,6 +8001,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -7519,6 +8038,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -7553,6 +8074,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -7587,6 +8110,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -7622,6 +8147,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -7656,6 +8183,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.93,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -7690,6 +8219,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.93,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -7724,6 +8255,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -7758,6 +8291,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -7791,6 +8326,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -7825,6 +8362,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -7859,6 +8398,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -7894,6 +8435,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.93,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -7928,6 +8471,79 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "en-the-crayons-christmas-af2b",
+  "lang": "en",
+  "title": "The Crayons' Christmas",
+  "author": "Drew Daywalt & Oliver Jeffers",
+  "publisher": "",
+  "isbn": "9780525515746",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "감정",
+   "유머",
+   "일상",
+   "친구"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "크레용들이 크리스마스를 맞아 저마다 자기 색깔로 꾸미고 싶다고 편지를 쓰는, 유머 넘치는 크리스마스 이야기예요.",
+  "readAloud": "각 크레용의 편지를 읽을 때 해당 색 목소리를 다르게 흉내 내며 읽어 주세요!",
+  "cover": {
+   "emoji": "🖍️",
+   "palette": [
+    "#E63946",
+    "#F4D35E"
+   ]
+  },
+  "quality": 0.45,
+  "real": false,
+  "confidence": 0.15,
+  "source": "curated"
+ },
+ {
+  "id": "en-the-day-the-crayons-came-home-5c4c",
+  "lang": "en",
+  "title": "The Day the Crayons Came Home",
+  "author": "Drew Daywalt & Oliver Jeffers",
+  "publisher": "",
+  "isbn": "9780399172755",
+  "ages": [
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "유머",
+   "감정",
+   "일상"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "잃어버렸거나 상처받은 크레용들이 집으로 돌아오고 싶다는 편지를 보내오는 유쾌하고 따뜻한 이야기로, 색깔마다 개성 넘치는 목소리가 웃음을 자아냅니다.",
+  "readAloud": "각 크레용의 편지를 읽을 때 목소리와 표정을 달리해 보세요—아이가 직접 크레용이 되어 읽어도 신나요!",
+  "cover": {
+   "emoji": "🖍️",
+   "palette": [
+    "#FF6B6B",
+    "#FFD93D"
+   ]
+  },
+  "quality": 0.72,
+  "real": false,
+  "confidence": 0.45,
   "source": "curated"
  },
  {
@@ -7963,6 +8579,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.93,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -7996,6 +8614,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.93,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -8028,6 +8648,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -8060,6 +8682,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.82,
+  "real": true,
+  "confidence": 0.93,
   "source": "curated"
  },
  {
@@ -8093,6 +8717,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -8126,6 +8752,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -8160,6 +8788,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -8194,6 +8824,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -8228,6 +8860,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.9,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -8262,6 +8896,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.72,
+  "real": true,
+  "confidence": 0.82,
   "source": "curated"
  },
  {
@@ -8295,6 +8931,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -8328,6 +8966,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -8362,6 +9002,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -8378,6 +9020,7 @@ window.BOOKS = [
   "level": "보드북",
   "themes": [
    "동물",
+   "음악",
    "일상",
    "유머"
   ],
@@ -8395,6 +9038,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -8429,6 +9074,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -8462,6 +9109,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -8496,6 +9145,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -8530,6 +9181,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -8564,6 +9217,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -8598,6 +9253,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -8632,6 +9289,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -8648,6 +9307,7 @@ window.BOOKS = [
   "level": "그림책",
   "themes": [
    "자연",
+   "학습",
    "일상"
   ],
   "mood": [
@@ -8664,6 +9324,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -8698,6 +9360,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -8732,6 +9396,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -8748,7 +9414,8 @@ window.BOOKS = [
   "level": "그림책",
   "themes": [
    "자연",
-   "일상"
+   "일상",
+   "학습"
   ],
   "mood": [
    "잔잔한",
@@ -8764,6 +9431,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -8798,6 +9467,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -8832,6 +9503,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -8867,6 +9540,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -8900,6 +9575,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -8934,6 +9611,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -8968,6 +9647,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -9002,6 +9683,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -9036,6 +9719,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -9069,6 +9754,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -9103,6 +9790,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -9137,6 +9826,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -9171,6 +9862,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -9206,6 +9899,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -9224,6 +9919,7 @@ window.BOOKS = [
   "themes": [
    "일상",
    "자연",
+   "학습",
    "감정"
   ],
   "mood": [
@@ -9240,6 +9936,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.85,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -9273,6 +9971,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -9308,6 +10008,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.93,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -9342,6 +10044,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -9376,6 +10080,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -9410,6 +10116,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -9444,6 +10152,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -9478,6 +10188,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.9,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -9513,6 +10225,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.85,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -9546,6 +10260,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -9579,6 +10295,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.82,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -9613,6 +10331,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -9647,6 +10367,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.85,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -9681,6 +10403,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -9716,6 +10440,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -9751,6 +10477,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.9,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -9785,6 +10513,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -9819,6 +10549,44 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "en-cave-baby-c276",
+  "lang": "en",
+  "title": "Cave Baby",
+  "author": "Julia Donaldson & Emily Gravett",
+  "publisher": "",
+  "isbn": "9780230741393",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "모험",
+   "가족",
+   "동물",
+   "환상"
+  ],
+  "mood": [
+   "따뜻한",
+   "모험"
+  ],
+  "blurb": "동굴 아기가 털복숭이 맘모스를 타고 밤하늘 아래 동굴 벽에 그림을 그리며 펼치는 따뜻하고 신나는 모험 이야기예요.",
+  "readAloud": "동물들이 등장할 때마다 목소리를 바꿔 읽어 주면 아이가 더 즐거워해요!",
+  "cover": {
+   "emoji": "🦣",
+   "palette": [
+    "#8B5E3C",
+    "#1A1A2E"
+   ]
+  },
+  "quality": 0.6,
+  "real": false,
+  "confidence": 0.35,
   "source": "curated"
  },
  {
@@ -9854,6 +10622,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -9888,6 +10658,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -9922,6 +10694,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -9956,6 +10730,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.98,
+  "real": true,
+  "confidence": 1,
   "source": "curated"
  },
  {
@@ -9990,6 +10766,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -10023,6 +10801,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -10056,6 +10836,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.9,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -10091,6 +10873,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -10124,6 +10908,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.93,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -10159,6 +10945,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -10194,6 +10982,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -10227,6 +11017,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -10261,6 +11053,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -10295,6 +11089,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -10328,6 +11124,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.93,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -10362,6 +11160,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -10397,6 +11197,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.97,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -10431,6 +11233,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -10447,7 +11251,8 @@ window.BOOKS = [
   "level": "그림책",
   "themes": [
    "자연",
-   "동물"
+   "동물",
+   "학습"
   ],
   "mood": [
    "잔잔한",
@@ -10463,6 +11268,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -10496,6 +11303,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.9,
+  "real": true,
+  "confidence": 0.95,
   "source": "curated"
  },
  {
@@ -10530,6 +11339,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -10563,6 +11374,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.95,
+  "real": true,
+  "confidence": 0.99,
   "source": "curated"
  },
  {
@@ -10597,6 +11410,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.93,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -10630,6 +11445,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.82,
+  "real": true,
+  "confidence": 0.92,
   "source": "curated"
  },
  {
@@ -10664,6 +11481,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -10698,6 +11517,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.85,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -10731,6 +11552,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.78,
+  "real": true,
+  "confidence": 0.85,
   "source": "curated"
  },
  {
@@ -10765,6 +11588,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -10799,6 +11624,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.88,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  },
  {
@@ -10832,6 +11659,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -10865,6 +11694,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.98,
   "source": "curated"
  },
  {
@@ -10899,6 +11730,8 @@ window.BOOKS = [
    ]
   },
   "quality": 0.92,
+  "real": true,
+  "confidence": 0.97,
   "source": "curated"
  }
-];
+]

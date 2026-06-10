@@ -11,6 +11,47 @@ const THEME_ICON = {
 };
 const MOOD_ICON = { "웃긴":"yumeo","따뜻한":"mood-ttaseuthan","모험":"moheom","학습":"mood-hakseup","잔잔한":"mood-janjan" };
 
+// Free-text → signal lexicon. Maps words a parent types in the note to theme/mood nudges.
+// Deterministic, offline — this is how the note steers recs without any model.
+const NOTE_LEXICON = [
+  { kw: ["공룡","티라노","브라키오","다이노","dino","dinosaur"], theme:"공룡" },
+  { kw: ["우주","로켓","행성","별","space","rocket","planet"], theme:"우주" },
+  { kw: ["동물","강아지","고양이","토끼","곰","사자","animal","puppy","cat"], theme:"동물" },
+  { kw: ["공주","왕자","드레스","princess"], theme:"공주" },
+  { kw: ["자동차","부릉","car"], theme:"자동차" },
+  { kw: ["기차","버스","비행기","탈것","train","bus","plane"], theme:"탈것" },
+  { kw: ["그림","색칠","크레용","draw","paint","color"], theme:"그림그리기" },
+  { kw: ["잠","자기 전","잠들기","재우","잠자리","bedtime","sleep"], theme:"잠자리", mood:"잔잔한" },
+  { kw: ["자연","숲","나무","꽃","바다","nature","forest"], theme:"자연" },
+  { kw: ["음식","먹","요리","빵","과자","food","eat"], theme:"음식" },
+  { kw: ["가족","엄마","아빠","할머니","형제","family"], theme:"가족" },
+  { kw: ["친구","우정","friend"], theme:"친구" },
+  { kw: ["감정","마음","화","슬픔","무서","feeling","emotion"], theme:"감정" },
+  { kw: ["환상","마법","요정","상상","fantasy","magic"], theme:"환상" },
+  { kw: ["일상","하루","어린이집","유치원","daily","routine"], theme:"일상" },
+  { kw: ["모험","탐험","여행","adventure","explore"], theme:"모험", mood:"모험" },
+  { kw: ["숫자","글자","한글","abc","number","letter","알파벳"], theme:"숫자/글자", mood:"학습" },
+  { kw: ["웃긴","까르르","웃겨","재밌","funny","laugh"], theme:"유머", mood:"웃긴" },
+  { kw: ["따뜻","포근","사랑","warm","cozy"], mood:"따뜻한" },
+  { kw: ["배우","공부","교육","learn","educational"], mood:"학습" },
+  { kw: ["무서워","무서운","scary","afraid"], mood:"모험", dir:-1 }, // downweight scary/adventure
+];
+
+// Returns {themes:{theme:weight}, moods:{mood:weight}} derived from the note text.
+function lexiconSignals(note){
+  const out = { themes:{}, moods:{} };
+  if(!note) return out;
+  const n = note.toLowerCase();
+  for(const e of NOTE_LEXICON){
+    if(e.kw.some(k => n.includes(k.toLowerCase()))){
+      const w = (e.dir===-1) ? -1 : 1;
+      if(e.theme) out.themes[e.theme] = (out.themes[e.theme]||0) + w;
+      if(e.mood)  out.moods[e.mood]   = (out.moods[e.mood]||0) + w;
+    }
+  }
+  return out;
+}
+
 function chip(val, iconKey, pressed, label){
   const img = iconKey ? `<img class="chip-ic" src="./icons/${iconKey}.png" alt="" aria-hidden="true">` : "";
   return `<button type="button" class="chip${iconKey?" has-ic":""}" data-val="${val}" aria-pressed="${pressed?"true":"false"}">${img}<span class="chip-tx">${label || val}</span></button>`;
@@ -46,9 +87,12 @@ function readProfile(){
   };
 }
 
-// Score one book against the profile. Higher = better fit. Age is a soft gate.
+// Deterministic fit score. Higher = better. Uses age curve, weighted theme/mood match,
+// the note lexicon, and a small build-time quality prior. No model, no randomness here
+// (reroll variety lives in pickVaried); a tiny id tiebreak keeps equal scores stable.
 function scoreBook(b, p){
   let s = 0;
+  // age: exact band best, adjacent soft, far penalized (soft gate, not hard)
   if (p.age){
     if (b.ages.includes(p.age)) s += 5;
     else {
@@ -58,14 +102,21 @@ function scoreBook(b, p){
       s += adj ? 1.5 : -4;
     }
   }
-  s += b.themes.filter(t => p.themes.includes(t)).length * 3;
-  s += b.mood.filter(m => p.moods.includes(m)).length * 2;
-  if (p.note){
-    const note = p.note.toLowerCase();
-    if (b.themes.some(t => note.includes(t.toLowerCase()))) s += 2;
-    if (note.includes(b.title.toLowerCase())) s += 4;
+  // themes: primary (first listed) match weighted higher than secondary matches
+  const picked = new Set(p.themes||[]);
+  if (b.themes && b.themes.length){
+    if (picked.has(b.themes[0])) s += 4;                       // primary theme hit
+    for (let i=1;i<b.themes.length;i++) if(picked.has(b.themes[i])) s += 2; // secondary hits
   }
-  // gender: soft nudge only; no gender field on books at launch -> reserved hook, 0.
+  // mood overlap
+  s += (b.mood||[]).filter(m => (p.moods||[]).includes(m)).length * 2;
+  // free-text lexicon signals (boost matched themes/moods, downweight negatives)
+  const sig = lexiconSignals(p.note);
+  for (const t of (b.themes||[])) if (sig.themes[t]) s += sig.themes[t] * 2.5;
+  for (const m of (b.mood||[])) if (sig.moods[m]) s += sig.moods[m] * 1.5;
+  // build-time quality prior: small nudge so classics surface (range ~0..1.2)
+  s += (typeof b.quality === "number" ? b.quality : 0.5) * 1.2;
+  // stable tiny tiebreak
   s += (b.id.charCodeAt(b.id.length-1) % 7) * 0.01;
   return s;
 }
@@ -169,6 +220,23 @@ function pickVaried(sortedPool, n, poolSize){
   }
   return out.slice(0, n);
 }
+// Greedy diversity pick: from a score-sorted pool, take up to n books while avoiding
+// repeating the same PRIMARY theme until all distinct primaries are used. Keeps strong
+// fits but spreads across themes so results aren't 6 near-identical books.
+function pickDiverse(sortedPool, n){
+  const out = [], usedPrimary = new Set();
+  for (const x of sortedPool){
+    if (out.length >= n) break;
+    const prim = x.b.themes && x.b.themes[0];
+    if (prim && usedPrimary.has(prim)) continue;
+    out.push(x); if (prim) usedPrimary.add(prim);
+  }
+  if (out.length < n){   // few distinct themes available → backfill by score
+    const have = new Set(out.map(x=>x.b.id));
+    for (const x of sortedPool){ if(out.length>=n) break; if(!have.has(x.b.id)){ out.push(x); have.add(x.b.id);} }
+  }
+  return out.slice(0, n);
+}
 function recommend2(p, varied){
   const scored = window.BOOKS
     .map(b => ({ b, s: scoreBook(b,p) }))
@@ -176,13 +244,16 @@ function recommend2(p, varied){
     .sort((a,b) => b.s - a.s);
   const ko = scored.filter(x => x.b.lang==="ko");
   const en = scored.filter(x => x.b.lang==="en");
-  let pick;
+  let koPick, enPick;
   if (varied){
-    // draw from the top ~8 of each pool so rerolls feel alive but stay well-fit
-    pick = [...pickVaried(ko, 3, 8), ...pickVaried(en, 3, 8)];
+    // reroll: rotate a wider pool for variety, THEN diversify by theme
+    koPick = pickDiverse(pickVaried(ko, 8, 16), 3);
+    enPick = pickDiverse(pickVaried(en, 8, 16), 3);
   } else {
-    pick = [...ko.slice(0,3), ...en.slice(0,3)];
+    koPick = pickDiverse(ko, 3);
+    enPick = pickDiverse(en, 3);
   }
+  let pick = [...koPick, ...enPick];
   if (pick.length < 6){
     const used = new Set(pick.map(x=>x.b.id));
     for (const x of scored){ if(pick.length>=6) break; if(!used.has(x.b.id)){ pick.push(x); used.add(x.b.id);} }
