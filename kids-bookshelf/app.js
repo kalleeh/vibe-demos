@@ -204,24 +204,44 @@ function buildSys(){
 9) 한국 명절·정서 책(추석, 설, 한복)에 중국/미국 문화 틀을 섞지 말 것.
 10) 지나치게 망설이는 말투("혹시 고려해 보실 수도…") 금지 — 사서답게 따뜻하고 분명하게.
 </errors_to_avoid>
-<output_constraints>user가 준 후보 catalog의 각 책 id에 대해 reason(1~2문장, 한국어)과 tip(한 줄, 한국어)을 작성. 부모의 '한마디'가 있으면 reason에 자연스럽게 반영. 추가로 catalog에 없지만 아주 잘 맞는 실제 존재하는 책을 최대 2권까지 "extra"로 제안 가능 — 단 확실히 실재하는 책만, 도전 추천으로.</output_constraints>
-<output_schema>순수 JSON만 출력(코드펜스 없이): {"items":{"<book id>":{"reason":"...","tip":"..."}}, "extra":[{"title":"...","author":"...","lang":"ko"|"en","reason":"...","tip":"..."}]}</output_schema>`;
+<output_constraints>후보 catalog의 각 책 id에 대해 reason(1~2문장, 한국어)과 tip(한 줄, 한국어)을 작성. 부모의 '한마디'가 있으면 reason에 자연스럽게 반영. 추가로 catalog에 없지만 아주 잘 맞는 실제 존재하는 책을 최대 2권까지 extra로 제안 가능 — 단 확실히 실재하는 책만, 도전 추천으로.</output_constraints>
+<output>반드시 recommend_books 도구를 호출해 결과를 구조화해 반환하세요. 평문으로 답하지 마세요.</output>`;
 }
 
-// Tolerant extraction: the proxy is a minimal passthrough (system/messages/max_tokens
-// only — no tools/tool_choice), so we can't force schema-structured output. Instead we
-// ask for JSON and parse defensively: strip code fences, then slice the outermost {…}.
-function parseAiJson(txt){
-  let s = String(txt || "").trim();
-  // drop a leading ```json / ``` fence and any trailing fence
-  s = s.replace(/^[\s\S]*?```(?:json)?\s*/i, m => /```/.test(m) ? "" : m);
-  s = s.replace(/```[\s\S]*$/i, "");
-  s = s.trim();
-  // if there's prose around the object, take from the first { to the last }
-  const a = s.indexOf("{"), b = s.lastIndexOf("}");
-  if (a >= 0 && b > a) s = s.slice(a, b + 1);
-  return JSON.parse(s);
-}
+// Schema for the recommend_books tool — the proxy forwards tools/tool_choice to Bedrock,
+// so Sonnet returns a guaranteed-shape tool_use block (no fragile text parsing).
+const REC_TOOL = {
+  name: "recommend_books",
+  description: "후보 책별 추천 이유/팁과 선택적 도전 추천을 구조화해 반환한다.",
+  input_schema: {
+    type: "object",
+    properties: {
+      items: {
+        type: "object",
+        description: "책 id를 키로, 각 값은 {reason, tip}. 후보의 모든 id를 포함한다.",
+        additionalProperties: {
+          type: "object",
+          properties: { reason: { type: "string" }, tip: { type: "string" } },
+          required: ["reason", "tip"]
+        }
+      },
+      extra: {
+        type: "array",
+        description: "catalog에 없지만 잘 맞는 실재 도서 최대 2권 (도전 추천).",
+        items: {
+          type: "object",
+          properties: {
+            title: { type: "string" }, author: { type: "string" },
+            lang: { type: "string", enum: ["ko", "en"] },
+            reason: { type: "string" }, tip: { type: "string" }
+          },
+          required: ["title", "lang", "reason", "tip"]
+        }
+      }
+    },
+    required: ["items"]
+  }
+};
 
 async function aiRecommend(p, books){
   const ac = new AbortController();
@@ -230,25 +250,25 @@ async function aiRecommend(p, books){
     const sys = buildSys();
     const candidates = books.map(b => ({ id:b.id, lang:b.lang, title:b.title, author:b.author,
       ages:b.ages, level:b.level, themes:b.themes, mood:b.mood }));
-    const user = `아이 정보: 나이 ${p.age||"미정"}, 성별 ${p.gender}, 관심사 [${p.themes.join(", ")||"없음"}], 분위기 [${p.moods.join(", ")||"없음"}]\n부모 한마디: ${p.note||"(없음)"}\n\n추천 후보 catalog(JSON):\n${JSON.stringify(candidates)}\n\n각 후보에 대한 추천 이유와 팁을 위 스키마(JSON)로만 답하세요. 코드펜스나 설명 문장 없이 JSON 객체만 출력하세요.`;
+    const user = `아이 정보: 나이 ${p.age||"미정"}, 성별 ${p.gender}, 관심사 [${p.themes.join(", ")||"없음"}], 분위기 [${p.moods.join(", ")||"없음"}]\n부모 한마디: ${p.note||"(없음)"}\n\n추천 후보 catalog(JSON):\n${JSON.stringify(candidates)}\n\n각 후보에 대한 추천 이유와 팁을 recommend_books 도구로 반환하세요.`;
     const pow = await solveProxyPoW(ac.signal);
     const res = await fetch(CLAUDE_PROXY + "/api/claude", {
       method:"POST", headers:{ "Content-Type":"application/json", ...pow }, signal: ac.signal,
-      // max_tokens generous so a full 6-book brief + 도전 picks never truncates mid-JSON
+      // tool_choice forces a schema-valid recommend_books call → no text parsing needed
       body: JSON.stringify({ model:"sonnet", max_tokens:4000, system:sys,
-        messages:[{ role:"user", content:user }] })
+        messages:[{ role:"user", content:user }],
+        tools:[REC_TOOL], tool_choice:{ type:"tool", name:"recommend_books" } })
     });
     if(!res.ok){ const e=new Error("proxy "+res.status); e.status=res.status; throw e; }
     const j = await res.json();
-    const txt = (j.content && j.content[0] && j.content[0].text) || "{}";
-    try {
-      return parseAiJson(txt);
-    } catch(parseErr) {
-      console.warn("[책친구] AI JSON parse failed:", parseErr.message, "| stop:", j.stop_reason, "| raw:", txt.slice(0, 300));
-      throw parseErr;
+    const tu = (j.content || []).find(b => b.type === "tool_use" && b.name === "recommend_books");
+    if (!tu || !tu.input || typeof tu.input !== "object") {
+      console.warn("[책친구] AI returned no tool_use block | stop:", j.stop_reason);
+      throw new Error("no structured output");
     }
+    return tu.input;   // { items:{id:{reason,tip}}, extra:[…] }
   } catch(err){
-    // surface the real cause (abort vs proxy status vs parse) for diagnosis
+    // surface the real cause (abort vs proxy status vs missing tool_use) for diagnosis
     if (err.name === "AbortError") console.warn("[책친구] AI call aborted (timeout/stall)");
     else console.warn("[책친구] AI call failed:", err.status ? "proxy "+err.status : err.message);
     throw err;
