@@ -165,11 +165,88 @@ function recommend2(p, varied){
 }
 
 function scrollResults(){ document.getElementById("results").scrollIntoView({behavior:"smooth", block:"start"}); }
-function runRecommend(varied){
+
+/* ── Task 5: optional AI mode via shared Bedrock proxy (non-streaming) ── */
+
+const CLAUDE_PROXY = "https://ai.pb.gurum.se";
+async function solveProxyPoW(){
+  const r = await fetch(CLAUDE_PROXY + "/api/claude-challenge");
+  if(!r.ok){ const e=new Error("challenge "+r.status); e.status=r.status; throw e; }
+  const { nonce, exp, sig, difficulty } = await r.json();
+  const enc = new TextEncoder();
+  const leadBits = (buf)=>{ const b=new Uint8Array(buf); let bits=0;
+    for(const x of b){ if(x===0){bits+=8;continue;} let v=x,c=0; while((v&0x80)===0){c++;v<<=1;} bits+=c; break; } return bits; };
+  for(let counter=0;;counter++){
+    const d = await crypto.subtle.digest("SHA-256", enc.encode(nonce+":"+counter));
+    if(leadBits(d)>=difficulty) return { "X-PoW-Nonce":nonce,"X-PoW-Exp":exp,"X-PoW-Sig":sig,"X-PoW-Counter":String(counter) };
+    if(counter>5000000) throw new Error("pow-timeout");
+  }
+}
+
+function buildSys(){
+  return `<role>당신은 한국 어린이도서관의 그림책 큐레이터입니다. 0~9세 아이를 키우는 한국 부모에게 책을 추천합니다. 당신은 영미권 사서가 아니라, 한국 그림책 문화와 영어권 그림책 정전을 모두 아는 이중언어 큐레이터입니다.</role>
+<voice>따뜻하고 구체적인 한국어. 부모가 아이와 함께 읽는 장면이 그려지도록. 과장·광고 문구 금지. 추천 이유는 1~2문장, 따뜻하고 자신감 있게.</voice>
+<reasoning_order>1) 아이 나이대에 맞는 책인지 확인 2) 관심사·분위기와 어떻게 맞는지 3) 부모의 '한마디'를 반영 4) 함께 읽을 때의 팁을 떠올린다 5) 한국 책과 영어 책의 균형.</reasoning_order>
+<canonical_books>아래 후보(catalog)는 user 메시지에 JSON으로 제공됩니다. 추천 이유는 이 후보 책들에 대해서만 쓰세요. 후보에 없는 책의 줄거리를 지어내지 마세요.</canonical_books>
+<canonical_authors>백희나, 권정생, 이수지, 안녕달, 이억배, 채인선, 최숙희, 고대영, 이지은, Julia Donaldson, Axel Scheffler, Eric Carle, Mo Willems, Oliver Jeffers, Maurice Sendak, Janet & Allan Ahlberg</canonical_authors>
+<errors_to_avoid>
+1) 없는 책·작가·출판사·ISBN을 절대 지어내지 말 것. 확신이 없으면 언급하지 말 것.
+2) 한글 제목을 로마자로 바꾸지 말 것 — 한글이 정식 제목.
+3) 아이 나이대보다 높은(무섭거나 성숙한) 내용을 추천하지 말 것.
+4) 미국 도서관/학교 용어(Lexile, guided reading) 쓰지 말 것.
+5) 영어 책이라도 '왜 이 책일까요?'와 '함께 읽기 팁'은 한국어로 쓸 것.
+6) 추천 이유에 과장·광고 문구를 넣지 말 것.
+7) 같은 유명 책만 반복하지 말고 부모가 고른 관심사·분위기·나이에 맞출 것.
+8) 환상은 분위기가 아니라 테마임 — 분위기는 웃긴/따뜻한/모험/학습/잔잔한.
+9) 한국 명절·정서 책(추석, 설, 한복)에 중국/미국 문화 틀을 섞지 말 것.
+10) 지나치게 망설이는 말투("혹시 고려해 보실 수도…") 금지 — 사서답게 따뜻하고 분명하게.
+</errors_to_avoid>
+<output_constraints>user가 준 후보 catalog의 각 책 id에 대해 reason(1~2문장, 한국어)과 tip(한 줄, 한국어)을 작성. 부모의 '한마디'가 있으면 reason에 자연스럽게 반영. 추가로 catalog에 없지만 아주 잘 맞는 실제 존재하는 책을 최대 2권까지 "extra"로 제안 가능 — 단 확실히 실재하는 책만, 도전 추천으로.</output_constraints>
+<output_schema>순수 JSON만 출력(코드펜스 없이): {"items":{"<book id>":{"reason":"...","tip":"..."}}, "extra":[{"title":"...","author":"...","lang":"ko"|"en","reason":"...","tip":"..."}]}</output_schema>`;
+}
+
+async function aiRecommend(p, books){
+  const sys = buildSys();
+  const candidates = books.map(b => ({ id:b.id, lang:b.lang, title:b.title, author:b.author,
+    ages:b.ages, level:b.level, themes:b.themes, mood:b.mood }));
+  const user = `아이 정보: 나이 ${p.age||"미정"}, 성별 ${p.gender}, 관심사 [${p.themes.join(", ")||"없음"}], 분위기 [${p.moods.join(", ")||"없음"}]\n부모 한마디: ${p.note||"(없음)"}\n\n추천 후보 catalog(JSON):\n${JSON.stringify(candidates)}\n\n각 후보에 대한 추천 이유와 팁을 위 스키마(JSON)로만 답하세요.`;
+  const pow = await solveProxyPoW();
+  const res = await fetch(CLAUDE_PROXY + "/api/claude", {
+    method:"POST", headers:{ "Content-Type":"application/json", ...pow },
+    body: JSON.stringify({ model:"sonnet", max_tokens:1600, system:sys,
+      messages:[{ role:"user", content:user }] })
+  });
+  if(!res.ok){ const e=new Error("proxy "+res.status); e.status=res.status; throw e; }
+  const j = await res.json();
+  const txt = (j.content && j.content[0] && j.content[0].text) || "{}";
+  return JSON.parse(txt.replace(/^```json\s*|\s*```$/g,"").trim());
+}
+
+document.getElementById("aiToggle").addEventListener("click", function(){
+  this.setAttribute("aria-pressed", this.getAttribute("aria-pressed")==="true" ? "false":"true");
+});
+async function runRecommend(varied){
   const p = readProfile();
   const books = recommend2(p, !!varied);
-  renderResults(books, { modeLabel:" · 추천 예시" });   // canned-mode label (Task 5 overrides when AI on)
+  const aiOn = document.getElementById("aiToggle").getAttribute("aria-pressed")==="true";
+  if(!aiOn){ renderResults(books, { modeLabel:" · 추천 예시" }); scrollResults(); return; }
+  renderResults(books, { modeLabel:" · AI 생성 중…", loading:true });
   scrollResults();
+  try{
+    const out = await aiRecommend(p, books);
+    const reasons={}, tips={}, tags={};
+    for(const b of books){ const it = out.items && out.items[b.id]; if(it){ reasons[b.id]=it.reason; tips[b.id]=it.tip; } }
+    const extras = (Array.isArray(out.extra)?out.extra:[]).slice(0,2).map((x,i)=>({
+      id:"ai-"+i, lang:x.lang==="en"?"en":"ko", title:String(x.title||""), author:String(x.author||""), publisher:"",
+      ages:[p.age||"3-4"], level:"그림책", themes:[], mood:[], blurb:String(x.reason||""), readAloud:String(x.tip||""),
+      cover:{emoji:"✨", palette:["#fff3d6","#ffe9c7"]}, source:"ai"
+    }));
+    const all=[...books, ...extras];
+    extras.forEach(e=>{ reasons[e.id]=e.blurb; tips[e.id]=e.readAloud; tags[e.id]="✨ 도전 추천"; });
+    renderResults(all, { modeLabel:" · AI 맞춤 추천", reasons, tips, tags });
+  }catch(err){
+    renderResults(books, { modeLabel:" · 추천 예시", aiError:true });
+  }
 }
 document.getElementById("findBtn").addEventListener("click", () => runRecommend(false));
 document.getElementById("results").addEventListener("click", e => {
