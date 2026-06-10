@@ -128,4 +128,89 @@ async function main(){
   console.log(`wrote ${done.length} enriched entries (${ok} ok, ${fails} failed this run) → ${outPath}`);
 }
 
-main().catch(e=>{ console.error(e); process.exit(1); });
+// --- verification: sampled Open Library check for EN ISBNs (build-time integrity signal) ---
+async function verifySampleEN(entries, sampleSize){
+  const en = entries.filter(e=>e.lang==="en" && e.isbn);
+  const step = Math.max(1, Math.floor(en.length / sampleSize));
+  const sample = en.filter((_,i)=> i % step === 0).slice(0, sampleSize);
+  let ok=0; const bad=[];
+  for(const e of sample){
+    try{ const r = await fetch(`https://openlibrary.org/isbn/${encodeURIComponent(e.isbn)}.json`);
+      if(r.ok) ok++; else bad.push(`${e.title} (${e.isbn}) → ${r.status}`); }
+    catch(err){ bad.push(`${e.title} → ${err.message}`); }
+  }
+  console.log(`OL sample check: ${ok}/${sample.length} resolved`);
+  if(bad.length) console.warn("unresolved sample:\n  "+bad.join("\n  "));
+  return { ok, total: sample.length };
+}
+
+function sanitizeTags(e){
+  const T = new Set(THEME_VOCAB), M = new Set(MOOD_VOCAB);
+  let themes = (Array.isArray(e.themes)?e.themes:[]).filter(t=>T.has(t));
+  let mood   = (Array.isArray(e.mood)?e.mood:[]).filter(m=>M.has(m));
+  if(!themes.length) themes = ["일상"];
+  if(!mood.length)   mood = ["따뜻한"];
+  // also ensure ages/level valid; fallback to a safe middle if not
+  const AG = new Set(AGES), LV = new Set(LEVELS);
+  let ages = (Array.isArray(e.ages)?e.ages:[]).filter(a=>AG.has(a));
+  if(!ages.length) ages = ["3-4","5-6"];
+  const level = LV.has(e.level) ? e.level : "그림책";
+  return { themes, mood, ages, level };
+}
+
+function loadExistingCatalog(){
+  // load current catalog.js to preserve its 88 already-human-verified books
+  const cur = fs.readFileSync(path.join(HERE,"../../kids-bookshelf/catalog.js"),"utf8");
+  const g = {};
+  // the file does `window.X = ...`; run it with a fake window
+  new Function("window", cur)(g);
+  return (g.BOOKS||[]).map(b=>({ ...b, quality: (typeof b.quality==="number"?b.quality:0.7) }));
+}
+
+function emitCatalog(){
+  const enriched = JSON.parse(fs.readFileSync(path.join(HERE,"enriched.json"),"utf8"));
+  const existing = loadExistingCatalog();
+
+  // keep enriched entries: drop ONLY if (real===false AND confidence<0.5)
+  const kept = enriched.filter(e => !(e.real===false && (e.confidence==null || e.confidence < 0.5)));
+  const dropped = enriched.length - kept.length;
+
+  const seen = new Set(existing.map(b=>b.lang+"|"+b.title));
+  const merged = [...existing];
+  for(const e of kept){
+    const k = e.lang+"|"+e.title;
+    if(seen.has(k)) continue; seen.add(k);
+    const clean = sanitizeTags(e);
+    merged.push({
+      id: e.id, lang: e.lang, title: e.title, author: e.author, publisher: e.publisher || "",
+      ...(e.isbn?{isbn:e.isbn}:{}),
+      ages: clean.ages, level: clean.level, themes: clean.themes, mood: clean.mood,
+      blurb: String(e.blurb||"").trim(), readAloud: String(e.readAloud||"").trim(),
+      cover: { emoji: (e.cover&&e.cover.emoji)||"📖", palette: (e.cover&&Array.isArray(e.cover.palette)&&e.cover.palette.length?e.cover.palette:["#ffe9c7","#fff"]) },
+      quality: Math.max(0, Math.min(1, typeof e.quality==="number"?e.quality:0.5)),
+      source: "curated"
+    });
+  }
+  // defensive id dedupe
+  const byId = new Set(); const final = [];
+  for(const b of merged){ if(byId.has(b.id)) continue; byId.add(b.id); final.push(b); }
+
+  const header = `/* 책친구 catalog — append-only book data. See CATALOG.md for the schema.
+ * Generated/expanded by scripts/kids-bookshelf/build-catalog.mjs (node build-catalog.mjs emit).
+ * Every field except titleRoman/isbn is required. quality (0-1) = build-time prior. */\n`;
+  const body = `window.THEME_VOCAB = ${JSON.stringify(THEME_VOCAB)};\n`
+    + `window.MOOD_VOCAB  = ${JSON.stringify(MOOD_VOCAB)};\n`
+    + `window.BOOKS = ${JSON.stringify(final, null, 1)};\n`;
+  fs.writeFileSync(path.join(HERE,"../../kids-bookshelf/catalog.js"), header + body);
+  const ko=final.filter(b=>b.lang==="ko").length, en=final.filter(b=>b.lang==="en").length;
+  console.log(`emitted catalog.js: ${final.length} books (ko ${ko}, en ${en}); dropped ${dropped} low-confidence`);
+}
+
+// entry-point switch
+const cmd = process.argv[2];
+if (cmd === "emit") {
+  const enriched = JSON.parse(fs.readFileSync(path.join(HERE,"enriched.json"),"utf8"));
+  verifySampleEN(enriched, 25).then(()=>{ emitCatalog(); }).catch(e=>{ console.error(e); process.exit(1); });
+} else {
+  main().catch(e=>{ console.error(e); process.exit(1); });
+}
