@@ -1,0 +1,16 @@
+{
+  "name": "책친구 — 우리 아이 책 추천",
+  "short_name": "책친구",
+  "description": "나이·관심사·분위기로 한국어·영어 그림책을 함께 추천해 주는 우리 아이 책 친구.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fbf3e2",
+  "theme_color": "#f7b733",
+  "lang": "ko",
+  "categories": ["education", "lifestyle", "books"],
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
