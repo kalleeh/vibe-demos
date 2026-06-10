@@ -112,7 +112,7 @@ function cardHtml(b, reason, tip, tag){
 function renderResults(books, opts){
   opts = opts || {};
   const wrap = document.getElementById("results");
-  const loadingBar = opts.loading ? `<div class="scribble" aria-hidden="true"></div>` : "";
+  const loadingBar = opts.loading ? `<div class="scribble" aria-hidden="true"></div><p class="scribble-note" aria-live="polite"></p>` : "";
   const errNote = opts.aiError ? `<div class="ainote">AI 추천을 지금 불러올 수 없어 기본 추천을 보여드려요.</div>` : "";
   const label = opts.modeLabel ? `<span class="demo-pill">${escapeHtml(opts.modeLabel)}</span>` : "";
   wrap.innerHTML = `<div class="resbar"><span>${books.length}권 추천${label}</span>
@@ -208,24 +208,50 @@ function buildSys(){
 <output_schema>순수 JSON만 출력(코드펜스 없이): {"items":{"<book id>":{"reason":"...","tip":"..."}}, "extra":[{"title":"...","author":"...","lang":"ko"|"en","reason":"...","tip":"..."}]}</output_schema>`;
 }
 
+// Tolerant extraction: the proxy is a minimal passthrough (system/messages/max_tokens
+// only — no tools/tool_choice), so we can't force schema-structured output. Instead we
+// ask for JSON and parse defensively: strip code fences, then slice the outermost {…}.
+function parseAiJson(txt){
+  let s = String(txt || "").trim();
+  // drop a leading ```json / ``` fence and any trailing fence
+  s = s.replace(/^[\s\S]*?```(?:json)?\s*/i, m => /```/.test(m) ? "" : m);
+  s = s.replace(/```[\s\S]*$/i, "");
+  s = s.trim();
+  // if there's prose around the object, take from the first { to the last }
+  const a = s.indexOf("{"), b = s.lastIndexOf("}");
+  if (a >= 0 && b > a) s = s.slice(a, b + 1);
+  return JSON.parse(s);
+}
+
 async function aiRecommend(p, books){
   const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), 22000);
+  const timer = setTimeout(() => ac.abort(), 30000);
   try {
     const sys = buildSys();
     const candidates = books.map(b => ({ id:b.id, lang:b.lang, title:b.title, author:b.author,
       ages:b.ages, level:b.level, themes:b.themes, mood:b.mood }));
-    const user = `아이 정보: 나이 ${p.age||"미정"}, 성별 ${p.gender}, 관심사 [${p.themes.join(", ")||"없음"}], 분위기 [${p.moods.join(", ")||"없음"}]\n부모 한마디: ${p.note||"(없음)"}\n\n추천 후보 catalog(JSON):\n${JSON.stringify(candidates)}\n\n각 후보에 대한 추천 이유와 팁을 위 스키마(JSON)로만 답하세요.`;
+    const user = `아이 정보: 나이 ${p.age||"미정"}, 성별 ${p.gender}, 관심사 [${p.themes.join(", ")||"없음"}], 분위기 [${p.moods.join(", ")||"없음"}]\n부모 한마디: ${p.note||"(없음)"}\n\n추천 후보 catalog(JSON):\n${JSON.stringify(candidates)}\n\n각 후보에 대한 추천 이유와 팁을 위 스키마(JSON)로만 답하세요. 코드펜스나 설명 문장 없이 JSON 객체만 출력하세요.`;
     const pow = await solveProxyPoW(ac.signal);
     const res = await fetch(CLAUDE_PROXY + "/api/claude", {
       method:"POST", headers:{ "Content-Type":"application/json", ...pow }, signal: ac.signal,
-      body: JSON.stringify({ model:"sonnet", max_tokens:1600, system:sys,
+      // max_tokens generous so a full 6-book brief + 도전 picks never truncates mid-JSON
+      body: JSON.stringify({ model:"sonnet", max_tokens:4000, system:sys,
         messages:[{ role:"user", content:user }] })
     });
     if(!res.ok){ const e=new Error("proxy "+res.status); e.status=res.status; throw e; }
     const j = await res.json();
     const txt = (j.content && j.content[0] && j.content[0].text) || "{}";
-    return JSON.parse(txt.replace(/^```json\s*|\s*```$/g,"").trim());
+    try {
+      return parseAiJson(txt);
+    } catch(parseErr) {
+      console.warn("[책친구] AI JSON parse failed:", parseErr.message, "| stop:", j.stop_reason, "| raw:", txt.slice(0, 300));
+      throw parseErr;
+    }
+  } catch(err){
+    // surface the real cause (abort vs proxy status vs parse) for diagnosis
+    if (err.name === "AbortError") console.warn("[책친구] AI call aborted (timeout/stall)");
+    else console.warn("[책친구] AI call failed:", err.status ? "proxy "+err.status : err.message);
+    throw err;
   } finally {
     clearTimeout(timer);
   }
@@ -241,8 +267,24 @@ async function runRecommend(varied){
   if(!aiOn){ renderResults(books, { modeLabel:" · 추천 예시" }); scrollResults(); return; }
   renderResults(books, { modeLabel:" · AI 생성 중…", loading:true });
   scrollResults();
+  // the Sonnet round-trip takes ~20-30s; cycle reassuring status so it never feels hung
+  const steps = [
+    "아이 취향을 살펴보는 중…",
+    "한국 그림책과 영어책을 견주는 중…",
+    "추천 이유를 정성껏 쓰는 중…",
+    "거의 다 됐어요…",
+  ];
+  let si = 0;
+  const note = document.querySelector("#results .scribble-note");
+  if (note) note.textContent = steps[0];
+  const tick = setInterval(() => {
+    si = Math.min(si + 1, steps.length - 1);
+    const n = document.querySelector("#results .scribble-note");
+    if (n) n.textContent = steps[si];
+  }, 6000);
   try{
     const out = await aiRecommend(p, books);
+    clearInterval(tick);
     const reasons={}, tips={}, tags={};
     for(const b of books){ const it = out.items && out.items[b.id]; if(it){ reasons[b.id]=it.reason; tips[b.id]=it.tip; } }
     const extras = (Array.isArray(out.extra)?out.extra:[]).slice(0,2).map((x,i)=>({
@@ -254,6 +296,7 @@ async function runRecommend(varied){
     extras.forEach(e=>{ reasons[e.id]=e.blurb; tips[e.id]=e.readAloud; tags[e.id]="✨ 도전 추천"; });
     renderResults(all, { modeLabel:" · AI 맞춤 추천", reasons, tips, tags });
   }catch(err){
+    clearInterval(tick);
     renderResults(books, { modeLabel:" · 추천 예시", aiError:true });
   }
 }
