@@ -46,7 +46,7 @@ routerAdd("GET", "/api/claude-challenge", (e) => {
 routerAdd("POST", "/api/claude", (e) => {
   // --- everything inline: handlers can't see file-scope decls in PB's JSVM ---
   const ALLOWED_ORIGINS = ["https://kalleeh.github.io", "http://localhost", "http://127.0.0.1"];
-  const MAX_TOKENS_CEILING = 2048;
+  const MAX_TOKENS_CEILING = 4096; // headroom for structured-output (tool_use) responses
   const POW_DIFFICULTY = 14;
   const RATE_WINDOW_MS = 60 * 1000;
   const RATE_MAX = 8;
@@ -135,18 +135,26 @@ routerAdd("POST", "/api/claude", (e) => {
   if (!maxTokens || maxTokens > MAX_TOKENS_CEILING) maxTokens = Math.min(maxTokens || 1024, MAX_TOKENS_CEILING);
 
   // --- translate to Bedrock invoke shape (model in path; anthropic_version in body) ---
+  // Additive: forward tools/tool_choice ONLY when the caller sends them, so existing
+  // demos (which send neither) produce a byte-identical request to before. This is how
+  // a demo gets schema-forced structured output (tool_use) instead of best-effort JSON.
+  const payload = {
+    anthropic_version: "bedrock-2023-05-31",
+    max_tokens: maxTokens,
+    system: body.system,
+    messages: body.messages,
+  };
+  if (Array.isArray(body.tools) && body.tools.length) {
+    payload.tools = body.tools;
+    if (body.tool_choice) payload.tool_choice = body.tool_choice;
+  }
   const url = "https://bedrock-runtime." + region + ".amazonaws.com/model/" + modelId + "/invoke";
   try {
     const res = $http.send({
       method: "POST",
       url: url,
       headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        anthropic_version: "bedrock-2023-05-31",
-        max_tokens: maxTokens,
-        system: body.system,
-        messages: body.messages,
-      }),
+      body: JSON.stringify(payload),
       timeout: 60,
     });
     // Count only calls that actually reached Bedrock (2xx) toward the daily cap.
