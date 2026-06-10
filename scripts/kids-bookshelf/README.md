@@ -66,7 +66,7 @@ de-duplicated by title. The lists are **append-only seeds** — the build merges
 existing verified catalog and dedupes, so adding a new real title is always safe; the existing
 88 human-verified entries are seeded in first and never dropped.
 
-## Build (scripts added in a later task — documented here for intent)
+## Build
 
 The build runs in two phases from the repo root:
 
@@ -80,6 +80,7 @@ node scripts/kids-bookshelf/build-catalog.mjs
 node scripts/kids-bookshelf/build-catalog.mjs emit
 ```
 
-`build-catalog.mjs` does not exist yet — it is added in a later task. This README documents
-the intended flow so the source files have context. The source lists in `sources/` are the
-stable, reviewable input that the build consumes.
+The source lists in `sources/` are the stable, reviewable input the build consumes; the
+enrichment is build-time only (it calls the Bedrock proxy with proof-of-work, no secret),
+and the emitted `kids-bookshelf/catalog.js` is fully static — the running demo never calls a
+model to recommend books.
