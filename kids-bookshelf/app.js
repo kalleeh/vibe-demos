@@ -92,22 +92,45 @@ function svgCover(b){
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
 
 const FLAG = { ko:"🇰🇷", en:"🇬🇧" };
-function cardHtml(b, reason, tip, tag){
+function cardHtml(b, reason, tip, tag, pending){
   reason = reason || b.blurb; tip = tip || b.readAloud;
   const lvl = escapeHtml(b.level);
   const meta = escapeHtml(b.author) + (b.publisher ? " · " + escapeHtml(b.publisher) : "");
-  return `<article class="bookcard" data-isbn="${b.lang==="en" && b.isbn ? escapeHtml(b.isbn) : ""}">
+  // pending = this card's AI reason/tip is still being written (per-book progressive load)
+  const badge = pending ? `<span class="aibadge">✨ AI 다듬는 중…</span>`
+              : (tag ? `<span class="aitag">${escapeHtml(tag)}</span>` : "");
+  return `<article class="bookcard${pending?" ai-pending":""}" data-bookid="${escapeHtml(b.id)}" data-isbn="${b.lang==="en" && b.isbn ? escapeHtml(b.isbn) : ""}">
     <div class="cover">${svgCover(b)}</div>
     <div class="info">
       <div class="toprow"><span class="flag">${FLAG[b.lang]||""}</span>
-        <span class="lvl">${lvl}</span>${tag ? `<span class="aitag">${escapeHtml(tag)}</span>`:""}</div>
+        <span class="lvl">${lvl}</span>${badge}</div>
       <h3 class="btitle">${escapeHtml(b.title)}</h3>
       <div class="bmeta">${meta}</div>
-      <p class="why"><b>왜 이 책일까요?</b> ${escapeHtml(reason)}</p>
-      <p class="tip"><b>함께 읽기 팁</b> ${escapeHtml(tip)}</p>
+      <p class="why"><b>왜 이 책일까요?</b> <span class="why-tx">${escapeHtml(reason)}</span></p>
+      <p class="tip"><b>함께 읽기 팁</b> <span class="tip-tx">${escapeHtml(tip)}</span></p>
     </div>
   </article>`;
 }
+
+// Patch one already-rendered card in place when its per-book AI result arrives.
+function patchCard(id, upd){
+  const card = document.querySelector(`#results .bookcard[data-bookid="${cssEsc(id)}"]`);
+  if (!card) return;
+  card.classList.remove("ai-pending");
+  const badge = card.querySelector(".aibadge");
+  if (upd.failed) { if (badge) badge.remove(); return; }   // keep catalog blurb, drop badge
+  const why = card.querySelector(".why-tx"), tip = card.querySelector(".tip-tx");
+  if (upd.reason && why) why.textContent = upd.reason;
+  if (upd.tip && tip) tip.textContent = upd.tip;
+  if (badge) {
+    if (upd.tag) { badge.className = "aitag"; badge.textContent = upd.tag; }
+    else badge.remove();
+  }
+  card.classList.add("ai-justfilled");
+  setTimeout(() => card.classList.remove("ai-justfilled"), 700);
+}
+// CSS.escape isn't on all engines for attribute selectors; ids are kebab so this is safe.
+function cssEsc(s){ return String(s).replace(/["\\]/g, "\\$&"); }
 
 function renderResults(books, opts){
   opts = opts || {};
@@ -115,10 +138,11 @@ function renderResults(books, opts){
   const loadingBar = opts.loading ? `<div class="scribble" aria-hidden="true"></div><p class="scribble-note" aria-live="polite"></p>` : "";
   const errNote = opts.aiError ? `<div class="ainote">AI 추천을 지금 불러올 수 없어 기본 추천을 보여드려요.</div>` : "";
   const label = opts.modeLabel ? `<span class="demo-pill">${escapeHtml(opts.modeLabel)}</span>` : "";
+  const pend = opts.pending instanceof Set ? opts.pending : null;
   wrap.innerHTML = `<div class="resbar"><span>${books.length}권 추천${label}</span>
     <button id="reroll" class="reroll" type="button">다시 추천 🎲</button></div>
     ${errNote}${loadingBar}
-    <div class="grid">${books.map((b,i) => `<div class="cardwrap" style="--i:${i}">${cardHtml(b, opts.reasons?.[b.id], opts.tips?.[b.id], opts.tags?.[b.id])}</div>`).join("")}</div>`;
+    <div class="grid">${books.map((b,i) => `<div class="cardwrap" style="--i:${i}">${cardHtml(b, opts.reasons?.[b.id], opts.tips?.[b.id], opts.tags?.[b.id], pend ? pend.has(b.id) : false)}</div>`).join("")}</div>`;
   // lazy real-cover swap (English ISBNs only). Open Library; silent fallback to SVG.
   if (!opts.loading) swapCovers(wrap);
 }
@@ -277,47 +301,107 @@ async function aiRecommend(p, books){
   }
 }
 
+// Per-book tool: one book in, {reason, tip} out. Lets cards fill progressively.
+const BOOK_TOOL = {
+  name: "book_blurb",
+  description: "이 한 권에 대한 추천 이유와 함께 읽기 팁을 한국어로 작성한다.",
+  input_schema: {
+    type: "object",
+    properties: { reason: { type: "string" }, tip: { type: "string" } },
+    required: ["reason", "tip"]
+  }
+};
+
+// Recommend ONE book — fast (~3-5s) so the grid fills card-by-card. Reuses buildSys()
+// for the same voice/errors, but the user turn is scoped to a single title.
+async function aiBlurbForBook(p, b, signal){
+  const sys = buildSys();
+  const user = `아이 정보: 나이 ${p.age||"미정"}, 성별 ${p.gender}, 관심사 [${p.themes.join(", ")||"없음"}], 분위기 [${p.moods.join(", ")||"없음"}]\n부모 한마디: ${p.note||"(없음)"}\n\n추천할 책 한 권:\n${JSON.stringify({id:b.id,lang:b.lang,title:b.title,author:b.author,ages:b.ages,level:b.level,themes:b.themes,mood:b.mood})}\n\n이 책에 대한 추천 이유(reason)와 함께 읽기 팁(tip)을 book_blurb 도구로 반환하세요. 부모의 '한마디'를 자연스럽게 반영하세요.`;
+  const pow = await solveProxyPoW(signal);
+  const res = await fetch(CLAUDE_PROXY + "/api/claude", {
+    method:"POST", headers:{ "Content-Type":"application/json", ...pow }, signal,
+    body: JSON.stringify({ model:"sonnet", max_tokens:600, system:sys,
+      messages:[{ role:"user", content:user }],
+      tools:[BOOK_TOOL], tool_choice:{ type:"tool", name:"book_blurb" } })
+  });
+  if(!res.ok){ const e=new Error("proxy "+res.status); e.status=res.status; throw e; }
+  const j = await res.json();
+  const tu = (j.content || []).find(c => c.type === "tool_use" && c.name === "book_blurb");
+  if (!tu || !tu.input) throw new Error("no structured output");
+  return tu.input;   // { reason, tip }
+}
+
+// Run up to `limit` async tasks at a time (keeps us under the proxy rate window
+// and avoids hammering — 6 books at 3-wide finishes in ~2 waves).
+async function runPool(items, limit, worker){
+  let i = 0;
+  const runners = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (i < items.length) {
+      const idx = i++;
+      await worker(items[idx], idx);
+    }
+  });
+  await Promise.all(runners);
+}
+
 document.getElementById("aiToggle").addEventListener("click", function(){
   this.setAttribute("aria-pressed", this.getAttribute("aria-pressed")==="true" ? "false":"true");
 });
+// Generation token: a reroll/new search bumps this so in-flight per-book patches
+// from a previous run are discarded instead of writing onto the new cards.
+let aiGen = 0;
+let aiAbort = null;
+
 async function runRecommend(varied){
   const p = readProfile();
   const books = recommend2(p, !!varied);
   const aiOn = document.getElementById("aiToggle").getAttribute("aria-pressed")==="true";
+
+  // cancel any previous run's in-flight calls
+  aiGen++; const gen = aiGen;
+  if (aiAbort) aiAbort.abort();
+
   if(!aiOn){ renderResults(books, { modeLabel:" · 추천 예시" }); scrollResults(); return; }
-  renderResults(books, { modeLabel:" · AI 생성 중…", loading:true });
+
+  // Render all cards IMMEDIATELY with catalog blurbs + a per-card "AI 다듬는 중…" badge,
+  // then fill each card in place as its single-book call returns (progressive load).
+  const pending = new Set(books.map(b => b.id));
+  renderResults(books, { modeLabel:" · AI 맞춤 추천", pending });
   scrollResults();
-  // the Sonnet round-trip takes ~20-30s; cycle reassuring status so it never feels hung
-  const steps = [
-    "아이 취향을 살펴보는 중…",
-    "한국 그림책과 영어책을 견주는 중…",
-    "추천 이유를 정성껏 쓰는 중…",
-    "거의 다 됐어요…",
-  ];
-  let si = 0;
-  const note = document.querySelector("#results .scribble-note");
-  if (note) note.textContent = steps[0];
-  const tick = setInterval(() => {
-    si = Math.min(si + 1, steps.length - 1);
-    const n = document.querySelector("#results .scribble-note");
-    if (n) n.textContent = steps[si];
-  }, 6000);
-  try{
-    const out = await aiRecommend(p, books);
-    clearInterval(tick);
-    const reasons={}, tips={}, tags={};
-    for(const b of books){ const it = out.items && out.items[b.id]; if(it){ reasons[b.id]=it.reason; tips[b.id]=it.tip; } }
-    const extras = (Array.isArray(out.extra)?out.extra:[]).slice(0,2).map((x,i)=>({
-      id:"ai-"+i, lang:x.lang==="en"?"en":"ko", title:String(x.title||""), author:String(x.author||""), publisher:"",
-      ages:[p.age||"3-4"], level:"그림책", themes:[], mood:[], blurb:String(x.reason||""), readAloud:String(x.tip||""),
-      cover:{emoji:"✨", palette:["#fff3d6","#ffe9c7"]}, source:"ai"
-    }));
-    const all=[...books, ...extras];
-    extras.forEach(e=>{ reasons[e.id]=e.blurb; tips[e.id]=e.readAloud; tags[e.id]="✨ 도전 추천"; });
-    renderResults(all, { modeLabel:" · AI 맞춤 추천", reasons, tips, tags });
-  }catch(err){
-    clearInterval(tick);
-    renderResults(books, { modeLabel:" · 추천 예시", aiError:true });
+
+  aiAbort = new AbortController();
+  const signal = aiAbort.signal;
+  // safety net: don't let a stalled book hang its card forever
+  const timer = setTimeout(() => { try { aiAbort && aiAbort.abort(); } catch(_){} }, 40000);
+
+  let anyOk = false, anyFail = false;
+  try {
+    await runPool(books, 3, async (b) => {
+      if (gen !== aiGen) return;                 // a newer run superseded this one
+      try {
+        const r = await aiBlurbForBook(p, b, signal);
+        if (gen !== aiGen) return;
+        anyOk = true;
+        patchCard(b.id, { reason: r.reason, tip: r.tip });
+      } catch(err) {
+        if (gen !== aiGen || err.name === "AbortError") return;
+        anyFail = true;
+        console.warn("[책친구] book", b.id, "AI failed:", err.status ? "proxy "+err.status : err.message);
+        patchCard(b.id, { failed: true });        // keep the catalog blurb, drop the badge
+      }
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+  if (gen !== aiGen) return;
+  // if literally nothing succeeded, surface the soft fallback note
+  if (!anyOk && anyFail) {
+    const bar = document.querySelector("#results .resbar span .demo-pill");
+    if (bar) bar.textContent = " · 추천 예시";
+    const grid = document.querySelector("#results .grid");
+    if (grid && !document.querySelector("#results .ainote")) {
+      grid.insertAdjacentHTML("beforebegin", `<div class="ainote">AI 추천을 지금 불러올 수 없어 기본 추천을 보여드려요.</div>`);
+    }
   }
 }
 document.getElementById("findBtn").addEventListener("click", () => runRecommend(false));

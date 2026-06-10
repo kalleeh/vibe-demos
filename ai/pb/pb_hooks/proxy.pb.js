@@ -49,7 +49,9 @@ routerAdd("POST", "/api/claude", (e) => {
   const MAX_TOKENS_CEILING = 4096; // headroom for structured-output (tool_use) responses
   const POW_DIFFICULTY = 14;
   const RATE_WINDOW_MS = 60 * 1000;
-  const RATE_MAX = 8;
+  const RATE_MAX = 24; // per-IP/min. Raised 8→24 so per-book demos (kids-bookshelf fans
+                       // out ~6 calls per recommendation + reroll) don't 429. The global
+                       // DAILY_CAP below is the real abuse backstop, unchanged.
   const DAILY_CAP = 800; // global calls/day across ALL callers — the hard backstop that
                          // bounds total abuse regardless of IP rotation or cracked PoW.
   const MODEL_MAP = {
