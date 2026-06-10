@@ -220,6 +220,23 @@ function pickVaried(sortedPool, n, poolSize){
   }
   return out.slice(0, n);
 }
+// Greedy diversity pick: from a score-sorted pool, take up to n books while avoiding
+// repeating the same PRIMARY theme until all distinct primaries are used. Keeps strong
+// fits but spreads across themes so results aren't 6 near-identical books.
+function pickDiverse(sortedPool, n){
+  const out = [], usedPrimary = new Set();
+  for (const x of sortedPool){
+    if (out.length >= n) break;
+    const prim = x.b.themes && x.b.themes[0];
+    if (prim && usedPrimary.has(prim)) continue;
+    out.push(x); if (prim) usedPrimary.add(prim);
+  }
+  if (out.length < n){   // few distinct themes available → backfill by score
+    const have = new Set(out.map(x=>x.b.id));
+    for (const x of sortedPool){ if(out.length>=n) break; if(!have.has(x.b.id)){ out.push(x); have.add(x.b.id);} }
+  }
+  return out.slice(0, n);
+}
 function recommend2(p, varied){
   const scored = window.BOOKS
     .map(b => ({ b, s: scoreBook(b,p) }))
@@ -227,13 +244,16 @@ function recommend2(p, varied){
     .sort((a,b) => b.s - a.s);
   const ko = scored.filter(x => x.b.lang==="ko");
   const en = scored.filter(x => x.b.lang==="en");
-  let pick;
+  let koPick, enPick;
   if (varied){
-    // draw from the top ~8 of each pool so rerolls feel alive but stay well-fit
-    pick = [...pickVaried(ko, 3, 8), ...pickVaried(en, 3, 8)];
+    // reroll: rotate a wider pool for variety, THEN diversify by theme
+    koPick = pickDiverse(pickVaried(ko, 8, 16), 3);
+    enPick = pickDiverse(pickVaried(en, 8, 16), 3);
   } else {
-    pick = [...ko.slice(0,3), ...en.slice(0,3)];
+    koPick = pickDiverse(ko, 3);
+    enPick = pickDiverse(en, 3);
   }
+  let pick = [...koPick, ...enPick];
   if (pick.length < 6){
     const used = new Set(pick.map(x=>x.b.id));
     for (const x of scored){ if(pick.length>=6) break; if(!used.has(x.b.id)){ pick.push(x); used.add(x.b.id);} }
