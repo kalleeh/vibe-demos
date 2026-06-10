@@ -87,9 +87,12 @@ function readProfile(){
   };
 }
 
-// Score one book against the profile. Higher = better fit. Age is a soft gate.
+// Deterministic fit score. Higher = better. Uses age curve, weighted theme/mood match,
+// the note lexicon, and a small build-time quality prior. No model, no randomness here
+// (reroll variety lives in pickVaried); a tiny id tiebreak keeps equal scores stable.
 function scoreBook(b, p){
   let s = 0;
+  // age: exact band best, adjacent soft, far penalized (soft gate, not hard)
   if (p.age){
     if (b.ages.includes(p.age)) s += 5;
     else {
@@ -99,14 +102,21 @@ function scoreBook(b, p){
       s += adj ? 1.5 : -4;
     }
   }
-  s += b.themes.filter(t => p.themes.includes(t)).length * 3;
-  s += b.mood.filter(m => p.moods.includes(m)).length * 2;
-  if (p.note){
-    const note = p.note.toLowerCase();
-    if (b.themes.some(t => note.includes(t.toLowerCase()))) s += 2;
-    if (note.includes(b.title.toLowerCase())) s += 4;
+  // themes: primary (first listed) match weighted higher than secondary matches
+  const picked = new Set(p.themes||[]);
+  if (b.themes && b.themes.length){
+    if (picked.has(b.themes[0])) s += 4;                       // primary theme hit
+    for (let i=1;i<b.themes.length;i++) if(picked.has(b.themes[i])) s += 2; // secondary hits
   }
-  // gender: soft nudge only; no gender field on books at launch -> reserved hook, 0.
+  // mood overlap
+  s += (b.mood||[]).filter(m => (p.moods||[]).includes(m)).length * 2;
+  // free-text lexicon signals (boost matched themes/moods, downweight negatives)
+  const sig = lexiconSignals(p.note);
+  for (const t of (b.themes||[])) if (sig.themes[t]) s += sig.themes[t] * 2.5;
+  for (const m of (b.mood||[])) if (sig.moods[m]) s += sig.moods[m] * 1.5;
+  // build-time quality prior: small nudge so classics surface (range ~0..1.2)
+  s += (typeof b.quality === "number" ? b.quality : 0.5) * 1.2;
+  // stable tiny tiebreak
   s += (b.id.charCodeAt(b.id.length-1) % 7) * 0.01;
   return s;
 }
