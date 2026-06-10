@@ -3926,7 +3926,7 @@ facet의 confidence는 50-92 정수. out-of-preference (전체 lean과 facet lea
 19. Do NOT hedge with "확실하진 않지만". 한 유형으로 commit하고 보조 유형은 별도 필드로 표현.
 20. Do NOT invent new MBTI types or 5번째 축. 16개 type, 4축, 20 facets 안에서만.
 21. Do NOT quote the writer's text verbatim for more than 12자. 짧은 인용으로 단서만.
-22. Do NOT output markdown fences or commentary. STRICT JSON only.
+22. mbti_result 도구로만 결과를 반환하라. 본문 텍스트·markdown·코멘트를 별도로 쓰지 마라.
 23. 한국 문화 신호 활용 — ㅋㅋ·ㅎㅎ 빈도, 반말/존댓말, 이모티콘 사용 등은 톤 단서다.
 </errors_to_avoid>
 
@@ -3942,7 +3942,7 @@ facet의 confidence는 50-92 정수. out-of-preference (전체 lean과 facet lea
 </output_constraints>
 
 <output_schema>
-Return STRICT JSON. No markdown fences, no commentary before/after.
+mbti_result 도구를 호출해 아래 모양 그대로 채워 반환하라. 본문 텍스트로 쓰지 말고 도구 input으로만 보낼 것.
 {
   "type": "INFP",
   "nickname_ko": "잔망 루피 · 따뜻하고 몽글몽글한 사색가",
@@ -4000,7 +4000,7 @@ silent reasoning:
 출력 type: "INFJ", nickname: "선의의 옹호자 · 조용한 통찰가". reading_ko에 "수용·보유 facet이 또렷하다", "정서적 facet이 강하다" 같은 facet-level 관찰 1-2개 포함.
 </exemplar>
 
-이제 사용자의 글을 읽고 JSON을 반환하라.`;
+이제 사용자의 글을 읽고 mbti_result 도구로 결과를 반환하라.`;
 
   const SYS_EN = `<role>
 You are an MBTI Step II / Form Q interpreter. You read free-form English text — diary entries, messages, social posts — and infer the writer's 4-letter type AND the lean on all 20 Step II facets. You are NOT applying generic personality clichés; you are reading the writer naturally, as a trained interpreter would.
@@ -4092,7 +4092,7 @@ Facet confidence is 50-92 integer. Out-of-preference (facet lean differs from ax
 7. Do NOT inflate confidence. Axis confidence never exceeds 95; facet confidence never exceeds 92. Clear axis is 80-88; ambiguous is 55-68. All axes at 90+ looks unrealistic.
 8. Do NOT invent new MBTI types or a 5th axis. 16 types, 4 axes, 20 facets only.
 9. Do NOT quote the writer's text verbatim for more than 12 words. Short clues only.
-10. Do NOT output markdown fences or commentary. STRICT JSON only.
+10. Return your result ONLY via the mbti_result tool. Do not write separate body text, markdown, or commentary.
 11. Do NOT treat I as deficient. "Introverted so lacking..." is forbidden. Introversion is value-neutral.
 12. Do NOT predict future events. MBTI is preference, not fortune-telling.
 </errors_to_avoid>
@@ -4109,7 +4109,7 @@ Facet confidence is 50-92 integer. Out-of-preference (facet lean differs from ax
 </output_constraints>
 
 <output_schema>
-Return STRICT JSON. No markdown fences, no commentary before/after.
+Call the mbti_result tool with the shape below. Send it as the tool input, not as body text.
 CRITICAL: Use these EXACT field names (they match the Korean schema): nickname_ko, one_liner_ko, evidence_ko, reading_ko, reasoning_ko, vibes_ko. The values are in ENGLISH but the field names stay the same.
 {
   "type": "INFP",
@@ -4168,9 +4168,70 @@ silent reasoning:
 Output type: "INFJ", nickname: "The Advocate". reading_ko includes facet-level observations like "Receiving and Contained facets are clear", "Empathetic facet is strong".
 </exemplar>
 
-Now read the user's text and return JSON.`;
+Now read the user's text and return the result via the mbti_result tool.`;
 
   const sys = (LANG === "en") ? SYS_EN : SYS_KO;
+
+  // Schema-forced structured output: the proxy forwards tools/tool_choice to
+  // Bedrock, so Sonnet returns a guaranteed-shape tool_use block (input matches
+  // input_schema) — no fragile text-regex JSON parsing. Field names stay _ko
+  // suffixed in both languages (the L() accessor + the EN prompt rely on that).
+  const facetSchema = {
+    type: "array",
+    description: "정확히 5개의 facet. left/right pole명은 canonical_facets에서 그대로.",
+    items: {
+      type: "object",
+      properties: {
+        left: { type: "string", description: "왼쪽(L) pole명" },
+        right: { type: "string", description: "오른쪽(R) pole명" },
+        lean: { type: "string", enum: ["L", "R"] },
+        confidence: { type: "integer", minimum: 50, maximum: 92 }
+      },
+      required: ["left", "right", "lean", "confidence"]
+    }
+  };
+  const MBTI_TOOL = {
+    name: "mbti_result",
+    description: "글에서 읽어낸 4글자 유형과 4축·20 facet의 lean을 구조화해 반환한다. nickname_ko/one_liner_ko/evidence_ko/reading_ko/reasoning_ko/vibes_ko 필드명은 언어와 무관하게 그대로 유지하고, 값만 해당 언어로 채운다.",
+    input_schema: {
+      type: "object",
+      properties: {
+        type: { type: "string", description: "canonical_types의 정확히 4글자 (예: INFP)" },
+        nickname_ko: { type: "string", description: "canonical_types의 별명/아키타입 타이틀" },
+        one_liner_ko: { type: "string", description: "한 문장 요약" },
+        axes: {
+          type: "array",
+          description: "정확히 4개 축, E/I·S/N·T/F·J/P 순.",
+          items: {
+            type: "object",
+            properties: {
+              axis: { type: "string", enum: ["E/I", "S/N", "T/F", "J/P"] },
+              lean: { type: "string", description: "그 축에서 선택된 한 글자 (예: I, N, F, P)" },
+              confidence: { type: "integer", minimum: 55, maximum: 95 },
+              evidence_ko: { type: "string", description: "1-2 문장의 근거" },
+              facets: facetSchema
+            },
+            required: ["axis", "lean", "confidence", "evidence_ko", "facets"]
+          }
+        },
+        secondary_type: {
+          type: "object",
+          properties: {
+            type: { type: "string", description: "보조 유형 4글자" },
+            reasoning_ko: { type: "string", description: "한 문장" }
+          },
+          required: ["type", "reasoning_ko"]
+        },
+        reading_ko: { type: "string", description: "3-5 문장 종합 해설" },
+        vibes_ko: {
+          type: "array",
+          description: "정확히 3개의 짧은 형용사구",
+          items: { type: "string" }
+        }
+      },
+      required: ["type", "nickname_ko", "one_liner_ko", "axes", "secondary_type", "reading_ko", "vibes_ko"]
+    }
+  };
 
   const pow = await solveProxyPoW();
   const res = await fetch(CLAUDE_PROXY + "/api/claude", {
@@ -4178,9 +4239,11 @@ Now read the user's text and return JSON.`;
     headers: { "Content-Type": "application/json", ...pow },
     body: JSON.stringify({
       model: "sonnet",
-      max_tokens: 2048,
+      max_tokens: 3000,
       system: sys,
-      messages: [{ role: "user", content: narrative }]
+      messages: [{ role: "user", content: narrative }],
+      tools: [MBTI_TOOL],
+      tool_choice: { type: "tool", name: "mbti_result" }
     })
   });
   if (!res.ok) {
@@ -4190,10 +4253,12 @@ Now read the user's text and return JSON.`;
     throw e;
   }
   const data = await res.json();
-  const text = (data.content?.[0]?.text) || "";
-  const m = text.match(/\{[\s\S]*\}/);
-  if (!m) throw new Error("응답에서 JSON을 찾지 못했습니다.");
-  return JSON.parse(m[0]);
+  const tu = (data.content || []).find(b => b.type === "tool_use" && b.name === "mbti_result");
+  if (!tu || !tu.input || typeof tu.input !== "object") {
+    console.warn("[MBTI] AI returned no tool_use block | stop:", data.stop_reason);
+    throw new Error("구조화된 응답을 받지 못했습니다.");
+  }
+  return tu.input;
 }
 
 // ============================================================
