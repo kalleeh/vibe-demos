@@ -72,13 +72,22 @@
   }
   .chip:hover{transform:translateY(-1px) rotate(-.6deg);}
   .chip:active{transform:scale(.96);}
+  /* crayon icon chips: icon + label side by side */
+  .chip.has-ic{padding-left:10px;gap:6px;}
+  .chip-ic{
+    width:26px;height:26px;object-fit:contain;display:block;flex:0 0 auto;
+    /* the icon is full-color art; the crayon filter would smear it, so leave it un-filtered */
+    pointer-events:none;
+  }
+  .chip-tx{display:inline-block;}
   /* pastel rotation so a row of chips reads like crayons */
   .chips .chip:nth-child(5n+1){background:#fff4dd;}
   .chips .chip:nth-child(5n+2){background:#e7f4fb;}
   .chips .chip:nth-child(5n+3){background:#eef8e6;}
   .chips .chip:nth-child(5n+4){background:#fdeaf1;}
   .chips .chip:nth-child(5n+5){background:#f1eafb;}
-  .chip[aria-pressed="true"]{
+  /* must out-rank the .chips .chip:nth-child pastel rules (specificity 0-3-0) */
+  .chips .chip[aria-pressed="true"]{
     background:var(--accent);color:#fff;border-color:var(--ink);
     box-shadow:3px 4px 0 var(--shadow);
     animation:wiggle .4s ease;
@@ -174,10 +183,18 @@
   .cover{
     flex:0 0 auto;width:92px;aspect-ratio:4/5;
     border-radius:8px;overflow:hidden;
+    background:#fffdf7;
   }
-  .cover svg, .cover .realcover{
+  /* the authored SVG placeholder is 4:5, so it fills the box cleanly */
+  .cover svg{
     width:100%;height:100%;object-fit:cover;border-radius:6px;display:block;
   }
+  /* real covers vary in aspect — contain (never crop), letterbox on paper, fade in */
+  .cover .realcover{
+    width:100%;height:100%;object-fit:contain;border-radius:6px;display:block;
+    animation:coverIn .4s ease both;
+  }
+  @keyframes coverIn{ from{opacity:0;} to{opacity:1;} }
 
   .info{flex:1 1 auto;min-width:0;}
   .toprow{display:flex;align-items:center;gap:7px;margin-bottom:5px;flex-wrap:wrap;}
