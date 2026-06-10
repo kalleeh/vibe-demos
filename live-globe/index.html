@@ -1762,6 +1762,21 @@
     }
 
     /* ── Proxy-only Claude call via Bedrock (Sonnet 4.6) ── */
+    // Schema-forced structured output: the proxy forwards tools/tool_choice to
+    // Bedrock, so Sonnet returns a guaranteed-shape tool_use block (no fragile
+    // text/regex/JSON.parse).
+    const SNAPSHOT_TOOL = {
+      name: "city_snapshot",
+      description: "도시의 지금 풍경 스냅샷 (한국어/영어)",
+      input_schema: {
+        type: "object",
+        properties: {
+          ko: { type: "string", description: "두 짧은 한국어 문단, \\n\\n로 구분" },
+          en: { type: "string", description: "two short English paragraphs separated by \\n\\n" }
+        },
+        required: ["ko", "en"]
+      }
+    };
     async function callClaude(c) {
       const now = new Date();
       const localTime = fmtTime(now, c.tz);
@@ -1828,12 +1843,8 @@ Silent reasoning before drafting:
 - 2 paragraphs in Korean, 2 paragraphs in English. Separated by \\n\\n.
 - Each paragraph 2-3 sentences. Each anchors to ONE named neighborhood and ONE sensory hook tied to weather or time.
 - Present tense throughout.
-- Strict JSON, no markdown fence.
+- city_snapshot 도구로 반환하세요 (평문으로 답하지 마세요).
 </output_constraints>
-
-<output_schema>
-{"ko": "<paragraph 1>\\n\\n<paragraph 2>", "en": "<paragraph 1>\\n\\n<paragraph 2>"}
-</output_schema>
 
 <exemplar>
 Input: City 서울, time 21:14, weather 흐림 24°C, sunset 19:38.
@@ -1853,21 +1864,21 @@ Sun: ${sunLine}
 
 Write a short snapshot of what's likely happening in the city right now. Be vivid and specific.
 
-Return strict JSON:
-{"ko": "<two short Korean paragraphs separated by \\n\\n>", "en": "<two short English paragraphs separated by \\n\\n>"}`;
+city_snapshot 도구로 ko/en 두 문단씩 반환하세요.`;
 
       const pow = await solveProxyPoW();
       const res = await fetch(CLAUDE_PROXY + "/api/claude", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...pow },
-        body: JSON.stringify({ model: "sonnet", max_tokens: 900, system: sys, messages: [{ role: "user", content: user }] }),
+        // tool_choice forces a schema-valid city_snapshot call → no text parsing needed
+        body: JSON.stringify({ model: "sonnet", max_tokens: 1200, system: sys, messages: [{ role: "user", content: user }],
+          tools: [SNAPSHOT_TOOL], tool_choice: { type: "tool", name: "city_snapshot" } }),
       });
       if (!res.ok) { const e = new Error("Proxy " + res.status); e.status = res.status; throw e; }
       const data = await res.json();
-      const text = (data.content && data.content[0] && data.content[0].text) || "";
-      const m = text.match(/\{[\s\S]*\}/);
-      if (!m) throw new Error("No JSON in response");
-      const obj = JSON.parse(m[0]);
+      const tu = (data.content || []).find(b => b.type === "tool_use" && b.name === "city_snapshot");
+      if (!tu || !tu.input) throw new Error("no structured output");
+      const obj = tu.input;
       // Convert paragraph breaks to <br><br>
       const fmt = s => String(s || "").replace(/\n\n/g, "<br><br>");
       return { ko: fmt(obj.ko), en: fmt(obj.en) };
