@@ -2808,6 +2808,139 @@
   initWuxing();
 
   /* ── Proxy-backed Claude call (Opus via Bedrock) ── */
+  // Schema-forced structured output — the proxy forwards tools/tool_choice to Bedrock,
+  // so the model returns a guaranteed-shape tool_use block (no fragile text parsing).
+  const whyObj = {
+    type: "object",
+    properties: { ko: { type: "string" }, en: { type: "string" } },
+    required: ["ko", "en"]
+  };
+  const BRIEF_TOOL = {
+    name: "clinical_brief",
+    description: "한방 변증·처방·경혈 구조화 브리프",
+    input_schema: {
+      type: "object",
+      properties: {
+        complaints: {
+          type: "array",
+          description: "4-6개 임상 증상군",
+          items: {
+            type: "object",
+            properties: {
+              ko: { type: "string" },
+              en: { type: "string" },
+              sev: { type: "integer", enum: [1, 2, 3, 4] },
+              dur: whyObj
+            },
+            required: ["ko", "en", "sev", "dur"]
+          }
+        },
+        sasang: {
+          type: "object",
+          properties: {
+            type: { type: "string", enum: ["태양인", "소양인", "태음인", "소음인"] },
+            latin: { type: "string" },
+            why: whyObj
+          },
+          required: ["type", "latin", "why"]
+        },
+        pattern: {
+          type: "object",
+          properties: {
+            ko: { type: "string" },
+            latin: { type: "string" },
+            why: whyObj
+          },
+          required: ["ko", "latin", "why"]
+        },
+        tongue: {
+          type: "object",
+          properties: {
+            color: { type: "string", enum: ["담홍", "홍", "담백", "자", "청", "암홍"] },
+            shape: { type: "string" },
+            coating: { type: "string", enum: ["박백", "백", "백니", "후니", "박황", "황", "황니", "회", "흑"] },
+            note: whyObj
+          },
+          required: ["color", "shape", "coating", "note"]
+        },
+        pulse: {
+          type: "object",
+          properties: {
+            global: whyObj,
+            cells: {
+              type: "object",
+              properties: {
+                left: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: { type: { type: "string" }, han: { type: "string" } },
+                    required: ["type", "han"]
+                  }
+                },
+                right: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: { type: { type: "string" }, han: { type: "string" } },
+                    required: ["type", "han"]
+                  }
+                }
+              },
+              required: ["left", "right"]
+            }
+          },
+          required: ["global", "cells"]
+        },
+        organs: {
+          type: "array",
+          description: "1-3개 한글 장부명",
+          items: { type: "string", enum: ["간", "심", "비", "폐", "신", "담", "소장", "위", "대장", "방광", "삼초"] }
+        },
+        formula: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            pinyin: { type: "string" },
+            note: whyObj
+          },
+          required: ["name", "pinyin", "note"]
+        },
+        points: {
+          type: "array",
+          description: "4-6개 경혈",
+          items: {
+            type: "object",
+            properties: {
+              code: { type: "string" },
+              ko: { type: "string" },
+              why: whyObj
+            },
+            required: ["code", "ko", "why"]
+          }
+        },
+        lifestyle: {
+          type: "object",
+          properties: {
+            ko: { type: "array", items: { type: "string" } },
+            en: { type: "array", items: { type: "string" } }
+          },
+          required: ["ko", "en"]
+        },
+        next: whyObj,
+        followups: {
+          type: "object",
+          properties: {
+            ko: { type: "array", items: { type: "string" } },
+            en: { type: "array", items: { type: "string" } }
+          },
+          required: ["ko", "en"]
+        }
+      },
+      required: ["complaints", "sasang", "pattern", "tongue", "pulse", "organs", "formula", "points", "lifestyle", "next", "followups"]
+    }
+  };
+
   async function callClaude(narrative) {
     const sys = `<role>
 You are a licensed 한의사 (한국 한의학 전문의) practising in Korea. You trained at a Korean 한의과대학 and your clinical reasoning is rooted in the Korean canon — 동의보감 (許浚, 1613), 동의수세보원 (李濟馬, 1894), 방약합편 (黃度淵, 1884), and modern Korean 한의학 textbooks. You are NOT a TCM (中醫) practitioner; do not adopt the voice or formulary of mainland Chinese 中醫. A working 한의사 will read this brief — generic-translated TCM language will read as obviously foreign.
@@ -2900,7 +3033,7 @@ Use the international code in the 'code' field with a single space (ST 36, BL 20
 </output_constraints>
 
 <output_schema>
-Return STRICT JSON. No markdown fences. No commentary before or after. The JSON object MUST match this shape exactly:
+Return your brief by calling the clinical_brief tool — its input is the structured brief. Do not write any prose before or after the tool call. The tool input MUST match this shape exactly:
 
 {
   "complaints": [
@@ -2974,14 +3107,17 @@ Now read the patient narrative and produce the JSON.`;
     const res = await fetch(CLAUDE_PROXY + "/api/claude", {
       method: "POST",
       headers: { "Content-Type": "application/json", ...pow },
-      body: JSON.stringify({ model: "opus", max_tokens: 2000, system: sys, messages: [{ role: "user", content: narrative }] }),
+      body: JSON.stringify({
+        model: "opus", max_tokens: 3500, system: sys,
+        messages: [{ role: "user", content: narrative }],
+        tools: [BRIEF_TOOL], tool_choice: { type: "tool", name: "clinical_brief" },
+      }),
     });
     if (!res.ok) { const e = new Error("Proxy " + res.status); e.status = res.status; throw e; }
     const data = await res.json();
-    const text = (data.content?.[0]?.text) || "";
-    const m = text.match(/\{[\s\S]*\}/);
-    if (!m) throw new Error("No JSON in response");
-    return JSON.parse(m[0]);
+    const tu = (data.content || []).find(b => b.type === "tool_use" && b.name === "clinical_brief");
+    if (!tu || !tu.input) throw new Error("구조화된 브리프를 받지 못했습니다.");
+    return tu.input;
   }
 
   </script>
