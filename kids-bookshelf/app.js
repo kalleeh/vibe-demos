@@ -91,6 +91,8 @@ function readProfile(){
 // the note lexicon, and a small build-time quality prior. No model, no randomness here
 // (reroll variety lives in pickVaried); a tiny id tiebreak keeps equal scores stable.
 function scoreBook(b, p){
+  // p.gender is deliberately NOT scored: books carry no gender field (tagging picture
+  // books by gender would bake in stereotypes). It only flavors the AI-mode prompt.
   let s = 0;
   // age: exact band best, adjacent soft, far penalized (soft gate, not hard)
   if (p.age){
@@ -122,8 +124,6 @@ function scoreBook(b, p){
 }
 
 let shuffleSalt = 0;
-// Thin alias retained for compat; routes through recommend2 (defined below). DRY.
-function recommend(p){ return recommend2(p, false); }
 
 /* ── Task 4: rendering, crayon SVG covers, Open Library swap, varied reroll ── */
 
@@ -143,13 +143,11 @@ function svgCover(b){
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
 
 const FLAG = { ko:"🇰🇷", en:"🇬🇧" };
-function cardHtml(b, reason, tip, tag, pending){
-  reason = reason || b.blurb; tip = tip || b.readAloud;
+function cardHtml(b, pending){
   const lvl = escapeHtml(b.level);
   const meta = escapeHtml(b.author) + (b.publisher ? " · " + escapeHtml(b.publisher) : "");
   // pending = this card's AI reason/tip is still being written (per-book progressive load)
-  const badge = pending ? `<span class="aibadge">✨ AI 다듬는 중…</span>`
-              : (tag ? `<span class="aitag">${escapeHtml(tag)}</span>` : "");
+  const badge = pending ? `<span class="aibadge">✨ AI 다듬는 중…</span>` : "";
   return `<article class="bookcard${pending?" ai-pending":""}" data-bookid="${escapeHtml(b.id)}" data-isbn="${b.lang==="en" && b.isbn ? escapeHtml(b.isbn) : ""}">
     <div class="cover">${svgCover(b)}</div>
     <div class="info">
@@ -157,8 +155,8 @@ function cardHtml(b, reason, tip, tag, pending){
         <span class="lvl">${lvl}</span>${badge}</div>
       <h3 class="btitle">${escapeHtml(b.title)}</h3>
       <div class="bmeta">${meta}</div>
-      <p class="why"><b>왜 이 책일까요?</b> <span class="why-tx">${escapeHtml(reason)}</span></p>
-      <p class="tip"><b>함께 읽기 팁</b> <span class="tip-tx">${escapeHtml(tip)}</span></p>
+      <p class="why"><b>왜 이 책일까요?</b> <span class="why-tx">${escapeHtml(b.blurb)}</span></p>
+      <p class="tip"><b>함께 읽기 팁</b> <span class="tip-tx">${escapeHtml(b.readAloud)}</span></p>
     </div>
   </article>`;
 }
@@ -173,10 +171,7 @@ function patchCard(id, upd){
   const why = card.querySelector(".why-tx"), tip = card.querySelector(".tip-tx");
   if (upd.reason && why) why.textContent = upd.reason;
   if (upd.tip && tip) tip.textContent = upd.tip;
-  if (badge) {
-    if (upd.tag) { badge.className = "aitag"; badge.textContent = upd.tag; }
-    else badge.remove();
-  }
+  if (badge) badge.remove();
   card.classList.add("ai-justfilled");
   setTimeout(() => card.classList.remove("ai-justfilled"), 700);
 }
@@ -186,16 +181,13 @@ function cssEsc(s){ return String(s).replace(/["\\]/g, "\\$&"); }
 function renderResults(books, opts){
   opts = opts || {};
   const wrap = document.getElementById("results");
-  const loadingBar = opts.loading ? `<div class="scribble" aria-hidden="true"></div><p class="scribble-note" aria-live="polite"></p>` : "";
-  const errNote = opts.aiError ? `<div class="ainote">AI 추천을 지금 불러올 수 없어 기본 추천을 보여드려요.</div>` : "";
   const label = opts.modeLabel ? `<span class="demo-pill">${escapeHtml(opts.modeLabel)}</span>` : "";
   const pend = opts.pending instanceof Set ? opts.pending : null;
   wrap.innerHTML = `<div class="resbar"><span>${books.length}권 추천${label}</span>
     <button id="reroll" class="reroll" type="button">다시 추천 🎲</button></div>
-    ${errNote}${loadingBar}
-    <div class="grid">${books.map((b,i) => `<div class="cardwrap" style="--i:${i}">${cardHtml(b, opts.reasons?.[b.id], opts.tips?.[b.id], opts.tags?.[b.id], pend ? pend.has(b.id) : false)}</div>`).join("")}</div>`;
+    <div class="grid">${books.map((b,i) => `<div class="cardwrap" style="--i:${i}">${cardHtml(b, pend ? pend.has(b.id) : false)}</div>`).join("")}</div>`;
   // lazy real-cover swap (English ISBNs only). Open Library; silent fallback to SVG.
-  if (!opts.loading) swapCovers(wrap);
+  swapCovers(wrap);
 }
 function swapCovers(wrap){
   wrap.querySelectorAll(".bookcard[data-isbn]").forEach(card => {
@@ -221,15 +213,18 @@ function pickVaried(sortedPool, n, poolSize){
   return out.slice(0, n);
 }
 // Greedy diversity pick: from a score-sorted pool, take up to n books while avoiding
-// repeating the same PRIMARY theme until all distinct primaries are used. Keeps strong
-// fits but spreads across themes so results aren't 6 near-identical books.
-function pickDiverse(sortedPool, n){
-  const out = [], usedPrimary = new Set();
+// repeating the same PRIMARY theme. Keeps strong fits but spreads across themes so
+// results aren't 6 near-identical books. Themes the user EXPLICITLY picked get a cap
+// of 2 instead of 1 — diversity shouldn't fight stated intent ("공룡 좋아해요" should
+// surface more than one dino book).
+function pickDiverse(sortedPool, n, pickedThemes){
+  const out = [], primCount = {};
+  const cap = (prim) => (pickedThemes && pickedThemes.has(prim)) ? 2 : 1;
   for (const x of sortedPool){
     if (out.length >= n) break;
     const prim = x.b.themes && x.b.themes[0];
-    if (prim && usedPrimary.has(prim)) continue;
-    out.push(x); if (prim) usedPrimary.add(prim);
+    if (prim && (primCount[prim]||0) >= cap(prim)) continue;
+    out.push(x); if (prim) primCount[prim] = (primCount[prim]||0) + 1;
   }
   if (out.length < n){   // few distinct themes available → backfill by score
     const have = new Set(out.map(x=>x.b.id));
@@ -244,14 +239,15 @@ function recommend2(p, varied){
     .sort((a,b) => b.s - a.s);
   const ko = scored.filter(x => x.b.lang==="ko");
   const en = scored.filter(x => x.b.lang==="en");
+  const pickedThemes = new Set(p.themes || []);
   let koPick, enPick;
   if (varied){
     // reroll: rotate a wider pool for variety, THEN diversify by theme
-    koPick = pickDiverse(pickVaried(ko, 8, 16), 3);
-    enPick = pickDiverse(pickVaried(en, 8, 16), 3);
+    koPick = pickDiverse(pickVaried(ko, 8, 16), 3, pickedThemes);
+    enPick = pickDiverse(pickVaried(en, 8, 16), 3, pickedThemes);
   } else {
-    koPick = pickDiverse(ko, 3);
-    enPick = pickDiverse(en, 3);
+    koPick = pickDiverse(ko, 3, pickedThemes);
+    enPick = pickDiverse(en, 3, pickedThemes);
   }
   let pick = [...koPick, ...enPick];
   if (pick.length < 6){
@@ -285,7 +281,7 @@ function buildSys(){
   return `<role>당신은 한국 어린이도서관의 그림책 큐레이터입니다. 0~9세 아이를 키우는 한국 부모에게 책을 추천합니다. 당신은 영미권 사서가 아니라, 한국 그림책 문화와 영어권 그림책 정전을 모두 아는 이중언어 큐레이터입니다.</role>
 <voice>따뜻하고 구체적인 한국어. 부모가 아이와 함께 읽는 장면이 그려지도록. 과장·광고 문구 금지. 추천 이유는 1~2문장, 따뜻하고 자신감 있게.</voice>
 <reasoning_order>1) 아이 나이대에 맞는 책인지 확인 2) 관심사·분위기와 어떻게 맞는지 3) 부모의 '한마디'를 반영 4) 함께 읽을 때의 팁을 떠올린다 5) 한국 책과 영어 책의 균형.</reasoning_order>
-<canonical_books>아래 후보(catalog)는 user 메시지에 JSON으로 제공됩니다. 추천 이유는 이 후보 책들에 대해서만 쓰세요. 후보에 없는 책의 줄거리를 지어내지 마세요.</canonical_books>
+<canonical_books>추천할 책은 user 메시지에 JSON으로 제공됩니다. 추천 이유는 그 책에 대해서만 쓰세요. 제공되지 않은 책의 줄거리를 지어내지 마세요.</canonical_books>
 <canonical_authors>백희나, 권정생, 이수지, 안녕달, 이억배, 채인선, 최숙희, 고대영, 이지은, Julia Donaldson, Axel Scheffler, Eric Carle, Mo Willems, Oliver Jeffers, Maurice Sendak, Janet & Allan Ahlberg</canonical_authors>
 <errors_to_avoid>
 1) 없는 책·작가·출판사·ISBN을 절대 지어내지 말 것. 확신이 없으면 언급하지 말 것.
@@ -299,80 +295,13 @@ function buildSys(){
 9) 한국 명절·정서 책(추석, 설, 한복)에 중국/미국 문화 틀을 섞지 말 것.
 10) 지나치게 망설이는 말투("혹시 고려해 보실 수도…") 금지 — 사서답게 따뜻하고 분명하게.
 </errors_to_avoid>
-<output_constraints>후보 catalog의 각 책 id에 대해 reason(1~2문장, 한국어)과 tip(한 줄, 한국어)을 작성. 부모의 '한마디'가 있으면 reason에 자연스럽게 반영. 추가로 catalog에 없지만 아주 잘 맞는 실제 존재하는 책을 최대 2권까지 extra로 제안 가능 — 단 확실히 실재하는 책만, 도전 추천으로.</output_constraints>
-<output>반드시 recommend_books 도구를 호출해 결과를 구조화해 반환하세요. 평문으로 답하지 마세요.</output>`;
-}
-
-// Schema for the recommend_books tool — the proxy forwards tools/tool_choice to Bedrock,
-// so Sonnet returns a guaranteed-shape tool_use block (no fragile text parsing).
-const REC_TOOL = {
-  name: "recommend_books",
-  description: "후보 책별 추천 이유/팁과 선택적 도전 추천을 구조화해 반환한다.",
-  input_schema: {
-    type: "object",
-    properties: {
-      items: {
-        type: "object",
-        description: "책 id를 키로, 각 값은 {reason, tip}. 후보의 모든 id를 포함한다.",
-        additionalProperties: {
-          type: "object",
-          properties: { reason: { type: "string" }, tip: { type: "string" } },
-          required: ["reason", "tip"]
-        }
-      },
-      extra: {
-        type: "array",
-        description: "catalog에 없지만 잘 맞는 실재 도서 최대 2권 (도전 추천).",
-        items: {
-          type: "object",
-          properties: {
-            title: { type: "string" }, author: { type: "string" },
-            lang: { type: "string", enum: ["ko", "en"] },
-            reason: { type: "string" }, tip: { type: "string" }
-          },
-          required: ["title", "lang", "reason", "tip"]
-        }
-      }
-    },
-    required: ["items"]
-  }
-};
-
-async function aiRecommend(p, books){
-  const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), 30000);
-  try {
-    const sys = buildSys();
-    const candidates = books.map(b => ({ id:b.id, lang:b.lang, title:b.title, author:b.author,
-      ages:b.ages, level:b.level, themes:b.themes, mood:b.mood }));
-    const user = `아이 정보: 나이 ${p.age||"미정"}, 성별 ${p.gender}, 관심사 [${p.themes.join(", ")||"없음"}], 분위기 [${p.moods.join(", ")||"없음"}]\n부모 한마디: ${p.note||"(없음)"}\n\n추천 후보 catalog(JSON):\n${JSON.stringify(candidates)}\n\n각 후보에 대한 추천 이유와 팁을 recommend_books 도구로 반환하세요.`;
-    const pow = await solveProxyPoW(ac.signal);
-    const res = await fetch(CLAUDE_PROXY + "/api/claude", {
-      method:"POST", headers:{ "Content-Type":"application/json", ...pow }, signal: ac.signal,
-      // tool_choice forces a schema-valid recommend_books call → no text parsing needed
-      body: JSON.stringify({ model:"sonnet", max_tokens:4000, system:sys,
-        messages:[{ role:"user", content:user }],
-        tools:[REC_TOOL], tool_choice:{ type:"tool", name:"recommend_books" } })
-    });
-    if(!res.ok){ const e=new Error("proxy "+res.status); e.status=res.status; throw e; }
-    const j = await res.json();
-    const tu = (j.content || []).find(b => b.type === "tool_use" && b.name === "recommend_books");
-    if (!tu || !tu.input || typeof tu.input !== "object") {
-      console.warn("[책친구] AI returned no tool_use block | stop:", j.stop_reason);
-      throw new Error("no structured output");
-    }
-    return tu.input;   // { items:{id:{reason,tip}}, extra:[…] }
-  } catch(err){
-    // surface the real cause (abort vs proxy status vs missing tool_use) for diagnosis
-    if (err.name === "AbortError") console.warn("[책친구] AI call aborted (timeout/stall)");
-    else console.warn("[책친구] AI call failed:", err.status ? "proxy "+err.status : err.message);
-    throw err;
-  } finally {
-    clearTimeout(timer);
-  }
+<output_constraints>reason은 1~2문장 한국어, tip은 한 줄 한국어. 부모의 '한마디'가 있으면 reason에 자연스럽게 반영.</output_constraints>
+<output>반드시 book_blurb 도구를 호출해 결과를 구조화해 반환하세요. 평문으로 답하지 마세요.</output>`;
 }
 
 // Per-book tool: one book in, {reason, tip} out. Lets cards fill progressively.
+// The proxy forwards tools/tool_choice to Bedrock, so Sonnet returns a
+// guaranteed-shape tool_use block (no fragile text parsing).
 const BOOK_TOOL = {
   name: "book_blurb",
   description: "이 한 권에 대한 추천 이유와 함께 읽기 팁을 한국어로 작성한다.",
@@ -455,9 +384,13 @@ async function runRecommend(varied){
         anyOk = true;
         patchCard(b.id, { reason: r.reason, tip: r.tip });
       } catch(err) {
-        if (gen !== aiGen || err.name === "AbortError") return;
+        // Only bail silently when a NEWER run superseded us (its render replaced our
+        // cards). An abort on the CURRENT gen is the 40s safety timer firing — that
+        // card must still be released or its "AI 다듬는 중…" badge pulses forever.
+        if (gen !== aiGen) return;
         anyFail = true;
-        console.warn("[책친구] book", b.id, "AI failed:", err.status ? "proxy "+err.status : err.message);
+        const why = err.name === "AbortError" ? "aborted (timeout)" : (err.status ? "proxy "+err.status : err.message);
+        console.warn("[책친구] book", b.id, "AI failed:", why);
         patchCard(b.id, { failed: true });        // keep the catalog blurb, drop the badge
       }
     });

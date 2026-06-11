@@ -1,6 +1,15 @@
 /* kids-bookshelf — offline shell SW (network-first HTML, cache-first assets) */
-const CACHE = "vibe-kids-bookshelf-v6";
-const SHELL = ["./", "./index.html", "./app.js", "./catalog.js", "./manifest.webmanifest", "./icon.svg"];
+const CACHE = "vibe-kids-bookshelf-v7";
+const SHELL = [
+  "./", "./index.html", "./app.js", "./catalog.js", "./manifest.webmanifest", "./icon.svg",
+  // crayon chip icons — precached so an installed PWA shows them offline first-open
+  "./icons/gongryong.png", "./icons/uju.png", "./icons/dongmul.png", "./icons/gongju.png",
+  "./icons/jadongcha.png", "./icons/talgeot.png", "./icons/geurim.png", "./icons/jamjari.png",
+  "./icons/jayeon.png", "./icons/eumsik.png", "./icons/gajok.png", "./icons/chingu.png",
+  "./icons/gamjeong.png", "./icons/ilsang.png", "./icons/hwansang.png", "./icons/moheom.png",
+  "./icons/sutja.png", "./icons/yumeo.png",
+  "./icons/mood-ttaseuthan.png", "./icons/mood-hakseup.png", "./icons/mood-janjan.png"
+];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -36,6 +45,6 @@ self.addEventListener("fetch", e => {
     caches.match(req).then(m => m || fetch(req).then(r => {
       if (r.ok) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
       return r;
-    }).catch(() => m))
+    }))
   );
 });

@@ -10900,5 +10900,731 @@ window.BOOKS = [
   },
   "quality": 0.92,
   "source": "curated"
+ },
+ {
+  "id": "en-paper-bag-princess",
+  "lang": "en",
+  "title": "The Paper Bag Princess",
+  "author": "Robert Munsch & Michael Martchenko",
+  "publisher": "Annick Press",
+  "isbn": "9780920236161",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "공주",
+   "유머",
+   "모험",
+   "환상"
+  ],
+  "mood": [
+   "웃긴",
+   "모험"
+  ],
+  "blurb": "용에게 성과 옷을 모두 잃은 엘리자베스 공주가 종이 봉지 하나만 걸치고 꾀로 용을 물리치는, 씩씩한 공주 이야기의 고전이에요. 겉모습만 따지는 왕자를 시원하게 차 버리는 결말이 통쾌해요.",
+  "readAloud": "마지막 장에서 \"엘리자베스는 어떤 기분이었을까?\" 하고 아이의 생각을 물어보세요.",
+  "cover": {
+   "emoji": "👑",
+   "palette": [
+    "#d9a066",
+    "#f4e3c1"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.92
+ },
+ {
+  "id": "en-worst-princess",
+  "lang": "en",
+  "title": "The Worst Princess",
+  "author": "Anna Kemp & Sara Ogilvie",
+  "publisher": "Simon & Schuster",
+  "isbn": "9781847388766",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "공주",
+   "유머",
+   "환상"
+  ],
+  "mood": [
+   "웃긴",
+   "모험"
+  ],
+  "blurb": "탑에서 구출되길 기다리던 수 공주, 그런데 왕자는 공주를 또 탑에 가두려 해요. 수 공주가 용과 한편이 되어 모험을 떠나 버리는 유쾌한 반전 공주 이야기예요.",
+  "readAloud": "왕자의 잘난 척하는 대사를 한껏 느끼하게 읽으면 아이가 까르르 웃어요.",
+  "cover": {
+   "emoji": "🐉",
+   "palette": [
+    "#f4a6c0",
+    "#9cd07f"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.8
+ },
+ {
+  "id": "en-ten-little-princesses",
+  "lang": "en",
+  "title": "Ten Little Princesses",
+  "author": "Mike Brownlow & Simon Rickerty",
+  "publisher": "Orchard Books",
+  "isbn": "9781408330128",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "그림책",
+  "themes": [
+   "공주",
+   "숫자/글자",
+   "모험"
+  ],
+  "mood": [
+   "웃긴",
+   "학습"
+  ],
+  "blurb": "꼬마 공주 열 명이 모험을 떠났다가 마녀, 괴물, 늑대를 만나 한 명씩 사라지는 카운트다운 라임 그림책이에요. 10에서 1까지 세고 다시 거꾸로 세며 숫자 놀이가 저절로 돼요.",
+  "readAloud": "공주가 사라질 때마다 손가락을 하나씩 접으며 함께 세어 보세요.",
+  "cover": {
+   "emoji": "👑",
+   "palette": [
+    "#f4a6c0",
+    "#c4a6e6"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.75
+ },
+ {
+  "id": "en-interstellar-cinderella",
+  "lang": "en",
+  "title": "Interstellar Cinderella",
+  "author": "Deborah Underwood & Meg Hunt",
+  "publisher": "Chronicle Books",
+  "isbn": "9781452125329",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "공주",
+   "우주",
+   "환상",
+   "탈것"
+  ],
+  "mood": [
+   "모험",
+   "웃긴"
+  ],
+  "blurb": "우주를 배경으로 새로 쓴 신데렐라 — 로켓 수리가 특기인 신데렐라가 왕자의 고장 난 우주선을 고쳐 주고, 신부가 아니라 수석 정비사가 되기로 선택하는 라임 그림책이에요.",
+  "readAloud": "\"신데렐라는 왜 결혼 대신 정비사를 골랐을까?\" 하고 아이와 이야기해 보세요.",
+  "cover": {
+   "emoji": "🚀",
+   "palette": [
+    "#2b3a67",
+    "#f4a6c0"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.78
+ },
+ {
+  "id": "en-little-blue-truck",
+  "lang": "en",
+  "title": "Little Blue Truck",
+  "author": "Alice Schertle & Jill McElmurry",
+  "publisher": "Harcourt",
+  "isbn": "9780152056612",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "그림책",
+  "themes": [
+   "자동차",
+   "동물",
+   "친구"
+  ],
+  "mood": [
+   "따뜻한",
+   "웃긴"
+  ],
+  "blurb": "파란 꼬마 트럭이 빵빵 인사하며 농장 동물 친구들을 사귀고, 진흙에 빠진 거만한 덤프트럭을 다 같이 밀어 구해 주는 이야기예요. 친절이 돌아온다는 마음이 자연스럽게 전해져요.",
+  "readAloud": "\"Beep! Beep!\"과 동물 울음소리를 아이와 역할을 나눠 내 보세요.",
+  "cover": {
+   "emoji": "🚚",
+   "palette": [
+    "#7ec4e6",
+    "#9cd07f"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.88
+ },
+ {
+  "id": "en-duck-in-the-truck",
+  "lang": "en",
+  "title": "Duck in the Truck",
+  "author": "Jez Alborough",
+  "publisher": "HarperCollins",
+  "isbn": "9780007118502",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "자동차",
+   "동물",
+   "유머"
+  ],
+  "mood": [
+   "웃긴"
+  ],
+  "blurb": "오리의 트럭이 진흙탕에 푹! 개구리, 양, 염소가 밀고 당기고 끌어서 트럭을 빼내는 라임 소동극이에요. 정작 오리만 쏙 빠져나가는 마지막 장면이 얄밉고도 웃겨요.",
+  "readAloud": "\"stuck\", \"muck\", \"truck\" 같은 라임을 리듬 타며 읽으면 소리의 재미가 살아나요.",
+  "cover": {
+   "emoji": "🦆",
+   "palette": [
+    "#9c7b4f",
+    "#f7b733"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.8
+ },
+ {
+  "id": "en-cars-and-trucks-things-that-go",
+  "lang": "en",
+  "title": "Cars and Trucks and Things That Go",
+  "author": "Richard Scarry",
+  "publisher": "Golden Books",
+  "isbn": "9780307157850",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "자동차",
+   "탈것",
+   "유머"
+  ],
+  "mood": [
+   "웃긴",
+   "학습"
+  ],
+  "blurb": "돼지 가족의 소풍길을 따라 오이차, 연필차, 소방차까지 수백 대의 기상천외한 탈것이 쏟아지는 리처드 스캐리의 고전이에요. 페이지마다 숨은 골드버그 찾기로 한참을 들여다보게 돼요.",
+  "readAloud": "페이지마다 숨어 있는 골드버그(Goldbug)를 누가 먼저 찾나 시합해 보세요.",
+  "cover": {
+   "emoji": "🚗",
+   "palette": [
+    "#f7b733",
+    "#e8643c"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.92
+ },
+ {
+  "id": "en-dinosaur-roar",
+  "lang": "en",
+  "title": "Dinosaur Roar!",
+  "author": "Paul & Henrietta Stickland",
+  "publisher": "Puffin",
+  "isbn": "9780140568080",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "그림책",
+  "themes": [
+   "공룡",
+   "숫자/글자",
+   "유머"
+  ],
+  "mood": [
+   "웃긴",
+   "학습"
+  ],
+  "blurb": "으르렁 공룡, 찍찍 공룡, 빠른 공룡, 느린 공룡 — 알록달록 공룡들이 반대말을 몸으로 보여 주는 라임 그림책이에요. 공룡 입문서로 손꼽히는 스테디셀러예요.",
+  "readAloud": "\"roar!\"는 크게, \"squeak!\"은 모기만 하게 — 목소리 크기로 반대말을 표현해 보세요.",
+  "cover": {
+   "emoji": "🦖",
+   "palette": [
+    "#9cd07f",
+    "#e8643c"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.85
+ },
+ {
+  "id": "en-how-do-dinosaurs-say-good-night",
+  "lang": "en",
+  "title": "How Do Dinosaurs Say Good Night?",
+  "author": "Jane Yolen & Mark Teague",
+  "publisher": "Blue Sky Press",
+  "isbn": "9780590316811",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "공룡",
+   "잠자리",
+   "유머",
+   "가족"
+  ],
+  "mood": [
+   "웃긴",
+   "잔잔한"
+  ],
+  "blurb": "잘 시간이 된 공룡 아이들은 문을 쾅 닫고 발을 쿵쿵 구를까요? 아니에요 — 꼬리를 이불에 넣고 뽀뽀하고 불을 끄지요. 잠자리 거부가 심한 시기에 딱 맞는 유쾌한 굿나잇 책이에요.",
+  "readAloud": "다 읽고 \"그럼 우리 공룡은 어떻게 잘까?\" 하며 아이만의 굿나잇 의식을 만들어 보세요.",
+  "cover": {
+   "emoji": "🦕",
+   "palette": [
+    "#2b3a67",
+    "#9cd07f"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.9
+ },
+ {
+  "id": "en-harry-bucketful-of-dinosaurs",
+  "lang": "en",
+  "title": "Harry and the Bucketful of Dinosaurs",
+  "author": "Ian Whybrow & Adrian Reynolds",
+  "publisher": "Puffin",
+  "isbn": "9780140569803",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "공룡",
+   "일상",
+   "환상"
+  ],
+  "mood": [
+   "따뜻한"
+  ],
+  "blurb": "다락방에서 먼지 쌓인 장난감 공룡들을 발견한 해리가 하나하나 이름을 외워 주고, 기차에 양동이를 두고 내렸을 때 그 이름들이 공룡을 되찾아 주는 따뜻한 이야기예요.",
+  "readAloud": "아이가 아끼는 인형이나 장난감들의 이름을 함께 지어 불러 보세요.",
+  "cover": {
+   "emoji": "🪣",
+   "palette": [
+    "#7ec4e6",
+    "#f7b733"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.82
+ },
+ {
+  "id": "en-tyrannosaurus-drip",
+  "lang": "en",
+  "title": "Tyrannosaurus Drip",
+  "author": "Julia Donaldson & David Roberts",
+  "publisher": "Macmillan Children's Books",
+  "isbn": "9781509892433",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "공룡",
+   "가족",
+   "유머",
+   "모험"
+  ],
+  "mood": [
+   "웃긴",
+   "모험"
+  ],
+  "blurb": "오리주둥이공룡 알이 티라노 둥지에 굴러 들어가 '물방울'이라 놀림받던 순둥이가, 진짜 가족을 찾아 떠나고 꾀로 사나운 티라노들을 물리치는 줄리아 도널드슨의 라임 그림책이에요.",
+  "readAloud": "티라노 가족의 으르렁 목소리와 드립의 조그만 목소리를 확실히 다르게 연기해 보세요.",
+  "cover": {
+   "emoji": "💧",
+   "palette": [
+    "#9cd07f",
+    "#7ec4e6"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.85
+ },
+ {
+  "id": "en-whatever-next",
+  "lang": "en",
+  "title": "Whatever Next!",
+  "author": "Jill Murphy",
+  "publisher": "Macmillan Children's Books",
+  "isbn": "9780333636220",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "그림책",
+  "themes": [
+   "우주",
+   "환상",
+   "잠자리",
+   "가족"
+  ],
+  "mood": [
+   "따뜻한",
+   "모험"
+  ],
+  "blurb": "목욕 시간 전, 아기 곰이 종이 상자 로켓에 체 헬멧과 장화를 챙겨 신고 달나라로 슝! 부엉이와 달 소풍을 즐기고 자기 전에 돌아오는 사랑스러운 상상 놀이 그림책이에요.",
+  "readAloud": "책을 덮고 집에 있는 빈 상자로 우리만의 로켓을 만들어 보세요.",
+  "cover": {
+   "emoji": "📦",
+   "palette": [
+    "#2b3a67",
+    "#f2d680"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.88
+ },
+ {
+  "id": "en-roaring-rockets",
+  "lang": "en",
+  "title": "Roaring Rockets",
+  "author": "Tony Mitton & Ant Parker",
+  "publisher": "Kingfisher",
+  "isbn": "9780753453056",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "그림책",
+  "themes": [
+   "우주",
+   "탈것"
+  ],
+  "mood": [
+   "학습",
+   "모험"
+  ],
+  "blurb": "동물 우주비행사들이 로켓을 타고 발사, 무중력, 달 착륙, 바다 귀환까지 — 우주 비행의 한 사이클을 신나는 라임에 담은 Amazing Machines 시리즈예요. 탈것 좋아하는 아이의 우주 입문서로 좋아요.",
+  "readAloud": "발사 장면에서 \"10, 9, 8…\" 카운트다운을 아이와 함께 외쳐 보세요.",
+  "cover": {
+   "emoji": "🚀",
+   "palette": [
+    "#e8643c",
+    "#2b3a67"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.78
+ },
+ {
+  "id": "kr-jongi-bongji-gongju",
+  "lang": "ko",
+  "title": "종이 봉지 공주",
+  "titleRoman": "The Paper Bag Princess",
+  "author": "로버트 먼치",
+  "publisher": "비룡소",
+  "isbn": "9788949110479",
+  "ages": [
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "공주",
+   "유머",
+   "모험"
+  ],
+  "mood": [
+   "웃긴",
+   "모험"
+  ],
+  "blurb": "용에게 성도 옷도 다 잃은 엘리자베스 공주가 종이 봉지만 걸치고 꾀로 용을 물리쳐 왕자를 구하지만, 겉모습 타박만 하는 왕자를 시원하게 차 버려요. '구해지는 공주'를 뒤집은 통쾌한 고전이에요.",
+  "readAloud": "용을 골탕 먹이는 장면에서 \"공주는 다음에 뭐라고 시킬까?\" 하고 먼저 맞혀 보게 하세요.",
+  "cover": {
+   "emoji": "👑",
+   "palette": [
+    "#d9a066",
+    "#f4e3c1"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.92
+ },
+ {
+  "id": "kr-moreuneun-cheok-gongju",
+  "lang": "ko",
+  "title": "모르는 척 공주",
+  "author": "최숙희",
+  "publisher": "책읽는곰",
+  "isbn": "9788993242720",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "공주",
+   "감정",
+   "가족"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "부모님의 다툼을 모르는 척하며 블록 탑만 높이 쌓다 그 안에 갇혀 버린 공주가, 마침내 무섭고 슬픈 진짜 마음을 말하자 탑이 무너지고 부모님 품에 안기는 최숙희의 창작 그림책이에요.",
+  "readAloud": "\"공주는 어떤 마음을 숨기고 있었을까?\" 하고 아이의 말로 감정을 이름 붙여 보세요.",
+  "cover": {
+   "emoji": "🏰",
+   "palette": [
+    "#f4a6c0",
+    "#c4a6e6"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.82
+ },
+ {
+  "id": "kr-neon-jeongmal-meotjyeo",
+  "lang": "ko",
+  "title": "넌 정말 멋져",
+  "author": "미야니시 타츠야",
+  "publisher": "달리",
+  "isbn": "9788959980949",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "공룡",
+   "친구",
+   "감정"
+  ],
+  "mood": [
+   "따뜻한",
+   "모험"
+  ],
+  "blurb": "힘만 믿고 난폭하게 굴던 티라노사우루스가 바다에서 위기에 처했을 때, 자신을 구해 주며 \"넌 정말 멋져\"라고 말해 주는 엘라스모사우루스를 만나 처음으로 다정함을 배워요. '고 녀석 맛있겠다' 시리즈의 감동편이에요.",
+  "readAloud": "다 읽고 아이에게도 \"넌 정말 멋져\" 하고 꼭 안아 주며 마무리해 보세요.",
+  "cover": {
+   "emoji": "🦕",
+   "palette": [
+    "#7ec4e6",
+    "#e8643c"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.85
+ },
+ {
+  "id": "kr-gongryong-x-ray",
+  "lang": "ko",
+  "title": "공룡 엑스레이",
+  "author": "경혜원",
+  "publisher": "한림출판사",
+  "isbn": "9788970949635",
+  "ages": [
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "공룡",
+   "자연"
+  ],
+  "mood": [
+   "학습"
+  ],
+  "blurb": "엑스레이로 공룡의 몸속 뼈대를 들여다보며 여러 공룡의 생김새와 특징을 알아 가는 한국 창작 지식 그림책이에요. 공룡 이름을 줄줄 외우는 아이의 호기심을 한 단계 깊게 만들어 줘요.",
+  "readAloud": "엑스레이 장면마다 \"이건 무슨 공룡 뼈일까?\" 퀴즈를 내고 다음 장에서 확인해 보세요.",
+  "cover": {
+   "emoji": "🦴",
+   "palette": [
+    "#2b3a67",
+    "#cfe3f0"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.75
+ },
+ {
+  "id": "kr-uju-taekbae",
+  "lang": "ko",
+  "title": "우주 택배",
+  "author": "이수현",
+  "publisher": "시공주니어",
+  "isbn": "9791165797089",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "우주",
+   "환상",
+   "가족"
+  ],
+  "mood": [
+   "따뜻한",
+   "모험"
+  ],
+  "blurb": "택배 상자에 몰래 숨어 우주로 간 아이 수룡이가 외계인 택배 기사 따콩과 함께 여러 행성에 소포를 배달하는 한국 창작 그림책이에요. 행성마다 다른 받는 이의 사연에 마음이 따뜻해져요.",
+  "readAloud": "\"우리가 우주로 택배를 보낸다면 누구에게 뭘 보낼까?\" 하고 상상 놀이로 이어 보세요.",
+  "cover": {
+   "emoji": "📦",
+   "palette": [
+    "#2b3a67",
+    "#f7b733"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.78
+ },
+ {
+  "id": "kr-ujuro-gan-kimttangkong",
+  "lang": "ko",
+  "title": "우주로 간 김땅콩",
+  "author": "윤지회",
+  "publisher": "사계절",
+  "isbn": "9791160944518",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "우주",
+   "환상",
+   "일상",
+   "유머"
+  ],
+  "mood": [
+   "웃긴"
+  ],
+  "blurb": "유치원에 가기 싫은 김땅콩이 '내가 사라지면 어떻게 될까' 상상을 펼치다 온 세상이 자기를 찾아 나서고 급기야 우주까지 가게 되는, 아이의 엉뚱한 상상력을 그대로 옮긴 그림책이에요.",
+  "readAloud": "\"네가 사라지면 엄마 아빠는 어디까지 찾으러 갈 것 같아?\" 하고 아이의 상상을 들어 보세요.",
+  "cover": {
+   "emoji": "🥜",
+   "palette": [
+    "#f2d680",
+    "#2b3a67"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.78
+ },
+ {
+  "id": "kr-naneun-jihacheol",
+  "lang": "ko",
+  "title": "나는 지하철입니다",
+  "author": "김효은",
+  "publisher": "문학동네",
+  "isbn": "9788954642491",
+  "ages": [
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "탈것",
+   "일상",
+   "가족"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "매일 같은 길을 달리는 지하철의 눈으로, 딸을 보러 가는 아빠와 해산물을 인 할머니까지 칸칸이 실린 승객들의 사연을 들려주는 한국 창작 그림책이에요. 지하철 타는 날이 다르게 보여요.",
+  "readAloud": "지하철을 탈 때 \"이 칸 사람들은 어떤 이야기를 갖고 있을까?\" 하고 함께 상상해 보세요.",
+  "cover": {
+   "emoji": "🚇",
+   "palette": [
+    "#9cd07f",
+    "#3a3026"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.88
+ },
+ {
+  "id": "kr-jadongchaga-bureungbureung",
+  "lang": "ko",
+  "title": "자동차가 부릉부릉",
+  "titleRoman": "Beep Beep",
+  "author": "페트르 호라체크",
+  "publisher": "시공주니어",
+  "isbn": "9788952785138",
+  "ages": [
+   "0-2"
+  ],
+  "level": "보드북",
+  "themes": [
+   "자동차",
+   "일상"
+  ],
+  "mood": [
+   "웃긴"
+  ],
+  "blurb": "부릉부릉 달리는 자동차를 따라 알록달록한 그림과 의성어로 탈것의 소리와 움직임을 즐기는 아기용 보드북이에요. 차만 보면 눈이 반짝이는 영아에게 첫 자동차 책으로 좋아요.",
+  "readAloud": "\"부릉부릉\", \"빵빵\" 소리를 아이가 따라 하게 하고, 실제 차를 볼 때마다 함께 외쳐 보세요.",
+  "cover": {
+   "emoji": "🚗",
+   "palette": [
+    "#e8643c",
+    "#7ec4e6"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.72
+ },
+ {
+  "id": "kr-waengwaeng-kkoma-buljadongcha",
+  "lang": "ko",
+  "title": "왱왱 꼬마 불자동차",
+  "titleRoman": "The Little Fire Engine",
+  "author": "로이스 렌스키",
+  "publisher": "비룡소",
+  "isbn": "9788949180977",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "자동차",
+   "모험",
+   "일상"
+  ],
+  "mood": [
+   "모험",
+   "따뜻한"
+  ],
+  "blurb": "작지만 씩씩한 꼬마 불자동차가 왱왱 달려가 불을 끄고 마을을 지키는 로이스 렌스키의 1946년 고전이에요. 단순하고 또렷한 그림이라 소방차를 사랑하는 아이가 단번에 빠져들어요.",
+  "readAloud": "\"왱왱!\" 사이렌 소리를 함께 내며 출동 장면의 긴박감을 살려 읽어 보세요.",
+  "cover": {
+   "emoji": "🚒",
+   "palette": [
+    "#e8643c",
+    "#f7b733"
+   ]
+  },
+  "source": "curated",
+  "quality": 0.8
  }
 ];

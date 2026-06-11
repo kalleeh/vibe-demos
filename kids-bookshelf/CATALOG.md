@@ -101,8 +101,7 @@ Recommendations are computed entirely in the browser with **no runtime LLM**: a 
 keyword→theme lexicon turns the parent's note into scoring signals, a weighted score ranks
 every book, and a diversity pass spreads the final picks across themes/languages. The
 optional **AI 맞춤 추천** layer only *polishes the wording* of books that have already been
-chosen by the deterministic scorer (and may add 1–2 off-catalog "도전" picks) — it never
-does the recommending.
+chosen by the deterministic scorer, one card at a time — it never does the recommending.
 
 ### `NOTE_LEXICON` (in `app.js`)
 
