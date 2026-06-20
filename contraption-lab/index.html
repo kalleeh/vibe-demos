@@ -16,10 +16,13 @@
 <body>
   <header class="bar">
     <button id="menuBtn" class="ghostbtn">☰ Levels</button>
+    <button class="ghostbtn" onclick="location.hash='#/editor'">✎ Editor</button>
+    <button class="ghostbtn" onclick="location.hash='#/browse'">🌐 Browse</button>
     <span class="brand">Contraption&nbsp;Lab</span>
     <span class="status" id="levelTitle"></span>
     <button id="accountBtn" class="ghostbtn" type="button">Sign in</button>
     <span id="netDot" class="netdot" title="local only">○</span>
+    <button id="muteBtn" class="ghostbtn" type="button" title="Toggle sound">🔊</button>
     <label class="themePick">Theme
       <select id="themeSel"></select>
     </label>
@@ -32,6 +35,7 @@
     <button id="runBtn" class="primary">▶ Run</button>
     <button id="resetBtn">↺ Reset</button>
     <button id="lbBtn" type="button">🏆 Leaderboard</button>
+    <button id="communityLikeBtn" class="likeBtn" type="button" hidden>♡</button>
   </div>
   <dialog id="levelMenu"></dialog>
   <dialog id="accountDlg" class="account">
@@ -51,6 +55,46 @@
     </form>
   </dialog>
   <dialog id="lbDlg" class="account"><div id="lbBody"><h3>Leaderboard</h3><p class="hint">Sign in and solve a level to appear here.</p></div><form method="dialog"><menu><button value="cancel">Close</button></menu></form></dialog>
+
+  <!-- Editor screen (hidden by default, shown when routing to #/editor) -->
+  <div id="editorScreen" hidden>
+    <div id="editorBar" class="bar">
+      <button data-tool="fixed" class="ghostbtn">Scenery</button>
+      <button data-tool="start" class="ghostbtn">Objects</button>
+      <button data-tool="goal" class="ghostbtn">Goal</button>
+      <button data-tool="inventory" class="ghostbtn">Inventory</button>
+      <button id="testBtn" class="ghostbtn">▶ Test</button>
+      <button id="publishBtn" class="ghostbtn">Publish</button>
+      <button id="clearBtn" class="ghostbtn">Clear</button>
+      <label>Angle <input id="angleSlider" type="range" min="-3.14" max="3.14" step="0.1" value="0"></label>
+    </div>
+    <div class="stagewrap"><canvas id="editorCanvas"></canvas></div>
+    <footer class="palette" id="editorPalette"></footer>
+  </div>
+
+  <dialog id="publishDlg" class="account">
+    <form method="dialog">
+      <h3>Publish Level</h3>
+      <p class="hint">Share your level with the community.</p>
+      <input id="publishTitle" type="text" placeholder="Level title" required>
+      <menu>
+        <button type="submit" value="default">Publish</button>
+        <button type="button" value="cancel" onclick="this.closest('dialog').close()">Cancel</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <!-- Browse screen (hidden by default, shown when routing to #/browse) -->
+  <div id="browseScreen" hidden>
+    <div class="bar">
+      <span class="brand">Community Levels</span>
+      <button data-tab="recent" class="ghostbtn browsetab active">Recent</button>
+      <button data-tab="played" class="ghostbtn browsetab">Most Played</button>
+      <button data-tab="rated" class="ghostbtn browsetab">Top Rated</button>
+    </div>
+    <div id="browseGrid" class="browsegrid"></div>
+  </div>
+
   <script type="module" src="./js/main.js"></script>
 </body>
 </html>

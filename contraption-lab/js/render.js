@@ -2,6 +2,13 @@ import { tokens } from "./theme.js";
 import { fitTransform, worldToScreen } from "./geom.js";
 import { resolveSprite, getImage } from "./sprites.js";
 
+// Pure helper: compute render-only sprite rotation (NEVER affects physics).
+// Returns baseAngle when not running/reduced-motion/no-spin; else baseAngle + spin*time.
+export function spinAngle(baseAngle, spin, nowMs, running, reduced) {
+  if (!running || reduced || !spin) return baseAngle;
+  return baseAngle + spin * (nowMs / 1000);
+}
+
 // world-space half-extents of a body for each fit mode
 function bodyDrawSize(body, fit) {
   const b = body.bounds, w = b.max.x - b.min.x, h = b.max.y - b.min.y;
@@ -20,7 +27,7 @@ function bodyDrawSize(body, fit) {
   return { w, h }; // compound: AABB union
 }
 
-function drawSprite(ctx, body, spr, transform) {
+function drawSprite(ctx, body, spr, transform, opts = {}) {
   const img = getImage(spr.src); if (!img) return false;
   const t = transform;
   const center = worldToScreen(body.position.x, body.position.y, t);
@@ -29,7 +36,8 @@ function drawSprite(ctx, body, spr, transform) {
   const sw = w * t.scale, sh = h * t.scale;
   ctx.save();
   ctx.translate(center.x, center.y);
-  ctx.rotate(body.angle || 0);
+  const angle = spinAngle(body.angle || 0, spr.spin, opts.now, opts.running, opts.reducedMotion);
+  ctx.rotate(angle);
 
   // Wide-wall tiling fix: for plank/box bodies whose width is >2.2× the sprite's natural aspect,
   // tile horizontally instead of stretching.
@@ -88,7 +96,7 @@ export function drawWorld(ctx, state, transform, theme, opts = {}) {
   for (const body of state.bodies || []) {
     if (body.plugin && body.plugin.partType === "boundary") continue;
     const spr = resolveSprite(body.plugin && body.plugin.partType, opts.themeId);
-    if (spr && drawSprite(ctx, body, spr, t)) continue;   // sprite drawn → skip vector
+    if (spr && drawSprite(ctx, body, spr, t, opts)) continue;   // sprite drawn → skip vector
     const parts = body.parts && body.parts.length > 1 ? body.parts.slice(1) : [body];
     ctx.fillStyle = body.isStatic ? theme.fixedFill : theme.partFill;
     ctx.strokeStyle = theme.partStroke; ctx.lineWidth = 2;
@@ -107,7 +115,7 @@ export function drawWorld(ctx, state, transform, theme, opts = {}) {
     const ghostSpr = g.partType ? resolveSprite(g.partType, opts.themeId) : null;
     if (ghostSpr && g.body) {
       ctx.globalAlpha = 0.6;
-      drawSprite(ctx, g.body, ghostSpr, t);
+      drawSprite(ctx, g.body, ghostSpr, t, opts);
       ctx.globalAlpha = 1;
     } else {
       ctx.globalAlpha = 0.5; ctx.fillStyle = g.valid ? theme.accent : "#e23";

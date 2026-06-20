@@ -33,3 +33,27 @@ export async function cloudCases() {
       }},
   ];
 }
+
+export async function cloudLevelCases() {
+  const C = await import("./cloud.js");
+  return [
+    { name:"levelCard passes through id/title/plays/likes/data", fn:()=>{
+        const rec = {id:"lvl_123", title:"Test Level", author_name:"Author", data:{foo:"bar"}};
+        const card = C.levelCard(rec, 42, 7);
+        if(card.id!=="lvl_123") throw new Error("id "+card.id);
+        if(card.title!=="Test Level") throw new Error("title "+card.title);
+        if(card.author_name!=="Author") throw new Error("author_name "+card.author_name);
+        if(card.plays!==42) throw new Error("plays "+card.plays);
+        if(card.likes!==7) throw new Error("likes "+card.likes);
+        if(card.data.foo!=="bar") throw new Error("data "+JSON.stringify(card.data));
+      }},
+    { name:"levelCard missing author_name → Anonymous", fn:()=>{
+        const card = C.levelCard({id:"x", title:"T", data:{}}, 0, 0);
+        if(card.author_name!=="Anonymous") throw new Error("author_name "+card.author_name);
+      }},
+    { name:"levelCard missing title → Untitled", fn:()=>{
+        const card = C.levelCard({id:"x", author_name:"A", data:{}}, 0, 0);
+        if(card.title!=="Untitled") throw new Error("title "+card.title);
+      }},
+  ];
+}

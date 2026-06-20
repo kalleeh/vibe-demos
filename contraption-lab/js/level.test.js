@@ -209,7 +209,7 @@ export async function progressShapeCases() {
   ];
 }
 
-export function runTests(extra = []) {
+export async function runTests(extra = []) {
   const cases = [
     { name: "snap rounds to grid", fn: () => assert(snap(23, 10) === 20) },
     { name: "snap rounds up", fn: () => assert(snap(26, 10) === 30) },
