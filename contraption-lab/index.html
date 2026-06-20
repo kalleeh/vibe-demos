@@ -18,6 +18,8 @@
     <button id="menuBtn" class="ghostbtn">☰ Levels</button>
     <span class="brand">Contraption&nbsp;Lab</span>
     <span class="status" id="levelTitle"></span>
+    <button id="accountBtn" class="ghostbtn" type="button">Sign in</button>
+    <span id="netDot" class="netdot" title="local only">○</span>
     <label class="themePick">Theme
       <select id="themeSel"></select>
     </label>
@@ -31,6 +33,22 @@
     <button id="resetBtn">↺ Reset</button>
   </div>
   <dialog id="levelMenu"></dialog>
+  <dialog id="accountDlg" class="account">
+    <form method="dialog">
+      <h3 id="accountTitle">Account</h3>
+      <p class="hint">Sign in to sync your progress across devices and join the leaderboards. The game works fully without an account.</p>
+      <input id="acEmail" type="email" placeholder="email" autocomplete="email">
+      <input id="acPass" type="password" placeholder="password" autocomplete="current-password">
+      <input id="acName" type="text" placeholder="display name (for the leaderboard)" autocomplete="nickname">
+      <p id="acError" class="acerror" hidden></p>
+      <menu>
+        <button id="acLogin" value="default" type="button">Sign in</button>
+        <button id="acSignup" value="default" type="button">Create account</button>
+        <button id="acLogout" value="default" type="button" hidden>Sign out</button>
+        <button value="cancel">Close</button>
+      </menu>
+    </form>
+  </dialog>
   <script type="module" src="./js/main.js"></script>
 </body>
 </html>
