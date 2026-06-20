@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en" data-theme="blueprint">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#1b2a4a">
+  <title>Contraption Lab</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./vendor/matter.min.js"></script>
+</head>
+<body>
+  <header class="bar">
+    <button id="menuBtn" class="ghostbtn">☰ Levels</button>
+    <span class="brand">Contraption&nbsp;Lab</span>
+    <span class="status" id="levelTitle"></span>
+    <label class="themePick">Theme
+      <select id="themeSel"></select>
+    </label>
+  </header>
+  <div class="stagewrap"><canvas id="stage"></canvas>
+    <div id="banner" class="banner" hidden></div>
+  </div>
+  <footer class="palette" id="palette"></footer>
+  <div class="controls">
+    <button id="runBtn" class="primary">▶ Run</button>
+    <button id="resetBtn">↺ Reset</button>
+  </div>
+  <dialog id="levelMenu"></dialog>
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
