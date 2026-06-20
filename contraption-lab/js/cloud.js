@@ -177,6 +177,9 @@ export async function getLevel(id) {
 // and auth user ids). User-typed search text must never be interpolated directly
 // into a filter — see the NOTE in pushProgress above for the security reasoning.
 
+// `play` is intentionally anonymous (collection createRule="", no user field): play
+// counts are a coarse popularity signal, not per-user analytics. Spam is bounded by
+// PocketBase's built-in rate limiting (Settings), not by app logic.
 export async function recordPlay(id) {
   if (!pb || !cloud.available) return;
   try {
@@ -192,6 +195,8 @@ export async function playsCount(id) {
   } catch { return 0; }
 }
 
+// A "like" is a rating row with value>0; unliking DELETES the row (see rateLevel), so
+// counting value>0 rows is the like count and stays correct if dislikes are ever added.
 export async function likesCount(id) {
   if (!pb || !cloud.available) return 0;
   try {
@@ -213,29 +218,20 @@ export async function rateLevel(id) {
   const u = user();
   if (!pb || !cloud.available || !u) return false;
 
+  // Fetch the user's existing rating row once (idempotent toggle, no double-fetch race).
+  let existing = null;
   try {
-    const currentlyRated = await hasRated(id);
+    existing = await pb.collection("rating").getFirstListItem(`user="${u.id}" && level="${id}"`);
+  } catch { existing = null; }
 
-    if (currentlyRated) {
-      // Delete the existing rating (unlike)
-      try {
-        const existing = await pb.collection("rating").getFirstListItem(`user="${u.id}" && level="${id}"`);
-        await pb.collection("rating").delete(existing.id);
-        return false;
-      } catch { return currentlyRated; }
-    } else {
-      // Create new rating (like)
-      try {
-        await pb.collection("rating").create({
-          user: u.id,
-          level: id,
-          value: 1,
-        });
-        return true;
-      } catch { return currentlyRated; }
-    }
-  } catch {
-    // On failure, return current state
-    return await hasRated(id);
+  if (existing) {
+    // Unlike: delete it. If it's already gone (404), treat as not-liked.
+    try { await pb.collection("rating").delete(existing.id); } catch { /* already gone */ }
+    return false;
   }
+  // Like: create the row. On failure, report the unchanged (not-liked) state.
+  try {
+    await pb.collection("rating").create({ user: u.id, level: id, value: 1 });
+    return true;
+  } catch { return false; }
 }
