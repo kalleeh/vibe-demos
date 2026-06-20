@@ -28,6 +28,15 @@ export async function officialCases() {
   return cases;
 }
 
+export async function progressCases() {
+  const P = await import("./progress.js");
+  return [
+    { name:"mergeProgress best-of parts", fn:()=>{ const m=P.mergeProgress({a:{solved:true,bestParts:5,bestMs:9000}},{a:{solved:true,bestParts:3,bestMs:9999}}); if(m.a.bestParts!==3) throw new Error("got "+m.a.bestParts); } },
+    { name:"mergeProgress tie breaks on ms", fn:()=>{ const m=P.mergeProgress({a:{solved:true,bestParts:3,bestMs:8000}},{a:{solved:true,bestParts:3,bestMs:5000}}); if(m.a.bestMs!==5000) throw new Error("got "+m.a.bestMs); } },
+    { name:"mergeProgress unions keys", fn:()=>{ const m=P.mergeProgress({a:{solved:true,bestParts:1,bestMs:1}},{b:{solved:true,bestParts:1,bestMs:1}}); if(!m.a||!m.b) throw new Error("lost key"); } },
+  ];
+}
+
 export function runTests(extra = []) {
   const cases = [
     { name: "snap rounds to grid", fn: () => assert(snap(23, 10) === 20) },
