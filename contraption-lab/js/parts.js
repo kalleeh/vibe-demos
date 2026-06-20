@@ -1,0 +1,71 @@
+// Each build() returns {bodies, constraints}. All Matter bodies get
+// plugin = { partType, tag }. Coordinates are world-space, x/y = center.
+const cat = (M, partType, tag) => b => { b.plugin = { partType, tag: tag || null }; return b; };
+
+export const PARTS = {
+  ball: {
+    label: "Ball", movable: false, fixedByDefault: false,
+    build: (s, M) => ({ bodies: [cat(M,"ball",s.tag)(M.Bodies.circle(s.x, s.y, s.r||18, { restitution:0.45, friction:0.05, density:0.004 }))], constraints: [] }),
+  },
+  wall: {
+    label: "Wall", movable: true, fixedByDefault: true,
+    build: (s, M) => ({ bodies: [cat(M,"wall",s.tag)(M.Bodies.rectangle(s.x, s.y, s.w||120, s.h||24, { isStatic:true, angle:s.angle||0, friction:0.4 }))], constraints: [] }),
+  },
+  ramp: {
+    label: "Ramp", movable: true, fixedByDefault: true,
+    build: (s, M) => ({ bodies: [cat(M,"ramp",s.tag)(M.Bodies.rectangle(s.x, s.y, s.w||160, s.h||16, { isStatic:true, angle:s.angle ?? -0.3, friction:0.3 }))], constraints: [] }),
+  },
+  domino: {
+    label: "Domino", movable: true, fixedByDefault: false,
+    build: (s, M) => ({ bodies: [cat(M,"domino",s.tag)(M.Bodies.rectangle(s.x, s.y, s.w||16, s.h||72, { density:0.006, friction:0.4, angle:s.angle||0 }))], constraints: [] }),
+  },
+  balloon: {
+    label: "Balloon", movable: true, fixedByDefault: false,
+    // negative-ish density + applied upward force handled by engine via plugin.lift
+    build: (s, M) => { const b = M.Bodies.circle(s.x, s.y, s.r||22, { density:0.0009, frictionAir:0.04, restitution:0.2 }); b.plugin = { partType:"balloon", tag:s.tag||null, lift:0.0009 }; return { bodies:[b], constraints:[] }; },
+  },
+  bucket: {
+    label: "Bucket", movable: true, fixedByDefault: false,
+    build: (s, M) => {
+      const w = s.w||90, h = s.h||70, t = 10;
+      const parts = [
+        M.Bodies.rectangle(s.x, s.y + h/2, w, t, {}),
+        M.Bodies.rectangle(s.x - w/2, s.y, t, h, {}),
+        M.Bodies.rectangle(s.x + w/2, s.y, t, h, {}),
+      ];
+      const body = M.Body.create({ parts, friction:0.4, density:0.003 });
+      return { bodies: [cat(M,"bucket",s.tag)(body)], constraints: [] };
+    },
+  },
+  fan: {
+    label: "Fan", movable: true, fixedByDefault: true,
+    // engine reads plugin.force each tick to push overlapping bodies along angle
+    build: (s, M) => { const b = M.Bodies.rectangle(s.x, s.y, 54, 54, { isStatic:true, angle:s.angle||0 }); b.plugin = { partType:"fan", tag:s.tag||null, force:s.force||0.02, range:s.range||220 }; return { bodies:[b], constraints:[] }; },
+  },
+  conveyor: {
+    label: "Conveyor", movable: true, fixedByDefault: true,
+    // engine reads plugin.surfaceSpeed to set tangential velocity on contact
+    build: (s, M) => { const b = M.Bodies.rectangle(s.x, s.y, s.w||160, 18, { isStatic:true, angle:s.angle||0, friction:0.9 }); b.plugin = { partType:"conveyor", tag:s.tag||null, surfaceSpeed:s.surfaceSpeed||3 }; return { bodies:[b], constraints:[] }; },
+  },
+  seesaw: {
+    label: "Seesaw", movable: true, fixedByDefault: true,
+    build: (s, M) => {
+      const plank = cat(M,"seesaw",s.tag)(M.Bodies.rectangle(s.x, s.y, s.w||180, 16, { density:0.002, friction:0.4 }));
+      const pivot = M.Constraint.create({ pointA:{x:s.x,y:s.y}, bodyB:plank, pointB:{x:0,y:0}, stiffness:1, length:0 });
+      return { bodies:[plank], constraints:[pivot] };
+    },
+  },
+  goal: {
+    // visual-only target marker; the win zone is in level.goal, not a body
+    label: "Goal", movable: false, fixedByDefault: true,
+    build: (s, M) => ({ bodies: [cat(M,"goal",s.tag)(M.Bodies.rectangle(s.x, s.y, s.w||110, s.h||110, { isStatic:true, isSensor:true }))], constraints: [] }),
+  },
+};
+
+export const PALETTE_TYPES = ["ramp","wall","fan","conveyor","seesaw","balloon","domino","bucket"];
+
+export function makePart(type, spec) {
+  const def = PARTS[type];
+  if (!def) throw new Error("unknown part type: " + type);
+  return def.build(spec, Matter);
+}
