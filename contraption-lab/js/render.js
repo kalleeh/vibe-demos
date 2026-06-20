@@ -30,6 +30,27 @@ function drawSprite(ctx, body, spr, transform) {
   ctx.save();
   ctx.translate(center.x, center.y);
   ctx.rotate(body.angle || 0);
+
+  // Wide-wall tiling fix: for plank/box bodies whose width is >2.2× the sprite's natural aspect,
+  // tile horizontally instead of stretching.
+  if ((spr.fit === "plank" || spr.fit === "box") && img.naturalWidth && img.naturalHeight) {
+    const ar = img.naturalWidth / img.naturalHeight;
+    const naturalDrawWidth = sh * ar; // width sprite would have at body's height
+    if (sw > 2.2 * naturalDrawWidth) {
+      const tileCount = Math.ceil(sw / naturalDrawWidth);
+      const tileW = naturalDrawWidth;
+      const offsetX = -(tileCount * tileW) / 2;
+      ctx.beginPath();
+      ctx.rect(-sw/2, -sh/2, sw, sh);
+      ctx.clip();
+      for (let i = 0; i < tileCount; i++) {
+        ctx.drawImage(img, offsetX + i * tileW, -sh/2, tileW, sh);
+      }
+      ctx.restore();
+      return true;
+    }
+  }
+
   ctx.drawImage(img, -sw/2, -sh/2, sw, sh);
   ctx.restore();
   return true;
