@@ -73,22 +73,37 @@ export function preloadSprites() { /* kick off Image() loads; resolve when all s
 
 ### A.2 Asset pipeline (deterministic, documented in `assets/README.md`)
 
-1. **Generate** with `generate_image_sd35`: a single prop, centered, **solid `#FF00FF`
-   magenta background**, square aspect (`1:1`) unless the part is a long plank
-   (use a wide ratio, e.g. `16:9`, for ramp/conveyor/seesaw so the strip authoring is natural).
-   `workspace_dir` = `/home/ubuntu/projects/vibe-demos`. Log prompt + seed.
-2. **Key out** the magenta → transparent: prefer `remove_background` (MCP) for clean edges;
-   it outputs PNG+alpha directly. (We do NOT need the heavy generate2dsprite frame pipeline —
-   these are single static props, not animation sheets.)
-3. **Trim** transparent margins so the PNG's content bbox == the image bbox (this is what makes
-   `fit` math exact). A tiny committed Node script `assets/trim.mjs` (uses no deps — reads PNG,
-   finds alpha bbox, crops) does this deterministically; or, if Node PNG libs are unavailable,
-   the renderer trims at load time by scanning alpha once and caching the content rect.
+1. **Generate** with `generate_image_sd35`: a single prop, centered, on a **plain pale neutral
+   background, clearly separated** (NOT magenta — SD3.5 ignores that). Square aspect (`1:1`)
+   for compact parts; wide (`16:9`) for plank parts, which MUST be prompted as strict flat
+   side-profile bars (no perspective, no legs). `workspace_dir` = `/home/ubuntu/projects/vibe-demos`.
+   Log prompt + seed in `assets/README.md`.
+2. **Cut out** with `remove_background` (MCP) → transparent PNG with clean alpha (confirmed in
+   pilot). No magenta key, no generate2dsprite frame pipeline (these are single static props).
+3. **Trim** at load time: the renderer scans alpha once per image, caches the content rect, and
+   uses it as the sprite's true bbox for `fit` math (no committed trim toolchain — PIL/numpy
+   absent; canvas getImageData is the mechanism). The asset-QC harness uses the same Playwright
+   canvas scan to report each sprite's content rect.
 4. **Place** the final PNG at `contraption-lab/assets/parts/<partType>.png`, commit it.
 5. **QC** each: on-style (funky TIM character, matches the part's role), centered, clean alpha,
-   reads correctly when squashed to the body's aspect (esp. planks).
+   reads correctly when squashed to the body's aspect (esp. planks — side-profile only).
 
-> Pipeline risk handled by the PILOT GATE below — we prove 2 sprites end-to-end before mass generation.
+> **PILOT GATE RESULTS (run 2026-06-20, ball + ramp):**
+> - SD3.5 produces on-style funky TIM art (confirmed) ✓.
+> - **SD3.5 ignores the `#FF00FF` magenta-background instruction** (rendered colored scenes). So the
+>   magenta-key step is DROPPED. Use `remove_background` (MCP) instead — it produced clean alpha
+>   edges on both pilots, including removing the baked drop-shadow. **This is the official pipeline.**
+> - Alpha content bbox is readable headlessly via a Playwright/Chromium `<canvas>` getImageData
+>   scan (PIL/numpy are NOT installed) — ball content 556×572 inside 1024², ramp 1259×442 inside
+>   1344×768. The trim/fit math uses this. A tiny `assets/alpha-trim.mjs` (Playwright-based) trims
+>   each PNG to its alpha bbox and records the content rect; OR the renderer trims at load time.
+>   Plan picks one; load-time trim is simpler and avoids committing a trim toolchain.
+> - **Plank framing:** the ramp came back in 3/4 perspective with legs (wrong for a thin collision
+>   bar). Plank-fit parts (ramp, conveyor, seesaw, platform, pipe) MUST prompt for a strict FLAT
+>   SIDE-PROFILE silhouette, no perspective, no legs/supports, long thin horizontal bar.
+> - **Magenta wording is REMOVED from all prompts** (it doesn't work and biases color). Prompts say
+>   "plain pale neutral background, the object clearly separated from the background" to help
+>   `remove_background` segment cleanly.
 
 ### A.3 Renderer integration (`js/render.js`)
 
