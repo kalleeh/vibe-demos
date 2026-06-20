@@ -137,6 +137,10 @@ function showScreen(name) {
   // screen switch — the #/play/community route re-shows it for that level.
   const likeBtn = document.getElementById("communityLikeBtn");
   if (likeBtn) likeBtn.hidden = true;
+  // Leaderboards are per-official-level; show the button by default, the community
+  // route hides it (community levels have likes, not a parts/time leaderboard).
+  const lbBtn = document.getElementById("lbBtn");
+  if (lbBtn) lbBtn.hidden = false;
 
   // Show requested screen
   if (name === "editor" && screens.editor) screens.editor.hidden = false;
@@ -216,6 +220,10 @@ async function route() {
 
       // Record play (best-effort, non-blocking)
       recordPlay(levelId).catch(() => {});
+
+      // Community levels use likes, not a per-level leaderboard — hide the LB button here.
+      const lb = document.getElementById("lbBtn");
+      if (lb) lb.hidden = true;
 
       // Show + wire the community Like button for this level
       try {

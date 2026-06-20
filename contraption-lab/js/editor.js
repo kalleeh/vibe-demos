@@ -12,6 +12,12 @@ import { user } from "./cloud.js";
 
 const DRAFT_KEY = "cl.draft";
 
+// prefers-reduced-motion computed once (not per frame); kept live via a change listener.
+let REDUCED_MOTION = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+if (typeof window !== "undefined" && window.matchMedia) {
+  try { window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", e => { REDUCED_MOTION = e.matches; }); } catch {}
+}
+
 // Pure helper: can this level be published?
 export function canPublish(level, solvedInTest) {
   const val = validateLevel(level);
@@ -364,7 +370,11 @@ export class Editor {
       const ctx = this.canvas.getContext("2d");
       const theme = tokens(document.documentElement.dataset.theme);
 
-      if (this.testState === "running" && this.testSim) {
+      const themeId = document.documentElement.dataset.theme;
+      const reduced = REDUCED_MOTION;
+      const running = this.testState === "running";
+      const opts = { themeId, now: performance.now(), running, reducedMotion: reduced };
+      if (running && this.testSim) {
         this.testSim.step(16);
         const state = this.testSim.state;
         if (state === "won") {
@@ -374,9 +384,9 @@ export class Editor {
           this.testState = "lost";
           this._updateTestUI();
         }
-        drawWorld(ctx, this.testSim, transform, theme);
+        drawWorld(ctx, this.testSim, transform, theme, opts);
       } else {
-        drawWorld(ctx, this.sim, transform, theme);
+        drawWorld(ctx, this.sim, transform, theme, { ...opts, running: false });
       }
 
       this.rafId = requestAnimationFrame(loop);
