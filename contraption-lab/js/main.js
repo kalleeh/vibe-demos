@@ -5,11 +5,15 @@ import { tokens, applyTheme, loadTheme, THEMES } from "./theme.js";
 import { PARTS, makePart } from "./parts.js";
 import { PlacementController } from "./input.js";
 import { recordSolve, isSolved } from "./progress.js";
+import { init as cloudInit, cloud, user as cloudUser, pushProgress, pullProgress, leaderboard } from "./cloud.js";
+import { mountAccountUI, setIndicator } from "./auth-ui.js";
 
 // optional self-test
 if (new URLSearchParams(location.search).has("test")) {
   import("./level.test.js").then(async m => {
-    m.runTests([ ...(await m.levelCases()), ...(await m.officialCases()), ...(await m.progressCases()) ]);
+    const cloudMod = await import("./cloud.test.js");
+    m.runTests([ ...(await m.levelCases()), ...(await m.officialCases()), ...(await m.progressCases()),
+                 ...(await m.progressShapeCases()), ...(await cloudMod.cloudCases()) ]);
   });
 }
 
@@ -76,7 +80,8 @@ function tick(ts){ const dt = last ? ts-last : 16; last = ts;
 }
 function onWin(){ const banner=document.getElementById("banner"); banner.textContent="Solved! ✓ "+sim.partsUsed()+" parts";
   banner.hidden=false; recordSolve(current.id, sim.partsUsed(), Math.round(sim.elapsed));
-  document.getElementById("levelTitle").textContent = current.title + " ✓"; }
+  document.getElementById("levelTitle").textContent = current.title + " ✓";
+  import("./progress.js").then(p => pushProgress(p.getProgress())); }
 function onLost(){ const banner=document.getElementById("banner"); banner.textContent="Time's up — Reset and retry"; banner.hidden=false; }
 
 document.getElementById("runBtn").onclick = () => { if (sim.state==="build"){ sim.run(); document.getElementById("banner").hidden=true; } };
@@ -86,6 +91,7 @@ function buildMenu(){ const dlg=document.getElementById("levelMenu");
   dlg.innerHTML = `<h3>Levels</h3>` + OFFICIAL_LEVELS.map((l,i)=>`<button data-id="${l.id}">${String(i+1).padStart(2,"0")} · ${l.title} ${isSolved(l.id)?"✓":""}</button>`).join("") + `<button data-close>Close</button>`;
   dlg.querySelectorAll("button").forEach(b=>b.onclick=()=>{ if(b.dataset.close!==undefined){dlg.close();return;} const lvl=OFFICIAL_LEVELS.find(l=>l.id===b.dataset.id); dlg.close(); location.hash="#/play/"+lvl.id; });
 }
+function refreshMenuMarks(){ document.getElementById("levelTitle").textContent = current ? (current.title + (isSolved(current.id) ? " ✓" : "")) : ""; }
 document.getElementById("menuBtn").onclick = () => { buildMenu(); document.getElementById("levelMenu").showModal(); };
 
 function route(){ const m = location.hash.match(/#\/play\/(.+)/);
@@ -101,3 +107,28 @@ raf = requestAnimationFrame(tick);
 
 // register SW
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(()=>{});
+
+// --- Phase 2: optional cloud (never blocks the game) ---
+mountAccountUI({ onAuthChange: async () => { await pullProgress(); refreshMenuMarks(); setIndicator(); } });
+cloudInit().then(async () => {
+  setIndicator();
+  if (cloudUser()) { await pullProgress(); refreshMenuMarks(); }
+});
+document.getElementById("lbBtn").onclick = async () => {
+  const body = document.getElementById("lbBody");
+  body.innerHTML = ""; // safe: we rebuild with textContent below
+  const h = document.createElement("h3"); h.textContent = "Leaderboard — " + current.title; body.appendChild(h);
+  if (!cloud.available) { const p=document.createElement("p"); p.className="hint"; p.textContent="Offline — leaderboards need a connection."; body.appendChild(p); }
+  else {
+    const rows = await leaderboard(current.id);
+    if (!rows.length) { const p=document.createElement("p"); p.className="hint"; p.textContent="No solves yet. Be the first!"; body.appendChild(p); }
+    else {
+      const ol = document.createElement("ol");
+      rows.forEach(r => { const li=document.createElement("li");
+        li.textContent = `${r.name} — ${r.parts} part${r.parts===1?"":"s"}, ${(r.ms/1000).toFixed(1)}s`;
+        if (r.isMe) li.style.fontWeight = "700"; ol.appendChild(li); });
+      body.appendChild(ol);
+    }
+  }
+  document.getElementById("lbDlg").showModal();
+};
