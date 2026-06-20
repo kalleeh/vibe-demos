@@ -82,9 +82,44 @@ export const PARTS = {
     build:(s,M)=>({ bodies:[cat(M,"bowlingpin",s.tag)(M.Bodies.rectangle(s.x,s.y,s.w||22,s.h||66,{density:0.002,friction:0.4}))], constraints:[] }) },
   weight: { label:"Weight", movable:true, fixedByDefault:false,
     build:(s,M)=>({ bodies:[cat(M,"weight",s.tag)(M.Bodies.rectangle(s.x,s.y,s.w||50,s.h||50,{density:0.03,friction:0.6}))], constraints:[] }) },
+  // ---- Track C: new physics ----
+  rope: { label:"Rope", movable:false, fixedByDefault:true,
+    build:(s,M)=>{
+      const segs=s.segments||8, x2=s.x2??s.x, y2=s.y2??(s.y+160);
+      const bodies=[], constraints=[];
+      let prev=null;
+      for(let i=0;i<=segs;i++){
+        const t=i/segs, x=s.x+(x2-s.x)*t, y=s.y+(y2-s.y)*t;
+        const link=cat(M,"rope",s.tag)(M.Bodies.circle(x,y,5,{density:0.004,frictionAir:0.02}));
+        if(i===0) M.Body.setStatic(link,true);            // anchor
+        if(i===segs) M.Body.setDensity(link,0.02);         // heavy bob
+        bodies.push(link);
+        if(prev) constraints.push(M.Constraint.create({bodyA:prev,bodyB:link,stiffness:0.9,length:Math.hypot(x2-s.x,y2-s.y)/segs}));
+        prev=link;
+      }
+      return {bodies,constraints};
+    } },
+  gears: { label:"Gears", movable:true, fixedByDefault:true,
+    // Two pivoted discs; the driver carries plugin.spin (rad/s) which the engine re-asserts
+    // each tick (Body.setAngularVelocity) and uses to drag contacting bodies tangentially.
+    build:(s,M)=>{
+      const r=s.r||34, spin=s.spin??4, gap=r*2+6;
+      const driver=M.Bodies.circle(s.x,s.y,r,{friction:0.9,density:0.02});
+      const follower=M.Bodies.circle(s.x+gap,s.y,r,{friction:0.9,density:0.02});
+      driver.plugin={partType:"gears",tag:s.tag||null,spin,driven:spin,role:"driver",radius:r,surface:Math.abs(spin)*r};
+      follower.plugin={partType:"gears",tag:s.tag||null,spin:-spin,driven:-spin,role:"follower",radius:r,surface:Math.abs(spin)*r};
+      const pin=(b,x)=>M.Constraint.create({pointA:{x,y:s.y},bodyB:b,pointB:{x:0,y:0},stiffness:1,length:0});
+      return {bodies:[driver,follower],constraints:[pin(driver,s.x),pin(follower,s.x+gap)]};
+    } },
+  tnt: { label:"TNT", movable:true, fixedByDefault:false,
+    build:(s,M)=>{
+      const b=cat(M,"tnt",s.tag)(M.Bodies.rectangle(s.x,s.y,s.w||40,s.h||40,{density:0.006,friction:0.5}));
+      b.plugin={partType:"tnt",tag:s.tag||null,fuseMs:s.fuseMs??1500,blast:s.blast??0.12,radius:s.radius??160,armed:true};
+      return {bodies:[b],constraints:[]};
+    } },
 };
 
-export const PALETTE_TYPES = ["ramp","wall","fan","conveyor","seesaw","balloon","domino","bucket","trampoline","gear","crate","pipe","pinwheel","spring","wedge","platform","bowlingpin","weight"];
+export const PALETTE_TYPES = ["ramp","wall","fan","conveyor","seesaw","balloon","domino","bucket","trampoline","gear","crate","pipe","pinwheel","spring","wedge","platform","bowlingpin","weight","rope","gears","tnt"];
 
 export function makePart(type, spec) {
   const def = PARTS[type];

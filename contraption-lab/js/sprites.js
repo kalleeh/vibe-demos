@@ -28,7 +28,10 @@ export const SPRITES = {
   platform:   P("./assets/parts/platform.png","plank"),
   bowlingpin: P("./assets/parts/bowlingpin.png","box"),
   weight:     P("./assets/parts/weight.png","box"),
-  // Track C entries are added by task 7.
+  // Track C (Task 7) — new physics
+  rope:  P("./assets/parts/rope.png","box",  { overflow: 0.5 }), // segments hang past bbox
+  gears: P("./assets/parts/gears.png","circle"),
+  tnt:   P("./assets/parts/tnt.png","box"),
 };
 
 const cache = new Map();

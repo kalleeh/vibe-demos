@@ -15,7 +15,8 @@ if (new URLSearchParams(location.search).has("test")) {
     const cloudMod = await import("./cloud.test.js");
     const spriteMod = await import("./sprites.test.js");
     m.runTests([ ...(await m.levelCases()), ...(await m.officialCases()), ...(await m.progressCases()),
-                 ...(await m.progressShapeCases()), ...(await cloudMod.cloudCases()), ...(await spriteMod.spriteCases()) ]);
+                 ...(await m.progressShapeCases()), ...(await cloudMod.cloudCases()), ...(await spriteMod.spriteCases()),
+                 ...(await m.trackCCases()), ...(await m.trackCEngineCases()) ]);
   });
 }
 
