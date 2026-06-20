@@ -1,0 +1,5 @@
+:root { --bg:#1b2a4a; --ink:#e8eefc; }
+* { box-sizing: border-box; }
+html, body { margin:0; height:100%; background:var(--bg); color:var(--ink);
+  font-family: ui-sans-serif, system-ui, sans-serif; overscroll-behavior:none; }
+#stage { display:block; width:100vw; height:100vh; touch-action:none; }
