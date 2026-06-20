@@ -1,10 +1,11 @@
 /* Contraption Lab — minimal offline shell SW */
-const CACHE = "vibe-contraption-lab-v1";
+const CACHE = "vibe-contraption-lab-v2";
 const SHELL = [
   "./","./index.html","./style.css","./manifest.webmanifest","./icon.svg",
   "./vendor/matter.min.js",
   "./js/main.js","./js/engine.js","./js/parts.js","./js/level.js","./js/levels/official.js",
   "./js/render.js","./js/input.js","./js/progress.js","./js/theme.js","./js/geom.js",
+  "./js/cloud.js","./js/auth-ui.js",
 ];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("vibe-contraption-lab-")&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())); });
