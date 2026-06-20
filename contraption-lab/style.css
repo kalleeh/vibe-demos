@@ -1,4 +1,21 @@
-:root { --bg:#1b2a4a; --ink:#e8eefc; }
+:root, [data-theme="blueprint"] {
+  --bg:#13233f; --ink:#dce7fb; --grid:#274a86; --part-fill:#3a6bb8; --part-stroke:#cfe0ff;
+  --fixed-fill:#1c365f; --accent:#ffd166; --goal:#52e0a3;
+  --font:"Courier New", ui-monospace, monospace;
+}
+[data-theme="cartoon"] {
+  --bg:#fff4d6; --ink:#3a2a16; --grid:#f0dca8; --part-fill:#ff8c42; --part-stroke:#7a3b10;
+  --fixed-fill:#8d5524; --accent:#e63946; --goal:#2a9d8f; --font:"Comic Sans MS", ui-rounded, system-ui, sans-serif;
+}
+[data-theme="neon"] {
+  --bg:#0a0a14; --ink:#d7f7ff; --grid:#1b2b3a; --part-fill:#13aef0; --part-stroke:#7df9ff;
+  --fixed-fill:#16203a; --accent:#ff2e88; --goal:#39ff14; --font:ui-monospace, "Courier New", monospace;
+}
+[data-theme="toy"] {
+  --bg:#f3f5f8; --ink:#2b3440; --grid:#e2e8f0; --part-fill:#6c8cff; --part-stroke:#3450c0;
+  --fixed-fill:#a3b1c6; --accent:#ff7a59; --goal:#34c759; --font:ui-rounded, system-ui, -apple-system, sans-serif;
+}
+body { font-family: var(--font); }
 * { box-sizing: border-box; }
 html, body { margin:0; height:100%; background:var(--bg); color:var(--ink);
   font-family: ui-sans-serif, system-ui, sans-serif; overscroll-behavior:none; }
