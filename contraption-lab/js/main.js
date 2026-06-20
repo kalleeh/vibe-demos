@@ -114,6 +114,11 @@ function showScreen(name) {
   if (screens.play.palette) screens.play.palette.hidden = (name !== "play");
   if (screens.play.controls) screens.play.controls.hidden = (name !== "play");
 
+  // The community Like button only applies to a community play; hide it on every
+  // screen switch — the #/play/community route re-shows it for that level.
+  const likeBtn = document.getElementById("communityLikeBtn");
+  if (likeBtn) likeBtn.hidden = true;
+
   // Show requested screen
   if (name === "editor" && screens.editor) screens.editor.hidden = false;
   else if (name === "browse" && screens.browse) screens.browse.hidden = false;
@@ -198,7 +203,15 @@ async function route() {
       // Record play (best-effort, non-blocking)
       recordPlay(levelId).catch(() => {});
 
-      // TODO: Show Like button for community plays
+      // Show + wire the community Like button for this level
+      try {
+        const likeBtn = document.getElementById("communityLikeBtn");
+        if (likeBtn) {
+          likeBtn.hidden = false;
+          const { mountLikeButton } = await import("./browse.js");
+          mountLikeButton(likeBtn, levelId);
+        }
+      } catch { /* like is optional — never block play */ }
 
     } catch (err) {
       document.getElementById("banner").textContent = "Failed to load level";
