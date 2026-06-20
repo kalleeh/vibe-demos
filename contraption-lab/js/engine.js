@@ -105,6 +105,7 @@ export class Sim {
     const m = M();
 
     this._applyForces();
+    this._tickTNT(dtMs);
     m.Engine.update(this.engine, Math.min(dtMs, 1000 / 30));
     this.elapsed += dtMs;
 
@@ -142,8 +143,34 @@ export class Sim {
 
     for (const f of this.bodies) {
       const pl = f.plugin || {};
+      // Track-C per-tick effects must NEVER throw inside the rAF loop.
+      try {
 
-      if (pl.partType === "fan") {
+      if (pl.partType === "gears") {
+        // Re-assert the driver/follower spin each tick (a pivot constraint holds the
+        // center; this keeps it turning), then drag contacting dynamic bodies along
+        // the disc's tangential surface direction — same idea as the conveyor.
+        if (typeof pl.driven === "number") m.Body.setAngularVelocity(f, pl.driven);
+        const r = pl.radius || 34;
+        const surf = pl.surface || 0;            // tangential speed at the rim
+        const w = pl.driven >= 0 ? 1 : -1;        // rotation sense
+        for (const b of this.bodies) {
+          if (b.isStatic || b === f) continue;
+          const dx = b.position.x - f.position.x;
+          const dy = b.position.y - f.position.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < r + 26 && dist > 1) {
+            // tangent = perpendicular to the radius, scaled by sense of rotation
+            const tx = (-dy / dist) * w, ty = (dx / dist) * w;
+            const cap = 8;                          // bound the imparted speed
+            const sp = Math.min(surf, cap);
+            m.Body.setVelocity(b, {
+              x: tx * sp,
+              y: b.velocity.y + ty * sp * 0.5,      // gentler vertical kick
+            });
+          }
+        }
+      } else if (pl.partType === "fan") {
         // Push bodies in fan's facing direction
         const dir = {
           x: Math.cos(f.angle - Math.PI / 2),
@@ -187,7 +214,44 @@ export class Sim {
           }
         }
       }
+
+      } catch (_e) { /* a misfiring per-tick effect must not break the sim */ }
     }
+  }
+
+  // One-shot TNT: decrement fuses, detonate at <=0 with a bounded radial impulse,
+  // then remove the spent charge from the world. Fully wrapped so a misfire can
+  // never throw inside step()/the rAF loop.
+  _tickTNT(dtMs) {
+    const m = M();
+    try {
+      const armed = this.bodies.filter(b => b.plugin && b.plugin.partType === "tnt" && b.plugin.armed);
+      for (const t of armed) {
+        try {
+          t.plugin.fuseMs -= dtMs;
+          if (t.plugin.fuseMs > 0) continue;
+          const radius = t.plugin.radius || 160;
+          const blast = t.plugin.blast || 0.12;
+          for (const b of this.bodies) {
+            if (b.isStatic || b === t) continue;
+            const dx = b.position.x - t.position.x;
+            const dy = b.position.y - t.position.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < radius && dist > 0.001) {
+              const falloff = 1 - dist / radius;       // strongest at the core
+              const mag = blast * falloff;
+              m.Body.applyForce(b, b.position, { x: (dx / dist) * mag, y: (dy / dist) * mag });
+            }
+          }
+          t.plugin.armed = false;
+          t.plugin._spent = true;
+          m.Composite.remove(this.world, t);
+          // also drop it from the render/sim body list so the spent charge doesn't linger on screen
+          const bi = this.bodies.indexOf(t);
+          if (bi >= 0) this.bodies.splice(bi, 1);
+        } catch (_inner) { /* one bad charge must not stop the others */ }
+      }
+    } catch (_e) { /* never throw into the loop */ }
   }
 
   reset() {

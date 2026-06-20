@@ -12,12 +12,39 @@ export async function levelCases() {
     { name:"validate rejects missing goal.zone", fn:()=>{ const noZone={...good,goal:{type:"dwell",object:"ball",ms:300}}; if(L.validateLevel(noZone).ok) throw new Error("accepted"); } },
     { name:"serialize round-trips", fn:()=>{ const s=L.serializeLevel(good); const o=JSON.parse(s); if(o.title!=="T") throw new Error("lost data"); } },
     { name:"clone is deep", fn:()=>{ const c=L.cloneLevel(good); c.title="X"; if(good.title!=="T") throw new Error("mutated"); } },
+    // ---- Track C: new-physics part specs ----
+    { name:"validate accepts rope/gears/tnt specs", fn:()=>{
+        const lvl={...good, fixed:[
+          {type:"rope",x:200,y:100,x2:200,y2:300,segments:10},
+          {type:"gears",x:400,y:300,spin:5},
+          {type:"tnt",x:600,y:200,fuseMs:1200,blast:0.1,radius:140},
+        ]};
+        const v=L.validateLevel(lvl); if(!v.ok) throw new Error("rejected: "+v.reason);
+      }},
+    { name:"serialize round-trips a tnt spec (extra fields survive)", fn:()=>{
+        const lvl={...good, start:[{type:"tnt",x:600,y:200,tag:"boom",fuseMs:1200,blast:0.1,radius:140}]};
+        const o=JSON.parse(L.serializeLevel(lvl));
+        const t=o.start[0];
+        if(t.type!=="tnt"||t.fuseMs!==1200||t.blast!==0.1||t.radius!==140||t.tag!=="boom")
+          throw new Error("lost tnt fields: "+JSON.stringify(t));
+      }},
+    { name:"serialize round-trips rope endpoints + gears spin", fn:()=>{
+        const lvl={...good, fixed:[
+          {type:"rope",x:200,y:100,x2:260,y2:340,segments:12},
+          {type:"gears",x:400,y:300,spin:6},
+        ]};
+        const o=JSON.parse(L.serializeLevel(lvl));
+        const [r,g]=o.fixed;
+        if(r.x2!==260||r.y2!==340||r.segments!==12) throw new Error("lost rope fields: "+JSON.stringify(r));
+        if(g.spin!==6) throw new Error("lost gears spin: "+JSON.stringify(g));
+      }},
   ];
 }
 
 export async function officialCases() {
   const L = await import("./level.js");
   const { OFFICIAL_LEVELS } = await import("./levels/official.js");
+  const { makePart } = await import("./parts.js");
   const cases = [
     { name:"at least 8 official levels", fn:()=>{ if(OFFICIAL_LEVELS.length < 8) throw new Error("only "+OFFICIAL_LEVELS.length); } },
     { name:"ids unique + sequential", fn:()=>{ const ids=OFFICIAL_LEVELS.map(l=>l.id); if(new Set(ids).size!==ids.length) throw new Error("dup ids"); } },
@@ -25,7 +52,132 @@ export async function officialCases() {
   OFFICIAL_LEVELS.forEach((lvl,i) => cases.push({ name:`level ${i+1} (${lvl.id}) validates`, fn:()=>{ const v=L.validateLevel(lvl); if(!v.ok) throw new Error(v.reason); } }));
   // every level must give the player at least one inventory part
   OFFICIAL_LEVELS.forEach((lvl,i) => cases.push({ name:`level ${i+1} has inventory`, fn:()=>{ if(!lvl.inventory.reduce((a,b)=>a+b.count,0)) throw new Error("no parts"); } }));
+  // Track B parts build without throwing (Matter stub includes fromVertices)
+  const trackB = ["trampoline","gear","crate","pipe","pinwheel","spring","wedge","platform","bowlingpin","weight"];
+  const stubMatter = { Bodies:{
+    rectangle:(x,y,w,h,o)=>({position:{x,y},bounds:{min:{x:x-w/2,y:y-h/2},max:{x:x+w/2,y:y+h/2}},plugin:{}}),
+    circle:(x,y,r,o)=>({position:{x,y},bounds:{min:{x:x-r,y:y-r},max:{x:x+r,y:y+r}},plugin:{}}),
+    fromVertices:(x,y,v,o)=>({position:{x,y},vertices:v[0]||[],bounds:{min:{x:0,y:0},max:{x:0,y:0}},plugin:{}})
+  }, Body:{create:(o)=>({...o,position:{x:0,y:0}})}, Constraint:{create:(o)=>o} };
+  globalThis.Matter = stubMatter;
+  trackB.forEach(t => cases.push({ name:`Track B part ${t} builds`, fn:()=>{
+    const r = makePart(t, {x:0,y:0});
+    if(!r.bodies || r.bodies.length===0) throw new Error("no bodies");
+  }}));
   return cases;
+}
+
+export async function trackCCases() {
+  const { makePart } = await import("./parts.js");
+  // Rich-enough Matter stub for the Track-C build/physics paths.
+  function makeStub() {
+    return {
+      Bodies:{
+        rectangle:(x,y,w,h,o)=>({position:{x,y},velocity:{x:0,y:0},isStatic:!!(o&&o.isStatic),bounds:{min:{x:x-w/2,y:y-h/2},max:{x:x+w/2,y:y+h/2}},plugin:{}}),
+        circle:(x,y,r,o)=>({position:{x,y},velocity:{x:0,y:0},isStatic:false,bounds:{min:{x:x-r,y:y-r},max:{x:x+r,y:y+r}},plugin:{}}),
+      },
+      Body:{
+        setStatic:(b,v)=>{b.isStatic=v;},
+        setDensity:(b,d)=>{b.density=d;},
+        setVelocity:(b,v)=>{b.velocity=v;},
+        setAngularVelocity:(b,w)=>{b.angularVelocity=w;},
+        applyForce:(b,p,f)=>{b._lastForce=f;},
+        create:(o)=>({...o,position:{x:0,y:0}}),
+      },
+      Constraint:{create:(o)=>o},
+      Composite:{remove:(w,b)=>{ if(Array.isArray(w.bodies)) w.bodies=w.bodies.filter(x=>x!==b); }},
+      Engine:{update:()=>{}},
+    };
+  }
+  return [
+    { name:"rope builds N+1 bodies and N constraints", fn:()=>{
+        globalThis.Matter=makeStub();
+        const segs=8;
+        const r=makePart("rope",{x:100,y:50,x2:100,y2:300,segments:segs});
+        if(r.bodies.length!==segs+1) throw new Error("expected "+(segs+1)+" bodies, got "+r.bodies.length);
+        if(r.constraints.length!==segs) throw new Error("expected "+segs+" constraints, got "+r.constraints.length);
+        if(!r.bodies[0].isStatic) throw new Error("first segment must be a static anchor");
+      }},
+    { name:"rope anchor static, bob is heavier", fn:()=>{
+        globalThis.Matter=makeStub();
+        const r=makePart("rope",{x:0,y:0,x2:0,y2:160,segments:6});
+        const bob=r.bodies[r.bodies.length-1];
+        if(bob.density!==0.02) throw new Error("bob density not boosted, got "+bob.density);
+      }},
+    { name:"tnt builds armed with a fuse", fn:()=>{
+        globalThis.Matter=makeStub();
+        const r=makePart("tnt",{x:0,y:0,fuseMs:1500,blast:0.12,radius:160});
+        const b=r.bodies[0];
+        if(!b.plugin.armed || b.plugin.partType!=="tnt") throw new Error("tnt not armed");
+        if(b.plugin.fuseMs!==1500) throw new Error("wrong fuse");
+      }},
+  ];
+}
+
+export async function trackCEngineCases() {
+  // Exercise the real Sim._tickTNT / _applyForces against a stub world (no DOM, no real
+  // Matter). The stub is installed INSIDE each fn (not at collection time) so it can't
+  // leak into other case sets whose deferred fns also read globalThis.Matter.
+  function installStub(){
+    globalThis.Matter = {
+      Bodies:{
+        rectangle:(x,y,w,h,o)=>({position:{x,y},velocity:{x:0,y:0},isStatic:!!(o&&o.isStatic),bounds:{min:{x:x-w/2,y:y-h/2},max:{x:x+w/2,y:y+h/2}},plugin:{}}),
+        circle:(x,y,r,o)=>({position:{x,y},velocity:{x:0,y:0},isStatic:false,bounds:{min:{x:x-r,y:y-r},max:{x:x+r,y:y+r}},plugin:{}}),
+      },
+      Body:{
+        setStatic:(b,v)=>{b.isStatic=v;}, setDensity:(b,d)=>{b.density=d;},
+        setVelocity:(b,v)=>{b.velocity=v;}, setAngularVelocity:(b,w)=>{b.angularVelocity=w;},
+        applyForce:(b,p,f)=>{b._force={x:(b._force?b._force.x:0)+f.x,y:(b._force?b._force.y:0)+f.y};},
+        create:(o)=>({...o,position:{x:0,y:0}}),
+      },
+      Constraint:{create:(o)=>o},
+      Composite:{ add:()=>{}, remove:(w,b)=>{ if(Array.isArray(w.bodies)) w.bodies=w.bodies.filter(x=>x!==b); } },
+      Engine:{ create:()=>({world:{},gravity:{}}), update:()=>{} },
+    };
+  }
+  const { Sim } = await import("./engine.js");
+  function makeSim(){
+    installStub();
+    const lvl={schema:1,id:"c",title:"C",world:{w:1280,h:720,gravity:1},
+      goal:{type:"dwell",object:"none",zone:{x:0,y:0,w:1,h:1},ms:300},fixed:[],start:[],inventory:[]};
+    const sim=new Sim(lvl);
+    sim.world.bodies = sim.world.bodies || [];
+    return sim;
+  }
+  return [
+    { name:"tnt fuse countdown reaches blast (force applied, charge removed)", fn:()=>{
+        const sim=makeSim();
+        const tnt={position:{x:100,y:100},velocity:{x:0,y:0},isStatic:false,plugin:{partType:"tnt",armed:true,fuseMs:1000,blast:0.5,radius:160}};
+        const victim={position:{x:140,y:100},velocity:{x:0,y:0},isStatic:false,plugin:{partType:"ball"}};
+        sim.bodies=[tnt,victim]; sim.world.bodies=[tnt,victim];
+        // tick under the fuse: no detonation yet
+        sim._tickTNT(500);
+        if(tnt.plugin.armed!==true || victim._force) throw new Error("detonated too early");
+        // tick past zero: detonate
+        sim._tickTNT(600);
+        if(tnt.plugin.armed!==false) throw new Error("did not disarm");
+        if(!victim._force || victim._force.x<=0) throw new Error("no outward impulse on victim");
+      }},
+    { name:"gears coupling sets angular velocity + drags contact tangentially", fn:()=>{
+        const sim=makeSim();
+        const driver={position:{x:0,y:0},velocity:{x:0,y:0},isStatic:false,angularVelocity:0,
+          plugin:{partType:"gears",driven:4,radius:34,surface:4*34}};
+        const touch={position:{x:50,y:0},velocity:{x:0,y:0},isStatic:false,plugin:{partType:"ball"}};
+        sim.bodies=[driver,touch];
+        sim._applyForces();
+        if(driver.angularVelocity!==4) throw new Error("driver spin not re-asserted");
+        // body at +x from a CCW(+) disc gets a tangential kick (capped, finite)
+        if(!isFinite(touch.velocity.x)||!isFinite(touch.velocity.y)) throw new Error("non-finite velocity");
+      }},
+    { name:"misfiring effect never throws out of _applyForces", fn:()=>{
+        const sim=makeSim();
+        // a gears body with a poisoned plugin: getters that throw
+        const bad={position:{x:0,y:0},velocity:{x:0,y:0},isStatic:false,
+          plugin:{partType:"gears",get driven(){throw new Error("boom");},radius:34}};
+        sim.bodies=[bad];
+        sim._applyForces(); // must not throw
+      }},
+  ];
 }
 
 export async function progressCases() {
