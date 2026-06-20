@@ -109,15 +109,21 @@ raf = requestAnimationFrame(tick);
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(()=>{});
 
 // --- Phase 2: optional cloud (never blocks the game) ---
-mountAccountUI({ onAuthChange: async () => { await pullProgress(); refreshMenuMarks(); setIndicator(); } });
+// Every cloud touchpoint is wrapped so a backend failure can never break play.
+mountAccountUI({ onAuthChange: async () => {
+  try { await pullProgress(); } catch {}
+  refreshMenuMarks(); setIndicator();
+  // rebuild the level menu if it's open so ✓ marks reflect the new auth state
+  if (document.getElementById("levelMenu").open) buildMenu();
+} });
 cloudInit().then(async () => {
   setIndicator();
   if (cloudUser()) { await pullProgress(); refreshMenuMarks(); }
-});
+}).catch(() => {});  // truly non-blocking — game already runs regardless
 document.getElementById("lbBtn").onclick = async () => {
   const body = document.getElementById("lbBody");
   body.innerHTML = ""; // safe: we rebuild with textContent below
-  const h = document.createElement("h3"); h.textContent = "Leaderboard — " + current.title; body.appendChild(h);
+  const h = document.createElement("h3"); h.textContent = "Leaderboard — " + (current ? current.title : ""); body.appendChild(h);
   if (!cloud.available) { const p=document.createElement("p"); p.className="hint"; p.textContent="Offline — leaderboards need a connection."; body.appendChild(p); }
   else {
     const rows = await leaderboard(current.id);
