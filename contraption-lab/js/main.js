@@ -132,41 +132,36 @@ function showScreen(name) {
 async function route() {
   const hash = location.hash || "#/play";
 
-  // #/editor
+  // #/editor — lazy-load is async; a load failure must not break navigation.
   if (hash === "#/editor") {
     showScreen("editor");
-    if (!editorInstance) {
-      const { Editor } = await import("./editor.js");
-      const editorCanvas = document.getElementById("editorCanvas");
-      editorInstance = new Editor(editorCanvas, {
-        onPublished: (id) => {
-          location.hash = `#/play/community/${id}`;
-        }
-      });
-    }
-    if (!editorInstance.mounted) {
-      editorInstance.mount();
-    }
+    try {
+      if (!editorInstance) {
+        const { Editor } = await import("./editor.js");
+        const editorCanvas = document.getElementById("editorCanvas");
+        editorInstance = new Editor(editorCanvas, {
+          onPublished: (id) => { location.hash = `#/play/community/${id}`; }
+        });
+      }
+      if (!editorInstance.mounted) editorInstance.mount();
+    } catch { /* editor failed to load — stay on the editor screen, no crash */ }
     return;
   }
 
-  // #/browse or #/browse/<tab>
+  // #/browse or #/browse/<tab> — renderBrowse fetches from PocketBase; guard it.
   const browseMatch = hash.match(/#\/browse(?:\/(.+))?/);
   if (browseMatch) {
     showScreen("browse");
     const tab = browseMatch[1] || "recent";
-    const { renderBrowse } = await import("./browse.js");
-    const grid = document.getElementById("browseGrid");
-
-    // Wire tab buttons
-    document.querySelectorAll("[data-tab]").forEach(btn => {
-      btn.classList.toggle("active", btn.dataset.tab === tab);
-      btn.onclick = () => {
-        location.hash = `#/browse/${btn.dataset.tab}`;
-      };
-    });
-
-    await renderBrowse(grid, tab);
+    try {
+      const { renderBrowse } = await import("./browse.js");
+      const grid = document.getElementById("browseGrid");
+      document.querySelectorAll("[data-tab]").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.tab === tab);
+        btn.onclick = () => { location.hash = `#/browse/${btn.dataset.tab}`; };
+      });
+      await renderBrowse(grid, tab);
+    } catch { /* browse fetch failed (offline/timeout) — renderBrowse shows its own message */ }
     return;
   }
 
