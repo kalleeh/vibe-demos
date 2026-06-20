@@ -1,7 +1,8 @@
 // contraption-lab/js/editor.js
 // Level editor: build, test, publish community levels.
 
-import { validateLevel, serializeLevel, cloneLevel, buildWorld } from "./level.js";
+import { validateLevel, serializeLevel, cloneLevel } from "./level.js";
+import { fitTransform, screenToWorld } from "./geom.js";
 import { Sim } from "./engine.js";
 import { drawWorld, resizeCanvas } from "./render.js";
 import { tokens } from "./theme.js";
@@ -49,7 +50,6 @@ export class Editor {
     this.testState = null; // "idle"|"running"|"won"|"lost"
     this.mounted = false;
     this.rafId = null;
-    this.savePending = false;
     this.saveTimer = null;
     this.selectedFixed = null;
     this._dragMode = null;
@@ -176,6 +176,12 @@ export class Editor {
     this.selectedType = type;
   }
 
+  // Any change to the level's structure invalidates a prior Test solve — you must
+  // re-solve the edited level before it can be published.
+  _markDirty() {
+    if (this.level._solvedInTest) { delete this.level._solvedInTest; this._updateTestUI && this._updateTestUI(); }
+  }
+
   _addInventoryPart(type) {
     const existing = this.level.inventory.find(i => i.type === type);
     if (existing) {
@@ -183,13 +189,18 @@ export class Editor {
     } else {
       this.level.inventory.push({ type, count: 1 });
     }
+    this._markDirty();
     this._scheduleSave();
     this._rebuild();
   }
 
+  // Map a pointer event to world coords using the SAME letterbox transform the renderer
+  // uses (canvas.width/height are dpr-scaled backing pixels), matching input.js in play mode.
   _evXY(e) {
-    const rect = this.canvas.getBoundingClientRect();
-    return { x: (e.clientX - rect.left) / rect.width * 1280, y: (e.clientY - rect.top) / rect.height * 720 };
+    const r = this.canvas.getBoundingClientRect();
+    const t = fitTransform(1280, 720, this.canvas.width, this.canvas.height);
+    return screenToWorld((e.clientX - r.left) * this.canvas.width / r.width,
+                         (e.clientY - r.top) * this.canvas.height / r.height, t);
   }
 
   _onPointerDown(e) {
@@ -201,7 +212,7 @@ export class Editor {
       // Begin dragging the goal-zone center.
       this._dragMode = "goal";
       this.level.goal.zone.x = x; this.level.goal.zone.y = y;
-      this._scheduleSave();
+      this._markDirty(); this._scheduleSave();
       return;
     }
 
@@ -212,7 +223,7 @@ export class Editor {
       if (hit >= 0) { this.selectedFixed = this.level.fixed[hit]; this._dragMode = "movefixed"; this._dragIdx = hit; this._movedFar = false; this._reflectAngle(); return; }
       const spec = { type: this.selectedType, x, y, angle: 0 };
       this.level.fixed.push(spec); this.selectedFixed = spec; this._reflectAngle();
-      this._scheduleSave(); this._rebuild();
+      this._markDirty(); this._scheduleSave(); this._rebuild();
       return;
     }
 
@@ -221,7 +232,7 @@ export class Editor {
       if (hit >= 0) { this._dragMode = "movestart"; this._dragIdx = hit; this._movedFar = false; return; }
       const tag = this.selectedType === "ball" ? "ball" : null;
       this.level.start.push({ type: this.selectedType, x, y, tag });
-      this._scheduleSave(); this._rebuild();
+      this._markDirty(); this._scheduleSave(); this._rebuild();
     }
   }
 
@@ -229,8 +240,8 @@ export class Editor {
     if (!this._dragMode || this.testState !== "idle") return;
     const { x, y } = this._evXY(e);
     if (this._dragMode === "goal") { this.level.goal.zone.x = x; this.level.goal.zone.y = y; }
-    else if (this._dragMode === "movefixed") { const s = this.level.fixed[this._dragIdx]; if (s) { s.x = x; s.y = y; this._movedFar = true; this._rebuild(); } }
-    else if (this._dragMode === "movestart") { const s = this.level.start[this._dragIdx]; if (s) { s.x = x; s.y = y; this._movedFar = true; this._rebuild(); } }
+    else if (this._dragMode === "movefixed") { const s = this.level.fixed[this._dragIdx]; if (s) { s.x = x; s.y = y; this._movedFar = true; this._markDirty(); this._rebuild(); } }
+    else if (this._dragMode === "movestart") { const s = this.level.start[this._dragIdx]; if (s) { s.x = x; s.y = y; this._movedFar = true; this._markDirty(); this._rebuild(); } }
   }
 
   _onPointerUp(e) {
@@ -238,9 +249,11 @@ export class Editor {
     // A fixed/start part tapped without dragging = delete it.
     if (!this._movedFar && (this._dragMode === "movefixed" || this._dragMode === "movestart")) {
       const arr = this._dragMode === "movefixed" ? this.level.fixed : this.level.start;
-      arr.splice(this._dragIdx, 1);
-      if (this._dragMode === "movefixed") this.selectedFixed = null;
-      this._rebuild();
+      if (this._dragIdx >= 0 && this._dragIdx < arr.length) {   // bounds-guard the splice
+        arr.splice(this._dragIdx, 1);
+        if (this._dragMode === "movefixed") this.selectedFixed = null;
+        this._markDirty(); this._rebuild();
+      }
     }
     this._scheduleSave();
     this._dragMode = null;
@@ -319,12 +332,17 @@ export class Editor {
       return;
     }
 
-    const result = await publishLevel({ title, data: stripLevel(this.level) });
-    if (result.ok) {
-      if (this.onPublished) this.onPublished(result.id);
-      alert("Published!");
-    } else {
-      alert("Publish failed: " + result.error);
+    try {
+      const result = await publishLevel({ title, data: stripLevel(this.level) });
+      if (result.ok) {
+        if (this.onPublished) this.onPublished(result.id);
+        alert("Published!");
+      } else {
+        alert("Publish failed: " + result.error);
+      }
+    } catch (err) {
+      // local-first: a publish failure must never break the editor
+      alert("Publish failed: " + (err && err.message ? err.message : "connection error"));
     }
   }
 
