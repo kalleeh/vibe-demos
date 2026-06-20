@@ -3,16 +3,17 @@
 export async function cloudCases() {
   const C = await import("./cloud.js");
   return [
-    { name:"leaderboardRows maps + flags me", fn:()=>{
+    { name:"leaderboardRows reads display_name + flags me by user id", fn:()=>{
         const rows = C.leaderboardRows(
-          [ {best_parts:1,best_ms:100,expand:{user:{id:"A",name:"Ada"}}},
-            {best_parts:2,best_ms:50, expand:{user:{id:"B",name:"Boo"}}} ], "B");
+          [ {best_parts:1,best_ms:100,user:"A",display_name:"Ada"},
+            {best_parts:2,best_ms:50, user:"B",display_name:"Boo"} ], "B");
         if(rows.length!==2) throw new Error("len "+rows.length);
         if(rows[0].name!=="Ada"||rows[0].parts!==1) throw new Error("row0 "+JSON.stringify(rows[0]));
-        if(!rows[1].isMe) throw new Error("me-flag missing");
+        if(rows[0].isMe) throw new Error("row0 should not be me");
+        if(!rows[1].isMe) throw new Error("row1 me-flag missing");
       }},
-    { name:"leaderboardRows falls back to Anon name", fn:()=>{
-        const rows = C.leaderboardRows([{best_parts:1,best_ms:1,expand:{}}], null);
+    { name:"leaderboardRows falls back to Anon when display_name missing", fn:()=>{
+        const rows = C.leaderboardRows([{best_parts:1,best_ms:1,user:"X"}], null);
         if(rows[0].name!=="Anonymous") throw new Error("name "+rows[0].name);
       }},
     { name:"bestOf keeps lower parts then lower ms", fn:()=>{

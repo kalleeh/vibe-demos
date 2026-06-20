@@ -55,15 +55,20 @@ export function bestOf(a, b) {
 // reject it, or it becomes a filter-injection vector.
 export async function pushProgress(map) {
   const u = user(); if (!pb || !cloud.available || !u) return;
-  const rows = progressToRecords(map, u.id);
+  // Denormalize the display name onto each row so the public leaderboard can
+  // render it without expanding the shared `users` relation (whose default
+  // viewRule hides other users → everyone would otherwise show "Anonymous").
+  const displayName = (u.name || u.email || "Anonymous").slice(0, 40);
+  const rows = progressToRecords(map, u.id).map(r => ({ ...r, display_name: displayName }));
   for (const row of rows) {
     try {
       const existing = await pb.collection("progress").getFirstListItem(
         `user="${u.id}" && level_id="${row.level_id}"`).catch(() => null);
       if (existing) {
         const merged = bestOf(existing, row);
-        if (merged.best_parts !== existing.best_parts || merged.best_ms !== existing.best_ms || merged.solved !== existing.solved)
-          await pb.collection("progress").update(existing.id, { solved: merged.solved, best_parts: merged.best_parts, best_ms: merged.best_ms });
+        const nameDrifted = existing.display_name !== displayName;
+        if (merged.best_parts !== existing.best_parts || merged.best_ms !== existing.best_ms || merged.solved !== existing.solved || nameDrifted)
+          await pb.collection("progress").update(existing.id, { solved: merged.solved, best_parts: merged.best_parts, best_ms: merged.best_ms, display_name: displayName });
       } else {
         await pb.collection("progress").create(row);
       }
@@ -79,12 +84,15 @@ export async function pullProgress() {
   } catch { return getProgress(); }
 }
 
-// PB records → display rows for the leaderboard overlay
+// PB records → display rows for the leaderboard overlay.
+// Reads the denormalized `display_name` (public-readable) rather than expanding
+// the `user` relation, which the default users viewRule would hide for other
+// players. `isMe` compares the row's `user` relation id to the viewer's id.
 export function leaderboardRows(records = [], meId = null) {
   return records.map(r => ({
-    name: (r.expand && r.expand.user && r.expand.user.name) ? r.expand.user.name : "Anonymous",
+    name: r.display_name || "Anonymous",
     parts: r.best_parts, ms: r.best_ms,
-    isMe: !!(meId && r.expand && r.expand.user && r.expand.user.id === meId),
+    isMe: !!(meId && r.user === meId),
   }));
 }
 
@@ -92,7 +100,7 @@ export async function leaderboard(levelId, limit = 25) {
   if (!pb || !cloud.available) return [];
   try {
     const res = await pb.collection("progress").getList(1, limit, {
-      filter: `level_id="${levelId}" && solved=true`, sort: "best_parts,best_ms", expand: "user",
+      filter: `level_id="${levelId}" && solved=true`, sort: "best_parts,best_ms",
     });
     return leaderboardRows(res.items, user()?.id || null);
   } catch { return []; }
