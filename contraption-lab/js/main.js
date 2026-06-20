@@ -12,8 +12,9 @@ import { mountAccountUI, setIndicator } from "./auth-ui.js";
 if (new URLSearchParams(location.search).has("test")) {
   import("./level.test.js").then(async m => {
     const cloudMod = await import("./cloud.test.js");
+    const spriteMod = await import("./sprites.test.js");
     m.runTests([ ...(await m.levelCases()), ...(await m.officialCases()), ...(await m.progressCases()),
-                 ...(await m.progressShapeCases()), ...(await cloudMod.cloudCases()) ]);
+                 ...(await m.progressShapeCases()), ...(await cloudMod.cloudCases()), ...(await spriteMod.spriteCases()) ]);
   });
 }
 
