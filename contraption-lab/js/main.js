@@ -14,15 +14,24 @@ if (new URLSearchParams(location.search).has("test")) {
   import("./level.test.js").then(async m => {
     const cloudMod = await import("./cloud.test.js");
     const spriteMod = await import("./sprites.test.js");
+    const editorMod = await import("./editor.test.js");
     m.runTests([ ...(await m.levelCases()), ...(await m.officialCases()), ...(await m.progressCases()),
                  ...(await m.progressShapeCases()), ...(await cloudMod.cloudCases()), ...(await spriteMod.spriteCases()),
-                 ...(await m.trackCCases()), ...(await m.trackCEngineCases()) ]);
+                 ...(await m.trackCCases()), ...(await m.trackCEngineCases()), ...(await editorMod.editorCases()) ]);
   });
 }
 
 const canvas = document.getElementById("stage");
 const ctx = canvas.getContext("2d");
 let transform, sim, controller, selected = null, remaining = {}, current = null;
+
+// Phase 3: screen router (play, editor, browse)
+let editorInstance = null;
+const screens = {
+  play: { container: document.querySelector(".stagewrap"), palette: document.getElementById("palette"), controls: document.querySelector(".controls") },
+  editor: document.getElementById("editorScreen"),
+  browse: document.getElementById("browseScreen"),
+};
 
 function fillThemeSelect() {
   const sel = document.getElementById("themeSel");
@@ -92,14 +101,118 @@ document.getElementById("resetBtn").onclick = () => { sim.reset(); buildPalette(
 
 function buildMenu(){ const dlg=document.getElementById("levelMenu");
   dlg.innerHTML = `<h3>Levels</h3>` + OFFICIAL_LEVELS.map((l,i)=>`<button data-id="${l.id}">${String(i+1).padStart(2,"0")} · ${l.title} ${isSolved(l.id)?"✓":""}</button>`).join("") + `<button data-close>Close</button>`;
-  dlg.querySelectorAll("button").forEach(b=>b.onclick=()=>{ if(b.dataset.close!==undefined){dlg.close();return;} const lvl=OFFICIAL_LEVELS.find(l=>l.id===b.dataset.id); dlg.close(); location.hash="#/play/"+lvl.id; });
+  dlg.querySelectorAll("button").forEach(b=>b.onclick=()=>{ if(b.dataset.close!==undefined){dlg.close();return;} const lvl=OFFICIAL_LEVELS.find(l=>l.id===b.dataset.id); dlg.close(); showScreen("play"); location.hash="#/play/"+lvl.id; });
 }
 function refreshMenuMarks(){ document.getElementById("levelTitle").textContent = current ? (current.title + (isSolved(current.id) ? " ✓" : "")) : ""; }
 document.getElementById("menuBtn").onclick = () => { buildMenu(); document.getElementById("levelMenu").showModal(); };
 
-function route(){ const m = location.hash.match(/#\/play\/(.+)/);
-  const lvl = (m && OFFICIAL_LEVELS.find(l=>l.id===m[1])) || OFFICIAL_LEVELS[0];
-  loadLevel(lvl); }
+function showScreen(name) {
+  // Hide all screens
+  if (screens.editor) screens.editor.hidden = true;
+  if (screens.browse) screens.browse.hidden = true;
+  if (screens.play.container) screens.play.container.hidden = (name !== "play");
+  if (screens.play.palette) screens.play.palette.hidden = (name !== "play");
+  if (screens.play.controls) screens.play.controls.hidden = (name !== "play");
+
+  // Show requested screen
+  if (name === "editor" && screens.editor) screens.editor.hidden = false;
+  else if (name === "browse" && screens.browse) screens.browse.hidden = false;
+
+  // Unmount editor when leaving it
+  if (name !== "editor" && editorInstance && editorInstance.mounted) {
+    editorInstance.unmount();
+  }
+}
+
+async function route() {
+  const hash = location.hash || "#/play";
+
+  // #/editor
+  if (hash === "#/editor") {
+    showScreen("editor");
+    if (!editorInstance) {
+      const { Editor } = await import("./editor.js");
+      const editorCanvas = document.getElementById("editorCanvas");
+      editorInstance = new Editor(editorCanvas, {
+        onPublished: (id) => {
+          location.hash = `#/play/community/${id}`;
+        }
+      });
+    }
+    if (!editorInstance.mounted) {
+      editorInstance.mount();
+    }
+    return;
+  }
+
+  // #/browse or #/browse/<tab>
+  const browseMatch = hash.match(/#\/browse(?:\/(.+))?/);
+  if (browseMatch) {
+    showScreen("browse");
+    const tab = browseMatch[1] || "recent";
+    const { renderBrowse } = await import("./browse.js");
+    const grid = document.getElementById("browseGrid");
+
+    // Wire tab buttons
+    document.querySelectorAll("[data-tab]").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.tab === tab);
+      btn.onclick = () => {
+        location.hash = `#/browse/${btn.dataset.tab}`;
+      };
+    });
+
+    await renderBrowse(grid, tab);
+    return;
+  }
+
+  // #/play/community/<id>
+  const communityMatch = hash.match(/#\/play\/community\/(.+)/);
+  if (communityMatch) {
+    showScreen("play");
+    const levelId = communityMatch[1];
+    const { getLevel, recordPlay } = await import("./cloud.js");
+    const { validateLevel } = await import("./level.js");
+
+    try {
+      const rec = await getLevel(levelId);
+      if (!rec) {
+        document.getElementById("banner").textContent = "Level not found";
+        document.getElementById("banner").hidden = false;
+        return;
+      }
+
+      const validation = validateLevel(rec.data);
+      if (!validation.ok) {
+        document.getElementById("banner").textContent = "This level needs a newer version of the game";
+        document.getElementById("banner").hidden = false;
+        return;
+      }
+
+      // Load the community level
+      loadLevel({
+        ...rec.data,
+        id: `community-${levelId}`,
+        title: rec.title || "Community Level"
+      });
+
+      // Record play (best-effort, non-blocking)
+      recordPlay(levelId).catch(() => {});
+
+      // TODO: Show Like button for community plays
+
+    } catch (err) {
+      document.getElementById("banner").textContent = "Failed to load level";
+      document.getElementById("banner").hidden = false;
+    }
+    return;
+  }
+
+  // #/play/<id> or default
+  showScreen("play");
+  const playMatch = hash.match(/#\/play\/(.+)/);
+  const lvl = (playMatch && OFFICIAL_LEVELS.find(l => l.id === playMatch[1])) || OFFICIAL_LEVELS[0];
+  loadLevel(lvl);
+}
 window.addEventListener("hashchange", route);
 window.addEventListener("resize", resize);
 
