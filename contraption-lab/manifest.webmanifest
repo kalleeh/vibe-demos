@@ -1,0 +1,14 @@
+{
+  "name": "Contraption Lab",
+  "short_name": "Contraption Lab",
+  "description": "Build Rube Goldberg machines — a modern Incredible Machine for the browser and iPad.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#13233f",
+  "theme_color": "#13233f",
+  "lang": "en",
+  "categories": ["games", "entertainment"],
+  "icons": [ { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" } ]
+}
