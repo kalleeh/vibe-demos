@@ -244,7 +244,11 @@ export class Sim {
             }
           }
           t.plugin.armed = false;
+          t.plugin._spent = true;
           m.Composite.remove(this.world, t);
+          // also drop it from the render/sim body list so the spent charge doesn't linger on screen
+          const bi = this.bodies.indexOf(t);
+          if (bi >= 0) this.bodies.splice(bi, 1);
         } catch (_inner) { /* one bad charge must not stop the others */ }
       }
     } catch (_e) { /* never throw into the loop */ }

@@ -99,9 +99,10 @@ export const PARTS = {
       }
       return {bodies,constraints};
     } },
-  gears: { label:"Gears", movable:true, fixedByDefault:true,
-    // Two pivoted discs; the driver carries plugin.spin (rad/s) which the engine re-asserts
-    // each tick (Body.setAngularVelocity) and uses to drag contacting bodies tangentially.
+  gears: { label:"Gears", movable:true, fixedByDefault:false,
+    // Two discs each pinned at its center by a constraint; dynamic so they actually rotate.
+    // The driver carries plugin.spin (rad/s) which the engine re-asserts each tick
+    // (Body.setAngularVelocity) and uses to drag contacting bodies tangentially.
     build:(s,M)=>{
       const r=s.r||34, spin=s.spin??4, gap=r*2+6;
       const driver=M.Bodies.circle(s.x,s.y,r,{friction:0.9,density:0.02});
