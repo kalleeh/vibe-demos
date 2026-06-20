@@ -6,14 +6,23 @@ export async function spriteCases() {
     { name:"resolveSprite known part", fn:()=>{ const r=S.resolveSprite("ball","blueprint"); if(!r||r.fit!=="circle") throw new Error("ball should be circle fit, got "+JSON.stringify(r)); } },
     { name:"resolveSprite unknown → null", fn:()=>{ if(S.resolveSprite("nope","blueprint")!==null) throw new Error("unknown should be null"); } },
     { name:"resolveSprite defaults scale/overflow", fn:()=>{ const r=S.resolveSprite("ball","blueprint"); if(r.scale==null||r.overflow==null) throw new Error("missing defaults"); } },
-    { name:"themeOverride precedence", fn:()=>{
-        const r1=S.resolveSprite("ball","blueprint");
-        // inject a temporary override to prove precedence logic without shipping per-theme art
-        S.SPRITES.ball.themeOverrides = { neon: "./assets/parts/neon/ball.png" };
-        const r2=S.resolveSprite("ball","neon");
-        S.SPRITES.ball.themeOverrides = {};
+    { name:"themeOverride precedence (temp inject on a non-override part)", fn:()=>{
+        // use 'wall' (no shipped overrides) so we don't clobber real ones
+        const r1=S.resolveSprite("wall","blueprint");
+        const saved=S.SPRITES.wall.themeOverrides;
+        S.SPRITES.wall.themeOverrides = { neon: "./assets/parts/neon/wall.png" };
+        const r2=S.resolveSprite("wall","neon");
+        S.SPRITES.wall.themeOverrides = saved;
         if(r2.src===r1.src) throw new Error("override not applied");
         if(!r2.src.includes("neon/")) throw new Error("wrong override src "+r2.src);
+      }},
+    { name:"shipped hero overrides (ball/fan/goal in neon+blueprint)", fn:()=>{
+        for(const part of ["ball","fan","goal"]){
+          const n=S.resolveSprite(part,"neon").src, b=S.resolveSprite(part,"blueprint").src, c=S.resolveSprite(part,"cartoon").src;
+          if(!n.includes("neon/"+part)) throw new Error(part+" neon override missing: "+n);
+          if(!b.includes("blueprint/"+part)) throw new Error(part+" blueprint override missing: "+b);
+          if(c!=="./assets/parts/"+part+".png") throw new Error(part+" cartoon should fall back to shared: "+c);
+        }
       }},
     { name:"plank parts use plank fit", fn:()=>{ for(const t of ["ramp","conveyor","seesaw"]){ const r=S.resolveSprite(t,"blueprint"); if(!r||r.fit!=="plank") throw new Error(t+" should be plank fit"); } } },
     { name:"fan has spin", fn:()=>{ const r=S.resolveSprite("fan","blueprint"); if(!r||!r.spin||r.spin!==6) throw new Error("fan should have spin=6, got "+r.spin); } },

@@ -8,16 +8,18 @@ const P = (src, fit, opt = {}) => ({ src, fit, scale: opt.scale ?? 1, overflow: 
 
 export const SPRITES = {
   // existing 10 (Track A)
-  ball:     P("./assets/parts/ball.png",     "circle"),
+  // Hero parts (ball, fan, goal) carry per-theme override art for Neon + Blueprint
+  // (showcase of the themeOverrides hook); other themes/parts use the shared sprite.
+  ball:     P("./assets/parts/ball.png",     "circle", { themeOverrides: { neon: "./assets/parts/neon/ball.png", blueprint: "./assets/parts/blueprint/ball.png" } }),
   wall:     P("./assets/parts/wall.png",     "box"),
   ramp:     P("./assets/parts/ramp.png",     "plank"),
   domino:   P("./assets/parts/domino.png",   "box"),
   balloon:  P("./assets/parts/balloon.png",  "circle", { overflow: 0.5 }),  // string hangs below
   bucket:   P("./assets/parts/bucket.png",   "compound"),
-  fan:      P("./assets/parts/fan.png",      "box",    { overflow: 0.25, spin: 6 }), // blade tips
+  fan:      P("./assets/parts/fan.png",      "box",    { overflow: 0.25, spin: 6, themeOverrides: { neon: "./assets/parts/neon/fan.png", blueprint: "./assets/parts/blueprint/fan.png" } }), // blade tips
   conveyor: P("./assets/parts/conveyor.png", "plank"),
   seesaw:   P("./assets/parts/seesaw.png",   "plank"),
-  goal:     P("./assets/parts/goal.png",     "box"),
+  goal:     P("./assets/parts/goal.png",     "box",    { themeOverrides: { neon: "./assets/parts/neon/goal.png", blueprint: "./assets/parts/blueprint/goal.png" } }),
   // Track B (Task 6)
   trampoline: P("./assets/parts/trampoline.png","box"),
   gear:       P("./assets/parts/gear.png","circle"),
