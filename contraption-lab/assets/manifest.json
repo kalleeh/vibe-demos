@@ -1,0 +1,209 @@
+[
+  {
+    "partType": "ball",
+    "track": "A",
+    "fit": "circle",
+    "primitive": "circle r=18",
+    "aspect": "1:1",
+    "seed": 73101,
+    "prompt": "A single cartoon heavy steel ball, funky 1990s Incredible Machine style, glossy dark sphere with a bright highlight, chunky hand-drawn cartoon outline, perfectly circular, single centered object, plain pale neutral background clearly separated, no text, no shadow on background."
+  },
+  {
+    "partType": "ramp",
+    "track": "A",
+    "fit": "plank",
+    "primitive": "static box 160x16",
+    "aspect": "16:9",
+    "seed": 73102,
+    "prompt": "A single wooden plank ramp, funky 1990s Incredible Machine style, STRICT FLAT SIDE-PROFILE horizontal bar, long and thin, wood grain and a couple of bolts, chunky cartoon outline, NO perspective, NO legs or supports, single centered object spanning the width, plain pale neutral background clearly separated, no text."
+  },
+  {
+    "partType": "wall",
+    "track": "A",
+    "fit": "box",
+    "primitive": "static box 120x24",
+    "aspect": "1:1",
+    "seed": 73103,
+    "prompt": "A single solid brick wall block, funky 1990s Incredible Machine style, rectangular red brick pattern with mortar lines, chunky hand-drawn cartoon outline, single centered object, plain pale neutral background clearly separated, no text, no shadow on background."
+  },
+  {
+    "partType": "domino",
+    "track": "A",
+    "fit": "box",
+    "primitive": "box 16x72",
+    "aspect": "1:1",
+    "seed": 73104,
+    "prompt": "A single tall domino tile, funky 1990s Incredible Machine style, white rectangular tile with a single black dot, thin and tall standing upright, chunky hand-drawn cartoon outline, single centered object, plain pale neutral background clearly separated, no text, no shadow on background."
+  },
+  {
+    "partType": "balloon",
+    "track": "A",
+    "fit": "circle",
+    "primitive": "circle r=22 light",
+    "aspect": "1:1",
+    "seed": 73105,
+    "prompt": "A single helium balloon with string, funky 1990s Incredible Machine style, round inflated red balloon with a highlight and a dangling string below, chunky hand-drawn cartoon outline, single centered object, plain pale neutral background clearly separated, no text, no shadow on background."
+  },
+  {
+    "partType": "bucket",
+    "track": "A",
+    "fit": "compound",
+    "primitive": "U-shape 90x70",
+    "aspect": "1:1",
+    "seed": 73106,
+    "prompt": "A single metal bucket viewed from the side, funky 1990s Incredible Machine style, U-shaped container with flat bottom and two vertical sides, gray metal with rivets, chunky hand-drawn cartoon outline, single centered object, plain pale neutral background clearly separated, no text, no shadow on background."
+  },
+  {
+    "partType": "fan",
+    "track": "A",
+    "fit": "box",
+    "primitive": "static box 54x54",
+    "aspect": "1:1",
+    "seed": 73107,
+    "prompt": "A single electric fan, funky 1990s Incredible Machine style, square fan with spinning blades visible through a protective grill, blue casing, chunky hand-drawn cartoon outline, single centered object, plain pale neutral background clearly separated, no text, no shadow on background."
+  },
+  {
+    "partType": "conveyor",
+    "track": "A",
+    "fit": "plank",
+    "primitive": "static box 160x18",
+    "aspect": "16:9",
+    "seed": 73108,
+    "prompt": "A single conveyor belt, funky 1990s Incredible Machine style, STRICT FLAT SIDE-PROFILE horizontal bar, long thin belt with visible moving treads or lines, chunky cartoon outline, NO perspective, NO legs or supports, single centered object spanning the width, plain pale neutral background clearly separated, no text."
+  },
+  {
+    "partType": "seesaw",
+    "track": "A",
+    "fit": "plank",
+    "primitive": "plank 180x16 pivoted",
+    "aspect": "16:9",
+    "seed": 73109,
+    "prompt": "A single seesaw plank, funky 1990s Incredible Machine style, STRICT FLAT SIDE-PROFILE horizontal bar, wooden plank with wood grain, chunky cartoon outline, NO perspective, NO legs or supports, single centered object spanning the width, plain pale neutral background clearly separated, no text."
+  },
+  {
+    "partType": "goal",
+    "track": "A",
+    "fit": "box",
+    "primitive": "sensor box 110x110",
+    "aspect": "1:1",
+    "seed": 73110,
+    "prompt": "A single goal target marker, funky 1990s Incredible Machine style, golden trophy cup or star badge, shiny and celebratory, chunky hand-drawn cartoon outline, single centered object, plain pale neutral background clearly separated, no text, no shadow on background."
+  },
+  {
+    "partType": "trampoline",
+    "track": "B",
+    "fit": "box",
+    "primitive": "static box high restitution",
+    "aspect": "1:1",
+    "seed": 73111,
+    "prompt": "A single bouncy trampoline, funky 1990s Incredible Machine style, springy striped mat on a frame seen from the side, chunky cartoon outline, single centered object, plain pale neutral background clearly separated, no text, no shadow on background."
+  },
+  {
+    "partType": "gear",
+    "track": "B",
+    "fit": "circle",
+    "primitive": "circle r=30 spinning",
+    "aspect": "1:1",
+    "seed": 73112,
+    "prompt": "A single mechanical gear, funky 1990s Incredible Machine style, round cogwheel with evenly spaced teeth, metallic gray or bronze, chunky hand-drawn cartoon outline, perfectly circular, single centered object, plain pale neutral background clearly separated, no text, no shadow on background."
+  },
+  {
+    "partType": "crate",
+    "track": "B",
+    "fit": "box",
+    "primitive": "box 60x60",
+    "aspect": "1:1",
+    "seed": 73113,
+    "prompt": "A single wooden crate, funky 1990s Incredible Machine style, square box with wood planks and nails, chunky hand-drawn cartoon outline, single centered object, plain pale neutral background clearly separated, no text, no shadow on background."
+  },
+  {
+    "partType": "pipe",
+    "track": "B",
+    "fit": "plank",
+    "primitive": "static box 140x20",
+    "aspect": "16:9",
+    "seed": 73114,
+    "prompt": "A single metal pipe segment, funky 1990s Incredible Machine style, STRICT FLAT SIDE-PROFILE horizontal bar, long thin cylindrical tube, gray metal with joint bands, chunky cartoon outline, NO perspective, NO legs or supports, single centered object spanning the width, plain pale neutral background clearly separated, no text."
+  },
+  {
+    "partType": "pinwheel",
+    "track": "B",
+    "fit": "box",
+    "primitive": "static box 50x50 spinning",
+    "aspect": "1:1",
+    "seed": 73115,
+    "prompt": "A single colorful pinwheel, funky 1990s Incredible Machine style, square frame with four triangular blades in bright colors, chunky hand-drawn cartoon outline, single centered object, plain pale neutral background clearly separated, no text, no shadow on background."
+  },
+  {
+    "partType": "spring",
+    "track": "B",
+    "fit": "box",
+    "primitive": "box 30x40 bouncy",
+    "aspect": "1:1",
+    "seed": 73116,
+    "prompt": "A single metal spring coil, funky 1990s Incredible Machine style, vertical coiled spring with visible spirals, metallic silver, chunky hand-drawn cartoon outline, single centered object, plain pale neutral background clearly separated, no text, no shadow on background."
+  },
+  {
+    "partType": "wedge",
+    "track": "B",
+    "fit": "box",
+    "primitive": "static triangle",
+    "aspect": "1:1",
+    "seed": 73117,
+    "prompt": "A single triangular wedge, funky 1990s Incredible Machine style, solid triangle or ramp shape, wooden or stone texture, chunky hand-drawn cartoon outline, single centered object, plain pale neutral background clearly separated, no text, no shadow on background."
+  },
+  {
+    "partType": "platform",
+    "track": "B",
+    "fit": "plank",
+    "primitive": "static box 180x20",
+    "aspect": "16:9",
+    "seed": 73118,
+    "prompt": "A single platform plank, funky 1990s Incredible Machine style, STRICT FLAT SIDE-PROFILE horizontal bar, wide flat surface, wood or metal texture with bolts, chunky cartoon outline, NO perspective, NO legs or supports, single centered object spanning the width, plain pale neutral background clearly separated, no text."
+  },
+  {
+    "partType": "bowlingpin",
+    "track": "B",
+    "fit": "box",
+    "primitive": "box 24x60",
+    "aspect": "1:1",
+    "seed": 73119,
+    "prompt": "A single bowling pin, funky 1990s Incredible Machine style, classic white pin with red stripes, standing upright, chunky hand-drawn cartoon outline, single centered object, plain pale neutral background clearly separated, no text, no shadow on background."
+  },
+  {
+    "partType": "weight",
+    "track": "B",
+    "fit": "box",
+    "primitive": "box 50x40 heavy",
+    "aspect": "1:1",
+    "seed": 73120,
+    "prompt": "A single heavy weight block, funky 1990s Incredible Machine style, dark iron or lead block with a handle or marking indicating heaviness, chunky hand-drawn cartoon outline, single centered object, plain pale neutral background clearly separated, no text, no shadow on background."
+  },
+  {
+    "partType": "rope",
+    "track": "C",
+    "fit": "box",
+    "primitive": "flexible rope segment",
+    "aspect": "1:1",
+    "seed": 73121,
+    "prompt": "A single rope segment, funky 1990s Incredible Machine style, coiled or hanging rope with visible fibers and knots, brown or tan, chunky hand-drawn cartoon outline, single centered object, plain pale neutral background clearly separated, no text, no shadow on background."
+  },
+  {
+    "partType": "gears",
+    "track": "C",
+    "fit": "circle",
+    "primitive": "gear system",
+    "aspect": "1:1",
+    "seed": 73122,
+    "prompt": "A single gear assembly, funky 1990s Incredible Machine style, two or three interlocking gears meshed together, metallic gray or bronze, chunky hand-drawn cartoon outline, circular arrangement, single centered object, plain pale neutral background clearly separated, no text, no shadow on background."
+  },
+  {
+    "partType": "tnt",
+    "track": "C",
+    "fit": "box",
+    "primitive": "box 50x30 explosive",
+    "aspect": "1:1",
+    "seed": 73123,
+    "prompt": "A single TNT explosive bundle, funky 1990s Incredible Machine style, red dynamite sticks with a visible fuse and TNT label, chunky hand-drawn cartoon outline, single centered object, plain pale neutral background clearly separated, no text, no shadow on background."
+  }
+]
