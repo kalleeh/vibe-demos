@@ -17,7 +17,18 @@ export const SPRITES = {
   conveyor: P("./assets/parts/conveyor.png", "plank"),
   seesaw:   P("./assets/parts/seesaw.png",   "plank"),
   goal:     P("./assets/parts/goal.png",     "box"),
-  // Track B + C entries are added by their tasks (6, 7).
+  // Track B (Task 6)
+  trampoline: P("./assets/parts/trampoline.png","box"),
+  gear:       P("./assets/parts/gear.png","circle"),
+  crate:      P("./assets/parts/crate.png","box"),
+  pipe:       P("./assets/parts/pipe.png","plank"),
+  pinwheel:   P("./assets/parts/pinwheel.png","box"),
+  spring:     P("./assets/parts/spring.png","box"),
+  wedge:      P("./assets/parts/wedge.png","box"),
+  platform:   P("./assets/parts/platform.png","plank"),
+  bowlingpin: P("./assets/parts/bowlingpin.png","box"),
+  weight:     P("./assets/parts/weight.png","box"),
+  // Track C entries are added by task 7.
 };
 
 const cache = new Map();

@@ -60,9 +60,31 @@ export const PARTS = {
     label: "Goal", movable: false, fixedByDefault: true,
     build: (s, M) => ({ bodies: [cat(M,"goal",s.tag)(M.Bodies.rectangle(s.x, s.y, s.w||110, s.h||110, { isStatic:true, isSensor:true }))], constraints: [] }),
   },
+  trampoline: { label:"Trampoline", movable:true, fixedByDefault:true,
+    build:(s,M)=>({ bodies:[cat(M,"trampoline",s.tag)(M.Bodies.rectangle(s.x,s.y,s.w||120,18,{isStatic:true,angle:s.angle||0,restitution:0.95,friction:0.2}))], constraints:[] }) },
+  gear: { label:"Gear", movable:true, fixedByDefault:false,
+    build:(s,M)=>({ bodies:[cat(M,"gear",s.tag)(M.Bodies.circle(s.x,s.y,s.r||30,{density:0.01,friction:0.6,restitution:0.1}))], constraints:[] }) },
+  crate: { label:"Crate", movable:true, fixedByDefault:false,
+    build:(s,M)=>({ bodies:[cat(M,"crate",s.tag)(M.Bodies.rectangle(s.x,s.y,s.w||56,s.h||56,{density:0.006,friction:0.5}))], constraints:[] }) },
+  pipe: { label:"Pipe", movable:true, fixedByDefault:true,
+    build:(s,M)=>({ bodies:[cat(M,"pipe",s.tag)(M.Bodies.rectangle(s.x,s.y,s.w||160,16,{isStatic:true,angle:s.angle??0.5,friction:0.1}))], constraints:[] }) },
+  pinwheel: { label:"Pinwheel", movable:true, fixedByDefault:true,
+    build:(s,M)=>{ const v=cat(M,"pinwheel",s.tag)(M.Bodies.rectangle(s.x,s.y,s.w||110,12,{density:0.002,friction:0.3}));
+      const pivot=M.Constraint.create({pointA:{x:s.x,y:s.y},bodyB:v,pointB:{x:0,y:0},stiffness:1,length:0}); return {bodies:[v],constraints:[pivot]}; } },
+  spring: { label:"Spring", movable:true, fixedByDefault:true,
+    build:(s,M)=>({ bodies:[cat(M,"spring",s.tag)(M.Bodies.rectangle(s.x,s.y,40,s.h||60,{isStatic:true,restitution:1.3,friction:0.2}))], constraints:[] }) },
+  wedge: { label:"Wedge", movable:true, fixedByDefault:true,
+    build:(s,M)=>{ const w=s.w||80,h=s.h||80; const b=M.Bodies.fromVertices(s.x,s.y,[[{x:-w/2,y:h/2},{x:w/2,y:h/2},{x:w/2,y:-h/2}]],{isStatic:true,angle:s.angle||0,friction:0.3});
+      return { bodies:[cat(M,"wedge",s.tag)(b)], constraints:[] }; } },
+  platform: { label:"Platform", movable:true, fixedByDefault:true,
+    build:(s,M)=>({ bodies:[cat(M,"platform",s.tag)(M.Bodies.rectangle(s.x,s.y,s.w||200,18,{isStatic:true,angle:s.angle||0,friction:0.6}))], constraints:[] }) },
+  bowlingpin: { label:"Pin", movable:true, fixedByDefault:false,
+    build:(s,M)=>({ bodies:[cat(M,"bowlingpin",s.tag)(M.Bodies.rectangle(s.x,s.y,s.w||22,s.h||66,{density:0.002,friction:0.4}))], constraints:[] }) },
+  weight: { label:"Weight", movable:true, fixedByDefault:false,
+    build:(s,M)=>({ bodies:[cat(M,"weight",s.tag)(M.Bodies.rectangle(s.x,s.y,s.w||50,s.h||50,{density:0.03,friction:0.6}))], constraints:[] }) },
 };
 
-export const PALETTE_TYPES = ["ramp","wall","fan","conveyor","seesaw","balloon","domino","bucket"];
+export const PALETTE_TYPES = ["ramp","wall","fan","conveyor","seesaw","balloon","domino","bucket","trampoline","gear","crate","pipe","pinwheel","spring","wedge","platform","bowlingpin","weight"];
 
 export function makePart(type, spec) {
   const def = PARTS[type];

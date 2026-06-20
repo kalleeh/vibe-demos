@@ -18,6 +18,7 @@ export async function levelCases() {
 export async function officialCases() {
   const L = await import("./level.js");
   const { OFFICIAL_LEVELS } = await import("./levels/official.js");
+  const { makePart } = await import("./parts.js");
   const cases = [
     { name:"at least 8 official levels", fn:()=>{ if(OFFICIAL_LEVELS.length < 8) throw new Error("only "+OFFICIAL_LEVELS.length); } },
     { name:"ids unique + sequential", fn:()=>{ const ids=OFFICIAL_LEVELS.map(l=>l.id); if(new Set(ids).size!==ids.length) throw new Error("dup ids"); } },
@@ -25,6 +26,18 @@ export async function officialCases() {
   OFFICIAL_LEVELS.forEach((lvl,i) => cases.push({ name:`level ${i+1} (${lvl.id}) validates`, fn:()=>{ const v=L.validateLevel(lvl); if(!v.ok) throw new Error(v.reason); } }));
   // every level must give the player at least one inventory part
   OFFICIAL_LEVELS.forEach((lvl,i) => cases.push({ name:`level ${i+1} has inventory`, fn:()=>{ if(!lvl.inventory.reduce((a,b)=>a+b.count,0)) throw new Error("no parts"); } }));
+  // Track B parts build without throwing (Matter stub includes fromVertices)
+  const trackB = ["trampoline","gear","crate","pipe","pinwheel","spring","wedge","platform","bowlingpin","weight"];
+  const stubMatter = { Bodies:{
+    rectangle:(x,y,w,h,o)=>({position:{x,y},bounds:{min:{x:x-w/2,y:y-h/2},max:{x:x+w/2,y:y+h/2}},plugin:{}}),
+    circle:(x,y,r,o)=>({position:{x,y},bounds:{min:{x:x-r,y:y-r},max:{x:x+r,y:y+r}},plugin:{}}),
+    fromVertices:(x,y,v,o)=>({position:{x,y},vertices:v[0]||[],bounds:{min:{x:0,y:0},max:{x:0,y:0}},plugin:{}})
+  }, Body:{create:(o)=>({...o,position:{x:0,y:0}})}, Constraint:{create:(o)=>o} };
+  globalThis.Matter = stubMatter;
+  trackB.forEach(t => cases.push({ name:`Track B part ${t} builds`, fn:()=>{
+    const r = makePart(t, {x:0,y:0});
+    if(!r.bodies || r.bodies.length===0) throw new Error("no bodies");
+  }}));
   return cases;
 }
 
