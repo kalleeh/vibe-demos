@@ -14,6 +14,10 @@ export function validateLevel(level) {
   if (level.schema !== SCHEMA_VERSION) return { ok:false, reason:`schema ${level.schema} != ${SCHEMA_VERSION}` };
   if (!level.world || !level.goal || !Array.isArray(level.inventory)) return { ok:false, reason:"missing world/goal/inventory" };
   if (!SUPPORTED_GOALS.includes(level.goal.type)) return { ok:false, reason:`unsupported goal ${level.goal.type}` };
+  const z = level.goal.zone;
+  if (!z || typeof z.x !== "number" || typeof z.y !== "number" || typeof z.w !== "number" || typeof z.h !== "number") {
+    return { ok:false, reason:"goal.zone missing or invalid" };
+  }
   for (const grp of ["fixed","start"]) {
     for (const e of (level[grp]||[])) {
       if (!PARTS[e.type]) return { ok:false, reason:`unknown part type ${e.type}` };
@@ -51,7 +55,6 @@ export function buildWorld(level, M) {
   for (const grp of ["fixed","start"]) {
     for (const spec of (level[grp]||[])) {
       const { bodies: bs, constraints } = makePart(spec.type, spec);
-      bs.forEach(b => { if (spec.angle) M.Body.setAngle(b, spec.angle); });
       M.Composite.add(world, bs);
       if (constraints.length) M.Composite.add(world, constraints);
       bodies.push(...bs);

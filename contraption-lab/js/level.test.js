@@ -9,6 +9,7 @@ export async function levelCases() {
     { name:"validate accepts good level", fn:()=>{ if(!L.validateLevel(good).ok) throw new Error("rejected"); } },
     { name:"validate rejects bad schema", fn:()=>{ if(L.validateLevel({...good,schema:99}).ok) throw new Error("accepted"); } },
     { name:"validate rejects unknown type", fn:()=>{ if(L.validateLevel({...good,fixed:[{type:"xxx",x:0,y:0}]}).ok) throw new Error("accepted"); } },
+    { name:"validate rejects missing goal.zone", fn:()=>{ const noZone={...good,goal:{type:"dwell",object:"ball",ms:300}}; if(L.validateLevel(noZone).ok) throw new Error("accepted"); } },
     { name:"serialize round-trips", fn:()=>{ const s=L.serializeLevel(good); const o=JSON.parse(s); if(o.title!=="T") throw new Error("lost data"); } },
     { name:"clone is deep", fn:()=>{ const c=L.cloneLevel(good); c.title="X"; if(good.title!=="T") throw new Error("mutated"); } },
   ];
