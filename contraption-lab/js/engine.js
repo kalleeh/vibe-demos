@@ -12,11 +12,17 @@ export class Sim {
     this.level = level;
     this.placed = [];  // player-added specs {type,x,y,angle}
     this.onEvent = null;  // optional callback for sound/render events
+    this._collisionHandler = null;  // stable listener ref (installed/removed across rebuilds)
     this._build();
   }
 
   _build() {
     const m = M();
+    // Detach the collision listener from the engine we're about to replace, so old
+    // engines (and their listener) don't accumulate across reset()/rebuild calls.
+    if (this.engine && this._collisionHandler && m.Events) {
+      try { m.Events.off(this.engine, "collisionStart", this._collisionHandler); } catch {}
+    }
     const w = buildWorld(this.level, m);
     this.engine = w.engine;
     this.world = w.world;
@@ -273,28 +279,23 @@ export class Sim {
   _installCollisionListener(m) {
     try {
       if (!m.Events) return;
-      m.Events.on(this.engine, "collisionStart", (event) => {
-        try {
-          if (!this.onEvent || this.state !== "running") return;
-
-          // For each collision pair, compute relative speed
-          for (const pair of event.pairs) {
-            const { bodyA, bodyB } = pair;
-            if (!bodyA || !bodyB) continue;
-
-            // Compute relative velocity magnitude
-            const dvx = (bodyA.velocity?.x || 0) - (bodyB.velocity?.x || 0);
-            const dvy = (bodyA.velocity?.y || 0) - (bodyB.velocity?.y || 0);
-            const speed = Math.sqrt(dvx * dvx + dvy * dvy);
-
-            // Only fire bounce for significant impacts (threshold tuned for gameplay)
-            if (speed > 3.5) {
-              this.onEvent("bounce", { speed });
-              break; // Only one bounce event per collision frame
+      // Build the handler once (stable reference, so it can be Events.off'd on rebuild).
+      if (!this._collisionHandler) {
+        this._collisionHandler = (event) => {
+          try {
+            if (!this.onEvent || this.state !== "running") return;
+            for (const pair of event.pairs) {
+              const { bodyA, bodyB } = pair;
+              if (!bodyA || !bodyB) continue;
+              const dvx = (bodyA.velocity?.x || 0) - (bodyB.velocity?.x || 0);
+              const dvy = (bodyA.velocity?.y || 0) - (bodyB.velocity?.y || 0);
+              const speed = Math.sqrt(dvx * dvx + dvy * dvy);
+              if (speed > 3.5) { this.onEvent("bounce", { speed }); break; }
             }
-          }
-        } catch {}
-      });
+          } catch {}
+        };
+      }
+      m.Events.on(this.engine, "collisionStart", this._collisionHandler);
     } catch {}
   }
 }
