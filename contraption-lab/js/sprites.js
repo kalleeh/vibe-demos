@@ -31,7 +31,7 @@ export function resolveSprite(partType, themeId) {
 
 export function getImage(src) {
   const img = cache.get(src);
-  return img && img.complete && img.naturalWidth > 0 ? img : null;
+  return img && img.complete && img.naturalWidth > 0 && img.naturalHeight > 0 ? img : null;
 }
 
 export function preloadSprites(themeId) {
