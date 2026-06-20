@@ -72,7 +72,7 @@ export const PARTS = {
     build:(s,M)=>{ const v=cat(M,"pinwheel",s.tag)(M.Bodies.rectangle(s.x,s.y,s.w||110,12,{density:0.002,friction:0.3}));
       const pivot=M.Constraint.create({pointA:{x:s.x,y:s.y},bodyB:v,pointB:{x:0,y:0},stiffness:1,length:0}); return {bodies:[v],constraints:[pivot]}; } },
   spring: { label:"Spring", movable:true, fixedByDefault:true,
-    build:(s,M)=>({ bodies:[cat(M,"spring",s.tag)(M.Bodies.rectangle(s.x,s.y,40,s.h||60,{isStatic:true,restitution:1.3,friction:0.2}))], constraints:[] }) },
+    build:(s,M)=>({ bodies:[cat(M,"spring",s.tag)(M.Bodies.rectangle(s.x,s.y,40,s.h||60,{isStatic:true,restitution:1.1,friction:0.2}))], constraints:[] }) },
   wedge: { label:"Wedge", movable:true, fixedByDefault:true,
     build:(s,M)=>{ const w=s.w||80,h=s.h||80; const b=M.Bodies.fromVertices(s.x,s.y,[[{x:-w/2,y:h/2},{x:w/2,y:h/2},{x:w/2,y:-h/2}]],{isStatic:true,angle:s.angle||0,friction:0.3});
       return { bodies:[cat(M,"wedge",s.tag)(b)], constraints:[] }; } },
