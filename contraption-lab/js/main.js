@@ -85,8 +85,12 @@ function makeController() {
   });
 }
 function resize(){ const r = resizeCanvas(canvas); transform = r.transform; draw(); }
+// Compute prefers-reduced-motion ONCE (not per frame); keep it live via a change listener.
+let reducedMotion = (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) ?? false;
+if (window.matchMedia) {
+  try { window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", e => { reducedMotion = e.matches; }); } catch {}
+}
 function draw(nowTs){
-  const reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   drawWorld(ctx, sim, transform, tokens(), {
     ghost: controller && controller.ghost ? ghostVerts(controller.ghost) : null,
     themeId: document.documentElement.dataset.theme,
