@@ -2,10 +2,9 @@ import { OFFICIAL_LEVELS } from "./levels/official.js";
 import { Sim } from "./engine.js";
 import { drawWorld, resizeCanvas } from "./render.js";
 import { tokens, applyTheme, loadTheme, THEMES } from "./theme.js";
-import { PARTS, PALETTE_TYPES } from "./parts.js";
+import { PARTS, makePart } from "./parts.js";
 import { PlacementController } from "./input.js";
 import { recordSolve, isSolved } from "./progress.js";
-import { makePart } from "./parts.js";
 
 // optional self-test
 if (new URLSearchParams(location.search).has("test")) {
@@ -24,13 +23,22 @@ function fillThemeSelect() {
   sel.value = loadTheme();
   sel.onchange = () => applyTheme(sel.value);
 }
+// remaining[] is DERIVED from sim.placed — the sim is the single source of truth,
+// so placing and deleting parts always keep the palette counts correct (no drift).
+function recomputeRemaining() {
+  remaining = {};
+  current.inventory.forEach(i => remaining[i.type] = i.count);
+  sim.placed.forEach(s => { if (s.type in remaining) remaining[s.type]--; });
+}
 function buildPalette() {
+  recomputeRemaining();
   const pal = document.getElementById("palette");
   pal.innerHTML = "";
   for (const inv of current.inventory) {
     const b = document.createElement("button");
     b.textContent = `${PARTS[inv.type].label} ×${remaining[inv.type]}`;
     b.disabled = remaining[inv.type] <= 0;
+    if (inv.type === selected) b.classList.add("sel");
     b.onclick = () => { selected = inv.type; [...pal.children].forEach(c=>c.classList.remove("sel")); b.classList.add("sel"); };
     b.dataset.type = inv.type;
     pal.appendChild(b);
@@ -39,7 +47,6 @@ function buildPalette() {
 function loadLevel(level) {
   current = level;
   document.getElementById("levelTitle").textContent = level.title + (isSolved(level.id) ? " ✓" : "");
-  remaining = {}; level.inventory.forEach(i => remaining[i.type] = i.count);
   selected = null;
   sim = new Sim(level);
   if (controller) controller.setSim(sim); else controller = makeController();
@@ -52,7 +59,8 @@ function makeController() {
     getTransform: () => transform,
     getSelectedType: () => selected,
     remaining: (t) => remaining[t] ?? 0,
-    onPlaced: (t) => { remaining[t]--; buildPalette(); },
+    onPlaced: () => buildPalette(),       // place: refresh counts from sim.placed
+    onCountsChanged: () => buildPalette(), // delete: refund counts from sim.placed
     onChange: () => draw(),
   });
 }
@@ -72,8 +80,7 @@ function onWin(){ const banner=document.getElementById("banner"); banner.textCon
 function onLost(){ const banner=document.getElementById("banner"); banner.textContent="Time's up — Reset and retry"; banner.hidden=false; }
 
 document.getElementById("runBtn").onclick = () => { if (sim.state==="build"){ sim.run(); document.getElementById("banner").hidden=true; } };
-document.getElementById("resetBtn").onclick = () => { sim.reset(); recompRemaining(); document.getElementById("banner").hidden=true; draw(); };
-function recompRemaining(){ remaining={}; current.inventory.forEach(i=>remaining[i.type]=i.count); sim.placed.forEach(s=>remaining[s.type]--); buildPalette(); }
+document.getElementById("resetBtn").onclick = () => { sim.reset(); buildPalette(); document.getElementById("banner").hidden=true; draw(); };
 
 function buildMenu(){ const dlg=document.getElementById("levelMenu");
   dlg.innerHTML = `<h3>Levels</h3>` + OFFICIAL_LEVELS.map((l,i)=>`<button data-id="${l.id}">${String(i+1).padStart(2,"0")} · ${l.title} ${isSolved(l.id)?"✓":""}</button>`).join("") + `<button data-close>Close</button>`;

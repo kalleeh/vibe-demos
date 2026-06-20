@@ -56,26 +56,24 @@ export class Sim {
     return this._spawn(spec, true);
   }
 
-  removeBodyAt(wx, wy) {
-    // Find the closest placed part by proximity to the click point
-    let idx = -1;
-    let best = 1e9;
-
+  // Index of the closest placed part within tap range of (wx,wy), or -1.
+  // 80 world-unit radius (comfortable tap target; ~40px at 0.5 letterbox scale).
+  placedAt(wx, wy) {
+    let idx = -1, best = 80 * 80;
     this.placed.forEach((s, i) => {
       const d = (s.x - wx) ** 2 + (s.y - wy) ** 2;
-      if (d < best) {
-        best = d;
-        idx = i;
-      }
+      if (d < best) { best = d; idx = i; }
     });
+    return idx;
+  }
 
-    // 80px threshold (comfortable tap target)
-    if (idx >= 0 && best < 80 * 80) {
+  removeBodyAt(wx, wy) {
+    const idx = this.placedAt(wx, wy);
+    if (idx >= 0) {
       this.placed.splice(idx, 1);
       this._build();  // Rebuild to remove the part
       return true;
     }
-
     return false;
   }
 
