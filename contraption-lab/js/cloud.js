@@ -110,3 +110,132 @@ function humanError(e) {
   const m = e?.response?.message || e?.message || "something went wrong";
   return /failed to authenticate|invalid/i.test(m) ? "email or password is incorrect" : m;
 }
+
+// ─── Community Level Publishing ─────────────────────────────────────────────
+
+export async function publishLevel({title, data}) {
+  const u = user();
+  if (!pb || !cloud.available) return { ok:false, error:"offline" };
+  if (!u) return { ok:false, error:"sign in to publish" };
+
+  try {
+    const author_name = (u.name || u.email || "Anonymous").slice(0, 40);
+    const rec = await pb.collection("level").create({
+      author: u.id,
+      author_name,
+      title: String(title).slice(0, 60),
+      data,
+      published: true,
+    });
+    return { ok:true, id:rec.id };
+  } catch (e) { return { ok:false, error:humanError(e) }; }
+}
+
+// Pure helper: PB record → display card. Testable without network.
+export function levelCard(rec, plays=0, likes=0) {
+  return {
+    id: rec.id,
+    title: rec.title || "Untitled",
+    author_name: rec.author_name || "Anonymous",
+    plays,
+    likes,
+    data: rec.data,
+  };
+}
+
+export async function listLevels(tab="recent", page=1, perPage=24) {
+  if (!pb || !cloud.available) return [];
+  try {
+    const res = await pb.collection("level").getList(page, perPage, { sort: "-created" });
+
+    // Attach play/like counts for each level
+    const cards = await Promise.all(res.items.map(async (rec) => {
+      const plays = await playsCount(rec.id);
+      const likes = await likesCount(rec.id);
+      return levelCard(rec, plays, likes);
+    }));
+
+    // Sort by tab preference
+    if (tab === "played") {
+      return cards.sort((a, b) => b.plays - a.plays);
+    } else if (tab === "rated") {
+      return cards.sort((a, b) => b.likes - a.likes);
+    }
+    // "recent" stays as-is (already sorted by -created)
+    return cards;
+  } catch { return []; }
+}
+
+export async function getLevel(id) {
+  if (!pb || !cloud.available) return null;
+  try {
+    return await pb.collection("level").getOne(id);
+  } catch { return null; }
+}
+
+// NOTE: Filter strings below interpolate only server-validated values (level ids
+// and auth user ids). User-typed search text must never be interpolated directly
+// into a filter — see the NOTE in pushProgress above for the security reasoning.
+
+export async function recordPlay(id) {
+  if (!pb || !cloud.available) return;
+  try {
+    await pb.collection("play").create({ level: id });
+  } catch { /* best-effort: offline/errors don't block */ }
+}
+
+export async function playsCount(id) {
+  if (!pb || !cloud.available) return 0;
+  try {
+    const res = await pb.collection("play").getList(1, 1, { filter: `level="${id}"` });
+    return res.totalItems;
+  } catch { return 0; }
+}
+
+export async function likesCount(id) {
+  if (!pb || !cloud.available) return 0;
+  try {
+    const res = await pb.collection("rating").getList(1, 1, { filter: `level="${id}" && value>0` });
+    return res.totalItems;
+  } catch { return 0; }
+}
+
+export async function hasRated(id) {
+  const u = user();
+  if (!pb || !cloud.available || !u) return false;
+  try {
+    await pb.collection("rating").getFirstListItem(`user="${u.id}" && level="${id}"`);
+    return true;
+  } catch { return false; }
+}
+
+export async function rateLevel(id) {
+  const u = user();
+  if (!pb || !cloud.available || !u) return false;
+
+  try {
+    const currentlyRated = await hasRated(id);
+
+    if (currentlyRated) {
+      // Delete the existing rating (unlike)
+      try {
+        const existing = await pb.collection("rating").getFirstListItem(`user="${u.id}" && level="${id}"`);
+        await pb.collection("rating").delete(existing.id);
+        return false;
+      } catch { return currentlyRated; }
+    } else {
+      // Create new rating (like)
+      try {
+        await pb.collection("rating").create({
+          user: u.id,
+          level: id,
+          value: 1,
+        });
+        return true;
+      } catch { return currentlyRated; }
+    }
+  } catch {
+    // On failure, return current state
+    return await hasRated(id);
+  }
+}
