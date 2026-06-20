@@ -80,6 +80,17 @@
     </form>
   </dialog>
 
+  <!-- Browse screen (hidden by default, shown when routing to #/browse) -->
+  <div id="browseScreen" hidden>
+    <div class="bar">
+      <span class="brand">Community Levels</span>
+      <button data-tab="recent" class="ghostbtn browsetab active">Recent</button>
+      <button data-tab="played" class="ghostbtn browsetab">Most Played</button>
+      <button data-tab="rated" class="ghostbtn browsetab">Top Rated</button>
+    </div>
+    <div id="browseGrid" class="browsegrid"></div>
+  </div>
+
   <script type="module" src="./js/main.js"></script>
 </body>
 </html>

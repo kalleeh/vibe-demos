@@ -1,9 +1,10 @@
 // contraption-lab/js/editor.test.js
-// Unit tests for the level editor (pure functions only — no DOM, headless).
+// Unit tests for the level editor + browse (pure functions only — no DOM, headless).
 
 export async function editorCases() {
   const E = await import("./editor.js");
   const L = await import("./level.js");
+  const B = await import("./browse.js");
 
   const level1 = E.emptyLevel();
   const level2 = E.emptyLevel();
@@ -49,6 +50,18 @@ export async function editorCases() {
         const stripped = E.stripLevel(level4);
         if("_solvedInTest" in stripped) throw new Error("_solvedInTest not removed");
         if(!stripped.inventory || stripped.inventory.length === 0) throw new Error("lost real fields");
+      }},
+    { name:"thumbnailFor doesn't throw on valid level", fn:()=>{
+        // Smoke test: thumbnailFor should accept a valid level + stub canvas without throwing.
+        // (Full rendering requires a real canvas + Matter runtime, tested in the browser ?test.)
+        const canvas = { width:320, height:180, getContext:()=>null };
+        try { B.thumbnailFor(level3, canvas); }
+        catch (e) { throw new Error("thumbnailFor threw: "+e.message); }
+      }},
+    { name:"thumbnailFor doesn't throw on empty/invalid level", fn:()=>{
+        const canvas = { width:320, height:180, getContext:()=>null };
+        try { B.thumbnailFor({}, canvas); }
+        catch (e) { throw new Error("thumbnailFor threw on bad level (should silently leave canvas blank): "+e.message); }
       }},
   ];
 }
