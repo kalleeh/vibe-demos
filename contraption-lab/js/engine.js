@@ -11,6 +11,7 @@ export class Sim {
   constructor(level) {
     this.level = level;
     this.placed = [];  // player-added specs {type,x,y,angle}
+    this.onEvent = null;  // optional callback for sound/render events
     this._build();
   }
 
@@ -26,6 +27,9 @@ export class Sim {
     for (const spec of this.placed) {
       this._spawn(spec, true);
     }
+
+    // Install collision listener for bounce events
+    this._installCollisionListener(m);
 
     this.state = "build";
     this.elapsed = 0;
@@ -243,6 +247,8 @@ export class Sim {
               m.Body.applyForce(b, b.position, { x: (dx / dist) * mag, y: (dy / dist) * mag });
             }
           }
+          // Fire explode event
+          try { if (this.onEvent) this.onEvent("explode"); } catch {}
           t.plugin.armed = false;
           t.plugin._spent = true;
           m.Composite.remove(this.world, t);
@@ -260,5 +266,35 @@ export class Sim {
 
   partsUsed() {
     return this.placed.length;
+  }
+
+  // Install Matter collision listener for bounce events. Try-wrapped so sound
+  // errors never break physics.
+  _installCollisionListener(m) {
+    try {
+      if (!m.Events) return;
+      m.Events.on(this.engine, "collisionStart", (event) => {
+        try {
+          if (!this.onEvent || this.state !== "running") return;
+
+          // For each collision pair, compute relative speed
+          for (const pair of event.pairs) {
+            const { bodyA, bodyB } = pair;
+            if (!bodyA || !bodyB) continue;
+
+            // Compute relative velocity magnitude
+            const dvx = (bodyA.velocity?.x || 0) - (bodyB.velocity?.x || 0);
+            const dvy = (bodyA.velocity?.y || 0) - (bodyB.velocity?.y || 0);
+            const speed = Math.sqrt(dvx * dvx + dvy * dvy);
+
+            // Only fire bounce for significant impacts (threshold tuned for gameplay)
+            if (speed > 3.5) {
+              this.onEvent("bounce", { speed });
+              break; // Only one bounce event per collision frame
+            }
+          }
+        } catch {}
+      });
+    } catch {}
   }
 }

@@ -8,6 +8,7 @@ import { recordSolve, isSolved } from "./progress.js";
 import { init as cloudInit, cloud, user as cloudUser, pushProgress, pullProgress, leaderboard } from "./cloud.js";
 import { mountAccountUI, setIndicator } from "./auth-ui.js";
 import { preloadSprites } from "./sprites.js";
+import { sfx, setMuted, isMuted } from "./sound.js";
 
 // optional self-test
 if (new URLSearchParams(location.search).has("test")) {
@@ -15,9 +16,11 @@ if (new URLSearchParams(location.search).has("test")) {
     const cloudMod = await import("./cloud.test.js");
     const spriteMod = await import("./sprites.test.js");
     const editorMod = await import("./editor.test.js");
+    const soundMod = await import("./sound.test.js");
     m.runTests([ ...(await m.levelCases()), ...(await m.officialCases()), ...(await m.progressCases()),
                  ...(await m.progressShapeCases()), ...(await cloudMod.cloudCases()), ...(await spriteMod.spriteCases()),
-                 ...(await m.trackCCases()), ...(await m.trackCEngineCases()), ...(await editorMod.editorCases()) ]);
+                 ...(await m.trackCCases()), ...(await m.trackCEngineCases()), ...(await editorMod.editorCases()),
+                 ...(await soundMod.soundCases()) ]);
   });
 }
 
@@ -65,6 +68,7 @@ function loadLevel(level) {
   document.getElementById("levelTitle").textContent = level.title + (isSolved(level.id) ? " ✓" : "");
   selected = null;
   sim = new Sim(level);
+  sim.onEvent = (name) => sfx(name);  // Wire sound events
   if (controller) controller.setSim(sim); else controller = makeController();
   buildPalette();
   document.getElementById("banner").hidden = true;
@@ -75,7 +79,7 @@ function makeController() {
     getTransform: () => transform,
     getSelectedType: () => selected,
     remaining: (t) => remaining[t] ?? 0,
-    onPlaced: () => buildPalette(),       // place: refresh counts from sim.placed
+    onPlaced: () => { buildPalette(); sfx("place"); },       // place: refresh counts + sound
     onCountsChanged: () => buildPalette(), // delete: refund counts from sim.placed
     onChange: () => draw(),
   });
@@ -93,10 +97,11 @@ function tick(ts){ const dt = last ? ts-last : 16; last = ts;
 function onWin(){ const banner=document.getElementById("banner"); banner.textContent="Solved! ✓ "+sim.partsUsed()+" parts";
   banner.hidden=false; recordSolve(current.id, sim.partsUsed(), Math.round(sim.elapsed));
   document.getElementById("levelTitle").textContent = current.title + " ✓";
+  sfx("win");
   import("./progress.js").then(p => pushProgress(p.getProgress())); }
 function onLost(){ const banner=document.getElementById("banner"); banner.textContent="Time's up — Reset and retry"; banner.hidden=false; }
 
-document.getElementById("runBtn").onclick = () => { if (sim.state==="build"){ sim.run(); document.getElementById("banner").hidden=true; } };
+document.getElementById("runBtn").onclick = () => { if (sim.state==="build"){ sim.run(); sfx("run"); document.getElementById("banner").hidden=true; } };
 document.getElementById("resetBtn").onclick = () => { sim.reset(); buildPalette(); document.getElementById("banner").hidden=true; draw(); };
 
 function buildMenu(){ const dlg=document.getElementById("levelMenu");
@@ -225,6 +230,18 @@ window.addEventListener("hashchange", route);
 window.addEventListener("resize", resize);
 
 applyTheme(loadTheme()); fillThemeSelect();
+
+// Mute button
+function updateMuteButton() {
+  const btn = document.getElementById("muteBtn");
+  btn.textContent = isMuted() ? "🔇" : "🔊";
+}
+document.getElementById("muteBtn").onclick = () => {
+  setMuted(!isMuted());
+  updateMuteButton();
+};
+updateMuteButton();
+
 new MutationObserver(()=>{ const newTheme = document.documentElement.dataset.theme; preloadSprites(newTheme).then(draw); }).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
 preloadSprites(loadTheme()).then(() => {
   route();
