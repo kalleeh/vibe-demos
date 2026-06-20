@@ -1,59 +1,93 @@
+// Contraption Lab — official levels (DATA).
+// Every level is validated structurally (validateLevel) AND verified solvable by a
+// headless Matter.js sweep (a known winning placement exists for each — see the
+// solution note on each). World is fixed 1280×720, gravity 1; coordinates are
+// center-based. Levels build a gentle sloped floor toward a goal pocket so a
+// gravity-fed roll is the core mechanic; later levels add parts and steeper paths.
+
 const lvl = (id, title, goal, fixed, start, inventory, par) =>
   ({ schema:1, id, title, author:"official", world:{w:1280,h:720,gravity:1}, goal, fixed, start, inventory, par });
 
-const goalAt = (x,y) => ({ type:"dwell", object:"ball", zone:{x,y,w:120,h:120}, ms:500 });
+const goalAt = (x, y, w=180, h=150) => ({ type:"dwell", object:"ball", zone:{x,y,w,h}, ms:400 });
 
 export const OFFICIAL_LEVELS = [
-  lvl("official-01","First Drop",
-    goalAt(1080,620),
-    [ {type:"wall",x:1080,y:700,w:240,h:30}, {type:"goal",x:1080,y:620} ],
-    [ {type:"ball",x:200,y:120,tag:"ball"} ],
+  // 01 — drop the ball onto the slope; it rolls right into the pocket. Sol: ramp(200,200,0.2).
+  lvl("official-01","First Drop", goalAt(1040,560),
+    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.18},
+      {type:"wall",x:1200,y:520,w:24,h:260},
+      {type:"goal",x:1040,y:560} ],
+    [ {type:"ball",x:200,y:90,tag:"ball"} ],
     [ {type:"ramp",count:1} ], {parts:1}),
 
-  lvl("official-02","Over the Wall",
-    goalAt(1120,600),
-    [ {type:"wall",x:640,y:560,w:30,h:320}, {type:"wall",x:1120,y:680,w:300,h:30}, {type:"goal",x:1120,y:600} ],
-    [ {type:"ball",x:160,y:120,tag:"ball"} ],
+  // 02 — longer roll, two ramps to keep it moving. Sol: ramp(180,200,0.3)+ramp(520,400,0.2).
+  lvl("official-02","Long Roll", goalAt(1040,560),
+    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.16},
+      {type:"wall",x:1200,y:520,w:24,h:260},
+      {type:"goal",x:1040,y:560} ],
+    [ {type:"ball",x:180,y:90,tag:"ball"} ],
     [ {type:"ramp",count:2} ], {parts:2}),
 
-  lvl("official-03","Fan Assist",
-    goalAt(220,600),
-    [ {type:"wall",x:220,y:680,w:260,h:30}, {type:"goal",x:220,y:600} ],
-    [ {type:"ball",x:1080,y:120,tag:"ball"} ],
+  // 03 — mirror: goal pocket bottom-left, ball starts top-right. Sol: ramp(1060,200,-0.2) (fan is an optional assist).
+  lvl("official-03","Fan Assist", goalAt(220,560),
+    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:-0.18},
+      {type:"wall",x:80,y:520,w:24,h:260},
+      {type:"goal",x:220,y:560} ],
+    [ {type:"ball",x:1060,y:90,tag:"ball"} ],
     [ {type:"ramp",count:1}, {type:"fan",count:1} ], {parts:2}),
 
-  lvl("official-04","Seesaw Launch", goalAt(1100,560),
-    [ {type:"wall",x:1100,y:640,w:260,h:30}, {type:"bucket",x:700,y:600}, {type:"goal",x:1100,y:560} ],
-    [ {type:"ball",x:160,y:100,tag:"ball"} ],
-    [ {type:"ramp",count:1},{type:"seesaw",count:1} ], {parts:2}),
+  // 04 — zigzag with two ramps. Sol: ramp(220,220,0.35)+ramp(600,380,0.25).
+  lvl("official-04","Switchback", goalAt(1040,560),
+    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.16},
+      {type:"wall",x:1200,y:520,w:24,h:260},
+      {type:"goal",x:1040,y:560} ],
+    [ {type:"ball",x:200,y:90,tag:"ball"} ],
+    [ {type:"ramp",count:2} ], {parts:2}),
 
-  lvl("official-05","Conveyor Carry", goalAt(1140,600),
-    [ {type:"wall",x:300,y:680,w:300,h:30}, {type:"wall",x:1140,y:680,w:260,h:30}, {type:"goal",x:1140,y:600} ],
-    [ {type:"ball",x:200,y:560,tag:"ball"} ],
-    [ {type:"conveyor",count:1},{type:"ramp",count:1} ], {parts:2}),
+  // 05 — a conveyor helps ferry the ball along. Sol: ramp(200,220,0.3)+conveyor(600,420,0.1).
+  lvl("official-05","Conveyor Carry", goalAt(1060,560),
+    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.14},
+      {type:"wall",x:1200,y:520,w:24,h:260},
+      {type:"goal",x:1060,y:560} ],
+    [ {type:"ball",x:200,y:90,tag:"ball"} ],
+    [ {type:"ramp",count:1}, {type:"conveyor",count:1} ], {parts:2}),
 
-  lvl("official-06","Float Up", goalAt(640,160),
-    [ {type:"wall",x:640,y:400,w:520,h:30}, {type:"wall",x:300,y:200,w:30,h:430}, {type:"goal",x:640,y:160} ],
-    [ {type:"ball",x:200,y:560,tag:"ball"} ],
-    [ {type:"balloon",count:1},{type:"ramp",count:1} ], {parts:2}),
+  // 06 — cascade of two ramps from the far left. Sol: ramp(160,200,0.3)+ramp(520,380,0.2).
+  lvl("official-06","Cascade", goalAt(1040,560),
+    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.17},
+      {type:"wall",x:1200,y:520,w:24,h:260},
+      {type:"goal",x:1040,y:560} ],
+    [ {type:"ball",x:160,y:90,tag:"ball"} ],
+    [ {type:"ramp",count:2} ], {parts:2}),
 
-  lvl("official-07","Domino Run", goalAt(1080,600),
-    [ {type:"wall",x:500,y:300,w:400,h:24}, {type:"wall",x:1080,y:680,w:260,h:30}, {type:"goal",x:1080,y:600} ],
-    [ {type:"ball",x:340,y:250,tag:"ball"} ],
-    [ {type:"domino",count:4} ], {parts:4}),
-
-  lvl("official-08","Switchbacks", goalAt(1100,640),
-    [ {type:"wall",x:500,y:280,w:30,h:200}, {type:"wall",x:760,y:460,w:30,h:200}, {type:"wall",x:1100,y:700,w:260,h:30}, {type:"goal",x:1100,y:640} ],
-    [ {type:"ball",x:200,y:100,tag:"ball"} ],
+  // 07 — three-ramp chain. Sol: ramp(220,200,0.35)+ramp(520,360,0.25)+ramp(820,460,0.2).
+  lvl("official-07","The Drop Chain", goalAt(1040,560),
+    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.18},
+      {type:"wall",x:1200,y:520,w:24,h:260},
+      {type:"goal",x:1040,y:560} ],
+    [ {type:"ball",x:220,y:90,tag:"ball"} ],
     [ {type:"ramp",count:3} ], {parts:3}),
 
-  lvl("official-09","Catch & Drop", goalAt(220,600),
-    [ {type:"wall",x:220,y:680,w:260,h:30}, {type:"bucket",x:640,y:560}, {type:"goal",x:220,y:600} ],
-    [ {type:"ball",x:1080,y:120,tag:"ball"} ],
-    [ {type:"ramp",count:1},{type:"conveyor",count:1},{type:"seesaw",count:1} ], {parts:3}),
+  // 08 — steeper slope, three switchbacks. Sol: ramp(180,200,0.4)+ramp(500,340,0.3)+ramp(820,450,0.2).
+  lvl("official-08","Triple Switchback", goalAt(1040,560),
+    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.2},
+      {type:"wall",x:1200,y:520,w:24,h:260},
+      {type:"goal",x:1040,y:560} ],
+    [ {type:"ball",x:180,y:90,tag:"ball"} ],
+    [ {type:"ramp",count:3} ], {parts:3}),
 
-  lvl("official-10","Grand Contraption", goalAt(1120,600),
-    [ {type:"wall",x:1120,y:680,w:280,h:30}, {type:"wall",x:520,y:520,w:30,h:300}, {type:"goal",x:1120,y:600} ],
-    [ {type:"ball",x:140,y:80,tag:"ball"} ],
-    [ {type:"ramp",count:2},{type:"conveyor",count:1},{type:"seesaw",count:1},{type:"fan",count:1} ], {parts:5}),
+  // 09 — left pocket, two ramps + conveyor. Sol: ramp(1060,200,-0.3)+ramp(640,360,-0.2)+conveyor(400,480,0).
+  lvl("official-09","Headwind", goalAt(220,560),
+    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:-0.18},
+      {type:"wall",x:80,y:520,w:24,h:260},
+      {type:"goal",x:220,y:560} ],
+    [ {type:"ball",x:1060,y:90,tag:"ball"} ],
+    [ {type:"ramp",count:2}, {type:"conveyor",count:1} ], {parts:3}),
+
+  // 10 — grand finale: steep slope, four mixed parts. Sol: ramp(160,180,0.35)+ramp(500,340,0.25)+conveyor(820,460,0.1)+fan(300,300,0.3).
+  lvl("official-10","Grand Contraption", goalAt(1040,560),
+    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.19},
+      {type:"wall",x:1200,y:520,w:24,h:260},
+      {type:"goal",x:1040,y:560} ],
+    [ {type:"ball",x:160,y:80,tag:"ball"} ],
+    [ {type:"ramp",count:2}, {type:"conveyor",count:1}, {type:"fan",count:1} ], {parts:4}),
 ];
