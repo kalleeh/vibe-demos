@@ -90,4 +90,36 @@ export const OFFICIAL_LEVELS = [
       {type:"goal",x:1040,y:560} ],
     [ {type:"ball",x:160,y:80,tag:"ball"} ],
     [ {type:"ramp",count:2}, {type:"conveyor",count:1}, {type:"fan",count:1} ], {parts:4}),
+
+  // 11 — bounce house: trampoline bounce to reach the goal.
+  lvl("official-11","Bounce House", goalAt(1040,560),
+    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.18},
+      {type:"wall",x:1200,y:520,w:24,h:260},
+      {type:"goal",x:1040,y:560} ],
+    [ {type:"ball",x:200,y:90,tag:"ball"} ],
+    [ {type:"ramp",count:1}, {type:"trampoline",count:1} ], {parts:2}),
+
+  // 12 — heavy lifting: weight on seesaw to launch the ball.
+  lvl("official-12","Heavy Lifting", goalAt(1040,560),
+    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.17},
+      {type:"wall",x:1200,y:520,w:24,h:260},
+      {type:"goal",x:1040,y:560} ],
+    [ {type:"ball",x:180,y:90,tag:"ball"} ],
+    [ {type:"ramp",count:1}, {type:"seesaw",count:1}, {type:"weight",count:1} ], {parts:3}),
+
+  // 13 — spin cycle: gears to carry the ball across a gap.
+  lvl("official-13","Spin Cycle", goalAt(1040,560),
+    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.16},
+      {type:"wall",x:1200,y:520,w:24,h:260},
+      {type:"goal",x:1040,y:560} ],
+    [ {type:"ball",x:200,y:90,tag:"ball"} ],
+    [ {type:"ramp",count:1}, {type:"gears",count:1} ], {parts:2}),
+
+  // 14 — the big bang: TNT blast to propel the ball into goal.
+  lvl("official-14","The Big Bang", goalAt(1040,560),
+    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.18},
+      {type:"wall",x:1200,y:520,w:24,h:260},
+      {type:"goal",x:1040,y:560} ],
+    [ {type:"ball",x:200,y:90,tag:"ball"} ],
+    [ {type:"ramp",count:1}, {type:"tnt",count:1} ], {parts:2}),
 ];
