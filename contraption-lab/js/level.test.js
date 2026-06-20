@@ -1,5 +1,19 @@
 import { snap, aabbOverlap, pointInRect, fitTransform, screenToWorld } from "./geom.js";
 
+export async function levelCases() {
+  const L = await import("./level.js");
+  const good = { schema:1, id:"t", title:"T", world:{w:1280,h:720,gravity:1},
+    goal:{type:"dwell",object:"ball",zone:{x:100,y:100,w:50,h:50},ms:300},
+    fixed:[{type:"wall",x:10,y:10}], start:[{type:"ball",x:5,y:5,tag:"ball"}], inventory:[{type:"ramp",count:2}] };
+  return [
+    { name:"validate accepts good level", fn:()=>{ if(!L.validateLevel(good).ok) throw new Error("rejected"); } },
+    { name:"validate rejects bad schema", fn:()=>{ if(L.validateLevel({...good,schema:99}).ok) throw new Error("accepted"); } },
+    { name:"validate rejects unknown type", fn:()=>{ if(L.validateLevel({...good,fixed:[{type:"xxx",x:0,y:0}]}).ok) throw new Error("accepted"); } },
+    { name:"serialize round-trips", fn:()=>{ const s=L.serializeLevel(good); const o=JSON.parse(s); if(o.title!=="T") throw new Error("lost data"); } },
+    { name:"clone is deep", fn:()=>{ const c=L.cloneLevel(good); c.title="X"; if(good.title!=="T") throw new Error("mutated"); } },
+  ];
+}
+
 export function runTests(extra = []) {
   const cases = [
     { name: "snap rounds to grid", fn: () => assert(snap(23, 10) === 20) },
