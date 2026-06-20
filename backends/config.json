@@ -15,6 +15,7 @@
     "sweden-food-guide": { "port": 8096 },
     "resonans": { "port": 8097 },
     "changwon-homes": { "port": 8098 },
-    "ai": { "port": 8099 }
+    "ai": { "port": 8099 },
+    "contraption-lab": { "port": 8100 }
   }
 }

@@ -37,6 +37,26 @@ export async function progressCases() {
   ];
 }
 
+export async function progressShapeCases() {
+  const P = await import("./progress.js");
+  return [
+    { name:"recordsToProgress shapes a map", fn:()=>{
+        const m = P.recordsToProgress([{level_id:"official-01",solved:true,best_parts:2,best_ms:5000}]);
+        if(!m["official-01"] || m["official-01"].bestParts!==2 || m["official-01"].bestMs!==5000) throw new Error("bad shape "+JSON.stringify(m));
+      }},
+    { name:"progressToRecords emits solved rows with user", fn:()=>{
+        const rows = P.progressToRecords({ "official-01":{solved:true,bestParts:2,bestMs:5000}, "official-02":{solved:false} }, "U1");
+        if(rows.length!==1) throw new Error("expected 1 solved row, got "+rows.length);
+        if(rows[0].user!=="U1" || rows[0].level_id!=="official-01" || rows[0].best_parts!==2) throw new Error("bad row "+JSON.stringify(rows[0]));
+      }},
+    { name:"round-trip records→map→records is stable", fn:()=>{
+        const recs=[{level_id:"official-03",solved:true,best_parts:1,best_ms:999}];
+        const back=P.progressToRecords(P.recordsToProgress(recs),"U1");
+        if(back[0].level_id!=="official-03"||back[0].best_parts!==1||back[0].best_ms!==999) throw new Error("lost data "+JSON.stringify(back));
+      }},
+  ];
+}
+
 export function runTests(extra = []) {
   const cases = [
     { name: "snap rounds to grid", fn: () => assert(snap(23, 10) === 20) },

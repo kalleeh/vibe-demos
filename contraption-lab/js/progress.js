@@ -23,3 +23,31 @@ export function recordSolve(levelId, parts, ms) {
   return merged[levelId];
 }
 export const isSolved = (levelId) => !!getProgress()[levelId]?.solved;
+
+// --- Phase 2: cloud sync shaping (pure) ---
+
+// PB records → local progress map. Each record: {level_id, solved, best_parts, best_ms}.
+export function recordsToProgress(records = []) {
+  const out = {};
+  for (const r of records) {
+    out[r.level_id] = { solved: !!r.solved, bestParts: r.best_parts ?? Infinity, bestMs: r.best_ms ?? Infinity };
+  }
+  return out;
+}
+
+// Local progress map → PB record bodies (only solved levels are worth syncing).
+export function progressToRecords(map = {}, userId) {
+  const rows = [];
+  for (const [level_id, e] of Object.entries(map)) {
+    if (!e || !e.solved) continue;
+    rows.push({ user: userId, level_id, solved: true, best_parts: e.bestParts, best_ms: e.bestMs });
+  }
+  return rows;
+}
+
+// Merge a remote map into local storage (best-of), persist, return merged map.
+export function applyRemote(remoteMap = {}) {
+  const merged = mergeProgress(getProgress(), remoteMap);
+  try { localStorage.setItem(KEY, JSON.stringify(merged)); } catch {}
+  return merged;
+}
