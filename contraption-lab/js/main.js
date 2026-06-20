@@ -7,6 +7,7 @@ import { PlacementController } from "./input.js";
 import { recordSolve, isSolved } from "./progress.js";
 import { init as cloudInit, cloud, user as cloudUser, pushProgress, pullProgress, leaderboard } from "./cloud.js";
 import { mountAccountUI, setIndicator } from "./auth-ui.js";
+import { preloadSprites } from "./sprites.js";
 
 // optional self-test
 if (new URLSearchParams(location.search).has("test")) {
@@ -70,8 +71,8 @@ function makeController() {
   });
 }
 function resize(){ const r = resizeCanvas(canvas); transform = r.transform; draw(); }
-function draw(){ drawWorld(ctx, sim, transform, tokens(), { ghost: controller && controller.ghost ? ghostVerts(controller.ghost) : null }); }
-function ghostVerts(g){ try { const {bodies}=makePart(g.type,{x:g.x,y:g.y}); return { vertices: bodies[0].vertices || [{x:g.x-10,y:g.y-10},{x:g.x+10,y:g.y-10},{x:g.x+10,y:g.y+10},{x:g.x-10,y:g.y+10}], valid:g.valid }; } catch { return null; } }
+function draw(){ drawWorld(ctx, sim, transform, tokens(), { ghost: controller && controller.ghost ? ghostVerts(controller.ghost) : null, themeId: document.documentElement.dataset.theme }); }
+function ghostVerts(g){ try { const {bodies}=makePart(g.type,{x:g.x,y:g.y}); return { vertices: bodies[0].vertices || [{x:g.x-10,y:g.y-10},{x:g.x+10,y:g.y-10},{x:g.x+10,y:g.y+10},{x:g.x-10,y:g.y+10}], valid:g.valid, partType:g.type, body:bodies[0] }; } catch { return null; } }
 
 let last = 0, raf = 0;
 function tick(ts){ const dt = last ? ts-last : 16; last = ts;
@@ -102,9 +103,11 @@ window.addEventListener("hashchange", route);
 window.addEventListener("resize", resize);
 
 applyTheme(loadTheme()); fillThemeSelect();
-new MutationObserver(()=>draw()).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
-route();
-raf = requestAnimationFrame(tick);
+new MutationObserver(()=>{ const newTheme = document.documentElement.dataset.theme; preloadSprites(newTheme).then(draw); }).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+preloadSprites(loadTheme()).then(() => {
+  route();
+  raf = requestAnimationFrame(tick);
+});
 
 // register SW
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(()=>{});
