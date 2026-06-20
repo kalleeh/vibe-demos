@@ -15,6 +15,19 @@ export async function levelCases() {
   ];
 }
 
+export async function officialCases() {
+  const L = await import("./level.js");
+  const { OFFICIAL_LEVELS } = await import("./levels/official.js");
+  const cases = [
+    { name:"at least 8 official levels", fn:()=>{ if(OFFICIAL_LEVELS.length < 8) throw new Error("only "+OFFICIAL_LEVELS.length); } },
+    { name:"ids unique + sequential", fn:()=>{ const ids=OFFICIAL_LEVELS.map(l=>l.id); if(new Set(ids).size!==ids.length) throw new Error("dup ids"); } },
+  ];
+  OFFICIAL_LEVELS.forEach((lvl,i) => cases.push({ name:`level ${i+1} (${lvl.id}) validates`, fn:()=>{ const v=L.validateLevel(lvl); if(!v.ok) throw new Error(v.reason); } }));
+  // every level must give the player at least one inventory part
+  OFFICIAL_LEVELS.forEach((lvl,i) => cases.push({ name:`level ${i+1} has inventory`, fn:()=>{ if(!lvl.inventory.reduce((a,b)=>a+b.count,0)) throw new Error("no parts"); } }));
+  return cases;
+}
+
 export function runTests(extra = []) {
   const cases = [
     { name: "snap rounds to grid", fn: () => assert(snap(23, 10) === 20) },
