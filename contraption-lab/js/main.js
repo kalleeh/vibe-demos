@@ -85,13 +85,23 @@ function makeController() {
   });
 }
 function resize(){ const r = resizeCanvas(canvas); transform = r.transform; draw(); }
-function draw(){ drawWorld(ctx, sim, transform, tokens(), { ghost: controller && controller.ghost ? ghostVerts(controller.ghost) : null, themeId: document.documentElement.dataset.theme }); }
+function draw(nowTs){
+  const reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  drawWorld(ctx, sim, transform, tokens(), {
+    ghost: controller && controller.ghost ? ghostVerts(controller.ghost) : null,
+    themeId: document.documentElement.dataset.theme,
+    now: nowTs ?? performance.now(),
+    running: sim && sim.state === "running",
+    reducedMotion
+  });
+}
 function ghostVerts(g){ try { const {bodies}=makePart(g.type,{x:g.x,y:g.y}); return { vertices: bodies[0].vertices || [{x:g.x-10,y:g.y-10},{x:g.x+10,y:g.y-10},{x:g.x+10,y:g.y+10},{x:g.x-10,y:g.y+10}], valid:g.valid, partType:g.type, body:bodies[0] }; } catch { return null; } }
 
 let last = 0, raf = 0;
 function tick(ts){ const dt = last ? ts-last : 16; last = ts;
-  if (sim.state === "running") { const s = sim.step(dt); draw();
+  if (sim.state === "running") { const s = sim.step(dt); draw(ts);
     if (s === "won") { onWin(); } else if (s === "lost") { onLost(); } }
+  else { draw(ts); }
   raf = requestAnimationFrame(tick);
 }
 function onWin(){ const banner=document.getElementById("banner"); banner.textContent="Solved! ✓ "+sim.partsUsed()+" parts";

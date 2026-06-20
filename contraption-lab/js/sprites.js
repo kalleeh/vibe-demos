@@ -3,7 +3,8 @@
 // fit: "circle" (square ⌀×⌀), "box" (oriented w×h), "plank" (long thin side-profile bar),
 //      "compound" (covers a multi-body part's union AABB). scale: sprite size × body bbox.
 // overflow: extra fraction drawn beyond the bbox (DECORATION ONLY — never affects collision).
-const P = (src, fit, opt = {}) => ({ src, fit, scale: opt.scale ?? 1, overflow: opt.overflow ?? 0, themeOverrides: opt.themeOverrides ?? {} });
+// spin: rotation speed in radians/sec (RENDER-ONLY, never affects physics).
+const P = (src, fit, opt = {}) => ({ src, fit, scale: opt.scale ?? 1, overflow: opt.overflow ?? 0, spin: opt.spin ?? 0, themeOverrides: opt.themeOverrides ?? {} });
 
 export const SPRITES = {
   // existing 10 (Track A)
@@ -13,7 +14,7 @@ export const SPRITES = {
   domino:   P("./assets/parts/domino.png",   "box"),
   balloon:  P("./assets/parts/balloon.png",  "circle", { overflow: 0.5 }),  // string hangs below
   bucket:   P("./assets/parts/bucket.png",   "compound"),
-  fan:      P("./assets/parts/fan.png",      "box",    { overflow: 0.25 }), // blade tips
+  fan:      P("./assets/parts/fan.png",      "box",    { overflow: 0.25, spin: 6 }), // blade tips
   conveyor: P("./assets/parts/conveyor.png", "plank"),
   seesaw:   P("./assets/parts/seesaw.png",   "plank"),
   goal:     P("./assets/parts/goal.png",     "box"),
@@ -22,7 +23,7 @@ export const SPRITES = {
   gear:       P("./assets/parts/gear.png","circle"),
   crate:      P("./assets/parts/crate.png","box"),
   pipe:       P("./assets/parts/pipe.png","plank"),
-  pinwheel:   P("./assets/parts/pinwheel.png","box"),
+  pinwheel:   P("./assets/parts/pinwheel.png","box", { spin: 4 }),
   spring:     P("./assets/parts/spring.png","box"),
   wedge:      P("./assets/parts/wedge.png","box"),
   platform:   P("./assets/parts/platform.png","plank"),
@@ -40,7 +41,7 @@ export function resolveSprite(partType, themeId) {
   const e = SPRITES[partType];
   if (!e) return null;
   const src = (e.themeOverrides && e.themeOverrides[themeId]) || e.src;
-  return { src, fit: e.fit, scale: e.scale, overflow: e.overflow };
+  return { src, fit: e.fit, scale: e.scale, overflow: e.overflow, spin: e.spin };
 }
 
 export function getImage(src) {
