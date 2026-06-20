@@ -2,6 +2,7 @@
 // Community levels browse screen: tabs, canvas thumbnails, play, like.
 
 import { cloud, listLevels, rateLevel, hasRated, likesCount } from "./cloud.js";
+import { validateLevel } from "./level.js";
 import { Sim } from "./engine.js";
 import { drawWorld } from "./render.js";
 import { fitTransform } from "./geom.js";
@@ -13,6 +14,9 @@ import { tokens } from "./theme.js";
  * @param {HTMLCanvasElement} canvas - target canvas (already sized)
  */
 export function thumbnailFor(levelData, canvas) {
+  // Only build a Sim from a structurally valid level (a malformed community blob
+  // shouldn't even attempt construction — leave the card's canvas blank).
+  if (!validateLevel(levelData).ok) return;
   try {
     // Build throwaway sim (no run, just the initial state)
     const sim = new Sim(levelData);
@@ -124,27 +128,26 @@ export async function mountLikeButton(el, id) {
   const rated = await hasRated(id);
   el.textContent = rated ? "♥" : "♡";
 
-  // Wire click
+  // Wire click — disable while pending (no double-count) and revert on failure.
   el.onclick = async () => {
-    if (!cloud.available) return;
-
-    const newState = await rateLevel(id);
-    el.textContent = newState ? "♥" : "♡";
-
-    // Update displayed like count (optimistic: read from button's dataset + ±1)
-    const currentLikes = parseInt(el.dataset.likes, 10) || 0;
-    const newLikes = newState ? currentLikes + 1 : Math.max(0, currentLikes - 1);
-    el.dataset.likes = newLikes;
-
-    // Update the stats text in the sibling .browsestats
-    const card = el.closest(".browsecard");
-    if (card) {
-      const stats = card.querySelector(".browsestats");
-      if (stats) {
-        const match = stats.textContent.match(/(\d+)\s+plays/);
-        const plays = match ? match[1] : "0";
-        stats.textContent = `${plays} plays · ${newLikes} likes`;
+    if (!cloud.available || el.disabled) return;
+    el.disabled = true;
+    try {
+      const newState = await rateLevel(id);
+      el.textContent = newState ? "♥" : "♡";
+      const currentLikes = parseInt(el.dataset.likes, 10) || 0;
+      const newLikes = newState ? currentLikes + 1 : Math.max(0, currentLikes - 1);
+      el.dataset.likes = newLikes;
+      const card = el.closest(".browsecard");
+      if (card) {
+        const stats = card.querySelector(".browsestats");
+        if (stats) {
+          const match = stats.textContent.match(/(\d+)\s+plays/);
+          const plays = match ? match[1] : "0";
+          stats.textContent = `${plays} plays · ${newLikes} likes`;
+        }
       }
-    }
+    } catch { /* network hiccup: leave the prior state; user can retry */ }
+    finally { el.disabled = false; }
   };
 }
