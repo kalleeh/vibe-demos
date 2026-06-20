@@ -72,7 +72,7 @@ function onWin(){ const banner=document.getElementById("banner"); banner.textCon
 function onLost(){ const banner=document.getElementById("banner"); banner.textContent="Time's up — Reset and retry"; banner.hidden=false; }
 
 document.getElementById("runBtn").onclick = () => { if (sim.state==="build"){ sim.run(); document.getElementById("banner").hidden=true; } };
-document.getElementById("resetBtn").onclick = () => { sim.reset(); buildPalette(); recompRemaining(); document.getElementById("banner").hidden=true; draw(); };
+document.getElementById("resetBtn").onclick = () => { sim.reset(); recompRemaining(); document.getElementById("banner").hidden=true; draw(); };
 function recompRemaining(){ remaining={}; current.inventory.forEach(i=>remaining[i.type]=i.count); sim.placed.forEach(s=>remaining[s.type]--); buildPalette(); }
 
 function buildMenu(){ const dlg=document.getElementById("levelMenu");
