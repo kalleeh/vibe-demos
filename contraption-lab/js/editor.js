@@ -51,6 +51,10 @@ export class Editor {
     this.rafId = null;
     this.savePending = false;
     this.saveTimer = null;
+    this.selectedFixed = null;
+    this._dragMode = null;
+    this._dragIdx = -1;
+    this._movedFar = false;
   }
 
   mount() {
@@ -132,16 +136,32 @@ export class Editor {
     const clearBtn = document.getElementById("clearBtn");
     if (clearBtn) clearBtn.addEventListener("click", () => this.clear());
 
-    // Angle slider (only affects fixed parts with angle)
+    // Angle slider rotates the currently-selected fixed part (radians).
     const angleSlider = document.getElementById("angleSlider");
     if (angleSlider) {
       angleSlider.addEventListener("input", (e) => {
-        // TODO: implement angle adjustment for selected fixed part
+        if (this.selectedFixed) {
+          this.selectedFixed.angle = parseFloat(e.target.value) || 0;
+          this._scheduleSave();
+          this._rebuild();
+        }
       });
     }
 
-    // Canvas pointer events for placement
-    this.canvas.addEventListener("pointerdown", this._onPointerDown.bind(this));
+    // Canvas pointer events: down to place/select/delete, move to drag goal/part.
+    this._down = this._onPointerDown.bind(this);
+    this._move = this._onPointerMove.bind(this);
+    this._up = this._onPointerUp.bind(this);
+    this.canvas.addEventListener("pointerdown", this._down);
+    this.canvas.addEventListener("pointermove", this._move);
+    this.canvas.addEventListener("pointerup", this._up);
+  }
+
+  // proximity hit-test against a placed-spec array; returns index or -1 (80 world-unit radius)
+  _nearestIn(arr, x, y) {
+    let idx = -1, best = 80 * 80;
+    arr.forEach((s, i) => { const d = (s.x - x) ** 2 + (s.y - y) ** 2; if (d < best) { best = d; idx = i; } });
+    return idx;
   }
 
   setTool(mode) {
@@ -167,28 +187,69 @@ export class Editor {
     this._rebuild();
   }
 
+  _evXY(e) {
+    const rect = this.canvas.getBoundingClientRect();
+    return { x: (e.clientX - rect.left) / rect.width * 1280, y: (e.clientY - rect.top) / rect.height * 720 };
+  }
+
   _onPointerDown(e) {
     if (this.testState !== "idle") return;
+    const { x, y } = this._evXY(e);
+    this._dragMode = null;
 
-    const rect = this.canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width * 1280;
-    const y = (e.clientY - rect.top) / rect.height * 720;
+    if (this.tool === "goal") {
+      // Begin dragging the goal-zone center.
+      this._dragMode = "goal";
+      this.level.goal.zone.x = x; this.level.goal.zone.y = y;
+      this._scheduleSave();
+      return;
+    }
 
     if (this.tool === "fixed") {
-      this.level.fixed.push({ type: this.selectedType, x, y, angle: 0 });
-      this._scheduleSave();
-      this._rebuild();
-    } else if (this.tool === "start") {
+      // tap an existing fixed part → select it (for the angle slider) and start dragging;
+      // a quick tap with no move deletes it on pointerup. tap empty → place.
+      const hit = this._nearestIn(this.level.fixed, x, y);
+      if (hit >= 0) { this.selectedFixed = this.level.fixed[hit]; this._dragMode = "movefixed"; this._dragIdx = hit; this._movedFar = false; this._reflectAngle(); return; }
+      const spec = { type: this.selectedType, x, y, angle: 0 };
+      this.level.fixed.push(spec); this.selectedFixed = spec; this._reflectAngle();
+      this._scheduleSave(); this._rebuild();
+      return;
+    }
+
+    if (this.tool === "start") {
+      const hit = this._nearestIn(this.level.start, x, y);
+      if (hit >= 0) { this._dragMode = "movestart"; this._dragIdx = hit; this._movedFar = false; return; }
       const tag = this.selectedType === "ball" ? "ball" : null;
       this.level.start.push({ type: this.selectedType, x, y, tag });
-      this._scheduleSave();
-      this._rebuild();
-    } else if (this.tool === "goal") {
-      // Drag to set goal zone (for now, just set center)
-      this.level.goal.zone.x = x;
-      this.level.goal.zone.y = y;
-      this._scheduleSave();
+      this._scheduleSave(); this._rebuild();
     }
+  }
+
+  _onPointerMove(e) {
+    if (!this._dragMode || this.testState !== "idle") return;
+    const { x, y } = this._evXY(e);
+    if (this._dragMode === "goal") { this.level.goal.zone.x = x; this.level.goal.zone.y = y; }
+    else if (this._dragMode === "movefixed") { const s = this.level.fixed[this._dragIdx]; if (s) { s.x = x; s.y = y; this._movedFar = true; this._rebuild(); } }
+    else if (this._dragMode === "movestart") { const s = this.level.start[this._dragIdx]; if (s) { s.x = x; s.y = y; this._movedFar = true; this._rebuild(); } }
+  }
+
+  _onPointerUp(e) {
+    if (!this._dragMode) return;
+    // A fixed/start part tapped without dragging = delete it.
+    if (!this._movedFar && (this._dragMode === "movefixed" || this._dragMode === "movestart")) {
+      const arr = this._dragMode === "movefixed" ? this.level.fixed : this.level.start;
+      arr.splice(this._dragIdx, 1);
+      if (this._dragMode === "movefixed") this.selectedFixed = null;
+      this._rebuild();
+    }
+    this._scheduleSave();
+    this._dragMode = null;
+  }
+
+  // sync the angle slider position to the selected fixed part
+  _reflectAngle() {
+    const slider = document.getElementById("angleSlider");
+    if (slider && this.selectedFixed) slider.value = this.selectedFixed.angle || 0;
   }
 
   _rebuild() {
@@ -309,5 +370,10 @@ export class Editor {
     this.mounted = false;
     if (this.rafId) cancelAnimationFrame(this.rafId);
     if (this.saveTimer) clearTimeout(this.saveTimer);
+    if (this._down) {
+      this.canvas.removeEventListener("pointerdown", this._down);
+      this.canvas.removeEventListener("pointermove", this._move);
+      this.canvas.removeEventListener("pointerup", this._up);
+    }
   }
 }
