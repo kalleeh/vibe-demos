@@ -21,7 +21,7 @@ export async function init() {
 
 export function user() {
   if (!pb || !pb.authStore?.isValid) return null;
-  const m = pb.authStore.record || pb.authStore.model;
+  const m = pb.authStore.record || pb.authStore.model; // SDK 0.26+ uses .record; .model is the 0.25 fallback
   return m ? { id: m.id, name: m.name || "", email: m.email || "" } : null;
 }
 
@@ -49,6 +49,10 @@ export function bestOf(a, b) {
   return { ...better, solved: (a.solved || b.solved) };
 }
 
+// NOTE: the PB `filter` strings below interpolate only server-validated values
+// (the auth user id and our own internal level ids). Never interpolate
+// user-typed text (e.g. a search box) into a filter — escape via the SDK or
+// reject it, or it becomes a filter-injection vector.
 export async function pushProgress(map) {
   const u = user(); if (!pb || !cloud.available || !u) return;
   const rows = progressToRecords(map, u.id);

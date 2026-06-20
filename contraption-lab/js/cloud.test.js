@@ -19,5 +19,16 @@ export async function cloudCases() {
         if(C.bestOf({best_parts:3,best_ms:100},{best_parts:2,best_ms:999}).best_parts!==2) throw new Error("parts");
         if(C.bestOf({best_parts:2,best_ms:100},{best_parts:2,best_ms:40}).best_ms!==40) throw new Error("ms");
       }},
+    { name:"bestOf is order-independent (worse arg never wins)", fn:()=>{
+        // whichever side the worse record is on, the better (fewer parts) must win
+        if(C.bestOf({best_parts:2,best_ms:50},{best_parts:5,best_ms:10}).best_parts!==2) throw new Error("worse as b overwrote");
+        if(C.bestOf({best_parts:5,best_ms:10},{best_parts:2,best_ms:50}).best_parts!==2) throw new Error("worse as a won");
+        // equal parts: lower ms wins regardless of order
+        if(C.bestOf({best_parts:2,best_ms:40},{best_parts:2,best_ms:900}).best_ms!==40) throw new Error("ms order a");
+        if(C.bestOf({best_parts:2,best_ms:900},{best_parts:2,best_ms:40}).best_ms!==40) throw new Error("ms order b");
+      }},
+    { name:"bestOf ORs solved flag", fn:()=>{
+        if(C.bestOf({best_parts:9,best_ms:9,solved:false},{best_parts:1,best_ms:1,solved:true}).solved!==true) throw new Error("solved not ORed");
+      }},
   ];
 }
