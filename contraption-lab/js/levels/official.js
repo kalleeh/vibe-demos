@@ -52,4 +52,74 @@ export const OFFICIAL_LEVELS = [
       {type:"goal",x:960,y:560} ],
     [ {type:"ball",x:280,y:120,tag:"ball"} ],
     [ {type:"magnet",count:1} ], {parts:1}),
+
+  // 06 — Conveyor Run: conveyor carries ball across a pit to the goal ledge.
+  // Layout: PIT in the middle, goal on a platform at mid-height on the right.
+  lvl("official-06","Conveyor Run", goalAt(960,560),
+    [ {type:"wall",x:280,y:600,w:400,h:28},
+      {type:"wall",x:960,y:560,w:500,h:28,angle:0.15},
+      {type:"wall",x:1180,y:520,w:24,h:220},
+      {type:"goal",x:960,y:560} ],
+    [ {type:"ball",x:280,y:520,tag:"ball"} ],
+    [ {type:"conveyor",count:1} ], {parts:1}),
+
+  // 07 — Fan Push: fan blows ball onto ice slope which carries it to goal.
+  // Layout: STACKED LEDGES — ball on upper ledge, fan pushes right onto ice slope down to goal.
+  lvl("official-07","Fan Push", goalAt(1000,600),
+    [ {type:"wall",x:320,y:400,w:500,h:28},
+      {type:"ice",x:900,y:540,w:600,h:28,angle:0.18,fixedByDefault:true},
+      {type:"wall",x:1180,y:600,w:24,h:240},
+      {type:"goal",x:1000,y:600} ],
+    [ {type:"ball",x:240,y:340,tag:"ball"} ],
+    [ {type:"fan",count:1}, {type:"ramp",count:1} ], {parts:2}),
+
+  // 08 — Second Drop: similar to 01, slightly harder angle.
+  // Layout: ball drops onto slope, single ramp smooths landing.
+  lvl("official-08","Second Drop", goalAt(1040,560),
+    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.19},
+      {type:"wall",x:1200,y:520,w:24,h:260},
+      {type:"goal",x:1040,y:560} ],
+    [ {type:"ball",x:180,y:80,tag:"ball"} ],
+    [ {type:"ramp",count:1} ], {parts:1}),
+
+  // 09 — Portal Hop: portal pair routes ball through/over a divider wall to the goal.
+  // Layout: MULTI-ZONE — a tall vertical divider splits left/right, portals teleport through.
+  lvl("official-09","Portal Hop", goalAt(960,580),
+    [ {type:"wall",x:640,y:360,w:28,h:720},
+      {type:"wall",x:280,y:600,w:480,h:28},
+      {type:"wall",x:960,y:580,w:540,h:28,angle:0.14},
+      {type:"wall",x:1180,y:540,w:24,h:260},
+      {type:"goal",x:960,y:580} ],
+    [ {type:"ball",x:280,y:520,tag:"ball"} ],
+    [ {type:"portal",count:2} ], {parts:2}),
+
+  // 10 — Sticky Stop: ball slides down ice, ramp directs onto sticky to stop in goal.
+  // Layout: single ice slope, sticky pad at bottom catches ball in goal zone.
+  lvl("official-10","Sticky Stop", goalAt(900,600),
+    [ {type:"ice",x:580,y:420,w:760,h:28,angle:0.2,fixedByDefault:true},
+      {type:"wall",x:1180,y:560,w:24,h:320},
+      {type:"sticky",x:900,y:600,w:460,h:24,fixedByDefault:true},
+      {type:"goal",x:900,y:600} ],
+    [ {type:"ball",x:240,y:300,tag:"ball"} ],
+    [ {type:"ramp",count:1} ], {parts:1}),
+
+  // 11 — Conveyor + Bumper: conveyor carries ball, bumper bounces into goal.
+  // Layout: conveyor bridge, bumper at end redirects to goal.
+  lvl("official-11","Conveyor Bumper", goalAt(960,520),
+    [ {type:"wall",x:280,y:600,w:420,h:28},
+      {type:"wall",x:960,y:520,w:500,h:28,angle:0.16},
+      {type:"wall",x:1180,y:480,w:24,h:240},
+      {type:"goal",x:960,y:520} ],
+    [ {type:"ball",x:280,y:520,tag:"ball"} ],
+    [ {type:"conveyor",count:1}, {type:"bumper",count:1} ], {parts:2}),
+
+  // 12 — Fan + Conveyor: fan pushes ball onto conveyor which delivers to goal.
+  // Layout: fan at left, conveyor carries across, goal on slope.
+  lvl("official-12","Fan Conveyor", goalAt(1000,560),
+    [ {type:"wall",x:300,y:600,w:460,h:28},
+      {type:"wall",x:1000,y:560,w:500,h:28,angle:0.15},
+      {type:"wall",x:1180,y:520,w:24,h:240},
+      {type:"goal",x:1000,y:560} ],
+    [ {type:"ball",x:200,y:520,tag:"ball"} ],
+    [ {type:"fan",count:1}, {type:"conveyor",count:1} ], {parts:2}),
 ];
