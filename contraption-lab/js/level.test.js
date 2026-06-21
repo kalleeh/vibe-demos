@@ -38,6 +38,41 @@ export async function levelCases() {
         if(r.x2!==260||r.y2!==340||r.segments!==12) throw new Error("lost rope fields: "+JSON.stringify(r));
         if(g.spin!==6) throw new Error("lost gears spin: "+JSON.stringify(g));
       }},
+    // button + gate validation
+    { name:"validate accepts button+gate pair", fn:()=>{
+        const lvl={...good, fixed:[
+          {type:"button",x:100,y:100,gate:"g1"},
+          {type:"gate",x:200,y:200,id:"g1"}
+        ]};
+        const v=L.validateLevel(lvl); if(!v.ok) throw new Error("rejected: "+v.reason);
+      }},
+    { name:"validate rejects button with missing gate", fn:()=>{
+        const lvl={...good, fixed:[
+          {type:"button",x:100,y:100,gate:"missing"}
+        ]};
+        if(L.validateLevel(lvl).ok) throw new Error("should reject button with missing gate");
+      }},
+    { name:"validate rejects lone portal", fn:()=>{
+        const lvl={...good, fixed:[
+          {type:"portal",x:100,y:100,link:"p1"}
+        ]};
+        if(L.validateLevel(lvl).ok) throw new Error("should reject lone portal");
+      }},
+    { name:"validate accepts portal pair", fn:()=>{
+        const lvl={...good, fixed:[
+          {type:"portal",x:100,y:100,link:"p1"},
+          {type:"portal",x:200,y:200,link:"p1"}
+        ]};
+        const v=L.validateLevel(lvl); if(!v.ok) throw new Error("rejected valid portal pair: "+v.reason);
+      }},
+    { name:"validate rejects portal trio", fn:()=>{
+        const lvl={...good, fixed:[
+          {type:"portal",x:100,y:100,link:"p1"},
+          {type:"portal",x:200,y:200,link:"p1"},
+          {type:"portal",x:300,y:300,link:"p1"}
+        ]};
+        if(L.validateLevel(lvl).ok) throw new Error("should reject portal trio");
+      }},
   ];
 }
 
@@ -127,6 +162,7 @@ export async function trackCEngineCases() {
       Body:{
         setStatic:(b,v)=>{b.isStatic=v;}, setDensity:(b,d)=>{b.density=d;},
         setVelocity:(b,v)=>{b.velocity=v;}, setAngularVelocity:(b,w)=>{b.angularVelocity=w;},
+        setPosition:(b,p)=>{b.position=p;},
         applyForce:(b,p,f)=>{b._force={x:(b._force?b._force.x:0)+f.x,y:(b._force?b._force.y:0)+f.y};},
         create:(o)=>({...o,position:{x:0,y:0}}),
       },
@@ -215,7 +251,66 @@ export async function newPartsCases() {
   for (const t of ["ice","sticky","bumper","magnet","accelerator","vortex"]) {
     cases.push({ name:`${t} builds`, fn:()=>{ const r=makePart(t,{x:100,y:100}); if(!r.bodies.length) throw new Error(t+" no body"); if(r.bodies[0].plugin.partType!==t) throw new Error(t+" wrong partType"); } });
   }
+  // button and gate
+  cases.push({ name:"button builds with gate link", fn:()=>{
+    const r=makePart("button",{x:100,y:100,gate:"gate1"});
+    if(!r.bodies.length) throw new Error("button no body");
+    const b=r.bodies[0];
+    if(b.plugin.partType!=="button") throw new Error("button wrong partType");
+    if(b.plugin.gate!=="gate1") throw new Error("button gate link not set");
+  }});
+  cases.push({ name:"gate builds with id", fn:()=>{
+    const r=makePart("gate",{x:200,y:200,id:"gate1"});
+    if(!r.bodies.length) throw new Error("gate no body");
+    const b=r.bodies[0];
+    if(b.plugin.partType!=="gate") throw new Error("gate wrong partType");
+    if(b.plugin.id!=="gate1") throw new Error("gate id not set");
+    if(b.plugin._solidX!==200 || b.plugin._solidY!==200) throw new Error("gate solid position not stored");
+  }});
   return cases;
+}
+
+export async function buttonGateCases() {
+  const { gateOpen } = await import("./engine.js");
+  function installStub(){
+    globalThis.Matter = {
+      Bodies:{
+        rectangle:(x,y,w,h,o)=>({position:{x,y},velocity:{x:0,y:0},isStatic:!!(o&&o.isStatic),bounds:{min:{x:x-w/2,y:y-h/2},max:{x:x+w/2,y:y+h/2}},plugin:{}}),
+      },
+      Body:{
+        setPosition:(b,v)=>{b.position=v;},
+      },
+    };
+  }
+  return [
+    { name:"gateOpen true when dynamic body over button", fn:()=>{
+        installStub();
+        const button={position:{x:100,y:100},plugin:{partType:"button"}};
+        const ball={position:{x:100,y:90},isStatic:false,plugin:{partType:"ball"}};
+        const bodies=[button,ball];
+        if(!gateOpen(button,bodies)) throw new Error("should be open with ball on plate");
+      }},
+    { name:"gateOpen false when no dynamic body", fn:()=>{
+        installStub();
+        const button={position:{x:100,y:100},plugin:{partType:"button"}};
+        const bodies=[button];
+        if(gateOpen(button,bodies)) throw new Error("should be closed with no body");
+      }},
+    { name:"gateOpen ignores static bodies", fn:()=>{
+        installStub();
+        const button={position:{x:100,y:100},plugin:{partType:"button"}};
+        const wall={position:{x:100,y:90},isStatic:true,plugin:{partType:"wall"}};
+        const bodies=[button,wall];
+        if(gateOpen(button,bodies)) throw new Error("should ignore static bodies");
+      }},
+    { name:"gateOpen ignores buttons and gates", fn:()=>{
+        installStub();
+        const button={position:{x:100,y:100},plugin:{partType:"button"}};
+        const gate={position:{x:100,y:90},isStatic:false,plugin:{partType:"gate"}};
+        const bodies=[button,gate];
+        if(gateOpen(button,bodies)) throw new Error("should ignore gate bodies");
+      }},
+  ];
 }
 
 export async function portalCases() {

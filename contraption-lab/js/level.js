@@ -24,6 +24,17 @@ export function validateLevel(level) {
     }
   }
   for (const inv of level.inventory) if (!PARTS[inv.type]) return { ok:false, reason:`unknown inventory type ${inv.type}` };
+  // link integrity for paired parts
+  const all = [...(level.fixed||[]), ...(level.start||[])];
+  const portals = all.filter(e => e.type === "portal");
+  for (const p of portals) {
+    const partners = portals.filter(o => o !== p && o.link === p.link);
+    if (partners.length !== 1) return { ok:false, reason:`portal link "${p.link}" needs exactly one partner` };
+  }
+  const gateIds = new Set(all.filter(e => e.type === "gate").map(e => e.id));
+  for (const b of all.filter(e => e.type === "button")) {
+    if (!gateIds.has(b.gate)) return { ok:false, reason:`button references missing gate "${b.gate}"` };
+  }
   return { ok:true };
 }
 

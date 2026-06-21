@@ -10,6 +10,15 @@ export function portalExit(toPortal) {
   return { x: toPortal.position.x + Math.cos(toPortal.plugin.angle) * r, y: toPortal.position.y + Math.sin(toPortal.plugin.angle) * r };
 }
 
+export function gateOpen(buttonBody, bodies) {
+  const z = { x: buttonBody.position.x - 45, y: buttonBody.position.y - 20, w: 90, h: 40 };
+  for (const b of bodies) {
+    if (b.isStatic || b.plugin?.partType === "button" || b.plugin?.partType === "gate") continue;
+    if (b.position.x > z.x && b.position.x < z.x + z.w && b.position.y > z.y && b.position.y < z.y + z.h) return true;
+  }
+  return false;
+}
+
 const MAX_RUN_MS = 30000;
 const M = () => Matter;
 
@@ -228,6 +237,15 @@ export class Sim {
             pl._cool = 30;
             break;
           }
+        }
+      }
+      else if (pl.partType === "button") {
+        const open = gateOpen(f, this.bodies);
+        const gate = this.bodies.find(o => o.plugin && o.plugin.partType === "gate" && o.plugin.id === pl.gate);
+        if (gate) {
+          const gp = gate.plugin;
+          if (open && gate.position.y > -5000) m.Body.setPosition(gate, { x: gp._solidX, y: gp._solidY - 10000 });   // retract up
+          else if (!open && gate.position.y < -5000) m.Body.setPosition(gate, { x: gp._solidX, y: gp._solidY });      // restore
         }
       }
       else if (pl.partType === "fan") {
