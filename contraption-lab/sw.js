@@ -1,5 +1,5 @@
 /* Contraption Lab — minimal offline shell SW */
-const CACHE = "vibe-contraption-lab-v6";
+const CACHE = "vibe-contraption-lab-v7";
 const SHELL = [
   "./","./index.html","./style.css","./manifest.webmanifest","./icon.svg",
   "./vendor/matter.min.js",
@@ -16,6 +16,9 @@ const SHELL = [
   "./assets/parts/wedge.png","./assets/parts/weight.png",
   "./assets/parts/neon/ball.png","./assets/parts/neon/fan.png","./assets/parts/neon/goal.png",
   "./assets/parts/blueprint/ball.png","./assets/parts/blueprint/fan.png","./assets/parts/blueprint/goal.png",
+  "./assets/parts/magnet.png","./assets/parts/accelerator.png","./assets/parts/vortex.png",
+  "./assets/parts/ice.png","./assets/parts/sticky.png","./assets/parts/bumper.png",
+  "./assets/parts/portal.png","./assets/parts/button.png","./assets/parts/gate.png",
 ];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("vibe-contraption-lab-")&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())); });

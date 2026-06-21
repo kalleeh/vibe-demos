@@ -118,9 +118,27 @@ export const PARTS = {
       b.plugin={partType:"tnt",tag:s.tag||null,fuseMs:s.fuseMs??1500,blast:s.blast??0.12,radius:s.radius??160,armed:true};
       return {bodies:[b],constraints:[]};
     } },
+  ice: { label:"Ice", movable:true, fixedByDefault:true,
+    build:(s,M)=>({ bodies:[cat(M,"ice",s.tag)(M.Bodies.rectangle(s.x,s.y,s.w||160,16,{isStatic:true,angle:s.angle||0,friction:0.005,frictionStatic:0,restitution:0}))], constraints:[] }) },
+  sticky: { label:"Sticky", movable:true, fixedByDefault:true,
+    build:(s,M)=>({ bodies:[cat(M,"sticky",s.tag)(M.Bodies.rectangle(s.x,s.y,s.w||120,18,{isStatic:true,angle:s.angle||0,friction:1,frictionStatic:1,restitution:0}))], constraints:[] }) },
+  bumper: { label:"Bumper", movable:true, fixedByDefault:true,
+    build:(s,M)=>({ bodies:[cat(M,"bumper",s.tag)(M.Bodies.circle(s.x,s.y,s.r||26,{isStatic:true,restitution:1.4,friction:0.1}))], constraints:[] }) },
+  magnet: { label:"Magnet", movable:true, fixedByDefault:true,
+    build:(s,M)=>{ const b=M.Bodies.rectangle(s.x,s.y,44,44,{isStatic:true,angle:s.angle||0}); b.plugin={partType:"magnet",tag:s.tag||null,strength:s.strength||0.015,range:s.range||260,polarity:s.polarity||1}; return {bodies:[b],constraints:[]}; } },
+  accelerator: { label:"Booster", movable:true, fixedByDefault:true,
+    build:(s,M)=>{ const w=s.w||90; const b=M.Bodies.rectangle(s.x,s.y,w,16,{isStatic:true,angle:s.angle||0}); b.plugin={partType:"accelerator",tag:s.tag||null,boost:s.boost||9,angle:s.angle||0,w}; return {bodies:[b],constraints:[]}; } },
+  vortex: { label:"Vortex", movable:true, fixedByDefault:true,
+    build:(s,M)=>{ const b=M.Bodies.circle(s.x,s.y,s.r||30,{isStatic:true,isSensor:true}); b.plugin={partType:"vortex",tag:s.tag||null,strength:s.strength||0.03,range:s.range||180}; return {bodies:[b],constraints:[]}; } },
+  portal: { label:"Portal", movable:true, fixedByDefault:true,
+    build:(s,M)=>{ const r=s.r||28; const b=M.Bodies.circle(s.x,s.y,r,{isStatic:true,isSensor:true}); b.plugin={partType:"portal",tag:s.tag||null,link:s.link||"p",angle:s.angle||0,r,_cool:0}; return {bodies:[b],constraints:[]}; } },
+  button: { label:"Button", movable:true, fixedByDefault:true,
+    build:(s,M)=>{ const b=M.Bodies.rectangle(s.x,s.y,s.w||70,14,{isStatic:true,isSensor:true}); b.plugin={partType:"button",tag:s.tag||null,gate:s.gate||"g"}; return {bodies:[b],constraints:[]}; } },
+  gate: { label:"Gate", movable:true, fixedByDefault:true,
+    build:(s,M)=>{ const b=M.Bodies.rectangle(s.x,s.y,s.w||24,s.h||140,{isStatic:true,angle:s.angle||0}); b.plugin={partType:"gate",tag:s.tag||null,id:s.id||"g",_solidX:s.x,_solidY:s.y,_retracted:false}; return {bodies:[b],constraints:[]}; } },
 };
 
-export const PALETTE_TYPES = ["ramp","wall","fan","conveyor","seesaw","balloon","domino","bucket","trampoline","gear","crate","pipe","pinwheel","spring","wedge","platform","bowlingpin","weight","rope","gears","tnt"];
+export const PALETTE_TYPES = ["ramp","wall","fan","conveyor","seesaw","balloon","domino","bucket","trampoline","gear","crate","pipe","pinwheel","spring","wedge","platform","bowlingpin","weight","rope","gears","tnt","ice","sticky","bumper","magnet","accelerator","vortex","portal","button","gate"];
 
 export function makePart(type, spec) {
   const def = PARTS[type];

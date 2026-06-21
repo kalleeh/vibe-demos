@@ -20,7 +20,7 @@ if (new URLSearchParams(location.search).has("test")) {
     m.runTests([ ...(await m.levelCases()), ...(await m.officialCases()), ...(await m.progressCases()),
                  ...(await m.progressShapeCases()), ...(await cloudMod.cloudCases()), ...(await spriteMod.spriteCases()),
                  ...(await m.trackCCases()), ...(await m.trackCEngineCases()), ...(await editorMod.editorCases()),
-                 ...(await soundMod.soundCases()) ]);
+                 ...(await soundMod.soundCases()), ...(await m.newPartsCases()), ...(await m.buttonGateCases()), ...(await m.portalCases()) ]);
   });
 }
 

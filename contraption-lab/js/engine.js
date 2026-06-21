@@ -4,6 +4,21 @@ import { buildWorld } from "./level.js";
 import { makePart, PARTS } from "./parts.js";
 import { aabbOverlap } from "./geom.js";
 
+export function portalExit(toPortal) {
+  // exit just outside the destination portal along its exit angle
+  const r = (toPortal.plugin.r || 28) + 24;
+  return { x: toPortal.position.x + Math.cos(toPortal.plugin.angle) * r, y: toPortal.position.y + Math.sin(toPortal.plugin.angle) * r };
+}
+
+export function gateOpen(buttonBody, bodies) {
+  const z = { x: buttonBody.position.x - 45, y: buttonBody.position.y - 20, w: 90, h: 40 };
+  for (const b of bodies) {
+    if (b.isStatic || b.plugin?.partType === "button" || b.plugin?.partType === "gate") continue;
+    if (b.position.x > z.x && b.position.x < z.x + z.w && b.position.y > z.y && b.position.y < z.y + z.h) return true;
+  }
+  return false;
+}
+
 const MAX_RUN_MS = 30000;
 const M = () => Matter;
 
@@ -180,7 +195,70 @@ export class Sim {
             });
           }
         }
-      } else if (pl.partType === "fan") {
+      }
+      else if (pl.partType === "magnet" || pl.partType === "vortex") {
+        const range = pl.range || 200, strength = pl.strength || 0.02, pol = pl.polarity || 1;
+        for (const b of this.bodies) {
+          if (b.isStatic || b === f) continue;
+          const dx = f.position.x - b.position.x, dy = f.position.y - b.position.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < range && dist > 1) {
+            const falloff = 1 - dist / range;
+            const mag = strength * falloff * pol;
+            let fx = (dx / dist) * mag, fy = (dy / dist) * mag;
+            if (pl.partType === "vortex") { fx += (-dy / dist) * mag * 0.4; fy += (dx / dist) * mag * 0.4; } // swirl
+            m.Body.applyForce(b, b.position, { x: fx, y: fy });
+          }
+        }
+      }
+      else if (pl.partType === "accelerator") {
+        // Capture any dynamic body near the pad (project into pad-local coords so it works
+        // at an angle), then kick it along the pad's facing direction. Generous capture band
+        // so a slow/resting ball still fires reliably.
+        const ca = Math.cos(f.angle), sa = Math.sin(f.angle);
+        const halfLen = (pl.w || 90) / 2 + 22;
+        const dir = { x: ca, y: sa };
+        for (const b of this.bodies) {
+          if (b.isStatic || b === f) continue;
+          const dx = b.position.x - f.position.x, dy = b.position.y - f.position.y;
+          const along = dx * ca + dy * sa;        // distance along the pad
+          const perp = -dx * sa + dy * ca;         // distance off the pad surface
+          if (Math.abs(along) < halfLen && perp > -40 && perp < 16) {
+            const boost = pl.boost || 9;
+            // kick along the pad facing + a small lift, replacing current velocity
+            m.Body.setVelocity(b, { x: dir.x * boost, y: dir.y * boost - 2 });
+          }
+        }
+      }
+      else if (pl.partType === "portal") {
+        pl._cool = Math.max(0, (pl._cool || 0) - 1);
+        if (pl._cool > 0) continue;
+        const partner = this.bodies.find(o => o !== f && o.plugin && o.plugin.partType === "portal" && o.plugin.link === pl.link);
+        if (!partner) continue;
+        for (const b of this.bodies) {
+          if (b.isStatic || b === f) continue;
+          const dx = b.position.x - f.position.x, dy = b.position.y - f.position.y;
+          if (Math.hypot(dx, dy) < (pl.r || 28)) {
+            const exit = portalExit(partner);
+            m.Body.setPosition(b, exit);
+            partner.plugin._cool = 30;  // ~0.5s at 60fps: stop immediate re-entry on the other side
+            pl._cool = 30;
+            break;
+          }
+        }
+      }
+      else if (pl.partType === "button") {
+        const open = gateOpen(f, this.bodies);
+        const gate = this.bodies.find(o => o.plugin && o.plugin.partType === "gate" && o.plugin.id === pl.gate);
+        if (gate) {
+          const gp = gate.plugin;
+          // Toggle on an explicit flag (not on position thresholds) so a body nudging
+          // the retracted gate near the threshold can't cause repeated setPosition/drift.
+          if (open && !gp._retracted) { m.Body.setPosition(gate, { x: gp._solidX, y: gp._solidY - 10000 }); gp._retracted = true; }
+          else if (!open && gp._retracted) { m.Body.setPosition(gate, { x: gp._solidX, y: gp._solidY }); gp._retracted = false; }
+        }
+      }
+      else if (pl.partType === "fan") {
         // Push bodies in fan's facing direction
         const dir = {
           x: Math.cos(f.angle - Math.PI / 2),
@@ -223,6 +301,12 @@ export class Sim {
             });
           }
         }
+      }
+
+      // clamp any dynamic body to a sane max speed so no effect can explode/NaN
+      if (!f.isStatic) {
+        const sp = Math.hypot(f.velocity.x, f.velocity.y);
+        if (sp > 25) m.Body.setVelocity(f, { x: f.velocity.x / sp * 25, y: f.velocity.y / sp * 25 });
       }
 
       } catch (_e) { /* a misfiring per-tick effect must not break the sim */ }

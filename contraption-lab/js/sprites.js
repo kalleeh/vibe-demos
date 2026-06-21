@@ -35,6 +35,16 @@ export const SPRITES = {
   rope:  P("./assets/parts/rope.png","box",  { overflow: 0.5 }), // segments hang past bbox
   gears: P("./assets/parts/gears.png","circle"),
   tnt:   P("./assets/parts/tnt.png","box"),
+  // Levels-v2 new mechanics
+  ice:         P("./assets/parts/ice.png","plank"),
+  sticky:      P("./assets/parts/sticky.png","plank"),
+  bumper:      P("./assets/parts/bumper.png","circle"),
+  magnet:      P("./assets/parts/magnet.png","box"),
+  accelerator: P("./assets/parts/accelerator.png","plank"),
+  vortex:      P("./assets/parts/vortex.png","circle"),
+  portal:      P("./assets/parts/portal.png","circle"),
+  button:      P("./assets/parts/button.png","box"),
+  gate:        P("./assets/parts/gate.png","box"),
 };
 
 const cache = new Map();
