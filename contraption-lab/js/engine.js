@@ -180,7 +180,34 @@ export class Sim {
             });
           }
         }
-      } else if (pl.partType === "fan") {
+      }
+      else if (pl.partType === "magnet" || pl.partType === "vortex") {
+        const range = pl.range || 200, strength = pl.strength || 0.02, pol = pl.polarity || 1;
+        for (const b of this.bodies) {
+          if (b.isStatic || b === f) continue;
+          const dx = f.position.x - b.position.x, dy = f.position.y - b.position.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < range && dist > 1) {
+            const falloff = 1 - dist / range;
+            const mag = strength * falloff * pol;
+            let fx = (dx / dist) * mag, fy = (dy / dist) * mag;
+            if (pl.partType === "vortex") { fx += (-dy / dist) * mag * 0.4; fy += (dx / dist) * mag * 0.4; } // swirl
+            m.Body.applyForce(b, b.position, { x: fx, y: fy });
+          }
+        }
+      }
+      else if (pl.partType === "accelerator") {
+        const dir = { x: Math.cos(f.angle), y: Math.sin(f.angle) };
+        for (const b of this.bodies) {
+          if (b.isStatic || b === f) continue;
+          // on the pad's surface band
+          if (Math.abs(b.position.y - f.position.y) < 34 && Math.abs(b.position.x - f.position.x) < (f.bounds.max.x - f.bounds.min.x) / 2 + 20) {
+            const boost = pl.boost || 9;
+            m.Body.setVelocity(b, { x: dir.x * boost, y: b.velocity.y - Math.abs(dir.y) * boost });
+          }
+        }
+      }
+      else if (pl.partType === "fan") {
         // Push bodies in fan's facing direction
         const dir = {
           x: Math.cos(f.angle - Math.PI / 2),
@@ -223,6 +250,12 @@ export class Sim {
             });
           }
         }
+      }
+
+      // clamp any dynamic body to a sane max speed so no effect can explode/NaN
+      if (!f.isStatic) {
+        const sp = Math.hypot(f.velocity.x, f.velocity.y);
+        if (sp > 25) m.Body.setVelocity(f, { x: f.velocity.x / sp * 25, y: f.velocity.y / sp * 25 });
       }
 
       } catch (_e) { /* a misfiring per-tick effect must not break the sim */ }

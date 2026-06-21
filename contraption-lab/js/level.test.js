@@ -209,6 +209,15 @@ export async function progressShapeCases() {
   ];
 }
 
+export async function newPartsCases() {
+  const { makePart, PARTS } = await import("./parts.js");
+  const cases = [];
+  for (const t of ["ice","sticky","bumper","magnet","accelerator","vortex"]) {
+    cases.push({ name:`${t} builds`, fn:()=>{ const r=makePart(t,{x:100,y:100}); if(!r.bodies.length) throw new Error(t+" no body"); if(r.bodies[0].plugin.partType!==t) throw new Error(t+" wrong partType"); } });
+  }
+  return cases;
+}
+
 export async function runTests(extra = []) {
   const cases = [
     { name: "snap rounds to grid", fn: () => assert(snap(23, 10) === 20) },
