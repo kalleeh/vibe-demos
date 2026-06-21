@@ -5,19 +5,29 @@ const MUTE_KEY = "cl.muted";
 
 // Pure function returning synth parameters for each named sound effect.
 // Returns null for unknown names. Testable without AudioContext (Node-safe).
+// A descriptor may carry an optional `layer` (a second oscillator played
+// simultaneously, e.g. a sub-octave body) — purely additive, ignored by the
+// existing tests which only assert type/freq/dur on the primary.
 export function sfxParams(name) {
   const params = {
-    place: { type: "square", freq: 440, dur: 0.08 },
-    run: { type: "triangle", freq: 220, dur: 0.12 },
+    place: { type: "square", freq: 440, dur: 0.08, vary: 0.06, layer: { type: "sine", freq: 220, dur: 0.06, gain: 0.5 } },
+    run: { type: "triangle", freq: 220, dur: 0.12, vary: 0.05 },
     win: [
       { type: "sine", freq: 523, dur: 0.15 }, // C
       { type: "sine", freq: 659, dur: 0.15 }, // E
-      { type: "sine", freq: 784, dur: 0.25 }, // G
+      { type: "sine", freq: 784, dur: 0.28, layer: { type: "triangle", freq: 392, dur: 0.28, gain: 0.5 } }, // G + sub-octave
     ],
-    bounce: { type: "sine", freq: 330, dur: 0.05 },
+    bounce: { type: "sine", freq: 330, dur: 0.05, vary: 0.1 },
     explode: { type: "noise", freq: 0, dur: 0.3 },
   };
   return params[name] || null;
+}
+
+// Deterministic-free pitch jitter factor in [1-v, 1+v]. Lives outside sfxParams so
+// the pure param function stays testable; randomness only enters at playback.
+function pitchJitter(vary) {
+  if (!vary) return 1;
+  return 1 + (Math.random() * 2 - 1) * vary;
 }
 
 // Mute state: persisted to localStorage, defaults to false (unmuted).
@@ -68,12 +78,15 @@ export function sfx(name) {
       }
     }
 
-    // Play the sound(s)
+    // Play the sound(s). One pitch-jitter per invocation keeps a multi-note
+    // sequence (e.g. the win arpeggio) in tune with itself while still varying
+    // run-to-run, so repeated bounces never sound machine-gun identical.
     const sounds = Array.isArray(params) ? params : [params];
+    const jitter = pitchJitter(sounds[0] && sounds[0].vary);
     let offset = 0;
 
     for (const p of sounds) {
-      playSynth(p, offset);
+      playSynth(p, offset, jitter);
       offset += p.dur;
     }
   } catch {
@@ -81,18 +94,19 @@ export function sfx(name) {
   }
 }
 
-function playSynth(p, startOffset = 0) {
+function playSynth(p, startOffset = 0, jitter = 1) {
   try {
     const ctx = audioCtx;
     if (!ctx) return;
 
     const now = ctx.currentTime + startOffset;
+    const peak = 0.15 * (p.gain ?? 1);
     const gain = ctx.createGain();
     gain.connect(ctx.destination);
 
     // Envelope: quick attack, exponential decay
     gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(0.15, now + 0.01);
+    gain.gain.linearRampToValueAtTime(peak, now + 0.01);
     gain.gain.exponentialRampToValueAtTime(0.01, now + p.dur);
 
     if (p.type === "noise") {
@@ -108,14 +122,18 @@ function playSynth(p, startOffset = 0) {
       noise.connect(gain);
       noise.start(now);
     } else {
-      // Oscillator (sine/square/triangle)
+      // Oscillator (sine/square/triangle), pitch jittered for variety
       const osc = ctx.createOscillator();
       osc.type = p.type;
-      osc.frequency.setValueAtTime(p.freq, now);
+      osc.frequency.setValueAtTime(p.freq * jitter, now);
       osc.connect(gain);
       osc.start(now);
       osc.stop(now + p.dur);
     }
+
+    // Optional simultaneous layer (e.g. a sub-octave body) — adds weight per the
+    // "layer 2-3 sounds per action" finding. Shares the same time slot + jitter.
+    if (p.layer) playSynth(p.layer, startOffset, jitter);
   } catch {
     // Never throw from playSynth
   }

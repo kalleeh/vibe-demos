@@ -4,11 +4,12 @@ import { drawWorld, resizeCanvas } from "./render.js";
 import { tokens, applyTheme, loadTheme, THEMES } from "./theme.js";
 import { PARTS, makePart } from "./parts.js";
 import { PlacementController } from "./input.js";
-import { recordSolve, isSolved } from "./progress.js";
+import { recordSolve, isSolved, getProgress } from "./progress.js";
 import { init as cloudInit, cloud, user as cloudUser, pushProgress, pullProgress, leaderboard } from "./cloud.js";
 import { mountAccountUI, setIndicator } from "./auth-ui.js";
-import { preloadSprites } from "./sprites.js";
+import { preloadSprites, resolveSprite } from "./sprites.js";
 import { sfx, setMuted, isMuted } from "./sound.js";
+import { Fx, impactIntensity } from "./fx.js";
 
 // optional self-test
 if (new URLSearchParams(location.search).has("test")) {
@@ -17,21 +18,23 @@ if (new URLSearchParams(location.search).has("test")) {
     const spriteMod = await import("./sprites.test.js");
     const editorMod = await import("./editor.test.js");
     const soundMod = await import("./sound.test.js");
+    const fxMod = await import("./fx.test.js");
     m.runTests([ ...(await m.levelCases()), ...(await m.officialCases()), ...(await m.progressCases()),
                  ...(await m.progressShapeCases()), ...(await cloudMod.cloudCases()), ...(await spriteMod.spriteCases()),
                  ...(await m.trackCCases()), ...(await m.trackCEngineCases()), ...(await editorMod.editorCases()),
-                 ...(await soundMod.soundCases()), ...(await m.newPartsCases()), ...(await m.buttonGateCases()), ...(await m.portalCases()) ]);
+                 ...(await soundMod.soundCases()), ...(await fxMod.fxCases()), ...(await m.newPartsCases()), ...(await m.buttonGateCases()), ...(await m.portalCases()) ]);
   });
 }
 
 const canvas = document.getElementById("stage");
 const ctx = canvas.getContext("2d");
 let transform, sim, controller, selected = null, remaining = {}, current = null;
+const fx = new Fx({ reducedMotion: false }); // reducedMotion synced below
 
 // Phase 3: screen router (play, editor, browse)
 let editorInstance = null;
 const screens = {
-  play: { container: document.querySelector(".stagewrap"), palette: document.getElementById("palette"), controls: document.querySelector(".controls"), objective: document.querySelector(".objective") },
+  play: { container: document.querySelector(".stagewrap"), dock: document.querySelector(".dock"), objective: document.querySelector(".objective") },
   editor: document.getElementById("editorScreen"),
   browse: document.getElementById("browseScreen"),
 };
@@ -49,17 +52,49 @@ function recomputeRemaining() {
   current.inventory.forEach(i => remaining[i.type] = i.count);
   sim.placed.forEach(s => { if (s.type in remaining) remaining[s.type]--; });
 }
+// Inventory tray as thumbnail tiles: each part shows its sprite, label, and a
+// remaining-count badge — far more legible (and game-like) than a text button.
+// Falls back to a glyph if the sprite art isn't resolvable. Built with safe DOM
+// nodes (no innerHTML interpolation of part data).
 function buildPalette() {
   recomputeRemaining();
   const pal = document.getElementById("palette");
   pal.innerHTML = "";
+  const themeId = document.documentElement.dataset.theme;
+  const countEl = document.getElementById("trayCount");
+  if (countEl) countEl.textContent = `· ${current.inventory.length} TYPE${current.inventory.length === 1 ? "" : "S"}`;
   for (const inv of current.inventory) {
+    const def = PARTS[inv.type];
+    const left = remaining[inv.type];
     const b = document.createElement("button");
-    b.textContent = `${PARTS[inv.type].label} ×${remaining[inv.type]}`;
-    b.disabled = remaining[inv.type] <= 0;
-    if (inv.type === selected) b.classList.add("sel");
-    b.onclick = () => { selected = inv.type; [...pal.children].forEach(c=>c.classList.remove("sel")); b.classList.add("sel"); };
+    b.className = "parttile";
     b.dataset.type = inv.type;
+    b.disabled = left <= 0;
+    if (inv.type === selected) b.classList.add("sel");
+    b.title = def ? def.label : inv.type;
+    b.setAttribute("aria-label", `${def ? def.label : inv.type}, ${left} left`);
+
+    const thumb = document.createElement("span");
+    thumb.className = "ptthumb";
+    const spr = resolveSprite(inv.type, themeId);
+    if (spr && spr.src) {
+      const img = document.createElement("img");
+      img.src = spr.src; img.alt = ""; img.draggable = false; img.loading = "lazy";
+      thumb.appendChild(img);
+    } else {
+      thumb.textContent = (def ? def.label : inv.type).slice(0, 2);
+    }
+
+    const name = document.createElement("span");
+    name.className = "ptname";
+    name.textContent = def ? def.label : inv.type;
+
+    const badge = document.createElement("span");
+    badge.className = "ptbadge";
+    badge.textContent = `×${left}`;
+
+    b.append(thumb, name, badge);
+    b.onclick = () => { selected = inv.type; [...pal.children].forEach(c=>c.classList.remove("sel")); b.classList.add("sel"); };
     pal.appendChild(b);
   }
 }
@@ -81,24 +116,78 @@ function updateObjective(level) {
       : "Press Run to solve.";
   }
 }
+// Best-stats line + star rating in the controls panel. Stars are awarded against
+// the level's `par.parts`: ≤par = ★★★, ≤par+2 = ★★☆, solved = ★☆☆. Community
+// levels (no par) just show parts/time. Pure read from progress.js.
+function updateStats(level) {
+  const statEl = document.getElementById("bestStat");
+  const starEl = document.getElementById("starRating");
+  if (!statEl || !starEl) return;
+  const rec = getProgress()[level.id];
+  if (!rec || !rec.solved) {
+    statEl.innerHTML = "No solve yet";
+    starEl.textContent = "☆☆☆";
+    return;
+  }
+  const secs = (rec.bestMs / 1000).toFixed(1);
+  statEl.innerHTML = `BEST · <b>${rec.bestParts} PART${rec.bestParts === 1 ? "" : "S"}</b> · <b>${secs}s</b>`;
+  const par = level.par && typeof level.par.parts === "number" ? level.par.parts : null;
+  let stars = 1;
+  if (par != null) stars = rec.bestParts <= par ? 3 : rec.bestParts <= par + 2 ? 2 : 1;
+  starEl.textContent = "★★★☆☆".slice(3 - stars, 6 - stars);
+}
+
 function loadLevel(level) {
   current = level;
   document.getElementById("levelTitle").textContent = level.title + (isSolved(level.id) ? " ✓" : "");
   updateObjective(level);
+  updateStats(level);
   selected = null;
   sim = new Sim(level);
-  sim.onEvent = (name) => sfx(name);  // Wire sound events
+  sim.onEvent = handleSimEvent;  // drives both sound and visual fx
+  fx.clear();
   if (controller) controller.setSim(sim); else controller = makeController();
   buildPalette();
   document.getElementById("banner").hidden = true;
   resize();
 }
+// Central sim-event handler: every physics event drives sound AND visual juice.
+// fx is render-only, so this never affects the simulation. Particle colors read
+// the live theme tokens so juice stays on-palette across all four themes.
+function handleSimEvent(name, data = {}) {
+  sfx(name);
+  const tk = tokens();
+  if (name === "bounce") {
+    const i = impactIntensity(data.speed || 0);
+    if (i <= 0) return;
+    fx.addTrauma(0.12 + i * 0.22);
+    if (typeof data.x === "number") {
+      fx.burst(data.x, data.y, {
+        count: 3 + Math.round(i * 9), color: tk.accent || "#fff",
+        speed: 120 + i * 260, size: 2 + i * 2, life: 320 + i * 200, spread: Math.PI * 2,
+      });
+    }
+    if (data.idA != null) fx.flash(data.idA, 90 + i * 80);
+    if (data.idB != null) fx.flash(data.idB, 90 + i * 80);
+  } else if (name === "explode") {
+    fx.addTrauma(0.85);
+    if (typeof data.x === "number") {
+      fx.burst(data.x, data.y, { count: 36, color: tk.accent || "#ff8c42", speed: 460, size: 3.2, life: 620, spread: Math.PI * 2, gravity: 600 });
+      fx.burst(data.x, data.y, { count: 18, color: "#ffd166", speed: 300, size: 2.4, life: 460, spread: Math.PI * 2, gravity: 500 });
+    }
+  }
+}
+
 function makeController() {
   return new PlacementController(canvas, sim, {
     getTransform: () => transform,
     getSelectedType: () => selected,
     remaining: (t) => remaining[t] ?? 0,
-    onPlaced: () => { buildPalette(); sfx("place"); },       // place: refresh counts + sound
+    onPlaced: () => {                                        // place: refresh counts + sound + confirm spark
+      buildPalette(); sfx("place");
+      const last = sim.placed[sim.placed.length - 1];
+      if (last) { const tk = tokens(); fx.burst(last.x, last.y, { count: 7, color: tk.accent || "#fff", speed: 130, size: 2, life: 300, gravity: 200 }); }
+    },
     onCountsChanged: () => buildPalette(), // delete: refund counts from sim.placed
     onChange: () => draw(),
   });
@@ -106,22 +195,31 @@ function makeController() {
 function resize(){ const r = resizeCanvas(canvas); transform = r.transform; draw(); }
 // Compute prefers-reduced-motion ONCE (not per frame); keep it live via a change listener.
 let reducedMotion = (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) ?? false;
+fx.setReducedMotion(reducedMotion);
 if (window.matchMedia) {
-  try { window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", e => { reducedMotion = e.matches; }); } catch {}
+  try { window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", e => { reducedMotion = e.matches; fx.setReducedMotion(reducedMotion); }); } catch {}
 }
 function draw(nowTs){
+  // dwell progress (0..1) toward the in-zone win — drives the goal's brighten/pulse.
+  const dwell = sim && sim.state === "running" && current && current.goal
+    ? Math.min(1, (sim.dwell || 0) / (current.goal.ms || 500)) : 0;
+  // nowTs may be absent or, when draw is used as a .then() callback, a non-number
+  // (the promise's resolution value) — coerce to a real timestamp so downstream
+  // time-based math (goal pulse, spin) never sees NaN.
+  const now = typeof nowTs === "number" ? nowTs : performance.now();
   drawWorld(ctx, sim, transform, tokens(), {
     ghost: controller && controller.ghost ? ghostVerts(controller.ghost) : null,
     themeId: document.documentElement.dataset.theme,
-    now: nowTs ?? performance.now(),
+    now,
     running: sim && sim.state === "running",
-    reducedMotion
+    reducedMotion, fx, dwell
   });
 }
 function ghostVerts(g){ try { const {bodies}=makePart(g.type,{x:g.x,y:g.y}); return { vertices: bodies[0].vertices || [{x:g.x-10,y:g.y-10},{x:g.x+10,y:g.y-10},{x:g.x+10,y:g.y+10},{x:g.x-10,y:g.y+10}], valid:g.valid, partType:g.type, body:bodies[0] }; } catch { return null; } }
 
 let last = 0, raf = 0;
 function tick(ts){ const dt = last ? ts-last : 16; last = ts;
+  fx.update(dt);   // advance shake/particles/flash every frame (build + run)
   if (sim.state === "running") { const s = sim.step(dt); draw(ts);
     if (s === "won") { onWin(); } else if (s === "lost") { onLost(); } }
   else { draw(ts); }
@@ -135,11 +233,32 @@ function showBanner(big, small, lost){
   banner.append(b,s); banner.hidden=false;
 }
 function onWin(){ recordSolve(current.id, sim.partsUsed(), Math.round(sim.elapsed));
-  showBanner("Solved!", sim.partsUsed()+" part"+(sim.partsUsed()===1?"":"s")+" used — tap a level to continue", false);
+  // Choreographed climax: confetti fountain from the goal + a quick screen flash,
+  // then the banner pops in. The emotional peak gets the most juice.
+  const used = sim.partsUsed();
+  const tk = tokens();
+  const colors = [tk.goal || "#52e0a3", tk.accent || "#ffd166", tk.partFill || "#3a6bb8", "#ffffff"];
+  if (current.goal && current.goal.zone) fx.confetti(current.goal.zone.x, current.goal.zone.y, colors);
+  fx.addTrauma(0.4);
+  flashScreen();
+  showBanner("Solved!", used + " part" + (used === 1 ? "" : "s") + " used — tap a level to continue", false);
   document.getElementById("levelTitle").textContent = current.title + " ✓";
+  updateStats(current);
   sfx("win");
   import("./progress.js").then(p => pushProgress(p.getProgress())); }
-function onLost(){ showBanner("Time's up", "Press Reset and try a different setup", true); }
+function onLost(){ fx.addTrauma(0.3); showBanner("Time's up", "Press Reset and try a different setup", true); }
+
+// Quick full-screen white flash via a CSS-animated overlay (auto-removed). Honors
+// reduced motion by skipping entirely.
+function flashScreen(){
+  if (reducedMotion) return;
+  const el = document.createElement("div");
+  el.className = "screenflash";
+  document.body.appendChild(el);
+  el.addEventListener("animationend", () => el.remove(), { once: true });
+  // safety net if animationend never fires
+  setTimeout(() => el.remove(), 600);
+}
 
 document.getElementById("runBtn").onclick = () => { if (sim.state==="build"){ sim.run(); sfx("run"); document.getElementById("banner").hidden=true; } };
 document.getElementById("resetBtn").onclick = () => { sim.reset(); buildPalette(); document.getElementById("banner").hidden=true; draw(); };
@@ -183,8 +302,7 @@ function showScreen(name) {
   if (screens.editor) screens.editor.hidden = true;
   if (screens.browse) screens.browse.hidden = true;
   if (screens.play.container) screens.play.container.hidden = (name !== "play");
-  if (screens.play.palette) screens.play.palette.hidden = (name !== "play");
-  if (screens.play.controls) screens.play.controls.hidden = (name !== "play");
+  if (screens.play.dock) screens.play.dock.hidden = (name !== "play");
   if (screens.play.objective) screens.play.objective.hidden = (name !== "play");
 
   // The community Like button only applies to a community play; hide it on every
@@ -307,10 +425,13 @@ window.addEventListener("resize", resize);
 
 applyTheme(loadTheme()); fillThemeSelect();
 
-// Mute button
+// Mute button — toggles a visual state class (keeps the SVG icon intact).
 function updateMuteButton() {
   const btn = document.getElementById("muteBtn");
-  btn.textContent = isMuted() ? "🔇" : "🔊";
+  const muted = isMuted();
+  btn.classList.toggle("muted", muted);
+  btn.title = muted ? "Sound off" : "Sound on";
+  btn.setAttribute("aria-pressed", muted ? "true" : "false");
 }
 document.getElementById("muteBtn").onclick = () => {
   setMuted(!isMuted());
@@ -323,6 +444,22 @@ preloadSprites(loadTheme()).then(() => {
   route();
   raf = requestAnimationFrame(tick);
 });
+
+// First-run onboarding coach-mark (shown once; dismissal persisted).
+(function initCoach(){
+  const COACH_KEY = "cl.coachSeen";
+  const coach = document.getElementById("coach");
+  if (!coach) return;
+  let seen = false;
+  try { seen = localStorage.getItem(COACH_KEY) === "1"; } catch {}
+  const dismiss = () => {
+    coach.hidden = true;
+    try { localStorage.setItem(COACH_KEY, "1"); } catch {}
+  };
+  if (!seen) coach.hidden = false;
+  document.getElementById("coachDismiss").onclick = dismiss;
+  coach.addEventListener("click", (e) => { if (e.target === coach) dismiss(); });
+})();
 
 // register SW
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(()=>{});

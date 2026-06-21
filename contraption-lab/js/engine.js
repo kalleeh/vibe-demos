@@ -337,8 +337,8 @@ export class Sim {
               m.Body.applyForce(b, b.position, { x: (dx / dist) * mag, y: (dy / dist) * mag });
             }
           }
-          // Fire explode event
-          try { if (this.onEvent) this.onEvent("explode"); } catch {}
+          // Fire explode event (position+radius are render-only; physics ignores them)
+          try { if (this.onEvent) this.onEvent("explode", { x: t.position.x, y: t.position.y, radius }); } catch {}
           t.plugin.armed = false;
           t.plugin._spent = true;
           m.Composite.remove(this.world, t);
@@ -374,7 +374,13 @@ export class Sim {
               const dvx = (bodyA.velocity?.x || 0) - (bodyB.velocity?.x || 0);
               const dvy = (bodyA.velocity?.y || 0) - (bodyB.velocity?.y || 0);
               const speed = Math.sqrt(dvx * dvx + dvy * dvy);
-              if (speed > 3.5) { this.onEvent("bounce", { speed }); break; }
+              if (speed > 3.5) {
+                // contact point + the body ids are render-only hints for fx (flash/particles).
+                const cx = (bodyA.position.x + bodyB.position.x) / 2;
+                const cy = (bodyA.position.y + bodyB.position.y) / 2;
+                this.onEvent("bounce", { speed, x: cx, y: cy, idA: bodyA.id, idB: bodyB.id });
+                break;
+              }
             }
           } catch {}
         };
