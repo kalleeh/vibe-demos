@@ -135,7 +135,7 @@ export const PARTS = {
   button: { label:"Button", movable:true, fixedByDefault:true,
     build:(s,M)=>{ const b=M.Bodies.rectangle(s.x,s.y,s.w||70,14,{isStatic:true,isSensor:true}); b.plugin={partType:"button",tag:s.tag||null,gate:s.gate||"g"}; return {bodies:[b],constraints:[]}; } },
   gate: { label:"Gate", movable:true, fixedByDefault:true,
-    build:(s,M)=>{ const b=M.Bodies.rectangle(s.x,s.y,s.w||24,s.h||140,{isStatic:true,angle:s.angle||0}); b.plugin={partType:"gate",tag:s.tag||null,id:s.id||"g",_solidX:s.x,_solidY:s.y}; return {bodies:[b],constraints:[]}; } },
+    build:(s,M)=>{ const b=M.Bodies.rectangle(s.x,s.y,s.w||24,s.h||140,{isStatic:true,angle:s.angle||0}); b.plugin={partType:"gate",tag:s.tag||null,id:s.id||"g",_solidX:s.x,_solidY:s.y,_retracted:false}; return {bodies:[b],constraints:[]}; } },
 };
 
 export const PALETTE_TYPES = ["ramp","wall","fan","conveyor","seesaw","balloon","domino","bucket","trampoline","gear","crate","pipe","pinwheel","spring","wedge","platform","bowlingpin","weight","rope","gears","tnt","ice","sticky","bumper","magnet","accelerator","vortex","portal","button","gate"];

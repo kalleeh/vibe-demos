@@ -244,8 +244,10 @@ export class Sim {
         const gate = this.bodies.find(o => o.plugin && o.plugin.partType === "gate" && o.plugin.id === pl.gate);
         if (gate) {
           const gp = gate.plugin;
-          if (open && gate.position.y > -5000) m.Body.setPosition(gate, { x: gp._solidX, y: gp._solidY - 10000 });   // retract up
-          else if (!open && gate.position.y < -5000) m.Body.setPosition(gate, { x: gp._solidX, y: gp._solidY });      // restore
+          // Toggle on an explicit flag (not on position thresholds) so a body nudging
+          // the retracted gate near the threshold can't cause repeated setPosition/drift.
+          if (open && !gp._retracted) { m.Body.setPosition(gate, { x: gp._solidX, y: gp._solidY - 10000 }); gp._retracted = true; }
+          else if (!open && gp._retracted) { m.Body.setPosition(gate, { x: gp._solidX, y: gp._solidY }); gp._retracted = false; }
         }
       }
       else if (pl.partType === "fan") {
