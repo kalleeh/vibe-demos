@@ -11,7 +11,7 @@ const lvl = (id, title, goal, fixed, start, inventory, par) =>
 const goalAt = (x, y, w=180, h=150) => ({ type:"dwell", object:"ball", zone:{x,y,w,h}, ms:400 });
 
 export const OFFICIAL_LEVELS = [
-  // 01 — drop the ball onto the slope; it rolls right into the pocket.
+  // 01 — First Drop: teach ramp. Ball drops, ramp smooths the landing onto goal slope.
   lvl("official-01","First Drop", goalAt(1040,560),
     [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.18},
       {type:"wall",x:1200,y:520,w:24,h:260},
@@ -19,107 +19,37 @@ export const OFFICIAL_LEVELS = [
     [ {type:"ball",x:200,y:90,tag:"ball"} ],
     [ {type:"ramp",count:1} ], {parts:1}),
 
-  // 02 — longer roll, two ramps to keep it moving.
-  lvl("official-02","Long Roll", goalAt(1040,560),
-    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.16},
-      {type:"wall",x:1200,y:520,w:24,h:260},
-      {type:"goal",x:1040,y:560} ],
-    [ {type:"ball",x:180,y:90,tag:"ball"} ],
-    [ {type:"ramp",count:2} ], {parts:2}),
+  // 02 — Bounce: teach bumper. Ball drops, bumper redirects it onto goal slope.
+  lvl("official-02","Bounce", goalAt(1000,560),
+    [ {type:"wall",x:660,y:560,w:1000,h:28,angle:0.17},
+      {type:"wall",x:1180,y:520,w:24,h:260},
+      {type:"goal",x:1000,y:560} ],
+    [ {type:"ball",x:220,y:100,tag:"ball"} ],
+    [ {type:"bumper",count:1} ], {parts:1}),
 
-  // 03 — mirror: goal pocket bottom-left, ball starts top-right.
-  lvl("official-03","Fan Assist", goalAt(220,560),
-    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:-0.18},
-      {type:"wall",x:80,y:520,w:24,h:260},
-      {type:"goal",x:220,y:560} ],
-    [ {type:"ball",x:1060,y:90,tag:"ball"} ],
-    [ {type:"ramp",count:1}, {type:"fan",count:1} ], {parts:2}),
+  // 03 — Slippery: teach ice. Ramp gets ball onto ice slope, ice carries it fast to goal.
+  lvl("official-03","Slippery", goalAt(1020,590),
+    [ {type:"ice",x:640,y:440,w:660,h:28,angle:0.22,fixedByDefault:true},
+      {type:"wall",x:1160,y:560,w:24,h:300},
+      {type:"goal",x:1020,y:590} ],
+    [ {type:"ball",x:360,y:260,tag:"ball"} ],
+    [ {type:"ramp",count:1} ], {parts:1}),
 
-  // 04 — zigzag with two ramps.
-  lvl("official-04","Switchback", goalAt(1040,560),
-    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.16},
-      {type:"wall",x:1200,y:520,w:24,h:260},
-      {type:"goal",x:1040,y:560} ],
-    [ {type:"ball",x:200,y:90,tag:"ball"} ],
-    [ {type:"ramp",count:2} ], {parts:2}),
+  // 04 — Fan Lift: teach fan+balloon. Balloon floats up with fan, carries ball over wall to goal.
+  lvl("official-04","Fan Lift", goalAt(960,580),
+    [ {type:"wall",x:240,y:600,w:360,h:28},
+      {type:"wall",x:520,y:380,w:28,h:440},
+      {type:"wall",x:880,y:580,w:560,h:28,angle:0.13},
+      {type:"wall",x:1180,y:540,w:24,h:280},
+      {type:"goal",x:960,y:580} ],
+    [ {type:"ball",x:240,y:540,tag:"ball"} ],
+    [ {type:"balloon",count:1}, {type:"fan",count:1} ], {parts:2}),
 
-  // 05 — a conveyor helps ferry the ball along.
-  lvl("official-05","Conveyor Carry", goalAt(1060,560),
-    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.14},
-      {type:"wall",x:1200,y:520,w:24,h:260},
-      {type:"goal",x:1060,y:560} ],
-    [ {type:"ball",x:200,y:90,tag:"ball"} ],
-    [ {type:"ramp",count:1}, {type:"conveyor",count:1} ], {parts:2}),
-
-  // 06 — cascade of two ramps from the far left.
-  lvl("official-06","Cascade", goalAt(1040,560),
-    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.17},
-      {type:"wall",x:1200,y:520,w:24,h:260},
-      {type:"goal",x:1040,y:560} ],
-    [ {type:"ball",x:160,y:90,tag:"ball"} ],
-    [ {type:"ramp",count:2} ], {parts:2}),
-
-  // 07 — three-ramp chain.
-  lvl("official-07","The Drop Chain", goalAt(1040,560),
-    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.18},
-      {type:"wall",x:1200,y:520,w:24,h:260},
-      {type:"goal",x:1040,y:560} ],
-    [ {type:"ball",x:220,y:90,tag:"ball"} ],
-    [ {type:"ramp",count:3} ], {parts:3}),
-
-  // 08 — steeper slope, three switchbacks.
-  lvl("official-08","Triple Switchback", goalAt(1040,560),
-    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.2},
-      {type:"wall",x:1200,y:520,w:24,h:260},
-      {type:"goal",x:1040,y:560} ],
-    [ {type:"ball",x:180,y:90,tag:"ball"} ],
-    [ {type:"ramp",count:3} ], {parts:3}),
-
-  // 09 — left pocket, two ramps + conveyor.
-  lvl("official-09","Headwind", goalAt(220,560),
-    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:-0.18},
-      {type:"wall",x:80,y:520,w:24,h:260},
-      {type:"goal",x:220,y:560} ],
-    [ {type:"ball",x:1060,y:90,tag:"ball"} ],
-    [ {type:"ramp",count:2}, {type:"conveyor",count:1} ], {parts:3}),
-
-  // 10 — grand finale: steep slope, four mixed parts.
-  lvl("official-10","Grand Contraption", goalAt(1040,560),
-    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.19},
-      {type:"wall",x:1200,y:520,w:24,h:260},
-      {type:"goal",x:1040,y:560} ],
-    [ {type:"ball",x:160,y:80,tag:"ball"} ],
-    [ {type:"ramp",count:2}, {type:"conveyor",count:1}, {type:"fan",count:1} ], {parts:4}),
-
-  // 11 — bounce house: trampoline bounce to reach the goal.
-  lvl("official-11","Bounce House", goalAt(1040,560),
-    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.18},
-      {type:"wall",x:1200,y:520,w:24,h:260},
-      {type:"goal",x:1040,y:560} ],
-    [ {type:"ball",x:200,y:90,tag:"ball"} ],
-    [ {type:"ramp",count:1}, {type:"trampoline",count:1} ], {parts:2}),
-
-  // 12 — heavy lifting: weight on seesaw to launch the ball.
-  lvl("official-12","Heavy Lifting", goalAt(1040,560),
-    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.17},
-      {type:"wall",x:1200,y:520,w:24,h:260},
-      {type:"goal",x:1040,y:560} ],
-    [ {type:"ball",x:180,y:90,tag:"ball"} ],
-    [ {type:"ramp",count:1}, {type:"seesaw",count:1}, {type:"weight",count:1} ], {parts:3}),
-
-  // 13 — spin cycle: gears to carry the ball across a gap.
-  lvl("official-13","Spin Cycle", goalAt(1040,560),
-    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.16},
-      {type:"wall",x:1200,y:520,w:24,h:260},
-      {type:"goal",x:1040,y:560} ],
-    [ {type:"ball",x:200,y:90,tag:"ball"} ],
-    [ {type:"ramp",count:1}, {type:"gears",count:1} ], {parts:2}),
-
-  // 14 — the big bang: TNT blast to propel the ball into goal.
-  lvl("official-14","The Big Bang", goalAt(1040,560),
-    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.18},
-      {type:"wall",x:1200,y:520,w:24,h:260},
-      {type:"goal",x:1040,y:560} ],
-    [ {type:"ball",x:200,y:90,tag:"ball"} ],
-    [ {type:"ramp",count:1}, {type:"tnt",count:1} ], {parts:2}),
+  // 05 — Magnet: teach magnet. Ball drops, magnet pulls it sideways onto goal slope.
+  lvl("official-05","Magnet", goalAt(960,560),
+    [ {type:"wall",x:880,y:560,w:680,h:28,angle:0.15},
+      {type:"wall",x:1180,y:520,w:24,h:280},
+      {type:"goal",x:960,y:560} ],
+    [ {type:"ball",x:280,y:120,tag:"ball"} ],
+    [ {type:"magnet",count:1} ], {parts:1}),
 ];
