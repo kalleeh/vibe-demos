@@ -124,4 +124,65 @@ export const OFFICIAL_LEVELS = [
       {type:"goal",x:380,y:560} ],
     [ {type:"ball",x:640,y:80,tag:"ball"} ],
     [ {type:"vortex",count:1} ], {parts:1}),
+
+  // === BAND C: Multi-step chains (levels 13-18) ===
+
+  // 13 — Button & Gate: ball drops, weight drops onto button to open gate, ball continues to goal.
+  // Layout: Vertical drop with horizontal gate barrier mid-path (modeled on L05 drop pattern).
+  lvl("official-13","Button & Gate", goalAt(960,560),
+    [ {type:"wall",x:280,y:600,w:400,h:28},
+      {type:"button",x:200,y:600,w:80,gate:"g1",fixedByDefault:true},
+      {type:"gate",x:480,y:420,w:24,h:360,id:"g1",fixedByDefault:true},
+      {type:"wall",x:880,y:560,w:680,h:28,angle:0.15},
+      {type:"wall",x:1180,y:520,w:28,h:280},
+      {type:"goal",x:960,y:560} ],
+    [ {type:"ball",x:600,y:120,tag:"ball"} ],
+    [ {type:"weight",count:1} ], {parts:1}),
+
+  // 14 — Pinwheel Relay: domino + pinwheel - domino chain triggers pinwheel spin (simpler chain).
+  lvl("official-14","Pinwheel Relay", goalAt(960,560),
+    [ {type:"wall",x:420,y:520,w:680,h:28,angle:0.16},
+      {type:"wall",x:880,y:560,w:680,h:28,angle:0.15},
+      {type:"wall",x:1180,y:520,w:28,h:280},
+      {type:"goal",x:960,y:560} ],
+    [ {type:"ball",x:720,y:440,tag:"ball"} ],
+    [ {type:"domino",count:2}, {type:"pinwheel",count:1} ], {parts:3}),
+
+  // 15 — Trampoline Tower: like L11 but add a bumper mid-slope for multi-bounce (proven pattern + 1 part).
+  lvl("official-15","Trampoline Tower", goalAt(1000,580),
+    [ {type:"wall",x:520,y:420,w:800,h:28,angle:0.16},
+      {type:"wall",x:1000,y:580,w:480,h:28,angle:0.14},
+      {type:"wall",x:1200,y:540,w:28,h:300},
+      {type:"goal",x:1000,y:580} ],
+    [ {type:"ball",x:860,y:340,tag:"ball"} ],
+    [ {type:"domino",count:3}, {type:"bumper",count:1} ], {parts:4}),
+
+  // 16 — Gear Drive: seesaw + gears - weight tips seesaw, launching ball to gears (like L07 pattern).
+  lvl("official-16","Gear Drive", goalAt(940,560),
+    [ {type:"wall",x:320,y:560,w:400,h:28},
+      {type:"seesaw",x:520,y:480,w:220,fixedByDefault:true},
+      {type:"wall",x:880,y:560,w:640,h:28,angle:0.14},
+      {type:"wall",x:1160,y:520,w:28,h:280},
+      {type:"goal",x:940,y:560} ],
+    [ {type:"ball",x:610,y:440,tag:"ball"} ],
+    [ {type:"weight",count:1}, {type:"gears",count:1} ], {parts:2}),
+
+  // 17 — Two-Portal Maze: conveyor + portal through wall (exact L09 pattern with conveyor assist).
+  lvl("official-17","Two-Portal Maze", goalAt(1000,560),
+    [ {type:"wall",x:640,y:360,w:28,h:720},
+      {type:"wall",x:280,y:600,w:480,h:28},
+      {type:"wall",x:1000,y:560,w:400,h:28,angle:0.13},
+      {type:"wall",x:1160,y:520,w:28,h:280},
+      {type:"goal",x:1000,y:560} ],
+    [ {type:"ball",x:160,y:520,tag:"ball"} ],
+    [ {type:"conveyor",count:1}, {type:"portal",count:2} ], {parts:3}),
+
+  // 18 — Magnet + Accelerator: magnet pulls ball into position, accelerator launches to goal (model on L05+L08).
+  lvl("official-18","Magnet + Accelerator", goalAt(960,360),
+    [ {type:"wall",x:960,y:360,w:640,h:28},
+      {type:"wall",x:80,y:360,w:28,h:720},
+      {type:"wall",x:1200,y:460,w:28,h:200},
+      {type:"goal",x:960,y:360} ],
+    [ {type:"ball",x:280,y:120,tag:"ball"} ],
+    [ {type:"magnet",count:1}, {type:"accelerator",count:1} ], {parts:2}),
 ];

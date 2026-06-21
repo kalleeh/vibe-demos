@@ -13,7 +13,13 @@ import { SOLUTIONS } from "./solutions.mjs";
 
 export function verify(level, solution, maxSteps = 2000) {
   const sim = new Sim(level);
-  for (const p of (solution || [])) sim.addPlayerPart(p.type, p.x, p.y, p.angle || 0);
+  for (const p of (solution || [])) {
+    // addPlayerPart only takes (type,x,y,angle), but _spawn passes the full spec to makePart.
+    // So we rebuild the spec with all fields from the solution, then use _spawn directly.
+    const spec = { ...p, angle: p.angle || 0 };
+    sim.placed.push(spec);
+    sim._spawn(spec, true);
+  }
   sim.run();
   const ball = sim.bodies.find(b => b.plugin && b.plugin.tag === (level.goal.object || "ball"));
   for (let i = 0; i < maxSteps; i++) {
