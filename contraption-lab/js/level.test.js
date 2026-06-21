@@ -81,7 +81,7 @@ export async function officialCases() {
   const { OFFICIAL_LEVELS } = await import("./levels/official.js");
   const { makePart } = await import("./parts.js");
   const cases = [
-    { name:"exactly 18 official levels", fn:()=>{ if(OFFICIAL_LEVELS.length !== 18) throw new Error("expected 18, got "+OFFICIAL_LEVELS.length); } },
+    { name:"exactly 20 official levels", fn:()=>{ if(OFFICIAL_LEVELS.length !== 20) throw new Error("expected 20, got "+OFFICIAL_LEVELS.length); } },
     { name:"ids unique + sequential", fn:()=>{ const ids=OFFICIAL_LEVELS.map(l=>l.id); if(new Set(ids).size!==ids.length) throw new Error("dup ids"); } },
   ];
   OFFICIAL_LEVELS.forEach((lvl,i) => cases.push({ name:`level ${i+1} (${lvl.id}) validates`, fn:()=>{ const v=L.validateLevel(lvl); if(!v.ok) throw new Error(v.reason); } }));
