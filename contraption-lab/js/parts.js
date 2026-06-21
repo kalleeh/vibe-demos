@@ -5,7 +5,9 @@ const cat = (M, partType, tag) => b => { b.plugin = { partType, tag: tag || null
 export const PARTS = {
   ball: {
     label: "Ball", movable: false, fixedByDefault: false,
-    build: (s, M) => ({ bodies: [cat(M,"ball",s.tag)(M.Bodies.circle(s.x, s.y, s.r||18, { restitution:0.45, friction:0.05, density:0.004 }))], constraints: [] }),
+    // Low frictionAir + low surface friction so the ball actually ACCELERATES rolling down
+    // a slope (Matter's defaults made it hit a low terminal speed and "never pick up speed").
+    build: (s, M) => ({ bodies: [cat(M,"ball",s.tag)(M.Bodies.circle(s.x, s.y, s.r||18, { restitution:0.45, friction:0.02, frictionAir:0.002, density:0.004 }))], constraints: [] }),
   },
   wall: {
     label: "Wall", movable: true, fixedByDefault: true,
