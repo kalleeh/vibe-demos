@@ -212,13 +212,21 @@ export class Sim {
         }
       }
       else if (pl.partType === "accelerator") {
-        const dir = { x: Math.cos(f.angle), y: Math.sin(f.angle) };
+        // Capture any dynamic body near the pad (project into pad-local coords so it works
+        // at an angle), then kick it along the pad's facing direction. Generous capture band
+        // so a slow/resting ball still fires reliably.
+        const ca = Math.cos(f.angle), sa = Math.sin(f.angle);
+        const halfLen = (pl.w || 90) / 2 + 22;
+        const dir = { x: ca, y: sa };
         for (const b of this.bodies) {
           if (b.isStatic || b === f) continue;
-          // on the pad's surface band
-          if (Math.abs(b.position.y - f.position.y) < 34 && Math.abs(b.position.x - f.position.x) < (f.bounds.max.x - f.bounds.min.x) / 2 + 20) {
+          const dx = b.position.x - f.position.x, dy = b.position.y - f.position.y;
+          const along = dx * ca + dy * sa;        // distance along the pad
+          const perp = -dx * sa + dy * ca;         // distance off the pad surface
+          if (Math.abs(along) < halfLen && perp > -40 && perp < 16) {
             const boost = pl.boost || 9;
-            m.Body.setVelocity(b, { x: dir.x * boost, y: b.velocity.y - Math.abs(dir.y) * boost });
+            // kick along the pad facing + a small lift, replacing current velocity
+            m.Body.setVelocity(b, { x: dir.x * boost, y: dir.y * boost - 2 });
           }
         }
       }
