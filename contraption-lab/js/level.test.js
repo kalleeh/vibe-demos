@@ -218,6 +218,50 @@ export async function newPartsCases() {
   return cases;
 }
 
+export async function portalCases() {
+  const { makePart } = await import("./parts.js");
+  const { portalExit } = await import("./engine.js");
+  function installStub(){
+    globalThis.Matter = {
+      Bodies:{
+        circle:(x,y,r,o)=>({position:{x,y},velocity:{x:0,y:0},isStatic:!!(o&&o.isStatic),bounds:{min:{x:x-r,y:y-r},max:{x:x+r,y:y+r}},plugin:{}}),
+      },
+      Body:{
+        setPosition:(b,v)=>{b.position=v;},
+      },
+    };
+  }
+  return [
+    { name:"portal builds with link", fn:()=>{
+        installStub();
+        const r=makePart("portal",{x:100,y:100,link:"p",angle:0});
+        if(!r.bodies.length) throw new Error("no body");
+        const b=r.bodies[0];
+        if(b.plugin.partType!=="portal") throw new Error("wrong partType");
+        if(b.plugin.link!=="p") throw new Error("link not set");
+        if(b.plugin.angle!==0) throw new Error("angle not set");
+        if(b.plugin._cool!==0) throw new Error("cooldown not initialized");
+      }},
+    { name:"portalExit returns offset point", fn:()=>{
+        installStub();
+        const portal={position:{x:200,y:300},plugin:{partType:"portal",angle:0,r:28}};
+        const exit=portalExit(portal);
+        const expectedDist=28+24;
+        const dx=exit.x-portal.position.x;
+        const dy=exit.y-portal.position.y;
+        const dist=Math.hypot(dx,dy);
+        if(Math.abs(dist-expectedDist)>0.1) throw new Error("exit not at correct distance, got "+dist+" expected "+expectedDist);
+      }},
+    { name:"portalExit respects angle", fn:()=>{
+        installStub();
+        const portal={position:{x:0,y:0},plugin:{partType:"portal",angle:Math.PI,r:28}};
+        const exit=portalExit(portal);
+        // angle π = left exit
+        if(exit.x>-50) throw new Error("exit should be to the left, got x="+exit.x);
+      }},
+  ];
+}
+
 export async function runTests(extra = []) {
   const cases = [
     { name: "snap rounds to grid", fn: () => assert(snap(23, 10) === 20) },

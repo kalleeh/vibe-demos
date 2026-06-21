@@ -4,6 +4,12 @@ import { buildWorld } from "./level.js";
 import { makePart, PARTS } from "./parts.js";
 import { aabbOverlap } from "./geom.js";
 
+export function portalExit(toPortal) {
+  // exit just outside the destination portal along its exit angle
+  const r = (toPortal.plugin.r || 28) + 24;
+  return { x: toPortal.position.x + Math.cos(toPortal.plugin.angle) * r, y: toPortal.position.y + Math.sin(toPortal.plugin.angle) * r };
+}
+
 const MAX_RUN_MS = 30000;
 const M = () => Matter;
 
@@ -204,6 +210,23 @@ export class Sim {
           if (Math.abs(b.position.y - f.position.y) < 34 && Math.abs(b.position.x - f.position.x) < (f.bounds.max.x - f.bounds.min.x) / 2 + 20) {
             const boost = pl.boost || 9;
             m.Body.setVelocity(b, { x: dir.x * boost, y: b.velocity.y - Math.abs(dir.y) * boost });
+          }
+        }
+      }
+      else if (pl.partType === "portal") {
+        pl._cool = Math.max(0, (pl._cool || 0) - 1);
+        if (pl._cool > 0) continue;
+        const partner = this.bodies.find(o => o !== f && o.plugin && o.plugin.partType === "portal" && o.plugin.link === pl.link);
+        if (!partner) continue;
+        for (const b of this.bodies) {
+          if (b.isStatic || b === f) continue;
+          const dx = b.position.x - f.position.x, dy = b.position.y - f.position.y;
+          if (Math.hypot(dx, dy) < (pl.r || 28)) {
+            const exit = portalExit(partner);
+            m.Body.setPosition(b, exit);
+            partner.plugin._cool = 30;  // ~0.5s at 60fps: stop immediate re-entry on the other side
+            pl._cool = 30;
+            break;
           }
         }
       }

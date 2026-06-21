@@ -130,9 +130,11 @@ export const PARTS = {
     build:(s,M)=>{ const b=M.Bodies.rectangle(s.x,s.y,s.w||90,16,{isStatic:true,angle:s.angle||0}); b.plugin={partType:"accelerator",tag:s.tag||null,boost:s.boost||9,angle:s.angle||0}; return {bodies:[b],constraints:[]}; } },
   vortex: { label:"Vortex", movable:true, fixedByDefault:true,
     build:(s,M)=>{ const b=M.Bodies.circle(s.x,s.y,s.r||30,{isStatic:true,isSensor:true}); b.plugin={partType:"vortex",tag:s.tag||null,strength:s.strength||0.03,range:s.range||180}; return {bodies:[b],constraints:[]}; } },
+  portal: { label:"Portal", movable:true, fixedByDefault:true,
+    build:(s,M)=>{ const b=M.Bodies.circle(s.x,s.y,s.r||28,{isStatic:true,isSensor:true}); b.plugin={partType:"portal",tag:s.tag||null,link:s.link||"p",angle:s.angle||0,_cool:0}; return {bodies:[b],constraints:[]}; } },
 };
 
-export const PALETTE_TYPES = ["ramp","wall","fan","conveyor","seesaw","balloon","domino","bucket","trampoline","gear","crate","pipe","pinwheel","spring","wedge","platform","bowlingpin","weight","rope","gears","tnt","ice","sticky","bumper","magnet","accelerator","vortex"];
+export const PALETTE_TYPES = ["ramp","wall","fan","conveyor","seesaw","balloon","domino","bucket","trampoline","gear","crate","pipe","pinwheel","spring","wedge","platform","bowlingpin","weight","rope","gears","tnt","ice","sticky","bumper","magnet","accelerator","vortex","portal"];
 
 export function makePart(type, spec) {
   const def = PARTS[type];
