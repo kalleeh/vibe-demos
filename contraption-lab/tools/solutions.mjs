@@ -5,7 +5,7 @@ export const SOLUTIONS = {
   "official-02":[{type:"bumper",x:240,y:120}],
   "official-03":[{type:"ramp",x:360,y:260,angle:0.2}],
   "official-04":[{type:"balloon",x:320,y:430,angle:0},{type:"fan",x:360,y:530,angle:2}],
-  "official-05":[{type:"magnet",x:480,y:240}],
+  "official-05":[{type:"magnet",x:440,y:200,strength:0.015}],
   "official-06":[{type:"conveyor",x:520,y:574,w:760,angle:0,surfaceSpeed:6}],
   "official-07":[{type:"weight",x:430,y:80}],
   "official-08":[{type:"accelerator",x:480,y:360,w:90,angle:0.3,boost:13}],
