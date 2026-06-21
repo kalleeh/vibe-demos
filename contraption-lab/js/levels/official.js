@@ -36,12 +36,12 @@ export const OFFICIAL_LEVELS = [
     [ {type:"ramp",count:1} ], {parts:1}),
 
   // 04 — Fan Lift: teach fan+balloon. Balloon floats up with fan, carries ball over wall to goal.
-  lvl("official-04","Fan Lift", goalAt(960,580),
+  lvl("official-04","Fan Lift", goalAt(900,580,300,200),
     [ {type:"wall",x:240,y:600,w:360,h:28},
       {type:"wall",x:520,y:380,w:28,h:440},
       {type:"wall",x:880,y:580,w:560,h:28,angle:0.13},
       {type:"wall",x:1180,y:540,w:24,h:280},
-      {type:"goal",x:960,y:580} ],
+      {type:"goal",x:900,y:580} ],
     [ {type:"ball",x:240,y:540,tag:"ball"} ],
     [ {type:"balloon",count:1}, {type:"fan",count:1} ], {parts:2}),
 
@@ -55,11 +55,11 @@ export const OFFICIAL_LEVELS = [
 
   // 06 — Conveyor Run: conveyor carries ball across a pit to the goal ledge.
   // Layout: PIT in the middle, goal on a raised platform on the right.
-  lvl("official-06","Conveyor Run", goalAt(1000,520),
+  lvl("official-06","Conveyor Run", goalAt(1040,520,280,200),
     [ {type:"wall",x:240,y:600,w:340,h:28},
       {type:"wall",x:1000,y:520,w:480,h:28,angle:0.12},
       {type:"wall",x:1200,y:480,w:24,h:240},
-      {type:"goal",x:1000,y:520} ],
+      {type:"goal",x:1040,y:520} ],
     [ {type:"ball",x:240,y:520,tag:"ball"} ],
     [ {type:"conveyor",count:1} ], {parts:1}),
 
@@ -76,10 +76,10 @@ export const OFFICIAL_LEVELS = [
 
   // 08 — Accelerator Gap: ball drops straight onto an angled accelerator pad that launches it up and across to goal.
   // Layout: ball drops vertically, accelerator pad catches and launches at angle, goal on upper-right ledge.
-  lvl("official-08","Accelerator Gap", goalAt(940,420),
+  lvl("official-08","Accelerator Gap", goalAt(960,420,220,180),
     [ {type:"wall",x:940,y:420,w:600,h:28},
       {type:"wall",x:1220,y:510,w:28,h:420},
-      {type:"goal",x:940,y:420} ],
+      {type:"goal",x:960,y:420} ],
     [ {type:"ball",x:480,y:100,tag:"ball"} ],
     [ {type:"accelerator",count:1} ], {parts:1}),
 
@@ -161,12 +161,12 @@ export const OFFICIAL_LEVELS = [
     [ {type:"trampoline",count:1} ], {parts:1}),
 
   // 16 — Gear Drive: seesaw + gears - weight tips seesaw, launching ball to gears (like L07 pattern).
-  lvl("official-16","Gear Drive", goalAt(940,560),
+  lvl("official-16","Gear Drive", goalAt(800,560,380,200),
     [ {type:"wall",x:320,y:560,w:400,h:28},
       {type:"seesaw",x:520,y:480,w:220,fixedByDefault:true},
       {type:"wall",x:880,y:560,w:640,h:28,angle:0.14},
       {type:"wall",x:1160,y:520,w:28,h:280},
-      {type:"goal",x:940,y:560} ],
+      {type:"goal",x:800,y:560} ],
     [ {type:"ball",x:610,y:440,tag:"ball"} ],
     [ {type:"weight",count:1}, {type:"gears",count:1} ], {parts:2}),
 
