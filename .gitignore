@@ -1,4 +1,5 @@
-.claude/
+.claude/*
+!.claude/rules/
 .DS_Store
 output/
 .superpowers/
