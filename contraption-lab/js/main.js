@@ -8,6 +8,7 @@ import { recordSolve, isSolved, getProgress } from "./progress.js";
 import { init as cloudInit, cloud, user as cloudUser, pushProgress, pullProgress, leaderboard } from "./cloud.js";
 import { mountAccountUI, setIndicator } from "./auth-ui.js";
 import { preloadSprites, resolveSprite } from "./sprites.js";
+import { iconSVG, hasIcon } from "./part-icons.js";
 import { sfx, setMuted, isMuted } from "./sound.js";
 import { Fx, impactIntensity } from "./fx.js";
 
@@ -76,13 +77,19 @@ function buildPalette() {
 
     const thumb = document.createElement("span");
     thumb.className = "ptthumb";
-    const spr = resolveSprite(inv.type, themeId);
-    if (spr && spr.src) {
-      const img = document.createElement("img");
-      img.src = spr.src; img.alt = ""; img.draggable = false; img.loading = "lazy";
-      thumb.appendChild(img);
+    // Prefer the hand-shaded gradient SVG icon (code-generated, no user data);
+    // fall back to the PNG sprite, then a 2-letter glyph.
+    if (hasIcon(inv.type)) {
+      thumb.innerHTML = iconSVG(inv.type);
     } else {
-      thumb.textContent = (def ? def.label : inv.type).slice(0, 2);
+      const spr = resolveSprite(inv.type, themeId);
+      if (spr && spr.src) {
+        const img = document.createElement("img");
+        img.src = spr.src; img.alt = ""; img.draggable = false; img.loading = "lazy";
+        thumb.appendChild(img);
+      } else {
+        thumb.textContent = (def ? def.label : inv.type).slice(0, 2);
+      }
     }
 
     const name = document.createElement("span");

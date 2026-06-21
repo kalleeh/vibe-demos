@@ -47,11 +47,18 @@ export const SPRITES = {
   gate:        P("./assets/parts/gate.png","box"),
 };
 
+import { canvasEmblem, spriteDataURI } from "./part-icons.js";
+
 const cache = new Map();
 
 export function resolveSprite(partType, themeId) {
   const e = SPRITES[partType];
   if (!e) return null;
+  // Square-bodied parts use the hand-shaded gradient emblem (matches the tray);
+  // elongated/plank parts keep their tiling PNG so they don't distort. Render-only.
+  if (canvasEmblem(partType)) {
+    return { src: spriteDataURI(partType), fit: e.fit, scale: e.scale, overflow: e.overflow, spin: e.spin };
+  }
   const src = (e.themeOverrides && e.themeOverrides[themeId]) || e.src;
   return { src, fit: e.fit, scale: e.scale, overflow: e.overflow, spin: e.spin };
 }
