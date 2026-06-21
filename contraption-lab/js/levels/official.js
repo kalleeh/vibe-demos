@@ -188,4 +188,38 @@ export const OFFICIAL_LEVELS = [
       {type:"goal",x:960,y:360} ],
     [ {type:"ball",x:280,y:120,tag:"ball"} ],
     [ {type:"magnet",count:1}, {type:"accelerator",count:1} ], {parts:2}),
+
+  // === BAND D: Fiendish finale (levels 19-20) ===
+
+  // 19 — The Gauntlet: portal teleport + vortex pull + accelerator launch (proven mechanics combined).
+  // Layout: Copy L12 vortex + L08 accelerator patterns, add portal hop for multi-stage path.
+  lvl("official-19","The Gauntlet", goalAt(980,300),
+    [ // Left: ball starts on platform
+      {type:"wall",x:240,y:520,w:400,h:28},
+      {type:"wall",x:80,y:480,w:28,h:160},
+      // Portal pair bypasses middle zone
+      {type:"wall",x:560,y:400,w:28,h:800},
+      // Right: vortex + accelerator zone
+      {type:"wall",x:980,y:300,w:640,h:28},
+      {type:"wall",x:1240,y:260,w:28,h:80},
+      {type:"goal",x:980,y:300} ],
+    [ {type:"ball",x:240,y:460,tag:"ball"} ],
+    [ {type:"portal",count:2}, {type:"vortex",count:1}, {type:"accelerator",count:1} ], {parts:4}),
+
+  // 20 — Grand Contraption: grand finale — magnet + portal + vortex + accelerator (generous inventory, 5 distinct parts).
+  // Layout: Similar proven structure to L19, but magnet adds positioning complexity before portal hop.
+  lvl("official-20","Grand Contraption", goalAt(1020,300),
+    [ // Left drop zone
+      {type:"wall",x:200,y:600,w:320,h:28},
+      {type:"wall",x:80,y:560,w:28,h:160},
+      // Transition platform before portal
+      {type:"wall",x:240,y:520,w:400,h:28},
+      // Divider wall
+      {type:"wall",x:560,y:400,w:28,h:800},
+      // Right: vortex + accelerator zone (L19's proven right side)
+      {type:"wall",x:1020,y:300,w:680,h:28},
+      {type:"wall",x:1260,y:260,w:28,h:80},
+      {type:"goal",x:1020,y:300} ],
+    [ {type:"ball",x:200,y:100,tag:"ball"} ],
+    [ {type:"magnet",count:1}, {type:"portal",count:2}, {type:"vortex",count:1}, {type:"accelerator",count:1} ], {parts:5}),
 ];

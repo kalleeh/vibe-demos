@@ -20,4 +20,7 @@ export const SOLUTIONS = {
   "official-16":[{type:"weight",x:430,y:80},{type:"gears",x:700,y:500}],
   "official-17":[{type:"conveyor",x:360,y:574,w:640,angle:0,surfaceSpeed:6},{type:"portal",x:280,y:520,link:"p1",angle:0},{type:"portal",x:1000,y:480,link:"p1",angle:0}],
   "official-18":[{type:"magnet",x:440,y:240},{type:"accelerator",x:460,y:400,w:90,angle:-0.2,boost:13}],
+  // Band D: Fiendish finale
+  "official-19":[{type:"portal",x:240,y:480,link:"p1",angle:0},{type:"portal",x:780,y:260,link:"p1",angle:0},{type:"vortex",x:880,y:280,strength:0.05,range:200},{type:"accelerator",x:1020,y:280,w:100,angle:0,boost:10}],
+  "official-20":[{type:"magnet",x:300,y:360,strength:0.02,range:280},{type:"portal",x:240,y:480,link:"p1",angle:0},{type:"portal",x:820,y:260,link:"p1",angle:0},{type:"vortex",x:920,y:280,strength:0.05,range:200},{type:"accelerator",x:1060,y:280,w:100,angle:0,boost:10}],
 };
