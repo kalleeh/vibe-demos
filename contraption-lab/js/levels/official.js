@@ -149,13 +149,16 @@ export const OFFICIAL_LEVELS = [
     [ {type:"domino",count:2}, {type:"pinwheel",count:1} ], {parts:3}),
 
   // 15 — Trampoline Tower: like L11 but add a bumper mid-slope for multi-bounce (proven pattern + 1 part).
-  lvl("official-15","Trampoline Tower", goalAt(1000,580),
-    [ {type:"wall",x:520,y:420,w:800,h:28,angle:0.16},
-      {type:"wall",x:1000,y:580,w:480,h:28,angle:0.14},
-      {type:"wall",x:1200,y:540,w:28,h:300},
-      {type:"goal",x:1000,y:580} ],
-    [ {type:"ball",x:860,y:340,tag:"ball"} ],
-    [ {type:"domino",count:3}, {type:"bumper",count:1} ], {parts:4}),
+  // 15 — Trampoline Bounce: ball drops down a narrow shaft into a deep pocket; the player drops
+  // a trampoline at the bottom so the ball bounces and settles in the goal pocket (the trampoline
+  // is the star — without it the ball wouldn't dwell). Distinct vertical-shaft silhouette.
+  lvl("official-15","Trampoline Bounce", goalAt(640,540,220,240),
+    [ {type:"wall",x:640,y:700,w:1280,h:30},
+      {type:"wall",x:520,y:520,w:24,h:360},
+      {type:"wall",x:760,y:520,w:24,h:360},
+      {type:"goal",x:640,y:540} ],
+    [ {type:"ball",x:640,y:80,tag:"ball"} ],
+    [ {type:"trampoline",count:1} ], {parts:1}),
 
   // 16 — Gear Drive: seesaw + gears - weight tips seesaw, launching ball to gears (like L07 pattern).
   lvl("official-16","Gear Drive", goalAt(940,560),
@@ -168,7 +171,7 @@ export const OFFICIAL_LEVELS = [
     [ {type:"weight",count:1}, {type:"gears",count:1} ], {parts:2}),
 
   // 17 — Two-Portal Maze: conveyor + portal through wall (exact L09 pattern with conveyor assist).
-  lvl("official-17","Two-Portal Maze", goalAt(1000,560),
+  lvl("official-17","Portal Maze", goalAt(1000,560),
     [ {type:"wall",x:640,y:360,w:28,h:720},
       {type:"wall",x:280,y:600,w:480,h:28},
       {type:"wall",x:1000,y:560,w:400,h:28,angle:0.13},
