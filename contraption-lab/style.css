@@ -17,22 +17,32 @@
 }
 body { font-family: var(--font); }
 * { box-sizing: border-box; }
+/* CRITICAL: containers below set `display:flex`, which would otherwise override the
+   browser default for the `hidden` attribute — so an element with `hidden` set (the
+   win banner over the canvas, or the play palette/controls while on the editor/browse
+   screen) would stay visible and SWALLOW CLICKS. Force hidden to actually hide. */
+[hidden]{display:none !important}
+/* Touch: remove the 300ms tap delay + double-tap-zoom on all chrome; give tap feedback. */
+button, select, .bar, .controls, .palette, dialog, label{touch-action:manipulation;-webkit-tap-highlight-color:rgba(128,128,128,0.25)}
 html, body { margin:0; height:100%; background:var(--bg); color:var(--ink);
   font-family: ui-sans-serif, system-ui, sans-serif; overscroll-behavior:none; display:flex; flex-direction:column; }
-.bar{display:flex;gap:12px;align-items:center;padding:8px 12px;background:color-mix(in srgb,var(--bg) 80%,#000);position:sticky;top:0;z-index:5}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;background:color-mix(in srgb,var(--bg) 80%,#000);position:sticky;top:0;z-index:5}
 .brand{font-weight:700;letter-spacing:.04em}
-.status{opacity:.8;flex:1}
-.ghostbtn,.themePick select,.controls button,.palette button{font-family:var(--font);background:var(--fixed-fill);color:var(--ink);border:1px solid var(--part-stroke);border-radius:8px;padding:8px 12px;cursor:pointer}
+.status{opacity:.8;flex:1;min-width:0}
+/* ≥44px tap targets (Apple/Android touch guidance) + an active state for feedback. */
+.ghostbtn,.themePick select,.controls button,.palette button{font-family:var(--font);background:var(--fixed-fill);color:var(--ink);border:1px solid var(--part-stroke);border-radius:8px;padding:10px 14px;min-height:44px;cursor:pointer;-webkit-user-select:none;user-select:none}
+.ghostbtn:active,.controls button:active,.palette button:active{filter:brightness(1.25)}
 .controls button.primary,.palette button.sel{background:var(--accent);color:#111}
-.stagewrap{position:relative;flex:1}
-#stage{display:block;width:100vw;height:calc(100vh - 220px);touch-action:none}
+.stagewrap{position:relative;flex:1;min-height:0}
+#stage{display:block;width:100%;height:100%;touch-action:none}
 [data-theme="neon"] #stage{filter:saturate(1.2) drop-shadow(0 0 2px var(--accent))}
 [data-theme="blueprint"] #stage{filter:contrast(1.05) hue-rotate(-2deg)}
 @media (prefers-reduced-motion: reduce){[data-theme="neon"] #stage,[data-theme="blueprint"] #stage{filter:none}}
 .palette{display:flex;gap:8px;overflow-x:auto;padding:8px 12px}
 .palette button{white-space:nowrap}.palette button[disabled]{opacity:.35}
 .controls{display:flex;gap:12px;justify-content:center;padding:8px}
-.banner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2rem;background:color-mix(in srgb,var(--bg) 70%,transparent);color:var(--goal);font-weight:800}
+/* The banner is purely informational — it must never intercept taps on the canvas. */
+.banner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2rem;background:color-mix(in srgb,var(--bg) 70%,transparent);color:var(--goal);font-weight:800;pointer-events:none;text-align:center;padding:0 16px}
 dialog{background:var(--bg);color:var(--ink);border:1px solid var(--part-stroke);border-radius:12px;max-width:90vw}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 .netdot{font-size:.9rem;opacity:.7;user-select:none}
@@ -42,4 +52,10 @@ dialog.account input{display:block;width:100%;margin:8px 0;padding:10px;border-r
 dialog.account .hint{opacity:.8;font-size:.85rem;line-height:1.4}
 dialog.account .acerror{color:#e23;font-size:.85rem}
 dialog.account menu{display:flex;flex-wrap:wrap;gap:8px;padding:0;margin:12px 0 0}
-dialog.account menu button{font-family:var(--font);background:var(--fixed-fill);color:var(--ink);border:1px solid var(--part-stroke);border-radius:8px;padding:8px 12px;cursor:pointer}
+dialog.account menu button{font-family:var(--font);background:var(--fixed-fill);color:var(--ink);border:1px solid var(--part-stroke);border-radius:8px;padding:10px 14px;min-height:44px;cursor:pointer;touch-action:manipulation}
+/* The level menu lists levels as full-width tap rows on touch. */
+dialog#levelMenu{min-width:min(92vw,360px);padding:14px}
+dialog#levelMenu button{display:block;width:100%;text-align:left;margin:6px 0;padding:12px 14px;min-height:48px;font-family:var(--font);background:var(--fixed-fill);color:var(--ink);border:1px solid var(--part-stroke);border-radius:8px;cursor:pointer;touch-action:manipulation}
+/* Browse grid: responsive cards, comfortable on phones. */
+.browsegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;padding:12px;overflow-y:auto}
+@media (max-width:640px){ .browsegrid{grid-template-columns:1fr} .brand{font-size:.95rem} }
