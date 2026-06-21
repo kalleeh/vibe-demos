@@ -14,19 +14,29 @@
   </script>
 </head>
 <body>
-  <header class="bar">
-    <button id="menuBtn" class="ghostbtn">☰ Levels</button>
-    <button class="ghostbtn" onclick="location.hash='#/editor'">✎ Editor</button>
-    <button class="ghostbtn" onclick="location.hash='#/browse'">🌐 Browse</button>
-    <span class="brand">Contraption&nbsp;Lab</span>
-    <span class="status" id="levelTitle"></span>
-    <button id="accountBtn" class="ghostbtn" type="button">Sign in</button>
-    <span id="netDot" class="netdot" title="local only">○</span>
-    <button id="muteBtn" class="ghostbtn" type="button" title="Toggle sound">🔊</button>
-    <label class="themePick">Theme
-      <select id="themeSel"></select>
-    </label>
+  <header class="topbar">
+    <div class="brandmark">
+      <span class="logo" aria-hidden="true">⚙</span>
+      <span class="wordmark">
+        <span class="title">Contraption Lab</span>
+        <span class="sub" id="levelTitle">Rube Goldberg puzzles</span>
+      </span>
+    </div>
+    <nav class="toptools">
+      <button id="menuBtn" class="navbtn">☰ Levels</button>
+      <button class="navbtn" onclick="location.hash='#/editor'">✎ Editor</button>
+      <button class="navbtn" onclick="location.hash='#/browse'">🌐 Browse</button>
+      <button id="accountBtn" class="navbtn" type="button">Sign in</button>
+      <span id="netDot" class="netdot" title="local only">○</span>
+      <button id="muteBtn" class="navbtn iconbtn" type="button" title="Toggle sound">🔊</button>
+      <label class="themePick">Theme<select id="themeSel"></select></label>
+    </nav>
   </header>
+  <div class="objective">
+    <span class="lvlnum" id="objNum">01</span>
+    <span class="goalchip">Get the <b id="objBall">ball</b> to the <b>🏆 goal</b></span>
+    <span class="hintline" id="objHint">Place your parts, then press Run.</span>
+  </div>
   <div class="stagewrap"><canvas id="stage"></canvas>
     <div id="banner" class="banner" hidden></div>
   </div>
@@ -86,11 +96,11 @@
 
   <!-- Browse screen (hidden by default, shown when routing to #/browse) -->
   <div id="browseScreen" hidden>
-    <div class="bar">
-      <span class="brand">Community Levels</span>
-      <button data-tab="recent" class="ghostbtn browsetab active">Recent</button>
-      <button data-tab="played" class="ghostbtn browsetab">Most Played</button>
-      <button data-tab="rated" class="ghostbtn browsetab">Top Rated</button>
+    <div class="browsebar">
+      <span class="brandmark" style="margin-right:auto"><span class="wordmark"><span class="title">Community Levels</span></span></span>
+      <button data-tab="recent" class="navbtn browsetab active">Recent</button>
+      <button data-tab="played" class="navbtn browsetab">Most Played</button>
+      <button data-tab="rated" class="navbtn browsetab">Top Rated</button>
     </div>
     <div id="browseGrid" class="browsegrid"></div>
   </div>

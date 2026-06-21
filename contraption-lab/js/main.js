@@ -31,7 +31,7 @@ let transform, sim, controller, selected = null, remaining = {}, current = null;
 // Phase 3: screen router (play, editor, browse)
 let editorInstance = null;
 const screens = {
-  play: { container: document.querySelector(".stagewrap"), palette: document.getElementById("palette"), controls: document.querySelector(".controls") },
+  play: { container: document.querySelector(".stagewrap"), palette: document.getElementById("palette"), controls: document.querySelector(".controls"), objective: document.querySelector(".objective") },
   editor: document.getElementById("editorScreen"),
   browse: document.getElementById("browseScreen"),
 };
@@ -63,9 +63,28 @@ function buildPalette() {
     pal.appendChild(b);
   }
 }
+// Objective bar: level number, what to do, and the parts on hand. Keeps the
+// player oriented ("what level am I on, what am I trying to do") without reading code.
+function updateObjective(level) {
+  const i = OFFICIAL_LEVELS.findIndex(l => l.id === level.id);
+  const numEl = document.getElementById("objNum");
+  const hintEl = document.getElementById("objHint");
+  if (numEl) numEl.textContent = i >= 0 ? String(i + 1).padStart(2, "0") : "★";
+  if (hintEl) {
+    const parts = (level.inventory || []).map(inv => {
+      const def = PARTS[inv.type];
+      const label = def ? def.label : inv.type;
+      return inv.count > 1 ? `${label}×${inv.count}` : label;
+    });
+    hintEl.textContent = parts.length
+      ? `Place ${parts.join(", ")} → press Run`
+      : "Press Run to solve.";
+  }
+}
 function loadLevel(level) {
   current = level;
   document.getElementById("levelTitle").textContent = level.title + (isSolved(level.id) ? " ✓" : "");
+  updateObjective(level);
   selected = null;
   sim = new Sim(level);
   sim.onEvent = (name) => sfx(name);  // Wire sound events
@@ -108,18 +127,52 @@ function tick(ts){ const dt = last ? ts-last : 16; last = ts;
   else { draw(ts); }
   raf = requestAnimationFrame(tick);
 }
-function onWin(){ const banner=document.getElementById("banner"); banner.textContent="Solved! ✓ "+sim.partsUsed()+" parts";
-  banner.hidden=false; recordSolve(current.id, sim.partsUsed(), Math.round(sim.elapsed));
+function showBanner(big, small, lost){
+  const banner=document.getElementById("banner");
+  banner.innerHTML="";
+  const b=document.createElement("div"); b.className="big"+(lost?" lose":""); b.textContent=big;
+  const s=document.createElement("div"); s.className="small"; s.textContent=small;
+  banner.append(b,s); banner.hidden=false;
+}
+function onWin(){ recordSolve(current.id, sim.partsUsed(), Math.round(sim.elapsed));
+  showBanner("Solved!", sim.partsUsed()+" part"+(sim.partsUsed()===1?"":"s")+" used — tap a level to continue", false);
   document.getElementById("levelTitle").textContent = current.title + " ✓";
   sfx("win");
   import("./progress.js").then(p => pushProgress(p.getProgress())); }
-function onLost(){ const banner=document.getElementById("banner"); banner.textContent="Time's up — Reset and retry"; banner.hidden=false; }
+function onLost(){ showBanner("Time's up", "Press Reset and try a different setup", true); }
 
 document.getElementById("runBtn").onclick = () => { if (sim.state==="build"){ sim.run(); sfx("run"); document.getElementById("banner").hidden=true; } };
 document.getElementById("resetBtn").onclick = () => { sim.reset(); buildPalette(); document.getElementById("banner").hidden=true; draw(); };
 
+// Difficulty bands across the 20-level arc (by 1-based level number).
+const LEVEL_BANDS = [
+  { name: "Basics", from: 1, to: 5 },
+  { name: "Mechanics", from: 6, to: 12 },
+  { name: "Chains", from: 13, to: 18 },
+  { name: "Finale", from: 19, to: 20 },
+];
 function buildMenu(){ const dlg=document.getElementById("levelMenu");
-  dlg.innerHTML = `<h3>Levels</h3>` + OFFICIAL_LEVELS.map((l,i)=>`<button data-id="${l.id}">${String(i+1).padStart(2,"0")} · ${l.title} ${isSolved(l.id)?"✓":""}</button>`).join("") + `<button data-close>Close</button>`;
+  const solvedCount = OFFICIAL_LEVELS.filter(l=>isSolved(l.id)).length;
+  let html = `<h3>Levels <span style="font-weight:400;font-size:.7em;color:var(--muted)">${solvedCount}/${OFFICIAL_LEVELS.length} solved</span></h3>`;
+  for (const band of LEVEL_BANDS) {
+    const cells = OFFICIAL_LEVELS
+      .map((l,i)=>({l,n:i+1}))
+      .filter(({n})=> n>=band.from && n<=band.to);
+    if (!cells.length) continue;
+    html += `<div class="lvlband">${band.name}</div><div class="lvlgrid">`;
+    html += cells.map(({l,n})=>{
+      const solved = isSolved(l.id);
+      return `<button data-id="${l.id}" class="${solved?"solved":""}"><span class="n">${String(n).padStart(2,"0")}</span><span class="nm"></span>${solved?'<span class="tick">✓</span>':""}</button>`;
+    }).join("");
+    html += `</div>`;
+  }
+  html += `<menu><button data-close>Close</button></menu>`;
+  dlg.innerHTML = html;
+  // Set level names via textContent (defensive — titles are first-party, but keep the habit).
+  dlg.querySelectorAll("button[data-id]").forEach(b=>{
+    const lvl=OFFICIAL_LEVELS.find(l=>l.id===b.dataset.id);
+    b.querySelector(".nm").textContent = lvl.title;
+  });
   dlg.querySelectorAll("button").forEach(b=>b.onclick=()=>{ if(b.dataset.close!==undefined){dlg.close();return;} const lvl=OFFICIAL_LEVELS.find(l=>l.id===b.dataset.id); dlg.close(); showScreen("play"); location.hash="#/play/"+lvl.id; });
 }
 function refreshMenuMarks(){ document.getElementById("levelTitle").textContent = current ? (current.title + (isSolved(current.id) ? " ✓" : "")) : ""; }
@@ -132,6 +185,7 @@ function showScreen(name) {
   if (screens.play.container) screens.play.container.hidden = (name !== "play");
   if (screens.play.palette) screens.play.palette.hidden = (name !== "play");
   if (screens.play.controls) screens.play.controls.hidden = (name !== "play");
+  if (screens.play.objective) screens.play.objective.hidden = (name !== "play");
 
   // The community Like button only applies to a community play; hide it on every
   // screen switch — the #/play/community route re-shows it for that level.
