@@ -13,7 +13,7 @@ import { user } from "./cloud.js";
 const DRAFT_KEY = "cl.draft";
 
 // prefers-reduced-motion computed once (not per frame); kept live via a change listener.
-let REDUCED_MOTION = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+let REDUCED_MOTION = typeof window !== "undefined" && !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 if (typeof window !== "undefined" && window.matchMedia) {
   try { window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", e => { REDUCED_MOTION = e.matches; }); } catch {}
 }
