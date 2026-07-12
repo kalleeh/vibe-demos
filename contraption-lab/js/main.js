@@ -247,9 +247,14 @@ function ghostVerts(g){ try { const {bodies}=makePart(g.type,{x:g.x,y:g.y}); ret
 let last = 0, raf = 0;
 function tick(ts){ const dt = last ? ts-last : 16; last = ts;
   fx.update(dt);   // advance shake/particles/flash every frame (build + run)
-  if (sim.state === "running") { const s = sim.step(dt); draw(ts);
-    if (s === "won") { onWin(); } else if (s === "lost") { onLost(); } }
-  else { draw(ts); }
+  // This loop keeps running even while the editor/browse screen is active (only
+  // the DOM is hidden), and `sim` isn't created until a level has loaded — guard
+  // both so switching screens before any #/play/<id> route never throws.
+  if (sim) {
+    if (sim.state === "running") { const s = sim.step(dt); draw(ts);
+      if (s === "won") { onWin(); } else if (s === "lost") { onLost(); } }
+    else { draw(ts); }
+  }
   raf = requestAnimationFrame(tick);
 }
 function showBanner(big, small, lost){

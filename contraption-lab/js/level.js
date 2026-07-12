@@ -53,9 +53,12 @@ export function buildWorld(level, M) {
   engine.gravity.y = level.world.gravity ?? 1;
   const world = engine.world;
   const W = level.world.w, H = level.world.h, t = 60;
+  // No floor: a missed shot falls out of the world and the level is lost (Sim.step
+  // culls anything past H, matching the original design — a bottomless drop, not a
+  // safety net that catches every miss). Left/right/top stay solid so parts can't
+  // fly off in build mode or get shoved out sideways by forces.
   const walls = [
     M.Bodies.rectangle(W/2, -t/2, W, t, { isStatic:true }),
-    M.Bodies.rectangle(W/2, H + t/2, W, t, { isStatic:true }),
     M.Bodies.rectangle(-t/2, H/2, t, H, { isStatic:true }),
     M.Bodies.rectangle(W + t/2, H/2, t, H, { isStatic:true }),
   ];

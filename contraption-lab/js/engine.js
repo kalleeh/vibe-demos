@@ -134,6 +134,24 @@ export class Sim {
     m.Engine.update(this.engine, Math.min(dtMs, 1000 / 30));
     this.elapsed += dtMs;
 
+    // Out-of-bounds: the world has no floor (a missed shot falls out and the level
+    // is lost — matches the original design, not a safety net that catches every
+    // miss). The tagged goal object falling past the bottom ends the run immediately;
+    // any other dynamic body that wanders out is just culled (removed) so it can't
+    // linger below the world and confuse later checks.
+    const OOB_MARGIN = 200;
+    for (let i = this.bodies.length - 1; i >= 0; i--) {
+      const b = this.bodies[i];
+      if (b.isStatic || (b.plugin && b.plugin.partType === "boundary")) continue;
+      const p = b.position;
+      const out = p.y > this.level.world.h + OOB_MARGIN || p.x < -OOB_MARGIN || p.x > this.level.world.w + OOB_MARGIN;
+      if (!out) continue;
+      if (b.plugin && b.plugin.tag === this.level.goal.object) { this.state = "lost"; break; }
+      try { m.Composite.remove(this.world, b); } catch {}
+      this.bodies.splice(i, 1);
+    }
+    if (this.state !== "running") return this.state;
+
     // Dwell win check
     const obj = this.bodies.find(b => b.plugin && b.plugin.tag === this.level.goal.object);
     if (obj) {

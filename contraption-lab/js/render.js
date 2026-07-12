@@ -27,6 +27,128 @@ function bodyDrawSize(body, fit) {
   return { w, h }; // compound: AABB union
 }
 
+// Procedural flat-shaded bar rendering for long "plank" parts (wall/ramp/seesaw/
+// platform/conveyor/ice/sticky/accelerator/wedge/pipe). These bodies range from
+// 24px uprights to 800px floors in the official levels, and a raster photo-texture
+// sprite can only ever look right at ONE length — stretched it distorts, tiled it
+// seams. The classic Incredible Machine drew planks/floors as flat 2D shapes with
+// evenly-spaced detail (grain lines, rivets, cracks) computed from the body's own
+// width, so they read as one continuous beam at any size. Same idea here: a solid
+// gradient fill (always looks right, any length) + detail marks spaced by a fixed
+// world-space period (never squashed/tiled-with-seams) — pure canvas vector, no PNG.
+const BAR_STYLES = {
+  wood: { top: ["#e6b478", "#a86d2c"], edge: "#3a2412", grainEvery: 42 },
+  steel: { top: ["#eef3f7", "#aab8c6"], edge: "#2a3340", rivetEvery: 46 },
+  ice: { top: ["#eaffff", "#8fd9ef"], edge: "#5aa8c8", crackEvery: 54 },
+  sticky: { top: ["#ffd166", "#e08a1a"], edge: "#a04a10", dripEvery: 48 },
+  dark: { top: ["#3a4452", "#1b222d"], edge: "#11161f", chevronEvery: 34 },
+};
+function drawBar(ctx, bw, bh, style) {
+  const half = bw / 2, hh = bh / 2;
+  // base fill: vertical gradient, flat across the whole length — never distorts.
+  const grad = ctx.createLinearGradient(0, -hh, 0, hh);
+  grad.addColorStop(0, style.top[0]);
+  grad.addColorStop(1, style.top[1]);
+  ctx.fillStyle = grad;
+  const r = Math.min(6, hh * 0.5);
+  ctx.beginPath();
+  ctx.moveTo(-half + r, -hh);
+  ctx.lineTo(half - r, -hh);
+  ctx.quadraticCurveTo(half, -hh, half, -hh + r);
+  ctx.lineTo(half, hh - r);
+  ctx.quadraticCurveTo(half, hh, half - r, hh);
+  ctx.lineTo(-half + r, hh);
+  ctx.quadraticCurveTo(-half, hh, -half, hh - r);
+  ctx.lineTo(-half, -hh + r);
+  ctx.quadraticCurveTo(-half, -hh, -half + r, -hh);
+  ctx.closePath();
+  ctx.fill();
+  ctx.lineWidth = Math.max(1.5, hh * 0.12);
+  ctx.strokeStyle = style.edge;
+  ctx.stroke();
+  // top highlight sliver (reads as a lit top edge, like the hand-drawn icons)
+  ctx.save();
+  ctx.globalAlpha = 0.35;
+  ctx.beginPath();
+  ctx.moveTo(-half + r, -hh + hh * 0.18);
+  ctx.lineTo(half - r, -hh + hh * 0.18);
+  ctx.strokeStyle = "#fff";
+  ctx.lineWidth = Math.max(1, hh * 0.1);
+  ctx.stroke();
+  ctx.restore();
+  // detail marks at a fixed WORLD-space period so they never stretch/tile-seam —
+  // they simply repeat more or fewer times depending on the bar's own length.
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(-half, -hh, bw, bh);
+  ctx.clip();
+  if (style.grainEvery) {
+    ctx.strokeStyle = style.edge; ctx.globalAlpha = 0.3; ctx.lineWidth = Math.max(1, hh * 0.08);
+    for (let x = -half + style.grainEvery * 0.5; x < half; x += style.grainEvery) {
+      ctx.beginPath(); ctx.moveTo(x, -hh * 0.5); ctx.lineTo(x + hh * 0.3, hh * 0.6); ctx.stroke();
+    }
+  } else if (style.rivetEvery) {
+    ctx.fillStyle = style.edge; ctx.globalAlpha = 0.55;
+    const rr = Math.max(1.4, hh * 0.16);
+    for (let x = -half + style.rivetEvery * 0.5; x < half; x += style.rivetEvery) {
+      ctx.beginPath(); ctx.arc(x, 0, rr, 0, Math.PI * 2); ctx.fill();
+    }
+  } else if (style.crackEvery) {
+    ctx.strokeStyle = "#fff"; ctx.globalAlpha = 0.55; ctx.lineWidth = Math.max(1, hh * 0.09); ctx.lineCap = "round";
+    for (let x = -half + style.crackEvery * 0.5; x < half; x += style.crackEvery) {
+      ctx.beginPath(); ctx.moveTo(x, -hh * 0.4); ctx.lineTo(x + hh * 0.35, hh * 0.4); ctx.stroke();
+    }
+  } else if (style.dripEvery) {
+    ctx.fillStyle = style.edge; ctx.globalAlpha = 0.6;
+    for (let x = -half + style.dripEvery * 0.5; x < half; x += style.dripEvery) {
+      ctx.beginPath(); ctx.ellipse(x, hh * 0.55, hh * 0.22, hh * 0.32, 0, 0, Math.PI * 2); ctx.fill();
+    }
+  } else if (style.chevronEvery) {
+    ctx.strokeStyle = "#ffd45a"; ctx.globalAlpha = 0.9; ctx.lineWidth = Math.max(1.4, hh * 0.14);
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    for (let x = -half + style.chevronEvery * 0.5; x < half; x += style.chevronEvery) {
+      ctx.beginPath(); ctx.moveTo(x - hh * 0.22, -hh * 0.4); ctx.lineTo(x + hh * 0.22, 0); ctx.lineTo(x - hh * 0.22, hh * 0.4); ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+// Per-part-type bar style + any extra decoration drawn after the base bar.
+const BAR_PARTS = {
+  wall: "steel", platform: "steel", ramp: "wood", seesaw: "wood", wedge: "wood",
+  conveyor: "dark", ice: "ice", sticky: "sticky", accelerator: "dark",
+};
+function drawBarPart(ctx, body, transform, opts = {}) {
+  const key = body.plugin && body.plugin.partType;
+  const styleKey = BAR_PARTS[key];
+  if (!styleKey) return false;
+  const t = transform;
+  const center = worldToScreen(body.position.x, body.position.y, t);
+  const { w, h } = bodyDrawSize(body, "plank");
+  const bw = w * t.scale, bh = Math.max(h * t.scale, 10);
+  ctx.save();
+  ctx.translate(center.x, center.y);
+  ctx.rotate(body.angle || 0);
+  if (opts.squash) ctx.scale(opts.squash.sx, opts.squash.sy);
+  drawBar(ctx, bw, bh, BAR_STYLES[styleKey]);
+  // conveyor: small rolling belt arrows on top, in its direction of travel (render-only)
+  if (key === "conveyor" && opts.running && !opts.reducedMotion) {
+    const speed = (body.plugin && body.plugin.surfaceSpeed) || 3;
+    const dir = speed < 0 ? -1 : 1;
+    const period = 34, phase = ((opts.now || 0) / 12) % period;
+    ctx.save();
+    ctx.strokeStyle = "#ffd45a"; ctx.globalAlpha = 0.85; ctx.lineWidth = Math.max(1.4, bh * 0.14);
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    for (let x = -bw / 2 + ((dir * phase) % period); x < bw / 2; x += period) {
+      ctx.beginPath();
+      ctx.moveTo(x - dir * bh * 0.22, -bh * 0.22); ctx.lineTo(x + dir * bh * 0.22, 0); ctx.lineTo(x - dir * bh * 0.22, bh * 0.22);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  ctx.restore();
+  return true;
+}
+
 function drawSprite(ctx, body, spr, transform, opts = {}) {
   const img = getImage(spr.src); if (!img) return false;
   const t = transform;
@@ -258,8 +380,9 @@ export function drawWorld(ctx, state, transform, theme, opts = {}) {
   // bodies
   for (const body of state.bodies || []) {
     if (body.plugin && body.plugin.partType === "boundary") continue;
-    const spr = resolveSprite(body.plugin && body.plugin.partType, opts.themeId);
     const bodyOpts = bodyFxOpts(body, fx, opts);
+    if (drawBarPart(ctx, body, t, bodyOpts)) continue;   // procedural bar → skip sprite/vector
+    const spr = resolveSprite(body.plugin && body.plugin.partType, opts.themeId);
     if (spr && drawSprite(ctx, body, spr, t, bodyOpts)) continue;   // sprite drawn → skip vector
     const parts = body.parts && body.parts.length > 1 ? body.parts.slice(1) : [body];
     ctx.fillStyle = body.isStatic ? theme.fixedFill : theme.partFill;
@@ -291,7 +414,11 @@ export function drawWorld(ctx, state, transform, theme, opts = {}) {
   if (opts.ghost) {
     const g = opts.ghost;
     const ghostSpr = g.partType ? resolveSprite(g.partType, opts.themeId) : null;
-    if (ghostSpr && g.body) {
+    if (g.body && BAR_PARTS[g.partType]) {
+      ctx.globalAlpha = 0.6;
+      drawBarPart(ctx, g.body, t, opts);
+      ctx.globalAlpha = 1;
+    } else if (ghostSpr && g.body) {
       ctx.globalAlpha = 0.6;
       drawSprite(ctx, g.body, ghostSpr, t, opts);
       ctx.globalAlpha = 1;

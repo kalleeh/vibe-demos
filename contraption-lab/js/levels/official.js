@@ -25,6 +25,7 @@ export const OFFICIAL_LEVELS = [
   // bumper redirects the fall onto the goal slope below.
   lvl("official-02","Bounce", goalAt(1000,660,220,120),
     [ {type:"wall",x:280,y:300,w:320,h:28,angle:0.17},
+      {type:"wall",x:900,y:620,w:500,h:28,angle:0.15},
       {type:"wall",x:1180,y:680,w:24,h:80},
       {type:"goal",x:1000,y:660} ],
     [ {type:"ball",x:150,y:220,tag:"ball"} ],
@@ -163,6 +164,7 @@ export const OFFICIAL_LEVELS = [
   // goal; a trampoline on the floor bounces it the rest of the way across.
   lvl("official-15","Trampoline Bounce", goalAt(900,640,220,140),
     [ {type:"platform",x:420,y:300,w:220,angle:0.1},
+      {type:"wall",x:900,y:700,w:700,h:28},
       {type:"wall",x:1160,y:600,w:24,h:240},
       {type:"goal",x:900,y:640} ],
     [ {type:"ball",x:320,y:200,tag:"ball"} ],
