@@ -39,7 +39,7 @@ Full-screen real-time aurora over a stylised fjord skyline. Mouse moves the wind
 - **Slug:** `aurora`
 - **Scope estimate:** medium. Risk: getting the shader to look genuinely beautiful, not cheesy.
 
-### 03 · Hangul Particle Type 🟡 queued
+### 03 · Hangul Particle Type 🟢 shipped → [/hangul-particles/](./hangul-particles/)
 
 Type Korean (or Roman) text and the glyphs assemble from ~50,000 GPU particles in 3D space. Each character explodes apart and reforms into the next as you type.
 

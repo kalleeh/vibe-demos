@@ -1,0 +1,16 @@
+{
+  "name": "Hangul Particles — 한글 입자",
+  "short_name": "Hangul Particles",
+  "description": "Type Korean or English and watch the glyphs assemble from tens of thousands of glowing particles in 3D.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#05060a",
+  "theme_color": "#05060a",
+  "lang": "ko",
+  "categories": ["entertainment", "art", "education"],
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

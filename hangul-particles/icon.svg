@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#05060a"/>
+  <defs>
+    <radialGradient id="dot" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffd98a"/>
+      <stop offset="55%" stop-color="#f0a34d"/>
+      <stop offset="100%" stop-color="#f0a34d" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- particle cluster forming ㅎ (Hangul letter hieuh), scattered dot density -->
+  <circle cx="256" cy="120" r="16" fill="url(#dot)"/>
+  <circle cx="198" cy="176" r="10" fill="url(#dot)" opacity="0.85"/>
+  <circle cx="314" cy="176" r="10" fill="url(#dot)" opacity="0.85"/>
+  <circle cx="150" cy="222" r="7" fill="url(#dot)" opacity="0.6"/>
+  <circle cx="362" cy="222" r="7" fill="url(#dot)" opacity="0.6"/>
+  <circle cx="180" cy="238" r="8" fill="url(#dot)" opacity="0.7"/>
+  <circle cx="332" cy="238" r="8" fill="url(#dot)" opacity="0.7"/>
+  <circle cx="256" cy="228" r="20" fill="url(#dot)"/>
+  <circle cx="256" cy="300" r="70" fill="none" stroke="#f0a34d" stroke-width="14" stroke-linecap="round" opacity="0.9"/>
+  <circle cx="256" cy="300" r="70" fill="none" stroke="#ffd98a" stroke-width="3" opacity="0.5"/>
+  <circle cx="196" cy="272" r="6" fill="url(#dot)" opacity="0.55"/>
+  <circle cx="316" cy="272" r="6" fill="url(#dot)" opacity="0.55"/>
+  <circle cx="256" cy="368" r="6" fill="url(#dot)" opacity="0.55"/>
+</svg>

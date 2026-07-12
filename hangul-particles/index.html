@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Hangul Particles — 한글 입자</title>
+  <meta name="description" content="Type Korean or English and watch the glyphs assemble from tens of thousands of glowing particles in 3D.">
+  <meta property="og:title" content="Hangul Particles — 한글 입자">
+  <meta property="og:description" content="Type a word. Tens of thousands of particles explode apart and reform into it.">
+  <meta property="og:type" content="website">
+
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#05060a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Hangul Particles">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg:      #05060a;
+      --panel:   rgba(12, 14, 22, 0.72);
+      --line:    rgba(255, 255, 255, 0.12);
+      --ink:     #f2f0ea;
+      --ink-dim: #9a9dab;
+      --muted:   #62667a;
+      --accent:  #f0a34d;
+      --accent-2:#ffd98a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #scene {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      cursor: crosshair;
+    }
+    #scene canvas { display: block; }
+
+    /* ── Loading ── */
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      transition: opacity .8s ease;
+    }
+    #loading.hidden { opacity: 0; pointer-events: none; }
+    #loading .lbl {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    #loading .bar {
+      width: 220px;
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    #loading .bar::after {
+      content: "";
+      position: absolute;
+      top: 0; left: -40%;
+      width: 40%; height: 100%;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      animation: shimmer 1.4s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0%   { left: -40%; }
+      100% { left: 100%; }
+    }
+
+    /* ── Top chrome ── */
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      padding: 18px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .brand {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      pointer-events: auto;
+    }
+    .brand a { color: var(--ink-dim); text-decoration: none; }
+    .brand a:hover { color: var(--accent); }
+    .hint {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    /* ── Bottom input dock ── */
+    .dock {
+      position: fixed;
+      left: 50%;
+      bottom: 30px;
+      transform: translateX(-50%);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      width: min(560px, 92vw);
+      pointer-events: none;
+    }
+    .inputwrap {
+      pointer-events: auto;
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 6px 8px 6px 22px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: border-color .2s ease;
+    }
+    .inputwrap:focus-within { border-color: var(--line); box-shadow: 0 0 0 1px rgba(240,163,77,0.35); }
+    #typeInput {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--ink);
+      font-family: "Noto Sans KR", sans-serif;
+      font-size: 17px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      min-width: 0;
+    }
+    #typeInput::placeholder { color: var(--muted); }
+    .countpill {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: var(--muted);
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      white-space: nowrap;
+    }
+    .chips {
+      pointer-events: auto;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .chip {
+      font-family: "Noto Sans KR", sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink-dim);
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 7px 16px;
+      cursor: pointer;
+      transition: background .15s ease, color .15s ease, border-color .15s ease;
+    }
+    .chip:hover, .chip:focus-visible {
+      background: rgba(240,163,77,0.14);
+      border-color: rgba(240,163,77,0.4);
+      color: var(--accent-2);
+    }
+
+    @media (max-width: 600px) {
+      .hint { display: none; }
+      #typeInput { font-size: 16px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #loading .bar::after { animation: none; left: 0; width: 100%; opacity: 0.5; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loading">
+    <div class="lbl" id="loadingLbl">loading typeface</div>
+    <div class="bar"></div>
+  </div>
+
+  <div id="scene"></div>
+
+  <div class="topbar">
+    <div class="brand"><a href="../">← Vibe Studio</a> · Hangul Particles</div>
+    <div class="hint">click canvas to scatter · type below to reform</div>
+  </div>
+
+  <div class="dock">
+    <div class="chips" id="chips">
+      <button class="chip" type="button" data-word="이름">이름</button>
+      <button class="chip" type="button" data-word="사랑">사랑</button>
+      <button class="chip" type="button" data-word="가스">가스</button>
+      <button class="chip" type="button" data-word="한의원">한의원</button>
+      <button class="chip" type="button" data-word="안녕">안녕</button>
+    </div>
+    <div class="inputwrap">
+      <input id="typeInput" type="text" maxlength="8" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="타이핑하세요 / type a word" value="안녕">
+      <div class="countpill" id="countPill">— pts</div>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three":          "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/":  "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from "three";
+    import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+
+    const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const narrow = window.innerWidth < 700;
+    const PARTICLE_COUNT = narrow ? 18000 : 45000;
+    const FONT_FAMILY = "'Noto Sans KR', sans-serif";
+    const SAMPLE_FONT_PX = 240;         // offscreen canvas glyph render size
+    const WORLD_WIDTH = 9.2;             // world units the sampled text spans
+
+    /* ─────────────────────────────────────────────
+       Renderer / scene / camera — fidelity 4-liner
+       ───────────────────────────────────────────── */
+    const container = document.getElementById("scene");
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x05060a, 1);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    container.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 0, 11);
+
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    pmrem.compileEquirectangularShader();
+    scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+
+    /* faint starfield so the void behind the particles isn't dead */
+    (function addStars() {
+      const positions = [];
+      for (let i = 0; i < 900; i++) {
+        const r = 30 + Math.random() * 40;
+        const t = Math.random() * Math.PI * 2;
+        const p = Math.acos(2 * Math.random() - 1);
+        positions.push(r * Math.sin(p) * Math.cos(t), r * Math.sin(p) * Math.sin(t), r * Math.cos(p) - 20);
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+      const m = new THREE.PointsMaterial({ size: 0.05, color: 0x8890a8, transparent: true, opacity: 0.5, depthWrite: false });
+      scene.add(new THREE.Points(g, m));
+    })();
+
+    /* ─────────────────────────────────────────────
+       Glyph sampling: text → target world points
+       ───────────────────────────────────────────── */
+    const sampleCanvas = document.createElement("canvas");
+    const sampleCtx = sampleCanvas.getContext("2d", { willReadFrequently: true });
+
+    function sampleGlyphPoints(text, count) {
+      const clean = text.trim() || " "; // never sample an empty string
+      // size the canvas to the text: measure first at the sample font size
+      sampleCtx.font = `900 ${SAMPLE_FONT_PX}px ${FONT_FAMILY}`;
+      const metrics = sampleCtx.measureText(clean);
+      const padX = SAMPLE_FONT_PX * 0.3;
+      const padY = SAMPLE_FONT_PX * 0.5;
+      const w = Math.max(32, Math.ceil(metrics.width + padX * 2));
+      const h = Math.ceil(SAMPLE_FONT_PX * 1.5 + padY);
+      sampleCanvas.width = w;
+      sampleCanvas.height = h;
+      sampleCtx.clearRect(0, 0, w, h);
+      sampleCtx.font = `900 ${SAMPLE_FONT_PX}px ${FONT_FAMILY}`;
+      sampleCtx.fillStyle = "#fff";
+      sampleCtx.textAlign = "center";
+      sampleCtx.textBaseline = "middle";
+      sampleCtx.fillText(clean, w / 2, h / 2 + SAMPLE_FONT_PX * 0.04);
+
+      const { data } = sampleCtx.getImageData(0, 0, w, h);
+      const pts = [];
+      const step = w > 500 ? 1 : 1; // full-res scan; canvases here are small enough
+      for (let y = 0; y < h; y += step) {
+        for (let x = 0; x < w; x += step) {
+          const a = data[(y * w + x) * 4 + 3];
+          if (a > 80) pts.push(x, y);
+        }
+      }
+      if (pts.length === 0) pts.push(w / 2, h / 2);
+
+      const nPix = pts.length / 2;
+      const scale = WORLD_WIDTH / w; // world units per canvas pixel
+      const out = new Float32Array(count * 3);
+      for (let i = 0; i < count; i++) {
+        const pick = nPix >= count
+          ? Math.floor((i / count) * nPix + Math.random() * (nPix / count))
+          : Math.floor(Math.random() * nPix);
+        const px = pts[Math.min(pick, nPix - 1) * 2];
+        const py = pts[Math.min(pick, nPix - 1) * 2 + 1];
+        const jitterAmt = scale * 1.1;
+        out[i * 3 + 0] = (px - w / 2) * scale + (Math.random() - 0.5) * jitterAmt;
+        out[i * 3 + 1] = -(py - h / 2) * scale + (Math.random() - 0.5) * jitterAmt;
+        out[i * 3 + 2] = (Math.random() - 0.5) * 0.9;
+      }
+      return out;
+    }
+
+    /* ─────────────────────────────────────────────
+       Particle sprite texture (soft radial dot)
+       ───────────────────────────────────────────── */
+    function makeSpriteTexture() {
+      const s = 64;
+      const c = document.createElement("canvas");
+      c.width = c.height = s;
+      const ctx = c.getContext("2d");
+      const g = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+      g.addColorStop(0, "rgba(255,255,255,1)");
+      g.addColorStop(0.4, "rgba(255,255,255,0.9)");
+      g.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, s, s);
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    /* ─────────────────────────────────────────────
+       Particle system + shader
+       ───────────────────────────────────────────── */
+    const geometry = new THREE.BufferGeometry();
+    const aStart = new Float32Array(PARTICLE_COUNT * 3);
+    const aScatter = new Float32Array(PARTICLE_COUNT * 3);
+    const aTarget = new Float32Array(PARTICLE_COUNT * 3);
+    const aSeed = new Float32Array(PARTICLE_COUNT);
+    for (let i = 0; i < PARTICLE_COUNT; i++) aSeed[i] = Math.random();
+
+    geometry.setAttribute("position", new THREE.BufferAttribute(aTarget.slice(), 3)); // required dummy attribute
+    geometry.setAttribute("aStart", new THREE.BufferAttribute(aStart, 3));
+    geometry.setAttribute("aScatter", new THREE.BufferAttribute(aScatter, 3));
+    geometry.setAttribute("aTarget", new THREE.BufferAttribute(aTarget, 3));
+    geometry.setAttribute("aSeed", new THREE.BufferAttribute(aSeed, 1));
+
+    const uniforms = {
+      uProgress:   { value: 1 },
+      uTime:       { value: 0 },
+      uPokeOrigin: { value: new THREE.Vector3(9999, 9999, 9999) },
+      uPokeTime:   { value: -999 },
+      uReduceMotion: { value: reduceMotion ? 1 : 0 },
+      uPixelRatio: { value: Math.min(window.devicePixelRatio, 3) },
+      uSizeScale:  { value: 1 }, // set by computeSizeScale() below, kept in sync on resize
+      uSprite:     { value: makeSpriteTexture() },
+    };
+
+    function computeSizeScale() {
+      const fovRad = camera.fov * Math.PI / 180;
+      return (window.innerHeight / 2) / Math.tan(fovRad / 2);
+    }
+    uniforms.uSizeScale.value = computeSizeScale();
+
+    const material = new THREE.ShaderMaterial({
+      uniforms,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      vertexShader: `
+        uniform float uProgress;
+        uniform float uTime;
+        uniform vec3 uPokeOrigin;
+        uniform float uPokeTime;
+        uniform float uReduceMotion;
+        uniform float uPixelRatio;
+        uniform float uSizeScale;
+        attribute vec3 aStart;
+        attribute vec3 aScatter;
+        attribute vec3 aTarget;
+        attribute float aSeed;
+        varying float vSeed;
+        varying float vAlpha;
+
+        float easeOutCubic(float x) { return 1.0 - pow(1.0 - x, 3.0); }
+        float easeInOutCubic(float x) { return x < 0.5 ? 4.0*x*x*x : 1.0 - pow(-2.0*x + 2.0, 3.0) / 2.0; }
+
+        void main() {
+          vSeed = aSeed;
+          vec3 pos;
+          if (uReduceMotion > 0.5) {
+            pos = mix(aStart, aTarget, smoothstep(0.0, 1.0, uProgress));
+          } else {
+            float p1 = clamp(uProgress / 0.4, 0.0, 1.0);
+            float p2 = clamp((uProgress - 0.4) / 0.6, 0.0, 1.0);
+            vec3 toScatter = mix(aStart, aScatter, easeOutCubic(p1));
+            pos = mix(toScatter, aTarget, easeInOutCubic(p2));
+
+            // idle jitter so particles are never perfectly static
+            float t = uTime * (0.6 + aSeed * 0.8) + aSeed * 62.0;
+            pos.x += sin(t) * 0.012;
+            pos.y += cos(t * 1.3) * 0.012;
+            pos.z += sin(t * 0.7) * 0.02;
+
+            // poke: radial outward push, decaying with time and distance
+            float dt = uTime - uPokeTime;
+            if (dt >= 0.0 && dt < 1.6) {
+              float d = distance(pos, uPokeOrigin);
+              float falloff = exp(-d * 0.9) * exp(-dt * 2.2);
+              vec3 dir = normalize(pos - uPokeOrigin + vec3(0.0001));
+              pos += dir * falloff * 2.2;
+            }
+          }
+
+          vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+          float worldSize = mix(0.028, 0.05, aSeed); // particle diameter in world units
+          gl_PointSize = worldSize * uSizeScale * uPixelRatio / max(-mvPosition.z, 0.001);
+          vAlpha = clamp(1.0 - (-mvPosition.z - 6.0) / 40.0, 0.35, 1.0);
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D uSprite;
+        varying float vSeed;
+        varying float vAlpha;
+        void main() {
+          vec4 tex = texture2D(uSprite, gl_PointCoord);
+          vec3 warm = vec3(1.0, 0.72, 0.35);
+          vec3 hot  = vec3(1.0, 0.92, 0.68);
+          vec3 col = mix(warm, hot, vSeed * 0.7);
+          gl_FragColor = vec4(col, tex.a * vAlpha * 0.95);
+        }
+      `,
+    });
+
+    const points = new THREE.Points(geometry, material);
+    points.frustumCulled = false; // shader displaces positions far outside the static geometry bounds
+    scene.add(points);
+
+    /* ─────────────────────────────────────────────
+       Text transition state machine
+       ───────────────────────────────────────────── */
+    let transitionActive = false;
+    let transitionStart = 0;
+    const TRANSITION_MS = reduceMotion ? 500 : 1100;
+    const clock = new THREE.Clock();
+
+    function easeOutCubicJS(x) { return 1 - Math.pow(1 - x, 3); }
+    function easeInOutCubicJS(x) { return x < 0.5 ? 4*x*x*x : 1 - Math.pow(-2*x + 2, 3) / 2; }
+
+    // Mirrors the vertex shader's base (non-jitter, non-poke) position math on the
+    // CPU so an interrupted transition can hand off from its true current position
+    // instead of popping back to the old target.
+    function evalCurrentPositions(out) {
+      const p = uniforms.uProgress.value;
+      if (reduceMotion) {
+        const t = Math.min(1, Math.max(0, p));
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+          for (let k = 0; k < 3; k++) {
+            out[i*3+k] = aStart[i*3+k] + (aTarget[i*3+k] - aStart[i*3+k]) * t;
+          }
+        }
+        return;
+      }
+      const p1 = Math.min(1, Math.max(0, p / 0.4));
+      const p2 = Math.min(1, Math.max(0, (p - 0.4) / 0.6));
+      const e1 = easeOutCubicJS(p1);
+      const e2 = easeInOutCubicJS(p2);
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        for (let k = 0; k < 3; k++) {
+          const toScatter = aStart[i*3+k] + (aScatter[i*3+k] - aStart[i*3+k]) * e1;
+          out[i*3+k] = toScatter + (aTarget[i*3+k] - toScatter) * e2;
+        }
+      }
+    }
+
+    function scatterAround(target, out) {
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const ang1 = Math.random() * Math.PI * 2;
+        const ang2 = Math.random() * Math.PI * 2;
+        const r = 3.5 + Math.random() * 4.5;
+        out[i*3+0] = target[i*3+0] + Math.cos(ang1) * Math.sin(ang2) * r;
+        out[i*3+1] = target[i*3+1] + Math.sin(ang1) * Math.sin(ang2) * r;
+        out[i*3+2] = target[i*3+2] + Math.cos(ang2) * r * 0.6;
+      }
+    }
+
+    const startAttr = geometry.getAttribute("aStart");
+    const scatterAttr = geometry.getAttribute("aScatter");
+    const targetAttr = geometry.getAttribute("aTarget");
+
+    let currentWord = "";
+    function setWord(word, { instant } = {}) {
+      if (word === currentWord && !instant) return;
+      currentWord = word;
+      const newTarget = sampleGlyphPoints(word, PARTICLE_COUNT);
+
+      if (instant) {
+        startAttr.array.set(newTarget);
+        targetAttr.array.set(newTarget);
+        scatterAttr.array.set(newTarget);
+        uniforms.uProgress.value = 1;
+      } else {
+        const handoff = new Float32Array(PARTICLE_COUNT * 3);
+        evalCurrentPositions(handoff);
+        startAttr.array.set(handoff);
+        targetAttr.array.set(newTarget);
+        const scatter = new Float32Array(PARTICLE_COUNT * 3);
+        scatterAround(newTarget, scatter);
+        scatterAttr.array.set(scatter);
+        uniforms.uProgress.value = 0;
+        transitionActive = true;
+        transitionStart = clock.getElapsedTime();
+      }
+      startAttr.needsUpdate = true;
+      scatterAttr.needsUpdate = true;
+      targetAttr.needsUpdate = true;
+
+      const pill = document.getElementById("countPill");
+      if (pill) pill.textContent = `${PARTICLE_COUNT.toLocaleString()} pts`;
+    }
+
+    /* ─────────────────────────────────────────────
+       Camera idle drift + pointer parallax
+       ───────────────────────────────────────────── */
+    let pointerNX = 0, pointerNY = 0; // normalized -1..1
+    function onPointerMoveParallax(e) {
+      const x = (e.touches ? e.touches[0].clientX : e.clientX) / window.innerWidth;
+      const y = (e.touches ? e.touches[0].clientY : e.clientY) / window.innerHeight;
+      pointerNX = x * 2 - 1;
+      pointerNY = y * 2 - 1;
+    }
+    if (!reduceMotion) {
+      window.addEventListener("pointermove", onPointerMoveParallax, { passive: true });
+    }
+
+    /* ─────────────────────────────────────────────
+       Click / tap → scatter poke
+       ───────────────────────────────────────────── */
+    const raycaster = new THREE.Raycaster();
+    const pokePlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+    const pointerNDC = new THREE.Vector2();
+    function onPoke(clientX, clientY) {
+      if (reduceMotion) return;
+      pointerNDC.x = (clientX / window.innerWidth) * 2 - 1;
+      pointerNDC.y = -(clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(pointerNDC, camera);
+      const hit = new THREE.Vector3();
+      if (raycaster.ray.intersectPlane(pokePlane, hit)) {
+        uniforms.uPokeOrigin.value.copy(hit);
+        uniforms.uPokeTime.value = clock.getElapsedTime();
+      }
+    }
+    container.addEventListener("pointerdown", (e) => onPoke(e.clientX, e.clientY));
+
+    /* ─────────────────────────────────────────────
+       Input wiring
+       ───────────────────────────────────────────── */
+    const input = document.getElementById("typeInput");
+    let debounceTimer = null;
+    input.addEventListener("input", () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => setWord(input.value), 180);
+    });
+    document.getElementById("chips").addEventListener("click", (e) => {
+      const btn = e.target.closest(".chip");
+      if (!btn) return;
+      input.value = btn.dataset.word;
+      clearTimeout(debounceTimer);
+      setWord(btn.dataset.word);
+      input.focus();
+    });
+
+    /* ─────────────────────────────────────────────
+       Boot: wait for the font, sample the initial word
+       ───────────────────────────────────────────── */
+    const loadingEl = document.getElementById("loading");
+    const loadingLbl = document.getElementById("loadingLbl");
+
+    async function boot() {
+      try {
+        await document.fonts.load(`900 ${SAMPLE_FONT_PX}px ${FONT_FAMILY}`);
+        await document.fonts.ready;
+      } catch (e) { /* font API unsupported — fall back to whatever's loaded */ }
+      loadingLbl.textContent = "assembling";
+      setWord(input.value || "안녕", { instant: true });
+      requestAnimationFrame(() => {
+        loadingEl.classList.add("hidden");
+        setTimeout(() => { loadingEl.style.display = "none"; }, 900);
+      });
+    }
+    boot();
+
+    /* ─────────────────────────────────────────────
+       Animation loop
+       ───────────────────────────────────────────── */
+    let rendering = true;
+    function tick() {
+      if (!rendering) return;
+      const dt = Math.min(clock.getDelta(), 0.05);
+      const t = clock.getElapsedTime();
+      uniforms.uTime.value = t;
+
+      if (transitionActive) {
+        const elapsed = (t - transitionStart) * 1000;
+        const p = Math.min(1, elapsed / TRANSITION_MS);
+        uniforms.uProgress.value = p;
+        if (p >= 1) transitionActive = false;
+      }
+
+      if (!reduceMotion) {
+        const idleAngle = t * 0.05;
+        const targetX = Math.sin(idleAngle) * 0.4 + pointerNX * 0.6;
+        const targetY = Math.cos(idleAngle * 0.8) * 0.15 + -pointerNY * 0.35;
+        camera.position.x += (targetX - camera.position.x) * 0.04;
+        camera.position.y += (targetY - camera.position.y) * 0.04;
+        camera.lookAt(0, 0, 0);
+      }
+
+      renderer.render(scene, camera);
+      requestAnimationFrame(tick);
+    }
+    tick();
+
+    function onResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      uniforms.uPixelRatio.value = Math.min(window.devicePixelRatio, 3);
+      uniforms.uSizeScale.value = computeSizeScale();
+    }
+    window.addEventListener("resize", onResize);
+
+    window.addEventListener("pagehide", () => { rendering = false; });
+  </script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
