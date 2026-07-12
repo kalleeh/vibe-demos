@@ -123,9 +123,17 @@ function updateObjective(level) {
       : "Press Run to solve.";
   }
 }
-// Best-stats line + star rating in the controls panel. Stars are awarded against
-// the level's `par.parts`: ≤par = ★★★, ≤par+2 = ★★☆, solved = ★☆☆. Community
-// levels (no par) just show parts/time. Pure read from progress.js.
+// Pure: stars earned for solving `level` in `parts` placed parts. Stars are awarded
+// against the level's `par.parts`: ≤par = ★★★, ≤par+2 = ★★☆, solved = ★☆☆. Community
+// levels (no par) always read as 1 star solved (parts/time still shown separately).
+function starsForParts(level, parts) {
+  const par = level.par && typeof level.par.parts === "number" ? level.par.parts : null;
+  if (par == null) return 1;
+  return parts <= par ? 3 : parts <= par + 2 ? 2 : 1;
+}
+const starGlyphs = (stars) => "★★★☆☆".slice(3 - stars, 6 - stars);
+
+// Best-stats line + star rating in the controls panel. Pure read from progress.js.
 function updateStats(level) {
   const statEl = document.getElementById("bestStat");
   const starEl = document.getElementById("starRating");
@@ -138,10 +146,7 @@ function updateStats(level) {
   }
   const secs = (rec.bestMs / 1000).toFixed(1);
   statEl.innerHTML = `BEST · <b>${rec.bestParts} PART${rec.bestParts === 1 ? "" : "S"}</b> · <b>${secs}s</b>`;
-  const par = level.par && typeof level.par.parts === "number" ? level.par.parts : null;
-  let stars = 1;
-  if (par != null) stars = rec.bestParts <= par ? 3 : rec.bestParts <= par + 2 ? 2 : 1;
-  starEl.textContent = "★★★☆☆".slice(3 - stars, 6 - stars);
+  starEl.textContent = starGlyphs(starsForParts(level, rec.bestParts));
 }
 
 function loadLevel(level) {
@@ -156,7 +161,22 @@ function loadLevel(level) {
   if (controller) controller.setSim(sim); else controller = makeController();
   buildPalette();
   document.getElementById("banner").hidden = true;
+  syncRunButton();
   resize();
+}
+// RUN/STOP is one button whose icon+label+color reflect sim.state, so it's always
+// clear whether the contraption is currently running (fixes: no way to tell/stop).
+const RUN_ICON = '<path d="M7 5v14l12-7z"/>';
+const STOP_ICON = '<path d="M6 6h12v12H6z"/>';
+function syncRunButton() {
+  const btn = document.getElementById("runBtn");
+  const icon = document.getElementById("runBtnIcon");
+  const label = document.getElementById("runBtnLabel");
+  if (!btn || !sim) return;
+  const running = sim.state === "running";
+  btn.classList.toggle("running", running);
+  icon.innerHTML = running ? STOP_ICON : RUN_ICON;
+  label.textContent = running ? "STOP" : "RUN";
 }
 // Central sim-event handler: every physics event drives sound AND visual juice.
 // fx is render-only, so this never affects the simulation. Particle colors read
@@ -239,21 +259,53 @@ function showBanner(big, small, lost){
   const s=document.createElement("div"); s.className="small"; s.textContent=small;
   banner.append(b,s); banner.hidden=false;
 }
-function onWin(){ recordSolve(current.id, sim.partsUsed(), Math.round(sim.elapsed));
+// The official level immediately after `level` in the arc, or null at the end/for
+// community levels (which aren't in OFFICIAL_LEVELS).
+function nextOfficialLevel(level) {
+  const i = OFFICIAL_LEVELS.findIndex(l => l.id === level.id);
+  return i >= 0 && i + 1 < OFFICIAL_LEVELS.length ? OFFICIAL_LEVELS[i + 1] : null;
+}
+function onWin(){
+  const used = sim.partsUsed();
+  const ms = Math.round(sim.elapsed);
+  recordSolve(current.id, used, ms);
   // Choreographed climax: confetti fountain from the goal + a quick screen flash,
   // then the banner pops in. The emotional peak gets the most juice.
-  const used = sim.partsUsed();
   const tk = tokens();
   const colors = [tk.goal || "#52e0a3", tk.accent || "#ffd166", tk.partFill || "#3a6bb8", "#ffffff"];
   if (current.goal && current.goal.zone) fx.confetti(current.goal.zone.x, current.goal.zone.y, colors);
   fx.addTrauma(0.4);
   flashScreen();
-  showBanner("Solved!", used + " part" + (used === 1 ? "" : "s") + " used — tap a level to continue", false);
+
+  const stars = starsForParts(current, used);
+  const banner = document.getElementById("banner");
+  banner.innerHTML = "";
+  const big = document.createElement("div"); big.className = "big"; big.textContent = "Solved!";
+  const starsEl = document.createElement("div"); starsEl.className = "banner-stars"; starsEl.textContent = starGlyphs(stars);
+  const small = document.createElement("div"); small.className = "small";
+  small.textContent = `${used} part${used === 1 ? "" : "s"} used · ${(ms / 1000).toFixed(1)}s`;
+  banner.append(big, starsEl, small);
+
+  const next = nextOfficialLevel(current);
+  if (next) {
+    const btn = document.createElement("button");
+    btn.className = "bannerNextBtn"; btn.type = "button";
+    btn.textContent = `Next: ${next.title} →`;
+    btn.onclick = () => { location.hash = "#/play/" + next.id; };
+    banner.append(btn);
+  } else {
+    const done = document.createElement("div"); done.className = "small";
+    done.textContent = "That's the last level — tap a level to replay.";
+    banner.append(done);
+  }
+  banner.hidden = false;
+
   document.getElementById("levelTitle").textContent = current.title + " ✓";
   updateStats(current);
+  syncRunButton();
   sfx("win");
   import("./progress.js").then(p => pushProgress(p.getProgress())); }
-function onLost(){ fx.addTrauma(0.3); showBanner("Time's up", "Press Reset and try a different setup", true); }
+function onLost(){ fx.addTrauma(0.3); showBanner("Time's up", "Press Reset and try a different setup", true); syncRunButton(); }
 
 // Quick full-screen white flash via a CSS-animated overlay (auto-removed). Honors
 // reduced motion by skipping entirely.
@@ -267,8 +319,12 @@ function flashScreen(){
   setTimeout(() => el.remove(), 600);
 }
 
-document.getElementById("runBtn").onclick = () => { if (sim.state==="build"){ sim.run(); sfx("run"); document.getElementById("banner").hidden=true; } };
-document.getElementById("resetBtn").onclick = () => { sim.reset(); buildPalette(); document.getElementById("banner").hidden=true; draw(); };
+document.getElementById("runBtn").onclick = () => {
+  if (sim.state === "build") { sim.run(); sfx("run"); document.getElementById("banner").hidden = true; }
+  else if (sim.state === "running") { sim.reset(); buildPalette(); document.getElementById("banner").hidden = true; draw(); }
+  syncRunButton();
+};
+document.getElementById("resetBtn").onclick = () => { sim.reset(); buildPalette(); document.getElementById("banner").hidden=true; draw(); syncRunButton(); };
 
 // Difficulty bands across the 20-level arc (by 1-based level number).
 const LEVEL_BANDS = [

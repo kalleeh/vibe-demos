@@ -226,9 +226,20 @@ html, body {
 }
 .banner .big.lose { color:var(--accent); }
 .banner .small { color:var(--on-surface); opacity:.92; font-size:1rem; animation:rise .5s .12s ease both; }
+.banner-stars { color:var(--accent); font-size:2rem; letter-spacing:4px; text-shadow:0 4px 14px rgba(0,0,0,.4);
+  animation:rise .5s .18s ease both; }
+.bannerNextBtn {
+  pointer-events:auto; margin-top:6px; padding:11px 22px; border:none; border-radius:12px; cursor:pointer;
+  background:linear-gradient(180deg,#ffe08a,var(--accent) 55%,var(--accent-deep)); color:var(--accent-ink);
+  font-family:var(--font-display); font-weight:600; font-size:16px; letter-spacing:.3px;
+  box-shadow:0 4px 0 var(--accent-deep),0 10px 20px var(--accent-soft),inset 0 2px 0 rgba(255,255,255,.6);
+  animation:rise .5s .28s ease both; transition:transform .12s cubic-bezier(.34,1.56,.64,1), filter .12s ease;
+}
+.bannerNextBtn:hover { filter:brightness(1.05); transform:translateY(-1px); }
+.bannerNextBtn:active { transform:translateY(3px); box-shadow:0 1px 0 var(--accent-deep),0 4px 10px var(--accent-soft); }
 @keyframes pop { 0%{ transform:scale(.4); opacity:0 } 60%{ transform:scale(1.12); opacity:1 } 100%{ transform:scale(1) } }
 @keyframes rise { from{ transform:translateY(8px); opacity:0 } to{ transform:translateY(0); opacity:.92 } }
-@media (prefers-reduced-motion: reduce){ .banner .big, .banner .small{ animation:none } }
+@media (prefers-reduced-motion: reduce){ .banner .big, .banner .small, .banner-stars, .bannerNextBtn{ animation:none } }
 
 /* full-screen win flash overlay */
 .screenflash {
@@ -327,6 +338,14 @@ html, body {
   box-shadow:0 6px 0 var(--accent-deep),0 16px 30px var(--accent-soft),inset 0 2px 0 rgba(255,255,255,.6); }
 .controls .primary:active { transform:translateY(4px);
   box-shadow:0 1px 0 var(--accent-deep),0 4px 10px var(--accent-soft),inset 0 2px 4px rgba(150,90,0,.4); }
+/* RUN → STOP: while running, the button switches to a distinct red so it always
+   reads as "in progress, tap to stop" rather than looking identical to idle RUN. */
+.controls .primary.running {
+  background:linear-gradient(180deg,#ff8a80,#e53935 55%,#a52a22); color:#fff;
+  box-shadow:0 5px 0 #7c1e17,0 12px 24px rgba(229,57,53,.35),inset 0 2px 0 rgba(255,255,255,.35),inset 0 -2px 4px rgba(80,10,5,.35);
+}
+.controls .primary.running:hover { box-shadow:0 6px 0 #7c1e17,0 16px 30px rgba(229,57,53,.4),inset 0 2px 0 rgba(255,255,255,.35); }
+.controls .primary.running:active { box-shadow:0 1px 0 #7c1e17,0 4px 10px rgba(229,57,53,.35),inset 0 2px 4px rgba(80,10,5,.4); }
 .ctlrow { display:flex; gap:9px; }
 .ctlbtn { flex:1; height:46px; display:flex; align-items:center; justify-content:center; gap:7px;
   border:1px solid rgba(120,170,220,.16); border-radius:11px;

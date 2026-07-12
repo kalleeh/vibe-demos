@@ -1,9 +1,9 @@
 // Documented winning placements per official level id (used by solve-verify.mjs).
 // Kept in sync as levels are added/redesigned.
 export const SOLUTIONS = {
-  "official-01":[{type:"ramp",x:200,y:100,angle:0.15}],
-  "official-02":[{type:"bumper",x:240,y:120}],
-  "official-03":[{type:"ramp",x:360,y:260,angle:0.2}],
+  "official-01":[{type:"ramp",x:530,y:410,angle:0.18}],  // bridges the gap between the two slopes
+  "official-02":[{type:"bumper",x:460,y:420}],  // redirects the fall onto the goal slope
+  "official-03":[{type:"ramp",x:650,y:380,angle:0.2}],  // bridges the gap between the two ice slopes
   "official-04":[{type:"balloon",x:320,y:430,angle:0},{type:"fan",x:360,y:530,angle:2}],
   "official-05":[{type:"magnet",x:440,y:200,strength:0.015}],
   "official-06":[{type:"conveyor",x:520,y:574,w:760,angle:0,surfaceSpeed:6}],  // pipe chute (fixed) then conveyor

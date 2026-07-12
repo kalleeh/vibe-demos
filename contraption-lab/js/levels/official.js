@@ -11,28 +11,33 @@ const lvl = (id, title, goal, fixed, start, inventory, par) =>
 const goalAt = (x, y, w=180, h=150) => ({ type:"dwell", object:"ball", zone:{x,y,w,h}, ms:400 });
 
 export const OFFICIAL_LEVELS = [
-  // 01 — First Drop: teach ramp. Ball drops, ramp smooths the landing onto goal slope.
+  // 01 — First Drop: teach ramp. The ball drops off the first slope's edge into a
+  // gap it can't cross alone; the ramp bridges the drop onto the goal slope.
   lvl("official-01","First Drop", goalAt(1040,560),
-    [ {type:"wall",x:640,y:560,w:1100,h:28,angle:0.18},
+    [ {type:"wall",x:300,y:300,w:300,h:28,angle:0.18},
+      {type:"wall",x:900,y:560,w:540,h:28,angle:0.18},
       {type:"wall",x:1200,y:520,w:24,h:260},
       {type:"goal",x:1040,y:560} ],
-    [ {type:"ball",x:200,y:90,tag:"ball"} ],
+    [ {type:"ball",x:170,y:220,tag:"ball"} ],
     [ {type:"ramp",count:1} ], {parts:1}),
 
-  // 02 — Bounce: teach bumper. Ball drops, bumper redirects it onto goal slope.
-  lvl("official-02","Bounce", goalAt(1000,560),
-    [ {type:"wall",x:660,y:560,w:1000,h:28,angle:0.17},
-      {type:"wall",x:1180,y:520,w:24,h:260},
-      {type:"goal",x:1000,y:560} ],
-    [ {type:"ball",x:220,y:100,tag:"ball"} ],
+  // 02 — Bounce: teach bumper. The ball falls off the first slope into open air; the
+  // bumper redirects the fall onto the goal slope below.
+  lvl("official-02","Bounce", goalAt(1000,660,220,120),
+    [ {type:"wall",x:280,y:300,w:320,h:28,angle:0.17},
+      {type:"wall",x:1180,y:680,w:24,h:80},
+      {type:"goal",x:1000,y:660} ],
+    [ {type:"ball",x:150,y:220,tag:"ball"} ],
     [ {type:"bumper",count:1} ], {parts:1}),
 
-  // 03 — Slippery: teach ice. Ramp gets ball onto ice slope, ice carries it fast to goal.
-  lvl("official-03","Slippery", goalAt(1020,590),
-    [ {type:"ice",x:640,y:440,w:660,h:28,angle:0.22,fixedByDefault:true},
-      {type:"wall",x:1160,y:560,w:24,h:300},
-      {type:"goal",x:1020,y:590} ],
-    [ {type:"ball",x:360,y:260,tag:"ball"} ],
+  // 03 — Slippery: teach ice. Two ice slopes with a gap between them; the ramp
+  // bridges the gap so the ice can carry the ball on to the goal.
+  lvl("official-03","Slippery", goalAt(1020,460,220,150),
+    [ {type:"ice",x:420,y:330,w:320,h:28,angle:0.22,fixedByDefault:true},
+      {type:"ice",x:940,y:460,w:420,h:28,angle:0.22,fixedByDefault:true},
+      {type:"wall",x:1200,y:500,w:24,h:80},
+      {type:"goal",x:1020,y:460} ],
+    [ {type:"ball",x:280,y:260,tag:"ball"} ],
     [ {type:"ramp",count:1} ], {parts:1}),
 
   // 04 — Fan Lift: teach fan+balloon. Balloon floats up with fan, carries ball over wall to goal.
