@@ -354,10 +354,13 @@
       const c = document.createElement("canvas");
       c.width = c.height = s;
       const ctx = c.getContext("2d");
+      // Tight bright core + a thin falloff skirt — a pinpoint, not a soft cloud.
+      // A wide gradient here is what made dense strokes wash into a flat haze.
       const g = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
-      g.addColorStop(0, "rgba(255,255,255,1)");
-      g.addColorStop(0.4, "rgba(255,255,255,0.9)");
-      g.addColorStop(1, "rgba(255,255,255,0)");
+      g.addColorStop(0,    "rgba(255,255,255,1)");
+      g.addColorStop(0.22, "rgba(255,255,255,0.95)");
+      g.addColorStop(0.5,  "rgba(255,255,255,0.22)");
+      g.addColorStop(1,    "rgba(255,255,255,0)");
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, s, s);
       const tex = new THREE.CanvasTexture(c);
@@ -449,9 +452,9 @@
           }
 
           vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-          float worldSize = mix(0.028, 0.05, aSeed); // particle diameter in world units
+          float worldSize = mix(0.02, 0.038, aSeed); // particle diameter in world units
           gl_PointSize = worldSize * uSizeScale * uPixelRatio / max(-mvPosition.z, 0.001);
-          vAlpha = clamp(1.0 - (-mvPosition.z - 6.0) / 40.0, 0.35, 1.0);
+          vAlpha = clamp(1.0 - (-mvPosition.z - 6.0) / 40.0, 0.4, 1.0);
           gl_Position = projectionMatrix * mvPosition;
         }
       `,
@@ -461,10 +464,12 @@
         varying float vAlpha;
         void main() {
           vec4 tex = texture2D(uSprite, gl_PointCoord);
-          vec3 warm = vec3(1.0, 0.72, 0.35);
-          vec3 hot  = vec3(1.0, 0.92, 0.68);
+          // Pushed past 1.0 so the additive blend + ACES tonemapping blooms the
+          // core to a hot white-gold instead of reading as flat matte dots.
+          vec3 warm = vec3(1.5, 0.78, 0.22);
+          vec3 hot  = vec3(1.75, 1.2, 0.62);
           vec3 col = mix(warm, hot, vSeed * 0.7);
-          gl_FragColor = vec4(col, tex.a * vAlpha * 0.95);
+          gl_FragColor = vec4(col, tex.a * vAlpha);
         }
       `,
     });
