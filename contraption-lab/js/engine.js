@@ -321,10 +321,15 @@ export class Sim {
         }
       }
 
-      // clamp any dynamic body to a sane max speed so no effect can explode/NaN
+      // Clamp any dynamic body to a sane max speed so a misconfigured magnet/vortex/
+      // accelerator can't explode/NaN. 25 caught plain gravity roll on ordinary
+      // slopes too (freefall alone reaches it in <2s), silently capping the ball
+      // to a crawl before steepness could ever matter — 60 clears every real
+      // accelerator boost (<=16) and TNT blast with headroom while still catching
+      // runaway effects.
       if (!f.isStatic) {
         const sp = Math.hypot(f.velocity.x, f.velocity.y);
-        if (sp > 25) m.Body.setVelocity(f, { x: f.velocity.x / sp * 25, y: f.velocity.y / sp * 25 });
+        if (sp > 60) m.Body.setVelocity(f, { x: f.velocity.x / sp * 60, y: f.velocity.y / sp * 60 });
       }
 
       } catch (_e) { /* a misfiring per-tick effect must not break the sim */ }
