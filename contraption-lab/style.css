@@ -420,6 +420,8 @@ dialog#levelMenu menu { position:sticky; bottom:0; background:var(--panel); padd
 .browseauthor, .browsestats { color:var(--muted); font-size:.82rem; margin:2px 0; }
 .browsebtn { font-family:var(--font-body); background:linear-gradient(180deg,var(--panel-hi),var(--panel-lo)); color:var(--on-surface); border:1px solid var(--surface-line);
   border-radius:var(--radius-sm); padding:9px 14px; min-height:42px; cursor:pointer; margin-top:6px; }
+.loadmorebtn { grid-column:1 / -1; justify-self:center; width:min(240px,100%); margin-top:8px; }
+.loadmorebtn:disabled { opacity:.6; cursor:default; }
 
 /* ---------- first-run onboarding coach-mark ---------- */
 .coach { position:fixed; inset:0; z-index:40; display:grid; place-items:center;
