@@ -1,5 +1,5 @@
 /* Contraption Lab — minimal offline shell SW */
-const CACHE = "vibe-contraption-lab-v16";
+const CACHE = "vibe-contraption-lab-v17";
 const SHELL = [
   "./","./index.html","./style.css","./manifest.webmanifest","./icon.svg",
   "./vendor/matter.min.js",
@@ -9,13 +9,13 @@ const SHELL = [
   "./assets/parts/ball.png","./assets/parts/balloon.png","./assets/parts/bowlingpin.png",
   "./assets/parts/bucket.png","./assets/parts/conveyor.png","./assets/parts/crate.png",
   "./assets/parts/domino.png","./assets/parts/fan.png","./assets/parts/gear.png",
-  "./assets/parts/gears.png","./assets/parts/goal.png","./assets/parts/pinwheel.png",
+  "./assets/parts/gears.png","./assets/parts/pinwheel.png",
   "./assets/parts/pipe.png","./assets/parts/platform.png","./assets/parts/ramp.png",
   "./assets/parts/rope.png","./assets/parts/seesaw.png","./assets/parts/spring.png",
   "./assets/parts/tnt.png","./assets/parts/trampoline.png","./assets/parts/wall.png",
   "./assets/parts/wedge.png","./assets/parts/weight.png",
-  "./assets/parts/neon/ball.png","./assets/parts/neon/fan.png","./assets/parts/neon/goal.png",
-  "./assets/parts/blueprint/ball.png","./assets/parts/blueprint/fan.png","./assets/parts/blueprint/goal.png",
+  "./assets/parts/neon/ball.png","./assets/parts/neon/fan.png",
+  "./assets/parts/blueprint/ball.png","./assets/parts/blueprint/fan.png",
   "./assets/parts/magnet.png","./assets/parts/accelerator.png","./assets/parts/vortex.png",
   "./assets/parts/ice.png","./assets/parts/sticky.png","./assets/parts/bumper.png",
   "./assets/parts/portal.png","./assets/parts/button.png","./assets/parts/gate.png",

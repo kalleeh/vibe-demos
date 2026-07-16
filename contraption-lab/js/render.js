@@ -206,9 +206,14 @@ export function resizeCanvas(canvas) {
   return { transform, dpr };
 }
 
-// Animated goal target: a soft pulsing fill + dashed frame that rotates slowly and
-// brightens with dwell progress, so "where do I get the ball" reads instantly and
-// the near-win moment is legible. Pure-visual.
+// Goal target: a soft pulsing fill + a static dashed frame (marching-ants dash
+// offset only — the frame itself never rotates, so it always reads as the win
+// RECTANGLE, never as a stray rotating diamond) with a centered bullseye ring
+// sized to the zone. Brightens with dwell progress so "where do I get the
+// ball" reads instantly and the near-win moment is legible. Pure-visual; this
+// fully replaces the old separate goal-sprite body (a trophy PNG that had its
+// own fixed 110x110 footprint, mismatched against the level's actual zone
+// size — the "cup inside an odd frame" look).
 function drawGoal(ctx, z, t, theme, opts) {
   const p = worldToScreen(z.x, z.y, t);
   const w = z.w * t.scale, h = z.h * t.scale;
@@ -226,15 +231,27 @@ function drawGoal(ctx, z, t, theme, opts) {
   ctx.fillStyle = grad;
   ctx.fillRect(p.x - w * 0.3, p.y - h * 0.3, w * 1.6, h * 1.6);
 
-  // rotating dashed frame
   ctx.translate(cx, cy);
-  if (!opts.reducedMotion) ctx.rotate((now / 4000) % (Math.PI * 2));
+
+  // static dashed frame (dash pattern marches, the rectangle itself holds still)
   ctx.strokeStyle = theme.goal;
-  ctx.lineWidth = 3 + 2 * dwell;
+  ctx.lineWidth = 2 + 1.5 * dwell;
   ctx.setLineDash([12, 9]);
   ctx.lineDashOffset = opts.reducedMotion ? 0 : -now / 60;
   ctx.strokeRect(-w / 2, -h / 2, w, h);
   ctx.setLineDash([]);
+
+  // centered bullseye: two concentric rings + a core dot, radius tied to the
+  // zone's own size so it always reads as "land in the middle of THIS zone".
+  const ringR = Math.min(w, h) * 0.32;
+  ctx.lineWidth = 2 + 1.5 * dwell;
+  ctx.globalAlpha = 0.55 + 0.35 * pulse + 0.1 * dwell;
+  ctx.beginPath(); ctx.arc(0, 0, ringR, 0, Math.PI * 2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(0, 0, ringR * 0.6, 0, Math.PI * 2); ctx.stroke();
+  ctx.globalAlpha = 0.85 + 0.15 * dwell;
+  ctx.fillStyle = theme.goal;
+  ctx.beginPath(); ctx.arc(0, 0, ringR * 0.16 + ringR * 0.1 * dwell, 0, Math.PI * 2); ctx.fill();
+
   ctx.restore();
 }
 
@@ -380,6 +397,10 @@ export function drawWorld(ctx, state, transform, theme, opts = {}) {
   // bodies
   for (const body of state.bodies || []) {
     if (body.plugin && body.plugin.partType === "boundary") continue;
+    // The goal body is a sensor-only marker; drawGoal() above already drew the
+    // zone's bullseye sized to the real win rectangle — never draw the old
+    // fixed-size trophy sprite/vector shape on top of it.
+    if (body.plugin && body.plugin.partType === "goal") continue;
     const bodyOpts = bodyFxOpts(body, fx, opts);
     if (drawBarPart(ctx, body, t, bodyOpts)) continue;   // procedural bar → skip sprite/vector
     const spr = resolveSprite(body.plugin && body.plugin.partType, opts.themeId);
