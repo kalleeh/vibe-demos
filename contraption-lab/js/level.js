@@ -32,8 +32,8 @@ export function validateLevel(level) {
     if (partners.length !== 1) return { ok:false, reason:`portal link "${p.link}" needs exactly one partner` };
   }
   const gateIds = new Set(all.filter(e => e.type === "gate").map(e => e.id));
-  for (const b of all.filter(e => e.type === "button")) {
-    if (!gateIds.has(b.gate)) return { ok:false, reason:`button references missing gate "${b.gate}"` };
+  for (const b of all.filter(e => e.type === "button" || e.type === "laser")) {
+    if (!gateIds.has(b.gate)) return { ok:false, reason:`${b.type} references missing gate "${b.gate}"` };
   }
   return { ok:true };
 }

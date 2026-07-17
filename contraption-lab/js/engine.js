@@ -2,7 +2,11 @@
 
 import { buildWorld } from "./level.js";
 import { makePart, PARTS } from "./parts.js";
-import { aabbOverlap } from "./geom.js";
+import { aabbOverlap, reflect, raySegmentIntersect, rayCircleIntersect } from "./geom.js";
+
+// Types the saw is allowed to destroy — an explicit allow-list, never the ball
+// (or weight/gear/pinwheel/etc.), so it's a puzzle tool, not a hazard.
+const SAW_CUTTABLE = new Set(["rope", "domino", "crate", "bowlingpin", "tnt"]);
 
 export function portalExit(toPortal) {
   // exit just outside the destination portal along its exit angle
@@ -129,8 +133,9 @@ export class Sim {
 
     const m = M();
 
-    this._applyForces();
+    this._applyForces(dtMs);
     this._tickTNT(dtMs);
+    this._tickSaw();
     m.Engine.update(this.engine, Math.min(dtMs, 1000 / 30));
     this.elapsed += dtMs;
 
@@ -181,7 +186,7 @@ export class Sim {
     return this.state;
   }
 
-  _applyForces() {
+  _applyForces(dtMs) {
     const m = M();
 
     for (const f of this.bodies) {
@@ -211,6 +216,32 @@ export class Sim {
               x: tx * sp,
               y: b.velocity.y + ty * sp * 0.5,      // gentler vertical kick
             });
+          }
+        }
+      }
+      else if (pl.partType === "zipline") {
+        // No slider constraint exists in this Matter.js build, so the basket's
+        // position is set directly each tick from a stored 0..1 progress value —
+        // the same "engine sets position" trick portal teleport already uses.
+        // Progress advances faster on a steeper line (gravity's component along
+        // the line's own slope), so a flatter zipline crawls and a steep one runs,
+        // matching the "steepness should matter" fix applied to plain rolling.
+        const x1 = pl.x1, y1 = pl.y1, x2 = pl.x2, y2 = pl.y2;
+        const lineAngle = Math.atan2(y2 - y1, x2 - x1);
+        const prevT = pl.t || 0;
+        const advance = (dtMs / 1000) * (pl.speed || 0.15) * (0.3 + Math.abs(Math.sin(lineAngle)));
+        pl.t = Math.min(1, prevT + advance);
+        const prevPos = { x: x1 + (x2 - x1) * prevT, y: y1 + (y2 - y1) * prevT };
+        const newPos = { x: x1 + (x2 - x1) * pl.t, y: y1 + (y2 - y1) * pl.t };
+        const dx = newPos.x - prevPos.x, dy = newPos.y - prevPos.y;
+        m.Body.setPosition(f, newPos);
+        if (dx || dy) {
+          const halfW = 35, halfH = 17; // half-extents of the basket footprint (parts.js zipline w/h)
+          for (const b of this.bodies) {
+            if (b.isStatic || b === f) continue;
+            if (Math.abs(b.position.x - prevPos.x) < halfW && Math.abs(b.position.y - prevPos.y) < halfH) {
+              m.Body.translate(b, { x: dx, y: dy });
+            }
           }
         }
       }
@@ -320,6 +351,84 @@ export class Sim {
           }
         }
       }
+      else if (pl.partType === "oneway") {
+        // Pad-local frame (same trick as accelerator): `along` is the plate's own
+        // length axis, `normal` is perpendicular — the axis bodies pass THROUGH.
+        // Moving with +normal is the allowed direction (free pass, sensor never
+        // blocks); moving with -normal gets that velocity component zeroed each
+        // tick it's inside the band, a soft stop rather than a teleport-back.
+        const angle = pl.angle || 0;
+        const ca = Math.cos(angle), sa = Math.sin(angle);
+        const halfLen = (pl.w || 110) / 2;
+        const band = 28; // generous enough to catch a rolling ball's radius
+        for (const b of this.bodies) {
+          if (b.isStatic || b === f) continue;
+          const dx = b.position.x - f.position.x, dy = b.position.y - f.position.y;
+          const along = dx * ca + dy * sa;
+          const perp = dx * -sa + dy * ca;
+          if (Math.abs(along) > halfLen || Math.abs(perp) > band) continue;
+          const velNormal = b.velocity.x * -sa + b.velocity.y * ca;
+          if (velNormal < 0) {
+            m.Body.setVelocity(b, {
+              x: b.velocity.x - velNormal * -sa,
+              y: b.velocity.y - velNormal * ca,
+            });
+          }
+        }
+      }
+      else if (pl.partType === "laser") {
+        // Cast a beam from the emitter, reflecting off mirror-part edges, until it
+        // either hits a non-mirror DYNAMIC body (a trip — the beam is "blocked" and
+        // the linked gate opens) or exits the level bounds untouched. Static level
+        // geometry (walls, ramps, platforms) is intentionally transparent to the
+        // beam — only things the player can place/move can trip it.
+        const angle = f.angle || pl.angle || 0;
+        let origin = { x: f.position.x, y: f.position.y };
+        let dir = { x: Math.cos(angle), y: Math.sin(angle) };
+        const points = [origin];
+        let blocked = false;
+        const maxBounces = pl.maxBounces || 6;
+        const W = this.level.world.w, H = this.level.world.h;
+        const boundsEdges = [
+          [{ x: 0, y: 0 }, { x: W, y: 0 }], [{ x: W, y: 0 }, { x: W, y: H }],
+          [{ x: W, y: H }, { x: 0, y: H }], [{ x: 0, y: H }, { x: 0, y: 0 }],
+        ];
+        for (let bounce = 0; bounce < maxBounces; bounce++) {
+          let best = null, bestKind = null;
+          for (const b of this.bodies) {
+            if (b === f) continue;
+            const isMirror = b.plugin && b.plugin.partType === "mirror";
+            if (!isMirror && b.isStatic) continue; // only mirrors + dynamic bodies interact with the beam
+            if (b.circleRadius) {
+              const hit = rayCircleIntersect(origin, dir, b.position, b.circleRadius);
+              if (hit && (!best || hit.t < best.t)) { best = hit; bestKind = isMirror ? "mirror" : "body"; }
+            } else if (b.vertices) {
+              const vs = b.vertices;
+              for (let i = 0; i < vs.length; i++) {
+                const hit = raySegmentIntersect(origin, dir, vs[i], vs[(i + 1) % vs.length]);
+                if (hit && (!best || hit.t < best.t)) { best = hit; bestKind = isMirror ? "mirror" : "body"; }
+              }
+            }
+          }
+          for (const [a, c] of boundsEdges) {
+            const hit = raySegmentIntersect(origin, dir, a, c);
+            if (hit && (!best || hit.t < best.t)) { best = hit; bestKind = "bounds"; }
+          }
+          if (!best) break; // shouldn't happen (bounds always eventually hit), but never hang
+          points.push(best.point);
+          if (bestKind === "mirror") { origin = best.point; dir = reflect(dir, best.normal); continue; }
+          if (bestKind === "body") blocked = true;
+          break; // body hit or bounds hit both terminate the beam
+        }
+        pl._blocked = blocked;
+        pl._beamPoints = points;
+        const gate = this.bodies.find(o => o.plugin && o.plugin.partType === "gate" && o.plugin.id === pl.gate);
+        if (gate) {
+          const gp = gate.plugin;
+          if (blocked && !gp._retracted) { m.Body.setPosition(gate, { x: gp._solidX, y: gp._solidY - 10000 }); gp._retracted = true; }
+          else if (!blocked && gp._retracted) { m.Body.setPosition(gate, { x: gp._solidX, y: gp._solidY }); gp._retracted = false; }
+        }
+      }
 
       // Clamp any dynamic body to a sane max speed so a misconfigured magnet/vortex/
       // accelerator can't explode/NaN. 25 caught plain gravity roll on ordinary
@@ -369,6 +478,36 @@ export class Sim {
           const bi = this.bodies.indexOf(t);
           if (bi >= 0) this.bodies.splice(bi, 1);
         } catch (_inner) { /* one bad charge must not stop the others */ }
+      }
+    } catch (_e) { /* never throw into the loop */ }
+  }
+
+  // Saw blades cut anything on SAW_CUTTABLE's allow-list within range. Removing a
+  // body via Composite.remove does NOT auto-clean constraints referencing it (a
+  // severed rope's neighboring links would otherwise be pinned to a body that's no
+  // longer meaningfully simulated and freeze in place instead of falling) — so any
+  // constraint touching the cut body is found and removed first.
+  _tickSaw() {
+    const m = M();
+    try {
+      const saws = this.bodies.filter(b => b.plugin && b.plugin.partType === "saw");
+      for (const s of saws) {
+        try {
+          const r = s.plugin.r || 24;
+          for (let i = this.bodies.length - 1; i >= 0; i--) {
+            const b = this.bodies[i];
+            if (b === s || b.isStatic) continue;
+            if (!b.plugin || !SAW_CUTTABLE.has(b.plugin.partType)) continue;
+            const dx = b.position.x - s.position.x, dy = b.position.y - s.position.y;
+            const reach = r + (b.circleRadius || Math.max(b.bounds.max.x - b.bounds.min.x, b.bounds.max.y - b.bounds.min.y) / 2);
+            if (Math.hypot(dx, dy) > reach) continue;
+            const danglers = m.Composite.allConstraints(this.world).filter(c => c.bodyA === b || c.bodyB === b);
+            for (const c of danglers) m.Composite.remove(this.world, c);
+            m.Composite.remove(this.world, b);
+            this.bodies.splice(i, 1);
+            try { if (this.onEvent) this.onEvent("cut", { x: b.position.x, y: b.position.y }); } catch {}
+          }
+        } catch (_inner) { /* one bad blade must not stop the others */ }
       }
     } catch (_e) { /* never throw into the loop */ }
   }

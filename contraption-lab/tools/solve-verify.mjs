@@ -6,10 +6,11 @@ const require = createRequire(import.meta.url);
 globalThis.Matter = require("../vendor/matter.min.js");
 const { Sim } = await import("../js/engine.js");
 const { OFFICIAL_LEVELS } = await import("../js/levels/official.js");
+const { DEMO_TRACK_D_LEVELS } = await import("../js/levels/demo-track-d.js");
 const { validateLevel } = await import("../js/level.js");
 
 // Documented winning solutions per level id: array of {type,x,y,angle?}
-import { SOLUTIONS } from "./solutions.mjs";
+import { SOLUTIONS, DEMO_SOLUTIONS } from "./solutions.mjs";
 
 export function verify(level, solution, maxSteps = 2000) {
   const sim = new Sim(level);
@@ -40,4 +41,19 @@ for (const lvl of OFFICIAL_LEVELS) {
   if (r.won) sok++;
 }
 console.log(`\nVALIDATE ${vok}/${OFFICIAL_LEVELS.length} · SOLVABLE ${sok}/${OFFICIAL_LEVELS.length}`);
-process.exit(vok === OFFICIAL_LEVELS.length && sok === OFFICIAL_LEVELS.length ? 0 : 1);
+
+// Track D demo levels (one per new mechanic) — proof-of-mechanic, kept separate
+// from the official 20-level arc so OFFICIAL_LEVELS.length stays exactly 20.
+let dvok = 0, dsok = 0;
+for (const lvl of DEMO_TRACK_D_LEVELS) {
+  const v = validateLevel(lvl); if (v.ok) dvok++; else console.log("VALIDATE FAIL", lvl.id, v.reason);
+  const sol = DEMO_SOLUTIONS[lvl.id];
+  const r = verify(lvl, sol);
+  console.log(`${r.won ? "✓" : "✗"} ${lvl.id}  won=${r.won} step=${r.step ?? "-"}${r.reason ? " ("+r.reason+")" : ""}`);
+  if (r.won) dsok++;
+}
+console.log(`\nDEMO TRACK D — VALIDATE ${dvok}/${DEMO_TRACK_D_LEVELS.length} · SOLVABLE ${dsok}/${DEMO_TRACK_D_LEVELS.length}`);
+
+const allOk = vok === OFFICIAL_LEVELS.length && sok === OFFICIAL_LEVELS.length
+  && dvok === DEMO_TRACK_D_LEVELS.length && dsok === DEMO_TRACK_D_LEVELS.length;
+process.exit(allOk ? 0 : 1);

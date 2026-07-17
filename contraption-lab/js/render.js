@@ -42,6 +42,7 @@ const BAR_STYLES = {
   ice: { top: ["#eaffff", "#8fd9ef"], edge: "#5aa8c8", crackEvery: 54 },
   sticky: { top: ["#ffd166", "#e08a1a"], edge: "#a04a10", dripEvery: 48 },
   dark: { top: ["#3a4452", "#1b222d"], edge: "#11161f", chevronEvery: 34 },
+  mirror: { top: ["#f4fdff", "#b7e6f5"], edge: "#5aa8c8", sparkleEvery: 44 },
 };
 function drawBar(ctx, bw, bh, style) {
   const half = bw / 2, hh = bh / 2;
@@ -109,13 +110,21 @@ function drawBar(ctx, bw, bh, style) {
     for (let x = -half + style.chevronEvery * 0.5; x < half; x += style.chevronEvery) {
       ctx.beginPath(); ctx.moveTo(x - hh * 0.22, -hh * 0.4); ctx.lineTo(x + hh * 0.22, 0); ctx.lineTo(x - hh * 0.22, hh * 0.4); ctx.stroke();
     }
+  } else if (style.sparkleEvery) {
+    ctx.fillStyle = "#fff"; ctx.globalAlpha = 0.65;
+    for (let x = -half + style.sparkleEvery * 0.5; x < half; x += style.sparkleEvery) {
+      const s = hh * 0.22;
+      ctx.beginPath();
+      ctx.moveTo(x, -s); ctx.lineTo(x + s, 0); ctx.lineTo(x, s); ctx.lineTo(x - s, 0); ctx.closePath();
+      ctx.fill();
+    }
   }
   ctx.restore();
 }
 // Per-part-type bar style + any extra decoration drawn after the base bar.
 const BAR_PARTS = {
   wall: "steel", platform: "steel", ramp: "wood", seesaw: "wood", wedge: "wood",
-  conveyor: "dark", ice: "ice", sticky: "sticky", accelerator: "dark",
+  conveyor: "dark", ice: "ice", sticky: "sticky", accelerator: "dark", mirror: "mirror",
 };
 function drawBarPart(ctx, body, transform, opts = {}) {
   const key = body.plugin && body.plugin.partType;
@@ -145,6 +154,131 @@ function drawBarPart(ctx, body, transform, opts = {}) {
     }
     ctx.restore();
   }
+  ctx.restore();
+  return true;
+}
+
+// Saw: a steel disc with radial teeth, spinning via the same render-only
+// spinAngle() helper the conveyor/fan sprites already use — never touches
+// the (static) collision body.
+function drawSaw(ctx, body, transform, opts = {}) {
+  if (!body.plugin || body.plugin.partType !== "saw") return false;
+  const t = transform;
+  const center = worldToScreen(body.position.x, body.position.y, t);
+  const r = (body.plugin.r || 24) * t.scale;
+  const angle = spinAngle(body.angle || 0, body.plugin.spin || 8, opts.now, opts.running, opts.reducedMotion);
+  ctx.save();
+  ctx.translate(center.x, center.y);
+  ctx.rotate(angle);
+  const grad = ctx.createRadialGradient(0, 0, r * 0.15, 0, 0, r);
+  grad.addColorStop(0, "#eef3f7"); grad.addColorStop(1, "#8b9aab");
+  ctx.fillStyle = grad;
+  const teeth = 10;
+  ctx.beginPath();
+  for (let i = 0; i < teeth; i++) {
+    const a0 = (i / teeth) * Math.PI * 2, a1 = a0 + (Math.PI * 2) / teeth * 0.5;
+    ctx.lineTo(Math.cos(a0) * r, Math.sin(a0) * r);
+    ctx.lineTo(Math.cos(a1) * r * 1.18, Math.sin(a1) * r * 1.18);
+  }
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = "#2a3340"; ctx.lineWidth = Math.max(1.5, r * 0.08); ctx.stroke();
+  ctx.beginPath(); ctx.arc(0, 0, r * 0.32, 0, Math.PI * 2); ctx.fillStyle = "#1c232e"; ctx.fill();
+  ctx.restore();
+  return true;
+}
+
+// One-way gate: a static plank with a bold chevron pointing the allowed direction,
+// drawn in the plate's own rotated frame (matches drawBarPart's plank sizing).
+function drawOneway(ctx, body, transform, opts = {}) {
+  if (!body.plugin || body.plugin.partType !== "oneway") return false;
+  const t = transform;
+  const center = worldToScreen(body.position.x, body.position.y, t);
+  const { w, h } = bodyDrawSize(body, "plank");
+  const bw = w * t.scale, bh = Math.max(h * t.scale, 10);
+  ctx.save();
+  ctx.translate(center.x, center.y);
+  ctx.rotate(body.angle || 0);
+  drawBar(ctx, bw, bh, BAR_STYLES.steel);
+  // chevrons point along the plate's own +y (the allowed pass direction), i.e.
+  // "down" in the plate's local frame before rotation — matches the engine's
+  // `velNormal` sign convention in engine.js's oneway branch.
+  ctx.strokeStyle = "#ffd45a"; ctx.globalAlpha = 0.95; ctx.lineWidth = Math.max(1.6, bh * 0.16);
+  ctx.lineCap = "round"; ctx.lineJoin = "round";
+  const cw = bh * 0.3;
+  ctx.beginPath(); ctx.moveTo(-cw, -cw * 0.8); ctx.lineTo(0, cw * 0.6); ctx.lineTo(cw, -cw * 0.8); ctx.stroke();
+  ctx.restore();
+  return true;
+}
+
+// Zipline: the static cable (a plain line between the two stored anchor points,
+// drawn once from level data, not a body) plus the basket riding it.
+function drawZipline(ctx, body, transform, opts = {}) {
+  if (!body.plugin || body.plugin.partType !== "zipline") return false;
+  const t = transform;
+  const pl = body.plugin;
+  const a = worldToScreen(pl.x1, pl.y1, t), b = worldToScreen(pl.x2, pl.y2, t);
+  ctx.save();
+  ctx.strokeStyle = "#5b6878"; ctx.lineWidth = Math.max(1.5, 2 * t.scale);
+  ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  ctx.restore();
+
+  const center = worldToScreen(body.position.x, body.position.y, t);
+  const bw = 70 * t.scale, bh = 34 * t.scale;
+  ctx.save();
+  ctx.translate(center.x, center.y);
+  const grad = ctx.createLinearGradient(0, -bh / 2, 0, bh / 2);
+  grad.addColorStop(0, "#e6b478"); grad.addColorStop(1, "#a86d2c");
+  ctx.fillStyle = grad;
+  ctx.strokeStyle = "#3a2412"; ctx.lineWidth = Math.max(1.5, bh * 0.1);
+  ctx.beginPath();
+  ctx.moveTo(-bw / 2, -bh / 2); ctx.lineTo(bw / 2, -bh / 2);
+  ctx.lineTo(bw / 2, bh / 2); ctx.lineTo(-bw / 2, bh / 2);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.restore();
+  return true;
+}
+
+// Laser: emitter housing (glowing nub) + the beam polyline computed each tick by
+// the engine (pl._beamPoints/_blocked, render-only consumption). Beam tints
+// success-green while blocked (gate open), warm accent otherwise, so the state
+// reads at a glance with no HUD text.
+function drawLaser(ctx, body, transform, theme, opts = {}) {
+  if (!body.plugin || body.plugin.partType !== "laser") return false;
+  const t = transform;
+  const pl = body.plugin;
+  const now = opts.now || 0;
+  const pulse = opts.reducedMotion ? 0.5 : 0.5 + 0.5 * Math.sin(now / 220);
+
+  if (pl._beamPoints && pl._beamPoints.length > 1) {
+    ctx.save();
+    ctx.strokeStyle = pl._blocked ? theme.goal : (theme.accent || "#ffd45a");
+    ctx.globalAlpha = 0.55 + 0.35 * pulse;
+    ctx.lineWidth = Math.max(1.5, 2.4 * t.scale);
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.beginPath();
+    const p0 = worldToScreen(pl._beamPoints[0].x, pl._beamPoints[0].y, t);
+    ctx.moveTo(p0.x, p0.y);
+    for (let i = 1; i < pl._beamPoints.length; i++) {
+      const p = worldToScreen(pl._beamPoints[i].x, pl._beamPoints[i].y, t);
+      ctx.lineTo(p.x, p.y);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  const center = worldToScreen(body.position.x, body.position.y, t);
+  const s = 13 * t.scale;
+  ctx.save();
+  ctx.translate(center.x, center.y);
+  ctx.rotate(body.angle || pl.angle || 0);
+  const grad = ctx.createRadialGradient(0, 0, s * 0.1, 0, 0, s);
+  grad.addColorStop(0, "#ffd08a"); grad.addColorStop(1, "#d4561a");
+  ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.rect(-s, -s, s * 2, s * 2); ctx.fill();
+  ctx.strokeStyle = "#7a1d12"; ctx.lineWidth = Math.max(1.5, s * 0.16); ctx.stroke();
+  ctx.fillStyle = pl._blocked ? theme.goal : "#fff8e6";
+  ctx.globalAlpha = 0.8 + 0.2 * pulse;
+  ctx.beginPath(); ctx.arc(s * 0.9, 0, s * 0.28, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
   return true;
 }
@@ -403,6 +537,10 @@ export function drawWorld(ctx, state, transform, theme, opts = {}) {
     if (body.plugin && body.plugin.partType === "goal") continue;
     const bodyOpts = bodyFxOpts(body, fx, opts);
     if (drawBarPart(ctx, body, t, bodyOpts)) continue;   // procedural bar → skip sprite/vector
+    if (drawSaw(ctx, body, t, bodyOpts)) continue;
+    if (drawOneway(ctx, body, t, bodyOpts)) continue;
+    if (drawZipline(ctx, body, t, bodyOpts)) continue;
+    if (drawLaser(ctx, body, t, theme, bodyOpts)) continue;
     const spr = resolveSprite(body.plugin && body.plugin.partType, opts.themeId);
     if (spr && drawSprite(ctx, body, spr, t, bodyOpts)) continue;   // sprite drawn → skip vector
     const parts = body.parts && body.parts.length > 1 ? body.parts.slice(1) : [body];

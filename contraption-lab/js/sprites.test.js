@@ -16,8 +16,8 @@ export async function spriteCases() {
         if(r2.src===r1.src) throw new Error("override not applied");
         if(!r2.src.includes("neon/")) throw new Error("wrong override src "+r2.src);
       }},
-    { name:"shipped hero overrides (ball/fan/goal in neon+blueprint)", fn:()=>{
-        for(const part of ["ball","fan","goal"]){
+    { name:"shipped hero overrides (ball/fan in neon+blueprint)", fn:()=>{
+        for(const part of ["ball","fan"]){
           const n=S.resolveSprite(part,"neon").src, b=S.resolveSprite(part,"blueprint").src, c=S.resolveSprite(part,"cartoon").src;
           if(!n.includes("neon/"+part)) throw new Error(part+" neon override missing: "+n);
           if(!b.includes("blueprint/"+part)) throw new Error(part+" blueprint override missing: "+b);

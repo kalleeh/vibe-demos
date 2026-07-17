@@ -24,3 +24,11 @@ export const SOLUTIONS = {
   "official-19":[{type:"portal",x:240,y:480,link:"p1",angle:0},{type:"portal",x:780,y:260,link:"p1",angle:0},{type:"tnt",x:870,y:268,fuseMs:500,blast:0.2,radius:200},{type:"accelerator",x:1020,y:280,w:100,angle:0,boost:10}],
   "official-20":[{type:"magnet",x:300,y:360,strength:0.02,range:280},{type:"portal",x:240,y:480,link:"p1",angle:0},{type:"portal",x:820,y:260,link:"p1",angle:0},{type:"vortex",x:920,y:280,strength:0.05,range:200},{type:"accelerator",x:1060,y:280,w:100,angle:0,boost:10}],
 };
+
+// Track D demo levels — one solution per new mechanic (js/levels/demo-track-d.js).
+export const DEMO_SOLUTIONS = {
+  "demo-saw-01":[{type:"saw",x:700,y:100,r:80,spin:8}],  // reaches the pedestal crate without touching the roll line
+  "demo-oneway-01":[],  // ball simply falls through the gate; no part needed
+  "demo-zipline-01":[],  // ball rides the basket the whole way; no part needed
+  "demo-laser-01":[{type:"mirror",x:400,y:135,angle:Math.PI/4,w:100}],  // redirects the downward beam into the pedestal crate
+};

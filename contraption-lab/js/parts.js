@@ -138,9 +138,47 @@ export const PARTS = {
     build:(s,M)=>{ const b=M.Bodies.rectangle(s.x,s.y,s.w||70,14,{isStatic:true,isSensor:true}); b.plugin={partType:"button",tag:s.tag||null,gate:s.gate||"g"}; return {bodies:[b],constraints:[]}; } },
   gate: { label:"Gate", movable:true, fixedByDefault:true,
     build:(s,M)=>{ const b=M.Bodies.rectangle(s.x,s.y,s.w||24,s.h||140,{isStatic:true,angle:s.angle||0}); b.plugin={partType:"gate",tag:s.tag||null,id:s.id||"g",_solidX:s.x,_solidY:s.y,_retracted:false}; return {bodies:[b],constraints:[]}; } },
+  // ---- Track D: saw, one-way gate, zipline, laser+mirror ----
+  saw: { label:"Saw", movable:true, fixedByDefault:true,
+    // A spinning blade — puzzle tool, not a ball hazard. Each tick the engine checks
+    // an explicit allow-list of destructible part types (rope/domino/crate/
+    // bowlingpin/tnt) within its radius and removes them; the ball, weight, gear,
+    // pinwheel etc. are untouched by design.
+    build:(s,M)=>{ const r=s.r||24; const b=M.Bodies.circle(s.x,s.y,r,{isStatic:true}); b.plugin={partType:"saw",tag:s.tag||null,spin:s.spin??8,r}; return {bodies:[b],constraints:[]}; } },
+  oneway: { label:"One-Way", movable:true, fixedByDefault:true,
+    // A thin sensor plate: bodies moving with the plate's facing direction pass
+    // freely; bodies moving against it get their along-normal velocity zeroed each
+    // tick they're inside the band (a soft stop, not a teleport-back).
+    build:(s,M)=>{ const w=s.w||110; const b=M.Bodies.rectangle(s.x,s.y,w,16,{isStatic:true,angle:s.angle||0,isSensor:true}); b.plugin={partType:"oneway",tag:s.tag||null,angle:s.angle||0,w}; return {bodies:[b],constraints:[]}; } },
+  zipline: { label:"Zipline", movable:false, fixedByDefault:true,
+    // A basket that slides along the line between (x,y) and (x2,y2) — no slider
+    // constraint in this Matter.js build, so the engine sets its position directly
+    // each tick from a stored 0..1 progress value, advancing faster on steeper lines
+    // (gravity component along the line's own slope) and dragging along whatever's
+    // resting in its footprint.
+    build:(s,M)=>{
+      const w=s.w||70, h=s.h||34, t=8;
+      const parts=[
+        M.Bodies.rectangle(s.x, s.y+h/2, w, t, {}),
+        M.Bodies.rectangle(s.x-w/2, s.y, t, h, {}),
+        M.Bodies.rectangle(s.x+w/2, s.y, t, h, {}),
+      ];
+      const body=M.Body.create({parts, isStatic:true, friction:0.4});
+      body.plugin={partType:"zipline",tag:s.tag||null,x1:s.x,y1:s.y,x2:s.x2??s.x,y2:s.y2??(s.y+240),t:0,speed:s.speed??0.15};
+      return {bodies:[body],constraints:[]};
+    } },
+  laser: { label:"Laser", movable:true, fixedByDefault:true,
+    // Casts a beam each tick that reflects off mirror parts and stops at the first
+    // non-mirror dynamic body it hits; the linked gate opens exactly while the beam
+    // is blocked by something (a trip-wire, not a target-aiming puzzle).
+    build:(s,M)=>{ const b=M.Bodies.rectangle(s.x,s.y,26,26,{isStatic:true,angle:s.angle||0}); b.plugin={partType:"laser",tag:s.tag||null,angle:s.angle||0,gate:s.gate||"g",maxBounces:s.maxBounces??6,_blocked:false,_beamPoints:null}; return {bodies:[b],constraints:[]}; } },
+  mirror: { label:"Mirror", movable:true, fixedByDefault:true,
+    // Default angle 45° (like ramp's default tilt) so a tray-placed mirror is
+    // immediately useful for redirecting a beam without needing a rotate gesture.
+    build:(s,M)=>({ bodies:[cat(M,"mirror",s.tag)(M.Bodies.rectangle(s.x,s.y,s.w||140,14,{isStatic:true,angle:s.angle??Math.PI/4,friction:0.1}))], constraints:[] }) },
 };
 
-export const PALETTE_TYPES = ["ramp","wall","fan","conveyor","seesaw","balloon","domino","bucket","trampoline","gear","crate","pipe","pinwheel","spring","wedge","platform","bowlingpin","weight","rope","gears","tnt","ice","sticky","bumper","magnet","accelerator","vortex","portal","button","gate"];
+export const PALETTE_TYPES = ["ramp","wall","fan","conveyor","seesaw","balloon","domino","bucket","trampoline","gear","crate","pipe","pinwheel","spring","wedge","platform","bowlingpin","weight","rope","gears","tnt","ice","sticky","bumper","magnet","accelerator","vortex","portal","button","gate","saw","oneway","zipline","laser","mirror"];
 
 export function makePart(type, spec) {
   const def = PARTS[type];

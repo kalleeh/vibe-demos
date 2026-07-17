@@ -23,7 +23,8 @@ if (new URLSearchParams(location.search).has("test")) {
     m.runTests([ ...(await m.levelCases()), ...(await m.officialCases()), ...(await m.progressCases()),
                  ...(await m.progressShapeCases()), ...(await cloudMod.cloudCases()), ...(await spriteMod.spriteCases()),
                  ...(await m.trackCCases()), ...(await m.trackCEngineCases()), ...(await editorMod.editorCases()),
-                 ...(await soundMod.soundCases()), ...(await fxMod.fxCases()), ...(await m.newPartsCases()), ...(await m.buttonGateCases()), ...(await m.portalCases()) ]);
+                 ...(await soundMod.soundCases()), ...(await fxMod.fxCases()), ...(await m.newPartsCases()), ...(await m.newPartsDCases()),
+                 ...(await m.geomRayCases()), ...(await m.buttonGateCases()), ...(await m.portalCases()) ]);
   });
 }
 
@@ -201,6 +202,11 @@ function handleSimEvent(name, data = {}) {
     if (typeof data.x === "number") {
       fx.burst(data.x, data.y, { count: 36, color: tk.accent || "#ff8c42", speed: 460, size: 3.2, life: 620, spread: Math.PI * 2, gravity: 600 });
       fx.burst(data.x, data.y, { count: 18, color: "#ffd166", speed: 300, size: 2.4, life: 460, spread: Math.PI * 2, gravity: 500 });
+    }
+  } else if (name === "cut") {
+    fx.addTrauma(0.18);
+    if (typeof data.x === "number") {
+      fx.burst(data.x, data.y, { count: 10, color: "#eef3f7", speed: 220, size: 1.8, life: 260, spread: Math.PI * 2, gravity: 300 });
     }
   }
 }

@@ -1,4 +1,4 @@
-import { snap, aabbOverlap, pointInRect, fitTransform, screenToWorld } from "./geom.js";
+import { snap, aabbOverlap, pointInRect, fitTransform, screenToWorld, reflect, raySegmentIntersect, rayCircleIntersect } from "./geom.js";
 
 export async function levelCases() {
   const L = await import("./level.js");
@@ -10,6 +10,14 @@ export async function levelCases() {
     { name:"validate rejects bad schema", fn:()=>{ if(L.validateLevel({...good,schema:99}).ok) throw new Error("accepted"); } },
     { name:"validate rejects unknown type", fn:()=>{ if(L.validateLevel({...good,fixed:[{type:"xxx",x:0,y:0}]}).ok) throw new Error("accepted"); } },
     { name:"validate rejects missing goal.zone", fn:()=>{ const noZone={...good,goal:{type:"dwell",object:"ball",ms:300}}; if(L.validateLevel(noZone).ok) throw new Error("accepted"); } },
+    { name:"validate rejects laser referencing missing gate", fn:()=>{
+        const lvl={...good, fixed:[{type:"laser",x:0,y:0,gate:"ghost"}]};
+        if(L.validateLevel(lvl).ok) throw new Error("accepted");
+      }},
+    { name:"validate accepts laser with matching gate", fn:()=>{
+        const lvl={...good, fixed:[{type:"laser",x:0,y:0,gate:"g1"},{type:"gate",x:50,y:50,id:"g1"}]};
+        const v=L.validateLevel(lvl); if(!v.ok) throw new Error("rejected: "+v.reason);
+      }},
     { name:"serialize round-trips", fn:()=>{ const s=L.serializeLevel(good); const o=JSON.parse(s); if(o.title!=="T") throw new Error("lost data"); } },
     { name:"clone is deep", fn:()=>{ const c=L.cloneLevel(good); c.title="X"; if(good.title!=="T") throw new Error("mutated"); } },
     // ---- Track C: new-physics part specs ----
@@ -353,6 +361,62 @@ export async function portalCases() {
         const exit=portalExit(portal);
         // angle π = left exit
         if(exit.x>-50) throw new Error("exit should be to the left, got x="+exit.x);
+      }},
+  ];
+}
+
+export async function newPartsDCases() {
+  const { makePart } = await import("./parts.js");
+  const cases = [];
+  for (const t of ["saw", "oneway", "mirror"]) {
+    cases.push({ name:`${t} builds`, fn:()=>{ const r=makePart(t,{x:100,y:100}); if(!r.bodies.length) throw new Error(t+" no body"); if(r.bodies[0].plugin.partType!==t) throw new Error(t+" wrong partType"); } });
+  }
+  cases.push({ name:"zipline builds with anchor endpoints", fn:()=>{
+    const r=makePart("zipline",{x:100,y:100,x2:400,y2:300});
+    if(!r.bodies.length) throw new Error("zipline no body");
+    const b=r.bodies[0];
+    if(b.plugin.partType!=="zipline") throw new Error("zipline wrong partType");
+    if(b.plugin.x1!==100||b.plugin.y1!==100||b.plugin.x2!==400||b.plugin.y2!==300) throw new Error("zipline anchors not stored");
+  }});
+  cases.push({ name:"laser builds with gate link", fn:()=>{
+    const r=makePart("laser",{x:100,y:100,gate:"g1"});
+    if(!r.bodies.length) throw new Error("laser no body");
+    const b=r.bodies[0];
+    if(b.plugin.partType!=="laser") throw new Error("laser wrong partType");
+    if(b.plugin.gate!=="g1") throw new Error("laser gate link not set");
+  }});
+  return cases;
+}
+
+export async function geomRayCases() {
+  return [
+    { name:"reflect off horizontal mirror flips y", fn:()=>{
+        const r=reflect({x:0,y:1},{x:0,y:-1});
+        if(Math.abs(r.x)>1e-9||Math.abs(r.y+1)>1e-9) throw new Error("got "+JSON.stringify(r));
+      }},
+    { name:"reflect off vertical mirror flips x", fn:()=>{
+        const r=reflect({x:1,y:0},{x:-1,y:0});
+        if(Math.abs(r.x+1)>1e-9||Math.abs(r.y)>1e-9) throw new Error("got "+JSON.stringify(r));
+      }},
+    { name:"raySegmentIntersect hits a perpendicular segment ahead", fn:()=>{
+        const hit=raySegmentIntersect({x:0,y:0},{x:1,y:0},{x:10,y:-5},{x:10,y:5});
+        if(!hit||Math.abs(hit.t-10)>1e-6||Math.abs(hit.point.x-10)>1e-6) throw new Error("bad hit: "+JSON.stringify(hit));
+      }},
+    { name:"raySegmentIntersect misses a segment behind the ray", fn:()=>{
+        const hit=raySegmentIntersect({x:0,y:0},{x:1,y:0},{x:-10,y:-5},{x:-10,y:5});
+        if(hit) throw new Error("should not hit, got "+JSON.stringify(hit));
+      }},
+    { name:"raySegmentIntersect misses a parallel segment", fn:()=>{
+        const hit=raySegmentIntersect({x:0,y:0},{x:1,y:0},{x:10,y:5},{x:20,y:5});
+        if(hit) throw new Error("should not hit, got "+JSON.stringify(hit));
+      }},
+    { name:"rayCircleIntersect hits the near edge of a circle ahead", fn:()=>{
+        const hit=rayCircleIntersect({x:0,y:0},{x:1,y:0},{x:10,y:0},3);
+        if(!hit||Math.abs(hit.t-7)>1e-6) throw new Error("bad hit: "+JSON.stringify(hit));
+      }},
+    { name:"rayCircleIntersect misses a circle off to the side", fn:()=>{
+        const hit=rayCircleIntersect({x:0,y:0},{x:1,y:0},{x:10,y:10},3);
+        if(hit) throw new Error("should not hit, got "+JSON.stringify(hit));
       }},
   ];
 }
