@@ -8,6 +8,17 @@ import { aabbOverlap, reflect, raySegmentIntersect, rayCircleIntersect } from ".
 // (or weight/gear/pinwheel/etc.), so it's a puzzle tool, not a hazard.
 const SAW_CUTTABLE = new Set(["rope", "domino", "crate", "bowlingpin", "tnt"]);
 
+// The only two part types whose build() returns more than one body (rope's
+// segment chain, gears' driver+follower pair) — everything else is exactly
+// one body, so a single Body.setAngle unambiguously rotates "the part". The
+// two-finger rotate gesture is scoped to single-body parts only: rotating a
+// multi-body part risks misaligning geometry computed for a fixed relative
+// offset (e.g. gears' driver/follower gap), and neither is tray-placeable in
+// a way where rotation is meaningful (rope is a fixed-only fixture; gears'
+// two discs already auto-spin, angle doesn't change the mechanic).
+const MULTI_BODY_TYPES = new Set(["rope", "gears"]);
+export function isRotatable(type) { return !MULTI_BODY_TYPES.has(type); }
+
 export function portalExit(toPortal) {
   // exit just outside the destination portal along its exit angle
   const r = (toPortal.plugin.r || 28) + 24;
@@ -30,6 +41,7 @@ export class Sim {
   constructor(level) {
     this.level = level;
     this.placed = [];  // player-added specs {type,x,y,angle}
+    this._specBodies = new Map();  // spec -> spawned bodies, kept in sync by _spawn/_build (rotate gesture support)
     this.onEvent = null;  // optional callback for sound/render events
     this._collisionHandler = null;  // stable listener ref (installed/removed across rebuilds)
     this._build();
@@ -48,7 +60,9 @@ export class Sim {
     this.bodies = w.bodies;
     this.goalZone = w.goalZone;
 
-    // Re-add any placed parts (static during build phase)
+    // Re-add any placed parts (static during build phase). Old bodies are gone
+    // with the previous world, so the spec->bodies map is rebuilt from scratch.
+    this._specBodies.clear();
     for (const spec of this.placed) {
       this._spawn(spec, true);
     }
@@ -75,6 +89,7 @@ export class Sim {
     m.Composite.add(this.world, bodies);
     if (constraints && constraints.length) m.Composite.add(this.world, constraints);
     this.bodies.push(...bodies);
+    this._specBodies.set(spec, bodies);  // rotate gesture needs to find these later
 
     return bodies;
   }
@@ -94,6 +109,20 @@ export class Sim {
       if (d < best) { best = d; idx = i; }
     });
     return idx;
+  }
+
+  // Live-rotates the placed part at `idx` to `angle` (radians). Mutates the
+  // stored spec directly so the new angle survives _build()/reset() (both
+  // already read spec.angle fresh), and sets the angle on its already-spawned
+  // bodies for immediate visual feedback without a full world rebuild (which
+  // would be wasteful mid-gesture, called every pointermove frame).
+  rotatePlacedAt(idx, angle) {
+    const spec = this.placed[idx];
+    if (!spec) return false;
+    spec.angle = angle;
+    const bodies = this._specBodies.get(spec);
+    if (bodies) { const m = M(); for (const b of bodies) m.Body.setAngle(b, angle); }
+    return true;
   }
 
   removeBodyAt(wx, wy) {
