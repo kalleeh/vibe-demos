@@ -39,6 +39,18 @@ export function raySegmentIntersect(origin, dir, a, b) {
   return { t, point, normal: { x: nx, y: ny } };
 }
 
+// True if (px,py) lies within `halfAngle` radians of `dirAngle` as seen from
+// (ox,oy) — the vacuum's suction cone check (fan uses a plain radius; this adds
+// the directional gate on top of the same distance idea).
+export function pointInCone(px, py, ox, oy, dirAngle, halfAngle) {
+  const dx = px - ox, dy = py - oy;
+  if (dx === 0 && dy === 0) return true;
+  const angleTo = Math.atan2(dy, dx);
+  let diff = angleTo - dirAngle;
+  diff = Math.atan2(Math.sin(diff), Math.cos(diff)); // normalize to [-PI, PI]
+  return Math.abs(diff) <= halfAngle;
+}
+
 // Nearest intersection of ray (origin + t*dir, t>0) with a circle. Returns {t, point} or null.
 export function rayCircleIntersect(origin, dir, center, radius) {
   const fx = origin.x - center.x, fy = origin.y - center.y;

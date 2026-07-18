@@ -1,4 +1,4 @@
-import { snap, aabbOverlap, pointInRect, fitTransform, screenToWorld, reflect, raySegmentIntersect, rayCircleIntersect } from "./geom.js";
+import { snap, aabbOverlap, pointInRect, fitTransform, screenToWorld, reflect, raySegmentIntersect, rayCircleIntersect, pointInCone } from "./geom.js";
 
 export async function levelCases() {
   const L = await import("./level.js");
@@ -388,8 +388,58 @@ export async function newPartsDCases() {
   return cases;
 }
 
+export async function newPartsECases() {
+  const { makePart } = await import("./parts.js");
+  const cases = [];
+  for (const t of ["cheese", "outlet", "vacuum"]) {
+    cases.push({ name:`${t} builds`, fn:()=>{ const r=makePart(t,{x:100,y:100}); if(!r.bodies.length) throw new Error(t+" no body"); if(r.bodies[0].plugin.partType!==t) throw new Error(t+" wrong partType"); } });
+  }
+  cases.push({ name:"mouse builds with dir/speed defaults", fn:()=>{
+    const r=makePart("mouse",{x:100,y:100});
+    if(!r.bodies.length) throw new Error("mouse no body");
+    const b=r.bodies[0];
+    if(b.plugin.partType!=="mouse") throw new Error("mouse wrong partType");
+    if(b.plugin.dir!==1) throw new Error("mouse default dir not 1");
+    if(typeof b.plugin.speed!=="number") throw new Error("mouse speed not set");
+  }});
+  cases.push({ name:"motor builds pinned with spin/surface", fn:()=>{
+    const r=makePart("motor",{x:100,y:100,spin:5});
+    if(!r.bodies.length) throw new Error("motor no body");
+    const b=r.bodies[0];
+    if(b.plugin.partType!=="motor") throw new Error("motor wrong partType");
+    if(b.plugin.spin!==5) throw new Error("motor spin not stored");
+    if(!r.constraints.length) throw new Error("motor missing pivot constraint");
+  }});
+  cases.push({ name:"cannon builds armed with a fuse", fn:()=>{
+    const r=makePart("cannon",{x:100,y:100,fuseMs:900,boost:20});
+    const b=r.bodies[0];
+    if(b.plugin.partType!=="cannon") throw new Error("cannon wrong partType");
+    if(!b.plugin.armed) throw new Error("cannon not armed");
+    if(b.plugin.fuseMs!==900||b.plugin.boost!==20) throw new Error("cannon fields not stored");
+  }});
+  cases.push({ name:"scissors builds armed with a range", fn:()=>{
+    const r=makePart("scissors",{x:100,y:100,range:70});
+    const b=r.bodies[0];
+    if(b.plugin.partType!=="scissors") throw new Error("scissors wrong partType");
+    if(!b.plugin.armed) throw new Error("scissors not armed");
+    if(b.plugin.range!==70) throw new Error("scissors range not stored");
+  }});
+  return cases;
+}
+
 export async function geomRayCases() {
   return [
+    { name:"pointInCone true straight ahead", fn:()=>{
+        if(!pointInCone(10,0,0,0,0,Math.PI/3)) throw new Error("should be inside cone");
+      }},
+    { name:"pointInCone false behind the apex", fn:()=>{
+        if(pointInCone(-10,0,0,0,0,Math.PI/3)) throw new Error("should be outside cone");
+      }},
+    { name:"pointInCone respects halfAngle boundary", fn:()=>{
+        const half=Math.PI/4;
+        if(!pointInCone(Math.cos(half*0.9),Math.sin(half*0.9),0,0,0,half)) throw new Error("should be just inside");
+        if(pointInCone(Math.cos(half*1.5),Math.sin(half*1.5),0,0,0,half)) throw new Error("should be just outside");
+      }},
     { name:"reflect off horizontal mirror flips y", fn:()=>{
         const r=reflect({x:0,y:1},{x:0,y:-1});
         if(Math.abs(r.x)>1e-9||Math.abs(r.y+1)>1e-9) throw new Error("got "+JSON.stringify(r));

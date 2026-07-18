@@ -7,10 +7,11 @@ globalThis.Matter = require("../vendor/matter.min.js");
 const { Sim } = await import("../js/engine.js");
 const { OFFICIAL_LEVELS } = await import("../js/levels/official.js");
 const { DEMO_TRACK_D_LEVELS } = await import("../js/levels/demo-track-d.js");
+const { DEMO_TRACK_E_LEVELS } = await import("../js/levels/demo-track-e.js");
 const { validateLevel } = await import("../js/level.js");
 
 // Documented winning solutions per level id: array of {type,x,y,angle?}
-import { SOLUTIONS, DEMO_SOLUTIONS } from "./solutions.mjs";
+import { SOLUTIONS, DEMO_SOLUTIONS, DEMO_SOLUTIONS_E } from "./solutions.mjs";
 
 export function verify(level, solution, maxSteps = 2000) {
   const sim = new Sim(level);
@@ -54,6 +55,19 @@ for (const lvl of DEMO_TRACK_D_LEVELS) {
 }
 console.log(`\nDEMO TRACK D — VALIDATE ${dvok}/${DEMO_TRACK_D_LEVELS.length} · SOLVABLE ${dsok}/${DEMO_TRACK_D_LEVELS.length}`);
 
+// Track E demo levels (one per new mechanic: cheese+mouse, outlet+motor,
+// cannon, vacuum, scissors) — same proof-of-mechanic pattern as Track D.
+let evok = 0, esok = 0;
+for (const lvl of DEMO_TRACK_E_LEVELS) {
+  const v = validateLevel(lvl); if (v.ok) evok++; else console.log("VALIDATE FAIL", lvl.id, v.reason);
+  const sol = DEMO_SOLUTIONS_E[lvl.id];
+  const r = verify(lvl, sol);
+  console.log(`${r.won ? "✓" : "✗"} ${lvl.id}  won=${r.won} step=${r.step ?? "-"}${r.reason ? " ("+r.reason+")" : ""}`);
+  if (r.won) esok++;
+}
+console.log(`\nDEMO TRACK E — VALIDATE ${evok}/${DEMO_TRACK_E_LEVELS.length} · SOLVABLE ${esok}/${DEMO_TRACK_E_LEVELS.length}`);
+
 const allOk = vok === OFFICIAL_LEVELS.length && sok === OFFICIAL_LEVELS.length
-  && dvok === DEMO_TRACK_D_LEVELS.length && dsok === DEMO_TRACK_D_LEVELS.length;
+  && dvok === DEMO_TRACK_D_LEVELS.length && dsok === DEMO_TRACK_D_LEVELS.length
+  && evok === DEMO_TRACK_E_LEVELS.length && esok === DEMO_TRACK_E_LEVELS.length;
 process.exit(allOk ? 0 : 1);

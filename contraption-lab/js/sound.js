@@ -20,6 +20,7 @@ export function sfxParams(name) {
     bounce: { type: "sine", freq: 330, dur: 0.05, vary: 0.1 },
     explode: { type: "noise", freq: 0, dur: 0.3 },
     cut: { type: "square", freq: 900, dur: 0.04, vary: 0.15 },
+    "cannon-fire": { type: "noise", freq: 0, dur: 0.16, layer: { type: "triangle", freq: 140, dur: 0.14, gain: 0.6 } },
   };
   return params[name] || null;
 }

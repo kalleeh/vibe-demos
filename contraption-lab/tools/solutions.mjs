@@ -32,3 +32,12 @@ export const DEMO_SOLUTIONS = {
   "demo-zipline-01":[],  // ball rides the basket the whole way; no part needed
   "demo-laser-01":[{type:"mirror",x:400,y:135,angle:Math.PI/4,w:100}],  // redirects the downward beam into the pedestal crate
 };
+
+// Track E demo levels — one solution per new mechanic (js/levels/demo-track-e.js).
+export const DEMO_SOLUTIONS_E = {
+  "demo-mouse-01":[{type:"cheese",x:400,y:280}],  // lures the pacing mouse onto the button
+  "demo-circuit-01":[{type:"outlet",x:260,y:170,range:120}],  // powers the motor, dragging the crate onto the button
+  "demo-cannon-01":[],  // ball rests in the barrel; fuse fires on its own, no part needed
+  "demo-vacuum-01":[{type:"vacuum",x:360,y:262,angle:-1.5708,range:180,coneAngle:0.6}],  // pulls the crate onto the button
+  "demo-scissors-01":[{type:"scissors",x:300,y:115,angle:0,range:35}],  // snips the rope, dropping segments onto the button
+};

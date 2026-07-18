@@ -2,11 +2,17 @@
 
 import { buildWorld } from "./level.js";
 import { makePart, PARTS } from "./parts.js";
-import { aabbOverlap, reflect, raySegmentIntersect, rayCircleIntersect } from "./geom.js";
+import { aabbOverlap, reflect, raySegmentIntersect, rayCircleIntersect, pointInCone } from "./geom.js";
 
 // Types the saw is allowed to destroy — an explicit allow-list, never the ball
 // (or weight/gear/pinwheel/etc.), so it's a puzzle tool, not a hazard.
 const SAW_CUTTABLE = new Set(["rope", "domino", "crate", "bowlingpin", "tnt"]);
+
+// AABB (top-left form) of a body's current bounds — used by the mouse's manual
+// ground/blocked-ahead probes, which need plain rect overlap checks rather than
+// real collision response (a walker's turn-around must anticipate contact, not
+// react to it after the fact).
+const rectOf = (b) => ({ x: b.bounds.min.x, y: b.bounds.min.y, w: b.bounds.max.x - b.bounds.min.x, h: b.bounds.max.y - b.bounds.min.y });
 
 // The only two part types whose build() returns more than one body (rope's
 // segment chain, gears' driver+follower pair) — everything else is exactly
@@ -165,6 +171,8 @@ export class Sim {
     this._applyForces(dtMs);
     this._tickTNT(dtMs);
     this._tickSaw();
+    this._tickCannon(dtMs);
+    this._tickScissors();
     m.Engine.update(this.engine, Math.min(dtMs, 1000 / 30));
     this.elapsed += dtMs;
 
@@ -458,6 +466,83 @@ export class Sim {
           else if (!blocked && gp._retracted) { m.Body.setPosition(gate, { x: gp._solidX, y: gp._solidY }); gp._retracted = false; }
         }
       }
+      else if (pl.partType === "mouse") {
+        // Kinematic-feeling walker: grounded check via a probe rect just below its
+        // feet (against STATIC bodies only — resting on a dynamic crate isn't
+        // "ground" for pacing purposes), then either homes toward the nearest
+        // cheese in range or paces, reversing off a probe box one step ahead.
+        // Velocity (not position) is set each tick so Matter's own collision still
+        // stops it at a wall — no tunneling risk from a teleport-style position set.
+        const w = pl.w || 34, h = pl.h || 20;
+        const groundProbe = { x: f.position.x - w / 2, y: f.bounds.max.y - 1, w, h: 6 };
+        let grounded = false;
+        for (const b of this.bodies) {
+          if (b === f || !b.isStatic) continue;
+          if (aabbOverlap(groundProbe, rectOf(b))) { grounded = true; break; }
+        }
+        if (grounded) {
+          let dir = pl.dir || 1;
+          let cheese = null, bestD = pl.attractRange || 260;
+          for (const b of this.bodies) {
+            if (!b.plugin || b.plugin.partType !== "cheese") continue;
+            const d = Math.abs(b.position.x - f.position.x);
+            if (d < bestD) { bestD = d; cheese = b; }
+          }
+          if (cheese) {
+            dir = cheese.position.x >= f.position.x ? 1 : -1;
+          } else {
+            const probeDist = w / 2 + 8;
+            const ahead = { x: f.position.x + dir * probeDist - w / 2, y: f.position.y - h / 2, w, h };
+            for (const b of this.bodies) {
+              if (b === f) continue;
+              if (b.plugin && (b.plugin.partType === "cheese" || b.plugin.partType === "mouse")) continue;
+              if (aabbOverlap(ahead, rectOf(b))) { dir = -dir; break; }
+            }
+          }
+          pl.dir = dir;
+          m.Body.setVelocity(f, { x: dir * (pl.speed || 2), y: f.velocity.y });
+        }
+      }
+      else if (pl.partType === "motor") {
+        // Dead until an outlet is in range; once powered, reuses gears' exact
+        // tangential-drag-on-contact math (engine.js lines ~226-250), just gated.
+        const outletInRange = this.bodies.some(o => o.plugin && o.plugin.partType === "outlet" &&
+          Math.hypot(o.position.x - f.position.x, o.position.y - f.position.y) < (o.plugin.range || 220));
+        pl._powered = outletInRange;
+        if (outletInRange) {
+          if (typeof pl.spin === "number") m.Body.setAngularVelocity(f, pl.spin);
+          const r = pl.radius || 30;
+          const surf = pl.surface || 0;
+          const w = pl.spin >= 0 ? 1 : -1;
+          for (const b of this.bodies) {
+            if (b.isStatic || b === f) continue;
+            const dx = b.position.x - f.position.x, dy = b.position.y - f.position.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < r + 26 && dist > 1) {
+              const tx = (-dy / dist) * w, ty = (dx / dist) * w;
+              const cap = 8;
+              const sp = Math.min(surf, cap);
+              m.Body.setVelocity(b, { x: tx * sp, y: b.velocity.y + ty * sp * 0.5 });
+            }
+          }
+        }
+      }
+      else if (pl.partType === "vacuum") {
+        // Fan's inverse: same facing-direction convention (f.angle - PI/2) as fan,
+        // but pulls bodies within a directional cone toward it instead of a plain
+        // omnidirectional push-away.
+        const faceAngle = f.angle - Math.PI / 2;
+        const coneHalf = pl.coneAngle || Math.PI / 3;
+        const range = pl.range || 220, mag = pl.force || 0.02;
+        for (const b of this.bodies) {
+          if (b.isStatic || b === f) continue;
+          const dx = b.position.x - f.position.x, dy = b.position.y - f.position.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < range && dist > 1 && pointInCone(b.position.x, b.position.y, f.position.x, f.position.y, faceAngle, coneHalf)) {
+            m.Body.applyForce(b, b.position, { x: -(dx / dist) * mag, y: -(dy / dist) * mag });
+          }
+        }
+      }
 
       // Clamp any dynamic body to a sane max speed so a misconfigured magnet/vortex/
       // accelerator can't explode/NaN. 25 caught plain gravity roll on ordinary
@@ -537,6 +622,74 @@ export class Sim {
             try { if (this.onEvent) this.onEvent("cut", { x: b.position.x, y: b.position.y }); } catch {}
           }
         } catch (_inner) { /* one bad blade must not stop the others */ }
+      }
+    } catch (_e) { /* never throw into the loop */ }
+  }
+
+  // One-shot cannon: decrement fuses, and at <=0 kick the first dynamic body
+  // resting in the barrel's capture band (pad-local projection, same ca/sa/
+  // along/perp math as accelerator) along the barrel's facing direction, then
+  // spend the charge. If nothing sits in the band when the fuse expires, it
+  // still spends itself with no shot — matches TNT's "always detonates on
+  // schedule" behavior.
+  _tickCannon(dtMs) {
+    const m = M();
+    try {
+      const armed = this.bodies.filter(b => b.plugin && b.plugin.partType === "cannon" && b.plugin.armed);
+      for (const c of armed) {
+        try {
+          c.plugin.fuseMs -= dtMs;
+          if (c.plugin.fuseMs > 0) continue;
+          const angle = c.angle || c.plugin.angle || 0;
+          const ca = Math.cos(angle), sa = Math.sin(angle);
+          const halfLen = 32 + 22;
+          for (const b of this.bodies) {
+            if (b.isStatic || b === c) continue;
+            const dx = b.position.x - c.position.x, dy = b.position.y - c.position.y;
+            const along = dx * ca + dy * sa;
+            const perp = -dx * sa + dy * ca;
+            if (Math.abs(along) < halfLen && perp > -40 && perp < 16) {
+              const boost = c.plugin.boost || 18;
+              m.Body.setVelocity(b, { x: ca * boost, y: sa * boost - 2 });
+              break; // one shot, one target
+            }
+          }
+          try { if (this.onEvent) this.onEvent("cannon-fire", { x: c.position.x, y: c.position.y, angle }); } catch {}
+          c.plugin.armed = false;
+          c.plugin._spent = true;
+        } catch (_inner) { /* one bad cannon must not stop the others */ }
+      }
+    } catch (_e) { /* never throw into the loop */ }
+  }
+
+  // One-shot scissors: on first tick, look for the nearest `rope` body within
+  // range and cut it exactly once (identical constraint-cleanup step to
+  // _tickSaw), then spend itself — narrower scope than the saw's full
+  // allow-list, matching "snip a rope" rather than "destroy anything".
+  _tickScissors() {
+    const m = M();
+    try {
+      const armed = this.bodies.filter(b => b.plugin && b.plugin.partType === "scissors" && b.plugin.armed);
+      for (const sc of armed) {
+        try {
+          const range = sc.plugin.range || 50;
+          let target = null, bestD = range;
+          for (const b of this.bodies) {
+            if (b === sc || b.isStatic || !b.plugin || b.plugin.partType !== "rope") continue;
+            const dx = b.position.x - sc.position.x, dy = b.position.y - sc.position.y;
+            const d = Math.hypot(dx, dy);
+            if (d < bestD) { bestD = d; target = b; }
+          }
+          if (!target) continue;
+          const danglers = m.Composite.allConstraints(this.world).filter(c => c.bodyA === target || c.bodyB === target);
+          for (const c of danglers) m.Composite.remove(this.world, c);
+          m.Composite.remove(this.world, target);
+          const bi = this.bodies.indexOf(target);
+          if (bi >= 0) this.bodies.splice(bi, 1);
+          try { if (this.onEvent) this.onEvent("cut", { x: target.position.x, y: target.position.y }); } catch {}
+          sc.plugin.armed = false;
+          sc.plugin._spent = true;
+        } catch (_inner) { /* one bad pair of scissors must not stop the others */ }
       }
     } catch (_e) { /* never throw into the loop */ }
   }

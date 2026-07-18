@@ -176,9 +176,62 @@ export const PARTS = {
     // Default angle 45° (like ramp's default tilt) so a tray-placed mirror is
     // immediately useful for redirecting a beam without needing a rotate gesture.
     build:(s,M)=>({ bodies:[cat(M,"mirror",s.tag)(M.Bodies.rectangle(s.x,s.y,s.w||140,14,{isStatic:true,angle:s.angle??Math.PI/4,friction:0.1}))], constraints:[] }) },
+  // ---- Track E: cheese+mouse, outlet+motor, cannon, vacuum, scissors ----
+  cheese: { label:"Cheese", movable:true, fixedByDefault:true,
+    // A static lure — no per-tick logic of its own; the mouse's engine branch
+    // reads cheese positions directly from the world's body list each tick.
+    build:(s,M)=>({ bodies:[cat(M,"cheese",s.tag)(M.Bodies.rectangle(s.x,s.y,s.w||30,s.h||22,{isStatic:true,isSensor:true}))], constraints:[] }) },
+  mouse: { label:"Mouse", movable:true, fixedByDefault:false,
+    // A kinematic walker: dynamic body (so it falls off a ledge like anything
+    // else) but the engine drives its horizontal velocity directly while
+    // grounded, reversing `dir` off a probe-box ahead or homing toward a
+    // nearby `cheese` instead of pacing. w/h are stored for the engine's
+    // ground/ahead probe boxes.
+    build:(s,M)=>{
+      const w=s.w||34, h=s.h||20;
+      const b=M.Bodies.rectangle(s.x,s.y,w,h,{density:0.004,friction:0.6});
+      b.plugin={partType:"mouse",tag:s.tag||null,dir:s.dir??1,speed:s.speed??2,attractRange:s.attractRange??260,w,h};
+      return {bodies:[b],constraints:[]};
+    } },
+  outlet: { label:"Outlet", movable:true, fixedByDefault:true,
+    // Powers any `motor` within range each tick — proximity-only, no wire part
+    // (matches the original series' fixed adjacency; no player-drawn wire ever
+    // existed there either).
+    build:(s,M)=>{ const b=M.Bodies.rectangle(s.x,s.y,26,34,{isStatic:true,isSensor:true}); b.plugin={partType:"outlet",tag:s.tag||null,range:s.range??220}; return {bodies:[b],constraints:[]}; } },
+  motor: { label:"Motor", movable:true, fixedByDefault:false,
+    // Same pinned-disc shape as gears (a constraint holds its center so it
+    // spins in place rather than rolling away); the spin/tangential-drag math
+    // is verbatim gears' own, only applied while an `outlet` is in range (see
+    // engine.js) — dead/inert otherwise.
+    build:(s,M)=>{
+      const r=s.r||30, spin=s.spin??4;
+      const b=M.Bodies.circle(s.x,s.y,r,{friction:0.6,density:0.01});
+      b.plugin={partType:"motor",tag:s.tag||null,radius:r,spin,surface:Math.abs(spin)*r,_powered:false};
+      const pivot=M.Constraint.create({pointA:{x:s.x,y:s.y},bodyB:b,pointB:{x:0,y:0},stiffness:1,length:0});
+      return {bodies:[b],constraints:[pivot]};
+    } },
+  cannon: { label:"Cannon", movable:true, fixedByDefault:true,
+    // One-shot, fuse-delayed launch (TNT's _tickTNT pattern): whatever rests in
+    // the barrel's capture band when the fuse expires gets a single directional
+    // kick, then the cannon goes inert — distinct from accelerator's repeatable
+    // contact-pad boost.
+    build:(s,M)=>{ const b=M.Bodies.rectangle(s.x,s.y,64,30,{isStatic:true,angle:s.angle||0}); b.plugin={partType:"cannon",tag:s.tag||null,angle:s.angle||0,fuseMs:s.fuseMs??1200,boost:s.boost??18,armed:true,_spent:false}; return {bodies:[b],constraints:[]}; } },
+  vacuum: { label:"Vacuum", movable:true, fixedByDefault:true,
+    // Fan's inverse: pulls bodies within a directional cone toward it instead
+    // of pushing them away.
+    build:(s,M)=>{ const b=M.Bodies.circle(s.x,s.y,26,{isStatic:true,angle:s.angle||0}); b.plugin={partType:"vacuum",tag:s.tag||null,angle:s.angle||0,force:s.force??0.02,range:s.range??220,coneAngle:s.coneAngle??(Math.PI/3)}; return {bodies:[b],constraints:[]}; } },
+  scissors: { label:"Scissors", movable:true, fixedByDefault:false,
+    // One-shot version of the saw: cuts the first rope segment it finds in
+    // range, once, then is spent (mirrors TNT's armed/_spent flag rather than
+    // the saw's continuous per-tick sweep).
+    build:(s,M)=>{
+      const b=cat(M,"scissors",s.tag)(M.Bodies.rectangle(s.x,s.y,30,30,{density:0.006,friction:0.5}));
+      b.plugin={partType:"scissors",tag:s.tag||null,range:s.range??50,armed:true,_spent:false};
+      return {bodies:[b],constraints:[]};
+    } },
 };
 
-export const PALETTE_TYPES = ["ramp","wall","fan","conveyor","seesaw","balloon","domino","bucket","trampoline","gear","crate","pipe","pinwheel","spring","wedge","platform","bowlingpin","weight","rope","gears","tnt","ice","sticky","bumper","magnet","accelerator","vortex","portal","button","gate","saw","oneway","zipline","laser","mirror"];
+export const PALETTE_TYPES = ["ramp","wall","fan","conveyor","seesaw","balloon","domino","bucket","trampoline","gear","crate","pipe","pinwheel","spring","wedge","platform","bowlingpin","weight","rope","gears","tnt","ice","sticky","bumper","magnet","accelerator","vortex","portal","button","gate","saw","oneway","zipline","laser","mirror","cheese","mouse","outlet","motor","cannon","vacuum","scissors"];
 
 export function makePart(type, spec) {
   const def = PARTS[type];

@@ -187,6 +187,38 @@ function drawSaw(ctx, body, transform, opts = {}) {
   return true;
 }
 
+// Motor: gears-style spinning disc, dimmed/greyed when not currently powered by
+// a nearby outlet (pl._powered, set live each tick by the engine) — the
+// spinning/dimming pair reads as "on/off" with no HUD text needed.
+function drawMotor(ctx, body, transform, opts = {}) {
+  if (!body.plugin || body.plugin.partType !== "motor") return false;
+  const t = transform;
+  const pl = body.plugin;
+  const center = worldToScreen(body.position.x, body.position.y, t);
+  const r = (pl.radius || 30) * t.scale;
+  const angle = spinAngle(body.angle || 0, pl._powered ? (pl.spin || 4) : 0, opts.now, opts.running, opts.reducedMotion);
+  ctx.save();
+  ctx.translate(center.x, center.y);
+  ctx.rotate(angle);
+  ctx.globalAlpha = pl._powered ? 1 : 0.45;
+  const grad = ctx.createRadialGradient(0, 0, r * 0.15, 0, 0, r);
+  grad.addColorStop(0, "#eef3f7"); grad.addColorStop(1, "#8b9aab");
+  ctx.fillStyle = grad;
+  const teeth = 8;
+  ctx.beginPath();
+  for (let i = 0; i < teeth; i++) {
+    const a0 = (i / teeth) * Math.PI * 2, a1 = a0 + (Math.PI * 2) / teeth * 0.5;
+    ctx.lineTo(Math.cos(a0) * r, Math.sin(a0) * r);
+    ctx.lineTo(Math.cos(a1) * r * 1.12, Math.sin(a1) * r * 1.12);
+  }
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = "#2a3340"; ctx.lineWidth = Math.max(1.5, r * 0.08); ctx.stroke();
+  ctx.beginPath(); ctx.arc(0, 0, r * 0.3, 0, Math.PI * 2);
+  ctx.fillStyle = pl._powered ? "#ffd45a" : "#1c232e"; ctx.fill();
+  ctx.restore();
+  return true;
+}
+
 // One-way gate: a static plank with a bold chevron pointing the allowed direction,
 // drawn in the plate's own rotated frame (matches drawBarPart's plank sizing).
 function drawOneway(ctx, body, transform, opts = {}) {
@@ -279,6 +311,110 @@ function drawLaser(ctx, body, transform, theme, opts = {}) {
   ctx.fillStyle = pl._blocked ? theme.goal : "#fff8e6";
   ctx.globalAlpha = 0.8 + 0.2 * pulse;
   ctx.beginPath(); ctx.arc(s * 0.9, 0, s * 0.28, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  return true;
+}
+
+// Mouse: two-tone body + ear + tail, walk-cycle leg wiggle driven by time
+// (render-only — never touches the actual kinematic-walker physics).
+function drawMouse(ctx, body, transform, opts = {}) {
+  if (!body.plugin || body.plugin.partType !== "mouse") return false;
+  const t = transform;
+  const center = worldToScreen(body.position.x, body.position.y, t);
+  const w = (body.plugin.w || 34) * t.scale, h = (body.plugin.h || 20) * t.scale;
+  const dir = body.plugin.dir || 1;
+  const now = opts.now || 0;
+  const walk = opts.running && !opts.reducedMotion ? Math.sin(now / 90) * 0.35 : 0;
+  ctx.save();
+  ctx.translate(center.x, center.y);
+  ctx.scale(dir, 1);
+  // tail
+  ctx.strokeStyle = "#8b7a6b"; ctx.lineWidth = Math.max(1.2, h * 0.08); ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(-w * 0.42, 0); ctx.quadraticCurveTo(-w * 0.75, -h * 0.3, -w * 0.9, 0); ctx.stroke();
+  // legs (wiggle)
+  ctx.strokeStyle = "#5a4a3c"; ctx.lineWidth = Math.max(1.4, h * 0.14);
+  ctx.beginPath(); ctx.moveTo(-w * 0.15, h * 0.4); ctx.lineTo(-w * 0.15 + walk * h, h * 0.65); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(w * 0.15, h * 0.4); ctx.lineTo(w * 0.15 - walk * h, h * 0.65); ctx.stroke();
+  // body
+  const grad = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
+  grad.addColorStop(0, "#c9bcae"); grad.addColorStop(1, "#8b7a6b");
+  ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.ellipse(0, 0, w * 0.42, h * 0.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = "#3a2f26"; ctx.lineWidth = Math.max(1.2, h * 0.08); ctx.stroke();
+  // ear
+  ctx.fillStyle = "#d9cfc4"; ctx.strokeStyle = "#3a2f26";
+  ctx.beginPath(); ctx.arc(w * 0.28, -h * 0.35, h * 0.22, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  // eye + nose
+  ctx.fillStyle = "#1c1512";
+  ctx.beginPath(); ctx.arc(w * 0.32, -h * 0.05, h * 0.06, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(w * 0.44, h * 0.02, h * 0.09, 0, Math.PI * 2); ctx.fillStyle = "#c0504a"; ctx.fill();
+  ctx.restore();
+  return true;
+}
+
+// Cannon: barrel + carriage rotated to its facing angle; recoils/flashes on
+// fire (reads pl._spent), then renders an emptied dark barrel afterward.
+function drawCannon(ctx, body, transform, opts = {}) {
+  if (!body.plugin || body.plugin.partType !== "cannon") return false;
+  const t = transform;
+  const pl = body.plugin;
+  const center = worldToScreen(body.position.x, body.position.y, t);
+  const w = 64 * t.scale, h = 30 * t.scale;
+  ctx.save();
+  ctx.translate(center.x, center.y);
+  ctx.rotate(body.angle || pl.angle || 0);
+  // carriage
+  ctx.fillStyle = "#5e3c18"; ctx.strokeStyle = "#3a2412"; ctx.lineWidth = Math.max(1.5, h * 0.1);
+  ctx.beginPath(); ctx.ellipse(-w * 0.15, h * 0.32, w * 0.22, h * 0.3, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  // barrel
+  const grad = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
+  if (pl._spent) { grad.addColorStop(0, "#3a4452"); grad.addColorStop(1, "#1b222d"); }
+  else { grad.addColorStop(0, "#8b9aab"); grad.addColorStop(1, "#3a4452"); }
+  ctx.fillStyle = grad;
+  const r = Math.min(6, h * 0.3);
+  ctx.beginPath();
+  ctx.moveTo(-w / 2 + r, -h / 2); ctx.lineTo(w / 2 - r, -h / 2);
+  ctx.quadraticCurveTo(w / 2, -h / 2, w / 2, -h / 2 + r);
+  ctx.lineTo(w / 2, h / 2 - r); ctx.quadraticCurveTo(w / 2, h / 2, w / 2 - r, h / 2);
+  ctx.lineTo(-w / 2 + r, h / 2); ctx.quadraticCurveTo(-w / 2, h / 2, -w / 2, h / 2 - r);
+  ctx.lineTo(-w / 2, -h / 2 + r); ctx.quadraticCurveTo(-w / 2, -h / 2, -w / 2 + r, -h / 2);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = "#1b222d"; ctx.lineWidth = Math.max(1.5, h * 0.1); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(w / 2 - h * 0.12, 0, h * 0.16, h * 0.4, 0, 0, Math.PI * 2);
+  ctx.fillStyle = pl._spent ? "#0e1218" : "#11161f"; ctx.fill();
+  ctx.restore();
+  return true;
+}
+
+// Vacuum: housing + a faint translucent cone overlay showing the suction area
+// (static per-frame alpha — reads clearly without extra animation budget).
+function drawVacuum(ctx, body, transform, theme, opts = {}) {
+  if (!body.plugin || body.plugin.partType !== "vacuum") return false;
+  const t = transform;
+  const pl = body.plugin;
+  const center = worldToScreen(body.position.x, body.position.y, t);
+  const r = 26 * t.scale;
+  const faceAngle = (body.angle || pl.angle || 0) - Math.PI / 2;
+  const coneHalf = pl.coneAngle || Math.PI / 3;
+  const range = (pl.range || 220) * t.scale;
+  ctx.save();
+  ctx.translate(center.x, center.y);
+  // cone overlay (drawn in world-facing direction, not rotated with the housing scale below)
+  ctx.save();
+  ctx.rotate(faceAngle);
+  ctx.fillStyle = theme.accent || "#9ad6ff";
+  ctx.globalAlpha = 0.12;
+  ctx.beginPath(); ctx.moveTo(0, 0);
+  ctx.arc(0, 0, range, -coneHalf, coneHalf);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+  // housing
+  const grad = ctx.createRadialGradient(0, 0, r * 0.15, 0, 0, r);
+  grad.addColorStop(0, "#eef3f7"); grad.addColorStop(1, "#697686");
+  ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = "#2a3340"; ctx.lineWidth = Math.max(1.5, r * 0.1); ctx.stroke();
+  ctx.beginPath(); ctx.arc(0, 0, r * 0.4, 0, Math.PI * 2); ctx.fillStyle = "#1c232e"; ctx.fill();
   ctx.restore();
   return true;
 }
@@ -541,6 +677,10 @@ export function drawWorld(ctx, state, transform, theme, opts = {}) {
     if (drawOneway(ctx, body, t, bodyOpts)) continue;
     if (drawZipline(ctx, body, t, bodyOpts)) continue;
     if (drawLaser(ctx, body, t, theme, bodyOpts)) continue;
+    if (drawMouse(ctx, body, t, bodyOpts)) continue;
+    if (drawMotor(ctx, body, t, bodyOpts)) continue;
+    if (drawCannon(ctx, body, t, bodyOpts)) continue;
+    if (drawVacuum(ctx, body, t, theme, bodyOpts)) continue;
     const spr = resolveSprite(body.plugin && body.plugin.partType, opts.themeId);
     if (spr && drawSprite(ctx, body, spr, t, bodyOpts)) continue;   // sprite drawn → skip vector
     const parts = body.parts && body.parts.length > 1 ? body.parts.slice(1) : [body];
@@ -564,6 +704,31 @@ export function drawWorld(ctx, state, transform, theme, opts = {}) {
       }
       ctx.restore();
     }
+  }
+
+  // Spark-line between a powered outlet/motor pair — same world-to-screen line
+  // drawing the laser beam already uses, just one fixed segment instead of a
+  // polyline. Pure render pass, reads the engine's own pl._powered flag.
+  for (const body of state.bodies || []) {
+    if (!body.plugin || body.plugin.partType !== "motor" || !body.plugin._powered) continue;
+    let nearest = null, bestD = Infinity;
+    for (const o of state.bodies || []) {
+      if (!o.plugin || o.plugin.partType !== "outlet") continue;
+      const d = Math.hypot(o.position.x - body.position.x, o.position.y - body.position.y);
+      if (d < (o.plugin.range || 220) && d < bestD) { bestD = d; nearest = o; }
+    }
+    if (!nearest) continue;
+    const now = opts.now || 0;
+    const pulse = opts.reducedMotion ? 0.5 : 0.5 + 0.5 * Math.sin(now / 90);
+    const a = worldToScreen(body.position.x, body.position.y, t), b = worldToScreen(nearest.position.x, nearest.position.y, t);
+    ctx.save();
+    ctx.strokeStyle = theme.accent || "#ffd45a";
+    ctx.globalAlpha = 0.4 + 0.5 * pulse;
+    ctx.lineWidth = Math.max(1.2, 1.8 * t.scale);
+    ctx.setLineDash([6, 5]);
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
   }
 
   // particles (impacts, explosions, confetti) ride above the bodies

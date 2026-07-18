@@ -24,6 +24,7 @@ if (new URLSearchParams(location.search).has("test")) {
                  ...(await m.progressShapeCases()), ...(await cloudMod.cloudCases()), ...(await spriteMod.spriteCases()),
                  ...(await m.trackCCases()), ...(await m.trackCEngineCases()), ...(await editorMod.editorCases()),
                  ...(await soundMod.soundCases()), ...(await fxMod.fxCases()), ...(await m.newPartsCases()), ...(await m.newPartsDCases()),
+                 ...(await m.newPartsECases()),
                  ...(await m.geomRayCases()), ...(await m.buttonGateCases()), ...(await m.portalCases()) ]);
   });
 }
@@ -207,6 +208,15 @@ function handleSimEvent(name, data = {}) {
     fx.addTrauma(0.18);
     if (typeof data.x === "number") {
       fx.burst(data.x, data.y, { count: 10, color: "#eef3f7", speed: 220, size: 1.8, life: 260, spread: Math.PI * 2, gravity: 300 });
+    }
+  } else if (name === "cannon-fire") {
+    fx.addTrauma(0.35);
+    if (typeof data.x === "number") {
+      const angle = data.angle || 0;
+      fx.burst(data.x + Math.cos(angle) * 34, data.y + Math.sin(angle) * 34, {
+        count: 16, color: tk.accent || "#ffd166", speed: 260, size: 2.6, life: 320,
+        spread: 0.6, dir: angle, gravity: 250,
+      });
     }
   }
 }
