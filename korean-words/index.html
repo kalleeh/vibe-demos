@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Vroom! – Lär dig koreanska</title>
+<style>
+  :root {
+    --ink: #2b2140;
+    --card: #ffffff;
+    --shadow: rgba(43, 33, 64, 0.18);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: "Baloo 2", "Comic Sans MS", "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    overflow: hidden;
+    user-select: none; -webkit-user-select: none;
+  }
+  body {
+    background: linear-gradient(160deg, #ffe27a, #ff9e7a);
+    display: flex; flex-direction: column;
+    height: 100dvh;
+    transition: background .4s ease;
+  }
+
+  /* ---------- Top bar ---------- */
+  header {
+    flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    gap: 10px;
+    padding: max(10px, env(safe-area-inset-top)) 12px 8px;
+    min-height: 56px;
+  }
+  .back {
+    position: absolute; left: 12px; top: max(8px, env(safe-area-inset-top));
+    border: none; cursor: pointer; font-family: inherit;
+    font-size: clamp(26px, 7vw, 32px);
+    background: rgba(255,255,255,0.8); color: var(--ink);
+    width: clamp(52px, 14vw, 60px); height: clamp(52px, 14vw, 60px);
+    display: none; align-items: center; justify-content: center;
+    border-radius: 50%;
+    box-shadow: 0 3px 10px var(--shadow);
+  }
+  .back:active { transform: scale(0.9); }
+  .title {
+    font-weight: 900; font-size: clamp(20px, 5.5vw, 30px);
+    display: none; align-items: center; gap: 8px;
+  }
+  .tabs {
+    display: none; gap: 8px;
+    background: rgba(255,255,255,0.5);
+    padding: 6px; border-radius: 999px;
+    box-shadow: 0 4px 14px var(--shadow);
+  }
+  .tab {
+    border: none; cursor: pointer;
+    font-family: inherit; font-weight: 800;
+    color: var(--ink); background: transparent;
+    padding: 8px 20px; border-radius: 999px;
+    display: flex; flex-direction: column; align-items: center; line-height: 1;
+    transition: transform .12s ease, background .18s ease;
+  }
+  .tab .tab-icon { font-size: clamp(26px, 7vw, 34px); }
+  .tab .tab-label { font-size: clamp(11px, 3vw, 14px); margin-top: 3px; letter-spacing: 0.02em; }
+  .tab.active { background: var(--card); box-shadow: 0 3px 10px var(--shadow); }
+  .tab:active { transform: scale(0.94); }
+
+  /* When inside a category, show back + title + tabs */
+  body.in-category .back { display: flex; }
+  body.in-category .tabs { display: flex; }
+
+  /* ---------- Screens ---------- */
+  main { flex: 1 1 auto; position: relative; overflow: hidden; }
+  .screen {
+    position: absolute; inset: 0;
+    display: none;
+    padding: 12px 12px calc(16px + env(safe-area-inset-bottom));
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+  }
+  .screen.active { display: block; }
+
+  /* ---------- Home (category picker) ---------- */
+  .home-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 18px;
+    max-width: 820px; margin: 0 auto;
+  }
+  .cat-card {
+    border: none; cursor: pointer; font-family: inherit;
+    background: var(--card);
+    border-radius: 30px;
+    padding: 22px 12px 18px;
+    text-align: center;
+    box-shadow: 0 8px 20px var(--shadow);
+    transition: transform .1s ease;
+    color: var(--ink);
+  }
+  .cat-card:active { transform: scale(0.94); }
+  .cat-emoji { font-size: clamp(52px, 16vw, 82px); line-height: 1; display: block; }
+  .cat-name { font-size: clamp(18px, 5vw, 26px); font-weight: 900; margin-top: 8px; }
+  .cat-ko { font-size: clamp(13px, 3.6vw, 16px); color: #8a7fa6; font-weight: 700; margin-top: 2px; }
+
+  /* ---------- Explore grid ---------- */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+    max-width: 900px; margin: 0 auto;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 26px;
+    padding: 14px 10px 10px;
+    text-align: center;
+    box-shadow: 0 8px 18px var(--shadow);
+    cursor: pointer; position: relative;
+    transition: transform .1s ease;
+  }
+  .card:active { transform: scale(0.93); }
+  .card.pop { animation: pop .45s ease; }
+  @keyframes pop { 0%{transform:scale(1);} 40%{transform:scale(1.12) rotate(-3deg);} 100%{transform:scale(1);} }
+  .emoji { font-size: clamp(48px, 15vw, 78px); line-height: 1; display: block; }
+  .swatch {
+    width: clamp(56px, 17vw, 84px); height: clamp(56px, 17vw, 84px);
+    border-radius: 20px; margin: 4px auto 0;
+    box-shadow: inset 0 0 0 3px rgba(0,0,0,0.08);
+  }
+  .ko { font-size: clamp(20px, 5.5vw, 28px); font-weight: 800; margin-top: 6px; }
+  .rom { font-size: clamp(12px, 3.4vw, 15px); color: #8a7fa6; font-weight: 700; }
+  .se-btn {
+    margin-top: 8px;
+    border: none; cursor: pointer; font-family: inherit;
+    font-size: clamp(13px, 3.6vw, 16px); font-weight: 800;
+    background: #eef0ff; color: #4a4a8a;
+    padding: 7px 12px; border-radius: 999px;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .se-btn:active { transform: scale(0.9); }
+
+  /* ---------- Game ---------- */
+  #game { flex-direction: column; height: 100%; }
+  #game.active { display: flex; }
+
+  /* Spelväljare (Lyssna / Memory / Sant-Falskt) */
+  .game-modes {
+    flex: 0 0 auto; display: flex; justify-content: center; gap: 8px;
+    margin: 4px auto 8px;
+    background: rgba(255,255,255,0.5);
+    padding: 6px; border-radius: 999px;
+    box-shadow: 0 4px 14px var(--shadow);
+  }
+  .game-mode-btn {
+    border: none; cursor: pointer; font-family: inherit; font-weight: 800;
+    color: var(--ink); background: transparent;
+    padding: 8px 16px; border-radius: 999px;
+    display: flex; align-items: center; gap: 6px;
+    font-size: clamp(13px, 3.6vw, 16px);
+    transition: transform .12s ease, background .18s ease;
+  }
+  .game-mode-btn.active { background: var(--card); box-shadow: 0 3px 10px var(--shadow); }
+  .game-mode-btn:active { transform: scale(0.94); }
+
+  /* Underskärm per spelläge */
+  .game-sub { display: none; flex-direction: column; align-items: center; flex: 1 1 auto; min-height: 0; width: 100%; }
+  .game-sub.active { display: flex; }
+
+  .prompt { flex: 0 0 auto; text-align: center; max-width: 700px; margin: 6px auto 4px; width: 100%; }
+  .prompt p { margin: 0 0 10px; font-size: clamp(18px, 5vw, 26px); font-weight: 800; }
+  .listen {
+    border: none; cursor: pointer; font-family: inherit;
+    font-size: clamp(30px, 9vw, 46px);
+    background: var(--card); color: var(--ink);
+    width: clamp(90px, 26vw, 130px); height: clamp(90px, 26vw, 130px);
+    border-radius: 50%; box-shadow: 0 8px 20px var(--shadow);
+  }
+  .listen:active { transform: scale(0.92); }
+  /* Idle "press me" heartbeat so a non-reader knows to tap it */
+  .listen { animation: pressme 1.6s ease-in-out infinite; }
+  .listen.speaking { animation: wiggle .6s ease infinite; }
+  @keyframes wiggle { 0%,100%{transform:rotate(0);} 25%{transform:rotate(-8deg);} 75%{transform:rotate(8deg);} }
+  @keyframes pressme {
+    0%,100%{ transform:scale(1); box-shadow:0 8px 20px var(--shadow); }
+    50%{ transform:scale(1.08); box-shadow:0 8px 26px var(--shadow), 0 0 0 10px rgba(255,255,255,0.35); }
+  }
+  .choices {
+    flex: 1 1 auto;
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px;
+    align-content: center;
+    max-width: 640px; margin: 10px auto 0; width: 100%; padding-bottom: 10px;
+  }
+  .choice {
+    background: var(--card); border: none; cursor: pointer;
+    border-radius: 34px; aspect-ratio: 1 / 1;
+    font-size: clamp(64px, 30vw, 150px);
+    box-shadow: 0 10px 22px var(--shadow);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .1s ease; overflow: hidden;
+  }
+  /* Gently point at the right answer when the child needs help */
+  .choice.hint { animation: hintBounce 1s ease infinite; box-shadow: 0 0 0 6px #ffe27a, 0 10px 22px var(--shadow); }
+  @keyframes hintBounce { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-14px);} }
+  .choice:active { transform: scale(0.93); }
+  .choice.correct { animation: correct .6s ease; background: #c9f7d0; }
+  .choice.wrong { animation: shake .4s ease; }
+  .choice .swatch { width: 62%; height: 62%; margin: 0; }
+  @keyframes correct { 0%{transform:scale(1);} 50%{transform:scale(1.18);} 100%{transform:scale(1);} }
+  @keyframes shake { 0%,100%{transform:translateX(0);} 20%{transform:translateX(-9px);} 60%{transform:translateX(9px);} }
+
+  /* ---------- Memory ---------- */
+  .memory-grid {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 12px;
+    max-width: 720px; width: 100%; margin: 4px auto 0; padding-bottom: 10px;
+  }
+  .memory-card {
+    background: var(--card); border: none; cursor: pointer; font-family: inherit;
+    border-radius: 20px; aspect-ratio: 1 / 1;
+    font-size: clamp(28px, 8vw, 46px);
+    box-shadow: 0 6px 14px var(--shadow);
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    text-align: center; padding: 4px;
+    transition: transform .12s ease;
+  }
+  .memory-card:active { transform: scale(0.94); }
+  .memory-card.flipped { background: #eef0ff; }
+  .memory-card.matched { animation: correct .6s ease; background: #c9f7d0; cursor: default; }
+  .memory-card.wrong { animation: shake .4s ease; }
+  .memory-card .emoji { font-size: clamp(28px, 8vw, 46px); }
+  .memory-card .swatch { width: 60%; height: 60%; margin: 0; border-radius: 14px; }
+  .memory-card .ko { font-size: clamp(14px, 4vw, 20px); }
+  .memory-card .rom { font-size: clamp(9px, 2.6vw, 12px); }
+
+  /* ---------- Sant eller falskt ---------- */
+  .tf-picture { flex: 0 0 auto; margin: 10px auto; display: flex; align-items: center; justify-content: center; }
+  .tf-picture .emoji { font-size: clamp(80px, 30vw, 160px); }
+  .tf-picture .swatch { width: clamp(100px, 30vw, 160px); height: clamp(100px, 30vw, 160px); margin: 0; }
+  .tf-buttons {
+    flex: 1 1 auto; display: flex; gap: 18px; align-items: center; justify-content: center;
+    max-width: 520px; width: 100%; margin: 10px auto 0; padding-bottom: 10px;
+  }
+  .tf-btn {
+    flex: 1 1 0; border: none; cursor: pointer; font-family: inherit; font-weight: 800;
+    background: var(--card); color: var(--ink);
+    border-radius: 34px; aspect-ratio: 1 / 1;
+    box-shadow: 0 10px 22px var(--shadow);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+    font-size: clamp(40px, 14vw, 70px);
+    transition: transform .1s ease;
+  }
+  .tf-btn span { font-size: clamp(13px, 4vw, 17px); }
+  .tf-btn:active { transform: scale(0.93); }
+  .tf-btn.correct { animation: correct .6s ease; background: #c9f7d0; }
+  .tf-btn.wrong { animation: shake .4s ease; }
+
+  /* ---------- Celebration overlay ---------- */
+  #cheer {
+    position: absolute; inset: 0; pointer-events: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(90px, 40vw, 240px); opacity: 0;
+  }
+  #cheer.show { animation: cheer 1s ease; }
+  @keyframes cheer { 0%{opacity:0; transform:scale(0.3);} 30%{opacity:1; transform:scale(1.1);} 70%{opacity:1;} 100%{opacity:0; transform:scale(1);} }
+  .confetti { position: absolute; top: -20px; font-size: 26px; pointer-events: none; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(540deg); opacity: 0.9; } }
+</style>
+</head>
+<body>
+  <header>
+    <button class="back" id="backBtn" aria-label="Hem">🏠</button>
+    <div class="title" id="catTitle"></div>
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-screen="explore">
+        <span class="tab-icon">🔎</span><span class="tab-label">Utforska</span>
+      </button>
+      <button class="tab" data-screen="game">
+        <span class="tab-icon">🎮</span><span class="tab-label">Spela</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Level 1: choose an area -->
+    <section id="home" class="screen active">
+      <div class="home-grid" id="homeGrid"></div>
+    </section>
+
+    <!-- Level 2: explore an area -->
+    <section id="explore" class="screen">
+      <div class="grid" id="grid"></div>
+    </section>
+
+    <!-- Level 2: game for an area -->
+    <section id="game" class="screen">
+      <div class="game-modes" id="gameModes">
+        <button class="game-mode-btn active" data-mode="listen">🔊<span>Lyssna</span></button>
+        <button class="game-mode-btn" data-mode="memory">🃏<span>Memory</span></button>
+        <button class="game-mode-btn" data-mode="truefalse">✅<span>Sant/Falskt</span></button>
+      </div>
+
+      <div class="game-sub active" id="mode-listen">
+        <div class="prompt">
+          <p id="promptText">Tryck på det du hör 👂</p>
+          <button class="listen" id="listenBtn" aria-label="Lyssna igen">🔊</button>
+        </div>
+        <div class="choices" id="choices"></div>
+      </div>
+
+      <div class="game-sub" id="mode-memory">
+        <div class="memory-grid" id="memoryGrid"></div>
+      </div>
+
+      <div class="game-sub" id="mode-truefalse">
+        <div class="tf-picture" id="tfPicture"></div>
+        <button class="listen" id="tfListenBtn" aria-label="Lyssna igen">🔊</button>
+        <div class="tf-buttons">
+          <button class="tf-btn" id="tfYes">👍<span>Stämmer</span></button>
+          <button class="tf-btn" id="tfNo">👎<span>Stämmer inte</span></button>
+        </div>
+      </div>
+    </section>
+
+    <div id="cheer"></div>
+  </main>
+
+<script>
+/* =========================================================
+   CATEGORIES (areas). Each item: emoji OR color, Korean,
+   romanisation, Swedish. lang defaults to Korean.
+   ========================================================= */
+const CATEGORIES = [
+  {
+    id:"siffror", name:"Siffror", ko:"숫자", emoji:"🔢", bg:["#a8e6ff","#7aa8ff"],
+    items:[
+      { emoji:"1️⃣", ko:"일", rom:"il",   se:"Ett" },
+      { emoji:"2️⃣", ko:"이", rom:"i",    se:"Två" },
+      { emoji:"3️⃣", ko:"삼", rom:"sam",  se:"Tre" },
+      { emoji:"4️⃣", ko:"사", rom:"sa",   se:"Fyra" },
+      { emoji:"5️⃣", ko:"오", rom:"o",    se:"Fem" },
+      { emoji:"6️⃣", ko:"육", rom:"yuk",  se:"Sex" },
+      { emoji:"7️⃣", ko:"칠", rom:"chil", se:"Sju" },
+      { emoji:"8️⃣", ko:"팔", rom:"pal",  se:"Åtta" },
+      { emoji:"9️⃣", ko:"구", rom:"gu",   se:"Nio" },
+      { emoji:"🔟", ko:"십", rom:"sip",  se:"Tio" }
+    ]
+  },
+  {
+    id:"fordon", name:"Fordon", ko:"자동차", emoji:"🚗", bg:["#ffe27a","#ff9e7a"],
+    items:[
+      { emoji:"🚗", ko:"자동차", rom:"ja-dong-cha", se:"Bil" },
+      { emoji:"🚕", ko:"택시",   rom:"taek-si",     se:"Taxi" },
+      { emoji:"🚌", ko:"버스",   rom:"beo-seu",     se:"Buss" },
+      { emoji:"🚚", ko:"트럭",   rom:"teu-reok",    se:"Lastbil" },
+      { emoji:"🚒", ko:"소방차", rom:"so-bang-cha", se:"Brandbil" },
+      { emoji:"🚓", ko:"경찰차", rom:"gyeong-chal-cha", se:"Polisbil" },
+      { emoji:"🚑", ko:"구급차", rom:"gu-geup-cha", se:"Ambulans" },
+      { emoji:"🚂", ko:"기차",   rom:"gi-cha",      se:"Tåg" },
+      { emoji:"✈️", ko:"비행기", rom:"bi-haeng-gi", se:"Flygplan" },
+      { emoji:"🚁", ko:"헬리콥터", rom:"hel-li-kop-teo", se:"Helikopter" },
+      { emoji:"🚀", ko:"로켓",   rom:"ro-ket",      se:"Raket" },
+      { emoji:"🚢", ko:"배",     rom:"bae",         se:"Båt" },
+      { emoji:"🚲", ko:"자전거", rom:"ja-jeon-geo", se:"Cykel" },
+      { emoji:"🚜", ko:"트랙터", rom:"teu-raek-teo", se:"Traktor" },
+      { emoji:"🏗️", ko:"크레인", rom:"keu-re-in",  se:"Byggkran" }
+    ]
+  },
+  {
+    id:"frukt", name:"Frukt & grönt", ko:"과일", emoji:"🍎", bg:["#b6f5c1","#ffd27a"],
+    items:[
+      { emoji:"🍎", ko:"사과",   rom:"sa-gwa",   se:"Äpple" },
+      { emoji:"🍌", ko:"바나나", rom:"ba-na-na", se:"Banan" },
+      { emoji:"🍇", ko:"포도",   rom:"po-do",    se:"Vindruvor" },
+      { emoji:"🍓", ko:"딸기",   rom:"ttal-gi",  se:"Jordgubbe" },
+      { emoji:"🍉", ko:"수박",   rom:"su-bak",   se:"Vattenmelon" },
+      { emoji:"🍊", ko:"귤",     rom:"gyul",     se:"Apelsin" },
+      { emoji:"🥕", ko:"당근",   rom:"dang-geun", se:"Morot" },
+      { emoji:"🍅", ko:"토마토", rom:"to-ma-to", se:"Tomat" },
+      { emoji:"🥒", ko:"오이",   rom:"o-i",      se:"Gurka" },
+      { emoji:"🌽", ko:"옥수수", rom:"ok-su-su", se:"Majs" },
+      { emoji:"🥔", ko:"감자",   rom:"gam-ja",   se:"Potatis" },
+      { emoji:"🍄", ko:"버섯",   rom:"beo-seot", se:"Svamp" }
+    ]
+  },
+  {
+    id:"djur", name:"Djur", ko:"동물", emoji:"🐶", bg:["#ffd6f0","#b6c8ff"],
+    items:[
+      { emoji:"🐶", ko:"개",     rom:"gae",       se:"Hund" },
+      { emoji:"🐱", ko:"고양이", rom:"go-yang-i", se:"Katt" },
+      { emoji:"🦁", ko:"사자",   rom:"sa-ja",     se:"Lejon" },
+      { emoji:"🐯", ko:"호랑이", rom:"ho-rang-i", se:"Tiger" },
+      { emoji:"🐻", ko:"곰",     rom:"gom",       se:"Björn" },
+      { emoji:"🐘", ko:"코끼리", rom:"ko-kki-ri", se:"Elefant" },
+      { emoji:"🐵", ko:"원숭이", rom:"won-sung-i", se:"Apa" },
+      { emoji:"🐰", ko:"토끼",   rom:"to-kki",    se:"Kanin" },
+      { emoji:"🐴", ko:"말",     rom:"mal",       se:"Häst" },
+      { emoji:"🐷", ko:"돼지",   rom:"dwae-ji",   se:"Gris" },
+      { emoji:"🐮", ko:"소",     rom:"so",        se:"Ko" },
+      { emoji:"🐔", ko:"닭",     rom:"dak",       se:"Höna" },
+      { emoji:"🐟", ko:"물고기", rom:"mul-go-gi", se:"Fisk" },
+      { emoji:"🦆", ko:"오리",   rom:"o-ri",      se:"Anka" },
+      { emoji:"🐦", ko:"새",     rom:"sae",       se:"Fågel" }
+    ]
+  },
+  {
+    id:"farger", name:"Färger", ko:"색깔", emoji:"🎨", bg:["#ffb3b3","#b3d1ff"],
+    items:[
+      { color:"#e63946", ko:"빨강", rom:"ppal-gang", se:"Röd" },
+      { color:"#f4a261", ko:"주황", rom:"ju-hwang",  se:"Orange" },
+      { color:"#ffd60a", ko:"노랑", rom:"no-rang",   se:"Gul" },
+      { color:"#2a9d3f", ko:"초록", rom:"cho-rok",   se:"Grön" },
+      { color:"#1d6fe0", ko:"파랑", rom:"pa-rang",   se:"Blå" },
+      { color:"#8a4fff", ko:"보라", rom:"bo-ra",     se:"Lila" },
+      { color:"#ff8fc8", ko:"분홍", rom:"bun-hong",  se:"Rosa" },
+      { color:"#7a4a1e", ko:"갈색", rom:"gal-saek",  se:"Brun" },
+      { color:"#222222", ko:"검정", rom:"geom-jeong", se:"Svart" },
+      { color:"#ffffff", ko:"하양", rom:"ha-yang",   se:"Vit" }
+    ]
+  },
+  {
+    id:"kroppsdelar", name:"Kroppsdelar", ko:"몸", emoji:"🗣️", bg:["#ffd3b0","#ffb6c1"],
+    items:[
+      { emoji:"🗣️", ko:"머리",     rom:"meo-ri",      se:"Huvud" },
+      { emoji:"👁️", ko:"눈",       rom:"nun",         se:"Öga" },
+      { emoji:"👃", ko:"코",       rom:"ko",          se:"Näsa" },
+      { emoji:"👄", ko:"입",       rom:"ip",          se:"Mun" },
+      { emoji:"👂", ko:"귀",       rom:"gwi",         se:"Öra" },
+      { emoji:"🦷", ko:"이",       rom:"i",           se:"Tänder" },
+      { emoji:"✋", ko:"손",       rom:"son",         se:"Hand" },
+      { emoji:"👆", ko:"손가락",   rom:"son-ga-rak",  se:"Finger" },
+      { emoji:"🦶", ko:"발",       rom:"bal",         se:"Fot" },
+      { emoji:"💪", ko:"팔",       rom:"pal",         se:"Arm" },
+      { emoji:"🦵", ko:"다리",     rom:"da-ri",       se:"Ben" }
+    ]
+  },
+  {
+    id:"saker", name:"Saker", ko:"물건", emoji:"📦", bg:["#d7c4ff","#a0c4ff"],
+    items:[
+      { emoji:"🪑", ko:"의자",   rom:"ui-ja",       se:"Stol" },
+      { emoji:"🛏️", ko:"침대",   rom:"chim-dae",    se:"Säng" },
+      { emoji:"🛋️", ko:"소파",   rom:"so-pa",       se:"Soffa" },
+      { emoji:"☕", ko:"컵",     rom:"keop",        se:"Kopp" },
+      { emoji:"🏺", ko:"꽃병",   rom:"kkot-byeong", se:"Vas" },
+      { emoji:"⚽", ko:"공",     rom:"gong",        se:"Boll" },
+      { emoji:"📖", ko:"책",     rom:"chaek",       se:"Bok" },
+      { emoji:"⏰", ko:"시계",   rom:"si-gye",      se:"Klocka" },
+      { emoji:"🔑", ko:"열쇠",   rom:"yeol-soe",    se:"Nyckel" },
+      { emoji:"🎒", ko:"가방",   rom:"ga-bang",     se:"Väska" },
+      { emoji:"☂️", ko:"우산",   rom:"u-san",       se:"Paraply" },
+      { emoji:"🪟", ko:"창문",   rom:"chang-mun",   se:"Fönster" },
+      { emoji:"🚪", ko:"문",     rom:"mun",         se:"Dörr" },
+      { emoji:"☎️", ko:"전화기", rom:"jeon-hwa-gi", se:"Telefon" },
+      { emoji:"💡", ko:"램프",   rom:"raem-peu",    se:"Lampa" }
+    ]
+  }
+];
+
+/* ===== Speech ===== */
+let voices = [];
+function loadVoices(){ voices = window.speechSynthesis ? speechSynthesis.getVoices() : []; }
+if (window.speechSynthesis){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+function pickVoice(lang){
+  const base = lang.split('-')[0];
+  return voices.find(v => v.lang && v.lang.toLowerCase() === lang.toLowerCase())
+      || voices.find(v => v.lang && v.lang.toLowerCase().startsWith(base)) || null;
+}
+function speak(text, lang, onstart, onend){
+  if (!window.speechSynthesis){ if(onend) onend(); return; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = lang;
+  const v = pickVoice(lang); if (v) u.voice = v;
+  u.rate = 0.8; u.pitch = 1.05;
+  if (onstart) u.onstart = onstart;
+  if (onend){ u.onend = onend; u.onerror = onend; }
+  speechSynthesis.speak(u);
+}
+const sayKorean  = (t, on, off) => speak(t, "ko-KR", on, off);
+const saySwedish = (t) => speak(t, "sv-SE");
+
+/* ===== Elements ===== */
+const body      = document.body;
+const homeGrid  = document.getElementById('homeGrid');
+const grid      = document.getElementById('grid');
+const choicesEl = document.getElementById('choices');
+const listenBtn = document.getElementById('listenBtn');
+const cheerEl   = document.getElementById('cheer');
+const backBtn   = document.getElementById('backBtn');
+const catTitle  = document.getElementById('catTitle');
+const tabs       = document.querySelectorAll('.tab');
+const gameModeBtns = document.querySelectorAll('.game-mode-btn');
+const gameSubs     = document.querySelectorAll('.game-sub');
+const memoryGrid = document.getElementById('memoryGrid');
+const tfPicture  = document.getElementById('tfPicture');
+const tfListenBtn = document.getElementById('tfListenBtn');
+const tfYes = document.getElementById('tfYes');
+const tfNo  = document.getElementById('tfNo');
+
+let activeCat = null;      // current category object
+let current = null;        // current game target (Lyssna-läget)
+let locked = false;
+let hintTimer = null;      // shows the right answer if the child stalls
+let activeGameMode = 'listen';  // which of the 3 game screens is showing
+let activeGameStop = null;      // teardown for whichever game is currently running
+const CHEERS = ["🎉","⭐","🌟","👏","🥳","🚀"];
+const PRAISE = ["Bra!","Duktig!","Ja!","Toppen!","Wow!"];  // spoken Swedish praise
+
+/* ===== Helpers to render an item's picture ===== */
+function pictureHTML(item){
+  return item.color
+    ? `<div class="swatch" style="background:${item.color}"></div>`
+    : `<span class="emoji">${item.emoji}</span>`;
+}
+function pictureNode(item){
+  if (item.color){
+    const d = document.createElement('div');
+    d.className = 'swatch'; d.style.background = item.color;
+    return d;
+  }
+  const s = document.createElement('span');
+  s.textContent = item.emoji;
+  return s;
+}
+
+/* ===== Level 1: build home (category picker) ===== */
+CATEGORIES.forEach(cat => {
+  const btn = document.createElement('button');
+  btn.className = 'cat-card';
+  btn.innerHTML = `
+    <span class="cat-emoji">${cat.emoji}</span>
+    <div class="cat-name">${cat.name}</div>
+    <div class="cat-ko">${cat.ko}</div>`;
+  btn.addEventListener('click', () => openCategory(cat));
+  homeGrid.appendChild(btn);
+});
+
+/* ===== Enter / leave a category ===== */
+function setScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
+}
+function openCategory(cat){
+  if (activeGameStop) activeGameStop();
+  activeCat = cat;
+  current = null;
+  activeGameMode = 'listen';
+  gameModeBtns.forEach(b => b.classList.toggle('active', b.dataset.mode === 'listen'));
+  gameSubs.forEach(s => s.classList.toggle('active', s.id === 'mode-listen'));
+  body.classList.add('in-category');
+  body.style.background = `linear-gradient(160deg, ${cat.bg[0]}, ${cat.bg[1]})`;
+  catTitle.style.display = 'flex';
+  catTitle.innerHTML = `${cat.emoji} ${cat.name}`;
+  buildExplore(cat);
+  // reset tabs to Utforska
+  tabs.forEach(t => t.classList.toggle('active', t.dataset.screen === 'explore'));
+  setScreen('explore');
+}
+function goHome(){
+  if (activeGameStop) activeGameStop();
+  activeGameStop = null;
+  activeCat = null; current = null;
+  body.classList.remove('in-category');
+  body.style.background = 'linear-gradient(160deg, #ffe27a, #ff9e7a)';
+  catTitle.style.display = 'none';
+  setScreen('home');
+}
+backBtn.addEventListener('click', goHome);
+
+/* ===== Game-mode switcher (Lyssna / Memory / Sant-Falskt) ===== */
+function switchGameMode(mode){
+  if (activeGameStop) activeGameStop();
+  activeGameMode = mode;
+  gameModeBtns.forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  gameSubs.forEach(s => s.classList.toggle('active', s.id === 'mode-' + mode));
+  if (!activeCat) return;
+  if (mode === 'listen') startListenGame(activeCat);
+  else if (mode === 'memory') startMemoryGame(activeCat);
+  else if (mode === 'truefalse') startTrueFalseGame(activeCat);
+}
+gameModeBtns.forEach(b => b.addEventListener('click', () => switchGameMode(b.dataset.mode)));
+
+/* ===== Level 2a: Explore ===== */
+function buildExplore(cat){
+  grid.innerHTML = '';
+  cat.items.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      ${pictureHTML(item)}
+      <div class="ko">${item.ko}</div>
+      <div class="rom">${item.rom}</div>
+      <button class="se-btn">🇸🇪 ${item.se}</button>`;
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.se-btn')) return;
+      card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
+      sayKorean(item.ko);
+    });
+    card.querySelector('.se-btn').addEventListener('click', (e) => {
+      e.stopPropagation(); saySwedish(item.se);
+    });
+    grid.appendChild(card);
+  });
+}
+
+/* ===== Level 2b: Game ===== */
+function shuffle(a){ a = a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function clearHint(){
+  clearTimeout(hintTimer);
+  choicesEl.querySelectorAll('.choice.hint').forEach(c => c.classList.remove('hint'));
+}
+// After a stall, gently bounce the correct answer so the child never gets stuck.
+function scheduleHint(){
+  clearTimeout(hintTimer);
+  hintTimer = setTimeout(() => {
+    if (locked) return;
+    const right = choicesEl.querySelector('.choice[data-correct="1"]');
+    if (right) right.classList.add('hint');
+  }, 4000);
+}
+function newRound(){
+  if (!activeCat) return;
+  locked = false;
+  clearHint();
+  const n = Math.min(2, activeCat.items.length);
+  const options = shuffle(activeCat.items).slice(0, n);
+  current = options[Math.floor(Math.random()*options.length)];
+  choicesEl.innerHTML = '';
+  options.forEach(item => {
+    const b = document.createElement('button');
+    b.className = 'choice';
+    if (item === current) b.dataset.correct = '1';
+    b.appendChild(pictureNode(item));
+    b.addEventListener('click', () => onChoice(b, item));
+    choicesEl.appendChild(b);
+  });
+  askAgain();
+}
+function askAgain(){
+  if (!current) return;
+  clearHint();
+  listenBtn.classList.add('speaking');
+  sayKorean(current.ko, null, () => listenBtn.classList.remove('speaking'));
+  scheduleHint();
+}
+function onChoice(btn, item){
+  if (locked) return;
+  if (item === current){
+    locked = true;
+    clearHint();
+    btn.classList.add('correct');
+    celebrate();
+    // Say the word, then a cheerful spoken "Bra!" so success is heard, not just seen.
+    sayKorean(current.ko, null, () => saySwedish(PRAISE[Math.floor(Math.random()*PRAISE.length)]));
+    setTimeout(newRound, 1900);
+  } else {
+    // Never punish: little shake, then re-say the word and point at the right one.
+    btn.classList.remove('wrong'); void btn.offsetWidth; btn.classList.add('wrong');
+    const right = choicesEl.querySelector('.choice[data-correct="1"]');
+    if (right) right.classList.add('hint');
+    sayKorean(current.ko, null, () => listenBtn.classList.remove('speaking'));
+    listenBtn.classList.add('speaking');
+  }
+}
+function celebrate(){
+  cheerEl.textContent = CHEERS[Math.floor(Math.random()*CHEERS.length)];
+  cheerEl.classList.remove('show'); void cheerEl.offsetWidth; cheerEl.classList.add('show');
+  for (let i=0;i<18;i++){
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.textContent = CHEERS[Math.floor(Math.random()*CHEERS.length)];
+    c.style.left = Math.random()*100 + 'vw';
+    c.style.animation = `fall ${1+Math.random()}s ease-in forwards`;
+    c.style.fontSize = (18+Math.random()*22)+'px';
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 2200);
+  }
+}
+listenBtn.addEventListener('click', askAgain);
+
+function stopListenGame(){
+  if (window.speechSynthesis) speechSynthesis.cancel();
+  clearHint();
+}
+function startListenGame(cat){
+  activeGameStop = stopListenGame;
+  if (!current) newRound(); else askAgain();
+}
+
+/* ===== Level 2c: Memory (para ihop) ===== */
+let memCards = [];
+let memFirstIdx = null;
+let memBusy = false;
+let memMatchedCount = 0;
+let memTotalPairs = 0;
+let memTimer = null;
+
+function stopMemoryGame(){
+  if (window.speechSynthesis) speechSynthesis.cancel();
+  clearTimeout(memTimer);
+  memFirstIdx = null; memBusy = false;
+}
+function startMemoryGame(cat){
+  activeGameStop = stopMemoryGame;
+  memFirstIdx = null; memBusy = false; memMatchedCount = 0;
+  const n = Math.min(6, cat.items.length);
+  const chosen = shuffle(cat.items).slice(0, n);
+  memTotalPairs = chosen.length;
+  const cards = [];
+  chosen.forEach(item => { cards.push({ item, kind:'pic' }); cards.push({ item, kind:'word' }); });
+  memCards = shuffle(cards);
+  renderMemory();
+}
+function renderMemory(){
+  memoryGrid.innerHTML = '';
+  memCards.forEach((c, idx) => {
+    const card = document.createElement('button');
+    card.className = 'memory-card';
+    card.dataset.idx = idx;
+    card.textContent = '❓';
+    card.addEventListener('click', () => onMemoryFlip(idx));
+    memoryGrid.appendChild(card);
+  });
+}
+function memoryCardContent(c){
+  return c.kind === 'pic' ? pictureHTML(c.item) : `<div class="ko">${c.item.ko}</div><div class="rom">${c.item.rom}</div>`;
+}
+function onMemoryFlip(idx){
+  if (memBusy) return;
+  const cardEl = memoryGrid.querySelector(`[data-idx="${idx}"]`);
+  if (!cardEl || cardEl.classList.contains('flipped') || cardEl.classList.contains('matched')) return;
+  const c = memCards[idx];
+  cardEl.classList.add('flipped');
+  cardEl.innerHTML = memoryCardContent(c);
+  if (c.kind === 'pic') sayKorean(c.item.ko);
+
+  if (memFirstIdx === null){
+    memFirstIdx = idx;
+    return;
+  }
+  memBusy = true;
+  const firstEl = memoryGrid.querySelector(`[data-idx="${memFirstIdx}"]`);
+  const firstCard = memCards[memFirstIdx];
+  if (firstCard.item === c.item){
+    cardEl.classList.add('matched');
+    firstEl.classList.add('matched');
+    memMatchedCount++;
+    memFirstIdx = null; memBusy = false;
+    if (memMatchedCount === memTotalPairs){
+      celebrate();
+      saySwedish(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
+    }
+  } else {
+    cardEl.classList.add('wrong'); firstEl.classList.add('wrong');
+    memTimer = setTimeout(() => {
+      [cardEl, firstEl].forEach(el => { el.classList.remove('flipped','wrong'); el.textContent = '❓'; });
+      memFirstIdx = null; memBusy = false;
+    }, 900);
+  }
+}
+
+/* ===== Level 2d: Sant eller falskt ===== */
+let tfCurrent = null;      // pictured item
+let tfSpokenItem = null;   // item whose Korean word is actually spoken
+let tfCorrect = true;
+let tfLocked = false;
+let tfTimer = null;
+
+function stopTrueFalseGame(){
+  if (window.speechSynthesis) speechSynthesis.cancel();
+  clearTimeout(tfTimer);
+  tfLocked = false;
+}
+function startTrueFalseGame(cat){
+  activeGameStop = stopTrueFalseGame;
+  newTFRound(cat);
+}
+function newTFRound(cat){
+  clearTimeout(tfTimer);
+  tfLocked = false;
+  tfYes.classList.remove('correct','wrong');
+  tfNo.classList.remove('correct','wrong');
+  const shown = cat.items[Math.floor(Math.random()*cat.items.length)];
+  tfCurrent = shown;
+  tfPicture.innerHTML = pictureHTML(shown);
+  tfCorrect = Math.random() < 0.5 || cat.items.length < 2;
+  tfSpokenItem = tfCorrect ? shown : shuffle(cat.items.filter(i => i !== shown))[0];
+  playTF();
+}
+function playTF(){
+  if (!tfSpokenItem) return;
+  tfListenBtn.classList.add('speaking');
+  sayKorean(tfSpokenItem.ko, null, () => tfListenBtn.classList.remove('speaking'));
+}
+function onTF(answerYes){
+  if (tfLocked || !activeCat) return;
+  tfLocked = true;
+  const right = (answerYes === tfCorrect);
+  const btn = answerYes ? tfYes : tfNo;
+  if (right){
+    btn.classList.add('correct');
+    celebrate();
+    sayKorean(tfSpokenItem.ko, null, () => saySwedish(PRAISE[Math.floor(Math.random()*PRAISE.length)]));
+    tfTimer = setTimeout(() => newTFRound(activeCat), 1900);
+  } else {
+    btn.classList.remove('wrong'); void btn.offsetWidth; btn.classList.add('wrong');
+    playTF();
+    tfLocked = false;
+  }
+}
+tfYes.addEventListener('click', () => onTF(true));
+tfNo.addEventListener('click', () => onTF(false));
+tfListenBtn.addEventListener('click', playTF);
+
+/* ===== Tab switching (within a category) ===== */
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    setScreen(tab.dataset.screen);
+    if (tab.dataset.screen === 'game'){
+      switchGameMode(activeGameMode);
+    } else if (activeGameStop) {
+      activeGameStop();
+    }
+  });
+});
+
+/* Warm up speech on first touch (needed on mobile) */
+document.body.addEventListener('touchstart', function warm(){
+  if (window.speechSynthesis){ const u=new SpeechSynthesisUtterance(' '); speechSynthesis.speak(u); }
+  document.body.removeEventListener('touchstart', warm);
+}, { once:true });
+</script>
+</body>
+</html>
