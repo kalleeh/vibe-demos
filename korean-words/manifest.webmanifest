@@ -1,0 +1,16 @@
+{
+  "name": "Vroom! – Lär dig koreanska",
+  "short_name": "Vroom!",
+  "description": "Svenskt lärospel för barn som vill lära sig koreanska ord: siffror, fordon, frukt, djur, färger, kroppsdelar, saker – plus en blandad testkategori.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffe27a",
+  "theme_color": "#ffe27a",
+  "lang": "sv",
+  "categories": ["education", "kids", "lifestyle"],
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
