@@ -73,6 +73,8 @@
   /* When inside a category, show back + title + tabs */
   body.in-category .back { display: flex; }
   body.in-category .tabs { display: flex; }
+  /* Test has no Utforska/Spela split — just back + title */
+  body.in-test .back { display: flex; }
 
   /* ---------- Screens ---------- */
   main { flex: 1 1 auto; position: relative; overflow: hidden; }
@@ -260,6 +262,37 @@
   .tf-btn.correct { animation: correct .6s ease; background: #c9f7d0; }
   .tf-btn.wrong { animation: shake .4s ease; }
 
+  /* ---------- Round counter + session-complete ---------- */
+  .round-counter {
+    flex: 0 0 auto; font-weight: 800; color: #8a7fa6;
+    font-size: clamp(13px, 3.6vw, 16px); text-align: center; margin: 2px 0 0;
+  }
+  .round-done { display: none; flex: 1 1 auto; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
+  .round-done-msg { font-size: clamp(26px, 7.5vw, 36px); font-weight: 900; text-align: center; }
+  .replay-btn {
+    border: none; cursor: pointer; font-family: inherit; font-weight: 800;
+    font-size: clamp(16px, 4.5vw, 20px);
+    background: var(--card); color: var(--ink);
+    padding: 16px 30px; border-radius: 999px;
+    box-shadow: 0 8px 20px var(--shadow);
+  }
+  .replay-btn:active { transform: scale(0.94); }
+  .game-sub.done > *:not(.round-done) { display: none; }
+  .game-sub.done .round-done { display: flex; }
+
+  /* ---------- Test (blandat) ---------- */
+  .test-wrap { display: flex; flex-direction: column; align-items: center; flex: 1 1 auto; min-height: 0; width: 100%; }
+  .test-wrap.done > *:not(.round-done) { display: none; }
+  .test-wrap.done .round-done { display: flex; }
+  .count-scene {
+    flex: 0 0 auto; display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start;
+    gap: 4px; max-width: 480px; margin: 6px auto; min-height: 40px;
+  }
+  .count-scene .emoji { font-size: clamp(26px, 7vw, 40px); }
+  .count-scene .swatch { width: clamp(26px, 7vw, 40px); height: clamp(26px, 7vw, 40px); margin: 0; }
+  .choice.cat-choice { flex-direction: column; font-size: clamp(38px, 11vw, 60px); gap: 6px; }
+  .cat-choice-label { font-size: clamp(13px, 3.6vw, 16px); font-weight: 800; }
+
   /* ---------- Celebration overlay ---------- */
   #cheer {
     position: absolute; inset: 0; pointer-events: none;
@@ -306,11 +339,16 @@
       </div>
 
       <div class="game-sub active" id="mode-listen">
+        <div class="round-counter" id="listenCounter">Fråga 1 / 10</div>
         <div class="prompt">
           <p id="promptText">Tryck på det du hör 👂</p>
           <button class="listen" id="listenBtn" aria-label="Lyssna igen">🔊</button>
         </div>
         <div class="choices" id="choices"></div>
+        <div class="round-done" id="listenDone">
+          <div class="round-done-msg">🎉 Klart! 10/10</div>
+          <button class="replay-btn" id="listenReplay">🔁 Spela igen</button>
+        </div>
       </div>
 
       <div class="game-sub" id="mode-memory">
@@ -318,11 +356,33 @@
       </div>
 
       <div class="game-sub" id="mode-truefalse">
+        <div class="round-counter" id="tfCounter">Fråga 1 / 10</div>
         <div class="tf-picture" id="tfPicture"></div>
         <button class="listen" id="tfListenBtn" aria-label="Lyssna igen">🔊</button>
         <div class="tf-buttons">
           <button class="tf-btn" id="tfYes">👍<span>Stämmer</span></button>
           <button class="tf-btn" id="tfNo">👎<span>Stämmer inte</span></button>
+        </div>
+        <div class="round-done" id="tfDone">
+          <div class="round-done-msg">🎉 Klart! 10/10</div>
+          <button class="replay-btn" id="tfReplay">🔁 Spela igen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Level 2: Test — mixed quiz combining all categories -->
+    <section id="test" class="screen">
+      <div class="test-wrap" id="testWrap">
+        <div class="round-counter" id="testCounter">Fråga 1 / 10</div>
+        <div class="prompt" id="testPrompt">
+          <p id="testPromptText">Lyssna och svara 🧠</p>
+          <button class="listen" id="testListenBtn" aria-label="Lyssna igen">🔊</button>
+        </div>
+        <div class="count-scene" id="testScene"></div>
+        <div class="choices" id="testChoices"></div>
+        <div class="round-done" id="testDone">
+          <div class="round-done-msg">🎉 Klart! 10/10</div>
+          <button class="replay-btn" id="testReplay">🔁 Spela igen</button>
         </div>
       </div>
     </section>
@@ -352,7 +412,7 @@ const CATEGORIES = [
     ]
   },
   {
-    id:"fordon", name:"Fordon", ko:"자동차", emoji:"🚗", bg:["#ffe27a","#ff9e7a"],
+    id:"fordon", name:"Fordon", ko:"자동차", emoji:"🚗", bg:["#ffe27a","#ff9e7a"], counter:"대",
     items:[
       { emoji:"🚗", ko:"자동차", rom:"ja-dong-cha", se:"Bil" },
       { emoji:"🚕", ko:"택시",   rom:"taek-si",     se:"Taxi" },
@@ -372,7 +432,7 @@ const CATEGORIES = [
     ]
   },
   {
-    id:"frukt", name:"Frukt & grönt", ko:"과일", emoji:"🍎", bg:["#b6f5c1","#ffd27a"],
+    id:"frukt", name:"Frukt & grönt", ko:"과일", emoji:"🍎", bg:["#b6f5c1","#ffd27a"], counter:"개",
     items:[
       { emoji:"🍎", ko:"사과",   rom:"sa-gwa",   se:"Äpple" },
       { emoji:"🍌", ko:"바나나", rom:"ba-na-na", se:"Banan" },
@@ -389,7 +449,7 @@ const CATEGORIES = [
     ]
   },
   {
-    id:"djur", name:"Djur", ko:"동물", emoji:"🐶", bg:["#ffd6f0","#b6c8ff"],
+    id:"djur", name:"Djur", ko:"동물", emoji:"🐶", bg:["#ffd6f0","#b6c8ff"], counter:"마리",
     items:[
       { emoji:"🐶", ko:"개",     rom:"gae",       se:"Hund" },
       { emoji:"🐱", ko:"고양이", rom:"go-yang-i", se:"Katt" },
@@ -440,7 +500,7 @@ const CATEGORIES = [
     ]
   },
   {
-    id:"saker", name:"Saker", ko:"물건", emoji:"📦", bg:["#d7c4ff","#a0c4ff"],
+    id:"saker", name:"Saker", ko:"물건", emoji:"📦", bg:["#d7c4ff","#a0c4ff"], counter:"개",
     items:[
       { emoji:"🪑", ko:"의자",   rom:"ui-ja",       se:"Stol" },
       { emoji:"🛏️", ko:"침대",   rom:"chim-dae",    se:"Säng" },
@@ -458,6 +518,24 @@ const CATEGORIES = [
       { emoji:"☎️", ko:"전화기", rom:"jeon-hwa-gi", se:"Telefon" },
       { emoji:"💡", ko:"램프",   rom:"raem-peu",    se:"Lampa" }
     ]
+  },
+  {
+    id:"raekneord", name:"Räkneord", ko:"하나 둘 셋", emoji:"✋", bg:["#b5f0e8","#6dc9c0"],
+    items:[
+      { emoji:"1️⃣", ko:"하나", rom:"ha-na",    se:"Ett" },
+      { emoji:"2️⃣", ko:"둘",   rom:"dul",      se:"Två" },
+      { emoji:"3️⃣", ko:"셋",   rom:"set",      se:"Tre" },
+      { emoji:"4️⃣", ko:"넷",   rom:"net",      se:"Fyra" },
+      { emoji:"5️⃣", ko:"다섯", rom:"da-seot",  se:"Fem" },
+      { emoji:"6️⃣", ko:"여섯", rom:"yeo-seot", se:"Sex" },
+      { emoji:"7️⃣", ko:"일곱", rom:"il-gop",   se:"Sju" },
+      { emoji:"8️⃣", ko:"여덟", rom:"yeo-deol", se:"Åtta" },
+      { emoji:"9️⃣", ko:"아홉", rom:"a-hop",    se:"Nio" },
+      { emoji:"🔟", ko:"열",   rom:"yeol",     se:"Tio" }
+    ]
+  },
+  {
+    id:"test", name:"Test", ko:"테스트", emoji:"🧠", bg:["#ffd1d1","#ff8a8a"], isTest:true
   }
 ];
 
@@ -465,10 +543,17 @@ const CATEGORIES = [
 let voices = [];
 function loadVoices(){ voices = window.speechSynthesis ? speechSynthesis.getVoices() : []; }
 if (window.speechSynthesis){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+// Prefer a female-sounding voice when the OS offers a choice for that language.
+const FEMALE_VOICE_NAMES = ["Flo","Shelley","Sandy","Grandma","Samantha","Kyoko","Yuna","Alva","Anna","Alice","Amelie","Milena"];
 function pickVoice(lang){
   const base = lang.split('-')[0];
-  return voices.find(v => v.lang && v.lang.toLowerCase() === lang.toLowerCase())
-      || voices.find(v => v.lang && v.lang.toLowerCase().startsWith(base)) || null;
+  const exact = voices.filter(v => v.lang && v.lang.toLowerCase() === lang.toLowerCase());
+  const matches = exact.length ? exact : voices.filter(v => v.lang && v.lang.toLowerCase().startsWith(base));
+  for (const name of FEMALE_VOICE_NAMES){
+    const female = matches.find(v => v.name.startsWith(name));
+    if (female) return female;
+  }
+  return matches[0] || null;
 }
 function speak(text, lang, onstart, onend){
   if (!window.speechSynthesis){ if(onend) onend(); return; }
@@ -484,6 +569,36 @@ function speak(text, lang, onstart, onend){
 const sayKorean  = (t, on, off) => speak(t, "ko-KR", on, off);
 const saySwedish = (t) => speak(t, "sv-SE");
 
+/* ===== Sound effects ===== */
+let audioCtx = null;
+function getAudioCtx(){
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+// Synthesized applause (no audio files): a few filtered noise bursts.
+function playClap(){
+  const ctx = getAudioCtx();
+  const now = ctx.currentTime;
+  for (let i = 0; i < 5; i++){
+    const start = now + i * 0.11 + Math.random() * 0.03;
+    const dur = 0.09;
+    const bufferSize = Math.floor(ctx.sampleRate * dur);
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let j = 0; j < bufferSize; j++) data[j] = (Math.random() * 2 - 1) * (1 - j / bufferSize);
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = 1200;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.9, start);
+    gain.gain.exponentialRampToValueAtTime(0.01, start + dur);
+    noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+    noise.start(start); noise.stop(start + dur);
+  }
+}
+
 /* ===== Elements ===== */
 const body      = document.body;
 const homeGrid  = document.getElementById('homeGrid');
@@ -496,11 +611,26 @@ const catTitle  = document.getElementById('catTitle');
 const tabs       = document.querySelectorAll('.tab');
 const gameModeBtns = document.querySelectorAll('.game-mode-btn');
 const gameSubs     = document.querySelectorAll('.game-sub');
+const modeListenEl = document.getElementById('mode-listen');
+const modeTrueFalseEl = document.getElementById('mode-truefalse');
+const listenCounterEl = document.getElementById('listenCounter');
+const listenReplayBtn = document.getElementById('listenReplay');
 const memoryGrid = document.getElementById('memoryGrid');
 const tfPicture  = document.getElementById('tfPicture');
 const tfListenBtn = document.getElementById('tfListenBtn');
 const tfYes = document.getElementById('tfYes');
 const tfNo  = document.getElementById('tfNo');
+const tfCounterEl = document.getElementById('tfCounter');
+const tfReplayBtn = document.getElementById('tfReplay');
+const testWrap = document.getElementById('testWrap');
+const testCounterEl = document.getElementById('testCounter');
+const testPromptText = document.getElementById('testPromptText');
+const testListenBtn = document.getElementById('testListenBtn');
+const testScene = document.getElementById('testScene');
+const testChoices = document.getElementById('testChoices');
+const testReplayBtn = document.getElementById('testReplay');
+
+const ROUNDS_PER_SESSION = 10;
 
 let activeCat = null;      // current category object
 let current = null;        // current game target (Lyssna-läget)
@@ -508,8 +638,10 @@ let locked = false;
 let hintTimer = null;      // shows the right answer if the child stalls
 let activeGameMode = 'listen';  // which of the 3 game screens is showing
 let activeGameStop = null;      // teardown for whichever game is currently running
+let listenRound = 0;
+let tfRound = 0;
+let testRound = 0;
 const CHEERS = ["🎉","⭐","🌟","👏","🥳","🚀"];
-const PRAISE = ["Bra!","Duktig!","Ja!","Toppen!","Wow!"];  // spoken Swedish praise
 
 /* ===== Helpers to render an item's picture ===== */
 function pictureHTML(item){
@@ -536,7 +668,7 @@ CATEGORIES.forEach(cat => {
     <span class="cat-emoji">${cat.emoji}</span>
     <div class="cat-name">${cat.name}</div>
     <div class="cat-ko">${cat.ko}</div>`;
-  btn.addEventListener('click', () => openCategory(cat));
+  btn.addEventListener('click', () => cat.isTest ? openTest(cat) : openCategory(cat));
   homeGrid.appendChild(btn);
 });
 
@@ -548,6 +680,10 @@ function openCategory(cat){
   if (activeGameStop) activeGameStop();
   activeCat = cat;
   current = null;
+  listenRound = 0;
+  tfRound = 0;
+  modeListenEl.classList.remove('done');
+  modeTrueFalseEl.classList.remove('done');
   activeGameMode = 'listen';
   gameModeBtns.forEach(b => b.classList.toggle('active', b.dataset.mode === 'listen'));
   gameSubs.forEach(s => s.classList.toggle('active', s.id === 'mode-listen'));
@@ -565,11 +701,24 @@ function goHome(){
   activeGameStop = null;
   activeCat = null; current = null;
   body.classList.remove('in-category');
+  body.classList.remove('in-test');
   body.style.background = 'linear-gradient(160deg, #ffe27a, #ff9e7a)';
   catTitle.style.display = 'none';
   setScreen('home');
 }
 backBtn.addEventListener('click', goHome);
+
+/* ===== Test — no Explore, straight into the mixed quiz ===== */
+function openTest(cat){
+  if (activeGameStop) activeGameStop();
+  activeCat = cat;
+  body.classList.add('in-test');
+  body.style.background = `linear-gradient(160deg, ${cat.bg[0]}, ${cat.bg[1]})`;
+  catTitle.style.display = 'flex';
+  catTitle.innerHTML = `${cat.emoji} ${cat.name}`;
+  setScreen('test');
+  startTestQuiz();
+}
 
 /* ===== Game-mode switcher (Lyssna / Memory / Sant-Falskt) ===== */
 function switchGameMode(mode){
@@ -627,6 +776,8 @@ function newRound(){
   if (!activeCat) return;
   locked = false;
   clearHint();
+  listenRound++;
+  listenCounterEl.textContent = `Fråga ${listenRound} / ${ROUNDS_PER_SESSION}`;
   const n = Math.min(2, activeCat.items.length);
   const options = shuffle(activeCat.items).slice(0, n);
   current = options[Math.floor(Math.random()*options.length)];
@@ -655,18 +806,27 @@ function onChoice(btn, item){
     clearHint();
     btn.classList.add('correct');
     celebrate();
-    // Say the word, then a cheerful spoken "Bra!" so success is heard, not just seen.
-    sayKorean(current.ko, null, () => saySwedish(PRAISE[Math.floor(Math.random()*PRAISE.length)]));
-    setTimeout(newRound, 1900);
+    sayKorean(current.ko);
+    if (listenRound >= ROUNDS_PER_SESSION) setTimeout(finishListenSession, 1200);
+    else setTimeout(newRound, 1900);
   } else {
-    // Never punish: little shake, then re-say the word and point at the right one.
+    // Never punish: little shake, then re-say the word — but don't reveal the answer.
     btn.classList.remove('wrong'); void btn.offsetWidth; btn.classList.add('wrong');
-    const right = choicesEl.querySelector('.choice[data-correct="1"]');
-    if (right) right.classList.add('hint');
     sayKorean(current.ko, null, () => listenBtn.classList.remove('speaking'));
     listenBtn.classList.add('speaking');
   }
 }
+function finishListenSession(){
+  modeListenEl.classList.add('done');
+  celebrate();
+  playClap();
+}
+listenReplayBtn.addEventListener('click', () => {
+  modeListenEl.classList.remove('done');
+  listenRound = 0;
+  current = null;
+  newRound();
+});
 function celebrate(){
   cheerEl.textContent = CHEERS[Math.floor(Math.random()*CHEERS.length)];
   cheerEl.classList.remove('show'); void cheerEl.offsetWidth; cheerEl.classList.add('show');
@@ -753,7 +913,7 @@ function onMemoryFlip(idx){
     memFirstIdx = null; memBusy = false;
     if (memMatchedCount === memTotalPairs){
       celebrate();
-      saySwedish(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
+      playClap();
     }
   } else {
     cardEl.classList.add('wrong'); firstEl.classList.add('wrong');
@@ -785,6 +945,8 @@ function newTFRound(cat){
   tfLocked = false;
   tfYes.classList.remove('correct','wrong');
   tfNo.classList.remove('correct','wrong');
+  tfRound++;
+  tfCounterEl.textContent = `Fråga ${tfRound} / ${ROUNDS_PER_SESSION}`;
   const shown = cat.items[Math.floor(Math.random()*cat.items.length)];
   tfCurrent = shown;
   tfPicture.innerHTML = pictureHTML(shown);
@@ -805,17 +967,159 @@ function onTF(answerYes){
   if (right){
     btn.classList.add('correct');
     celebrate();
-    sayKorean(tfSpokenItem.ko, null, () => saySwedish(PRAISE[Math.floor(Math.random()*PRAISE.length)]));
-    tfTimer = setTimeout(() => newTFRound(activeCat), 1900);
+    sayKorean(tfSpokenItem.ko);
+    if (tfRound >= ROUNDS_PER_SESSION) tfTimer = setTimeout(finishTFSession, 1200);
+    else tfTimer = setTimeout(() => newTFRound(activeCat), 1900);
   } else {
     btn.classList.remove('wrong'); void btn.offsetWidth; btn.classList.add('wrong');
     playTF();
     tfLocked = false;
   }
 }
+function finishTFSession(){
+  modeTrueFalseEl.classList.add('done');
+  celebrate();
+  playClap();
+}
+tfReplayBtn.addEventListener('click', () => {
+  modeTrueFalseEl.classList.remove('done');
+  tfRound = 0;
+  startTrueFalseGame(activeCat);
+});
 tfYes.addEventListener('click', () => onTF(true));
 tfNo.addEventListener('click', () => onTF(false));
 tfListenBtn.addEventListener('click', playTF);
+
+/* ===== Level 2e: Test — mixed quiz combining all categories ===== */
+// Korean uses native-number "counting forms" before a counter word (개/마리/대):
+// 하나→한, 둘→두, 셋→세, 넷→네; 다섯 and up stay the same.
+const COUNT_FORMS = ["한","두","세","네","다섯","여섯","일곱","여덟","아홉","열"];
+const NUM_EMOJI = ["1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣","🔟"];
+// Detects a trailing consonant (batchim) to pick the right subject particle 이/가.
+function hasBatchim(word){
+  if (!word) return false;
+  const code = word.charCodeAt(word.length - 1) - 0xAC00;
+  if (code < 0 || code > 11171) return false;
+  return code % 28 !== 0;
+}
+const testCountableCats = CATEGORIES.filter(c => c.counter);
+const TEST_QUESTION_TYPES = ['count', 'howmany', 'category'];
+
+let testTimer = null;
+let testLocked = false;
+let testReplaySpeak = null; // replays the current question's spoken prompt
+
+function stopTestQuiz(){
+  if (window.speechSynthesis) speechSynthesis.cancel();
+  clearTimeout(testTimer);
+  testLocked = false;
+}
+function startTestQuiz(){
+  activeGameStop = stopTestQuiz;
+  testWrap.classList.remove('done');
+  testRound = 0;
+  newTestRound();
+}
+function newTestRound(){
+  clearTimeout(testTimer);
+  testLocked = false;
+  testRound++;
+  testCounterEl.textContent = `Fråga ${testRound} / ${ROUNDS_PER_SESSION}`;
+  const type = shuffle(TEST_QUESTION_TYPES)[0];
+  if (type === 'count') renderCountQuestion();
+  else if (type === 'howmany') renderHowManyQuestion();
+  else renderCategoryQuestion();
+}
+function finishTestQuiz(){
+  testWrap.classList.add('done');
+  celebrate();
+  playClap();
+}
+function testAdvance(){
+  if (testRound >= ROUNDS_PER_SESSION) testTimer = setTimeout(finishTestQuiz, 1200);
+  else testTimer = setTimeout(newTestRound, 1900);
+}
+function speakTestPrompt(phrase){
+  testReplaySpeak = () => {
+    testListenBtn.classList.add('speaking');
+    sayKorean(phrase, null, () => testListenBtn.classList.remove('speaking'));
+  };
+  testReplaySpeak();
+}
+function renderScene(item, n){
+  testScene.innerHTML = '';
+  for (let i = 0; i < n; i++) testScene.appendChild(pictureNode(item));
+}
+function renderNumberChoices(correctN, poolMax){
+  testChoices.innerHTML = '';
+  const options = new Set([correctN]);
+  let guard = 0;
+  while (options.size < Math.min(4, poolMax) && guard++ < 50) options.add(1 + Math.floor(Math.random() * poolMax));
+  shuffle([...options]).forEach(n => {
+    const b = document.createElement('button');
+    b.className = 'choice';
+    b.textContent = NUM_EMOJI[n - 1];
+    if (n === correctN) b.dataset.correct = '1';
+    b.addEventListener('click', () => onTestAnswer(b, n === correctN));
+    testChoices.appendChild(b);
+  });
+}
+function onTestAnswer(btn, isCorrect){
+  if (testLocked) return;
+  testLocked = true;
+  if (isCorrect){
+    btn.classList.add('correct');
+    celebrate();
+    testAdvance();
+  } else {
+    // Never punish: little shake, let them try again — no answer reveal.
+    btn.classList.remove('wrong'); void btn.offsetWidth; btn.classList.add('wrong');
+    testLocked = false;
+  }
+}
+function renderCountQuestion(){
+  const cat = shuffle(testCountableCats)[0];
+  const item = shuffle(cat.items)[0];
+  const n = 3 + Math.floor(Math.random() * 7); // 3..9
+  testPromptText.textContent = 'Hur många är det? 🔢';
+  renderScene(item, n);
+  speakTestPrompt(`${item.ko}${hasBatchim(item.ko) ? '이' : '가'} ${COUNT_FORMS[n - 1]} ${cat.counter} 있어요.`);
+  renderNumberChoices(n, 10);
+}
+function renderHowManyQuestion(){
+  const cat = shuffle(testCountableCats)[0];
+  const item = shuffle(cat.items)[0];
+  const c = 3 + Math.floor(Math.random() * 6); // 3..8
+  const need = 1 + Math.floor(Math.random() * 3); // 1..3
+  const target = Math.min(c + need, 10);
+  const actualNeed = target - c;
+  testPromptText.textContent = 'Hur många fler behövs? ➕';
+  renderScene(item, c);
+  const particle = hasBatchim(item.ko) ? '이' : '가';
+  speakTestPrompt(`${item.ko}${particle} ${COUNT_FORMS[c - 1]} ${cat.counter} 있어요. ${COUNT_FORMS[target - 1]} ${cat.counter}가 필요해요. 몇 ${cat.counter} 더 필요해요?`);
+  renderNumberChoices(actualNeed, 4);
+}
+function renderCategoryQuestion(){
+  const pool = CATEGORIES.filter(c => !c.isTest);
+  const cat = shuffle(pool)[0];
+  const item = shuffle(cat.items)[0];
+  testScene.innerHTML = '';
+  testPromptText.textContent = 'Vilken kategori hör ordet till? 🧩';
+  speakTestPrompt(item.ko);
+  const wrongCats = shuffle(pool.filter(c => c !== cat)).slice(0, 3);
+  const options = shuffle([cat, ...wrongCats]);
+  testChoices.innerHTML = '';
+  options.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'choice cat-choice';
+    b.innerHTML = `<span>${c.emoji}</span><span class="cat-choice-label">${c.name}</span>`;
+    if (c === cat) b.dataset.correct = '1';
+    b.addEventListener('click', () => onTestAnswer(b, c === cat));
+    testChoices.appendChild(b);
+  });
+}
+testReplayBtn.addEventListener('click', () => { testWrap.classList.remove('done'); startTestQuiz(); });
+testListenBtn.addEventListener('click', () => { if (testReplaySpeak) testReplaySpeak(); });
 
 /* ===== Tab switching (within a category) ===== */
 tabs.forEach(tab => {
@@ -831,9 +1135,10 @@ tabs.forEach(tab => {
   });
 });
 
-/* Warm up speech on first touch (needed on mobile) */
+/* Warm up speech + audio on first touch (needed on mobile) */
 document.body.addEventListener('touchstart', function warm(){
   if (window.speechSynthesis){ const u=new SpeechSynthesisUtterance(' '); speechSynthesis.speak(u); }
+  getAudioCtx();
   document.body.removeEventListener('touchstart', warm);
 }, { once:true });
 </script>
