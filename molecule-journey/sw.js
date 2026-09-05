@@ -1,5 +1,5 @@
 /* molecule-journey — minimal offline shell SW */
-const CACHE = "vibe-molecule-journey-v12";
+const CACHE = "vibe-molecule-journey-v13";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
   "./assets/ship-cargo.glb",
