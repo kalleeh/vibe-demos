@@ -1,7 +1,8 @@
 /* clinic-admin — minimal offline shell SW */
-const CACHE = "vibe-clinic-admin-v16";
+const CACHE = "vibe-clinic-admin-v17";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
+  "./vendor/xlsx.full.min.js",
   "./data/kcd9.json",
   "./data/jabo.json",
   "./data/bigeup.json",
@@ -21,9 +22,11 @@ self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
   // Never intercept cross-origin requests — PocketBase API/realtime
-  // (clinic-admin.pb.gurum.se), the PB SDK ESM (jsdelivr), the Anthropic
-  // API, etc. Let them hit the network untouched so the live intake board
-  // and AI calls are always fresh and the SW never caches stale data.
+  // (clinic-admin.pb.gurum.se), the PB SDK ESM (jsdelivr), Tesseract.js
+  // (jsdelivr, too large to precache — OCR is online-only), the Claude
+  // proxy (ai.pb.gurum.se), etc. Let them hit the network untouched so the
+  // live intake board and AI calls are always fresh and the SW never caches
+  // stale data. SheetJS is vendored (./vendor) and precached above.
   if (new URL(req.url).origin !== self.location.origin) return;
   if (req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html")) {
     e.respondWith(

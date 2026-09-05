@@ -1,7 +1,7 @@
 {
   "name": "한방병원 행정 도구함 — Clinic Admin Toolkit",
   "short_name": "행정 도구함",
-  "description": "한방병원 행정원장을 위한 6개 탭 도구함. 파일을 올리면 변환·검증·다운로드까지 브라우저 안에서 완료됩니다. 외부 전송 없음.",
+  "description": "한방병원 행정원장을 위한 10개 탭 도구함. 파일 변환·검증·다운로드는 브라우저 안에서 완료됩니다. 예외: AI 탭 메모는 외부 AI 서버(ai.pb.gurum.se)로 전송(저장 안 됨), 접수 현황판은 공유 PocketBase 데모 보드.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
