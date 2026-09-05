@@ -171,7 +171,9 @@ header.top {
 .tab.active .meta { color: var(--celadon-d); }
 
 /* ---------- panels ---------- */
-.panel { display: none; }
+/* overflow-x: clip — the right-column .fn-tip tooltips (hidden until hover)
+   otherwise poke ~3px past a 390px viewport and give phones a sideways wiggle. */
+.panel { display: none; overflow-x: clip; }
 .panel.active { display: block; }
 
 /* ---------- intro ---------- */
@@ -580,17 +582,28 @@ header.top {
   border-radius: 2px;
   font-weight: 500;
 }
-.type-hero .meta .pill.demo {
-  background: var(--celadon);
-  color: var(--ink);
-}
-.type-hero .meta .meta-note {
-  color: var(--accent);
-  font-weight: 500;
-  align-self: center;
-  letter-spacing: 0.08em;
+/* AI status pill — the ONE truth-teller next to the AI output header.
+   live: ink + pulsing celadon dot · fallback: rust (warning) after a failed live call. */
+.type-hero .meta .pill.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   text-transform: none;
+  letter-spacing: 0.06em;
+  font-size: 10.5px;
 }
+.type-hero .meta .pill.status .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--celadon);
+  flex-shrink: 0;
+}
+.type-hero .meta .pill.status.live .dot { animation: pulse 1.4s infinite ease-in-out; }
+.type-hero .meta .pill.status.fallback {
+  background: var(--accent);
+  color: var(--paper);
+}
+.type-hero .meta .pill.status.fallback .dot { background: var(--paper); }
 
 /* axes */
 .axes {
@@ -1441,34 +1454,16 @@ textarea.ai-input::placeholder {
 }
 .controls .grow { flex: 1; }
 
-.mode-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+/* disclosure under the trigger — where the text goes, and that it isn't kept */
+.ai-disclosure {
   font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
   color: rgba(31, 38, 32, 0.55);
-  padding: 6px 10px;
-  border: 1px dashed var(--line-strong);
-  border-radius: 2px;
+  margin: -12px 0 22px;
+  padding: 0 4px;
+  line-height: 1.5;
 }
-.mode-pill .dot {
-  width: 6px; height: 6px;
-  background: var(--celadon);
-  border-radius: 50%;
-}
-.mode-pill.live .dot {
-  background: var(--accent-2);
-  animation: pulse 1.4s infinite ease-in-out;
-}
-.mode-pill.fallback {
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-  border-style: solid;
-}
-.mode-pill.fallback .dot { background: var(--accent); }
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.4; }
@@ -1506,11 +1501,11 @@ textarea.ai-input::placeholder {
 }
 .stage-label.active { display: block; }
 
-/* error */
+/* error — warning colour (rust), with the two-way out: retry / example */
 .error {
-  background: rgba(107, 148, 130, 0.1);
-  border: 1px solid rgba(107, 148, 130, 0.4);
-  color: var(--accent-2);
+  background: rgba(181, 74, 50, 0.07);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--accent);
   padding: 14px 16px;
   border-radius: 2px;
   margin-bottom: 18px;
@@ -1519,6 +1514,239 @@ textarea.ai-input::placeholder {
   display: none;
 }
 .error.active { display: block; }
+.error .error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.error .btn { padding: 9px 14px; font-size: 13px; }
+.error .btn.secondary { color: var(--ink); }
+
+/* ---------- 궁합 / compatibility ---------- */
+.compat-wrap { margin-top: 18px; }
+.compat-wrap[hidden] { display: none; }
+.compat-picker, .compat-card {
+  background: rgba(31, 38, 32, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 24px 26px;
+  animation: fadeUp 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.compat-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.compat-head h3 {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--celadon-d);
+  font-weight: 500;
+}
+.compat-head button {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--accent-2);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  white-space: nowrap;
+}
+.compat-head button:hover { color: var(--accent); }
+.compat-sub {
+  font-family: "Noto Serif KR", serif;
+  font-style: italic;
+  font-size: 13px;
+  color: rgba(31, 38, 32, 0.6);
+  margin-bottom: 18px;
+}
+.compat-sub em { font-style: normal; color: var(--accent-2); font-weight: 600; }
+.compat-group { margin-bottom: 14px; }
+.compat-group:last-child { margin-bottom: 0; }
+.compat-group-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--group-anchor) 55%, var(--ink));
+  margin-bottom: 8px;
+}
+.compat-chips {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.compat-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  padding: 10px 12px;
+  background: var(--paper);
+  border: 1px solid color-mix(in srgb, var(--group-anchor) 28%, var(--line));
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--ink);
+  transition: border-color 0.16s, background 0.16s, transform 0.1s;
+  min-height: 56px;
+}
+.compat-chip:hover, .compat-chip:focus-visible {
+  border-color: var(--accent-2);
+  background: rgba(107, 148, 130, 0.08);
+  transform: translateY(-1px);
+  outline: none;
+}
+.compat-chip.me { border-style: dashed; }
+.compat-chip .cc-code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--celadon-d);
+}
+.compat-chip .cc-nick {
+  font-size: 11.5px;
+  color: rgba(31, 38, 32, 0.7);
+  line-height: 1.35;
+}
+.compat-pair {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-top: 10px;
+  font-family: "Cormorant Garamond", "Georgia", serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(44px, 11vw, 72px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+.compat-pair .cp-x { font-size: 0.5em; color: var(--accent); font-style: normal; }
+.compat-nicks {
+  font-family: "Noto Serif KR", serif;
+  font-size: 13.5px;
+  color: rgba(31, 38, 32, 0.7);
+  margin-top: 8px;
+}
+.compat-score {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 14px;
+}
+.compat-score .dots { display: inline-flex; gap: 6px; }
+.compat-score .dots .dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+}
+.compat-score .dots .dot.on {
+  background: linear-gradient(135deg, var(--accent-2), var(--celadon));
+  border-color: transparent;
+}
+.compat-score .score-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--celadon-d);
+}
+.compat-headline {
+  font-family: "Noto Serif KR", serif;
+  font-weight: 500;
+  font-size: clamp(18px, 3.2vw, 22px);
+  line-height: 1.4;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.compat-headline-alt {
+  font-family: "Cormorant Garamond", "Noto Serif KR", serif;
+  font-style: italic;
+  font-size: 16px;
+  color: rgba(31, 38, 32, 0.6);
+  margin-bottom: 16px;
+}
+.compat-card .hint-grid { margin: 0 0 14px; }
+.compat-tip {
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  padding: 12px 14px;
+  background: rgba(181, 74, 50, 0.04);
+}
+.compat-tip .hint-h { color: var(--accent); }
+.compat-tip p {
+  font-family: "Noto Serif KR", serif;
+  font-size: 14px;
+  line-height: 1.7;
+  color: rgba(31, 38, 32, 0.88);
+}
+.compat-note {
+  font-family: "Noto Serif KR", serif;
+  font-style: italic;
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(31, 38, 32, 0.5);
+  margin-top: 14px;
+}
+.compat-card .result-actions { margin-top: 16px; }
+@media (max-width: 580px) {
+  .compat-picker, .compat-card { padding: 20px 18px; }
+  .compat-chips { grid-template-columns: repeat(2, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .compat-picker, .compat-card { animation: none; }
+  .compat-chip { transition: none; }
+}
+
+/* ---------- one-time mobile first-run hint ---------- */
+.first-hint {
+  display: none;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 12px 12px 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent-2) 40%, var(--line));
+  border-left: 3px solid var(--accent-2);
+  border-radius: 4px;
+  background: rgba(107, 148, 130, 0.08);
+  animation: fadeUp 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.first-hint-text {
+  flex: 1;
+  font-family: "Noto Serif KR", serif;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+.first-hint-text em { font-style: normal; color: var(--accent-2); font-weight: 600; }
+.first-hint-x {
+  background: none;
+  border: none;
+  color: rgba(31, 38, 32, 0.55);
+  font-size: 20px;
+  line-height: 1;
+  padding: 0 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.first-hint-x:hover { color: var(--ink); }
+@media (max-width: 600px) {
+  .first-hint:not([hidden]) { display: flex; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .first-hint { animation: none; }
+}
 
 /* footer */
 footer.bottom {
@@ -1550,7 +1778,7 @@ footer.bottom {
   .axis-fill { transition: none; }
   .progress-fill { transition: none; }
   .loading-bar .stripe { animation: none; opacity: 0.6; }
-  .mode-pill.live .dot { animation: none; }
+  .type-hero .meta .pill.status.live .dot { animation: none; }
 }
 </style>
 </head>
@@ -1590,6 +1818,10 @@ footer.bottom {
 <section class="panel active" id="panel-test" role="tabpanel" aria-labelledby="tab-test">
 
   <div id="test-intro">
+    <div class="first-hint" id="first-hint" hidden>
+      <span class="first-hint-text" data-i18n-html="hintFirstHTML">28문항이면 <em>3분</em>, 글 한 편 붙이면 <em>AI</em>가 결을 읽어요</span>
+      <button type="button" class="first-hint-x" data-action="hint-dismiss" aria-label="닫기" data-i18n-attr="aria-label:hintDismiss">×</button>
+    </div>
     <div class="intro-card">
       <h2 data-i18n="introH">두 가지 길이로 풀 수 있어요</h2>
       <p data-i18n-html="introP1">각 축(외향·내향, 감각·직관, 사고·감정, 판단·인식)을 강제선택으로 측정합니다.
@@ -1603,7 +1835,7 @@ footer.bottom {
         <button class="length-card" data-length="quick">
           <div class="length-num">28</div>
           <div class="length-label" data-i18n="lenQuickLabel">빠른 인상</div>
-          <div class="length-meta" data-i18n="lenQuickMeta">~5분 · 7문항/축</div>
+          <div class="length-meta" data-i18n="lenQuickMeta">~3분 · 7문항/축</div>
           <div class="length-desc" data-i18n="lenQuickDesc">각 축의 5가지 결을 한 번씩 짚는 빠른 검사. 친구와 비교하기 좋아요.</div>
           <div class="length-cta" data-i18n="lenQuickCta">시작 →</div>
         </button>
@@ -1670,7 +1902,7 @@ footer.bottom {
       </div>
     </div>
 
-    <p class="ai-intro-foot" data-i18n-html="aiIntroFoot">실시간 AI(Claude Sonnet)로 읽어요. 연결이 안 되면 미리 만든 <em>예시 결과</em>를 보여드려요 — 그때는 결과에 DEMO 표시가 붙습니다.</p>
+    <p class="ai-intro-foot" data-i18n-html="aiIntroFoot">실시간 AI(Claude)로 읽어요. 연결이 안 되면 미리 만든 <em>예시 결과</em>를 볼 수 있어요 — 그때는 결과에 '예시 결과' 표시가 붙습니다.</p>
   </div>
 
   <div class="sample-row">
@@ -1690,15 +1922,15 @@ footer.bottom {
   <div class="mic-hint" id="mic-hint"></div>
 
   <div class="controls">
-    <span class="mode-pill live" id="mode-pill"><span class="dot"></span><span id="mode-pill-text" data-i18n="modeLive">실시간 AI · Sonnet</span></span>
     <button class="mic-button" id="btn-mic" type="button" aria-pressed="false">
       <span class="mic-dot"></span><span class="mic-label" data-i18n="micLabel">말하기</span>
     </button>
     <div class="grow"></div>
     <button class="btn" id="btn-analyze" data-i18n="readBtn">읽어줘 →</button>
   </div>
+  <p class="ai-disclosure" data-i18n="aiDisclosure">입력한 글은 ai.pb.gurum.se 로 전송되며 저장되지 않습니다.</p>
 
-  <div class="error" id="error"></div>
+  <div class="error" id="error" role="alert"></div>
   <div class="stage-label" id="stage-label" data-i18n="stageReading">분석 중 — 글의 결을 읽는 중…</div>
   <div class="loading-bar" id="loading-bar"><div class="stripe"></div></div>
 
@@ -1759,10 +1991,22 @@ const STR = {
     aiP1: "일기, 카톡 한 토막, SNS 게시물, 블로그 한 단락 — 200~600자 정도의 자연스러운 한국어 글을 붙여넣으면 Claude가 글의 결을 읽고 16유형 중 하나를 자신 있게 골라냅니다. 한국 MBTI 문화 별명까지 같이 달아줍니다.",
     hintGood1: "혼잣말처럼 적은 일기 한 토막", hintGood2: "친구에게 푸념하듯 보낸 카톡 단락", hintGood3: "최근 있었던 한 가지 사건·감정", hintGood4: "자연스러운 반말/존댓말, 솔직한 톤",
     hintBad1: "이력서·자기소개서처럼 정형화된 글", hintBad2: "공지문, 뉴스 인용, 기사 같은 톤", hintBad3: "한두 줄짜리 짧은 메시지 (50자 미만)", hintBad4: "여러 사람의 대화가 섞인 채팅 로그",
-    aiIntroFoot: "실시간 AI(Claude Sonnet)로 읽어요. 연결이 안 되면 미리 만든 <em>예시 결과</em>를 보여드려요 — 그때는 결과에 DEMO 표시가 붙습니다.",
+    aiIntroFoot: "실시간 AI(Claude)로 읽어요. 연결이 안 되면 미리 만든 <em>예시 결과</em>를 볼 수 있어요 — 그때는 결과에 '예시 결과' 표시가 붙습니다.",
     sampleLabel: "예시 글로 시작하기 →",
-    modeLive: "실시간 AI · Sonnet", modeFallback: "예시 결과 — 실시간 연결 실패",
-    fallbackNote: "실시간 연결이 안 되어 예시 결과를 보여드려요",
+    // Shared AI-state convention (all AI demos): one pill, three states.
+    statusLive: "라이브 · Claude", statusFallback: "예시 결과 · 실시간 연결 실패", statusExample: "예시 모드",
+    readBusy: "읽는 중…",
+    errBusy: "라이브 서버가 잠시 바쁩니다 ({NNN}) — 다시 시도하거나 예시 결과를 볼 수 있어요",
+    retryBtn: "다시 시도", exampleBtn: "예시 결과 보기",
+    aiDisclosure: "입력한 글은 ai.pb.gurum.se 로 전송되며 저장되지 않습니다.",
+    // 궁합
+    compatBtn: "궁합 보기", compatHeading: "우리 궁합", compatClose: "닫기", compatChange: "다른 유형 고르기",
+    compatPickSubHTML: "내 결은 <em>{ME}</em> — 상대의 유형을 고르면 두 결이 어디서 맞고 어디서 부딪히는지 읽어드려요.",
+    compatScoreLabel: "결 맞음", compatClicks: "잘 맞는 결", compatGrinds: "부딪히는 결", compatTipLabel: "함께 할 때 팁",
+    compatShare: "우리 궁합 카드", compatLink: "링크 복사", compatLinkDone: "복사됨 ✓",
+    compatNote: "궁합은 두 유형의 인지 기능 스택이 어떻게 맞물리는지 읽은 결이에요 — 운명이 아니라 서로를 이해하는 실마리.",
+    // 첫 방문 힌트 (모바일)
+    hintFirstHTML: "28문항이면 <em>3분</em>, 글 한 편 붙이면 <em>AI</em>가 결을 읽어요", hintDismiss: "닫기",
     resumeText: "진행 중인 검사가 있어요", resumeBtn: "이어서 하기 →", resumeDiscard: "지우기",
     borderline: "경계",
     lengthNoteFull: "{N}문항 정밀 검사 — 4축과 20개 하위 결을 함께 봅니다.",
@@ -1770,7 +2014,7 @@ const STR = {
     errBadShape: "AI 응답 형식이 맞지 않아요.",
     counterZero: "0자", counterHintInit: "한 단락 정도 더 적어주세요",
     docTitle: "MBTI · 성격의 결 — Korean MBTI Read",
-    lenQuickLabel: "빠른 인상", lenQuickMeta: "~5분 · 7문항/축", lenQuickCta: "시작 →",
+    lenQuickLabel: "빠른 인상", lenQuickMeta: "~3분 · 7문항/축", lenQuickCta: "시작 →",
     lenFullLabel: "정밀 · Form M 길이", lenFullMeta: "~15분 · 21·26·24·22 분포", lenFullCta: "시작 →",
     aiH: "당신의 글을 읽고 유형을 추론합니다",
     hintGoodH: "잘 읽히는 글", hintBadH: "덜 읽히는 글",
@@ -1801,7 +2045,7 @@ const STR = {
     navBack: "← 이전", navNext: "다음 →", navSeeResult: "결과 보기 →",
     restartTest: "다시 풀기", restartAI: "지우고 다시",
     secondaryLabel: "2순위",
-    pillFull: "93-Q FORM-M LENGTH", pillQuick: "28-Q QUICK", pillDemo: "DEMO",
+    pillFull: "93-Q FORM-M LENGTH", pillQuick: "28-Q QUICK",
     errTooShort: "조금 더 길게 적어주세요. 200자 이상이 가장 정확합니다.",
     errGeneric: "오류가 발생했습니다.",
     hintShort: "한 단락 정도 적어주세요", hintMin: "조금 더 길게 — 80자 이상부터 가능",
@@ -1828,10 +2072,19 @@ const STR = {
     aiP1: "Paste a diary entry, a chat snippet, a social post, or a blog paragraph - about 200-600 characters of natural writing - and Claude reads its grain and confidently picks one of the 16 types. It even adds a Korean MBTI-culture nickname.",
     hintGood1: "A diary entry written like talking to yourself", hintGood2: "A chat message venting to a friend", hintGood3: "One recent event or feeling", hintGood4: "Natural casual or polite tone, honest voice",
     hintBad1: "Formal writing like a resume or cover letter", hintBad2: "Announcements, news quotes, article tone", hintBad3: "A one-or-two-line short message (under 50 chars)", hintBad4: "A chat log mixing several people's voices",
-    aiIntroFoot: "Read live by Claude Sonnet. If the connection fails you'll see a pre-made <em>example result</em> instead — marked DEMO.",
+    aiIntroFoot: "Read live by Claude. If the connection fails you can view a pre-made <em>example result</em> instead — it is labelled 'Example result'.",
     sampleLabel: "Start with a sample →",
-    modeLive: "Live AI · Sonnet", modeFallback: "Example result — live read failed",
-    fallbackNote: "Live read unavailable — showing an example result",
+    statusLive: "Live · Claude", statusFallback: "Example result · live connection failed", statusExample: "Example mode",
+    readBusy: "Reading…",
+    errBusy: "The live server is busy for a moment ({NNN}) — retry, or view an example result",
+    retryBtn: "Retry", exampleBtn: "View example result",
+    aiDisclosure: "Your text is sent to ai.pb.gurum.se and is not stored.",
+    compatBtn: "Compatibility", compatHeading: "Our pairing", compatClose: "Close", compatChange: "Pick another type",
+    compatPickSubHTML: "Your grain is <em>{ME}</em> — pick the other type and we'll read where the two click and where they grind.",
+    compatScoreLabel: "grain match", compatClicks: "Where it clicks", compatGrinds: "Where it grinds", compatTipLabel: "Tip for the two of you",
+    compatShare: "Save pair card", compatLink: "Copy link", compatLinkDone: "Copied ✓",
+    compatNote: "This pairing is read from how the two cognitive-function stacks interlock — not destiny, just a thread for understanding each other.",
+    hintFirstHTML: "28 questions take <em>3 minutes</em> — or paste a piece of writing and the <em>AI</em> reads your grain", hintDismiss: "Close",
     resumeText: "You have a test in progress", resumeBtn: "Continue →", resumeDiscard: "Discard",
     borderline: "Borderline",
     lengthNoteFull: "{N}-item precise test — 4 axes plus all 20 facets.",
@@ -1839,7 +2092,7 @@ const STR = {
     errBadShape: "The AI response didn't match the expected shape.",
     counterZero: "0 chars", counterHintInit: "About one more paragraph, please",
     docTitle: "MBTI · the grain of you — Korean MBTI Read",
-    lenQuickLabel: "Quick impression", lenQuickMeta: "~5 min · 7 items/axis", lenQuickCta: "Start →",
+    lenQuickLabel: "Quick impression", lenQuickMeta: "~3 min · 7 items/axis", lenQuickCta: "Start →",
     lenFullLabel: "Precise · Form M length", lenFullMeta: "~15 min · 21·26·24·22 split", lenFullCta: "Start →",
     aiH: "It reads your writing and infers your type",
     hintGoodH: "Reads well", hintBadH: "Reads poorly",
@@ -1870,7 +2123,7 @@ const STR = {
     navBack: "← Back", navNext: "Next →", navSeeResult: "See result →",
     restartTest: "Retake", restartAI: "Clear & redo",
     secondaryLabel: "Runner-up",
-    pillFull: "93-Q FORM-M LENGTH", pillQuick: "28-Q QUICK", pillDemo: "DEMO",
+    pillFull: "93-Q FORM-M LENGTH", pillQuick: "28-Q QUICK",
     errTooShort: "Please write a bit more — 200+ characters reads most accurately.",
     errGeneric: "Something went wrong.",
     hintShort: "About one paragraph, please", hintMin: "A little longer — 80+ characters to begin",
@@ -2429,6 +2682,210 @@ function rankLabel(ord) {
   return (LANG === "en") ? en[ord] : FN_RANK_LABEL[ord];
 }
 
+// ============================================================
+// 궁합 / COMPATIBILITY — deterministic, derived from FN_STACKS.
+// No "golden pair" tables: every sentence is a template resolved from how the
+// two stacks interlock (dominant/auxiliary sharing, same-vs-opposite S/N, T/F,
+// E/I, J/P). Framed as 잘 맞는 결 / 부딪히는 결, never destiny.
+// ============================================================
+const FN_INFO = {
+  Ni: { ko: "내향 직관", en: "introverted intuition", does_ko: "하나의 그림으로 수렴하는 통찰", does_en: "converging on one deep picture", weak_ko: "장기 방향 잡기", weak_en: "setting long-range direction" },
+  Ne: { ko: "외향 직관", en: "extraverted intuition", does_ko: "가능성을 사방으로 펼치는 발상", does_en: "fanning possibilities outward", weak_ko: "새 가능성 탐색", weak_en: "exploring new options" },
+  Si: { ko: "내향 감각", en: "introverted sensing", does_ko: "겪어 본 것을 차곡차곡 쌓는 기억", does_en: "layering lived experience into memory", weak_ko: "루틴 관리와 디테일 확인", weak_en: "routines and detail-checking" },
+  Se: { ko: "외향 감각", en: "extraverted sensing", does_ko: "지금 이 순간에 바로 반응하는 감각", does_en: "responding to the present moment as it is", weak_ko: "즉흥 대응·몸 쓰는 일", weak_en: "improvising and hands-on action" },
+  Ti: { ko: "내향 사고", en: "introverted thinking", does_ko: "안에서 논리를 맞춰 보는 정밀함", does_en: "checking logic for internal fit", weak_ko: "논리 점검", weak_en: "cold logic checks" },
+  Te: { ko: "외향 사고", en: "extraverted thinking", does_ko: "밖의 일을 효율로 정리하는 추진", does_en: "organizing the outer world for results", weak_ko: "일정·효율 정리", weak_en: "schedules and efficiency" },
+  Fi: { ko: "내향 감정", en: "introverted feeling", does_ko: "내 가치에 비춰 진심을 가늠하는 결", does_en: "weighing what is true to one's own values", weak_ko: "속마음 확인", weak_en: "checking what one actually feels" },
+  Fe: { ko: "외향 감정", en: "extraverted feeling", does_ko: "자리의 분위기와 사람을 함께 챙기는 결", does_en: "tending the room's mood and its people", weak_ko: "분위기·관계 챙김", weak_en: "reading the room and tending relationships" }
+};
+const LETTER_INFO = {
+  E: { ko: "외향", en: "Extraversion" }, I: { ko: "내향", en: "Introversion" },
+  S: { ko: "감각", en: "Sensing" },     N: { ko: "직관", en: "Intuition" },
+  T: { ko: "사고", en: "Thinking" },    F: { ko: "감정", en: "Feeling" },
+  J: { ko: "판단", en: "Judging" },     P: { ko: "인식", en: "Perceiving" }
+};
+// Tiny template filler: {key} → vars[key]. Throws on a missing slot so a typo
+// in a template can never leak "undefined" into the UI (the test asserts this).
+function fillT(tpl, vars) {
+  return tpl.replace(/\{(\w+)\}/g, (_, k) => {
+    if (vars[k] == null) throw new Error("compat template slot missing: " + k);
+    return String(vars[k]);
+  });
+}
+const COMPAT_T = {
+  headline: {
+    twin:      { ko: "거울처럼 닮은 결", en: "A mirror-image grain" },
+    same:      { ko: "같은 렌즈로 세상을 보는 결", en: "Looking through the same lens" },
+    handoff:   { ko: "한쪽이 밀면 다른 쪽이 받아주는 결", en: "One leads with what the other backs up" },
+    auxShared: { ko: "다른 입구, 같은 복도", en: "Different doors, same hallway" },
+    mirror:    { ko: "같은 언어, 반대 방향", en: "Same language, opposite direction" },
+    inferior:  { ko: "서로의 가장 서툰 결을 건드리는 짝", en: "Each touches the other's clumsiest grain" },
+    cross:     { ko: "겹치는 결이 적어 배울 게 많은 짝", en: "Little overlap, much to learn" }
+  },
+  click: {
+    twin:      { ko: "둘 다 {fn}({code})으로 세상을 먼저 읽는다 — {does}. 설명 없이 통하는 순간이 많다.", en: "Both read the world first through {en}({code}) — {does}. Plenty of moments that need no explaining." },
+    same:      { ko: "주기능이 같은 {fn}({code}) — {does}. 결론에 이르는 속도와 방식이 닮아 있다.", en: "Both lead with {en}({code}) — {does}. You reach conclusions at a similar pace, in a similar way." },
+    handoff:   { ko: "{lead}의 주기능 {fn}({code})를 {follow}는 부기능으로 쓴다 — 한 사람이 밀면 다른 사람이 자연스럽게 받는다.", en: "{lead}'s dominant {en}({code}) is {follow}'s auxiliary — when one pushes, the other naturally catches." },
+    handoffBoth: { ko: "{A}의 주기능 {fnA}는 {B}의 부기능, {B}의 주기능 {fnB}는 {A}의 부기능 — 같은 두 기능을 반대 순서로 쓴다. 한 사람이 밀면 다른 사람이 받는다.", en: "{A} leads with {fnA}, which {B} backs up; {B} leads with {fnB}, which {A} backs up — the same two functions in reverse order. One pushes, the other catches." },
+    auxShared: { ko: "부기능 {fn}({code})이 같다 — {does}. 큰 방향은 달라도 일하는 손은 닮았다.", en: "You share {en}({code}) as auxiliary — {does}. Different destinations, similar working hands." },
+    mirror:    { ko: "둘 다 {letter} 계열이 주기능 — {fnA} vs {fnB}. 같은 것을 보되 한 명은 모으고 한 명은 펼친다.", en: "Both lead with {letterEn} — {fnA} vs {fnB}. You look at the same things; one gathers, one spreads." },
+    inferior:  { ko: "{A}의 주기능 {fnA}는 {B}의 열등기능, {B}의 주기능 {fnB}는 {A}의 열등기능 — 서로 가장 서툰 자리를 가장 능숙하게 채워 줄 수 있는 짝.", en: "{A} leads with {fnA}, {B}'s inferior; {B} leads with {fnB}, {A}'s inferior — each can fill the other's clumsiest spot." },
+    cross:     { ko: "겹치는 기능이 없어 서로의 사각지대를 채운다 — {A}의 {fnA}, {B}의 {fnB}.", en: "No shared functions, so you cover each other's blind spots — {A}'s {fnA}, {B}'s {fnB}." },
+    N:  { ko: "둘 다 직관(N) — 가능성과 의미를 먹고 산다. 대화가 '그래서 이건 무슨 뜻이지'로 자연스럽게 흐른다.", en: "Both Intuitive (N) — you live on possibility and meaning. Talk drifts naturally to 'so what does this mean'." },
+    S:  { ko: "둘 다 감각(S) — 지금 여기의 사실이 대화의 바탕이다. 설명이 짧고 오해가 적다.", en: "Both Sensing (S) — the concrete here-and-now is the shared ground. Short explanations, few misreadings." },
+    J:  { ko: "둘 다 판단(J) — 계획·마감·정리 감각이 맞아 살림살이가 편하다.", en: "Both Judging (J) — plans, deadlines and tidiness line up, so daily life runs smoothly." },
+    P:  { ko: "둘 다 인식(P) — 즉흥과 열린 결말을 함께 즐긴다.", en: "Both Perceiving (P) — you enjoy improvising and open endings together." },
+    EI: { ko: "E와 I — 한쪽이 밖으로 끌어내고, 한쪽이 안으로 붙잡아 준다. 에너지의 균형.", en: "E and I — one draws the other out, the other anchors inward. A balance of energy." },
+    EE: { ko: "둘 다 외향(E) — 함께 나가 놀기 좋고, 말이 끊기지 않는다.", en: "Both Extraverted (E) — great at going out together; the conversation never stalls." },
+    II: { ko: "둘 다 내향(I) — 조용히 같이 있어도 편한 사이.", en: "Both Introverted (I) — comfortable simply being quiet in the same room." },
+    T:  { ko: "둘 다 사고(T) — 감정 소모 없이 문제로 바로 간다.", en: "Both Thinking (T) — straight to the problem, no emotional overhead." },
+    F:  { ko: "둘 다 감정(F) — 서로의 마음을 먼저 챈다.", en: "Both Feeling (F) — you sense each other's mood before anything else." }
+  },
+  grind: {
+    twin:      { ko: "약점도 똑같이 겹친다 — 둘 다 {fn}({code})가 서툴러 그쪽 일은 함께 미룬다.", en: "Your weak spots overlap too — both are clumsy at {en}({code}), so that work gets postponed together." },
+    same:      { ko: "같은 렌즈라 사각지대도 같다 — 둘 다 {fn}({code})가 약해 그 자리는 밖에서 채워야 한다.", en: "Same lens, same blind spot — both are weak at {en}({code}), so that spot needs outside help." },
+    handoff:   { ko: "같은 기능을 다른 순서로 쓴다 — 한쪽은 그걸로 결론을 내고, 한쪽은 그걸로 결론을 검토한다. 주도권 신경전이 생길 수 있다.", en: "Same function, different order — one decides with it, the other double-checks with it. A quiet tug-of-war over the lead can appear." },
+    auxShared: { ko: "주기능이 다르다 — {fnA} vs {fnB}. 방법은 같아도 목적지를 다르게 잡을 수 있다.", en: "Different dominants — {fnA} vs {fnB}. Same method, possibly different destinations." },
+    mirror:    { ko: "같은 걸 보면서 방향이 반대라 '왜 저렇게까지'가 나온다 — 한쪽은 좁히고 싶고, 한쪽은 넓히고 싶다.", en: "Same view, opposite direction — 'why go that far' slips out. One wants to narrow, the other to widen." },
+    inferior:  { ko: "내게 당연한 것이 상대에겐 가장 어려운 자리 — 왜 힘든지 이해가 안 될 때가 있고, 지적하면 상처가 된다.", en: "What comes naturally to you is the other's hardest spot — it's easy to miss why they struggle, and pointing it out lands as a wound." },
+    crossNear: { ko: "글자는 {n}개가 같아도 쓰는 기능은 하나도 겹치지 않는다 — 비슷하다고 짐작했다가 어긋난다.", en: "{n} letters match but not a single function overlaps — you assume similarity and then miss." },
+    crossFar:  { ko: "출발점이 다 달라 처음엔 번역이 필요하다 — 같은 단어를 다른 뜻으로 쓴다.", en: "Every starting point differs, so it takes translation at first — the same word means different things." },
+    SN: { ko: "감각(S)과 직관(N)이 갈린다 — 한쪽은 '그래서 지금 뭘 하지', 한쪽은 '이게 결국 무슨 뜻이지'.", en: "Sensing (S) meets Intuition (N) — one asks 'so what do we do now', the other 'what does this really mean'." },
+    JP: { ko: "J와 P — 여행 계획표 하나로 부딪힐 수 있다. 한쪽은 짜고, 한쪽은 열어 둔다.", en: "J and P — a single travel itinerary can spark it. One schedules, the other leaves it open." },
+    EE: { ko: "둘 다 말하고 싶어 들을 사람이 없을 때가 있다.", en: "Both want to talk — sometimes nobody is left to listen." },
+    II: { ko: "둘 다 먼저 말 꺼내기를 기다려 오해가 길어질 수 있다.", en: "Both wait for the other to speak first — misunderstandings can linger." },
+    TF: { ko: "T와 F — 위로가 필요할 때 해결책이, 해결책이 필요할 때 위로가 온다.", en: "T and F — a fix arrives when comfort was needed, comfort when a fix was." }
+  },
+  tip: {
+    twin:      { ko: "닮은 만큼 사각지대도 같아요. {weak} 같은 일은 미리 밖에서 도움을 정해 두세요.", en: "Alike means the same blind spots. For things like {weak}, arrange outside help in advance." },
+    same:      { ko: "통하는 건 빠르지만 둘 다 {weak} 쪽이 약해요. 그 일은 누가 챙길지 처음에 정해 두세요.", en: "You click fast, but both are weak at {weak}. Decide early who watches that." },
+    handoff:   { ko: "{code}로 결론을 내는 건 {lead}가 먼저, {follow}는 검토하는 순서로 정해 두세요 — 역할이 분명하면 신경전이 사라져요.", en: "Let {lead} decide with {code} first and {follow} review — clear roles dissolve the tug-of-war." },
+    handoffBoth: { ko: "{A}는 {codeA}로, {B}는 {codeB}로 결론을 내는 게 자연스러워요. 각자 주기능인 쪽을 먼저 맡고, 상대의 결론은 검토로만 받쳐 주세요.", en: "{A} naturally decides with {codeA}, {B} with {codeB}. Each takes the lead on their own dominant and backs the other's call with review only." },
+    auxShared: { ko: "방법이 닮아 일은 편해요. 다만 '왜 하는지'는 서로 다르게 잡을 수 있으니 목적을 먼저 맞추세요.", en: "Similar methods make the work easy. But the 'why' may differ — align the purpose first." },
+    mirror:    { ko: "같은 걸 보고 있다는 걸 먼저 인정하세요. 한 사람은 넓히고 한 사람은 좁히는 순서로 나누면 보완이 돼요.", en: "Start by admitting you're looking at the same thing. Split it — one widens, one narrows — and it becomes complementary." },
+    inferior:  { ko: "상대가 서툰 자리를 지적하지 말고 대신 맡아 주세요. 자기 열등기능은 상대에게 배우는 기회로.", en: "Don't point at the other's clumsy spot — take it over instead. Treat your own inferior function as something to learn from them." },
+    cross:     { ko: "비슷하다고 짐작하지 말고 물어보세요. 번역 한 번이면 서로의 사각지대를 가장 잘 채우는 짝이 돼요.", en: "Don't assume — ask. One round of translation and you become the pair that best covers each other's blind spots." },
+    JP:        { ko: " 계획은 J가 뼈대만 잡고, 살은 P가 채우기로.", en: " Let the J set the skeleton of the plan and the P fill in the rest." }
+  }
+};
+
+// compat(a, b) → { a, b, score (1..5), rel, headline_ko/en, clicks[], grinds[], tip_ko/en }
+// Symmetric by construction: every relation test is commutative and every
+// template that names a side derives it from the stacks, not from argument order.
+function compat(a, b) {
+  const A = String(a || "").toUpperCase(), B = String(b || "").toUpperCase();
+  const sa = FN_STACKS[A], sb = FN_STACKS[B];
+  if (!sa || !sb) return null;
+  const [domA, auxA, , infA] = sa;
+  const [domB, auxB, , infB] = sb;
+  const same = { EI: A[0] === B[0], SN: A[1] === B[1], TF: A[2] === B[2], JP: A[3] === B[3] };
+  const sharedLetters = Object.values(same).filter(Boolean).length;
+
+  let rel;
+  if (A === B) rel = "twin";
+  else if (domA === domB) rel = "same";
+  else if (domA === auxB || domB === auxA) rel = "handoff";
+  else if (auxA === auxB) rel = "auxShared";
+  else if (domA[0] === domB[0]) rel = "mirror";
+  else if (domA === infB || domB === infA) rel = "inferior";
+  else rel = "cross";
+
+  // Order A/B mentions deterministically (alphabetical) so compat(a,b) === compat(b,a).
+  const [X, Y] = [A, B].sort();
+  const domX = FN_STACKS[X][0], domY = FN_STACKS[Y][0];
+  // Hand-off comes in two shapes: mutual (INTJ Ni-Te × ENTJ Te-Ni — each dominant
+  // is the other's auxiliary) or one-way (INTJ Ni-Te × ESTJ Te-Si — only Te is
+  // shared). One-way has a genuine lead side, chosen by stack role, never by
+  // argument order. Inferior pairs are always mutual (inferior = dominant's opposite).
+  const handoffBoth = rel === "handoff" && domA === auxB && domB === auxA;
+  const handoffFn = rel === "handoff" && !handoffBoth ? (domA === auxB ? domA : domB) : null;
+  const lead = handoffFn ? (domA === auxB ? A : B) : null;
+  const follow = lead ? (lead === A ? B : A) : null;
+
+  const relScore = { handoff: 2, twin: 1.5, same: 1.5, auxShared: 1.5, mirror: 1, cross: 0.5, inferior: 0 }[rel];
+  const raw = relScore
+    + (same.SN ? 1 : 0)
+    + (same.JP ? 0.75 : 0.25)
+    + (same.EI ? 0.5 : 0.75)
+    + (same.TF ? 0.5 : 0.25);
+  const score = Math.max(1, Math.min(5, Math.round(raw)));
+
+  const fnKo = c => FN_INFO[c].ko, fnEn = c => FN_INFO[c].en;
+  const pair = (entry, vars) => ({ text_ko: fillT(entry.ko, vars), text_en: fillT(entry.en, vars) });
+  const baseVars = {
+    A: X, B: Y,
+    fnA: fnKo(domX) + "(" + domX + ")", fnB: fnKo(domY) + "(" + domY + ")",
+    n: sharedLetters
+  };
+  const enVars = { ...baseVars, fnA: fnEn(domX) + "(" + domX + ")", fnB: fnEn(domY) + "(" + domY + ")" };
+  // KO/EN need different function names in the same slot → resolve each language separately.
+  const pairL = (entry, ko, en) => ({ text_ko: fillT(entry.ko, ko), text_en: fillT(entry.en, en) });
+
+  const clicks = [], grinds = [];
+  let tipKo, tipEn;
+  const C = COMPAT_T.click, G = COMPAT_T.grind, TP = COMPAT_T.tip;
+
+  if (rel === "twin" || rel === "same") {
+    const code = domA, inf = infA; // identical dominant → identical inferior
+    const v = { fn: fnKo(code), en: fnEn(code), code, does: FN_INFO[code].does_ko };
+    const ve = { ...v, does: FN_INFO[code].does_en };
+    clicks.push(pairL(C[rel], v, ve));
+    grinds.push(pairL(G[rel], { fn: fnKo(inf), en: fnEn(inf), code: inf }, { fn: fnKo(inf), en: fnEn(inf), code: inf }));
+    tipKo = fillT(TP[rel].ko, { weak: FN_INFO[inf].weak_ko });
+    tipEn = fillT(TP[rel].en, { weak: FN_INFO[inf].weak_en });
+  } else if (rel === "handoff" && handoffBoth) {
+    const v = { ...baseVars, codeA: domX, codeB: domY };
+    const ve = { ...enVars, codeA: domX, codeB: domY };
+    clicks.push(pairL(C.handoffBoth, v, ve));
+    grinds.push(pair(G.handoff, {}));
+    tipKo = fillT(TP.handoffBoth.ko, v); tipEn = fillT(TP.handoffBoth.en, ve);
+  } else if (rel === "handoff") {
+    const v = { lead, follow, fn: fnKo(handoffFn), en: fnEn(handoffFn), code: handoffFn };
+    clicks.push(pairL(C.handoff, v, v));
+    grinds.push(pair(G.handoff, {}));
+    tipKo = fillT(TP.handoff.ko, v); tipEn = fillT(TP.handoff.en, v);
+  } else if (rel === "auxShared") {
+    const code = auxA;
+    const v = { fn: fnKo(code), en: fnEn(code), code, does: FN_INFO[code].does_ko };
+    const ve = { ...v, does: FN_INFO[code].does_en };
+    clicks.push(pairL(C.auxShared, v, ve));
+    grinds.push(pairL(G.auxShared, baseVars, enVars));
+    tipKo = TP.auxShared.ko; tipEn = TP.auxShared.en;
+  } else if (rel === "mirror") {
+    const letter = domA[0];
+    const v = { ...baseVars, letter: LETTER_INFO[letter].ko + "(" + letter + ")", letterEn: LETTER_INFO[letter].en + " (" + letter + ")" };
+    const ve = { ...enVars, letter: v.letter, letterEn: v.letterEn };
+    clicks.push(pairL(C.mirror, v, ve));
+    grinds.push(pair(G.mirror, {}));
+    tipKo = TP.mirror.ko; tipEn = TP.mirror.en;
+  } else if (rel === "inferior") {
+    clicks.push(pairL(C.inferior, baseVars, enVars));
+    grinds.push(pair(G.inferior, {}));
+    tipKo = TP.inferior.ko; tipEn = TP.inferior.en;
+  } else {
+    clicks.push(pairL(C.cross, baseVars, enVars));
+    grinds.push(pair(sharedLetters >= 2 ? G.crossNear : G.crossFar, baseVars));
+    tipKo = TP.cross.ko; tipEn = TP.cross.en;
+  }
+
+  // Axis-level bullets — one perceiving-axis note, then energy, then J/P, then T/F.
+  if (same.SN) clicks.push(pair(C[A[1]], {})); else grinds.push(pair(G.SN, {}));
+  if (same.EI) { clicks.push(pair(C[A[0] + A[0]], {})); grinds.push(pair(G[A[0] + A[0]], {})); }
+  else clicks.push(pair(C.EI, {}));
+  if (same.JP) clicks.push(pair(C[A[3]], {})); else grinds.push(pair(G.JP, {}));
+  if (same.TF) clicks.push(pair(C[A[2]], {})); else grinds.push(pair(G.TF, {}));
+  if (!same.JP) { tipKo += TP.JP.ko; tipEn += TP.JP.en; }
+
+  const H = COMPAT_T.headline[rel];
+  return {
+    a: X, b: Y, score, rel, sameAxes: same,
+    headline_ko: H.ko, headline_en: H.en,
+    clicks: clicks.slice(0, 2),
+    grinds: grinds.slice(0, 2),
+    tip_ko: tipKo, tip_en: tipEn
+  };
+}
+
 // Helper for canned outputs — build the 5-facet array for an axis with the
 // usual lean. Keeps canned data compact while matching the new schema.
 function _f(left, right, lean, conf) {
@@ -2729,9 +3186,11 @@ function showGalleryGrid() {
   $("#gallery-detail").style.display = "none";
 }
 function showGalleryDetail(type) {
-  $("#gallery-detail").innerHTML = renderGalleryDetail(type);
-  $("#gallery-detail").style.display = "";
+  const detail = $("#gallery-detail");
+  detail.innerHTML = renderGalleryDetail(type);
+  detail.style.display = "";
   $("#gallery-grid").style.display = "none";
+  wireCompat(detail, type);
   // Only scroll when the gallery panel is the active tab — avoids scrolling to
   // a hidden panel if this is ever called outside the visible-gallery flow.
   const panel = $("#panel-gallery");
@@ -2807,7 +3266,10 @@ function mountResult(container, result, cardPayload, opts) {
       fill.style.width = fill.dataset.target + "%";
     });
   });
+  // A fresh result (not a language re-render) starts with the 궁합 block closed.
+  if (opts.submit || opts.fresh) delete compatSel[el.id];
   el.querySelector("[data-action=restart]")?.addEventListener("click", () => {
+    delete compatSel[el.id];
     if (result.fromTest) {
       $("#test-result").style.display = "none";
       $("#test-intro").style.display = "block";
@@ -2815,12 +3277,14 @@ function mountResult(container, result, cardPayload, opts) {
     } else {
       abortAnalyze();
       el.innerHTML = "";
-      setModePill("live"); // nothing canned on screen any more
+      window.__lastAIResult = null;
+      $("#error").classList.remove("active");
       $("#ai-input").focus();
     }
   });
   wireSaveCard(el, cardPayload);
   wireGenderToggle(el);
+  wireCompat(el, result.type);
   // No-op when the social block was omitted (canned fallback) or PB is absent.
   window.__mbtiSocial?.(result.type, L(result, "nickname"), "#" + el.id, { submit: !!opts.submit });
 }
@@ -2873,10 +3337,10 @@ function setLang(l) {
   document.documentElement.lang = LANG;
   syncLangToggle();
   applyStaticStrings();
-  // applyStaticStrings() resets the pill text to the live label; restore the
-  // fallback state if a canned example is what's currently on screen.
-  const aiShown = $("#ai-result")?.innerHTML.trim();
-  setModePill(aiShown && window.__lastAIResult && window.__lastAIResult.fromCanned ? "fallback" : "live");
+  // applyStaticStrings() resets the trigger label — keep "읽는 중…" if a read is in flight.
+  if (analyzeBusy) $("#btn-analyze").textContent = t("readBusy");
+  // An open error line carries language-specific copy — re-paint it.
+  if (lastLiveError && $("#error").classList.contains("active")) showLiveError(lastLiveError.err, lastLiveError.text);
   rerenderActivePanel();
 }
 document.addEventListener("click", (e) => {
@@ -3289,13 +3753,14 @@ function renderResultHTML(r) {
     : "";
 
   const testLengthLabel = r.testLength === "full" ? t("pillFull") : t("pillQuick");
-  // The client only knows the proxy's model *family*, never the exact
-  // version — so the live pill says "Sonnet", nothing more specific.
+  // Shared AI-state convention: ONE status pill beside the output header.
+  // live → "라이브 · Claude"; canned after a failed live call → "예시 결과 · 실시간 연결 실패".
+  // (No user-chosen example mode exists here, so the third state is never rendered.)
   const modeMeta = r.fromTest
     ? `<span class="pill">${testLengthLabel}</span>`
     : (r.fromCanned
-        ? `<span class="pill demo">${t("pillDemo")}</span><span class="meta-note">${t("fallbackNote")}</span>`
-        : `<span class="pill">CLAUDE · SONNET</span>`);
+        ? `<span class="pill status fallback"><span class="dot"></span>${t("statusFallback")}</span>`
+        : `<span class="pill status live"><span class="dot"></span>${t("statusLive")}</span>`);
 
   // A canned example isn't the reader's real result — don't invite them to
   // compare it with everyone else's, and never count it in the tally.
@@ -3340,8 +3805,10 @@ function renderResultHTML(r) {
       ${socialHTML}
       <div class="result-actions">
         <button class="btn card-btn" data-action="save-card">${t("saveCardBtn")}</button>
+        <button class="btn secondary" data-action="compat" aria-expanded="false">${t("compatBtn")}</button>
         <button class="btn secondary" data-action="restart">${r.fromTest ? t("restartTest") : t("restartAI")}</button>
       </div>
+      <div class="compat-wrap" hidden></div>
     </div>
   `;
 }
@@ -3466,6 +3933,10 @@ function renderGalleryDetail(type) {
       ${vibesHTML ? `<div class="vibes">${vibesHTML}</div>` : ""}
       <p class="gallery-note">${t("galleryNoteHTML")}<a href="#" data-action="goto-test">${t("galleryNoteLink")}</a></p>
       ${fnHTML}
+      <div class="result-actions">
+        <button class="btn secondary" data-action="compat" aria-expanded="false">${t("compatBtn")}</button>
+      </div>
+      <div class="compat-wrap" hidden></div>
     </div>`;
 }
 
@@ -3496,31 +3967,10 @@ function wireSaveCard(rootEl, payload) {
     };
     try {
       const canvas = await renderResultCard(payload);
-      const blob = await new Promise((res, rej) => canvas.toBlob(b => b ? res(b) : rej(new Error("toBlob failed")), "image/png"));
-      const filename = `mbti-${payload.type.toLowerCase()}-card.png`;
-      const file = new File([blob], filename, { type: "image/png" });
-      // Phones: hand the PNG (plus a deep link back to this type) to the OS
-      // share sheet. Desktop / unsupported: fall back to a plain download.
-      const shareData = { files: [file], title: `MBTI · ${payload.type}`, url: typeDeepLink(payload.type) };
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share(shareData);
-          done(t("cardShared"));
-          return;
-        } catch (e) {
-          if (e && e.name === "AbortError") { done(original); return; } // user dismissed the sheet
-          // Any other share failure → download below.
-        }
-      }
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 4000);
-      done(t("cardSaved"));
+      // Phones: PNG + deep link back to this type via the OS share sheet.
+      // Desktop / unsupported: plain download.
+      const outcome = await shareOrDownloadCanvas(canvas, `mbti-${payload.type.toLowerCase()}-card.png`, `MBTI · ${payload.type}`, typeDeepLink(payload.type));
+      done(outcome === "shared" ? t("cardShared") : outcome === "saved" ? t("cardSaved") : original);
     } catch (e) {
       console.error(e);
       done(t("cardFailed"));
@@ -3534,6 +3984,275 @@ function typeDeepLink(type) {
   u.search = "?type=" + encodeURIComponent(type);
   u.hash = "";
   return u.toString();
+}
+// ?type=INFP&with=ENTJ → 도감 detail for INFP with the 궁합 card for ENTJ open.
+function compatDeepLink(me, other) {
+  const u = new URL(location.href);
+  u.search = "?type=" + encodeURIComponent(me) + "&with=" + encodeURIComponent(other);
+  u.hash = "";
+  return u.toString();
+}
+
+// Phones: hand a PNG (+ deep link) to the OS share sheet. Desktop / unsupported:
+// plain download. Returns "shared" | "saved" | "dismissed".
+async function shareOrDownloadCanvas(canvas, filename, title, url) {
+  const blob = await new Promise((res, rej) => canvas.toBlob(b => b ? res(b) : rej(new Error("toBlob failed")), "image/png"));
+  const file = new File([blob], filename, { type: "image/png" });
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title, url });
+      return "shared";
+    } catch (e) {
+      if (e && e.name === "AbortError") return "dismissed"; // user closed the sheet
+      // Any other share failure → download below.
+    }
+  }
+  const href = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = href;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(href), 4000);
+  return "saved";
+}
+
+// ============================================================
+// 궁합 UI — picker → card, per result surface.
+// compatSel[rootId] = undefined (closed) | { me, with: null (picker) | "ENTJ" (card) }
+// Kept outside the DOM so a language re-render restores the same view.
+// ============================================================
+const compatSel = {};
+
+function shortNick(type) {
+  return (L(TYPES[type] || {}, "nickname") || "").split(" · ")[0] || type;
+}
+
+function renderCompatPicker(me) {
+  const groups = TEMPERAMENT_GROUPS.map(g => `
+    <div class="compat-group" style="--group-anchor:${g.anchor}">
+      <div class="compat-group-label">${escapeHTML(L(g, "label") || g.label)}</div>
+      <div class="compat-chips">${g.types.map(tp => `
+        <button type="button" class="compat-chip${tp === me ? " me" : ""}" data-with="${tp}" aria-label="${tp} ${escapeHTML(shortNick(tp))}">
+          <span class="cc-code">${tp}</span>
+          <span class="cc-nick">${escapeHTML(shortNick(tp))}</span>
+        </button>`).join("")}</div>
+    </div>`).join("");
+  return `
+    <div class="compat-picker">
+      <div class="compat-head">
+        <h3>${t("compatHeading")}</h3>
+        <button type="button" data-action="compat-close">${t("compatClose")}</button>
+      </div>
+      <p class="compat-sub">${t("compatPickSubHTML").replace("{ME}", escapeHTML(me))}</p>
+      ${groups}
+    </div>`;
+}
+
+function renderCompatCardHTML(c) {
+  const dots = Array.from({ length: 5 }, (_, i) => `<span class="dot${i < c.score ? " on" : ""}"></span>`).join("");
+  const li = arr => arr.map(x => `<li>${escapeHTML(L(x, "text"))}</li>`).join("");
+  const altHeadline = LANG === "en" ? c.headline_ko : c.headline_en;
+  return `
+    <div class="compat-card">
+      <div class="compat-head">
+        <h3>${t("compatHeading")}</h3>
+        <button type="button" data-action="compat-change">${t("compatChange")}</button>
+      </div>
+      <div class="compat-pair"><span class="cp-code">${escapeHTML(c.a)}</span><span class="cp-x">×</span><span class="cp-code">${escapeHTML(c.b)}</span></div>
+      <div class="compat-nicks">${escapeHTML(shortNick(c.a))} · ${escapeHTML(shortNick(c.b))}</div>
+      <div class="compat-score" aria-label="${t("compatScoreLabel")} ${c.score} / 5">
+        <span class="dots" aria-hidden="true">${dots}</span>
+        <span class="score-label">${t("compatScoreLabel")} ${c.score} / 5</span>
+      </div>
+      <div class="compat-headline">${escapeHTML(L(c, "headline"))}</div>
+      <div class="compat-headline-alt">${escapeHTML(altHeadline)}</div>
+      <div class="hint-grid">
+        <div class="hint-col good"><span class="hint-h">${t("compatClicks")}</span><ul>${li(c.clicks)}</ul></div>
+        <div class="hint-col bad"><span class="hint-h">${t("compatGrinds")}</span><ul>${li(c.grinds)}</ul></div>
+      </div>
+      <div class="compat-tip"><span class="hint-h">${t("compatTipLabel")}</span><p>${escapeHTML(L(c, "tip"))}</p></div>
+      <p class="compat-note">${t("compatNote")}</p>
+      <div class="result-actions">
+        <button class="btn card-btn" data-action="compat-share">${t("compatShare")}</button>
+        <button class="btn secondary" data-action="compat-link">${t("compatLink")}</button>
+      </div>
+    </div>`;
+}
+
+function wireCompat(rootEl, me) {
+  if (!rootEl || !TYPES[me]) return;
+  const wrap = rootEl.querySelector(".compat-wrap");
+  const btn = rootEl.querySelector("[data-action=compat]");
+  if (!wrap || !btn) return;
+  const key = rootEl.id;
+  // A different "me" on the same surface (도감 browsing) starts closed.
+  if (compatSel[key] && compatSel[key].me !== me) delete compatSel[key];
+
+  const paint = () => {
+    const sel = compatSel[key];
+    btn.setAttribute("aria-expanded", sel ? "true" : "false");
+    if (!sel) { wrap.innerHTML = ""; wrap.hidden = true; return; }
+    wrap.hidden = false;
+    wrap.innerHTML = sel.with ? renderCompatCardHTML(compat(me, sel.with)) : renderCompatPicker(me);
+  };
+  btn.addEventListener("click", () => {
+    if (compatSel[key]) delete compatSel[key];
+    else compatSel[key] = { me, with: null };
+    paint();
+    if (compatSel[key]) wrap.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  wrap.addEventListener("click", async (e) => {
+    const chip = e.target.closest("[data-with]");
+    if (chip) {
+      compatSel[key] = { me, with: chip.dataset.with };
+      paint();
+      wrap.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    if (e.target.closest("[data-action=compat-change]")) { compatSel[key] = { me, with: null }; paint(); return; }
+    if (e.target.closest("[data-action=compat-close]")) { delete compatSel[key]; paint(); return; }
+    const sel = compatSel[key];
+    const shareBtn = e.target.closest("[data-action=compat-share]");
+    if (shareBtn && sel && sel.with) {
+      const original = shareBtn.textContent;
+      shareBtn.disabled = true;
+      shareBtn.textContent = t("cardSaving");
+      const done = (label) => { shareBtn.textContent = label; setTimeout(() => { shareBtn.textContent = original; shareBtn.disabled = false; }, 1600); };
+      try {
+        const c = compat(me, sel.with);
+        const canvas = await renderCompatCardPNG(c);
+        const outcome = await shareOrDownloadCanvas(canvas, `mbti-${c.a.toLowerCase()}-x-${c.b.toLowerCase()}.png`, `MBTI · ${c.a} × ${c.b}`, compatDeepLink(me, sel.with));
+        done(outcome === "shared" ? t("cardShared") : outcome === "saved" ? t("cardSaved") : original);
+      } catch (err) {
+        console.error(err);
+        done(t("cardFailed"));
+      }
+      return;
+    }
+    const linkBtn = e.target.closest("[data-action=compat-link]");
+    if (linkBtn && sel && sel.with) {
+      const original = linkBtn.textContent;
+      try {
+        await navigator.clipboard.writeText(compatDeepLink(me, sel.with));
+        linkBtn.textContent = t("compatLinkDone");
+      } catch (err) {
+        linkBtn.textContent = t("cardFailed");
+      }
+      setTimeout(() => { linkBtn.textContent = original; }, 1600);
+    }
+  });
+  paint();
+}
+
+// "우리 궁합" card — 1080×1080 on the same cream editorial stock as the result card.
+async function renderCompatCardPNG(c) {
+  const W = 1080, H = 1080;
+  const cv = document.createElement("canvas");
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext("2d");
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, "#f5efe2");
+  bg.addColorStop(1, "#ebe1cc");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+  ctx.save();
+  ctx.globalAlpha = 0.06;
+  for (let i = 0; i < 1400; i++) {
+    ctx.fillStyle = Math.random() < 0.5 ? "#48695a" : "#b54a32";
+    const x = Math.random() * W, y = Math.random() * H, r = Math.random() * 1.4;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+  ctx.strokeStyle = "rgba(20,17,13,0.4)";
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(40, 40, W - 80, H - 80);
+  ctx.lineWidth = 0.8;
+  ctx.strokeRect(54, 54, W - 108, H - 108);
+  ctx.fillStyle = "#b54a32";
+  ctx.fillRect(80, 88, 64, 4);
+  ctx.fillStyle = "rgba(20,17,13,0.6)";
+  ctx.font = "500 18px 'JetBrains Mono', monospace";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText("VIBE STUDIO  ·  우리 궁합  ·  KOREAN MBTI READ", 80, 132);
+
+  // two small portraits, side by side
+  const [pa, pb] = await Promise.all([loadImage(portraitPath(c.a)).catch(() => null), loadImage(portraitPath(c.b)).catch(() => null)]);
+  const PY = 176, PW = 200, PH = 250;
+  [[pa, 640], [pb, 800]].forEach(([img, px]) => {
+    ctx.save();
+    ctx.shadowColor = "rgba(20,17,13,0.22)";
+    ctx.shadowBlur = 18;
+    ctx.shadowOffsetY = 6;
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(px - 6, PY - 6, PW + 12, PH + 12);
+    ctx.restore();
+    if (img) drawImageCover(ctx, img, px, PY, PW, PH);
+    else { ctx.fillStyle = "#e3d8c1"; ctx.fillRect(px, PY, PW, PH); }
+    ctx.strokeStyle = "rgba(20,17,13,0.28)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(px, PY, PW, PH);
+  });
+
+  // masthead: A × B
+  ctx.fillStyle = "#14110d";
+  ctx.font = "italic 300 150px 'Cormorant Garamond', 'Noto Serif KR', Georgia, serif";
+  ctx.fillText(c.a, 72, 330);
+  ctx.fillStyle = "#b54a32";
+  ctx.font = "300 70px 'Cormorant Garamond', Georgia, serif";
+  ctx.fillText("×", 84, 400);
+  ctx.fillStyle = "#14110d";
+  ctx.font = "italic 300 150px 'Cormorant Garamond', 'Noto Serif KR', Georgia, serif";
+  ctx.fillText(c.b, 72, 505);
+  ctx.fillStyle = "#6b9482";
+  ctx.fillRect(80, 524, 220, 3);
+
+  // score dots
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath();
+    ctx.arc(94 + i * 34, 574, 11, 0, Math.PI * 2);
+    if (i < c.score) { ctx.fillStyle = "#48695a"; ctx.fill(); }
+    else { ctx.strokeStyle = "rgba(20,17,13,0.35)"; ctx.lineWidth = 1.5; ctx.stroke(); }
+  }
+  ctx.fillStyle = "rgba(20,17,13,0.6)";
+  ctx.font = "500 16px 'JetBrains Mono', monospace";
+  ctx.fillText(`${t("compatScoreLabel").toUpperCase()}  ${c.score} / 5`, 270, 580);
+
+  // headline (KO) + alt (EN)
+  ctx.fillStyle = "#14110d";
+  ctx.font = "italic 600 40px 'Noto Serif KR', serif";
+  wrapText(ctx, L(c, "headline"), 80, 660, W - 160, 52, 2);
+  ctx.fillStyle = "rgba(20,17,13,0.6)";
+  ctx.font = "italic 400 24px 'Cormorant Garamond', 'Noto Serif KR', serif";
+  wrapText(ctx, LANG === "en" ? c.headline_ko : c.headline_en, 80, 720, W - 160, 30, 1);
+
+  // one click, one grind
+  ctx.fillStyle = "#48695a";
+  ctx.font = "500 15px 'JetBrains Mono', monospace";
+  ctx.fillText("+  " + t("compatClicks").toUpperCase(), 80, 790);
+  ctx.fillStyle = "rgba(20,17,13,0.82)";
+  ctx.font = "400 22px 'Noto Serif KR', serif";
+  wrapText(ctx, L(c.clicks[0], "text"), 80, 822, W - 160, 32, 2);
+  ctx.fillStyle = "#b54a32";
+  ctx.font = "500 15px 'JetBrains Mono', monospace";
+  ctx.fillText("−  " + t("compatGrinds").toUpperCase(), 80, 896);
+  ctx.fillStyle = "rgba(20,17,13,0.82)";
+  ctx.font = "400 22px 'Noto Serif KR', serif";
+  wrapText(ctx, L(c.grinds[0], "text"), 80, 928, W - 160, 32, 1);
+
+  ctx.strokeStyle = "rgba(20,17,13,0.18)";
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(80, 976); ctx.lineTo(W - 80, 976); ctx.stroke();
+  ctx.fillStyle = "rgba(20,17,13,0.55)";
+  ctx.font = "500 16px 'JetBrains Mono', monospace";
+  ctx.fillText("FUNCTION-STACK PAIRING", 80, 1008);
+  ctx.textAlign = "right";
+  ctx.fillText("kalleeh.github.io/vibe-demos", W - 80, 1008);
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#b54a32";
+  ctx.beginPath(); ctx.arc(W / 2, 1008, 3, 0, Math.PI * 2); ctx.fill();
+  return cv;
 }
 
 // 女/男 portrait toggle on the result hero — flips the watercolor set and
@@ -3681,9 +4400,10 @@ async function renderResultCard(payload) {
   // footer text
   ctx.fillStyle = "rgba(20,17,13,0.55)";
   ctx.font = "500 16px 'JetBrains Mono', monospace";
+  // A canned example must never leave the device wearing a live label.
   const cardLabel = payload.fromTest
     ? (payload.testLength === "full" ? "93-Q FORM-M" : "28-Q QUICK TEST")
-    : "AI DEEP-READ";
+    : (payload.fromCanned ? "EXAMPLE RESULT · NOT A LIVE READ" : "AI DEEP-READ · CLAUDE");
   ctx.fillText(cardLabel, 80, 988);
   ctx.textAlign = "right";
   ctx.fillText("kalleeh.github.io/vibe-demos", W - 80, 988);
@@ -3925,19 +4645,7 @@ updateCounter();
   });
 })();
 
-$("#btn-analyze").addEventListener("click", runAnalyze);
-
-// The mode pill tells the truth about what the reader is looking at:
-// "live" while the proxy answers, "fallback" (rust) once a canned example
-// has been substituted for a failed live read.
-function setModePill(mode) {
-  const pill = $("#mode-pill");
-  const txt = $("#mode-pill-text");
-  if (!pill || !txt) return;
-  pill.classList.toggle("live", mode === "live");
-  pill.classList.toggle("fallback", mode === "fallback");
-  txt.textContent = mode === "fallback" ? t("modeFallback") : t("modeLive");
-}
+$("#btn-analyze").addEventListener("click", () => runAnalyze());
 
 // One in-flight read at a time. The AbortController lets "지우고 다시" / the
 // 비우기 chip cancel a pending proxy call instead of racing its result.
@@ -3947,9 +4655,12 @@ function abortAnalyze() {
   if (analyzeAbort) { analyzeAbort.abort(); analyzeAbort = null; }
   setAnalyzeBusy(false);
 }
+// Busy = trigger disabled + "읽는 중…" + the existing shimmer bar and stage label.
 function setAnalyzeBusy(on) {
   analyzeBusy = on;
-  $("#btn-analyze").disabled = on;
+  const btn = $("#btn-analyze");
+  btn.disabled = on;
+  btn.textContent = on ? t("readBusy") : t("readBtn");
   $("#loading-bar").classList.toggle("active", on);
   $("#stage-label").classList.toggle("active", on);
 }
@@ -3962,8 +4673,7 @@ async function runAnalyze() {
     return;
   }
   $("#error").classList.remove("active");
-  $("#ai-result").innerHTML = "";
-  setModePill("live");
+  lastLiveError = null;
   const ctrl = new AbortController();
   analyzeAbort = ctrl;
   setAnalyzeBusy(true);
@@ -3986,34 +4696,59 @@ async function runAnalyze() {
     mountResult($("#ai-result"), window.__lastAIResult, window.__lastAIResult._saveCardPayload, { submit: true });
   } catch (e) {
     if (ctrl.signal.aborted || (e && e.name === "AbortError")) return; // cancelled on purpose
-    console.warn("[MBTI] live read failed → canned example:", e && (e.detail || e.message));
-    // Canned-first ethos: if the live proxy is busy/unavailable (429/503/etc)
-    // or returned something the validator rejected, fall back to a canned
-    // deep-read — clearly labelled — rather than dead-ending on an error.
-    try {
-      const canned = pickCanned(text);
-      const pullQuote = pickPullQuote(text, canned);
-      window.__lastAIResult = {
-        ...canned,
-        fromCanned: true,
-        _saveCardPayload: {
-          type: canned.type,
-          nickname_ko: canned.nickname_ko,
-          pull_quote: pullQuote,
-          fromTest: false
-        }
-      };
-      setModePill("fallback");
-      // Example result: no social block, nothing submitted.
-      mountResult($("#ai-result"), window.__lastAIResult, window.__lastAIResult._saveCardPayload, { submit: false });
-    } catch (e2) {
-      showError(e.message || t("errGeneric"));
-    }
+    console.warn("[MBTI] live read failed:", e && (e.detail || e.message));
+    // Never substitute silently: keep whatever is on screen, say the live
+    // server is busy, and let the reader choose — retry, or see a clearly
+    // labelled example result.
+    showLiveError(e, text);
   } finally {
     // Only the call that still owns the controller may clear the busy state —
     // an aborted call must not stomp on a newer one.
     if (analyzeAbort === ctrl) { analyzeAbort = null; setAnalyzeBusy(false); }
   }
+}
+
+// Error line per the shared AI-state convention:
+// "라이브 서버가 잠시 바쁩니다 (NNN) — …" + [다시 시도] [예시 결과 보기]
+let lastLiveError = null;
+function showLiveError(err, text) {
+  lastLiveError = { err, text };
+  const el = $("#error");
+  const code = (err && err.status) ? String(err.status) : "ERR";
+  el.textContent = "";
+  const line = document.createElement("div");
+  line.textContent = t("errBusy").replace("{NNN}", code);
+  const actions = document.createElement("div");
+  actions.className = "error-actions";
+  const retry = document.createElement("button");
+  retry.type = "button"; retry.className = "btn"; retry.textContent = t("retryBtn");
+  retry.addEventListener("click", () => runAnalyze());
+  const example = document.createElement("button");
+  example.type = "button"; example.className = "btn secondary"; example.textContent = t("exampleBtn");
+  example.addEventListener("click", () => { showCannedExample(text); });
+  actions.append(retry, example);
+  el.append(line, actions);
+  el.classList.add("active");
+}
+
+// The canned deep-read closest to the text, mounted under the fallback pill.
+// No social block, nothing tallied — an example is not the reader's result.
+function showCannedExample(text) {
+  const canned = pickCanned(text);
+  window.__lastAIResult = {
+    ...canned,
+    fromCanned: true,
+    _saveCardPayload: {
+      type: canned.type,
+      nickname_ko: canned.nickname_ko,
+      pull_quote: pickPullQuote(text, canned),
+      fromTest: false,
+      fromCanned: true
+    }
+  };
+  $("#error").classList.remove("active");
+  lastLiveError = null;
+  mountResult($("#ai-result"), window.__lastAIResult, window.__lastAIResult._saveCardPayload, { submit: false, fresh: true });
 }
 
 function pickCanned(text) {
@@ -4532,12 +5267,38 @@ window.__mbtiI18n = {
 };
 
 // ?type=INFP deep link (shared cards point here) → open that type in the 도감.
+// ?type=INFP&with=ENTJ → same, with the 궁합 card for that pair already open.
 (function openDeepLink() {
-  const raw = new URLSearchParams(location.search).get("type");
+  const params = new URLSearchParams(location.search);
+  const raw = params.get("type");
   const type = raw ? raw.trim().toUpperCase() : "";
   if (!TYPES[type]) return;
+  const withRaw = params.get("with");
+  const other = withRaw ? withRaw.trim().toUpperCase() : "";
+  if (TYPES[other]) compatSel["gallery-detail"] = { me: type, with: other };
   $("#tab-gallery").click();
   showGalleryDetail(type);
+  if (TYPES[other]) $("#gallery-detail .compat-wrap")?.scrollIntoView({ block: "start" });
+})();
+
+// One-time first-run hint on phones (≤600px, CSS-gated). Dismissed by its ×,
+// by starting a test, or by leaving the test tab — all mark the device hinted.
+(function firstRunHint() {
+  const KEY = "vibe.korean-mbti.hinted";
+  const card = $("#first-hint");
+  if (!card) return;
+  let seen = null;
+  try { seen = localStorage.getItem(KEY); } catch (e) {}
+  if (seen) return;
+  card.hidden = false;
+  const dismiss = () => {
+    if (card.hidden) return;
+    card.hidden = true;
+    try { localStorage.setItem(KEY, "1"); } catch (e) {}
+  };
+  card.querySelector("[data-action=hint-dismiss]").addEventListener("click", dismiss);
+  $$(".length-card").forEach(b => b.addEventListener("click", dismiss));
+  $$(".tab").forEach(b => b.addEventListener("click", () => { if (b.dataset.mode !== "test") dismiss(); }));
 })();
 </script>
 
