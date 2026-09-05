@@ -184,12 +184,73 @@
         align-items: center;
         z-index: 5;
       }
-      body[data-state="buffering"] .buffering {
+      body[data-state="buffering"] .buffering,
+      body[data-buffering="true"] .buffering {
         display: flex;
       }
       body[data-state="buffering"] .poster .play-btn {
         opacity: 0;
         pointer-events: none;
+      }
+
+      /* Exit from full-bleed: visible while playing/ended, brightens on pause. */
+      .close-btn {
+        position: absolute;
+        top: max(14px, env(safe-area-inset-top));
+        right: max(14px, env(safe-area-inset-right));
+        z-index: 6;
+        display: none;
+        appearance: none;
+        border: 0;
+        background: rgba(0, 0, 0, 0.55);
+        color: var(--crawl);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        padding: 10px 16px;
+        border-radius: 999px;
+        cursor: pointer;
+        backdrop-filter: blur(6px);
+        opacity: 0.6;
+        transition: opacity 0.2s ease, background 0.2s ease;
+      }
+      body[data-state="playing"] .close-btn,
+      body[data-state="ended"] .close-btn {
+        display: inline-block;
+      }
+      .close-btn:hover,
+      .close-btn:focus-visible,
+      body[data-paused="true"] .close-btn {
+        opacity: 1;
+        background: rgba(0, 0, 0, 0.75);
+      }
+
+      /* Load failure: media error, or a 20s stall with no frames. */
+      .failed-overlay {
+        position: absolute;
+        inset: 0;
+        display: none;
+        place-items: center;
+        text-align: center;
+        padding: 24px;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 7;
+      }
+      body[data-state="failed"] .failed-overlay {
+        display: grid;
+      }
+      body[data-state="failed"] .poster .play-btn {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .failed-overlay p {
+        margin: 0 0 16px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--crawl);
       }
       .buffering .track {
         width: min(60%, 320px);
@@ -267,8 +328,11 @@
           poster="poster.jpg"
           aria-label="A New Hope — a 42-second cinematic Star Wars homage"
         >
+          <source src="film-720.mp4" type="video/mp4" media="(max-width: 768px)" />
           <source src="film.mp4" type="video/mp4" />
         </video>
+
+        <button class="close-btn" id="close-btn" type="button" aria-label="Close film and return">✕ Close</button>
 
         <div class="poster">
           <button class="play-btn" id="play-btn" type="button" aria-label="Play film">
@@ -289,11 +353,18 @@
             ↻ Replay
           </button>
         </div>
+
+        <div class="failed-overlay" role="alert">
+          <div>
+            <p>Couldn't load the film — check your connection</p>
+            <button class="replay-btn" id="retry-btn" type="button">↻ Retry</button>
+          </div>
+        </div>
       </div>
 
       <article class="card meta-card">
         <p class="meta">
-          made with <a href="https://github.com/anthropics/claude-code" rel="noopener">HyperFrames</a> · <a href="../">back to works</a>
+          made with <a href="https://github.com/heygen-com/hyperframes" rel="noopener">HyperFrames</a> · <a href="../">back to works</a>
         </p>
       </article>
     </main>
@@ -303,9 +374,13 @@
       const video = document.getElementById("film");
       const playBtn = document.getElementById("play-btn");
       const replayBtn = document.getElementById("replay-btn");
+      const retryBtn = document.getElementById("retry-btn");
+      const closeBtn = document.getElementById("close-btn");
       const bufferingLabel = document.getElementById("buffering-label");
+      const STALL_MS = 20000;
+      let stallTimer = null;
 
-      // Reflect how much of the 18MB film has buffered into the status label.
+      // Reflect how much of the film has buffered into the status label.
       function updateBufferLabel() {
         if (!video.duration || !video.buffered.length) return;
         const end = video.buffered.end(video.buffered.length - 1);
@@ -313,35 +388,101 @@
         bufferingLabel.textContent = "Entering hyperspace… " + pct + "%";
       }
 
+      function armStallTimer() {
+        clearTimeout(stallTimer);
+        stallTimer = setTimeout(fail, STALL_MS);
+      }
+      function disarmStallTimer() {
+        clearTimeout(stallTimer);
+        stallTimer = null;
+      }
+
+      function fail() {
+        disarmStallTimer();
+        video.pause();
+        body.dataset.state = "failed";
+        body.dataset.buffering = "false";
+        video.dataset.show = "false";
+      }
+
       function play() {
         // Show buffering feedback immediately; only flip to the full-bleed
         // "playing" state once the browser actually starts rendering frames.
         body.dataset.state = "buffering";
+        body.dataset.buffering = "false";
+        body.dataset.paused = "false";
         bufferingLabel.textContent = "Entering hyperspace…";
         video.dataset.show = "true";
         video.currentTime = 0;
         updateBufferLabel();
+        armStallTimer();
         video.play().catch(() => {
+          disarmStallTimer();
           body.dataset.state = "idle";
           video.dataset.show = "false";
         });
       }
+      function retry() {
+        // Re-select a source from scratch, then play again.
+        video.load();
+        play();
+      }
+      function closePlayer() {
+        disarmStallTimer();
+        video.pause();
+        body.dataset.state = "idle";
+        body.dataset.buffering = "false";
+        body.dataset.paused = "false";
+        video.dataset.show = "false";
+      }
       playBtn.addEventListener("click", play);
       replayBtn.addEventListener("click", play);
+      retryBtn.addEventListener("click", retry);
+      closeBtn.addEventListener("click", closePlayer);
+      document.addEventListener("keydown", (e) => {
+        if (e.key !== "Escape") return;
+        const st = body.dataset.state;
+        if (st === "playing" || st === "ended" || st === "buffering") closePlayer();
+      });
 
-      // Buffering lifecycle: progress fills the %, playing reveals the film,
-      // waiting/stalled drops back to the buffering indicator mid-stream.
+      // Buffering lifecycle: progress fills the %, playing reveals the film.
+      // Mid-stream waiting/seeking only toggles data-buffering so the player
+      // never drops out of full-bleed while it rebuffers or scrubs.
       video.addEventListener("progress", updateBufferLabel);
       video.addEventListener("playing", () => {
+        disarmStallTimer();
         body.dataset.state = "playing";
+        body.dataset.buffering = "false";
+        body.dataset.paused = "false";
       });
       video.addEventListener("waiting", () => {
-        if (body.dataset.state === "playing") body.dataset.state = "buffering";
+        if (body.dataset.state === "playing") body.dataset.buffering = "true";
+        if (!video.paused) armStallTimer();
         updateBufferLabel();
       });
+      video.addEventListener("seeking", () => {
+        if (body.dataset.state === "playing") body.dataset.buffering = "true";
+      });
+      video.addEventListener("seeked", () => {
+        body.dataset.buffering = "false";
+      });
       video.addEventListener("stalled", updateBufferLabel);
+      video.addEventListener("pause", () => {
+        disarmStallTimer();
+        if (body.dataset.state === "playing") body.dataset.paused = "true";
+      });
       video.addEventListener("ended", () => {
         body.dataset.state = "ended";
+        body.dataset.buffering = "false";
+      });
+
+      // Load failure: a media error, or the last <source> failing to load.
+      video.addEventListener("error", () => {
+        if (body.dataset.state !== "idle") fail();
+      });
+      const sources = video.querySelectorAll("source");
+      sources[sources.length - 1].addEventListener("error", () => {
+        if (body.dataset.state !== "idle") fail();
       });
 
       if ("serviceWorker" in navigator) {

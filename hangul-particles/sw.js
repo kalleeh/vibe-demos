@@ -1,5 +1,5 @@
-const CACHE = "vibe-hangul-particles-v1";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
+const CACHE = "vibe-hangul-particles-v2";
+const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./vendor/three.module.js"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

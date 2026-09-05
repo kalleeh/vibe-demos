@@ -16,6 +16,31 @@
     </style>
   </head>
   <body>
+    <!-- Human-visitor note only. The HyperFrames renderer screenshots the whole
+         1920×1080 viewport (and launches Chromium with AutomationControlled
+         disabled, so navigator.webdriver is useless), so we remove the note as
+         soon as any HyperFrames global is present: the renderer injects
+         __name / __HF_VIRTUAL_TIME__ / __hfVariables before page scripts run,
+         and the studio/preview runtime attaches __hf / __player after load. -->
+    <p id="render-note" style="position:absolute;left:12px;top:8px;margin:0;font:12px/1.4 monospace;color:#888;z-index:1;">Render source — see <a href="../" style="color:#ffe81f;">../</a></p>
+    <script>
+      (function () {
+        var n = document.getElementById("render-note");
+        var tries = 0;
+        function hf() {
+          return navigator.webdriver || window.__hf || window.__player || window.__hfVariables ||
+            window.__HF_VIRTUAL_TIME__ !== undefined || typeof window.__name === "function";
+        }
+        function check() {
+          if (!n) return true;
+          if (hf()) { n.remove(); n = null; return true; }
+          return false;
+        }
+        if (check()) return;
+        window.addEventListener("load", check);
+        var iv = setInterval(function () { if (check() || ++tries > 40) clearInterval(iv); }, 250);
+      })();
+    </script>
     <div data-composition-id="root" data-start="0" data-duration="42" data-width="1920" data-height="1080">
       <!-- Scene 1: Crawl (0 → 14) -->
       <div
@@ -77,7 +102,7 @@
         style="position:absolute;inset:0;background:#000;pointer-events:none;opacity:0;"
       ></div>
 
-      <!-- Original orchestral cue (composed for this homage; not John Williams) -->
+      <!-- Original synthesized ambient cue (ffmpeg sine-bed pad composed for this homage; not John Williams). -14 LUFS, 42 s. -->
       <audio
         id="score"
         data-start="0"

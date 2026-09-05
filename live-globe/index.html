@@ -57,6 +57,7 @@
       height: 100vh;
       z-index: 1;
       cursor: grab;
+      touch-action: none;
     }
     #globe:active { cursor: grabbing; }
     #globe canvas { display: block; }
@@ -311,6 +312,14 @@
       color: var(--ink);
       font-weight: 500;
     }
+    /* "as of HH:MM" marker for the last successful weather fetch */
+    .city-card .stat .k .asof {
+      text-transform: none;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      opacity: 0.85;
+    }
+    .city-card .stat .k .asof.stale { color: var(--warm); opacity: 1; }
     .city-card .stat .v.shimmer {
       display: inline-block;
       background: linear-gradient(90deg, var(--muted) 0%, var(--ink) 50%, var(--muted) 100%);
@@ -720,12 +729,45 @@
       margin-top: 2px;
     }
 
+    /* Wrapper around the two city cards + presence panel. On desktop it
+       generates no box (display: contents) so the fixed-position children lay
+       out exactly as before; on phones it becomes a scrollable bottom sheet. */
+    .sheet { display: contents; }
+
     @media (max-width: 800px) {
-      .presence { left: 20px; right: 20px; transform: none; width: auto; bottom: 20px; }
-      body.focus .presence { transform: translateY(20px); }
-      .city-card { width: calc(100% - 40px); bottom: 20px; }
-      .city-card.left  { left: 20px; right: 20px; bottom: 200px; }
-      .city-card.right { right: 20px; }
+      .sheet {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        position: fixed;
+        left: 0; right: 0; bottom: 0;
+        max-height: 52vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        padding: 0 14px calc(14px + env(safe-area-inset-bottom, 0px));
+        z-index: 8;
+        pointer-events: none;   /* gaps between cards stay drag-through to the globe */
+        transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .25s;
+      }
+      .sheet > * { pointer-events: auto; }
+      body.focus .sheet { opacity: 0; pointer-events: none; transform: translateY(20px); }
+      body.focus .sheet > * { pointer-events: none; }
+      .city-card, .presence {
+        position: static;
+        width: auto;
+        flex: none;
+        transform: none;
+      }
+      .city-card.left, .city-card.right { left: auto; right: auto; bottom: auto; }
+      body.focus .city-card, body.focus .presence { transform: none; }
+      /* Slightly denser type so one card + the next card's header fit a phone. */
+      .city-card { padding: 16px 18px 16px; }
+      .city-card .name { font-size: 26px; }
+      .city-card .native { margin-bottom: 12px; }
+      .city-card .clock { font-size: 28px; }
+      .city-card .clock-meta { margin-bottom: 12px; }
+      .city-card .ai-btn { margin-top: 14px; }
       .ai-panel { padding: 22px 22px; max-height: 88vh; }
       .ai-panel .head h3 { font-size: 24px; }
       .topbar { padding: 14px 16px; }
@@ -767,7 +809,9 @@
     </div>
   </header>
 
-  <!-- City cards -->
+  <!-- City cards + presence panel. The .sheet wrapper is display:contents on
+       desktop and a scrollable bottom sheet on phones (see CSS). -->
+  <div class="sheet" id="sheet">
   <aside class="city-card sthlm left" data-city="stockholm">
     <div class="lbl">Stockholm · 59.33°N</div>
     <div class="name">Stock<em>holm</em></div>
@@ -775,7 +819,7 @@
     <div class="clock" id="clock-stockholm">——:——</div>
     <div class="clock-meta" id="meta-stockholm">— · Europe/Stockholm</div>
     <div class="stats">
-      <div class="stat"><div class="k">Weather</div><div class="v shimmer" id="w-stockholm">loading</div></div>
+      <div class="stat"><div class="k">Weather <span class="asof" id="asof-stockholm"></span></div><div class="v shimmer" id="w-stockholm">loading</div></div>
       <div class="stat"><div class="k">Temp</div><div class="v shimmer" id="t-stockholm">—</div></div>
       <div class="stat"><div class="k">Sunrise</div><div class="v shimmer" id="sr-stockholm">—</div></div>
       <div class="stat"><div class="k">Sunset</div><div class="v shimmer" id="ss-stockholm">—</div></div>
@@ -792,7 +836,7 @@
     <div class="clock" id="clock-seoul">——:——</div>
     <div class="clock-meta" id="meta-seoul">— · Asia/Seoul</div>
     <div class="stats">
-      <div class="stat"><div class="k">Weather</div><div class="v shimmer" id="w-seoul">loading</div></div>
+      <div class="stat"><div class="k">Weather <span class="asof" id="asof-seoul"></span></div><div class="v shimmer" id="w-seoul">loading</div></div>
       <div class="stat"><div class="k">Temp</div><div class="v shimmer" id="t-seoul">—</div></div>
       <div class="stat"><div class="k">Sunrise</div><div class="v shimmer" id="sr-seoul">—</div></div>
       <div class="stat"><div class="k">Sunset</div><div class="v shimmer" id="ss-seoul">—</div></div>
@@ -801,23 +845,6 @@
       Ask Claude what's happening <span class="arrow">→</span>
     </button>
   </aside>
-
-  <!-- AI panel -->
-  <div class="ai-panel" id="aiPanel" role="dialog" aria-modal="true" aria-labelledby="aiTitle">
-    <div class="head">
-      <div>
-        <div class="ai-lbl">Right now in</div>
-        <h3 id="aiTitle">—</h3>
-      </div>
-      <button class="close" id="aiClose" aria-label="Close">×</button>
-    </div>
-    <span class="demo-pill" id="demoPill">demo mode · canned output</span>
-    <div class="progress" id="aiProgress"></div>
-    <div class="blurb" id="aiBlurb"></div>
-    <div class="controls">
-      <button class="mode-toggle" id="modeToggle">Try live mode →</button>
-    </div>
-  </div>
 
   <!-- Presence layer: who's looking right now -->
   <aside class="presence collapsed" id="presence" aria-label="Who's looking right now">
@@ -842,6 +869,24 @@
       </div>
     </div>
   </aside>
+  </div><!-- /.sheet -->
+
+  <!-- AI panel -->
+  <div class="ai-panel" id="aiPanel" role="dialog" aria-modal="true" aria-labelledby="aiTitle">
+    <div class="head">
+      <div>
+        <div class="ai-lbl">Right now in</div>
+        <h3 id="aiTitle">—</h3>
+      </div>
+      <button class="close" id="aiClose" aria-label="Close">×</button>
+    </div>
+    <span class="demo-pill" id="demoPill">demo mode · canned output</span>
+    <div class="progress" id="aiProgress"></div>
+    <div class="blurb" id="aiBlurb"></div>
+    <div class="controls">
+      <button class="mode-toggle" id="modeToggle">Try live mode →</button>
+    </div>
+  </div>
 
   <!-- Floating tooltip for a hovered/tapped presence pin -->
   <div class="pin-tip" id="pinTip" role="status" aria-live="polite">
@@ -852,8 +897,7 @@
   <script type="importmap">
     {
       "imports": {
-        "three":         "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
       }
     }
   </script>
@@ -862,7 +906,6 @@
 
   <script type="module">
     import * as THREE from "three";
-    import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
     /* ───────────────────────────────────────────────
        Cities
@@ -910,15 +953,11 @@
     const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.set(0, 0, 5.0);
 
-    /* PMREM environment so any future PBR materials have something to reflect */
-    const pmrem = new THREE.PMREMGenerator(renderer);
-    pmrem.compileEquirectangularShader();
-    scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+    /* No scene lights / env map: the globe is a custom ShaderMaterial (lit by
+       its own sunDir uniform) and every pin is MeshBasicMaterial. */
 
-    /* ── Lighting ── */
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.4);
-    scene.add(sunLight);
-    scene.add(new THREE.AmbientLight(0xffffff, 0.06));
+    /* Honoured live: auto-spin and the pin-ring pulse are gated on this. */
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
     /* ── Stars background ── */
     function makeStars() {
@@ -956,10 +995,11 @@
     const loader = new THREE.TextureLoader();
     loader.crossOrigin = "anonymous";
 
-    /* Day: threejs.org example texture (NASA public domain, stable CDN).
-       Night: NASA Black Marble 2016 (Earth Observatory, public domain) — committed
-       locally so the demo works offline once the SW caches it. */
-    const dayURL   = "https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg";
+    /* Day: the threejs.org example texture (NASA public domain), committed
+       locally so the globe renders with no third-party host in the loop.
+       Night: NASA Black Marble 2016 (Earth Observatory, public domain) — also
+       local. Both are in the SW SHELL so the demo works offline. */
+    const dayURL   = "./textures/earth_atmos_2048.jpg";
     const nightURL = "./textures/blackmarble.jpg";
     const nightFallbackURL = "https://threejs.org/examples/textures/planets/earth_lights_2048.png";
 
@@ -1241,7 +1281,6 @@
     let lastX = 0, lastY = 0;
     let targetRotY = 0, targetRotX = 0;
     let curRotY = 0, curRotX = 0;
-    let velY = 0, velX = 0;
     let lastInputT = performance.now();
 
     /* Click pin → open AI panel for that city */
@@ -1265,8 +1304,6 @@
       lastX = e.clientX; lastY = e.clientY;
       targetRotY += dx * 0.005;
       targetRotX = Math.max(-0.7, Math.min(0.7, targetRotX + dy * 0.005));
-      velY = dx * 0.005;
-      velX = dy * 0.005;
       lastInputT = performance.now();
     };
     /* Desktop hover over a presence pin → show its tooltip (no click needed).
@@ -1384,11 +1421,11 @@
       const dt = clock.getDelta();
       const t = clock.getElapsedTime();
 
-      /* Sun direction follows simulated time (real time OR fast-forward) */
+      /* Sun direction follows simulated time (real time OR fast-forward).
+         The uniform itself is written further down, after this frame's globe
+         rotation is applied, so the terminator stays glued to the geography. */
       const now = simNow();
       const sd = sunDirection(now);
-      globeMat.uniforms.sunDir.value.copy(sd);
-      sunLight.position.copy(sd).multiplyScalar(10);
 
       /* While fast-forwarding, drive clocks + UTC label every frame so
          the city times sweep visibly through 24 hours. */
@@ -1402,9 +1439,9 @@
         }
       }
 
-      /* Auto-spin if user has been idle for >2.5s */
+      /* Auto-spin if user has been idle for >2.5s (not under reduced motion) */
       const idle = (performance.now() - lastInputT) > 2500;
-      if (idle && !isDragging) targetRotY += dt * 0.04;
+      if (idle && !isDragging && !reduceMotion.matches) targetRotY += dt * 0.04;
 
       /* Smooth toward target rotation */
       curRotY += (targetRotY - curRotY) * 0.08;
@@ -1413,14 +1450,22 @@
       globe.rotation.x = curRotX;
       atmo.rotation.copy(globe.rotation);
 
+      /* sunDirection() returns the subsolar point in the globe's LOCAL frame
+         (same lat/lon mapping as the pins). The vertex shader lights with
+         world-space normals, so rotate the sun into world space with the
+         globe's quaternion — otherwise the terminator sits still while the
+         continents spin underneath it. */
+      globeMat.uniforms.sunDir.value.copy(sd).applyQuaternion(globe.quaternion);
+
       /* Pulse all pin rings — pins are parented to `globe` at init time
-         (see Promise.all texture load below), so they already inherit the
-         globe's rotation; no per-pin rotation update is needed here. */
+         (see texture load below), so they already inherit the globe's
+         rotation; no per-pin rotation update is needed here. Under reduced
+         motion the rings hold a static resting size. */
+      const pulse = reduceMotion.matches ? 1 : 1 + (Math.sin(t * 2.4) + 1) * 0.6;
       scene.traverse(o => {
         if (o.userData && o.userData.isPulse) {
-          const s = 1 + (Math.sin(t * 2.4) + 1) * 0.6;
-          o.scale.setScalar(s);
-          o.material.opacity = 0.55 - (s - 1) * 0.4;
+          o.scale.setScalar(pulse);
+          o.material.opacity = 0.55 - (pulse - 1) * 0.4;
         }
       });
 
@@ -1442,8 +1487,8 @@
     window.addEventListener("resize", onResize);
 
     /* Teardown: dispose GPU resources and detach listeners when the page
-       is hidden. Follows the Three.js docs pattern (traverse → dispose
-       geometry/material/material.map → dispose renderer + PMREMGenerator). */
+       is actually going away. Follows the Three.js docs pattern (traverse →
+       dispose geometry/material/material.map → dispose renderer). */
     let disposed = false;
     function teardown() {
       if (disposed) return;
@@ -1472,10 +1517,33 @@
           }
         }
       });
-      pmrem.dispose();
       renderer.dispose();
     }
-    window.addEventListener("pagehide", teardown);
+    /* Only tear down when the page is really being unloaded. When it enters
+       the back/forward cache (event.persisted) everything must stay alive so
+       a bfcache restore resumes a working globe instead of a dead page. */
+    window.addEventListener("pagehide", e => { if (!e.persisted) teardown(); });
+    window.addEventListener("pageshow", e => {
+      // Restored from bfcache after we already disposed (a browser that
+      // reported persisted=false and then cached anyway) → fresh start.
+      if (e.persisted && disposed) location.reload();
+    });
+
+    /* Screen wake lock — this is an ambient piece; keep the display on while
+       it is visible. Best-effort: unsupported browsers / denials are ignored. */
+    let wakeLock = null;
+    async function requestWakeLock() {
+      if (!navigator.wakeLock || document.visibilityState !== "visible" || wakeLock) return;
+      try {
+        wakeLock = await navigator.wakeLock.request("screen");
+        wakeLock.addEventListener("release", () => { wakeLock = null; });
+      } catch (_) { wakeLock = null; }
+    }
+    requestWakeLock();
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") requestWakeLock();
+      else if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+    });
 
     /* ───────────────────────────────────────────────
        Init: load textures, parent pins, start
@@ -1484,9 +1552,22 @@
        threejs.org earth_lights texture if the local file is unreachable. */
     const loadNight = () => loadTex(nightURL).catch(() => loadTex(nightFallbackURL));
 
-    Promise.all([loadTex(dayURL), loadNight()]).then(([day, night]) => {
-      globeMat.uniforms.dayMap.value = day;
-      globeMat.uniforms.nightMap.value = night;
+    /* 1×1 solid-colour stand-in so the globe still renders (flat ocean blue
+       by day, black by night) if a texture can't be fetched. */
+    function fallbackTex(r, g, b) {
+      const t = new THREE.DataTexture(new Uint8Array([r, g, b, 255]), 1, 1);
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.needsUpdate = true;
+      return t;
+    }
+
+    /* Never leave the loading overlay up: whatever happens to the textures,
+       start the render loop and reveal the scene. */
+    Promise.allSettled([loadTex(dayURL), loadNight()]).then(([day, night]) => {
+      if (day.status === "rejected")   console.warn("Day texture failed; using flat fallback", day.reason);
+      if (night.status === "rejected") console.warn("Night texture failed; using flat fallback", night.reason);
+      globeMat.uniforms.dayMap.value   = day.status === "fulfilled"   ? day.value   : fallbackTex(30, 68, 118);
+      globeMat.uniforms.nightMap.value = night.status === "fulfilled" ? night.value : fallbackTex(0, 0, 0);
 
       /* Re-parent pins to globe so they rotate with it */
       Object.values(pinObjects).forEach(group => {
@@ -1498,9 +1579,6 @@
       requestAnimationFrame(() => {
         document.getElementById("loading").classList.add("hidden");
       });
-    }).catch(err => {
-      console.error("Texture load failed", err);
-      document.querySelector("#loading .lbl").textContent = "Texture load failed — check network";
     });
 
     /* ───────────────────────────────────────────────
@@ -1536,7 +1614,10 @@
     tickClocks();
     // Real-time tick — pauses while fast-forward is active to avoid stomping
     // the per-frame fast-forward updates.
-    const clockTimer = setInterval(() => { if (!fastForward.active) tickClocks(); }, 15000);
+    const clockTimer = setInterval(() => {
+      if (!fastForward.active) tickClocks();
+      Object.values(CITIES).forEach(updateAsOf); // re-evaluate the weather "stale" flag
+    }, 15000);
 
     /* ───────────────────────────────────────────────
        Fast-forward: 24 real hours in 12 wall seconds
@@ -1590,28 +1671,45 @@
       95: "Thunderstorm", 96: "Storm + hail", 99: "Storm + hail"
     };
 
+    /* "as of HH:MM" (city local time) next to the Weather label; flagged
+       `stale` once the last successful fetch is older than 20 minutes. */
+    const WEATHER_STALE_MS = 20 * 60 * 1000;
+    function updateAsOf(c) {
+      const el = document.getElementById(`asof-${c.key}`);
+      if (!el || !c.weatherAt) return;
+      const stale = Date.now() - c.weatherAt > WEATHER_STALE_MS;
+      el.textContent = `· as of ${fmtTime(new Date(c.weatherAt), c.tz)}${stale ? " · stale" : ""}`;
+      el.classList.toggle("stale", stale);
+    }
+
     async function fetchWeather(c) {
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current=temperature_2m,weather_code,wind_speed_10m`;
+      const wel = document.getElementById(`w-${c.key}`);
+      const tel = document.getElementById(`t-${c.key}`);
       try {
         const res = await fetch(url);
         if (!res.ok) throw new Error("weather " + res.status);
         const data = await res.json();
         const cur = data.current;
-        const wel = document.getElementById(`w-${c.key}`);
-        const tel = document.getElementById(`t-${c.key}`);
         wel.textContent = WEATHER_CODES[cur.weather_code] ?? `code ${cur.weather_code}`;
         wel.classList.remove("shimmer");
         tel.textContent = `${Math.round(cur.temperature_2m)}°C · ${Math.round(cur.wind_speed_10m)} km/h`;
         tel.classList.remove("shimmer");
         c.weather = { code: cur.weather_code, label: WEATHER_CODES[cur.weather_code] ?? "—",
                       tempC: cur.temperature_2m, windKmh: cur.wind_speed_10m };
+        c.weatherAt = Date.now();
       } catch (err) {
         console.warn("weather fetch failed", err);
-        document.getElementById(`w-${c.key}`).textContent = "offline";
-        document.getElementById(`w-${c.key}`).classList.remove("shimmer");
-        document.getElementById(`t-${c.key}`).textContent = "—";
-        document.getElementById(`t-${c.key}`).classList.remove("shimmer");
+        // A transient failure must not erase data we already have — keep the
+        // last-known values on screen and let the "as of" marker age them.
+        if (!c.weather) {
+          wel.textContent = "offline";
+          wel.classList.remove("shimmer");
+          tel.textContent = "—";
+          tel.classList.remove("shimmer");
+        }
       }
+      updateAsOf(c);
     }
     Object.values(CITIES).forEach(c => fetchWeather(c));
     const weatherTimer = setInterval(() => Object.values(CITIES).forEach(c => fetchWeather(c)), 10 * 60 * 1000);
@@ -1630,19 +1728,40 @@
     let currentCity = null;
     let liveMode = false;
 
+    /* One in-flight live request at a time. Every open / mode switch bumps
+       the id and aborts the previous fetch; results whose id is no longer
+       current (or whose city/mode changed underneath them) are discarded. */
+    let aiReqId = 0;
+    let aiAbort = null;
+    function cancelLiveRequest() {
+      aiReqId++;
+      if (aiAbort) { aiAbort.abort(); aiAbort = null; }
+    }
+
     const CLAUDE_PROXY = "https://ai.pb.gurum.se";
-    async function solveProxyPoW() {
-      const r = await fetch(CLAUDE_PROXY + "/api/claude-challenge");
+    const POW_BATCH = 2000;
+    async function solveProxyPoW(signal, onProgress) {
+      const r = await fetch(CLAUDE_PROXY + "/api/claude-challenge", { signal });
       if (!r.ok) { const e = new Error("challenge " + r.status); e.status = r.status; throw e; }
       const { nonce, exp, sig, difficulty } = await r.json();
       const enc = new TextEncoder();
       const leadBits = (buf) => { const b = new Uint8Array(buf); let bits = 0;
         for (const x of b) { if (x === 0) { bits += 8; continue; } let v = x, c = 0; while ((v & 0x80) === 0) { c++; v <<= 1; } bits += c; break; } return bits; };
-      for (let counter = 0; ; counter++) {
-        const d = await crypto.subtle.digest("SHA-256", enc.encode(nonce + ":" + counter));
-        if (leadBits(d) >= difficulty) return { "X-PoW-Nonce": nonce, "X-PoW-Exp": exp, "X-PoW-Sig": sig, "X-PoW-Counter": String(counter) };
-        if (counter > 5000000) throw new Error("pow-timeout");
+      // Hash in batches: fan POW_BATCH digests out to WebCrypto at once, then
+      // yield a macrotask so the panel repaints and the stage text can tick.
+      for (let base = 0; base <= 5000000; base += POW_BATCH) {
+        if (signal?.aborted) throw new DOMException("aborted", "AbortError");
+        const digests = await Promise.all(Array.from({ length: POW_BATCH }, (_, i) =>
+          crypto.subtle.digest("SHA-256", enc.encode(nonce + ":" + (base + i)))));
+        for (let i = 0; i < digests.length; i++) {
+          if (leadBits(digests[i]) >= difficulty) {
+            return { "X-PoW-Nonce": nonce, "X-PoW-Exp": exp, "X-PoW-Sig": sig, "X-PoW-Counter": String(base + i) };
+          }
+        }
+        if (onProgress) onProgress(base + POW_BATCH);
+        await new Promise(res => setTimeout(res, 0));
       }
+      throw new Error("pow-timeout");
     }
 
     document.querySelectorAll(".ai-btn").forEach(b => {
@@ -1671,28 +1790,38 @@
       }
     });
 
+    const PILL_LIVE = "live mode · Sonnet 4.6 via Bedrock";
+    const PILL_DEMO = "demo mode · canned output";
+    const PILL_LIVE_FALLBACK = "live unavailable · showing demo text";
+    function setPill(text, isLive) {
+      demoPill.textContent = text;
+      aiPanel.classList.toggle("live", isLive);
+    }
+
     modeToggle.addEventListener("click", () => {
       liveMode = !liveMode;
-      aiPanel.classList.toggle("live", liveMode);
+      cancelLiveRequest();
       if (liveMode) {
-        demoPill.textContent = "live mode · Sonnet 4.6 via Bedrock";
+        setPill(PILL_LIVE, true);
         modeToggle.textContent = "Back to demo mode ←";
-        if (currentCity) renderBlurb(currentCity);
       } else {
-        demoPill.textContent = "demo mode · canned output";
+        setPill(PILL_DEMO, false);
         modeToggle.textContent = "Try live mode →";
-        if (currentCity) renderBlurb(currentCity);
       }
+      if (currentCity) renderBlurb(currentCity);
     });
 
     function openAiPanel(cityKey) {
+      cancelLiveRequest();
       currentCity = cityKey;
       const c = CITIES[cityKey];
-      aiTitle.innerHTML = c.nameTitle;
+      aiTitle.innerHTML = c.nameTitle; // static markup from CITIES, not model output
       aiPanel.classList.add("open");
       renderBlurb(cityKey);
     }
     function closeAiPanel() {
+      cancelLiveRequest();
+      aiProgress.classList.remove("on");
       aiPanel.classList.remove("open");
       currentCity = null;
     }
@@ -1733,8 +1862,25 @@
       };
     }
 
+    /* Model output is rendered with textContent only — paragraphs are split on
+       "\n\n" and joined with <br> nodes, never via innerHTML. */
+    function paraSpan(cls, text) {
+      const span = document.createElement("span");
+      span.className = cls;
+      const paras = String(text || "").split(/\n\n+/);
+      paras.forEach((p, i) => {
+        if (i > 0) { span.appendChild(document.createElement("br")); span.appendChild(document.createElement("br")); }
+        span.appendChild(document.createTextNode(p));
+      });
+      return span;
+    }
     function paintBlurb({ ko, en }) {
-      aiBlurb.innerHTML = `<span class="ko">${ko}</span><span class="en">${en}</span>`;
+      aiBlurb.replaceChildren(paraSpan("ko", ko), paraSpan("en", en));
+    }
+    function paintNote(text, color) {
+      const span = paraSpan("ko", text);
+      span.style.color = color;
+      aiBlurb.replaceChildren(span);
     }
 
     async function renderBlurb(cityKey) {
@@ -1744,20 +1890,28 @@
         paintBlurb(cannedBlurb(c));
         return;
       }
-      aiBlurb.innerHTML = `<span class="ko" style="color:var(--muted)">Asking Claude…</span>`;
+      const reqId = ++aiReqId;
+      aiAbort = new AbortController();
+      const signal = aiAbort.signal;
+      const stillCurrent = () => reqId === aiReqId && currentCity === cityKey && liveMode;
+
+      setPill(PILL_LIVE, true);
+      paintNote("Solving challenge…", "var(--muted)");
       aiProgress.classList.add("on");
       try {
-        const blurb = await callClaude(c);
+        const blurb = await callClaude(c, signal, stage => { if (stillCurrent()) paintNote(stage, "var(--muted)"); });
+        if (!stillCurrent()) return;
         paintBlurb(blurb);
       } catch (err) {
-        aiProgress.classList.remove("on");
+        if (!stillCurrent() || err.name === "AbortError") return;
         if (err.status === 403 || err.status === 429 || err.status === 503) {
+          setPill(PILL_LIVE_FALLBACK, false);
           paintBlurb(cannedBlurb(c));
         } else {
-          aiBlurb.innerHTML = `<span class="ko" style="color:var(--seoul)">${err.message || "Request failed"}</span>`;
+          paintNote(err.message || "Request failed", "var(--seoul)");
         }
       } finally {
-        aiProgress.classList.remove("on");
+        if (stillCurrent()) { aiProgress.classList.remove("on"); aiAbort = null; }
       }
     }
 
@@ -1777,7 +1931,7 @@
         required: ["ko", "en"]
       }
     };
-    async function callClaude(c) {
+    async function callClaude(c, signal, onStage) {
       const now = new Date();
       const localTime = fmtTime(now, c.tz);
       const w = c.weather;
@@ -1866,9 +2020,11 @@ Write a short snapshot of what's likely happening in the city right now. Be vivi
 
 city_snapshot 도구로 ko/en 두 문단씩 반환하세요.`;
 
-      const pow = await solveProxyPoW();
+      const pow = await solveProxyPoW(signal, n => onStage?.(`Solving challenge… ${Math.round(n / 1000)}k hashes`));
+      onStage?.("Asking Claude…");
       const res = await fetch(CLAUDE_PROXY + "/api/claude", {
         method: "POST",
+        signal,
         headers: { "Content-Type": "application/json", ...pow },
         // tool_choice forces a schema-valid city_snapshot call → no text parsing needed
         body: JSON.stringify({ model: "sonnet", max_tokens: 1200, system: sys, messages: [{ role: "user", content: user }],
@@ -1879,9 +2035,8 @@ city_snapshot 도구로 ko/en 두 문단씩 반환하세요.`;
       const tu = (data.content || []).find(b => b.type === "tool_use" && b.name === "city_snapshot");
       if (!tu || !tu.input) throw new Error("no structured output");
       const obj = tu.input;
-      // Convert paragraph breaks to <br><br>
-      const fmt = s => String(s || "").replace(/\n\n/g, "<br><br>");
-      return { ko: fmt(obj.ko), en: fmt(obj.en) };
+      // Raw strings; paintBlurb() turns "\n\n" into <br> nodes safely.
+      return { ko: String(obj.ko || ""), en: String(obj.en || "") };
     }
 
   </script>

@@ -1,4 +1,4 @@
-const CACHE = "vibe-starwars-homage-v10";
+const CACHE = "vibe-starwars-homage-v11";
 const SHELL = [
   "./",
   "./index.html",

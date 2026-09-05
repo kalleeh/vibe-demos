@@ -9,6 +9,8 @@ References on disk (all verified):
 
 | Scene  | File                          | What it confirmed (read this session)                                                          |
 |--------|-------------------------------|------------------------------------------------------------------------------------------------|
+> Note: the stills listed below were Lucasfilm-copyrighted frame grabs and are no longer kept in the repo — only these text notes remain.
+
 | crawl  | `crawl/opening-crawl.jpg`     | Blue prologue, yellow stacked STAR/WARS logo, EPISODE IV / A NEW HOPE plate                    |
 | sunset | `sunset/binary-sunset.png`    | Plum/magenta sky, two clearly separated suns (cream + red), warm-only palette, Luke silhouette |
 | sunset | `sunset/tatooine.jpg`         | Tan/dusty planet sphere with no atmosphere bloom                                               |
