@@ -1,5 +1,5 @@
 /* resonans — minimal offline shell SW */
-const CACHE = "vibe-resonans-v10";
+const CACHE = "vibe-resonans-v11";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -34,6 +34,6 @@ self.addEventListener("fetch", e => {
         caches.open(CACHE).then(c => c.put(req, copy));
       }
       return r;
-    }).catch(() => m))
+    }).catch(() => m || Response.error()))
   );
 });
