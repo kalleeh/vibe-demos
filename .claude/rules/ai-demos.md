@@ -53,7 +53,7 @@ Every AI demo ships two modes:
 2. **Live mode** — a toggle ("Try live mode →") that switches to real proxy calls.
 
 Error-handling contract:
-- `403` / `429` / `503` from the proxy (origin, PoW, rate limit, daily cap, proxy not configured) → fall back to the closest canned output AND say so on screen (intake: "라이브 서버가 잠시 바쁩니다 (NNN) — 다시 시도하거나 예시 결과를 볼 수 있어요"). A canned result MUST never render under a live label.
+- `403` / `429` / `503` from the proxy (origin, PoW, rate limit, daily cap, proxy not configured) → show the error line (`라이브 서버가 잠시 바쁩니다 (NNN) — 다시 시도하거나 예시 결과를 볼 수 있어요`) with `다시 시도` / `예시 결과 보기`; canned output renders only when the user taps the latter and then carries the `예시 결과 · 실시간 연결 실패` pill. A canned result MUST never render under a live label. See "Shared AI-state convention" below.
 - Any other failure → show the error inline; keep the previous output.
 - MUST set a busy flag / disable the trigger for the whole call (challenge + PoW + fetch). Double-submits burn nonces and rate budget and race the render.
 - MUST escape model output before any `innerHTML` (`esc()` in intake-companion) or render with `textContent`. Model text is untrusted input.
