@@ -43,7 +43,7 @@ Verify with `ls` before recommending — this list can drift.
 - `molecule-journey/` — Three.js scrollytelling, six chapters following one methane molecule from LNG tanker to Seoul kitchen flame. Kenney CC0 GLBs in `assets/`.
 - `live-globe/` — interactive 3D Earth (Three.js), live time/weather/sunrise/sunset for Seoul ⇄ Stockholm, AI "right now" snapshots.
 - `intake-companion/` — Korean traditional medicine (한방) intake assistant. Voice-in, structured 변증/처방/경혈 brief, canned/live toggle. **Reference implementation for the AI demo pattern.**
-- `korean-mbti/` — short Korean MBTI test + AI deep-read mode inferring type from a free-form passage.
+- `korean-mbti/` — short Korean MBTI test (28/93 items) + AI deep-read mode inferring type from a free-form passage; 16-type 도감 and a 궁합 (compatibility) view.
 - `resonans/` — calm sketchbook game on a hand-drawn cream-paper string. Real 1D wave physics; no score, no timer.
 - `clinic-admin/` — Korean 한방병원 administration assistant. Camera/OCR + voice + share-sheet intake, ⌘K command palette, guided tour.
 - `tinywings/` ("Sketchwings") — one-tap arcade glider over pencil hills with a day/night cycle. **Canonical PocketBase demo** (shared leaderboard with one row per player + weekly tab, local-first fallback). Reuses `assets/hero-mood.webp` as its works-index thumbnail (path is in root `sw.js` allow-list).
