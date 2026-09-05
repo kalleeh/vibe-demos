@@ -1,5 +1,5 @@
 /* intake-companion — minimal offline shell SW */
-const CACHE = "vibe-intake-companion-v9";
+const CACHE = "vibe-intake-companion-v10";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
   // Watercolor herb vignettes (small WebP) that float in the page margins.
@@ -34,8 +34,11 @@ self.addEventListener("fetch", e => {
   if (req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html")) {
     e.respondWith(
       fetch(req).then(r => {
-        const copy = r.clone();
-        caches.open(CACHE).then(c => c.put(req, copy));
+        // Only cache successful navigations — never overwrite a good shell with a 404/5xx page.
+        if (r.ok) {
+          const copy = r.clone();
+          caches.open(CACHE).then(c => c.put(req, copy));
+        }
         return r;
       }).catch(() => caches.match(req).then(m => m || caches.match("./index.html")))
     );
@@ -48,6 +51,6 @@ self.addEventListener("fetch", e => {
         caches.open(CACHE).then(c => c.put(req, copy));
       }
       return r;
-    }).catch(() => m))
+    }).catch(() => m || Response.error()))
   );
 });
