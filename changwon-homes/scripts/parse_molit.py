@@ -19,12 +19,15 @@ Output: complexes.json — one record per complex with:
   name, gu, dong, road, built, deal_count, sale_count, jeonse_count, wolse_count,
   ym_min, ym_max (YYYYMM, all contract types),
   sizes: { band: { pyeong, area_m2, n, medFloor,
-                   sale?, saleRaw?, sale_n?, sale_ym?, sale_med?,
+                   sale?, saleRaw?, sale_n?, sale_ym?, sale_med?, sale_hist?,
                    jeonse?, jeonse_n?, jeonse_ym?,
                    wDeposit?, wMonthly?, wolse_n?, wolse_ym? } }
   *_ym are "YYYY-MM" of the latest contract in that mode. sale_med is the
   median floor-normalized sale price (억) over the dataset's most recent
   RECENT_MONTHS calendar months, only when >= 2 deals fall in that window.
+  sale_hist is the per-month series [[YYYY-MM, median floor-normalized 평단가
+  (만원/평), n], ...] over the whole window (months with >= 1 sale only) —
+  the client draws it as the band's price-history sparkline.
 
 Usage:
     python3 parse_molit.py data/raw/*.xlsx > data/complexes.json
@@ -165,6 +168,13 @@ def finalize(complexes, latest_ym):
                     recent = [p / floor_mult(f, mf) for (y, p, f) in sales if y[:6] >= recent_from]
                     if len(recent) >= 2:
                         s["sale_med"] = round(statistics.median(recent), 2)
+                # monthly history for the client sparkline: [[YYYY-MM, median 평단가 (만원/평,
+                # floor-normalized), n], ...] over the whole window, only months with >= 1 sale
+                by_month = {}
+                for (y, p, f) in sales:
+                    by_month.setdefault(y[:6], []).append(p / floor_mult(f, mf) * 10000 / s["pyeong"])
+                s["sale_hist"] = [[_ym_label(y), int(round(statistics.median(v))), len(v)]
+                                  for y, v in sorted(by_month.items())]
             # jeonse
             rents = s.pop("_jeonse", [])
             t = _latest(rents)
