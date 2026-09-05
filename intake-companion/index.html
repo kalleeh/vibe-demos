@@ -128,6 +128,10 @@
       background: var(--rust);
       box-shadow: 0 0 6px var(--rust);
     }
+    /* Two labelled segments inside the toggle; the active mode is the bright one. */
+    .topbar .mode-toggle .seg { opacity: 0.5; transition: opacity .2s; }
+    .topbar .mode-toggle .seg.on { opacity: 1; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+    .topbar .mode-toggle .sep { opacity: 0.4; }
 
     /* ── Hero ── */
     .hero {
@@ -277,7 +281,7 @@
       background: rgba(255,255,255,0.7);
     }
     .input-area textarea::placeholder {
-      color: var(--faint);
+      color: var(--muted);
       font-style: italic;
     }
 
@@ -360,6 +364,7 @@
       border-radius: 3px;
       font-family: "Noto Serif KR", serif;
       font-size: 13px;
+      min-height: 36px;
       cursor: pointer;
       transition: background .2s, border-color .2s;
     }
@@ -447,6 +452,131 @@
       background: rgba(107, 148, 130, 0.06);
     }
     .demo-note em { font-style: italic; }
+    /* Canned brief shown after a live-mode failure — rust so it cannot be mistaken for analysis. */
+    .demo-note.fallback {
+      color: var(--rust);
+      border-color: var(--rust);
+      background: rgba(181,74,50,0.06);
+      font-weight: 500;
+    }
+
+    /* AI-assistance framing under the brief header */
+    .ai-note {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9.5px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--rust);
+      margin-top: 6px;
+    }
+
+    /* Opt-in sharing + data notice under the Analyze row */
+    .share-opt {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-family: "Noto Serif KR", serif;
+      font-size: 13px;
+      color: var(--ink-2);
+      cursor: pointer;
+      line-height: 1.5;
+    }
+    .share-opt input { margin-top: 5px; accent-color: var(--celadon-d); }
+    .privacy-note {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* Dictation status line (errors, unsupported browser) */
+    .mic-status {
+      font-family: "Noto Serif KR", serif;
+      font-size: 13px;
+      color: var(--muted);
+      min-height: 1.5em;
+      line-height: 1.5;
+    }
+    .mic-status.err { color: var(--rust); }
+    .mic-status:empty { display: none; }
+
+    /* Inline error in the output panel (live-mode failures) */
+    .output-error {
+      font-family: "Noto Serif KR", serif;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--ink);
+      padding: 16px 18px;
+      border: 1px solid var(--rust);
+      border-left-width: 3px;
+      border-radius: 3px;
+      background: rgba(181,74,50,0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .output-error .msg { color: var(--rust); font-weight: 500; }
+    .output-error .sub { font-size: 13px; color: var(--muted); }
+
+    /* Typographic skeleton while a brief is being generated */
+    .skeleton {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      padding-top: 6px;
+    }
+    .skeleton .stage {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--celadon-d);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .skeleton .stage::before {
+      content: "";
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--celadon-d);
+      animation: stagePulse 1.2s ease-in-out infinite;
+    }
+    @keyframes stagePulse { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+    .skeleton .sk-section h3 {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--faint);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .skeleton .sk-section h3::before {
+      content: "";
+      width: 18px; height: 1px;
+      background: var(--faint);
+    }
+    .skeleton .cm-skel .row { margin: 10px 0; }
+    .skeleton .cm-skel .row:nth-child(3) { width: 56%; }
+
+    .copy-fallback {
+      width: 100%;
+      min-height: 160px;
+      margin-top: 10px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      padding: 10px;
+      border: 1px solid var(--line-2);
+      border-radius: 3px;
+      background: rgba(255,255,255,0.6);
+      color: var(--ink);
+    }
 
     /* ── 다른 상담 사례 (shared anonymized case corpus) ───────────── */
     .cases-launch {
@@ -851,6 +981,7 @@
     }
     .lang-seg button {
       padding: 5px 11px;
+      min-height: 36px;
       background: none;
       border: none;
       color: var(--muted);
@@ -1276,6 +1407,14 @@
     }
 
     /* ── 본초 atlas (formula → herbs expansion) ── */
+    .herb-head {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9.5px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 14px;
+    }
     .herb-list {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
@@ -1341,6 +1480,8 @@
     .print-bar {
       display: flex;
       justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
       padding-top: 14px;
       border-top: 1px dashed var(--line);
       margin-top: 14px;
@@ -1354,6 +1495,7 @@
 
     @media (prefers-reduced-motion: reduce) {
       .output-area .progress::after { animation: none; left: 0; width: 100%; }
+      .skeleton .stage::before { animation: none; }
       .btn.mic.recording { animation: none; }
       .brief { animation: none; }
       .atlas svg .pt.active circle.ring { animation: none; }
@@ -1408,6 +1550,16 @@
       text-align: right;
       line-height: 1.5;
     }
+    /* Fixed AI-draft disclaimer — printed on every chart, cannot be toggled off. */
+    .chart-print .ai-draft {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9pt;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+      border: 1.5px solid #000;
+      padding: 6px 10px;
+      margin-bottom: 14px;
+    }
     .chart-print h3 {
       font-size: 11pt;
       font-weight: 600;
@@ -1443,7 +1595,7 @@
   <header class="topbar" id="topbar">
     <div class="frame" style="display:flex;justify-content:space-between;align-items:center;padding:0;border:none;width:100%;">
       <a href="../" class="mark">Vibe Studio</a>
-      <button class="mode-toggle" id="modeToggle" title="Toggle between canned demo output and live Claude Opus calls">Try live mode →</button>
+      <button class="mode-toggle" id="modeToggle" type="button" aria-pressed="false" title="예시 모드 ↔ 라이브 (Claude Opus) 전환"><span class="seg on" data-m="canned">예시 모드</span><span class="sep">/</span><span class="seg" data-m="live">라이브 (Opus)</span></button>
     </div>
   </header>
 
@@ -1470,6 +1622,7 @@
         <div class="input-area">
           <textarea
             id="narrative"
+            aria-label="환자 진술 · Patient narrative"
             placeholder="예) 요즘 잠을 잘 못 자고, 손발이 차고, 소화도 잘 안 돼요. 피곤해도 자꾸 깨요…"
             rows="10"
             spellcheck="false"></textarea>
@@ -1483,6 +1636,13 @@
             </button>
             <button class="btn" id="clearBtn" type="button">Clear</button>
           </div>
+          <div class="mic-status" id="micStatus" role="status" aria-live="polite"></div>
+
+          <label class="share-opt">
+            <input type="checkbox" id="shareCase">
+            <span>이 사례를 익명으로 공유 (진단명·처방만, 서술 제외)</span>
+          </label>
+          <p class="privacy-note">라이브 모드에서는 서술이 분석을 위해 ai.pb.gurum.se 로 전송되며 저장되지 않습니다. 위 공유를 켜지 않으면 이 기기 밖에 다른 저장은 없습니다.</p>
 
           <div class="examples">
             <span class="lbl">Example cases →</span>
@@ -1501,11 +1661,12 @@
           <div>
             <div class="lbl">02 · 임상 브리프</div>
             <h2>Clinical <em>brief</em></h2>
+            <div class="ai-note">AI 보조 초안 · 한의사 검토 필요</div>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
-            <div class="lang-seg" id="langSeg">
-              <button data-lang="ko" class="active">한국어</button>
-              <button data-lang="en">English</button>
+            <div class="lang-seg" id="langSeg" role="group" aria-label="브리프 언어">
+              <button type="button" data-lang="ko" class="active" aria-pressed="true">한국어</button>
+              <button type="button" data-lang="en" aria-pressed="false">English</button>
             </div>
           </div>
         </header>
@@ -1516,11 +1677,22 @@
             <div class="gua">☱ ☵ ☲</div>
             <p>증상을 입력하거나 받아쓰기를 시작하세요. 브리프는 여기에 나타납니다.</p>
           </div>
+          <div class="skeleton" id="outputSkeleton" style="display:none;" aria-hidden="true">
+            <div class="stage" id="outputStage"></div>
+            <div class="sk-section"><h3>주소 · Chief complaints</h3><div class="cm-skel"><div class="row"></div><div class="row"></div></div></div>
+            <div class="sk-section"><h3>변증 · Pattern</h3><div class="cm-skel"><div class="row"></div><div class="row"></div><div class="row"></div></div></div>
+            <div class="sk-section"><h3>처방 · Formula</h3><div class="cm-skel"><div class="row"></div><div class="row"></div></div></div>
+          </div>
+          <div class="output-error" id="outputError" style="display:none;" role="status" aria-live="polite"></div>
           <div class="brief" id="brief" style="display:none;"></div>
           <div class="print-bar" id="printBar" style="display:none;">
+            <button class="btn" id="copyTextBtn" type="button" title="차트 내용을 텍스트로 복사">
+              텍스트 복사
+            </button>
             <button class="btn" id="printChartBtn" type="button" title="한의원 차트 양식으로 인쇄">
               <span class="dot"></span> 한방 차트로 인쇄
             </button>
+            <textarea class="copy-fallback" id="copyFallback" style="display:none;" readonly aria-label="복사용 텍스트"></textarea>
           </div>
 
           <!-- ── Shared anonymized case corpus launcher ──────────── -->
@@ -1650,19 +1822,18 @@
       ],
       pattern: {
         ko: "비양허 · 심비양허",
-        latin: "Spleen-yang deficiency · Heart-Spleen yang deficiency",
+        latin: "Spleen-yang deficiency · Heart-Spleen dual (qi-blood) deficiency",
         why: {
           ko: "수족냉증과 식욕 부진, 묽은 변 경향은 비양(脾陽)의 부족을 시사하며, 새벽 각성과 기력 저하는 양기 부족이 심신(心神)을 충분히 자양하지 못함을 의미한다. 비위의 운화 기능이 약해지면서 기혈 생성이 부족해지고, 이로 인해 잠이 얕아지고 손발 끝까지 양기가 도달하지 못한다.",
           en: "Cold extremities, poor appetite, and loose-stool tendency point to Spleen-yang deficiency. Early waking and low energy reflect insufficient yang failing to nourish the Heart-Shen. Weak Spleen transformation impairs qi-blood production, leading to shallow sleep and yang failing to reach the limbs."
         }
       },
       formula: {
-        name: "보중익기탕",
-        slug: "bojungikgi-tang",
-        pinyin: "Bǔ zhōng yì qì tāng — modified",
+        name: "귀비탕",
+        pinyin: "Guī pí tāng — modified",
         note: {
-          ko: "기본 처방에 백출·복령 가중하여 비기를 보강하고, 산조인·용안육을 가하여 심신(心神)을 자양한다. 증상이 차갑게 나타나므로 건강(乾薑) 소량 가능. 1일 2첩, 식후 30분.",
-          en: "Base formula reinforced with extra Bai Zhu and Fu Ling for Spleen-qi; add Suan Zao Ren and Long Yan Rou to nourish Heart-Shen. Small amount of dried ginger acceptable given the cold pattern. Two doses daily, 30 minutes after meals."
+          ko: "심비양허(心脾兩虛)의 대표 처방 — 인삼·황기·백출로 비기를 보하고, 산조인·용안육·원지로 심신(心神)을 자양한다. 한증이 뚜렷하므로 건강(乾薑) 소량 가하여 비양을 온보하고, 새벽 각성이 심하면 산조인 가중. 1일 2첩, 식후 30분.",
+          en: "The standard formula for Heart-Spleen dual deficiency — Ren Shen, Huang Qi and Bai Zhu tonify Spleen-qi while Suan Zao Ren, Long Yan Rou and Yuan Zhi nourish the Heart-Shen. Given the clear cold pattern, add a small amount of dried ginger to warm Spleen-yang; increase Suan Zao Ren if early waking dominates. Two doses daily, 30 minutes after meals."
         }
       },
       sasang: {
@@ -1724,7 +1895,6 @@
       },
       formula: {
         name: "삼령백출산",
-        slug: "samryeongbaekchul-san",
         pinyin: "Shēn líng bái zhú sǎn",
         note: {
           ko: "비기를 보하고 습을 거두는 대표 처방. 트림이 심하면 진피·반하 가중. 만성 피로가 두드러지면 황기 추가하여 보중익기탕과 합방 고려. 차가운 음식·생냉(生冷) 절대 금지.",
@@ -1790,7 +1960,6 @@
       },
       formula: {
         name: "천마구등음",
-        slug: "cheonmagudeung-eum",
         pinyin: "Tiān má gōu téng yǐn",
         note: {
           ko: "간양을 가라앉히고 풍을 식히는 대표 처방. 음허가 두드러지므로 생지황·구기자·여정자 가중하여 간음을 자양한다. 두통이 심한 발작 시 결명자·국화 단기 추가. 매운 음식·과로·수면 부족 금지.",
@@ -1813,7 +1982,7 @@
       organs: ["간", "신"],
       points: [
         { code: "GB 20", ko: "풍지",   why: { ko: "간양 하강·두통 완화",  en: "Subdues Liver-yang, relieves headache" } },
-        { code: "LV 3",  ko: "태충",   why: { ko: "간기 소설",            en: "Courses Liver-qi" } },
+        { code: "LR 3",  ko: "태충",   why: { ko: "간기 소설",            en: "Courses Liver-qi" } },
         { code: "KI 3",  ko: "태계",   why: { ko: "신음 자양",            en: "Nourishes Kidney-yin" } },
         { code: "GV 20", ko: "백회",   why: { ko: "두면 통락",            en: "Clears the head" } },
         { code: "GB 8",  ko: "솔곡",   why: { ko: "측두통",                en: "Lateral headache" } }
@@ -1844,9 +2013,9 @@
   const CLAUDE_PROXY = "https://ai.pb.gurum.se";
   // Solve the server's proof-of-work challenge (plain SHA-256 over "nonce:counter").
   // ~750ms one-time; the existing loading state covers it.
-  async function solveProxyPoW() {
-    const r = await fetch(CLAUDE_PROXY + "/api/claude-challenge");
-    if (!r.ok) { const e = new Error("challenge " + r.status); e.status = r.status; throw e; }
+  async function solveProxyPoW(signal) {
+    const r = await fetch(CLAUDE_PROXY + "/api/claude-challenge", { signal });
+    if (!r.ok) { const e = new Error("라이브 서버 오류 (" + r.status + ") — 잠시 후 다시 시도해 주세요."); e.status = r.status; throw e; }
     const { nonce, exp, sig, difficulty } = await r.json();
     const enc = new TextEncoder();
     const leadBits = (buf) => { const b = new Uint8Array(buf); let bits = 0;
@@ -1854,24 +2023,33 @@
     for (let counter = 0; ; counter++) {
       const d = await crypto.subtle.digest("SHA-256", enc.encode(nonce + ":" + counter));
       if (leadBits(d) >= difficulty) return { "X-PoW-Nonce": nonce, "X-PoW-Exp": exp, "X-PoW-Sig": sig, "X-PoW-Counter": String(counter) };
-      if (counter > 5000000) throw new Error("pow-timeout");
+      if (signal && signal.aborted) throw abortError();
+      if (counter > 5000000) throw new Error("서버 도전 해결에 실패했습니다 — 다시 시도해 주세요.");
     }
   }
   const state = {
     liveMode: false,
     lang: "ko",
-    currentBrief: null
+    currentBrief: null,
+    briefOpts: null,   // { live, fallback } the current brief was rendered with
+    busy: false,
+    abort: null        // AbortController for the in-flight analyze()
   };
   const $ = s => document.querySelector(s);
 
   /* ── Top bar mode toggle ── */
   const topbar = $("#topbar");
   const modeToggle = $("#modeToggle");
+  function paintModeToggle() {
+    topbar.classList.toggle("live", state.liveMode);
+    modeToggle.setAttribute("aria-pressed", String(state.liveMode));
+    modeToggle.querySelectorAll(".seg").forEach(s =>
+      s.classList.toggle("on", (s.dataset.m === "live") === state.liveMode));
+  }
   modeToggle.addEventListener("click", () => {
     state.liveMode = !state.liveMode;
-    topbar.classList.toggle("live", state.liveMode);
-    modeToggle.textContent = state.liveMode ? "Live (Opus) · canned mode ←" : "Try live mode →";
-    if (state.currentBrief) renderBrief(state.currentBrief);
+    paintModeToggle();
+    // The rendered brief keeps the label of the mode that produced it (state.briefOpts).
   });
 
   /* ── Examples ── */
@@ -1882,24 +2060,32 @@
     });
   });
 
-  /* Original empty-state prompt — cached so the error path (which overwrites
-     #emptyState p with err.message) can be reverted on Clear / next run. */
-  const EMPTY_STATE_PROMPT = $("#emptyState p").textContent;
-  const resetEmptyState = () => { $("#emptyState p").textContent = EMPTY_STATE_PROMPT; };
-
   /* ── Clear ── */
+  function resetOutput() {
+    $("#brief").style.display = "none";
+    $("#outputError").style.display = "none";
+    $("#outputSkeleton").style.display = "none";
+    $("#printBar").style.display = "none";
+    $("#copyFallback").style.display = "none";
+    $("#emptyState").style.display = "flex";
+    const ap = $("#atlasPanel"); if (ap) ap.style.display = "none";
+  }
   $("#clearBtn").addEventListener("click", () => {
+    if (state.abort) state.abort.abort(); // cancels an in-flight analyze()
     $("#narrative").value = "";
     state.currentBrief = null;
-    $("#brief").style.display = "none";
-    resetEmptyState();
-    $("#emptyState").style.display = "flex";
-    $("#printBar").style.display = "none";
-    const ap = $("#atlasPanel"); if (ap) ap.style.display = "none";
+    state.briefOpts = null;
+    resetOutput();
   });
 
   /* ── Mic / Web Speech API ── */
   const micBtn = $("#micBtn");
+  const micStatus = $("#micStatus");
+  const setMicStatus = (text, isErr) => {
+    micStatus.textContent = text || "";
+    micStatus.classList.toggle("err", !!isErr);
+  };
+  const MIC_IDLE = '<span class="dot"></span> 받아쓰기';
   let recognition = null;
   let recognizing = false;
 
@@ -1910,102 +2096,196 @@
     recognition.continuous = true;
     recognition.interimResults = true;
 
+    const SR_ERRORS = {
+      "not-allowed":         "마이크 권한이 거부되었습니다 — 브라우저 설정에서 마이크를 허용해 주세요.",
+      "service-not-allowed": "이 브라우저에서 받아쓰기 서비스를 사용할 수 없습니다 — 입력해 주세요.",
+      "network":             "네트워크 오류로 받아쓰기가 중단되었습니다 — 연결을 확인하고 다시 시도해 주세요.",
+      "no-speech":           "음성이 감지되지 않았습니다 — 마이크에 가까이 말해 주세요.",
+      "audio-capture":       "마이크를 찾을 수 없습니다 — 연결 상태를 확인해 주세요."
+    };
+    // Permission/device failures: never auto-restart into the same error.
+    const FATAL = new Set(["not-allowed", "service-not-allowed", "audio-capture"]);
+
+    const ta = $("#narrative");
+    let wantRec = false;   // user pressed start and has not pressed stop
+    let restarts = 0;      // auto-restarts since the last final result (cap 3)
+    let committed = "";    // textarea text minus the live interim tail
     let interim = "";
-    let final = "";
+
+    const setIdle = () => { recognizing = false; micBtn.classList.remove("recording"); micBtn.innerHTML = MIC_IDLE; };
+    const tryStart = () => { try { recognition.start(); recognizing = true; return true; } catch { return false; } };
+
     recognition.onresult = (e) => {
       interim = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const r = e.results[i];
-        if (r.isFinal) final += r[0].transcript;
-        else interim += r[0].transcript;
+        const tr = ((r[0] && r[0].transcript) || "").trim();
+        if (!tr) continue;
+        if (r.isFinal) { committed = (committed + " " + tr).trim(); restarts = 0; }
+        else interim += (interim ? " " : "") + tr;
       }
-      const text = (final + interim).trim();
-      const ta = $("#narrative");
-      ta.value = text;
+      // Append to what was already there; interim text is the live tail.
+      ta.value = committed + (interim ? (committed ? " " : "") + interim : "");
       ta.scrollTop = ta.scrollHeight;
     };
+    // If the user types while dictating, their edit becomes the new base text.
+    ta.addEventListener("input", () => { if (recognizing) { committed = ta.value; interim = ""; } });
+
     recognition.onend = () => {
-      recognizing = false;
-      micBtn.classList.remove("recording");
-      micBtn.innerHTML = '<span class="dot"></span> 받아쓰기';
+      // Browsers end continuous sessions after a pause; resume unless the user stopped.
+      if (wantRec && restarts < 3 && tryStart()) { restarts++; return; }
+      if (wantRec && restarts >= 3) setMicStatus("받아쓰기가 여러 번 끊겨 중지되었습니다 — 버튼을 눌러 다시 시작하세요.", false);
+      wantRec = false;
+      setIdle();
     };
-    recognition.onerror = () => {
-      recognizing = false;
-      micBtn.classList.remove("recording");
-      micBtn.innerHTML = '<span class="dot"></span> 받아쓰기';
+    recognition.onerror = (e) => {
+      const code = e && e.error;
+      if (code === "aborted") return; // user stop — onend restores the button
+      setMicStatus(SR_ERRORS[code] || ("받아쓰기 오류 (" + (code || "unknown") + ") — 다시 시도해 주세요."), true);
+      if (FATAL.has(code)) wantRec = false;
     };
 
     micBtn.addEventListener("click", () => {
       if (recognizing) {
+        wantRec = false;
         recognition.stop();
       } else {
-        final = $("#narrative").value ? $("#narrative").value + " " : "";
+        setMicStatus("");
+        committed = ta.value.trim();
         interim = "";
-        try { recognition.start(); recognizing = true; } catch {}
+        restarts = 0;
+        wantRec = true;
+        if (!tryStart()) {
+          wantRec = false;
+          setMicStatus("받아쓰기를 시작할 수 없습니다 — 잠시 후 다시 시도해 주세요.", true);
+          return;
+        }
         micBtn.classList.add("recording");
         micBtn.innerHTML = '<span class="dot"></span> 녹음 중 · 클릭하여 정지';
       }
     });
   } else {
     micBtn.disabled = true;
-    micBtn.title = "Speech recognition not supported in this browser";
     micBtn.style.opacity = "0.5";
+    setMicStatus("이 브라우저는 받아쓰기를 지원하지 않습니다 — 입력해 주세요.", false);
   }
 
   /* ── Lang toggle ── */
   $("#langSeg").addEventListener("click", e => {
     if (e.target.tagName !== "BUTTON") return;
-    document.querySelectorAll("#langSeg button").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll("#langSeg button").forEach(b => {
+      b.classList.remove("active");
+      b.setAttribute("aria-pressed", "false");
+    });
     e.target.classList.add("active");
+    e.target.setAttribute("aria-pressed", "true");
     state.lang = e.target.dataset.lang;
-    if (state.currentBrief) renderBrief(state.currentBrief);
+    if (state.currentBrief) renderBrief(state.currentBrief, state.briefOpts);
   });
 
-  /* Model toggle removed — proxy model is fixed to opus */
+  /* The proxy pins the model to Opus; there is no client-side model toggle. */
 
   /* ── Analyze button ── */
-  $("#analyzeBtn").addEventListener("click", analyze);
+  const analyzeBtn = $("#analyzeBtn");
+  analyzeBtn.addEventListener("click", analyze);
+
+  const abortError = () => { const e = new Error("aborted"); e.name = "AbortError"; return e; };
+  const sleep = (ms, signal) => new Promise((res, rej) => {
+    if (signal && signal.aborted) return rej(abortError());
+    const id = setTimeout(res, ms);
+    if (signal) signal.addEventListener("abort", () => { clearTimeout(id); rej(abortError()); }, { once: true });
+  });
+
+  /* Loading state: typographic skeleton of the first three brief sections + a stage line. */
+  function setStage(text) { $("#outputStage").textContent = text; }
+  function showSkeleton(stage) {
+    $("#emptyState").style.display = "none";
+    $("#brief").style.display = "none";
+    $("#outputError").style.display = "none";
+    $("#printBar").style.display = "none";
+    $("#outputSkeleton").style.display = "flex";
+    setStage(stage);
+  }
+
+  /* Inline error in the output panel. In live mode we NEVER silently substitute a
+     canned brief for a real patient — the viewer must opt into the example, and it
+     renders with a rust "예시 결과" note. */
+  function showError(message, fallbackText) {
+    const box = $("#outputError");
+    box.innerHTML = "";
+    const msg = document.createElement("div");
+    msg.className = "msg";
+    msg.textContent = message;
+    box.appendChild(msg);
+    if (fallbackText) {
+      const sub = document.createElement("div");
+      sub.className = "sub";
+      sub.textContent = "원하시면 서술에 가장 가까운 예시 브리프를 대신 볼 수 있습니다 — 실제 분석이 아닙니다.";
+      box.appendChild(sub);
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "btn";
+      btn.textContent = "예시 결과 보기";
+      btn.addEventListener("click", () => {
+        const brief = CANNED_BRIEFS[matchExample(fallbackText)];
+        state.currentBrief = brief;
+        state.briefOpts = { live: false, fallback: true };
+        renderBrief(brief, state.briefOpts);
+      });
+      box.appendChild(btn);
+    }
+    $("#outputSkeleton").style.display = "none";
+    $("#emptyState").style.display = "none";
+    box.style.display = "flex";
+  }
 
   async function analyze() {
     const text = $("#narrative").value.trim();
     if (!text) { $("#narrative").focus(); return; }
 
-    resetEmptyState(); // clear any prior error text before this run
-    $("#emptyState").style.display = "none";
-    $("#brief").style.display = "none";
+    // One request in flight at a time: a new Analyze (or Clear) aborts the previous one.
+    if (state.abort) state.abort.abort();
+    const ctrl = new AbortController();
+    state.abort = ctrl;
+    state.busy = true;
+    analyzeBtn.disabled = true;
     $("#outputProgress").classList.add("on");
+    showSkeleton(state.liveMode ? "도전 해결 중" : "예시 불러오는 중");
 
     try {
-      let brief;
+      let brief, opts;
       if (state.liveMode) {
-        brief = await callClaude(text);
+        brief = await callClaude(text, { signal: ctrl.signal, onStage: setStage });
+        opts = { live: true };
       } else {
         // Canned: pick the closest example, or default to case 0 if free-form
-        const idx = matchExample(text);
-        await new Promise(r => setTimeout(r, 700)); // simulate think
-        brief = CANNED_BRIEFS[idx];
+        await sleep(700, ctrl.signal); // simulate think
+        brief = CANNED_BRIEFS[matchExample(text)];
+        opts = { live: false };
       }
+      if (ctrl.signal.aborted) return;
       state.currentBrief = brief;
-      renderBrief(brief);
-      // Additive: save an anonymized snapshot to the shared corpus + local store.
-      // Purely fire-and-forget — never blocks or breaks brief rendering.
-      try { if (window.__caseOnBrief) window.__caseOnBrief(brief, { live: state.liveMode }); } catch (e) {}
-    } catch (err) {
-      $("#outputProgress").classList.remove("on");
-      if (err.status === 403 || err.status === 429 || err.status === 503) {
-        // Proxy busy — fall back to canned
-        $("#emptyState p").textContent = "라이브 데모가 잠시 바쁩니다 — 예시 결과를 보여드릴게요";
-        const idx = matchExample(text);
-        await new Promise(r => setTimeout(r, 300));
-        state.currentBrief = CANNED_BRIEFS[idx];
-        renderBrief(CANNED_BRIEFS[idx]);
-        try { if (window.__caseOnBrief) window.__caseOnBrief(CANNED_BRIEFS[idx], { live: false }); } catch (e) {}
-        return;
+      state.briefOpts = opts;
+      renderBrief(brief, opts);
+      // Shared corpus is opt-in and live-only. Canned and fallback briefs are never uploaded.
+      if (opts.live) {
+        try { if (window.__caseOnBrief) window.__caseOnBrief(brief, { live: true, share: $("#shareCase").checked }); } catch (e) {}
       }
-      $("#emptyState").style.display = "flex";
-      $("#emptyState p").textContent = err.message || "요청 실패";
+    } catch (err) {
+      if (err && err.name === "AbortError") return; // superseded by Clear / a newer Analyze
+      if (err.status === 403 || err.status === 429 || err.status === 503) {
+        showError("라이브 서버가 잠시 바쁩니다 (" + err.status + ") — 잠시 후 다시 시도해 주세요.", text);
+      } else {
+        showError((err && err.message) || "요청 실패 — 다시 시도해 주세요.", text);
+      }
     } finally {
-      $("#outputProgress").classList.remove("on");
+      if (state.abort === ctrl) {
+        state.abort = null;
+        state.busy = false;
+        analyzeBtn.disabled = false;
+        $("#outputProgress").classList.remove("on");
+        $("#outputSkeleton").style.display = "none";
+      }
     }
   }
 
@@ -2013,7 +2293,7 @@
     for (let i = 0; i < EXAMPLES.length; i++) {
       if (text === EXAMPLES[i]) return i;
     }
-    if (/소화|더부룩|트림|변|냉식/.test(text)) return 1;
+    if (/소화|더부룩|트림|대변|묽은|설사|냉식/.test(text)) return 1;
     if (/두통|어지|이명|꿈|구고/.test(text)) return 2;
     return 0;
   }
@@ -2025,7 +2305,10 @@
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
-  function renderBrief(brief) {
+  // opts: { live: boolean, fallback?: boolean }. Anything not live carries a demo note;
+  // a fallback (canned brief shown after a live failure) carries the rust variant.
+  function renderBrief(brief, opts) {
+    opts = opts || { live: false };
     const lang = state.lang;
     // t() translates; et() translates AND escapes for safe innerHTML interpolation.
     const t = (obj) => typeof obj === "string" ? obj : (obj[lang] || obj.ko);
@@ -2044,13 +2327,22 @@
 
     const herbHtml = renderFormulaHerbs(brief, t);
 
-    const demoNote = state.liveMode ? "" : `
+    let demoNote = "";
+    if (!opts.live && opts.fallback) {
+      demoNote = `
+      <div class="demo-note fallback" role="note">
+        <em>${lang === "ko"
+          ? "예시 결과 — 실제 분석이 아닙니다. 라이브 요청이 실패하여 서술에 가장 가까운 예시 브리프를 대신 표시합니다."
+          : "Example result — not an actual analysis. The live request failed; the closest canned brief is shown instead."}</em>
+      </div>`;
+    } else if (!opts.live) {
+      demoNote = `
       <div class="demo-note" role="note">
         <em>${lang === "ko"
-          ? "데모 출력입니다 — 실시간 결과를 보려면 본인 Claude 키를 연결하세요."
-          : "Demo output — connect your own Claude key for live results."}</em>
-      </div>
-    `;
+          ? "데모 출력입니다 — 실시간 결과를 보려면 상단의 라이브 (Opus) 모드를 켜세요."
+          : "Demo output — switch on Live (Opus) in the top bar for a real analysis."}</em>
+      </div>`;
+    }
 
     const html = `
       ${demoNote}
@@ -2113,6 +2405,9 @@
     briefEl.innerHTML = html;
     briefEl.style.display = "flex";
     $("#emptyState").style.display = "none";
+    $("#outputSkeleton").style.display = "none";
+    $("#outputError").style.display = "none";
+    $("#copyFallback").style.display = "none";
     $("#printBar").style.display = "flex";
 
     // Atlas + diagnostic visuals
@@ -2153,16 +2448,16 @@
     { code: "GB 34",  ko: "양릉천", han: "陽陵泉", side: "F", x: 80,  y: 312, indi: { ko: "근회·간담",          en: "Hui of sinews, Liver-GB" } },
     { code: "ST 40",  ko: "풍륭",   han: "豐隆",   side: "F", x: 96,  y: 360, indi: { ko: "거담·화담",          en: "Resolves phlegm" } },
     { code: "SP 6",   ko: "삼음교", han: "三陰交", side: "F", x: 124, y: 384, indi: { ko: "삼음 자양",          en: "Three-yin nourishing" } },
-    { code: "LV 3",   ko: "태충",   han: "太衝",   side: "F", x: 100, y: 432, indi: { ko: "간기 소설",          en: "Courses Liver-qi" } },
+    { code: "LR 3",   ko: "태충",   han: "太衝",   side: "F", x: 100, y: 432, indi: { ko: "간기 소설",          en: "Courses Liver-qi" } },
     { code: "KI 1",   ko: "용천",   han: "湧泉",   side: "F", x: 124, y: 446, indi: { ko: "신경·하기·번열",     en: "Kidney channel, descending" } },
     { code: "KI 3",   ko: "태계",   han: "太溪",   side: "F", x: 130, y: 408, indi: { ko: "신음·신양 자양",     en: "Nourishes Kidney" } },
     /* Back — Bladder line */
-    { code: "BL 18",  ko: "간유",   han: "肝兪",   side: "B", x: 96,  y: 158, indi: { ko: "간 배수혈",          en: "Liver shu" } },
-    { code: "BL 18R", ko: "간유",   han: "肝兪",   side: "B", x: 124, y: 158, indi: { ko: "(우측)",            en: "(right)" }, alias: "BL 18" },
+    { code: "BL 18",  ko: "간수",   han: "肝兪",   side: "B", x: 96,  y: 158, indi: { ko: "간 배수혈",          en: "Liver shu" } },
+    { code: "BL 18R", ko: "간수",   han: "肝兪",   side: "B", x: 124, y: 158, indi: { ko: "(우측)",            en: "(right)" }, alias: "BL 18" },
     { code: "BL 20",  ko: "비수",   han: "脾兪",   side: "B", x: 96,  y: 178, indi: { ko: "비 배수혈",          en: "Spleen shu" } },
     { code: "BL 20R", ko: "비수",   han: "脾兪",   side: "B", x: 124, y: 178, indi: { ko: "(우측)",            en: "(right)" }, alias: "BL 20" },
-    { code: "BL 23",  ko: "신유",   han: "腎兪",   side: "B", x: 96,  y: 208, indi: { ko: "신 배수혈",          en: "Kidney shu" } },
-    { code: "BL 23R", ko: "신유",   han: "腎兪",   side: "B", x: 124, y: 208, indi: { ko: "(우측)",            en: "(right)" }, alias: "BL 23" },
+    { code: "BL 23",  ko: "신수",   han: "腎兪",   side: "B", x: 96,  y: 208, indi: { ko: "신 배수혈",          en: "Kidney shu" } },
+    { code: "BL 23R", ko: "신수",   han: "腎兪",   side: "B", x: 124, y: 208, indi: { ko: "(우측)",            en: "(right)" }, alias: "BL 23" },
     { code: "BL 40",  ko: "위중",   han: "委中",   side: "B", x: 96,  y: 318, indi: { ko: "요배 통증",          en: "Lumbar pain" } }
   ];
 
@@ -2449,10 +2744,10 @@
             fill="none" stroke="rgba(120,60,60,0.35)" stroke-width="0.9" stroke-dasharray="2 3"/>
     `;
     meta.innerHTML = `
-      <dt>색</dt><dd>${tongue.color || "—"}</dd>
-      <dt>형태</dt><dd>${tongue.shape || "—"}</dd>
-      <dt>태</dt><dd>${tongue.coating || "—"}</dd>
-      ${tongue.note ? `<dt>판독</dt><dd style="font-style:italic;">${t(tongue.note)}</dd>` : ""}
+      <dt>색</dt><dd>${esc(tongue.color || "—")}</dd>
+      <dt>형태</dt><dd>${esc(tongue.shape || "—")}</dd>
+      <dt>태</dt><dd>${esc(tongue.coating || "—")}</dd>
+      ${tongue.note ? `<dt>판독</dt><dd style="font-style:italic;">${esc(t(tongue.note))}</dd>` : ""}
     `;
   }
 
@@ -2501,12 +2796,12 @@
       for (let i = 0; i < 3; i++) {
         const c = r.cells[i] || { type: "완", han: "緩" };
         html += `
-          <div class="pulse-cell" title="${c.type}맥 — ${cols[i]}">
-            <div class="han">${c.han || ""}</div>
+          <div class="pulse-cell" title="${esc(c.type)}맥 — ${cols[i]}">
+            <div class="han">${esc(c.han || "")}</div>
             <svg viewBox="0 0 100 22" preserveAspectRatio="none">
               <path class="pulse-wave" d="${pulsePath(c.type)}" />
             </svg>
-            <div class="lbl">${c.type || ""}</div>
+            <div class="lbl">${esc(c.type || "")}</div>
           </div>
         `;
       }
@@ -2645,35 +2940,28 @@
     bakha:      { ko: "박하",   han: "薄荷" }
   };
 
-  /* Formula → ordered list of {slug, role}.  Role: gun 君 · shin 臣 · jwa 佐 · sa 使 */
+  /* Formula → ordered list of {slug, role}.  Role: gun 君 · shin 臣 · jwa 佐 · sa 使
+     Only formulas whose listed herbs are a verified SUBSET of the standard 방제학
+     composition (방약합편 / 동의보감 / 상한론 readings used in Korea) are here. The atlas
+     has 20 herbs, so most entries are partial — the UI labels them "주요 본초 (일부)".
+     A formula with no entry gets no herb section at all. Never guess a composition. */
   const FORMULA_HERBS = {
-    "보중익기탕":      [["hwanggi","gun"],["insam","shin"],["baekchul","shin"],["danggui","jwa"],["jinpi","jwa"],["gamcho","sa"]],
-    "삼령백출산":      [["insam","gun"],["baekchul","shin"],["bokryeong","shin"],["gamcho","sa"],["jinpi","jwa"],["banha","jwa"]],
-    "천마구등음":      [["siho","gun"],["jakyak","shin"],["danggui","jwa"],["bokryeong","jwa"],["gamcho","sa"]],
-    "사물탕":          [["sukjihwang","gun"],["danggui","shin"],["jakyak","jwa"],["cheongung","sa"]],
-    "사군자탕":        [["insam","gun"],["baekchul","shin"],["bokryeong","jwa"],["gamcho","sa"]],
-    "팔물탕":          [["insam","gun"],["sukjihwang","gun"],["baekchul","shin"],["danggui","shin"],["bokryeong","jwa"],["jakyak","jwa"],["cheongung","jwa"],["gamcho","sa"]],
-    "십전대보탕":      [["insam","gun"],["hwanggi","gun"],["baekchul","shin"],["danggui","shin"],["sukjihwang","jwa"],["jakyak","jwa"],["bokryeong","jwa"],["cheongung","jwa"],["gyeji","sa"],["gamcho","sa"]],
-    "귀비탕":          [["insam","gun"],["hwanggi","gun"],["baekchul","shin"],["danggui","shin"],["bokryeong","jwa"],["gamcho","sa"]],
-    "쌍화탕":          [["jakyak","gun"],["sukjihwang","shin"],["danggui","shin"],["cheongung","jwa"],["hwanggi","jwa"],["gyeji","sa"],["gamcho","sa"]],
-    "시호소간탕":      [["siho","gun"],["jakyak","shin"],["jinpi","jwa"],["cheongung","jwa"],["gamcho","sa"]],
-    "가미소요산":      [["siho","gun"],["danggui","shin"],["jakyak","shin"],["baekchul","jwa"],["bokryeong","jwa"],["bakha","sa"],["gamcho","sa"]],
-    "용담사간탕":      [["hwanggeum","gun"],["hwangryeon","shin"],["siho","jwa"],["danggui","jwa"],["sukjihwang","jwa"],["gamcho","sa"]],
-    "육미지황탕":      [["sukjihwang","gun"],["jakyak","shin"],["bokryeong","jwa"],["danggui","jwa"]],
-    "지백지황탕":      [["sukjihwang","gun"],["hwanggeum","shin"],["bokryeong","jwa"],["jakyak","jwa"]],
-    "반하사심탕":      [["banha","gun"],["hwanggeum","shin"],["hwangryeon","shin"],["insam","jwa"],["saenggang","jwa"],["daejo","sa"],["gamcho","sa"]],
-    "평위산":          [["jinpi","gun"],["baekchul","shin"],["banha","jwa"],["gamcho","sa"]],
-    "갈근탕":          [["galgeun","gun"],["mahwang","shin"],["gyeji","shin"],["jakyak","jwa"],["saenggang","jwa"],["daejo","jwa"],["gamcho","sa"]],
-    "마황탕":          [["mahwang","gun"],["gyeji","shin"],["gamcho","sa"]],
-    "계지탕":          [["gyeji","gun"],["jakyak","shin"],["saenggang","jwa"],["daejo","jwa"],["gamcho","sa"]],
-    "곽향정기산":      [["jinpi","gun"],["banha","shin"],["baekchul","jwa"],["bokryeong","jwa"],["gamcho","sa"]],
-    "향사양위탕":      [["insam","gun"],["baekchul","shin"],["bokryeong","jwa"],["jinpi","jwa"],["banha","jwa"],["gamcho","sa"]],
-    "산조인탕":        [["bokryeong","gun"],["danggui","shin"],["jakyak","jwa"],["gamcho","sa"]],
-    "감맥대조탕":      [["gamcho","gun"],["daejo","shin"]],
-    "보화환":          [["jinpi","gun"],["banha","shin"],["bokryeong","jwa"]],
-    "형방지황탕":      [["sukjihwang","gun"],["jakyak","shin"],["bokryeong","jwa"]],
-    "태음조위탕":      [["galgeun","gun"],["mahwang","shin"],["jinpi","jwa"]]
+    "보중익기탕":  [["hwanggi","gun"],["insam","shin"],["baekchul","shin"],["danggui","jwa"],["jinpi","jwa"],["siho","sa"],["gamcho","sa"]],
+    "사군자탕":    [["insam","gun"],["baekchul","shin"],["bokryeong","jwa"],["gamcho","sa"]],
+    "사물탕":      [["sukjihwang","gun"],["danggui","shin"],["jakyak","jwa"],["cheongung","sa"]],
+    "팔물탕":      [["insam","gun"],["sukjihwang","gun"],["baekchul","shin"],["danggui","shin"],["bokryeong","jwa"],["jakyak","jwa"],["cheongung","jwa"],["gamcho","sa"]],
+    "십전대보탕":  [["insam","gun"],["hwanggi","gun"],["baekchul","shin"],["danggui","shin"],["sukjihwang","jwa"],["jakyak","jwa"],["bokryeong","jwa"],["cheongung","jwa"],["gamcho","sa"]],
+    "귀비탕":      [["insam","gun"],["hwanggi","gun"],["baekchul","shin"],["danggui","shin"],["bokryeong","jwa"],["gamcho","sa"]],
+    "쌍화탕":      [["jakyak","gun"],["sukjihwang","shin"],["danggui","shin"],["cheongung","shin"],["hwanggi","jwa"],["gamcho","sa"],["saenggang","sa"],["daejo","sa"]],
+    "계지탕":      [["gyeji","gun"],["jakyak","shin"],["saenggang","jwa"],["daejo","jwa"],["gamcho","sa"]],
+    "마황탕":      [["mahwang","gun"],["gyeji","shin"],["gamcho","sa"]],
+    "갈근탕":      [["galgeun","gun"],["mahwang","shin"],["gyeji","shin"],["jakyak","jwa"],["saenggang","jwa"],["daejo","jwa"],["gamcho","sa"]],
+    "반하사심탕":  [["banha","gun"],["hwanggeum","shin"],["hwangryeon","shin"],["insam","jwa"],["daejo","sa"],["gamcho","sa"]],
+    "감맥대조탕":  [["gamcho","gun"],["daejo","shin"]],
+    "가미소요산":  [["siho","gun"],["danggui","shin"],["jakyak","shin"],["baekchul","jwa"],["bokryeong","jwa"],["bakha","sa"],["gamcho","sa"]],
+    "시호소간산":  [["siho","gun"],["jakyak","shin"],["jinpi","jwa"],["cheongung","jwa"],["gamcho","sa"]]
   };
+  FORMULA_HERBS["시호소간탕"] = FORMULA_HERBS["시호소간산"]; // same formula, decoction reading
 
   const ROLE_LABEL = {
     gun:  { ko: "君 군약",  en: "Sovereign" },
@@ -2704,54 +2992,68 @@
         </div>
       `;
     }).join("");
-    return `<div class="herb-list">${items}</div>`;
+    return `<div class="herb-head">주요 본초 (일부) · Key herbs (partial)</div><div class="herb-list">${items}</div>`;
   }
 
   /* ───────────────────────────────────────────────
      Chart-style print export
      Reformats the brief into a 한의원 chart and calls window.print().
      ─────────────────────────────────────────────── */
+  const AI_DRAFT_LINE = "AI 보조 초안 — 한의사 검토·서명 전 유효하지 않음";
+  function chartStamp() {
+    const d = new Date();
+    const p = (n) => String(n).padStart(2, "0");
+    return {
+      date: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`,
+      time: `${p(d.getHours())}:${p(d.getMinutes())}`
+    };
+  }
+  // Same FORMULA_HERBS map as the on-screen atlas — never a different composition.
+  function chartHerbs(brief) {
+    const baseName = (brief.formula && brief.formula.name || "").replace(/\s*[-—].*$/, "").replace(/\s+가감.*$/, "").trim();
+    return (FORMULA_HERBS[baseName] || []).map(([s, r]) => `${HERB_META[s] ? HERB_META[s].ko : s} (${ROLE_GLYPH[r]})`).join(" · ");
+  }
+  const sevDots = (c) => { const n = Math.max(0, Math.min(4, Number(c.sev) || 0)); return "●".repeat(n) + "○".repeat(4 - n); };
+
   function buildChartPrint(brief) {
     if (!brief) return;
     const lang = state.lang;
     const t = (obj) => typeof obj === "string" ? obj : (obj && (obj[lang] || obj.ko)) || "";
-    const today = new Date();
-    const stamp = today.getFullYear() + "-" +
-      String(today.getMonth() + 1).padStart(2, "0") + "-" +
-      String(today.getDate()).padStart(2, "0");
-    const baseName = (brief.formula && brief.formula.name || "").replace(/\s*[-—].*$/, "").replace(/\s+가감.*$/, "").trim();
-    const herbs = (FORMULA_HERBS[baseName] || []).map(([s, r]) => `${HERB_META[s] ? HERB_META[s].ko : s} (${ROLE_GLYPH[r]})`).join(" · ");
-
+    const et = (obj) => esc(t(obj));
+    const { date, time } = chartStamp();
+    const herbs = chartHerbs(brief);
     const narrative = (document.getElementById("narrative").value || "").trim();
 
+    // Every field below is model output in live mode — all interpolations go through esc()/et().
     const html = `
       <header class="clinic-head">
         <div>
           <div class="clinic-name">한방 진료 동반자 — Intake <em>Companion</em></div>
-          <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11pt;">Korean Traditional Medicine — Clinical Brief</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11pt;">Korean Traditional Medicine — Clinical Brief (AI-assisted draft)</div>
         </div>
         <div class="clinic-meta">
-          진료일 · ${stamp}<br>
-          차트 #${("000" + Math.floor(Math.random() * 9000 + 1000)).slice(-4)}<br>
-          담당의 · 한의사
+          진료일 · ${date}<br>
+          차트 # ________<br>
+          담당 한의사 · ________ (서명)
         </div>
       </header>
+      <div class="ai-draft">${AI_DRAFT_LINE} · 생성 ${date} ${time}</div>
 
       <h3>환자 진술 · Patient narrative</h3>
-      <p>${narrative ? narrative.replace(/</g, "&lt;") : "—"}</p>
+      <p>${narrative ? esc(narrative) : "—"}</p>
 
       <div class="grid-2">
         <div>
           <h3>주소 · Chief complaints</h3>
           <ul>
-            ${brief.complaints.map(c => `<li>${lang === "ko" ? c.ko : c.en} <span style="color:#888;">— ${"●".repeat(c.sev)}${"○".repeat(4 - c.sev)} · ${t(c.dur)}</span></li>`).join("")}
+            ${(brief.complaints || []).map(c => `<li>${esc(lang === "ko" ? c.ko : c.en)} <span style="color:#888;">— ${sevDots(c)} · ${et(c.dur)}</span></li>`).join("")}
           </ul>
         </div>
         <div>
           <h3>체질 / 변증 · Constitution &amp; pattern</h3>
-          ${brief.sasang ? `<div class="field"><span class="k">사상</span>${brief.sasang.type} · <em>${brief.sasang.latin}</em></div>` : ""}
-          <div class="field"><span class="k">변증</span>${brief.pattern.ko} <span style="font-style:italic;color:#666;">(${brief.pattern.latin})</span></div>
-          <div class="field"><span class="k">근거</span>${t(brief.pattern.why)}</div>
+          ${brief.sasang ? `<div class="field"><span class="k">사상</span>${esc(brief.sasang.type)} · <em>${esc(brief.sasang.latin)}</em></div>` : ""}
+          <div class="field"><span class="k">변증</span>${esc(brief.pattern.ko)} <span style="font-style:italic;color:#666;">(${esc(brief.pattern.latin)})</span></div>
+          <div class="field"><span class="k">근거</span>${et(brief.pattern.why)}</div>
         </div>
       </div>
 
@@ -2759,35 +3061,104 @@
         <div>
           <h3>설진 · Tongue</h3>
           ${brief.tongue ? `
-            <div class="field"><span class="k">색</span>${brief.tongue.color || "—"}</div>
-            <div class="field"><span class="k">형태</span>${brief.tongue.shape || "—"}</div>
-            <div class="field"><span class="k">태</span>${brief.tongue.coating || "—"}</div>
+            <div class="field"><span class="k">색</span>${esc(brief.tongue.color || "—")}</div>
+            <div class="field"><span class="k">형태</span>${esc(brief.tongue.shape || "—")}</div>
+            <div class="field"><span class="k">태</span>${esc(brief.tongue.coating || "—")}</div>
           ` : "<p>—</p>"}
         </div>
         <div>
           <h3>맥진 · Pulse</h3>
-          ${brief.pulse ? `<div class="field"><span class="k">전체</span>${t(brief.pulse.global)}</div>` : "<p>—</p>"}
+          ${brief.pulse ? `<div class="field"><span class="k">전체</span>${et(brief.pulse.global)}</div>` : "<p>—</p>"}
         </div>
       </div>
 
       <h3>처방 · Formula</h3>
-      <div class="field"><span class="k">방명</span>${brief.formula.name} <span style="font-style:italic;color:#666;">(${brief.formula.pinyin})</span></div>
-      <div class="field"><span class="k">설명</span>${t(brief.formula.note)}</div>
-      ${herbs ? `<div class="field"><span class="k">본초</span>${herbs}</div>` : ""}
+      <div class="field"><span class="k">방명</span>${esc(brief.formula.name)} <span style="font-style:italic;color:#666;">(${esc(brief.formula.pinyin)})</span></div>
+      <div class="field"><span class="k">설명</span>${et(brief.formula.note)}</div>
+      ${herbs ? `<div class="field"><span class="k">주요 본초 (일부)</span>${esc(herbs)}</div>` : ""}
 
       <h3>경혈 · Acupoints</h3>
       <ul>
-        ${brief.points.map(p => `<li>${p.code} · ${p.ko} — <span style="color:#666;">${t(p.why)}</span></li>`).join("")}
+        ${(brief.points || []).map(p => `<li>${esc(p.code)} · ${esc(p.ko)} — <span style="color:#666;">${et(p.why)}</span></li>`).join("")}
       </ul>
 
       <h3>양생 · Lifestyle</h3>
-      ${brief.lifestyle ? `<ul>${(lang === "ko" ? brief.lifestyle.ko : brief.lifestyle.en).map(l => `<li>${l}</li>`).join("")}</ul>` : "<p>—</p>"}
+      ${brief.lifestyle ? `<ul>${((lang === "ko" ? brief.lifestyle.ko : brief.lifestyle.en) || []).map(l => `<li>${esc(l)}</li>`).join("")}</ul>` : "<p>—</p>"}
 
       <h3>다음 진료 · Next visit</h3>
-      <p>${brief.next ? t(brief.next) : "—"}</p>
+      <p>${brief.next ? et(brief.next) : "—"}</p>
     `;
     document.getElementById("chartPrint").innerHTML = html;
   }
+
+  /* Plain-text twin of buildChartPrint — same sections, same herb map, same AI-draft line. */
+  function buildChartText(brief) {
+    const lang = state.lang;
+    const t = (obj) => typeof obj === "string" ? obj : (obj && (obj[lang] || obj.ko)) || "";
+    const { date, time } = chartStamp();
+    const herbs = chartHerbs(brief);
+    const narrative = (document.getElementById("narrative").value || "").trim();
+    const L = [];
+    L.push("한방 진료 동반자 — Intake Companion");
+    L.push("Korean Traditional Medicine — Clinical Brief (AI-assisted draft)");
+    L.push(`진료일 · ${date}   차트 # ________   담당 한의사 · ________ (서명)`);
+    L.push(`${AI_DRAFT_LINE} · 생성 ${date} ${time}`);
+    L.push("");
+    L.push("[환자 진술 · Patient narrative]");
+    L.push(narrative || "—");
+    L.push("");
+    L.push("[주소 · Chief complaints]");
+    (brief.complaints || []).forEach(c => L.push(`- ${lang === "ko" ? c.ko : c.en} — ${sevDots(c)} · ${t(c.dur)}`));
+    L.push("");
+    L.push("[체질 / 변증 · Constitution & pattern]");
+    if (brief.sasang) L.push(`사상: ${brief.sasang.type} · ${brief.sasang.latin}`);
+    L.push(`변증: ${brief.pattern.ko} (${brief.pattern.latin})`);
+    L.push(`근거: ${t(brief.pattern.why)}`);
+    L.push("");
+    L.push("[설진 · Tongue]");
+    L.push(brief.tongue ? `색: ${brief.tongue.color || "—"}  형태: ${brief.tongue.shape || "—"}  태: ${brief.tongue.coating || "—"}` : "—");
+    L.push("");
+    L.push("[맥진 · Pulse]");
+    L.push(brief.pulse ? `전체: ${t(brief.pulse.global)}` : "—");
+    L.push("");
+    L.push("[처방 · Formula]");
+    L.push(`방명: ${brief.formula.name} (${brief.formula.pinyin})`);
+    L.push(`설명: ${t(brief.formula.note)}`);
+    if (herbs) L.push(`주요 본초 (일부): ${herbs}`);
+    L.push("");
+    L.push("[경혈 · Acupoints]");
+    (brief.points || []).forEach(p => L.push(`- ${p.code} · ${p.ko} — ${t(p.why)}`));
+    L.push("");
+    L.push("[양생 · Lifestyle]");
+    const ls = brief.lifestyle ? ((lang === "ko" ? brief.lifestyle.ko : brief.lifestyle.en) || []) : [];
+    if (ls.length) ls.forEach(l => L.push(`- ${l}`)); else L.push("—");
+    L.push("");
+    L.push("[다음 진료 · Next visit]");
+    L.push(brief.next ? t(brief.next) : "—");
+    return L.join("\n");
+  }
+
+  /* Copy-as-text button — clipboard API first, selectable textarea as fallback. */
+  const copyBtn = document.getElementById("copyTextBtn");
+  copyBtn.addEventListener("click", async () => {
+    if (!state.currentBrief) return;
+    const text = buildChartText(state.currentBrief);
+    const fb = document.getElementById("copyFallback");
+    const flash = (label) => { copyBtn.textContent = label; setTimeout(() => { copyBtn.textContent = "텍스트 복사"; }, 1600); };
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error("no-clipboard");
+      await navigator.clipboard.writeText(text);
+      fb.style.display = "none";
+      flash("복사됨 ✓");
+    } catch {
+      // Clipboard unavailable (insecure context / permission denied) — expose the text for manual copy.
+      fb.value = text;
+      fb.style.display = "block";
+      fb.focus();
+      fb.select();
+      flash("아래에서 복사하세요");
+    }
+  });
 
   /* Print button — only visible after a brief is rendered. */
   document.getElementById("printChartBtn").addEventListener("click", () => {
@@ -2941,7 +3312,19 @@
     }
   };
 
-  async function callClaude(narrative) {
+  // Structural check before a live brief reaches renderBrief — the tool schema is
+  // enforced server-side, but a truncated or partial tool_use must not render.
+  function validateBrief(b) {
+    const arr = (x) => Array.isArray(x) && x.length > 0;
+    const bi  = (o) => !!o && arr(o.ko) && arr(o.en);
+    return !!(b && arr(b.complaints) && arr(b.points) && bi(b.followups) && bi(b.lifestyle)
+      && b.pattern && typeof b.pattern.ko === "string"
+      && b.formula && typeof b.formula.name === "string");
+  }
+
+  // opts.signal aborts both fetches; opts.onStage receives Korean stage labels for the skeleton.
+  async function callClaude(narrative, opts) {
+    const { signal, onStage } = opts || {};
     const sys = `<role>
 You are a licensed 한의사 (한국 한의학 전문의) practising in Korea. You trained at a Korean 한의과대학 and your clinical reasoning is rooted in the Korean canon — 동의보감 (許浚, 1613), 동의수세보원 (李濟馬, 1894), 방약합편 (黃度淵, 1884), and modern Korean 한의학 textbooks. You are NOT a TCM (中醫) practitioner; do not adopt the voice or formulary of mainland Chinese 中醫. A working 한의사 will read this brief — generic-translated TCM language will read as obviously foreign.
 </role>
@@ -2995,7 +3378,7 @@ The 처방 note (formula.note) must do three things: (1) name the base formula's
 <acupoint_logic>
 Korean 침구학 commonly combines 체침 (standard channel selection) with 사암침법 (五行 정격/승격). Pick 4-6 points using this priority:
 1. One 원혈 or 모혈/배수혈 of the affected 장부 (예: 비허 → BL 20 비수 + SP 3 태백, 위병 → CV 12 중완 + BL 21 위수)
-2. One distal 합혈 or 오수혈 to drive the pattern (예: ST 36 족삼리 for 비위, LV 3 태충 for 간기울결, KI 3 태계 for 신음)
+2. One distal 합혈 or 오수혈 to drive the pattern (예: ST 36 족삼리 for 비위, LR 3 태충 for 간기울결, KI 3 태계 for 신음)
 3. Symptomatic 경혈 — GV 20 백회 for 두면, HT 7 신문 for 심신불안, GB 20 풍지 for 두통/현훈, PC 6 내관 for 흉격
 4. If the pattern strongly fits a 사암 정격/승격, mention it explicitly in one point's rationale (예: "비정격 — 대도·태백 보, 은백·소부 사")
 
@@ -3046,7 +3429,7 @@ Return your brief by calling the clinical_brief tool — its input is the struct
   },
   "pattern": {
     "ko": "<변증, 예: 비양허 또는 비양허 · 심비양허>",
-    "latin": "<Spleen-yang deficiency · Heart-Spleen yang deficiency>",
+    "latin": "<Spleen-yang deficiency · Heart-Spleen dual (qi-blood) deficiency>",
     "why": {
       "ko": "<2-3문장. 환자의 구체적 증상 단서를 변증에 연결하라.>",
       "en": "<2-3 sentences mirroring the Korean rationale.>"
@@ -3094,8 +3477,8 @@ Narrative: "요즘 잠을 잘 못 자고, 손발이 차고, 소화도 안 돼요
 
 Reasoning trace (silent — do NOT include in output): 소음인 경향 (한증·기허·소화 약함). 팔강: 음증·한증·이증·허증. 장부: 비양 + 심신. 기혈: 비기허 → 기혈생화부족 → 심신불양. 병인: 노권상 + 식적.
 
-Output pattern: "비양허 · 심비양허"
-Output formula: "보중익기탕" with note tying 백출·복령 가중 to 비기 보강 and 산조인·용안육 가중 to 심신 자양.
+Output pattern: "비양허 · 심비양허" (latin: "Spleen-yang deficiency · Heart-Spleen dual (qi-blood) deficiency" — 심비양허 is 心脾兩虛, dual deficiency, NOT yang deficiency)
+Output formula: "귀비탕" with note naming it the 심비양허 representative formula, 건강 소량 가하여 비양 온보, 산조인 가중 for 새벽 각성.
 Output points: ST 36, SP 6, BL 20, HT 7, CV 6.
 
 This is the calibration target — confident, specifically Korean, source-grounded.
@@ -3103,20 +3486,25 @@ This is the calibration target — confident, specifically Korean, source-ground
 
 Now read the patient narrative and produce the JSON.`;
 
-    const pow = await solveProxyPoW();
+    const pow = await solveProxyPoW(signal);
+    if (onStage) onStage("요청 중");
     const res = await fetch(CLAUDE_PROXY + "/api/claude", {
       method: "POST",
       headers: { "Content-Type": "application/json", ...pow },
+      signal,
       body: JSON.stringify({
-        model: "opus", max_tokens: 3500, system: sys,
+        model: "opus", max_tokens: 5000, system: sys,
         messages: [{ role: "user", content: narrative }],
         tools: [BRIEF_TOOL], tool_choice: { type: "tool", name: "clinical_brief" },
       }),
     });
-    if (!res.ok) { const e = new Error("Proxy " + res.status); e.status = res.status; throw e; }
+    if (!res.ok) { const e = new Error("라이브 서버 오류 (" + res.status + ") — 잠시 후 다시 시도해 주세요."); e.status = res.status; throw e; }
+    if (onStage) onStage("응답 정리 중");
     const data = await res.json();
+    if (data.stop_reason === "max_tokens") throw new Error("응답이 길어 중간에 잘렸습니다 — 서술을 조금 줄여 다시 시도해 주세요.");
     const tu = (data.content || []).find(b => b.type === "tool_use" && b.name === "clinical_brief");
-    if (!tu || !tu.input) throw new Error("구조화된 브리프를 받지 못했습니다.");
+    if (!tu || !tu.input) throw new Error("구조화된 브리프를 받지 못했습니다 — 다시 시도해 주세요.");
+    if (!validateBrief(tu.input)) throw new Error("브리프 형식이 완전하지 않습니다 — 다시 시도해 주세요.");
     return tu.input;
   }
 
@@ -3126,17 +3514,17 @@ Now read the patient narrative and produce the JSON.`;
     /* ============================================================
        SHARED CASE CORPUS (PocketBase, Tier 1 public)
 
-       Anonymized "다른 상담 사례" library. Each generated brief
-       (canned OR live) is saved as a de-identified row — the 변증
-       pattern, the 처방 formula, the 경혈 points, and a short generic
-       chief-complaint label. NO patient-identifying free text. This is
-       PURE DEMO DATA — no real patients.
+       Anonymized "다른 상담 사례" library. Sharing is OPT-IN: a LIVE brief
+       is uploaded only when the visitor ticked "이 사례를 익명으로 공유"
+       before pressing Analyze. Canned and fallback briefs are never
+       uploaded. A row is de-identified — the 변증 pattern, the 처방
+       formula, the 경혈 points, and a short generic chief-complaint
+       label. NO patient narrative, NO identifying free text.
 
-       This layer is purely ADDITIVE. The AI brief generation, key
-       handling, model toggle, and canned-first flow are untouched. It
-       talks to the classic page script only via the window.__caseOnBrief
-       hook (called after renderBrief). The demo works fully with no
-       backend — locally-saved cases render from localStorage.
+       This layer talks to the classic page script only via the
+       window.__caseOnBrief hook (called after a live renderBrief). The
+       demo works fully with no backend — every brief is also kept in
+       localStorage on this device so the library renders offline.
 
        Collection: case_brief (base) — https://intake-companion.pb.gurum.se/_/
          pattern         (text, required, max 120)  ← 변증
@@ -3228,17 +3616,20 @@ Now read the patient narrative and produce the JSON.`;
 
     let cacheDirty = true; // refetch the corpus next time the overlay opens
 
-    /* Called by the classic script after every rendered brief (canned/live). */
+    /* Called by the classic script after a LIVE brief renders.
+       opts = { live: true, share: <checkbox state> }. */
     window.__caseOnBrief = function (brief, opts) {
       if (!brief) return;
+      opts = opts || {};
       const row = briefToRow(brief);
       const local = { ...row, id: "local-" + Date.now(), _local: true };
-      // Always record locally so the browser has something even offline.
+      // Always record locally (this device only) so the library works offline.
       const cases = loadLocal();
       cases.unshift(local);
       saveLocal(cases);
       cacheDirty = true;
-      // Best-effort push to the shared corpus. Fire-and-forget.
+      // Upload ONLY when the visitor opted in on a live run. Fire-and-forget.
+      if (!opts.live || !opts.share) return;
       (async () => {
         if (!online) return;
         try {
@@ -3413,8 +3804,21 @@ Now read the patient narrative and produce the JSON.`;
       return [...extras, ...remote].slice(0, 30);
     }
 
-    function openCases() { if (overlay) { overlay.classList.add("live"); loadCases(); } }
-    function closeCases() { if (overlay) overlay.classList.remove("live"); }
+    let lastFocus = null; // element to return focus to when the dialog closes
+    function openCases() {
+      if (!overlay) return;
+      lastFocus = document.activeElement;
+      overlay.classList.add("live");
+      loadCases();
+      const cb = $id("casesCloseBtn");
+      if (cb) cb.focus();
+    }
+    function closeCases() {
+      if (!overlay || !overlay.classList.contains("live")) return;
+      overlay.classList.remove("live");
+      if (lastFocus && typeof lastFocus.focus === "function") lastFocus.focus();
+      lastFocus = null;
+    }
 
     const openBtn = $id("casesOpenBtn");
     if (openBtn) openBtn.addEventListener("click", openCases);
