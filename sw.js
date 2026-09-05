@@ -1,26 +1,31 @@
 /* vibe-studio root landing — minimal offline shell SW.
    Tight scope: only caches the root landing, never demo subpaths
    (each demo registers its own SW under its own scope). */
-const CACHE = "vibe-root-v8";
+const CACHE = "vibe-root-v9";
 // Cache family prefix — activate() only evicts stale caches in this family,
 // never sibling demos' caches (CacheStorage is shared per origin).
 const CACHE_PREFIX = "vibe-root-";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
   // Landing-page imagery — hero band, works-index thumbs, paper texture, divider.
+  // Thumbs are served cache-first, so BUMP `CACHE` above whenever a thumb is
+  // added, renamed, or regenerated — otherwise installed clients keep the old file.
   "./thumbs/hero-band.jpg",
   "./thumbs/paper-texture.jpg",
-  "./thumbs/divider.png",
-  "./thumbs/sweden.jpg",
+  "./thumbs/divider.webp",
+  "./thumbs/sweden-food-guide.jpg",
   "./thumbs/molecule.jpg",
   "./thumbs/globe.jpg",
   "./thumbs/intake.jpg",
   "./thumbs/mbti.jpg",
   "./thumbs/resonans.jpg",
-  "./thumbs/clinic-admin.png",
+  "./thumbs/clinic-admin.jpg",
   "./thumbs/starwars.jpg",
   "./thumbs/changwon-homes.jpg",
   "./thumbs/kids-bookshelf.jpg",
+  "./thumbs/contraption-lab.jpg",
+  "./thumbs/hangul-particles.jpg",
+  "./thumbs/korean-words.jpg",
   "./tinywings/assets/hero-mood.webp"
 ];
 
@@ -54,8 +59,10 @@ self.addEventListener("fetch", e => {
   if (req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html")) {
     e.respondWith(
       fetch(req).then(r => {
-        const copy = r.clone();
-        caches.open(CACHE).then(c => c.put(req, copy));
+        if (r.ok) {
+          const copy = r.clone();
+          caches.open(CACHE).then(c => c.put(req, copy));
+        }
         return r;
       }).catch(() => caches.match(req).then(m => m || caches.match("./index.html")))
     );

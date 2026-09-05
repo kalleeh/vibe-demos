@@ -19,7 +19,18 @@ routerAdd("GET", "/api/claude-challenge", (e) => {
   const POW_DIFFICULTY = 14;
   const CH_WINDOW_MS = 60 * 1000;
   const CH_MAX = 20; // challenges/min/IP — generous (a real user needs 1 per call) but stops farming
-  const originAllowed = (o) => !!o && ALLOWED_ORIGINS.some(a => o === a || o.indexOf(a) === 0);
+  // Exact-origin match (scheme://host[:port]) — a prefix test would accept
+  // "https://kalleeh.github.io.evil.example". Parsed with a regex rather than
+  // `new URL()` (not a guaranteed global in PB's goja JSVM). localhost/127.0.0.1
+  // may carry any port for local dev.
+  const originAllowed = (o) => {
+    const m = /^([a-z][a-z0-9+.-]*):\/\/([^\/?#]+)/i.exec(String(o || ""));
+    if (!m) return false;
+    const scheme = m[1].toLowerCase(), host = m[2].toLowerCase();
+    if (ALLOWED_ORIGINS.indexOf(scheme + "://" + host) !== -1) return true;
+    const hostname = host.replace(/:\d+$/, "");
+    return scheme === "http" && (hostname === "localhost" || hostname === "127.0.0.1");
+  };
 
   const secret = $os.getenv("PROXY_POW_SECRET") || "";
   if (!secret) return e.json(503, { error: "live proxy not configured" });
@@ -58,7 +69,18 @@ routerAdd("POST", "/api/claude", (e) => {
     opus:   "eu.anthropic.claude-opus-4-8",
     sonnet: "eu.anthropic.claude-sonnet-4-6",
   };
-  const originAllowed = (o) => !!o && ALLOWED_ORIGINS.some(a => o === a || o.indexOf(a) === 0);
+  // Exact-origin match (scheme://host[:port]) — a prefix test would accept
+  // "https://kalleeh.github.io.evil.example". Parsed with a regex rather than
+  // `new URL()` (not a guaranteed global in PB's goja JSVM). localhost/127.0.0.1
+  // may carry any port for local dev.
+  const originAllowed = (o) => {
+    const m = /^([a-z][a-z0-9+.-]*):\/\/([^\/?#]+)/i.exec(String(o || ""));
+    if (!m) return false;
+    const scheme = m[1].toLowerCase(), host = m[2].toLowerCase();
+    if (ALLOWED_ORIGINS.indexOf(scheme + "://" + host) !== -1) return true;
+    const hostname = host.replace(/:\d+$/, "");
+    return scheme === "http" && (hostname === "localhost" || hostname === "127.0.0.1");
+  };
   const leadingZeroBits = (hex) => {
     let bits = 0;
     for (let i = 0; i < hex.length; i++) {
@@ -76,6 +98,26 @@ routerAdd("POST", "/api/claude", (e) => {
   if (!token || !secret) return e.json(503, { error: "live proxy not configured" });
 
   const h = e.request.header;
+
+  // --- cheap rejections first: origin + body shape. These run BEFORE the PoW
+  //     nonce is marked spent and before the rate bucket is charged, so a bad
+  //     request can't burn a caller's challenge or budget. ---
+  // --- origin check ---
+  const origin = h.get("Origin") || h.get("Referer") || "";
+  if (!originAllowed(origin)) return e.json(403, { error: "origin not allowed" });
+
+  // --- read + validate body (requestInfo().body is the parsed JSON map in JSVM) ---
+  let body;
+  try { body = e.requestInfo().body || {}; } catch (err) { return e.json(400, { error: "bad body" }); }
+  const logical = String(body.model || "");
+  const modelId = MODEL_MAP[logical];
+  if (!modelId) return e.json(400, { error: "unknown model" });
+  if (body.stream === true) return e.json(400, { error: "streaming not supported" });
+  if (!Array.isArray(body.messages) || body.messages.length === 0) {
+    return e.json(400, { error: "messages required" });
+  }
+  let maxTokens = Number(body.max_tokens || 0);
+  if (!maxTokens || maxTokens > MAX_TOKENS_CEILING) maxTokens = Math.min(maxTokens || 1024, MAX_TOKENS_CEILING);
 
   // --- proof-of-work gate ---
   const pNonce = h.get("X-PoW-Nonce") || "", pExp = h.get("X-PoW-Exp") || "",
@@ -118,23 +160,6 @@ routerAdd("POST", "/api/claude", (e) => {
     return e.json(429, { error: "daily demo budget reached — try again tomorrow" });
   }
   $app.store().set("daily", budget);
-
-  // --- origin check ---
-  const origin = h.get("Origin") || h.get("Referer") || "";
-  if (!originAllowed(origin)) return e.json(403, { error: "origin not allowed" });
-
-  // --- read + validate body (requestInfo().body is the parsed JSON map in JSVM) ---
-  let body;
-  try { body = e.requestInfo().body || {}; } catch (err) { return e.json(400, { error: "bad body" }); }
-  const logical = String(body.model || "");
-  const modelId = MODEL_MAP[logical];
-  if (!modelId) return e.json(400, { error: "unknown model" });
-  if (body.stream === true) return e.json(400, { error: "streaming not supported" });
-  if (!Array.isArray(body.messages) || body.messages.length === 0) {
-    return e.json(400, { error: "messages required" });
-  }
-  let maxTokens = Number(body.max_tokens || 0);
-  if (!maxTokens || maxTokens > MAX_TOKENS_CEILING) maxTokens = Math.min(maxTokens || 1024, MAX_TOKENS_CEILING);
 
   // --- translate to Bedrock invoke shape (model in path; anthropic_version in body) ---
   // Additive: forward tools/tool_choice ONLY when the caller sends them, so existing

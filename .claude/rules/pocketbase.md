@@ -33,7 +33,7 @@ Use PocketBase for: multiplayer/shared state, persistent leaderboards (survive b
 
 1. **`<slug>/pb/pb_migrations/001_<description>.js`** — migration defining collections.
 2. **`backends/config.json`** — add `"<slug>": { "port": <next port> }` (ports start 8091, never reused, always increment).
-3. **`<slug>/index.html`** — add `"pocketbase"` to the importmap; `const PB_URL = 'https://<slug>.pb.gurum.se';`; health check + localStorage fallback; collection schema comment block atop the module script; a subtle online/offline indicator.
+3. **`<slug>/index.html`** — lazy `import(PB_ESM)` of the pinned SDK URL (see *SDK import*); `const PB_URL = 'https://<slug>.pb.gurum.se';`; health check + localStorage fallback; collection schema comment block atop the module script; a subtle online/offline indicator.
 4. **`<slug>/sw.js`** — skip cross-origin fetches from caching.
 5. **Run `./sync-backends.sh`** from the repo root to deploy.
 
@@ -44,19 +44,30 @@ Use PocketBase for: multiplayer/shared state, persistent leaderboards (survive b
 - **Migrations are the source of truth.** Admin UI edits are prototyping only — snapshot back to files with `ssh pb-backends "cd /opt/pocketbase/<slug> && ./pocketbase migrate collections"` before committing.
 - **Ports:** always increment from 8091, never reuse.
 - **SDK version: pin exactly, never `@latest`** — but pin a *recent* version. Query Context7 (`/pocketbase/js-sdk` for SDK tag, `/pocketbase/pocketbase` for core) for current latest, then pin that.
-  - **State (verified 2026-06-08, re-verify via Context7):** server binary `/opt/pocketbase/pocketbase` is `0.25.8`; the 7 existing backends pin SDK `0.25.0`. SDK `0.25.x`/`0.26.x` talk to a `0.25.8` server fine. Core has reached `0.35.x`.
+  - **State (verified 2026-06-08, re-verify via Context7):** server binary `/opt/pocketbase/pocketbase` is `0.25.8`. `backends/config.json` registers 10 backends: seven frontends pin SDK `0.25.0` (clinic-admin, intake-companion, korean-mbti, live-globe, resonans, sweden-food-guide, tinywings); `contraption-lab` pins `0.26.2`; `ai` (hook-only proxy) and `changwon-homes` (data-upload chute only — its `upload.html` pins `0.26.2`; the live page has no SDK) ship no frontend SDK. SDK `0.25.x`/`0.26.x` talk to a `0.25.8` server fine. Core has reached `0.35.x`.
   - **Bumping the server binary affects ALL deployed backends at once** (single shared binary) — treat as a coordinated migration: read release notes for breaking changes, test against a non-critical backend first, bump SDK pins to match. Don't bump casually mid-feature.
   - New isolated backend: pin the latest verified SDK; keep it ≥ the server's major.minor.
 
 ## SDK import
 
-```html
-<script type="importmap">
-  { "imports": { "pocketbase": "https://cdn.jsdelivr.net/npm/pocketbase@0.26.2/dist/pocketbase.es.mjs" } }
-</script>
+Load the SDK lazily by full URL with a dynamic `import()` — NOT a static `import` + importmap. This is what tinywings (and every other PB demo) actually does:
+
+```js
+const PB_URL = "https://<slug>.pb.gurum.se";
+const PB_ESM = "https://cdn.jsdelivr.net/npm/pocketbase@0.26.2/dist/pocketbase.es.mjs";
+let pb = null, _pbPromise = null;
+function getPB() {
+  if (pb) return Promise.resolve(pb);
+  if (!_pbPromise) {
+    _pbPromise = import(PB_ESM)
+      .then((m) => { pb = new m.default(PB_URL); return pb; })
+      .catch(() => { _pbPromise = null; return null; }); // CDN down → stay local
+  }
+  return _pbPromise;
+}
 ```
 
-(`0.26.2` was latest verified via Context7 on 2026-06-08 — re-check and pin current when adding a backend. The 7 pre-existing demos still pin `0.25.0`; leave them unless deliberately upgrading + re-testing.) One importmap per page — combine with three/three-addons if needed. If the demo has no module script yet (classic-`<script>` game like tinywings), add the importmap and put PB logic in its own `<script type="module">`, talking to the classic script via a `window.__*` hook. With no browser, sanity-check a module body with `node --check`.
+Why: importmaps need iOS Safari 16.4+, and a static `import` that can't resolve throws at module-eval time and kills every handler in that script (the leaderboard button goes dead while the rest of the game still works). A dynamic import of a full URL works on any ES-module browser (iOS 11+) and lets the demo degrade to local-only if the CDN is unreachable. (`0.26.2` was latest verified via Context7 on 2026-06-08 — re-check and pin current when adding a backend. The seven pre-existing demos still pin `0.25.0`; leave them unless deliberately upgrading + re-testing.) If the demo is a classic-`<script>` page (tinywings), put the PB logic in its own `<script type="module">` and talk to the classic script via a `window.__*` hook. With no browser, sanity-check a module body with `node --check`.
 
 ## Security tiers (collection API rules, NOT API keys)
 
@@ -88,14 +99,13 @@ listRule: "owner = @request.auth.id"   ← own data only
 ## Local-first fallback
 
 ```js
-import PocketBase from 'pocketbase';
-const PB_URL = 'https://<slug>.pb.gurum.se';
-const pb = new PocketBase(PB_URL);
+// `getPB()` is the lazy dynamic-import loader from *SDK import* above.
 let online = false;
-try { await pb.health.check(); online = true; } catch { online = false; }
+const pb = await getPB();
+if (pb) { try { await pb.health.check(); online = true; } catch { online = false; } }
 
 async function getScores() {
-  if (online) {
+  if (pb && online) {
     try { return await pb.collection('leaderboard').getFullList({ sort: '-score' }); }
     catch { online = false; }
   }
@@ -178,7 +188,7 @@ migrate((app) => {
 - **Secrets** (API tokens, signing secrets) go in a **0600 systemd drop-in** `/etc/systemd/system/pocketbase@<slug>.service.d/env.conf` (`Environment=FOO=...`), set out-of-band on the server — NEVER in the repo, NOT written by `sync-backends.sh` (which only writes `port.conf`). Hook reads them via `$os.getenv`. Reference: `ai/pb/pb_hooks/proxy.pb.js` (Bedrock proxy: bearer-token auth + proof-of-work anti-spam gate).
 
 **Infrastructure** (the deploy script handles all of this; rarely touched):
-- Server: Lightsail `pb-backends` (13.61.133.93), 2GB RAM, eu-north-1.
+- Server: Lightsail instance reachable as the SSH alias `pb-backends` (the address lives only in your `~/.ssh/config`, not in the repo), 2GB RAM, eu-north-1.
 - Caddy reverse proxy, wildcard TLS (Let's Encrypt DNS-01 via Route 53).
 - Each backend: systemd unit `pocketbase@<slug>`, port from config.json.
 - SSH: `ssh pb-backends`. Rebuildable: re-provision + run sync = full recovery.

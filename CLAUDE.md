@@ -17,11 +17,19 @@ vibe-demos/
     └── ...             ← any other assets the demo needs
 ```
 
+### Non-demo folders (not works-index entries)
+
+- `thumbs/` — the landing's own imagery: works-index thumbnails (`<slug>.jpg`, 1280×720), `hero-band.jpg`, `paper-texture.jpg`, `divider.webp`. Every file here is precached by root `sw.js`.
+- `ai/` — the shared Claude→Bedrock proxy backend (`ai/pb/pb_hooks/proxy.pb.js`, no frontend). Deployed like any PocketBase backend; see `.claude/rules/ai-demos.md` + `pocketbase.md`.
+- `backends/config.json` + `sync-backends.sh` — registry of PocketBase backends (host alias, domain, port per slug) and the idempotent deploy script that converges the server from it.
+- `docs/superpowers/` — dated plans (`plans/`) and design specs (`specs/`) written before larger features; history, not runtime.
+- `scripts/` — the kids-bookshelf catalog build tooling (`scripts/kids-bookshelf/`). Changwon's data pipeline lives in `changwon-homes/scripts/`, not here.
+
 ## Domain playbooks (`.claude/rules/`)
 
 Detailed guidance lives in path-scoped rule files that auto-load when you edit a matching file. Read the relevant one before working in that area:
 
-- **`ai-demos.md`** — demos that call Claude (endpoint/auth, key handling, canned-vs-live, streaming, and the domain-tuned system-prompt methodology). Reference: `intake-companion/`.
+- **`ai-demos.md`** — demos that call Claude (shared Bedrock proxy + proof-of-work, `model: "opus"|"sonnet"`, non-streaming, forced `tool_use`, canned-vs-live fallback contract, and the domain-tuned system-prompt methodology). Reference: `intake-companion/` + `ai/pb/pb_hooks/proxy.pb.js`.
 - **`threejs.md`** — 3D rendering fidelity stack, Kenney CC0 assets, `paintKenney`. Reference: `molecule-journey/`.
 - **`pwa.md`** — installable PWA shell (manifest, icon, per-demo + root service workers, cache invalidation). Reference: `intake-companion/sw.js`, root `sw.js`.
 - **`pocketbase.md`** — optional persistence/sync backend (decision tree, migrations, security tiers, local-first fallback, `sync-backends.sh`). Reference: `tinywings/`. **Always check Context7 before backend work.**
@@ -31,18 +39,19 @@ Detailed guidance lives in path-scoped rule files that auto-load when you edit a
 
 Verify with `ls` before recommending — this list can drift.
 
-- `sweden-food-guide/` — Korean-language interactive travel + food guide for Sweden. Self-contained.
+- `sweden-food-guide/` — Korean-language interactive travel + food guide for Sweden. Client-only core; optionally lazy-loads PocketBase (`sweden-food-guide.pb.gurum.se`) for a shared community feed, local-first fallback.
 - `molecule-journey/` — Three.js scrollytelling, six chapters following one methane molecule from LNG tanker to Seoul kitchen flame. Kenney CC0 GLBs in `assets/`.
 - `live-globe/` — interactive 3D Earth (Three.js), live time/weather/sunrise/sunset for Seoul ⇄ Stockholm, AI "right now" snapshots.
-- `intake-companion/` — Korean traditional medicine (한방) intake assistant. Voice-in, structured 변증/처방/경혈 brief, three-way model toggle. **Reference implementation for the AI demo pattern.**
+- `intake-companion/` — Korean traditional medicine (한방) intake assistant. Voice-in, structured 변증/처방/경혈 brief, canned/live toggle. **Reference implementation for the AI demo pattern.**
 - `korean-mbti/` — short Korean MBTI test + AI deep-read mode inferring type from a free-form passage.
 - `resonans/` — calm sketchbook game on a hand-drawn cream-paper string. Real 1D wave physics; no score, no timer.
 - `clinic-admin/` — Korean 한방병원 administration assistant. Camera/OCR + voice + share-sheet intake, ⌘K command palette, guided tour.
 - `tinywings/` ("Sketchwings") — one-tap arcade glider over pencil hills with a day/night cycle. **Canonical PocketBase demo** (shared leaderboard, local-first fallback). Reuses `assets/hero-mood.webp` as its works-index thumbnail (path is in root `sw.js` allow-list).
-- `starwars-homage/` ("A New Hope") — 38s cinematic homage rendered to MP4 via the HyperFrames CLI. Ships `film.mp4` + `poster.jpg`; research in `composition/refs/`. (Renders to MP4 — no Three.js at runtime.)
-- `changwon-homes/` ("Changwon Home Finder") — Korean-language Leaflet map of ~829 real Changwon apartment complexes from 국토교통부 실거래가, each marker scored (green=good deal → red=overpriced) and sized by 평형, with per-평형 price-vs-local-peers detail. Data is baked to a static `data.json` (build scripts in `scripts/`); the page is client-only, no API key, works offline. (Has a `pb/` upload chute for the data-build pipeline only — not part of the live demo.)
+- `starwars-homage/` ("A New Hope") — 42s cinematic homage rendered to MP4 via the HyperFrames CLI. Ships `film.mp4` + `poster.jpg`; research in `composition/refs/`. (Renders to MP4 — no Three.js at runtime.)
+- `changwon-homes/` ("Changwon Home Finder") — Korean-language Leaflet map of ~900 real Changwon apartment complexes from 국토교통부 실거래가, each marker scored (green=good deal → red=overpriced) and sized by 평형, with per-평형 price-vs-local-peers detail. Data is baked to a static `data.json` (build scripts in `changwon-homes/scripts/`); the page is client-only, no API key, works offline. (Has a `pb/` upload chute for the data-build pipeline only — not part of the live demo.)
 - `kids-bookshelf/` ("책친구 — Kids Book Friend") — Korean crayon-picture-book recommender for ages 0–9. Deterministic offline scoring over an append-only ~350-title catalog (`catalog.js`, see `CATALOG.md`); optional **AI 맞춤 추천** mode (Claude Sonnet via the shared Bedrock proxy) only polishes wording of the already-chosen books. Client-only, no backend.
-- `contraption-lab/` ("Contraption Lab") — a modern *Incredible Machine*: drag parts to build Rube Goldberg contraptions, then Run the physics (Matter.js, vendored, no build step). 20 verified-solvable levels, ~32 parts, community level editor + optional PocketBase accounts/leaderboards. Specs and the maintenance contract for it live in `contraption-lab/*-design.md`; run `tools/solve-verify.mjs` after ANY level/parts change.
+- `contraption-lab/` ("Contraption Lab") — a modern *Incredible Machine*: drag parts to build Rube Goldberg contraptions, then Run the physics (Matter.js, vendored, no build step). 20 verified-solvable levels, 42 parts, community level editor + optional PocketBase accounts/leaderboards. Maintenance contract: run `contraption-lab/tools/solve-verify.mjs` after ANY level/parts change (design notes in `contraption-lab/DESIGN.md`; longer-form specs/plans in `docs/superpowers/`).
+- `hangul-particles/` ("Hangul Particles") — Three.js shader piece: type a Korean or English word and tens of thousands of GPU particles scatter and reassemble into the glyphs live as you type. Glyph mask sampled from an offscreen canvas into a custom `ShaderMaterial`; tap to poke; five preset words; `prefers-reduced-motion` swaps to a crossfade. Client-only, no backend. PWA.
 - `korean-words/` ("Korean Words") — Swedish-language vocabulary game for kids learning Korean. 9 categories (Sino-Korean + native numbers, vehicles, fruit & veg, animals, colors, body parts, household things); Explore mode taps a card for Korean TTS + romanization + Swedish translation, Play mode has three games (Listen & tap, Memory, True/False), each a capped 10-question session with a synthesized applause sting on completion (no audio files, no spoken praise). A 9th "Test" category mixes all categories into one 10-question quiz (counting questions using correct native-number + counter grammar, "how many more?" arithmetic, and category classification). Client-only, no backend. PWA (installs standalone so pinch/double-tap zoom is fully disabled — important for a kids' touch game).
 
 ## Future ideas
@@ -66,6 +75,7 @@ When **adding** a demo:
 - If a `data-status="soon"` placeholder sits at the right number, replace it rather than appending after it.
 - Update the `<div class="count">` text (`Index / NN entries`) to the number of **shipped** entries (exclude `soon` rows).
 - Add a thumbnail: a 1280×720 JPG at `thumbs/<slug>.jpg` (PNG/WebP if the source needs it — match what's there), referenced inline via `<span class="thumb"><img src="./thumbs/<slug>.jpg" ...>`. A demo may instead reuse one of its own hero assets (e.g. tinywings); if so, add that path to the root `sw.js` cross-demo allow-list so the landing's SW can cache it.
+- Add the thumb path to root `sw.js` `SHELL` and **bump root `sw.js` `CACHE`** (`vibe-root-vN` → `vN+1`) whenever you add, rename, or regenerate a thumb — thumbs are cache-first, so installed clients otherwise keep the old file.
 - If fewer than 3 visible rows total, top up with `data-status="soon"` placeholders. If 3+ shipped, drop the placeholders.
 - Match the existing visual grammar: `<span class="num">`, `<span class="title">` with one word italicised in `<em>`, `<span class="tags">` (3 short uppercase phrases separated by `<br>`), `<span class="thumb">`, `<span class="year">`, `<span class="arrow">→</span>`.
 

@@ -5,54 +5,62 @@ paths:
 
 # AI demo pattern
 
-Demos that call Claude share one integration shape so each new demo cribs from the last. Reference implementation: `intake-companion/index.html` — read its `callClaude()` before tuning any new AI demo.
+Demos that call Claude share one integration shape so each new demo cribs from the last. Reference implementation: `intake-companion/index.html` — read its `solveProxyPoW()` and `callClaude()` (search for `CLAUDE_PROXY`) before wiring any new AI demo. The server side is `ai/pb/pb_hooks/proxy.pb.js` (a PocketBase JSVM hook that fronts Amazon Bedrock); read it too — it defines exactly what the browser may send.
+
+Live callers today: `intake-companion`, `korean-mbti`, `live-globe`, `clinic-admin`, `changwon-homes`, `kids-bookshelf` (in `app.js`). All use the same `CLAUDE_PROXY` + `solveProxyPoW()` pair.
 
 ## Endpoint and auth
 
-Browser-direct call to the Anthropic Messages API. No SDK bundle — raw `fetch`:
+The browser never talks to Anthropic and never holds a key. Every call goes to the shared proxy at `https://ai.pb.gurum.se`, which keeps the Bedrock bearer token in a server-side env var and translates the request to Bedrock's `invoke` API. There is no key UI, no BYO key, no localStorage key, no model-ID picker — do not build any of them.
+
+Anti-spam is a proof-of-work challenge, not authentication:
+
+1. `GET /api/claude-challenge` → `{ nonce, exp, sig, difficulty }` (HMAC-signed, 2-minute TTL, 20 challenges/min/IP, origin-checked).
+2. The browser brute-forces `counter` until `SHA-256(nonce + ":" + counter)` has ≥ `difficulty` leading zero bits (Web Crypto, ~0.5–1 s, once per call — the normal loading state covers it).
+3. `POST /api/claude` with headers `X-PoW-Nonce`, `X-PoW-Exp`, `X-PoW-Sig`, `X-PoW-Counter` plus a JSON body. Each nonce is single-use; a replay 403s.
 
 ```js
-const res = await fetch("https://api.anthropic.com/v1/messages", {
+const CLAUDE_PROXY = "https://ai.pb.gurum.se";
+async function solveProxyPoW() { /* copy verbatim from intake-companion/index.html */ }
+
+const pow = await solveProxyPoW();
+const res = await fetch(CLAUDE_PROXY + "/api/claude", {
   method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "x-api-key": userKey,
-    "anthropic-version": "2023-06-01",
-    "anthropic-dangerous-direct-browser-access": "true",
-  },
-  body: JSON.stringify({ model, max_tokens, system, messages }),
+  headers: { "Content-Type": "application/json", ...pow },
+  body: JSON.stringify({
+    model: "opus", max_tokens: 3500, system, messages,
+    tools: [BRIEF_TOOL], tool_choice: { type: "tool", name: "clinical_brief" },
+  }),
 });
+if (!res.ok) { const e = new Error("Proxy " + res.status); e.status = res.status; throw e; }
+const data = await res.json(); // native Claude Messages response
+const tu = (data.content || []).find(b => b.type === "tool_use" && b.name === "clinical_brief");
 ```
 
-Three models, exposed as a UI toggle the viewer can flip mid-demo:
-- `claude-opus-4-7` — default, the wow run
-- `claude-sonnet-4-6` — balance
-- `claude-haiku-4-5` — fast/cheap
+Request-body rules (enforced by `proxy.pb.js` — anything else 400s):
+- `model` is a logical name: `"opus"` (default, the wow run) or `"sonnet"` (cheaper/faster, e.g. kids-bookshelf's fan-out). No Haiku, no dated model IDs — the mapping to Bedrock model IDs lives server-side only.
+- `max_tokens` is capped at 4096.
+- `stream: true` is rejected — **non-streaming only**. Design for one complete response (see `loading-ux.md`, the non-streaming branch: indeterminate bar or shimmer, not character-by-character).
+- `tools` + `tool_choice` are forwarded when present. **For any structured output, force a tool call** (`tool_choice: { type: "tool", name }` with a JSON-schema `input_schema`) and read the `tool_use` block's `input` — never regex JSON out of prose.
+- Proxy budget: 24 calls/min/IP and a global cap of 800 calls/day. A demo that fans out (kids-bookshelf: ~6 calls per recommendation) must stay inside that.
 
-Never hardcode, commit, or log a key. The viewer pastes their own.
-
-## Key handling (mobile-friendly)
-
-- First load: a polite key-prompt panel with a "where do I get one?" link to console.anthropic.com.
-- Store under a per-demo localStorage key (`vibe.<slug>.key`) — never share across demos.
-- `<input type="password">` so the key shows as dots.
-- "Paste from clipboard" button (`navigator.clipboard.readText()`) — critical for phone UX.
-- "Forget my key" button that wipes localStorage.
-- On a 401: wipe the stored key and re-show the prompt with a "key was rejected" hint.
+Origin allow-list is the Pages origin (`https://kalleeh.github.io`) plus `localhost`/`127.0.0.1` for dev — the demo on any other host gets 403.
 
 ## Canned-first, live-optional
 
 Every AI demo ships two modes:
-1. **Canned mode (default)** — pre-baked realistic outputs so the demo works with no key/signup. Must be visibly labeled ("demo mode" pill / italic note) so it never misrepresents itself as live.
-2. **Live mode** — toggleable "use my own key" panel that switches to real calls.
+1. **Canned mode (default)** — pre-baked realistic outputs so the demo works with no network, no proxy, no budget. It MUST be visibly labelled ("demo mode" pill / italic note) so it never passes itself off as live.
+2. **Live mode** — a toggle ("Try live mode →") that switches to real proxy calls.
 
-## Streaming where it helps
+Error-handling contract:
+- `403` / `429` / `503` from the proxy (origin, PoW, rate limit, daily cap, proxy not configured) → fall back to the closest canned output AND say so on screen (intake: "라이브 데모가 잠시 바쁩니다 — 예시 결과를 보여드릴게요"). A canned result MUST never render under a live label.
+- Any other failure → show the error inline; keep the previous output.
+- MUST set a busy flag / disable the trigger for the whole call (challenge + PoW + fetch). Double-submits burn nonces and rate budget and race the render.
+- MUST escape model output before any `innerHTML` (`esc()` in intake-companion) or render with `textContent`. Model text is untrusted input.
 
-Prefer the streaming endpoint (`stream: true`, SSE) for any human-readable text output — characters arriving in 200ms feels instant. Use non-streaming only when you need a complete JSON object before rendering (e.g. structured forms).
+## Cost guardrails
 
-## Cost guardrails (set in console.anthropic.com, not in code)
-
-Dedicated workspace + per-key spend cap ($5–10/mo); restrict the key to the three models above; email alerts at $1/$3/$5; rotate immediately if anything looks off.
+Bedrock usage is billed to us, so the guardrails are server-side in `proxy.pb.js`: PoW difficulty, per-IP rate window, global `DAILY_CAP`. Tune them there, not in demos. If a demo needs more headroom, raise the cap in one commit and redeploy with `./sync-backends.sh` (see `pocketbase.md`, JS-hooks section).
 
 ---
 

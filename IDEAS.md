@@ -4,7 +4,7 @@ A queue of vibe-demos to build. Each has enough detail to pick up on a future se
 
 **Audience:** the user's Korean friends. One works at a haniwon (한의원, Korean traditional medicine clinic — 한의사/한약/침·뜸 territory); one works at a Korean government-adjacent "gas" utility — likely **KOGAS (한국가스공사)** or similar. The demos should show both how *cool* AI/web can be and how *practically useful* it can be in their work, so the queue mixes flashy 3D/animation pieces with productivity tools.
 
-**Tech baseline:** plain static HTML/CSS/JS, hosted on GitHub Pages. WebGL via Three.js (CDN, no build step). For demos that need an LLM, follow the **AI demo pattern** documented in [CLAUDE.md](./CLAUDE.md#ai-demo-pattern) — browser-direct Anthropic API calls, viewer-supplied key in localStorage, canned-first/live-optional, three-way model toggle (Opus 4.7 / Sonnet 4.6 / Haiku 4.5). Loading and progress UX rules also live there under **Loading states and async UX**.
+**Tech baseline:** plain static HTML/CSS/JS, hosted on GitHub Pages. WebGL via Three.js (CDN, no build step). For demos that need an LLM, follow the **AI demo pattern** in [`.claude/rules/ai-demos.md`](./.claude/rules/ai-demos.md) — calls go through the shared Bedrock proxy (`ai.pb.gurum.se`, proof-of-work gated, no key UI), `model: "opus" | "sonnet"`, non-streaming, canned-first/live-optional. Loading and progress UX rules live in [`.claude/rules/loading-ux.md`](./.claude/rules/loading-ux.md).
 
 Status legend: `🟡 queued` · `🟠 in progress` · `🟢 shipped` · `⚪ shelved`
 
@@ -57,7 +57,7 @@ Type Korean (or Roman) text and the glyphs assemble from ~50,000 GPU particles i
 
 Patient-intake assistant for Korean traditional medicine (한의원). The 한의사 dictates symptoms in real time — "요즘 잠을 잘 못 자고, 손발이 차고, 소화도 안 돼요" — and the screen renders a confident clinical brief.
 
-- **Tech:** Web Speech API (`lang: "ko-KR"`) for live dictation, or paste/type. Browser-direct Anthropic API call per the [AI demo pattern](./CLAUDE.md#ai-demo-pattern). Strict JSON schema for the structured output. Side-by-side: raw narrative on left, structured brief on right.
+- **Tech:** Web Speech API (`lang: "ko-KR"`) for live dictation, or paste/type. Claude call through the shared proxy per the [AI demo pattern](./.claude/rules/ai-demos.md). Strict JSON schema for the structured output. Side-by-side: raw narrative on left, structured brief on right.
 - **Output panels:**
   1. Structured chief-complaint card (sleep, circulation, digestion, pain, energy) with severity + duration
   2. **변증** — Claude commits to a pattern (e.g. 비양허, 기허) with rationale tying back to symptoms
@@ -66,8 +66,8 @@ Patient-intake assistant for Korean traditional medicine (한의원). The 한의
   5. Suggested follow-up questions (3 things to ask next)
   6. Korean ↔ English toggle on the whole brief
 - **Tone:** Full clinical confidence — no "참고용" hedging. These are demos, not products. The boldness *is* the wow.
-- **Visual:** Soft cream + celadon palette, restrained editorial typography, animated progress (streaming text + thin gradient bar) per [Loading states](./CLAUDE.md#loading-states-and-async-ux).
-- **Models:** Default `claude-opus-4-7` for the wow run, three-way toggle to compare with Sonnet 4.6 / Haiku 4.5.
+- **Visual:** Soft cream + celadon palette, restrained editorial typography, animated progress (streaming text + thin gradient bar) per [Loading states](./.claude/rules/loading-ux.md).
+- **Models:** `model: "opus"` by default for the wow run via the shared proxy; `"sonnet"` where cost/speed matters.
 - **Audience hook:** Speaks directly to the 한의원 friend's daily work. Voice-in is the visible wow; the structured brief is the productive payoff.
 - **Slug:** `intake-companion`
 - **Scope estimate:** medium. Tight system prompt + JSON schema is the careful work; UI is small.
@@ -84,9 +84,9 @@ Paste a meeting transcript (or capture live via Web Speech API), get a clean Kor
 
 ### 05.5 · MBTI 16유형 — Korean MBTI Read 🟢 shipped → [/korean-mbti/](./korean-mbti/)
 
-Short Korean MBTI test (12 questions, 3 per axis) plus an AI deep-read mode where Claude infers the writer's type from a free-form Korean text passage (diary, chat, SNS post). Uses Korean MBTI culture nicknames natively — 잔망 루피 (INFP), 곰돌이 푸 (ISFJ), 인싸 끝판왕 (ENFP), 청렴결백한 공무원형 (ISTJ).
+Korean MBTI test (28-question quick / 93-question full) plus an AI deep-read mode where Claude infers the writer's type from a free-form Korean text passage (diary, chat, SNS post). Uses Korean MBTI culture nicknames natively — 잔망 루피 (INFP), 곰돌이 푸 (ISFJ), 인싸 끝판왕 (ENFP), 청렴결백한 공무원형 (ISTJ).
 
-- **Tech:** Self-contained `index.html`. Domain-tuned prompt with XML tags + canonical_types list of 16 Korean nicknames + errors_to_avoid (no Western clichés, no romanization, no hedging). Browser-direct Anthropic call per AI demo pattern; canned-first/live-optional; 3-way model toggle.
+- **Tech:** Self-contained `index.html`. Domain-tuned prompt with XML tags + canonical_types list of 16 Korean nicknames + errors_to_avoid (no Western clichés, no romanization, no hedging). Claude via the shared proxy per the AI demo pattern; canned-first/live-optional.
 - **Audience hook:** Korean MBTI culture is its own dialect — generic AI MBTI readings read as obviously foreign. The nickname canon and "친구가 톡으로 너 ENFP 같아 하는 톤" calibration is the wow.
 - **Slug:** `korean-mbti`
 - **Scope estimate:** medium. Question wording + canned-result calibration was the careful work.
@@ -196,4 +196,4 @@ Long-form editorial essay on a Swedish concept (lagom, fika, allemansrätten…)
 
 - Whenever a demo here ships, move it to the works index in `index.html` per the maintenance contract in [CLAUDE.md](./CLAUDE.md), update README, and mark it `🟢 shipped` here with a link.
 - If a pitch turns out to be a dud or scope-creeps too far, mark `⚪ shelved` with a one-line reason rather than deleting it — useful context for later.
-- AI-powered demos: prefer to ship a stubbed-canned-output version first so the demo works without a key, then wire real Claude API calls behind a "use my key" toggle. Never commit a key.
+- AI-powered demos: ship a canned-output version first so the demo works with no network, then wire live calls through the shared proxy behind a "Try live mode" toggle (see `.claude/rules/ai-demos.md`). The browser never holds a key — never build a key UI, never commit a key.
