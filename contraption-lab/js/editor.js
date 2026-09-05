@@ -3,7 +3,7 @@
 
 import { validateLevel, serializeLevel, cloneLevel } from "./level.js";
 import { fitTransform, screenToWorld } from "./geom.js";
-import { Sim } from "./engine.js";
+import { Sim, TAP_RADIUS } from "./engine.js";
 import { drawWorld, resizeCanvas } from "./render.js";
 import { tokens } from "./theme.js";
 import { PARTS, PALETTE_TYPES } from "./parts.js";
@@ -11,6 +11,12 @@ import { publishLevel } from "./cloud.js";
 import { user } from "./cloud.js";
 
 const DRAFT_KEY = "cl.draft";
+
+// Editor palette = the tray-placeable parts PLUS the ball. The ball is deliberately
+// not in PALETTE_TYPES (players never place the goal object), but a level author
+// must be able to — the goal is "get the ball to the zone", so a level without a
+// tagged ball can never be test-solved or published.
+const EDITOR_TYPES = ["ball", ...PALETTE_TYPES];
 
 // prefers-reduced-motion computed once (not per frame); kept live via a change listener.
 let REDUCED_MOTION = typeof window !== "undefined" && !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -24,14 +30,17 @@ export function canPublish(level, solvedInTest) {
   return val.ok && solvedInTest === true && Array.isArray(level.inventory) && level.inventory.length > 0;
 }
 
-// Pure helper: fresh working level for a new editor session.
+// Pure helper: fresh working level for a new editor session. Seeded with the
+// tagged ball the goal refers to (top-left) so a new level is solvable in
+// principle from the first click; the author can drag/delete/re-add it via the
+// Objects tool.
 export function emptyLevel() {
   return {
     schema: 1,
     world: { w: 1280, h: 720, gravity: 1 },
     goal: { type: "dwell", object: "ball", zone: { x: 1040, y: 560, w: 160, h: 140 }, ms: 500 },
     fixed: [],
-    start: [],
+    start: [{ type: "ball", x: 200, y: 160, tag: "ball" }],
     inventory: [],
   };
 }
@@ -81,11 +90,26 @@ export class Editor {
     this.mounted = true;
     this.sim = new Sim(this.level);
     this.testState = "idle";
+    this._updateTestUI();
     this._wireUI();
     this._startRenderLoop();
   }
 
+  // Static UI (tool buttons, palette, Test/Publish/Clear, slider) is wired ONCE —
+  // the editor is mounted/unmounted on every #/editor visit, and re-binding these
+  // would stack a duplicate handler per visit. Only the canvas listeners are
+  // (re)attached per mount, because unmount() removes them.
   _wireUI() {
+    if (!this._uiWired) { this._uiWired = true; this._wireStaticUI(); }
+    this._down = this._onPointerDown.bind(this);
+    this._move = this._onPointerMove.bind(this);
+    this._up = this._onPointerUp.bind(this);
+    this.canvas.addEventListener("pointerdown", this._down);
+    this.canvas.addEventListener("pointermove", this._move);
+    this.canvas.addEventListener("pointerup", this._up);
+  }
+
+  _wireStaticUI() {
     // Tool buttons
     document.querySelectorAll("[data-tool]").forEach(btn => {
       btn.addEventListener("click", () => this.setTool(btn.dataset.tool));
@@ -95,7 +119,7 @@ export class Editor {
     const palette = document.getElementById("editorPalette") || document.getElementById("palette");
     if (palette) {
       palette.innerHTML = "";
-      PALETTE_TYPES.forEach(type => {
+      EDITOR_TYPES.forEach(type => {
         const def = PARTS[type];
         const btn = document.createElement("button");
         btn.className = "partbtn";
@@ -142,30 +166,25 @@ export class Editor {
     const clearBtn = document.getElementById("clearBtn");
     if (clearBtn) clearBtn.addEventListener("click", () => this.clear());
 
-    // Angle slider rotates the currently-selected fixed part (radians).
+    // Angle slider rotates the currently-selected fixed part (radians). Rotating
+    // scenery changes the puzzle, so it invalidates a prior Test solve too.
     const angleSlider = document.getElementById("angleSlider");
     if (angleSlider) {
       angleSlider.addEventListener("input", (e) => {
         if (this.selectedFixed) {
           this.selectedFixed.angle = parseFloat(e.target.value) || 0;
+          this._markDirty();
           this._scheduleSave();
           this._rebuild();
         }
       });
     }
-
-    // Canvas pointer events: down to place/select/delete, move to drag goal/part.
-    this._down = this._onPointerDown.bind(this);
-    this._move = this._onPointerMove.bind(this);
-    this._up = this._onPointerUp.bind(this);
-    this.canvas.addEventListener("pointerdown", this._down);
-    this.canvas.addEventListener("pointermove", this._move);
-    this.canvas.addEventListener("pointerup", this._up);
   }
 
-  // proximity hit-test against a placed-spec array; returns index or -1 (80 world-unit radius)
+  // proximity hit-test against a placed-spec array; returns index or -1 (same
+  // TAP_RADIUS as play mode's Sim.placedAt so selecting feels identical)
   _nearestIn(arr, x, y) {
-    let idx = -1, best = 80 * 80;
+    let idx = -1, best = TAP_RADIUS * TAP_RADIUS;
     arr.forEach((s, i) => { const d = (s.x - x) ** 2 + (s.y - y) ** 2; if (d < best) { best = d; idx = i; } });
     return idx;
   }
@@ -204,7 +223,7 @@ export class Editor {
   // uses (canvas.width/height are dpr-scaled backing pixels), matching input.js in play mode.
   _evXY(e) {
     const r = this.canvas.getBoundingClientRect();
-    const t = fitTransform(1280, 720, this.canvas.width, this.canvas.height);
+    const t = fitTransform(this.level.world.w, this.level.world.h, this.canvas.width, this.canvas.height);
     return screenToWorld((e.clientX - r.left) * this.canvas.width / r.width,
                          (e.clientY - r.top) * this.canvas.height / r.height, t);
   }
@@ -363,10 +382,12 @@ export class Editor {
   }
 
   _startRenderLoop() {
-    const loop = () => {
+    let last = 0;
+    const loop = (ts) => {
       if (!this.mounted) return;
+      const dt = last ? ts - last : 16; last = ts;
 
-      const { transform } = resizeCanvas(this.canvas);
+      const { transform } = resizeCanvas(this.canvas, this.level.world);
       const ctx = this.canvas.getContext("2d");
       const theme = tokens(document.documentElement.dataset.theme);
 
@@ -375,7 +396,7 @@ export class Editor {
       const running = this.testState === "running";
       const opts = { themeId, now: performance.now(), running, reducedMotion: reduced };
       if (running && this.testSim) {
-        this.testSim.step(16);
+        this.testSim.advance(dt);  // fixed-step physics: Test behaves exactly like play
         const state = this.testSim.state;
         if (state === "won") {
           this.testState = "won";
@@ -398,10 +419,12 @@ export class Editor {
     this.mounted = false;
     if (this.rafId) cancelAnimationFrame(this.rafId);
     if (this.saveTimer) clearTimeout(this.saveTimer);
+    // Canvas listeners are per-mount (re-added by _wireUI); static UI stays wired once.
     if (this._down) {
       this.canvas.removeEventListener("pointerdown", this._down);
       this.canvas.removeEventListener("pointermove", this._move);
       this.canvas.removeEventListener("pointerup", this._up);
+      this._down = this._move = this._up = null;
     }
   }
 }

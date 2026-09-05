@@ -1,5 +1,16 @@
 export const snap = (v, grid) => Math.round(v / grid) * grid;
 
+// Placement grid (world units) for tray-placed parts — ghost preview and the
+// committed position both snap to it.
+export const PLACE_GRID = 20;
+
+// Rotation model shared by the play UI (⟲/⟳ buttons, R/[/] keys, two-finger
+// twist) and the solvability verifier: every placed part's angle sits on an
+// absolute 15° grid. Part default angles (parts.js) are themselves on this grid,
+// so any angle the verifier's solutions use is reachable by the UI's controls.
+export const ROTATE_STEP = Math.PI / 12;
+export const snapAngle = (a) => Math.round(a / ROTATE_STEP) * ROTATE_STEP;
+
 export const aabbOverlap = (a, b) =>
   a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 

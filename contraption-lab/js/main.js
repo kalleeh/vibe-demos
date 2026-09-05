@@ -1,6 +1,9 @@
 import { OFFICIAL_LEVELS } from "./levels/official.js";
-import { Sim } from "./engine.js";
+import { DEMO_TRACK_D_LEVELS } from "./levels/demo-track-d.js";
+import { DEMO_TRACK_E_LEVELS } from "./levels/demo-track-e.js";
+import { Sim, isRotatable } from "./engine.js";
 import { drawWorld, resizeCanvas } from "./render.js";
+import { worldToScreen } from "./geom.js";
 import { tokens, applyTheme, loadTheme, THEMES } from "./theme.js";
 import { PARTS, makePart } from "./parts.js";
 import { PlacementController } from "./input.js";
@@ -28,6 +31,13 @@ if (new URLSearchParams(location.search).has("test")) {
                  ...(await m.geomRayCases()), ...(await m.buttonGateCases()), ...(await m.portalCases()) ]);
   });
 }
+
+// Lab levels: one small proof-of-mechanic level per experimental part (Track D/E:
+// saw, one-way, zipline, laser+mirror, cheese+mouse, outlet+motor, cannon, vacuum,
+// scissors). Playable from the "Lab" band of the level menu; deliberately NOT part
+// of the 20-level official arc (no "Next" chaining, no level number).
+const LAB_LEVELS = [...DEMO_TRACK_D_LEVELS, ...DEMO_TRACK_E_LEVELS];
+const ALL_LEVELS = [...OFFICIAL_LEVELS, ...LAB_LEVELS];
 
 const canvas = document.getElementById("stage");
 const ctx = canvas.getContext("2d");
@@ -111,9 +121,10 @@ function buildPalette() {
 // player oriented ("what level am I on, what am I trying to do") without reading code.
 function updateObjective(level) {
   const i = OFFICIAL_LEVELS.findIndex(l => l.id === level.id);
+  const li = LAB_LEVELS.findIndex(l => l.id === level.id);
   const numEl = document.getElementById("objNum");
   const hintEl = document.getElementById("objHint");
-  if (numEl) numEl.textContent = i >= 0 ? String(i + 1).padStart(2, "0") : "★";
+  if (numEl) numEl.textContent = i >= 0 ? String(i + 1).padStart(2, "0") : li >= 0 ? `L${li + 1}` : "★";
   if (hintEl) {
     const parts = (level.inventory || []).map(inv => {
       const def = PARTS[inv.type];
@@ -164,7 +175,30 @@ function loadLevel(level) {
   buildPalette();
   document.getElementById("banner").hidden = true;
   syncRunButton();
+  syncPartCtl();
   resize();
+}
+// ⟲ ✕ ⟳ controls: shown only while a placed part is selected in build mode, pinned
+// just below that part (world → canvas backing px → CSS px). Rotation buttons are
+// disabled for multi-body parts (rope/gears) that the engine refuses to rotate.
+function syncPartCtl() {
+  const ctl = document.getElementById("partCtl");
+  if (!ctl) return;
+  const spec = controller && sim && sim.state === "build" ? controller.selectedSpec : null;
+  ctl.hidden = !spec;
+  if (!spec) return;
+  const rotatable = isRotatable(spec.type);
+  document.getElementById("rotL").disabled = !rotatable;
+  document.getElementById("rotR").disabled = !rotatable;
+  positionPartCtl(spec);
+}
+function positionPartCtl(spec) {
+  const ctl = document.getElementById("partCtl");
+  if (!ctl || !spec || !transform) return;
+  const p = worldToScreen(spec.x, spec.y, transform);
+  const cssPerPx = canvas.width ? canvas.clientWidth / canvas.width : 1;
+  ctl.style.left = `${p.x * cssPerPx}px`;
+  ctl.style.top = `${(p.y + 46 * transform.scale) * cssPerPx + 10}px`;
 }
 // RUN/STOP is one button whose icon+label+color reflect sim.state, so it's always
 // clear whether the contraption is currently running (fixes: no way to tell/stop).
@@ -232,10 +266,11 @@ function makeController() {
       if (last) { const tk = tokens(); fx.burst(last.x, last.y, { count: 7, color: tk.accent || "#fff", speed: 130, size: 2, life: 300, gravity: 200 }); }
     },
     onCountsChanged: () => buildPalette(), // delete: refund counts from sim.placed
+    onSelect: () => syncPartCtl(),         // selection changed/rotated: move the ⟲ ✕ ⟳ controls
     onChange: () => draw(),
   });
 }
-function resize(){ const r = resizeCanvas(canvas); transform = r.transform; draw(); }
+function resize(){ if (!current) return; const r = resizeCanvas(canvas, current.world); transform = r.transform; draw(); syncPartCtl(); }
 // Compute prefers-reduced-motion ONCE (not per frame); keep it live via a change listener.
 let reducedMotion = (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) ?? false;
 fx.setReducedMotion(reducedMotion);
@@ -250,8 +285,10 @@ function draw(nowTs){
   // (the promise's resolution value) — coerce to a real timestamp so downstream
   // time-based math (goal pulse, spin) never sees NaN.
   const now = typeof nowTs === "number" ? nowTs : performance.now();
+  const selSpec = controller && sim && sim.state === "build" ? controller.selectedSpec : null;
   drawWorld(ctx, sim, transform, tokens(), {
     ghost: controller && controller.ghost ? ghostVerts(controller.ghost) : null,
+    selectedBodies: selSpec ? sim.bodiesOf(selSpec) : null,
     themeId: document.documentElement.dataset.theme,
     now,
     running: sim && sim.state === "running",
@@ -266,8 +303,11 @@ function tick(ts){ const dt = last ? ts-last : 16; last = ts;
   // This loop keeps running even while the editor/browse screen is active (only
   // the DOM is hidden), and `sim` isn't created until a level has loaded — guard
   // both so switching screens before any #/play/<id> route never throws.
+  // Physics runs at a FIXED step regardless of frame rate: advance() accumulates the
+  // frame's dt and steps the sim in exact STEP_MS increments (see engine.js), so a
+  // 30 Hz tab and a 120 Hz display produce the identical run the verifier checked.
   if (sim) {
-    if (sim.state === "running") { const s = sim.step(dt); draw(ts);
+    if (sim.state === "running") { const s = sim.advance(dt); draw(ts);
       if (s === "won") { onWin(); } else if (s === "lost") { onLost(); } }
     else { draw(ts); }
   }
@@ -340,12 +380,33 @@ function flashScreen(){
   setTimeout(() => el.remove(), 600);
 }
 
+// RUN from build starts the contraption; from ANY other state (running, won, lost)
+// it acts as STOP/reset back to build — so the button is never dead after a result.
 document.getElementById("runBtn").onclick = () => {
   if (sim.state === "build") { sim.run(); sfx("run"); document.getElementById("banner").hidden = true; }
-  else if (sim.state === "running") { sim.reset(); buildPalette(); document.getElementById("banner").hidden = true; draw(); }
-  syncRunButton();
+  else { sim.reset(); buildPalette(); document.getElementById("banner").hidden = true; draw(); }
+  syncRunButton(); syncPartCtl();
 };
-document.getElementById("resetBtn").onclick = () => { sim.reset(); buildPalette(); document.getElementById("banner").hidden=true; draw(); syncRunButton(); };
+document.getElementById("resetBtn").onclick = () => { sim.reset(); buildPalette(); document.getElementById("banner").hidden=true; draw(); syncRunButton(); syncPartCtl(); };
+
+// Selected-part controls (buttons + keyboard). Keys only act on the play screen, in
+// build mode, and never while typing in a field or with a dialog open.
+document.getElementById("rotL").onclick = () => { if (controller && controller.rotateSelected(-1)) sfx("place"); };
+document.getElementById("rotR").onclick = () => { if (controller && controller.rotateSelected(1)) sfx("place"); };
+document.getElementById("delPart").onclick = () => { if (controller) controller.deleteSelected(); };
+window.addEventListener("keydown", (e) => {
+  if (!controller || !sim || sim.state !== "build") return;
+  if (screens.play.container && screens.play.container.hidden) return;
+  const t = e.target;
+  if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
+  if (document.querySelector("dialog[open]")) return;
+  if (e.key === "r" || e.key === "]") controller.rotateSelected(1);
+  else if (e.key === "R" || e.key === "[") controller.rotateSelected(-1);
+  else if (e.key === "Delete" || e.key === "Backspace") controller.deleteSelected();
+  else if (e.key === "Escape") controller.select(-1);
+  else return;
+  e.preventDefault();
+});
 
 // Difficulty bands across the 20-level arc (by 1-based level number).
 const LEVEL_BANDS = [
@@ -369,14 +430,23 @@ function buildMenu(){ const dlg=document.getElementById("levelMenu");
     }).join("");
     html += `</div>`;
   }
+  // Lab band: experimental parts, one proof-of-mechanic level each (outside the arc).
+  if (LAB_LEVELS.length) {
+    html += `<div class="lvlband">Lab · experimental parts</div><div class="lvlgrid">`;
+    html += LAB_LEVELS.map((l,i)=>{
+      const solved = isSolved(l.id);
+      return `<button data-id="${l.id}" class="${solved?"solved":""}"><span class="n">L${i+1}</span><span class="nm"></span>${solved?'<span class="tick">✓</span>':""}</button>`;
+    }).join("");
+    html += `</div>`;
+  }
   html += `<menu><button data-close>Close</button></menu>`;
   dlg.innerHTML = html;
   // Set level names via textContent (defensive — titles are first-party, but keep the habit).
   dlg.querySelectorAll("button[data-id]").forEach(b=>{
-    const lvl=OFFICIAL_LEVELS.find(l=>l.id===b.dataset.id);
+    const lvl=ALL_LEVELS.find(l=>l.id===b.dataset.id);
     b.querySelector(".nm").textContent = lvl.title;
   });
-  dlg.querySelectorAll("button").forEach(b=>b.onclick=()=>{ if(b.dataset.close!==undefined){dlg.close();return;} const lvl=OFFICIAL_LEVELS.find(l=>l.id===b.dataset.id); dlg.close(); showScreen("play"); location.hash="#/play/"+lvl.id; });
+  dlg.querySelectorAll("button").forEach(b=>b.onclick=()=>{ if(b.dataset.close!==undefined){dlg.close();return;} const lvl=ALL_LEVELS.find(l=>l.id===b.dataset.id); dlg.close(); showScreen("play"); location.hash="#/play/"+lvl.id; });
 }
 function refreshMenuMarks(){ document.getElementById("levelTitle").textContent = current ? (current.title + (isSolved(current.id) ? " ✓" : "")) : ""; }
 document.getElementById("menuBtn").onclick = () => { buildMenu(); document.getElementById("levelMenu").showModal(); };
@@ -501,7 +571,7 @@ async function route() {
   // #/play/<id> or default
   showScreen("play");
   const playMatch = hash.match(/#\/play\/(.+)/);
-  const lvl = (playMatch && OFFICIAL_LEVELS.find(l => l.id === playMatch[1])) || OFFICIAL_LEVELS[0];
+  const lvl = (playMatch && ALL_LEVELS.find(l => l.id === playMatch[1])) || OFFICIAL_LEVELS[0];
   loadLevel(lvl);
 }
 window.addEventListener("hashchange", route);

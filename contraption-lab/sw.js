@@ -1,9 +1,10 @@
 /* Contraption Lab — minimal offline shell SW */
-const CACHE = "vibe-contraption-lab-v20";
+const CACHE = "vibe-contraption-lab-v21";
 const SHELL = [
   "./","./index.html","./style.css","./manifest.webmanifest","./icon.svg",
   "./vendor/matter.min.js",
   "./js/main.js","./js/engine.js","./js/parts.js","./js/level.js","./js/levels/official.js",
+  "./js/levels/demo-track-d.js","./js/levels/demo-track-e.js","./js/sprites.js",
   "./js/render.js","./js/input.js","./js/progress.js","./js/theme.js","./js/geom.js",
   "./js/cloud.js","./js/auth-ui.js","./js/editor.js","./js/browse.js","./js/fx.js","./js/sound.js","./js/part-icons.js",
   "./assets/parts/ball.png","./assets/parts/balloon.png","./assets/parts/bowlingpin.png",
