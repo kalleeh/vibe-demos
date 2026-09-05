@@ -14,11 +14,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="창원 아파트">
 
-<meta name="description" content="창원시 아파트를 지도에서 찾고, 동일 조건(지역·평형·연식·학군) 평균과 비교해 가치점수를 확인하는 데모.">
+<meta name="description" content="창원시 아파트를 지도에서 찾고, 인근 동일 조건(지역·평형·연식) 실거래 평균과 비교해 가격이 싼지 비싼지 확인하는 데모.">
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<!-- fonts: a <link> (not @import inside <style>) so the request is valid and non-blocking to first paint -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<!-- Leaflet 1.9.4 + MarkerCluster 1.5.3 are vendored (vendor/) so the map shell works offline; licences sit next to the files -->
+<link rel="stylesheet" href="./vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="./vendor/leaflet.markercluster/MarkerCluster.css">
 
 <style>
   :root{
@@ -36,7 +38,6 @@
     color:var(--ink); background:var(--paper);
     -webkit-font-smoothing:antialiased; overflow:hidden;
   }
-  @import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700&display=swap");
 
   /* ---------- layout ---------- */
   .app{display:grid;grid-template-rows:auto 1fr;height:100%}
@@ -49,6 +50,13 @@
     background:var(--panel);border-bottom:1px solid var(--line);
     z-index:1200;position:relative;
   }
+  /* data.json loading: thin indeterminate gradient sweeping under the header (visible motion, no spinner) */
+  .loadbar{position:absolute;left:0;right:0;bottom:-1px;height:3px;overflow:hidden;background:var(--line)}
+  .loadbar::before{content:"";position:absolute;top:0;bottom:0;left:-40%;width:40%;
+    background:linear-gradient(90deg,transparent,var(--teal),transparent);animation:sweep 1.1s ease-in-out infinite}
+  @keyframes sweep{to{left:100%}}
+  .loadbar[hidden]{display:none}
+  .demo-pill.loading{color:var(--muted);border-color:var(--line-strong);background:transparent}
   .brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
   .brand h1{
     font-family:"Fraunces",serif;font-weight:500;font-size:19px;margin:0;letter-spacing:-.01em;
@@ -99,6 +107,8 @@
   .legend .ends{display:flex;justify-content:space-between;font-size:10.5px}
   .legend .row{display:flex;align-items:center;gap:6px;margin-top:6px}
   .legend .star{color:var(--teal);font-size:13px}
+  .legend .period{font-family:var(--mono);font-size:10px;margin-top:7px;padding-top:6px;border-top:1px solid var(--line)}
+  .legend .period[hidden]{display:none}
 
   .countpill{
     position:absolute;right:12px;top:12px;z-index:900;background:var(--panel);
@@ -141,12 +151,13 @@
   .cmp{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff;margin-bottom:14px}
   .cmp h3{margin:0 0 10px;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
   .barwrap{position:relative;margin:10px 0 4px}
-  .bar{height:30px;border-radius:8px;background:linear-gradient(90deg,#eef3ee,#f3ece0);position:relative;overflow:hidden;border:1px solid var(--line)}
-  .bar .fill{height:100%;border-radius:7px 0 0 7px;transition:width .5s ease}
-  .bar .avgline{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);z-index:3}
-  .bar .avgflag{position:absolute;top:-19px;transform:translateX(-50%);font-size:10px;font-family:var(--mono);
+  /* .pbar (NOT .bar — <header class="bar"> uses that name) */
+  .pbar{height:30px;border-radius:8px;background:linear-gradient(90deg,#eef3ee,#f3ece0);position:relative;overflow:hidden;border:1px solid var(--line)}
+  .pbar .fill{height:100%;border-radius:7px 0 0 7px;transition:width .5s ease}
+  .pbar .avgline{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);z-index:3}
+  .pbar .avgflag{position:absolute;top:-19px;transform:translateX(-50%);font-size:10px;font-family:var(--mono);
     color:var(--ink);white-space:nowrap;background:var(--panel);padding:0 3px}
-  .bar .val{position:absolute;top:50%;transform:translateY(-50%);left:8px;color:#fff;font-weight:700;font-size:13px;
+  .pbar .val{position:absolute;top:50%;transform:translateY(-50%);left:8px;color:#fff;font-weight:700;font-size:13px;
     text-shadow:0 1px 2px rgba(0,0,0,.3);font-variant-numeric:tabular-nums}
   .delta{font-size:13px;font-weight:600;margin-top:8px}
   .delta.up{color:var(--bad)} .delta.down{color:var(--good)} .delta.flat{color:var(--muted)}
@@ -163,9 +174,12 @@
   .score .ring{position:relative;width:64px;height:64px;flex:none}
   .score .ring svg{transform:rotate(-90deg)}
   .score .ring .n{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    font-family:"Fraunces",serif;font-size:20px;font-weight:500}
+    font-family:"Fraunces",serif;font-size:16px;font-weight:500;font-variant-numeric:tabular-nums}
   .score .txt .verdict{font-weight:600;font-size:14px}
   .score .txt .pct{font-size:12.5px;color:var(--muted);margin-top:3px}
+  /* secondary, clearly-labelled desirability line (weighted blend) — separate from the price verdict */
+  .score .txt .sec{font-size:11.5px;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px dashed var(--line)}
+  .score .txt .sec b{color:var(--ink)}
 
   .stars{display:inline-flex;gap:2px;vertical-align:middle}
   .stars i{width:13px;height:13px;display:inline-block;background:var(--line-strong);
@@ -191,6 +205,12 @@
   .bandtitle{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;
     letter-spacing:.05em;margin:16px 0 10px}
   .bandcard{border:1px solid var(--line);border-radius:14px;padding:13px 14px;background:#fff;margin-bottom:11px}
+  /* thin sample: <3 contracts in this mode — greyed, dashed, flagged */
+  .bandcard.thin{border-style:dashed;background:#fbfaf6}
+  .bandcard.thin .bprice{opacity:.6}
+  .thinflag{font-size:10px;font-family:var(--mono);color:var(--bad);border:1px solid var(--bad);border-radius:6px;
+    padding:1px 5px;margin-left:6px;vertical-align:middle;white-space:nowrap}
+  .ringlab{font-size:10px;color:var(--muted);margin-right:6px;text-align:right;line-height:1.2}
   /* ── fair-price evaluator card ── */
   .fair{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 12px;background:#fff}
   .fair .lbl{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
@@ -236,6 +256,8 @@
   .ratio .bar2{flex:1;height:6px;border-radius:3px;background:var(--line);overflow:hidden;max-width:120px}
   .ratio .bar2 i{display:block;height:100%;border-radius:3px}
   .ratio b{font-family:var(--mono)}
+  .ratiowarn{margin-top:6px;font-size:11.5px;color:var(--bad);background:rgba(192,73,47,.07);border:1px solid rgba(192,73,47,.35);
+    border-radius:8px;padding:6px 9px;line-height:1.45}
 
   /* factor chips */
   .chips{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0 2px}
@@ -312,10 +334,15 @@
   .lrow .nm .meta{font-size:11.5px;color:var(--muted);font-family:var(--mono);margin-top:2px}
   .lrow .pr{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;font-size:14px;white-space:nowrap}
   .lrow .pr small{display:block;color:var(--muted);font-weight:400;font-size:10.5px}
-  .lrow .sc{width:42px;height:42px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;
-    color:#fff;font-weight:700;font-family:var(--mono);font-size:14px;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+  .lrow .sc{width:46px;height:46px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:700;font-family:var(--mono);font-size:12px;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+  .list-foot{padding:14px 18px 28px;text-align:center;font-size:12px;color:var(--muted);font-family:var(--mono)}
+  .morebtn{display:block;margin:8px auto 0;font:inherit;font-size:13px;font-weight:600;border:1px solid var(--line-strong);
+    background:#fff;color:var(--teal-deep);border-radius:999px;padding:8px 18px;cursor:pointer}
+  .morebtn:hover{border-color:var(--teal);background:rgba(47,111,107,.06)}
 
   /* compare tray */
+  #compareBar[hidden]{display:none}   /* the id rule below would otherwise beat the UA [hidden] style */
   #compareBar{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:1100;
     display:flex;align-items:center;gap:10px;background:var(--ink);color:var(--paper);
     padding:9px 12px 9px 16px;border-radius:999px;box-shadow:var(--shadow);max-width:92vw}
@@ -364,9 +391,9 @@
     </div>
     <div class="controls">
       <div class="seg" id="modeSeg" role="group" aria-label="거래 유형">
-        <button data-mode="sale" class="on">매매</button>
-        <button data-mode="jeonse">전세</button>
-        <button data-mode="wolse">월세</button>
+        <button data-mode="sale" class="on" aria-pressed="true">매매</button>
+        <button data-mode="jeonse" aria-pressed="false">전세</button>
+        <button data-mode="wolse" aria-pressed="false">월세</button>
       </div>
       <select id="sizeSel" aria-label="평형">
         <option value="all">평형 전체</option>
@@ -383,14 +410,15 @@
         <input id="q" type="search" placeholder="단지·동 검색" autocomplete="off">
       </label>
       <div class="seg" id="viewSeg" role="group" aria-label="보기 방식">
-        <button data-view="map" class="on">지도</button>
-        <button data-view="list">목록</button>
+        <button data-view="map" class="on" aria-pressed="true">지도</button>
+        <button data-view="list" aria-pressed="false">목록</button>
       </div>
       <button class="iconbtn" id="prefBtn" title="내 우선순위">⚙ 우선순위</button>
       <button class="iconbtn" id="infoBtn" title="데이터·점수 설명">ℹ︎ 설명</button>
       <button class="iconbtn" id="shareBtn" title="현재 화면 링크 복사">🔗 공유</button>
-      <span class="demo-pill"><span class="dot"></span>데모 데이터</span>
+      <span class="demo-pill loading" id="dataPill" role="status" aria-live="polite"><span class="dot"></span>실거래 데이터 불러오는 중…</span>
     </div>
+    <div class="loadbar" id="loadbar" aria-hidden="true"></div>
   </header>
 
   <!-- preference weighting popover -->
@@ -423,7 +451,8 @@
         <span id="listCount">0</span>개 단지 ·
         <label>정렬
           <select id="sortSel">
-            <option value="score">가치점수</option>
+            <option value="price">평균 대비 저렴순</option>
+            <option value="score">우선순위 점수순</option>
             <option value="priceAsc">가격 낮은순</option>
             <option value="priceDesc">가격 높은순</option>
             <option value="trend">시세 상승순</option>
@@ -439,11 +468,12 @@
     <div class="countpill"><span id="cnt">0</span>개 단지</div>
 
     <div class="legend">
-      <b>가치점수 <span style="font-weight:400;color:var(--muted)">(실거래 기반)</span></b>
+      <b>가격 비교 <span style="font-weight:400;color:var(--muted)">(인근 동일조건 실거래 대비)</span></b>
       <div class="scale"></div>
-      <div class="ends"><span>비쌈 0</span><span>좋음 10</span></div>
+      <div class="ends"><span>비쌈 +30%</span><span>저렴 −30%</span></div>
       <div class="row"><span class="star">★</span> 동일조건 대비 추천</div>
       <div class="row">원 크기 = 평형 · <a href="#" id="legendInfo" style="color:var(--teal-deep)">점수 설명</a></div>
+      <div class="period" id="legendPeriod" hidden></div>
     </div>
 
     <div class="hint" id="hint">지도의 단지를 눌러 상세·비교를 확인하세요</div>
@@ -463,27 +493,28 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="./vendor/leaflet/leaflet.js"></script>
+<script src="./vendor/leaflet.markercluster/leaflet.markercluster.js"></script>
 <script>
 /* =====================================================================
    창원 아파트 파인더 — fully client-side, no backend, no API key.
-   Dataset is SYNTHETIC but uses real Changwon 구/동 names and plausible
-   prices/sizes/years. Comparison is deterministic math (no LLM).
+   Dataset is REAL: 국토교통부 실거래가 (매매+전월세) for all five Changwon 구,
+   aggregated per complex × 평형-band by scripts/ and baked to data.json.
+   Comparison is deterministic math (no LLM); the optional "AI 평가" button
+   only narrates already-computed numbers.
    ===================================================================== */
 
-/* ---- District clusters (approx real coords) + adjacency ---- */
+/* ---- District centres (approx real coords) for the 구 filter fly-to ---- */
 const GU = {
-  "성산구":   {c:[35.2210,128.6810], adj:["의창구"]},
-  "의창구":   {c:[35.2540,128.6420], adj:["성산구","마산회원구"]},
-  "마산회원구":{c:[35.2230,128.5790], adj:["마산합포구","의창구"]},
-  "마산합포구":{c:[35.1860,128.5640], adj:["마산회원구"]},
-  "진해구":   {c:[35.1340,128.7050], adj:["성산구"]},
+  "성산구":   {c:[35.2210,128.6810]},
+  "의창구":   {c:[35.2540,128.6420]},
+  "마산회원구":{c:[35.2230,128.5790]},
+  "마산합포구":{c:[35.1860,128.5640]},
+  "진해구":   {c:[35.1340,128.7050]},
 };
 
 /* ---- Tiny synthetic fallback (offline / data.json fetch failure only).
-        Real data lives in data.json — 829 complexes from MOLIT 실거래가.
+        Real data lives in data.json (count in meta.complexes) from MOLIT 실거래가.
         Each complex: {name,gu,dong,built,lat,lng,dealCount,sizes:[{pyeong,area_m2,sale,jeonse,n}]} ---- */
 const FALLBACK = { meta:{ period:"표본", fallback:true }, complexes:[
   {name:"트리비앙",gu:"성산구",dong:"반림동",built:2006,lat:35.2344,lng:128.6729,dealCount:417,
@@ -532,6 +563,7 @@ function ingest(data){
     id:"h"+(SEQ++),
     name:c.name, gu:c.gu, dong:c.dong, built:c.built,
     lat:c.lat, lng:c.lng, dealCount:c.dealCount||0,
+    saleCount:c.saleCount!=null?c.saleCount:null,   // 매매 only (baked since 2026-09); dealCount is 매매+전월세
     dcore:c.dcore!=null?c.dcore:null, brand:!!c.brand, maxFloor:c.maxFloor||null,
     trend:c.trend!=null?c.trend:null,
     sizes:c.sizes||[],
@@ -549,7 +581,10 @@ function bandMetric(b){
   if(b.wMon==null) return null;
   return b.wMon + (b.wDep||0)*10000*WOLSE_RATE/12;   // 만원/month
 }
-const bandPrice = bandMetric;   // alias: "price" = comparable metric
+/* mode-specific contract count + latest contract month for a band (baked fields; fall back to the
+   all-modes count / no date when the data.json predates them) */
+function bandN(b){ const v = mode==="sale"?b.saleN : mode==="jeonse"?b.jeonseN : b.wolseN; return v!=null?v:null; }
+function bandYm(b){ return (mode==="sale"?b.saleYm : mode==="jeonse"?b.jeonseYm : b.wolseYm) || null; }
 /* metric per 평, in 만원: sale/jeonse 억→만원 (×10000); wolse 환산월세 already 만원 */
 const bandPPP   = b => { const p=bandMetric(b); if(p==null) return null;
   return (mode==="wolse" ? p : p*10000)/b.pyeong; };
@@ -573,7 +608,7 @@ function collect(h,b,pred,span){
   for(const o of HOMES){
     if(o.id===h.id || !pred(o)) continue;
     for(const ob of o.sizes){
-      if(bandPrice(ob)==null) continue;
+      if(bandMetric(ob)==null) continue;
       if(Math.abs(ob.pyeong-b.pyeong)<=span) out.push({h:o,b:ob});
     }
   }
@@ -597,7 +632,12 @@ function bandPeers(h, b){
    평단가 (baked in parse_molit.py), so floor no longer contaminates "저평가?".
    Each factor is reported separately for transparency, then blended by the
    user's weights into a personal score. ---- */
+/* ==PURE-BEGIN== (DOM-free; extracted and exercised by tools/fairprice.test.mjs) */
 const clamp = (v,lo=0.5,hi=9.8)=>Math.max(lo,Math.min(hi,v));
+/* PRICE axis 0..10 from a % delta vs. the fair/peer price: −30% (cheap) → 9.5, 0 → 5, +30% → 0.5.
+   THIS — not the weighted desirability blend — drives marker colour, cluster tint, legend, list badge
+   and the headline verdict, so "red" always means "priced above comparable deals", never "old/far". */
+function priceScore(deltaPct){ return deltaPct==null ? 5 : clamp(5 - deltaPct*0.15); }
 
 /* the five axes for one band, returned as {value,newness,location,floor,size} 0..10 */
 function bandFactors(h, b, peers){
@@ -629,7 +669,7 @@ function bandFactors(h, b, peers){
    published regression coefficients (data.json.meta.hedonic) for THIS unit's
    attribute deltas vs. its peers. DV is log(만원/평) → adjustments are
    multiplicative: predicted = baseline * exp(Σ coef·Δ). Returns null when there's
-   no usable peer baseline. Pure (no DOM) — unit-tested in _fairprice.test.mjs. ---- */
+   no usable peer baseline. Pure (no DOM) — unit-tested in tools/fairprice.test.mjs. ---- */
 const REF_YEAR = 2026; // contract-period reference for age (data is 2025-06~2026-06)
 function fairPrice(h, x, H){
   if(!H || H.agePerYear==null) return null;   // no hedonic coefficients (e.g. offline FALLBACK) → no estimate
@@ -689,6 +729,7 @@ function fairPrice(h, x, H){
     deltaPct, ledger,
   };
 }
+/* ==PURE-END== */
 
 /* default + active weights (sum need not be 1; normalized at blend time) */
 const DEFAULT_WEIGHTS = { value:0.55, newness:0.15, location:0.20, floor:0.05, size:0.05 };
@@ -703,22 +744,37 @@ function blendScore(f, h){
   return clamp(s);
 }
 
-/* attach derived per-band + per-complex fields for current mode.
-   A complex's headline score = its BEST band score (the standout deal). */
-function recompute(){
+/* Per-mode BASE computation: peers, averages, factor axes, hedonic fair price and the price axis.
+   Expensive (~300 ms for 900 complexes) and independent of the user's weights, so it is cached
+   in h._base[mode]; weight-slider ticks only call reblend(). */
+function computeBase(){
   for(const h of HOMES){
-    h._bands = [];
+    h._base = h._base || {};
+    if(h._base[mode]) continue;
+    const bands = [];
     for(const b of h.sizes){
-      if(bandPrice(b)==null) continue;
+      if(bandMetric(b)==null) continue;
       const peers = bandPeers(h,b);
-      const avgPrice = peers.length ? peers.reduce((s,p)=>s+bandPrice(p.b),0)/peers.length : bandPrice(b);
+      const avgPrice = peers.length ? peers.reduce((s,p)=>s+bandMetric(p.b),0)/peers.length : bandMetric(b);
       const avgPPP   = peers.length ? peers.reduce((s,p)=>s+bandPPP(p.b),0)/peers.length : bandPPP(b);
       const factors  = bandFactors(h,b,peers);
-      const band = { b, peers, avgPrice, avgPPP, ppp:bandPPP(b), factors,
-                     score:blendScore(factors,h) };
-      band.fair = fairPrice(h, band, DATA_META.hedonic);   // hedonic fair-price estimate (null if no peers)
-      h._bands.push(band);
+      const band = { b, peers, avgPrice, avgPPP, ppp:bandPPP(b), factors, score:5 };
+      band.fair = fairPrice(h, band, DATA_META.hedonic);   // hedonic fair-price estimate (null if no peers/coefs)
+      // PRICE delta for colour + verdict: hedonic (attribute-adjusted) when available, else raw peer 평단가 delta
+      band.rawDeltaPct = peers.length ? (band.ppp - avgPPP)/avgPPP*100 : null;
+      band.deltaPct = band.fair ? band.fair.deltaPct : band.rawDeltaPct;
+      band.pscore = priceScore(band.deltaPct);
+      bands.push(band);
     }
+    h._base[mode] = bands;
+  }
+}
+/* Cheap: blend the cached factor axes with the current WEIGHTS → per-band desirability score,
+   complex headline desirability (best band), and the ★ recommendation flag. */
+function reblend(){
+  for(const h of HOMES){
+    h._bands = h._base[mode];
+    for(const x of h._bands) x.score = blendScore(x.factors,h);
     h._score = h._bands.length ? Math.max(...h._bands.map(x=>x.score)) : null;
     h._minPyeong = h._bands.length ? Math.min(...h._bands.map(x=>x.b.pyeong)) : null;
     h._maxPyeong = h._bands.length ? Math.max(...h._bands.map(x=>x.b.pyeong)) : null;
@@ -729,6 +785,22 @@ function recompute(){
   for(const h of HOMES){
     const best = h._bands.length ? h._bands.reduce((a,x)=>x.score>a.score?x:a) : null;
     h._rec = h._score!=null && h._score>=cut && best && best.ppp<=best.avgPPP*1.02;
+  }
+}
+function recompute(){ computeBase(); reblend(); }
+
+/* Headline per complex for the ACTIVE 평형 filter: only bands inside the selected range count,
+   so switching "24~33평" recolours/resizes every marker for that band, not the complex's best band. */
+function applyFilter(){
+  const sz = sizeSel.value;
+  const [lo,hi] = sz!=="all" ? sz.split("-").map(Number) : [null,null];
+  for(const h of HOMES){
+    const fb = sz==="all" ? h._bands : h._bands.filter(x=>x.b.pyeong>=lo && x.b.pyeong<hi);
+    h._fb = fb;
+    h._best = fb.length ? fb.reduce((a,x)=>x.pscore>a.pscore?x:a) : null;   // best-priced band in range
+    h._pscore = h._best ? h._best.pscore : null;
+    h._fMin = fb.length ? Math.min(...fb.map(x=>x.b.pyeong)) : null;
+    h._fMax = fb.length ? Math.max(...fb.map(x=>x.b.pyeong)) : null;
   }
 }
 
@@ -744,17 +816,19 @@ function scoreColor(s){
 
 /* ---- map ---- */
 const map = L.map("map",{zoomControl:true,attributionControl:true}).setView([35.215,128.62],11.5);
-L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{
-  maxZoom:19, subdomains:"abcd",
-  attribution:'&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a> · 실거래가: 국토교통부',
+/* Basemap: OpenStreetMap standard tiles. (CARTO's free raster endpoint now returns 200 tiles
+   watermarked "API KEY REQUIRED" — verified in-browser 2026-09-05 — so it is no longer usable keyless.) */
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{
+  maxZoom:19,
+  attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors · 실거래가: <a href="https://rt.molit.go.kr/" target="_blank" rel="noopener">국토교통부 실거래가 공개시스템</a> (공공데이터·출처표시)',
 }).addTo(map);
 
 let markers = new Map(); // id -> L.marker
 let selected = null;
 
-/* Cluster group: declutters ~780 pins at city zoom. Each cluster bubble is
-   tinted by the mean value-score of its children, so the map reads as a value
-   heat-map when zoomed out, and resolves to individual complexes as you zoom in. */
+/* Cluster group: declutters ~900 pins at city zoom. Each cluster bubble is
+   tinted by the mean PRICE score of its children, so the map reads as a
+   cheap↔expensive heat-map when zoomed out, and resolves to complexes as you zoom in. */
 const cluster = L.markerClusterGroup({
   maxClusterRadius: 48,
   spiderfyOnMaxZoom: true,
@@ -762,7 +836,7 @@ const cluster = L.markerClusterGroup({
   disableClusteringAtZoom: 16,
   iconCreateFunction: (cl)=>{
     const ms = cl.getAllChildMarkers();
-    const avg = ms.reduce((s,m)=>s+(m.options._score ?? 5),0)/ms.length;
+    const avg = ms.reduce((s,m)=>s+(m.options._pscore ?? 5),0)/ms.length;
     const n = cl.getChildCount();
     const d = n<10?38:n<50?46:54;
     return L.divIcon({
@@ -774,27 +848,25 @@ const cluster = L.markerClusterGroup({
 map.addLayer(cluster);
 
 function markerIcon(h, sel){
-  const pv = h._maxPyeong || 26;
-  const r = 8 + (pv-20)/4;                  // largest size ↦ radius
+  const pv = h._fMax || h._maxPyeong || 26;   // largest size IN THE ACTIVE FILTER ↦ radius
+  const r = 8 + (pv-20)/4;
   const d = Math.max(15, Math.min(32, r*2));
   const cls = "mk"+(h._rec?" rec":"")+(sel?" sel":"");
-  const txt = (h._score!=null && h._score>=9) ? "★" : "";
+  const txt = h._rec ? "★" : "";
   return L.divIcon({
     className:"", iconSize:[d,d], iconAnchor:[d/2,d/2],
-    html:`<div class="${cls}" style="width:${d}px;height:${d}px;background:${scoreColor(h._score!=null?h._score:5)}">${txt}</div>`,
+    html:`<div class="${cls}" style="width:${d}px;height:${d}px;background:${scoreColor(h._pscore!=null?h._pscore:5)}">${txt}</div>`,
   });
 }
 
-/* representative (best-scoring) band of a complex in current mode */
-function bestBand(h){ return h._bands.length ? h._bands.reduce((a,x)=>x.score>a.score?x:a) : null; }
+/* representative band of a complex = best-priced band within the active 평형 filter */
+function bestBand(h){ return h._best || null; }
 
 function visibleHomes(){
-  const sz = sizeSel.value, gu = guSel.value, q = qInput.value.trim().toLowerCase();
-  const [lo,hi] = sz!=="all" ? sz.split("-").map(Number) : [null,null];
+  const gu = guSel.value, q = qInput.value.trim().toLowerCase();
   return HOMES.filter(h=>{
-    if(!h._bands.length) return false;                 // not priced in this mode
+    if(!h._fb || !h._fb.length) return false;          // not priced in this mode / 평형 range
     if(gu!=="all" && h.gu!==gu) return false;
-    if(sz!=="all" && !h._bands.some(x=>x.b.pyeong>=lo && x.b.pyeong<hi)) return false;
     if(q && !(`${h.name}${h.gu}${h.dong}`.toLowerCase().includes(q))) return false;
     return true;
   });
@@ -808,11 +880,13 @@ function renderMarkers(){
   for(const h of vis){
     const m = L.marker([h.lat,h.lng],{
       icon:markerIcon(h, h.id===selected),
-      _score: h._score,                      // read by the cluster tint fn
-    }).on("click",()=>openPanel(h.id));
+      title:h.name, alt:h.name,              // accessible name (Leaflet sets title on the icon element)
+      _pscore: h._pscore,                    // read by the cluster tint fn
+    }).on("click",()=>openPanel(h.id))
+      .on("add",()=>{ const el=m.getElement(); if(el) el.setAttribute("aria-label", h.name); }); // divIcon ignores alt
     const bb = bestBand(h);
-    const range = h._minPyeong===h._maxPyeong ? `${h._maxPyeong}평` : `${h._minPyeong}~${h._maxPyeong}평`;
-    m.bindTooltip(`${h.name}<br>${range} · ${bb?priceLabel(bb.b):"-"}`,{direction:"top",offset:[0,-10],opacity:.95});
+    const range = h._fMin===h._fMax ? `${h._fMax}평` : `${h._fMin}~${h._fMax}평`;
+    m.bindTooltip(`${esc(h.name)}<br>${range} · ${bb?priceLabel(bb.b):"-"}${bb&&bb.deltaPct!=null?` · ${pct(bb.deltaPct)}`:""}`,{direction:"top",offset:[0,-10],opacity:.95});
     markers.set(h.id, m);
     batch.push(m);
   }
@@ -849,15 +923,20 @@ const modeLabel = ()=> mode==="sale" ? "매매가" : mode==="jeonse" ? "전세�
 function jeonseRatio(b){
   return (b.sale && b.jeonse) ? b.jeonse/b.sale*100 : null;
 }
+/* ≥90%: the deposit approaches/exceeds the sale price — a 보증금 미반환 (깡통전세) risk, NOT an
+   investing signal. Shown as an explicit warning; the number is never capped (only the bar width is). */
+const JEONSE_WARN = 90;
 function jeonseRatioHTML(b){
   const r = jeonseRatio(b);
   if(r==null) return "";
   const rr = Math.round(r);                       // label off the displayed value
-  const lvl = rr>=75 ? "높음 (갭 작음)" : rr>=60 ? "보통" : "낮음 (갭 큼)";
-  const col = rr>=75 ? "var(--bad)" : rr>=60 ? "var(--mid)" : "var(--teal)";
+  const warn = rr>=JEONSE_WARN;
+  const lvl = warn ? "위험" : rr>=75 ? "높음 (갭 작음)" : rr>=60 ? "보통" : "낮음 (갭 큼)";
+  const col = (warn||rr>=75) ? "var(--bad)" : rr>=60 ? "var(--mid)" : "var(--teal)";
   return `<div class="ratio"><span>전세가율</span>
     <span class="bar2"><i style="width:${Math.min(100,r)}%;background:${col}"></i></span>
-    <b style="color:${col}">${r.toFixed(0)}%</b> <small>${lvl}</small></div>`;
+    <b style="color:${col}">${rr}%</b> <small>${lvl}</small></div>${warn?`
+    <div class="ratiowarn">⚠ 보증금 위험 (전세가율 ${rr}%) — 전세보증금이 매매가에 근접하거나 넘어섭니다. 보증금 미반환 위험이 크니 보증보험 가입 여부를 꼭 확인하세요.</div>`:""}`;
 }
 /* price-trend chip: ▲ +x% (rust), ▼ −x% (teal), flat, or — when too few deals */
 function trendHTML(t){
@@ -904,10 +983,10 @@ panel.addEventListener("click", async (e) => {
 function fairCard(h, x){
   if(mode==="wolse" || !x.fair) return "";
   const f = x.fair;
-  // observed/predicted in 억 for sale/jeonse (bandPrice metric is 억). predPPP is 만원/평
+  // observed/predicted in 억 for sale/jeonse (bandMetric is 억). predPPP is 만원/평
   // → convert back to 억 via this band's pyeong: 억 = ppp(만원/평)*pyeong/10000.
   const toEok = ppp => ppp * x.b.pyeong / 10000;
-  const obs = bandPrice(x.b);                 // 억
+  const obs = bandMetric(x.b);                 // 억
   const lo = toEok(f.lowPPP), hi = toEok(f.highPPP);
   const d = f.deltaPct;
   const vcls = d < -2.5 ? "under" : d > 2.5 ? "over" : "fair";
@@ -934,7 +1013,7 @@ function fairCard(h, x){
         <span class="obs">${fmtEok(obs)}<small> 실거래</small></span>
         <span class="verdict ${vcls}">${vword}</span>
       </div>
-      <div class="est">예상 적정가 <b>${fmtEok(lo)}–${fmtEok(hi)}</b> · 회귀모델 (R²=0.69, 실거래 ${DATA_META.hedonic.n.toLocaleString()}건)</div>
+      <div class="est">예상 적정가 <b>${fmtEok(lo)}–${fmtEok(hi)}</b> · 회귀모델 (R²=${DATA_META.hedonic.r2}, 실거래 ${(DATA_META.hedonic.n||0).toLocaleString()}건)</div>
       <div class="fbar">
         <div class="fobs" style="width:${obsW}%;background:${obsColor}"></div>
         <div class="fexp" style="left:${expW}%"></div>
@@ -958,49 +1037,63 @@ function fairCard(h, x){
     </div>`;
 }
 
-/* render the comparison block for a single size-band */
+/* render the comparison block for a single size-band.
+   Headline verdict = the hedonic fair-price card when available (fairCard). The raw peer-average
+   bar is shown ONLY when there is no hedonic estimate (wolse / no coefficients), so a card never
+   carries two competing verdicts; the raw delta always remains in the ledger line below. */
 function bandBlock(h, x){
-  const price = bandPrice(x.b), avg = x.avgPrice;
+  const price = bandMetric(x.b), avg = x.avgPrice;
   const deltaPct = (price-avg)/avg*100;
-  const pppDeltaPct = (x.ppp - x.avgPPP)/x.avgPPP*100;
+  const pppDeltaPct = x.rawDeltaPct;
   const fillW = Math.max(6, Math.min(96, (price/(avg*1.8))*100));
   const avgPos = Math.max(6, Math.min(96, (avg/(avg*1.8))*100));
   const dirCls = deltaPct>2.5?"up":deltaPct<-2.5?"down":"flat";
   const dirWord = deltaPct>2.5?`평균보다 ${pct(deltaPct)} 비쌈`
                 : deltaPct<-2.5?`평균보다 ${pct(deltaPct)} 저렴`
                 : "평균과 거의 동일";
+  const pcol = scoreColor(x.pscore);
   const ringLen=2*Math.PI*22, ringOff=ringLen*(1-x.score/10);
+  // sample thinness + recency (mode-specific when baked; otherwise the all-modes count, no date)
+  const nMode = bandN(x.b), ym = bandYm(x.b);
+  const nShown = nMode!=null ? nMode : x.b.n;
+  const thin = nShown < 3;
+  const nLabel = nMode!=null ? `${modeLabel().replace("(환산)","")} 계약 ${nMode}건` : `계약 ${x.b.n}건 (전체 유형)`;
   // transparent factor chips (each axis 0-10, colored)
   const F=x.factors, FLAB={value:"가격가치",newness:"신축",location:"위치",floor:"층",size:"면적"};
   const chips=Object.keys(FLAB).map(k=>`<span class="chip" style="--c:${scoreColor(F[k])}">${FLAB[k]} <b>${F[k].toFixed(1)}</b></span>`).join("");
+  const fair = fairCard(h, x);
   return `
-    <div class="bandcard">
-      ${fairCard(h, x)}
+    <div class="bandcard${thin?" thin":""}">
+      ${fair}
       <div class="bandhead">
-        <span class="bp">${x.b.pyeong}평 <small>(${x.b.area_m2}㎡)</small></span>
-        <span class="bprice" style="color:${scoreColor(x.score)}">${priceLabel(x.b)}</span>
+        <span class="bp">${x.b.pyeong}평 <small>(${x.b.area_m2}㎡)</small>${thin?'<span class="thinflag" title="이 유형 계약이 3건 미만 — 최근 1건의 가격일 수 있음">표본 적음</span>':""}</span>
+        <span class="bprice" style="color:${pcol}">${priceLabel(x.b)}</span>
       </div>
+      ${fair ? "" : `
       <div class="barwrap">
-        <div class="bar">
-          <div class="fill" style="width:${fillW}%;background:${scoreColor(x.score)}"></div>
+        <div class="pbar">
+          <div class="fill" style="width:${fillW}%;background:${pcol}"></div>
           <div class="avgline" style="left:${avgPos}%"></div>
           <div class="avgflag" style="left:${avgPos}%">평균 ${fmtMetric(avg)}</div>
           <div class="val">${mode==="wolse"?fmtMetric(price):priceLabel(x.b)}</div>
         </div>
-      </div>
+      </div>`}
       <div class="bandfoot">
-        <span class="delta ${dirCls}">${dirWord}</span>
-        <span class="ringmini" title="가치점수 ${x.score.toFixed(1)}/10" style="--c:${scoreColor(x.score)}">
-          <svg width="40" height="40" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="none" stroke="var(--line)" stroke-width="4"/><circle cx="24" cy="24" r="22" fill="none" stroke="${scoreColor(x.score)}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${ringLen}" stroke-dashoffset="${ringOff}"/></svg>
-          <b>${x.score.toFixed(1)}</b>
+        <span class="delta ${fair ? "flat" : dirCls}">${fair ? `<small style="font-weight:400">인근 평균 대비 ${pct(deltaPct)} (원자료)</small>` : dirWord}</span>
+        <span style="display:inline-flex;align-items:center">
+          <span class="ringlab">우선순위<br>점수</span>
+          <span class="ringmini" title="내 우선순위 점수 ${x.score.toFixed(1)}/10 (가격가치·신축·위치·층·면적 가중)" style="--c:${scoreColor(x.score)}">
+            <svg width="40" height="40" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="none" stroke="var(--line)" stroke-width="4"/><circle cx="24" cy="24" r="22" fill="none" stroke="${scoreColor(x.score)}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${ringLen}" stroke-dashoffset="${ringOff}"/></svg>
+            <b>${x.score.toFixed(1)}</b>
+          </span>
         </span>
       </div>
       <div class="chips">${chips}</div>
-      <div class="sub">${mode==="wolse"?"환산월세 ":"평단가 "}${fmtPPP(x.ppp)} · 동일조건 평균 ${fmtPPP(x.avgPPP)} (${pct(pppDeltaPct)}) · 비교 ${x.peers.length}개 단지 · 거래 ${x.b.n}건${x.b.floor!=null?` · 중간층 ${x.b.floor}F`:""}${mode==="wolse"?` · 보증금 ${fmtEok(x.b.wDep||0)}+월 ${x.b.wMon}만`:""}</div>
+      <div class="sub">${mode==="wolse"?"환산월세 ":"평단가 "}${fmtPPP(x.ppp)} · 동일조건 평균 ${fmtPPP(x.avgPPP)}${pppDeltaPct!=null?` (${pct(pppDeltaPct)})`:""} · 비교 ${x.peers.length}개 단지 · ${nLabel}${ym?` · 최근 ${ym}`:""}${thin?` · <b style="color:var(--bad)">표본 적음</b>`:""}${mode==="sale"&&x.b.saleMed!=null?` · 최근 6개월 중위 ${fmtEok(x.b.saleMed)}`:""}${x.b.floor!=null?` · 중간층 ${x.b.floor}F`:""}${mode==="wolse"?` · 보증금 ${fmtEok(x.b.wDep||0)}+월 ${x.b.wMon}만`:""}</div>
       ${jeonseRatioHTML(x.b)}
       <details class="peers">
         <summary><span class="chev">›</span> 동일조건 단지 비교 (${mode==="wolse"?"환산월세 ":""}저가순)</summary>
-        ${[...x.peers].sort((a,b)=>bandPrice(a.b)-bandPrice(b.b)).slice(0,12).map(p=>`
+        ${[...x.peers].sort((a,b)=>bandMetric(a.b)-bandMetric(b.b)).slice(0,12).map(p=>`
           <div class="peer" data-id="${p.h.id}">
             <span class="nm">${esc(p.h.name)} <small>${p.b.pyeong}평·${p.h.built||"-"}</small></span>
             <span class="pr">${priceLabel(p.b)}</span>
@@ -1016,49 +1109,53 @@ function openPanel(id){
   if(markers.has(id)) markers.get(id).setIcon(markerIcon(h,true));
 
   if(!h._bands.length){
-    panel.innerHTML = `<div class="grab"></div><div class="ph"><button class="close">×</button><h2>${esc(h.name)}</h2>
-      <div class="loc">${h.gu} ${h.dong}</div></div>
+    panel.innerHTML = `<div class="grab"></div><div class="ph"><button class="close" aria-label="닫기">×</button><h2>${esc(h.name)}</h2>
+      <div class="loc">${esc(h.gu)} ${esc(h.dong)}</div></div>
       <div class="pbody"><div class="empty">이 단지는 현재 모드(${modeLabel()})의 실거래 데이터가 없습니다.<br>매매/전세 토글을 바꿔보세요.</div></div>`;
     panel.classList.add("open"); panel.querySelector(".close").onclick=closePanel; attachGrab(); return;
   }
 
-  const best = h._bands.reduce((a,x)=>x.score>a.score?x:a);
-  let verdict;
-  if(h._score>=8.5) verdict="동일조건 최상위 가성비";
-  else if(h._score>=7) verdict="평균보다 좋은 조건";
-  else if(h._score>=5) verdict="평균 수준";
-  else if(h._score>=3.5) verdict="다소 비싼 편";
-  else verdict="가격 부담이 큼";
-  const ringLen=2*Math.PI*28, ringOff=ringLen*(1-h._score/10);
+  // headline = best-PRICED band in the active 평형 filter (falls back to all bands)
+  const best = h._best || h._bands.reduce((a,x)=>x.pscore>a.pscore?x:a);
+  const d = best.deltaPct;
+  // PRICE-only verdict. "평균" = hedonic fair price when available, else raw peer average.
+  const basis = best.fair ? "적정가(회귀) 대비" : "인근 평균 대비";
+  const verdict = d==null ? "비교할 인근 거래 부족"
+                : d < -2.5 ? `평균보다 ${Math.abs(Math.round(d))}% 저렴`
+                : d >  2.5 ? `평균보다 ${Math.round(d)}% 비쌈`
+                : "평균 수준 가격";
+  const ringLen=2*Math.PI*28, ringOff=ringLen*(1-best.pscore/10);
   const age = h.built!=null ? `${2026-h.built}년차 <small>(${h.built})</small>` : "—";
   const bands = [...h._bands].sort((a,b)=>a.b.pyeong-b.b.pyeong);
+  const rent = h.saleCount!=null ? h.dealCount - h.saleCount : null;
 
   panel.innerHTML = `
     <div class="grab"></div>
     <div class="ph">
       <button class="close" aria-label="닫기">×</button>
       <h2>${esc(h.name)}</h2>
-      <div class="loc">${h.gu} ${h.dong} · ${h._minPyeong===h._maxPyeong?h._maxPyeong+"평":h._minPyeong+"~"+h._maxPyeong+"평"} · ${h.built||"-"}년 준공</div>
+      <div class="loc">${esc(h.gu)} ${esc(h.dong)} · ${h._minPyeong===h._maxPyeong?h._maxPyeong+"평":h._minPyeong+"~"+h._maxPyeong+"평"} · ${h.built||"-"}년 준공</div>
     </div>
     <div class="pbody">
       <div class="score">
-        <div class="ring">
+        <div class="ring" title="가격 비교 (인근 동일조건 대비)">
           <svg width="64" height="64" viewBox="0 0 64 64">
             <circle cx="32" cy="32" r="28" fill="none" stroke="var(--line)" stroke-width="6"/>
-            <circle cx="32" cy="32" r="28" fill="none" stroke="${scoreColor(h._score)}" stroke-width="6"
+            <circle cx="32" cy="32" r="28" fill="none" stroke="${scoreColor(best.pscore)}" stroke-width="6"
               stroke-linecap="round" stroke-dasharray="${ringLen}" stroke-dashoffset="${ringOff}"/>
           </svg>
-          <span class="n">${h._score.toFixed(1)}</span>
+          <span class="n" style="color:${scoreColor(best.pscore)}">${d==null?"—":pct(d)}</span>
         </div>
         <div class="txt">
           <div class="verdict">${verdict}</div>
-          <div class="pct">대표 ${best.b.pyeong}평 기준 · ${modeLabel()}${h._rec?" · ★ 추천":""}</div>
+          <div class="pct">대표 ${best.b.pyeong}평 · ${basis} · ${modeLabel()}${h._rec?" · ★ 추천":""}</div>
+          <div class="sec">내 우선순위 점수 <b>${h._score.toFixed(1)}</b>/10 <span title="가격가치·신축·위치·층·면적을 ⚙ 우선순위 비중으로 합산한 선호도 점수 — 가격 판단이 아닙니다">(가격가치·신축·위치·층·면적 가중)</span></div>
         </div>
       </div>
 
       <div class="metrics">
         <div class="metric"><div class="k">연식</div><div class="v">${age}</div></div>
-        <div class="metric"><div class="k">거래량 <small>(1년)</small></div><div class="v">${h.dealCount}<small> 건</small></div></div>
+        <div class="metric"><div class="k">계약 <small>(1년, 매매+전월세)</small></div><div class="v">${h.dealCount}<small> 건</small>${rent!=null?`<div class="k">매매 ${h.saleCount} · 전월세 ${rent}</div>`:""}</div></div>
         <div class="metric"><div class="k">신도시 거리</div><div class="v">${h.dcore!=null?h.dcore+'<small> km</small>':'—'}</div></div>
         <div class="metric"><div class="k">1년 시세 <small>(매매)</small></div><div class="v">${trendHTML(h.trend)}</div></div>
       </div>
@@ -1117,7 +1214,10 @@ function closePanel(){
   if(prev && markers.has(prev)) markers.get(prev).setIcon(markerIcon(HOMES.find(x=>x.id===prev),false));
   writeURL();
 }
-function esc(s){ const d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+/* HTML-escape for text AND attribute contexts (quotes included — used inside data-ctx="…") */
+function esc(s){ return String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+/* segmented toggle state: visual .on + aria-pressed together */
+function setOn(sel, pred){ document.querySelectorAll(sel).forEach(x=>{ const on=!!pred(x); x.classList.toggle("on",on); x.setAttribute("aria-pressed",on); }); }
 
 /* ---- controls ---- */
 const sizeSel=document.getElementById("sizeSel");
@@ -1128,12 +1228,12 @@ const hint=document.getElementById("hint");
 
 Object.keys(GU).forEach(g=>{ const o=document.createElement("option"); o.value=g; o.textContent=g; guSel.appendChild(o); });
 
-/* render whichever view is active (map markers or the list) */
-function refreshView(){ renderMarkers(); if(viewMode==="list") renderList(); }
+/* render whichever view is active (map markers or the list); re-derives the 평형-filtered headline first */
+function refreshView(){ applyFilter(); renderMarkers(); if(viewMode==="list") renderList(); }
 
 document.getElementById("modeSeg").addEventListener("click",e=>{
   const b=e.target.closest("button"); if(!b) return;
-  document.querySelectorAll("#modeSeg button").forEach(x=>x.classList.toggle("on",x===b));
+  setOn("#modeSeg button", x=>x===b);
   mode=b.dataset.mode; recompute(); refreshView();
   if(selected) openPanel(selected);
   writeURL();
@@ -1148,7 +1248,7 @@ const compareSet = new Set();  // complex ids selected for compare (max 3)
 
 document.getElementById("viewSeg").addEventListener("click",e=>{
   const b=e.target.closest("button"); if(!b) return;
-  document.querySelectorAll("#viewSeg button").forEach(x=>x.classList.toggle("on",x===b));
+  setOn("#viewSeg button", x=>x===b);
   viewMode=b.dataset.view;
   const lv=document.getElementById("listView");
   const stage=document.querySelector(".stage");
@@ -1156,13 +1256,14 @@ document.getElementById("viewSeg").addEventListener("click",e=>{
   else { lv.hidden=true; stage.classList.remove("listmode"); setTimeout(()=>map.invalidateSize(),50); }
   writeURL();
 });
-document.getElementById("sortSel").onchange=renderList;
+document.getElementById("sortSel").onchange=()=>renderList();
 
 function sortHomes(vis){
   const s=document.getElementById("sortSel").value;
   const price=h=>{const bb=bestBand(h);return bb?bandMetric(bb.b):Infinity;};
   const arr=[...vis];
-  if(s==="score") arr.sort((a,b)=>(b._score??0)-(a._score??0));
+  if(s==="price") arr.sort((a,b)=>(b._pscore??0)-(a._pscore??0));       // cheapest vs. comparable first
+  else if(s==="score") arr.sort((a,b)=>(b._score??0)-(a._score??0));
   else if(s==="priceAsc") arr.sort((a,b)=>price(a)-price(b));
   else if(s==="priceDesc") arr.sort((a,b)=>price(b)-price(a));
   else if(s==="trend") arr.sort((a,b)=>(b.trend??-99)-(a.trend??-99));
@@ -1173,23 +1274,38 @@ function sortHomes(vis){
 function jeonseRatioOf(h){
   const bb=bestBand(h); return bb? jeonseRatio(bb.b) : null;
 }
-function renderList(){
+/* paginated: LIST_PAGE rows per "더 보기" so ~900 rows never silently truncate */
+const LIST_PAGE = 200;
+let listShown = LIST_PAGE;
+function renderList(reset=true){
+  if(reset) listShown = LIST_PAGE;
   const vis=sortHomes(visibleHomes());
   document.getElementById("listCount").textContent=vis.length;
   const rows=document.getElementById("listRows");
-  rows.innerHTML=vis.slice(0,400).map(h=>{
+  const shown = vis.slice(0, listShown);
+  rows.innerHTML=shown.map(h=>{
     const bb=bestBand(h);
-    const range=h._minPyeong===h._maxPyeong?`${h._maxPyeong}평`:`${h._minPyeong}~${h._maxPyeong}평`;
+    const range=h._fMin===h._fMax?`${h._fMax}평`:`${h._fMin}~${h._fMax}평`;
     const rr=jeonseRatioOf(h);
     const tr=h.trend!=null?(h.trend>1.5?`▲${h.trend.toFixed(0)}%`:h.trend<-1.5?`▼${h.trend.toFixed(0)}%`:"보합"):"";
+    const rrTxt = rr==null ? "" : ` · 전세가율 ${rr.toFixed(0)}%${Math.round(rr)>=JEONSE_WARN?' <span style="color:var(--bad)">⚠ 보증금 위험</span>':""}`;
+    const dp = bb ? bb.deltaPct : null;
     return `<div class="lrow" data-id="${h.id}">
-      <input type="checkbox" data-cb="${h.id}" ${compareSet.has(h.id)?"checked":""}>
+      <input type="checkbox" data-cb="${h.id}" aria-label="${esc(h.name)} 비교에 추가" ${compareSet.has(h.id)?"checked":""}>
       <div class="nm"><b>${esc(h.name)}</b>
-        <div class="meta">${h.gu} ${h.dong} · ${range} · ${h.built||"-"}년${tr?" · "+tr:""}${rr!=null?" · 전세가율 "+rr.toFixed(0)+"%":""}</div></div>
+        <div class="meta">${esc(h.gu)} ${esc(h.dong)} · ${range} · ${h.built||"-"}년${tr?" · "+tr:""}${rrTxt}</div></div>
       <div class="pr">${bb?priceLabel(bb.b):"-"}<small>${modeLabel()}${bb?" "+bb.b.pyeong+"평":""}</small></div>
-      <div class="sc" style="background:${scoreColor(h._score??5)}">${h._score!=null?h._score.toFixed(1):"-"}</div>
+      <div class="sc" title="인근 동일조건 대비 가격 (우선순위 점수 ${h._score!=null?h._score.toFixed(1):"-"})" style="background:${scoreColor(h._pscore??5)}">${dp!=null?pct(dp):"—"}</div>
     </div>`;
   }).join("") || '<div class="empty">조건에 맞는 단지가 없습니다.</div>';
+  if(vis.length){
+    const foot=document.createElement("div"); foot.className="list-foot";
+    foot.innerHTML = `상위 ${shown.length}개 표시 중 · 전체 ${vis.length}개` +
+      (vis.length>shown.length ? `<button class="morebtn" id="moreBtn" type="button">더 보기 (${Math.min(LIST_PAGE, vis.length-shown.length)}개)</button>` : "");
+    rows.appendChild(foot);
+    const mb=document.getElementById("moreBtn");
+    if(mb) mb.onclick=()=>{ listShown+=LIST_PAGE; renderList(false); };
+  }
   // wire rows
   rows.querySelectorAll(".lrow").forEach(el=>{
     el.onclick=(e)=>{
@@ -1228,17 +1344,19 @@ function renderCompare(){
   const cell=(h,fn)=>`<td>${fn(h)}</td>`;
   const bb=h=>bestBand(h);
   const scTag=v=>`<span class="cmp-sc" style="background:${scoreColor(v)}">${v.toFixed(1)}</span>`;
+  const dTag=h=>{const b=bb(h); const d=b?b.deltaPct:null; return `<span class="cmp-sc" style="background:${scoreColor(h._pscore??5)}">${d!=null?pct(d):"—"}</span>`;};
   const rows=[
     ["단지", h=>`<b>${esc(h.name)}</b>`],
-    ["위치", h=>`${h.gu} ${h.dong}`],
-    ["가치점수", h=>scTag(h._score??5)],
+    ["위치", h=>`${esc(h.gu)} ${esc(h.dong)}`],
+    ["가격 대비", dTag],
+    ["우선순위 점수", h=>scTag(h._score??5)],
     [modeLabel(), h=>bb(h)?priceLabel(bb(h).b)+` <small>(${bb(h).b.pyeong}평)</small>`:"-"],
     ["평단가", h=>bb(h)?fmtPPP(bb(h).ppp):"-"],
     ["연식", h=>h.built?`${2026-h.built}년차 (${h.built})`:"-"],
     ["1년 시세", h=>h.trend!=null?(h.trend>0?"+":"")+h.trend.toFixed(1)+"%":"—"],
-    ["전세가율", h=>{const r=jeonseRatioOf(h);return r!=null?r.toFixed(0)+"%":"—";}],
+    ["전세가율", h=>{const r=jeonseRatioOf(h);return r!=null?r.toFixed(0)+"%"+(Math.round(r)>=JEONSE_WARN?" ⚠":""):"—";}],
     ["신도시 거리", h=>h.dcore!=null?h.dcore+" km":"—"],
-    ["거래량", h=>h.dealCount+"건"],
+    ["계약 (매매+전월세)", h=>h.dealCount+"건"+(h.saleCount!=null?` <small>(매매 ${h.saleCount})</small>`:"")],
     ["브랜드", h=>h.brand?"1군 ✓":"—"],
   ];
   document.getElementById("compareBody").innerHTML=
@@ -1247,9 +1365,7 @@ function renderCompare(){
     `</table>`;
 }
 
-map.on("click",()=>{ /* clicking empty map keeps selection; tap close to dismiss */ });
-
-map.on("click",()=>{ /* clicking empty map keeps selection; tap close to dismiss */ });
+/* clicking empty map keeps the selection; tap × (or drag the sheet) to dismiss — no handler needed */
 
 /* ---- preference weighting (sliders + presets) ---- */
 const AXES = [["value","가격가치"],["newness","신축"],["location","위치"],["floor","층"],["size","면적"]];
@@ -1280,7 +1396,7 @@ function buildSliders(){
 function setWeights(w){ WEIGHTS={...w}; buildSliders(); applyWeights(); }
 let reWt;
 function applyWeights(){ clearTimeout(reWt); reWt=setTimeout(()=>{
-  recompute(); refreshView(); if(selected) openPanel(selected); writeURL();
+  reblend(); refreshView(); if(selected) openPanel(selected); writeURL();   // base is cached; only re-blend
 },90); }
 
 document.getElementById("presets").addEventListener("click",e=>{
@@ -1321,18 +1437,27 @@ document.querySelectorAll(".pop-x").forEach(x=>x.onclick=()=>closePops());
 function fillInfo(){
   const m=DATA_META, h=m.hedonic||{};
   const f=(v)=>v!=null?(v*100>0?"+":"")+Math.round(v*100)+"%":"—";
+  const n=(v)=>v!=null?Number(v).toLocaleString("ko-KR"):"—";
+  const deals=m.deals||{};
   document.getElementById("infoBody").innerHTML=`
     <h4>어떤 데이터인가요</h4>
     <table>
-      <tr><td>출처</td><td>국토교통부 실거래가</td></tr>
-      <tr><td>기간</td><td>${m.period||"-"}</td></tr>
-      <tr><td>거래 건수</td><td>매매 ${(m.bandsWithSale!=null?"12,720":"-")} · 전세 10,731 · 월세 6,556</td></tr>
-      <tr><td>단지 수</td><td>${m.complexes||HOMES.length}개 (좌표: AWS Location/Esri 지오코딩)</td></tr>
+      <tr><td>출처</td><td><a href="${esc(m.sourceUrl||"https://rt.molit.go.kr/")}" target="_blank" rel="noopener">국토교통부 실거래가 공개시스템</a> · ${esc(m.license||"공공데이터 · 출처표시")}</td></tr>
+      <tr><td>기간</td><td>${esc(m.period||"-")}</td></tr>
+      <tr><td>계약 건수</td><td>매매 ${n(deals.sale)} · 전세 ${n(deals.jeonse)} · 월세 ${n(deals.wolse)}</td></tr>
+      <tr><td>단지 수</td><td>${n(m.complexes||HOMES.length)}개${m.bands?` · 평형 ${n(m.bands)}개`:""} (좌표: AWS Location/Esri 지오코딩)</td></tr>
+      ${m.generated?`<tr><td>데이터 생성</td><td>${esc(m.generated)}</td></tr>`:""}
     </table>
-    <p class="muted">계약일 기준 최근 1년. 신고 지연·정정으로 수치가 바뀔 수 있습니다.</p>
-    <h4>가치점수는 어떻게 계산되나요</h4>
-    <p>이 동네·같은 평형·비슷한 연식의 실제 거래와 비교해 <b>층 보정된 평단가</b>가
-    쌀수록 높은 점수입니다. 여기에 아래 요소를 가중치로 더합니다. 비중은 ⚙ 우선순위에서 조절돼요.</p>
+    <p class="muted">계약일 기준 최근 1년. 신고 지연·정정으로 수치가 바뀔 수 있습니다. 한 평형의 표시 가격은
+    <b>가장 최근 1건</b>의 층 보정가입니다 — 계약이 3건 미만인 평형은 "표본 적음"으로 표시하고, 최근 계약 월을 함께 보여줍니다.</p>
+    <h4>지도 색깔은 무엇을 뜻하나요</h4>
+    <p>오직 <b>가격</b>입니다. 같은 동네·같은 평형·비슷한 연식의 실거래(층 보정 평단가)와 비교해
+    <span style="color:var(--good);font-weight:600">초록 = 저렴</span>, <span style="color:var(--bad);font-weight:600">빨강 = 비쌈</span>.
+    회귀모델 적정가가 있으면 그 대비 %, 없으면 인근 평균 대비 %를 씁니다(±30%에서 색이 끝까지 찹니다).
+    연식·거리·층은 색깔에 영향을 주지 않습니다.</p>
+    <h4>우선순위 점수는 무엇인가요</h4>
+    <p>가격과 별개로 <b>가격가치·신축·위치·층·면적</b> 다섯 축(각 0~10)을 ⚙ 우선순위 비중으로 합산한
+    <b>선호도</b> 점수입니다. 상세 카드에 따로 표시되며, 목록 정렬에서 선택할 수 있습니다. "비싸다/싸다" 판단이 아닙니다.</p>
     <h4>실데이터로 검증된 가격 요인 <span class="muted">(회귀분석 R²=${h.r2||"-"}, n=${(h.n||0).toLocaleString()})</span></h4>
     <table>
       <tr><td>신도시 중심 거리</td><td>km당 ${f(h.distCorePerKm)}</td></tr>
@@ -1347,8 +1472,9 @@ function fillInfo(){
     <p class="muted">세대수, 학군 배정, 실제 조망·향, 재건축 정비구역 여부는 실거래 데이터에
     없어 반영하지 못했습니다. 월세는 전월세전환율 ${(m.wolseConvRate*100||5.2).toFixed(1)}%로 환산월세를 비교합니다.</p>
     <h4>전세가율은 무엇인가요</h4>
-    <p class="muted">전세가 ÷ 매매가. 높을수록(75%+) 매매·전세 가격차(갭)가 작아 갭투자·전세
-    수요가 강한 단지로 봅니다. 매매·전세 실거래가 모두 있는 평형에만 표시됩니다.</p>`;
+    <p class="muted">전세가 ÷ 매매가. 높을수록(75%+) 매매·전세 가격차(갭)가 작습니다.
+    <b style="color:var(--bad)">90% 이상은 경고</b>로 표시합니다 — 보증금이 매매가에 근접해 보증금 미반환(깡통전세)
+    위험이 크므로 투자 신호가 아니라 위험 신호입니다. 매매·전세 실거래가 모두 있는 평형에만 표시됩니다.</p>`;
 }
 
 /* ---- shareable URL state ----
@@ -1375,8 +1501,7 @@ function readURL(){
   if(!raw) return;
   const p = new URLSearchParams(raw);
   _restoring = true;
-  if(p.get("m")){ mode=p.get("m");
-    document.querySelectorAll("#modeSeg button").forEach(b=>b.classList.toggle("on",b.dataset.mode===mode)); }
+  if(p.get("m")){ mode=p.get("m"); setOn("#modeSeg button", b=>b.dataset.mode===mode); }
   if(p.get("gu")) guSel.value=p.get("gu");
   if(p.get("sz")) sizeSel.value=p.get("sz");
   if(p.get("q")) qInput.value=p.get("q");
@@ -1389,7 +1514,7 @@ function readURL(){
   }
   if(p.get("v")==="list"){
     viewMode="list";
-    document.querySelectorAll("#viewSeg button").forEach(b=>b.classList.toggle("on",b.dataset.view==="list"));
+    setOn("#viewSeg button", b=>b.dataset.view==="list");
     document.getElementById("listView").hidden=false;
     document.querySelector(".stage").classList.add("listmode");
   }
@@ -1404,20 +1529,31 @@ function boot(data){
   buildSliders();
   recompute();
   if(guSel.value!=="all" && GU[guSel.value]) map.setView(GU[guSel.value].c,12.6);
-  renderMarkers();
-  if(viewMode==="list") renderList();
+  refreshView();
   if(wantSel){
     const [nm,dong]=wantSel.split("|");
     const h=HOMES.find(x=>x.name===nm && (!dong||x.dong===dong));
     if(h){ map.setView([h.lat,h.lng],15); openPanel(h.id); }
   }
-  // demo pill text reflects real vs fallback
-  const pill = document.querySelector(".demo-pill");
+  // loading state → data pill reflects real vs fallback; period/count come from meta and degrade if absent
+  const pill = document.getElementById("dataPill"), lb = document.getElementById("loadbar"), lp = document.getElementById("legendPeriod");
+  if(lb) lb.hidden = true;
   if(pill){
-    if(DATA_META.fallback){ pill.innerHTML = '<span class="dot"></span>오프라인 표본'; }
-    else { pill.innerHTML = '<span class="dot"></span>실거래가 · ' + (DATA_META.complexes||HOMES.length) + '개 단지'; }
+    pill.classList.remove("loading");
+    const nCx = (DATA_META.complexes||HOMES.length).toLocaleString("ko-KR");
+    if(DATA_META.fallback){ pill.innerHTML = '<span class="dot"></span>오프라인 표본'; pill.title = "data.json을 불러오지 못해 표본 데이터로 동작 중"; }
+    else {
+      pill.innerHTML = '<span class="dot"></span>실거래 ' + nCx + '개 단지';
+      pill.title = DATA_META.period ? `데이터 기준 ${DATA_META.period}` : "국토교통부 실거래가";
+    }
+  }
+  if(lp){
+    if(DATA_META.period && !DATA_META.fallback){ lp.textContent = `데이터 기준 ${DATA_META.period} · ${(DATA_META.complexes||HOMES.length).toLocaleString("ko-KR")}개 단지`; lp.hidden=false; }
+    else lp.hidden = true;
   }
 }
+/* data.json: cache:"no-cache" revalidates with the server; sw.js serves it network-first with
+   cache fallback, so this really does fetch fresh data when online and still works offline. */
 fetch("./data.json", {cache:"no-cache"})
   .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
   .then(boot)
