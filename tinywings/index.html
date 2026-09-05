@@ -193,9 +193,42 @@
     .lb-list li .rank { color: var(--muted); font-family: "JetBrains Mono", monospace; font-size: 12px; }
     .lb-list li .who { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .lb-list li .dist { color: var(--bloom); font-style: italic; }
-    .lb-list li.me { background: var(--paper-2); }
+    .lb-list li.me { background: var(--paper-2); box-shadow: inset 3px 0 0 var(--bloom); }
     .lb-list li.me .who::after { content: " · you"; color: var(--bloom); font-size: 14px; }
     .lb-empty { font-family: "Caveat", cursive; font-size: 20px; color: var(--muted); padding: 14px 4px; }
+    /* All time / This week tabs — same mono-pill grammar as the install tabs */
+    .lb-tabs {
+      display: flex; gap: 6px; margin-bottom: 8px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    }
+    .lb-tabs button {
+      appearance: none; border: 1px dashed var(--line); background: transparent;
+      color: var(--muted); cursor: pointer;
+      padding: 3px 10px; border-radius: 12px;
+      font-family: inherit; font-size: inherit; letter-spacing: inherit; text-transform: inherit;
+      transition: color 160ms, border-color 160ms;
+    }
+    .lb-tabs button:hover { color: var(--ink); }
+    .lb-tabs button[aria-selected="true"] { color: var(--ink); border-color: var(--ink-soft); background: var(--paper-2); }
+    /* "you're #N" line under the list */
+    .lb-me {
+      font-family: "Caveat", cursive; font-size: 18px; color: var(--ink-soft);
+      padding: 8px 4px 0; min-height: 26px;
+      transform: rotate(-0.4deg);
+    }
+    .lb-me .n { color: var(--bloom); font-style: italic; }
+    .lb-me.busy {
+      background: linear-gradient(90deg, var(--muted) 0%, var(--bloom) 50%, var(--muted) 100%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      animation: lbShimmer 1.1s linear infinite;
+    }
+    .lb-foot { font-family: "JetBrains Mono", monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); padding: 4px 4px 0; }
+    .lb-foot[hidden] { display: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .lb-me.busy { animation: none; background: none; color: var(--muted); }
+    }
     .lb-close { align-self: flex-end; margin-top: 14px; appearance: none; border: 1px dashed var(--ink-soft); background: transparent; font-family: "Caveat", cursive; font-size: 20px; color: var(--ink); padding: 4px 18px; cursor: pointer; }
     .lb-close:hover { background: var(--ink); color: var(--paper); }
     /* Loading shimmer — pencil-stroke placeholder rows */
@@ -1106,7 +1139,13 @@
       <div class="lb-card">
         <h2>longest glides</h2>
         <div class="lb-status off" id="lbStatus"><span class="dot">○</span> <span id="lbStatusText">connecting…</span></div>
+        <div class="lb-tabs" role="tablist" aria-label="Leaderboard range">
+          <button type="button" role="tab" data-lb-tab="all" aria-selected="true">all time</button>
+          <button type="button" role="tab" data-lb-tab="week" aria-selected="false">this week</button>
+        </div>
         <ul class="lb-list" id="lbList"></ul>
+        <div class="lb-me" id="lbMe" role="status" aria-live="polite"></div>
+        <div class="lb-foot" id="lbFoot" hidden>weeks reset monday 00:00 utc</div>
         <button type="button" class="lb-close" id="lbCloseBtn">close</button>
       </div>
     </div>
@@ -3487,7 +3526,7 @@
   </script>
   <script type="module">
     /* ============================================================
-       LEADERBOARD (PocketBase, Tier 1 public)
+       LEADERBOARD (PocketBase, Tier 2 anonymous identity)
        Isolated from the game script. The game calls
        window.__lbOnEnd({ distM, newBest, physDefault }) when a run ends
        and exposes window.__gamePause / __gameResume so this overlay can
@@ -3497,12 +3536,21 @@
        Collection: leaderboard (base)  — https://tinywings.pb.gurum.se/_/
          name      (text, required, max 20)
          score     (number, required, min 0, max 20000 — pb_migrations/002)
-         player_id (text)   ← anonymous UUID, used only to highlight "you"
-         Rules: list="" view="" create="" update=null delete=null
+         player_id (text, partial UNIQUE where != '' — pb_migrations/003)
+                   ← anonymous UUID: ONE ROW PER PLAYER, highlights "you"
+         created   (autodate, onCreate)            — pb_migrations/003
+         updated   (autodate, onCreate+onUpdate)   — pb_migrations/003
+                   ← drives the "this week" tab; only moves on a new best
+         Rules: list="" view="" create=""
+                update="player_id = @request.body.player_id"  delete=null
+       Submit = upsert: look up own row by player_id → update() only when
+       the new score is higher, else create(). Rows that pre-date 003 have
+       empty autodates and so only appear under "all time".
        Limitation: the score is CLIENT-TRUSTED. createRule "" means anyone
-       can POST any value ≤ 20000; the max only bounds the damage. Refusing
-       to submit tuned-physics runs (physDefault) is a courtesy, not a
-       control. Fine for a demo board; not for anything with stakes.
+       can POST any value ≤ 20000; the max only bounds the damage. player_id
+       is identity, not auth — anyone holding an id can update that row.
+       Refusing to submit tuned-physics runs (physDefault) is a courtesy,
+       not a control. Fine for a demo board; not for anything with stakes.
        ============================================================ */
     // PocketBase SDK is loaded lazily by full URL via dynamic import() — NOT a
     // static `import` + importmap. Importmaps need iOS Safari 16.4+; a static
@@ -3621,15 +3669,35 @@
       try {
         const c = await getPB();
         if (!c) throw new Error("sdk unavailable");
-        await c.collection("leaderboard").create({ name, score, player_id: playerId() });
+        const me = playerId();
+        // Upsert — one row per player (pb_migrations/003). Look up our own
+        // row; PATCH it only when this run beats it, otherwise POST a new one.
+        // getList(1,1) rather than getFirstListItem so "no row" isn't a 404
+        // exception on the happy path.
+        const mine = await withTimeout(c.collection("leaderboard").getList(1, 1, {
+          filter: c.filter("player_id = {:me}", { me }), fields: "id,score", skipTotal: true,
+        }));
+        const row = (mine.items || [])[0];
         try { localStorage.setItem("vibe.tinywings.name", name); } catch (e) {}
-        lbCacheDirty = true; // overlay refetches on next open
-        // Compute rank: how many strictly-greater scores exist, +1.
+        if (row && !(score > row.score)) {
+          // The board already holds a better run from this device (the local
+          // best was cleared, or two tabs raced). Nothing to write.
+          block.hidden = true;
+          setSubmitNote("");
+          const note = $id("endNewBest");
+          if (note) { note.textContent = `— the board still has your ${row.score} m —`; note.style.display = ""; }
+          return;
+        }
+        if (row) await withTimeout(c.collection("leaderboard").update(row.id, { name, score, player_id: me }));
+        else await withTimeout(c.collection("leaderboard").create({ name, score, player_id: me }));
+        invalidateBoard(); // overlay refetches on next open
+        // Compute rank: how many strictly-greater scores exist, +1. Exact now
+        // that each player holds a single row.
         let rank = null;
         try {
-          const better = await c.collection("leaderboard").getList(1, 1, {
-            filter: `score > ${score}`, fields: "id", skipTotal: false,
-          });
+          const better = await withTimeout(c.collection("leaderboard").getList(1, 1, {
+            filter: c.filter("score > {:s}", { s: score }), fields: "id", skipTotal: false,
+          }));
           rank = (better.totalItems ?? 0) + 1;
         } catch (e) {}
         block.hidden = true;
@@ -3646,7 +3714,6 @@
       }
     }
 
-    let lbCacheDirty = true;
     const _submitBtn = $id("lbSubmitBtn");
     if (_submitBtn) _submitBtn.addEventListener("click", submitScore);
     const _nameInput = $id("lbName");
@@ -3657,14 +3724,45 @@
       });
       // Landscape-phone keyboards cover a centered panel; dock it to the top
       // while the field has focus.
+      // Undock a beat AFTER blur, not on it: tapping "submit" blurs the input
+      // first, and an instant undock moved the button out from under the
+      // finger between pointerdown and click, so the tap was lost.
       const ep = $id("endPanel");
-      _nameInput.addEventListener("focus", () => { if (ep) ep.classList.add("docked"); });
-      _nameInput.addEventListener("blur", () => { if (ep) ep.classList.remove("docked"); });
+      let _undockT = 0;
+      _nameInput.addEventListener("focus", () => { clearTimeout(_undockT); if (ep) ep.classList.add("docked"); });
+      _nameInput.addEventListener("blur", () => {
+        clearTimeout(_undockT);
+        _undockT = setTimeout(() => { if (ep && document.activeElement !== _nameInput) ep.classList.remove("docked"); }, 400);
+      });
     }
 
-    let lbCache = null;   // last fetched (deduped) rows
-    let lbCacheAt = 0;    // Date.now() of that fetch
+    // ── Overlay: tabs, cache, rendering ──────────────────────────────────
+    // Two tabs, each with its own 60s cache. A successful submit drops both.
+    const TAB_KEY = "vibe.tinywings.lb-tab";
+    let tab = "all";
+    try { if (localStorage.getItem(TAB_KEY) === "week") tab = "week"; } catch (e) {}
+    const lbCache = { all: null, week: null }; // { rows, me, at }
     const LB_CACHE_MS = 60_000;
+    function invalidateBoard() { lbCache.all = null; lbCache.week = null; }
+
+    // "This week" = rows whose `updated` autodate is on/after Monday 00:00 UTC
+    // of the current ISO week. UTC on purpose (one shared clock for a board
+    // played from Seoul and Stockholm); the footnote under the list says so.
+    function weekStart() {
+      const d = new Date();
+      const dow = (d.getUTCDay() + 6) % 7; // Mon=0 … Sun=6
+      return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - dow));
+    }
+    // pb.filter() serialises Date params into PocketBase's datetime literal.
+    function scopeFilter(c, t, extra, params) {
+      const parts = [];
+      if (extra) parts.push(extra);
+      if (t === "week") { parts.push("updated >= {:since}"); params = Object.assign({ since: weekStart() }, params || {}); }
+      return parts.length ? c.filter(parts.join(" && "), params || {}) : "";
+    }
+    function localBest() {
+      try { return parseInt(localStorage.getItem("vibe.tinywings.best") || "0", 10) || 0; } catch (e) { return 0; }
+    }
 
     function renderSkeleton() {
       const list = $id("lbList");
@@ -3694,20 +3792,23 @@
       if (!rows || rows.length === 0) {
         const li = document.createElement("li");
         li.className = "lb-empty";
-        li.textContent = "no glides logged yet — be the first.";
+        li.textContent = tab === "week" ? "no glides logged this week — be the first." : "no glides logged yet — be the first.";
         list.appendChild(li);
         return;
       }
       const me = playerId();
+      let mine = null;
       rows.forEach((r, i) => {
         const li = document.createElement("li");
-        if (r.player_id && r.player_id === me) li.classList.add("me");
+        if (r.player_id && r.player_id === me) { li.classList.add("me"); mine = li; }
         const rank = document.createElement("span"); rank.className = "rank"; rank.textContent = String(i + 1);
         const who = document.createElement("span"); who.className = "who"; who.textContent = r.name || "anon"; // textContent → no XSS
         const dist = document.createElement("span"); dist.className = "dist"; dist.textContent = `${r.score} m`;
         li.appendChild(rank); li.appendChild(who); li.appendChild(dist);
         list.appendChild(li);
       });
+      // Bring the highlighted row into the scroll window when it's far down.
+      if (mine && mine.scrollIntoView) { try { mine.scrollIntoView({ block: "nearest" }); } catch (e) {} }
     }
 
     // Offline is not "empty" — say so, instead of "no glides logged yet".
@@ -3721,9 +3822,50 @@
       list.appendChild(li);
     }
 
-    // The collection holds one row per RUN, so a regular could fill the top 25
-    // alone. Fetch a deeper page (already sorted -score) and keep only each
-    // player's first — i.e. highest — row. Rows without a player_id pass through.
+    // "you're #N · 123 m" line under the list. me = { rank, score } | null
+    // (offline / unknown). Uses the local best when the player isn't on the
+    // board (or we're offline) so the line is never blank.
+    function renderMe(me, busy) {
+      const el = $id("lbMe");
+      if (!el) return;
+      el.classList.toggle("busy", !!busy);
+      el.textContent = "";
+      if (busy) { el.textContent = "finding you…"; return; }
+      const best = localBest();
+      const bestTxt = best > 0 ? ` · best ${best} m on this device` : "";
+      if (!me) { el.textContent = "offline" + bestTxt; return; }
+      if (me.rank) {
+        el.append("you're ");
+        const n = document.createElement("span"); n.className = "n"; n.textContent = `#${me.rank}`;
+        el.appendChild(n);
+        el.append(` · ${me.score} m`);
+        return;
+      }
+      el.textContent = (tab === "week" ? "no glide logged this week" : "not on the board yet") + (best > 0 ? ` · best ${best} m` : "");
+    }
+
+    // Where does the current player sit in this tab? Cheap path: already in
+    // the fetched top rows. Otherwise one lookup for the own row (scoped to
+    // the tab) and one count of strictly-better rows.
+    async function computeMe(c, t, rows) {
+      const me = playerId();
+      const idx = rows.findIndex((r) => r.player_id === me);
+      if (idx >= 0) return { rank: idx + 1, score: rows[idx].score };
+      const mine = await withTimeout(c.collection("leaderboard").getList(1, 1, {
+        filter: scopeFilter(c, t, "player_id = {:me}", { me }), fields: "score", skipTotal: true,
+      }));
+      const row = (mine.items || [])[0];
+      if (!row) return { rank: null, score: null };
+      const better = await withTimeout(c.collection("leaderboard").getList(1, 1, {
+        filter: scopeFilter(c, t, "score > {:s}", { s: row.score }), fields: "id", skipTotal: false,
+      }));
+      return { rank: (better.totalItems ?? 0) + 1, score: row.score };
+    }
+
+    // Belt-and-braces only: since pb_migrations/003 the server guarantees one
+    // row per player_id, so this is a no-op on a migrated backend. Kept so the
+    // overlay can't show a doubled player if the migration lags the frontend.
+    // Rows without a player_id (legacy) pass through.
     function dedupePlayers(items) {
       const seen = new Set(), out = [];
       for (const r of items) {
@@ -3737,28 +3879,59 @@
       return out;
     }
 
+    function syncTabs() {
+      document.querySelectorAll(".lb-tabs [data-lb-tab]").forEach((b) => {
+        b.setAttribute("aria-selected", b.dataset.lbTab === tab ? "true" : "false");
+      });
+      const foot = $id("lbFoot"); if (foot) foot.hidden = tab !== "week";
+    }
+
     async function loadBoard() {
-      const fresh = online && lbCache && !lbCacheDirty && (Date.now() - lbCacheAt) < LB_CACHE_MS;
-      if (fresh) { setStatus(true, "connected"); renderRows(lbCache); return; }
+      const t = tab;
+      syncTabs();
+      const cached = lbCache[t];
+      if (online && cached && (Date.now() - cached.at) < LB_CACHE_MS) {
+        setStatus(true, "connected"); renderRows(cached.rows); renderMe(cached.me); return;
+      }
       renderSkeleton(); // shimmer rows are the loading state — never static text alone
+      renderMe(null, true);
       setStatus(false, "connecting…");
       if (!online) await checkHealth();
-      if (!online) { setStatus(false, "offline"); renderOffline(); return; }
+      if (t !== tab) return; // switched tabs while waiting — that load owns the DOM now
+      if (!online) { setStatus(false, "offline"); renderOffline(); renderMe(null); return; }
       try {
         const c = await getPB();
         if (!c) throw new Error("sdk unavailable");
-        const rows = await withTimeout(c.collection("leaderboard").getList(1, 100, { sort: "-score" }));
-        lbCache = dedupePlayers(rows.items || []);
-        lbCacheAt = Date.now();
-        lbCacheDirty = false;
+        const res = await withTimeout(c.collection("leaderboard").getList(1, 25, {
+          sort: "-score", filter: scopeFilter(c, t), skipTotal: true,
+        }));
+        if (t !== tab) return;
+        const rows = dedupePlayers(res.items || []);
         setStatus(true, "connected");
-        renderRows(lbCache);
+        renderRows(rows);
+        let me = null;
+        try { me = await computeMe(c, t, rows); } catch (e) { me = { rank: null, score: null }; }
+        if (t !== tab) return;
+        lbCache[t] = { rows, me, at: Date.now() };
+        renderMe(me);
       } catch (e) {
         online = false;
         setStatus(false, "offline");
         renderOffline();
+        renderMe(null);
       }
     }
+
+    function selectTab(next) {
+      if (next !== "all" && next !== "week") return;
+      if (next === tab) return;
+      tab = next;
+      try { localStorage.setItem(TAB_KEY, tab); } catch (e) {}
+      loadBoard();
+    }
+    document.querySelectorAll(".lb-tabs [data-lb-tab]").forEach((b) => {
+      b.addEventListener("click", () => selectTab(b.dataset.lbTab));
+    });
 
     // Opening the overlay pauses the run (the game's wall-clock timers would
     // otherwise count the browsing time as "stopped"); closing resumes it.
