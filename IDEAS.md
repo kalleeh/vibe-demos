@@ -197,3 +197,20 @@ Long-form editorial essay on a Swedish concept (lagom, fika, allemansrätten…)
 - Whenever a demo here ships, move it to the works index in `index.html` per the maintenance contract in [CLAUDE.md](./CLAUDE.md), update README, and mark it `🟢 shipped` here with a link.
 - If a pitch turns out to be a dud or scope-creeps too far, mark `⚪ shelved` with a one-line reason rather than deleting it — useful context for later.
 - AI-powered demos: ship a canned-output version first so the demo works with no network, then wire live calls through the shared proxy behind a "Try live mode" toggle (see `.claude/rules/ai-demos.md`). The browser never holds a key — never build a key UI, never commit a key.
+
+---
+
+## Follow-ups from the 2026-09-05 quality sweep
+
+Items the review/fix pass surfaced but deliberately left for a later session (each needs content, a design call, or a re-render rather than a code fix).
+
+- **kids-bookshelf** — the 0–2 catalog is thin (42 titles, 23 of them 동물, one 공룡). Add real 보드북 titles to `scripts/kids-bookshelf/sources/*.json`; the scorer now prefers exact-age books but can't invent them.
+- **contraption-lab** — `official-11`, `demo-saw-01`, `demo-circuit-01` win with zero parts placed (ball reaches the goal unaided); `demo-mouse-01` wins at 27.3 s of the 30 s limit. Redesign those four; see `contraption-lab/DESIGN.md`.
+- **molecule-journey** — `ship-cargo.glb`, `pot-stew.glb`, `pot-stew-lid.glb` reference a missing `Textures/colormap.png`, so the ship renders untinted white. Ship the Kenney colormap PNG or add a `colormap` tone to `paintKenney`.
+- **starwars-homage** — the cue is now audible but is the repo's own synthesized pad. Real music needs a HyperFrames re-render (`npm i` in `composition/`, `npm run render`) with a licensed/original score.
+- **sweden-food-guide** — print-city mode's `display: revert !important` collapses `.grid` to one column, so the A4 spread prints single-column. Pre-existing.
+- **changwon-homes** — basemap tiles are cross-origin and not SW-cached ("offline" = shell + data + markers). `thumbs/changwon-homes.jpg` still shows the old CARTO basemap and old colour scheme; refresh it (and bump root `sw.js` CACHE).
+- **intake-companion** — canned cases 삼령백출산 and 천마구등음 show no herb section because the atlas lacks images for their herbs (산약·의이인·천마·구등…). Add herb images, not map entries.
+- **korean-words** — Räkneord icon is 🧮 (Siffror already uses 🔢); confirm with the kids.
+- **kids-bookshelf** — the share hash includes the free-text note (`n=`) so links reproduce exactly; drop it if that feels like a privacy leak.
+- **clinic-admin** — dead `.tab-btn` CSS rules remain (~lines 215–243 of `index.html`).

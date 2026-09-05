@@ -3,3 +3,6 @@
 .DS_Store
 output/
 .superpowers/
+
+# Playwright MCP session artefacts (screenshots, console logs)
+.playwright-mcp/
