@@ -8,6 +8,11 @@
 <meta property="og:title" content="MBTI · 성격의 결 — Korean MBTI Read">
 <meta property="og:description" content="짧은 한국식 MBTI 테스트와 자유 텍스트 기반 AI 깊이 읽기.">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://kalleeh.github.io/vibe-demos/korean-mbti/">
+<meta property="og:image" content="https://kalleeh.github.io/vibe-demos/thumbs/mbti.jpg">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="720">
+<meta name="twitter:card" content="summary_large_image">
 
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
@@ -34,7 +39,6 @@
   --accent-2: #48695a;
   --celadon: #6b9482;
   --celadon-d: #48695a;
-  --gold: #6b9482;
   --line: rgba(31, 38, 32, 0.14);
   --line-strong: rgba(31, 38, 32, 0.24);
 }
@@ -98,7 +102,7 @@ header.top {
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--celadon-d);
   opacity: 0.9;
 }
 .brand .title {
@@ -161,10 +165,10 @@ header.top {
   font-size: 10px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(31, 38, 32, 0.4);
+  color: rgba(31, 38, 32, 0.6);
   margin-top: 3px;
 }
-.tab.active .meta { color: var(--gold); }
+.tab.active .meta { color: var(--celadon-d); }
 
 /* ---------- panels ---------- */
 .panel { display: none; }
@@ -271,7 +275,7 @@ header.top {
   font-size: 10.5px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--celadon-d);
 }
 .length-card .length-desc {
   font-size: 13px;
@@ -289,6 +293,32 @@ header.top {
   padding-top: 10px;
   border-top: 1px solid var(--line);
 }
+.resume-row {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--accent-2) 40%, var(--line));
+  border-radius: 4px;
+  background: rgba(107, 148, 130, 0.08);
+}
+.resume-row.active { display: flex; }
+.resume-row .resume-text {
+  font-family: "Noto Serif KR", serif;
+  font-size: 14px;
+  color: var(--ink);
+}
+.resume-row .resume-text .n {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  color: var(--celadon-d);
+  margin-left: 6px;
+}
+.resume-row .resume-actions { display: flex; gap: 8px; }
+.resume-row .btn { padding: 10px 16px; font-size: 13px; }
 @media (max-width: 580px) {
   .length-picker { grid-template-columns: 1fr; }
 }
@@ -337,7 +367,7 @@ header.top {
 }
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--gold));
+  background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--celadon));
   width: 0%;
   transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -359,6 +389,8 @@ header.top {
   color: var(--ink);
   letter-spacing: -0.005em;
 }
+.qprompt:focus { outline: none; }
+.qprompt:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 6px; border-radius: 2px; }
 .qprompt em {
   color: var(--accent-2);
   font-style: italic;
@@ -428,7 +460,7 @@ header.top {
   font-family: "JetBrains Mono", monospace;
   font-size: 11px;
   font-weight: 500;
-  color: var(--gold);
+  color: var(--celadon-d);
   letter-spacing: 0.1em;
   padding-top: 2px;
   flex-shrink: 0;
@@ -497,12 +529,14 @@ header.top {
   color: #fff;
 }
 .lang-toggle { display: inline-flex; gap: 2px; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; vertical-align: middle; margin-right: 12px; }
-.lang-toggle button { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.08em; padding: 4px 9px; background: none; border: none; color: rgba(31,38,32,0.5); cursor: pointer; }
+.lang-toggle button { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.08em; min-height: 32px; min-width: 40px; padding: 6px 10px; background: none; border: none; color: rgba(31,38,32,0.6); cursor: pointer; }
 .lang-toggle button.active { background: var(--accent-2); color: var(--paper); }
 .type-hero-text {
   padding: 30px 30px 32px;
   position: relative;
 }
+/* 도감 detail hero has no .type-hero-text wrapper — give it its own small padding */
+.type-hero.gallery-hero { padding: 22px 26px 20px; }
 .type-hero .code {
   font-family: "Cormorant Garamond", "Georgia", serif;
   font-weight: 300;
@@ -547,8 +581,15 @@ header.top {
   font-weight: 500;
 }
 .type-hero .meta .pill.demo {
-  background: var(--gold);
+  background: var(--celadon);
   color: var(--ink);
+}
+.type-hero .meta .meta-note {
+  color: var(--accent);
+  font-weight: 500;
+  align-self: center;
+  letter-spacing: 0.08em;
+  text-transform: none;
 }
 
 /* axes */
@@ -564,7 +605,7 @@ header.top {
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--celadon-d);
   margin-bottom: 18px;
   font-weight: 500;
 }
@@ -605,6 +646,18 @@ header.top {
   font-family: "JetBrains Mono", monospace;
   font-size: 11px;
   color: rgba(31, 38, 32, 0.5);
+}
+.axis-borderline {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 2px;
+  padding: 2px 6px;
+  margin-right: 8px;
+  vertical-align: middle;
 }
 .axis-track {
   height: 4px;
@@ -699,7 +752,7 @@ header.top {
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--celadon-d);
   margin-bottom: 14px;
   font-weight: 500;
 }
@@ -723,7 +776,7 @@ header.top {
   letter-spacing: 0.08em;
   padding: 5px 10px;
   background: rgba(107, 148, 130, 0.12);
-  color: var(--gold);
+  color: var(--celadon-d);
   border-radius: 2px;
 }
 .reading .secondary {
@@ -762,7 +815,7 @@ header.top {
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--celadon-d);
   margin-bottom: 14px;
   font-weight: 500;
   display: flex;
@@ -828,7 +881,7 @@ header.top {
   position: absolute;
   inset: 0 auto 0 0;
   width: 0%;
-  background: var(--gold);
+  background: var(--celadon);
   border-radius: 2px;
   transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -879,7 +932,7 @@ header.top {
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--celadon-d);
   margin-bottom: 6px;
   font-weight: 500;
 }
@@ -935,7 +988,7 @@ header.top {
   font-family: "JetBrains Mono", monospace;
   font-size: 10px;
   letter-spacing: 0.12em;
-  color: var(--gold);
+  color: var(--celadon-d);
   margin-bottom: 8px;
   text-transform: uppercase;
 }
@@ -943,7 +996,7 @@ header.top {
   font-family: "JetBrains Mono", monospace;
   font-size: 9px;
   letter-spacing: 0.16em;
-  color: rgba(31, 38, 32, 0.4);
+  color: rgba(31, 38, 32, 0.6);
   text-transform: uppercase;
 }
 .fn-arc {
@@ -1082,7 +1135,7 @@ header.top {
   font-family: "JetBrains Mono", monospace;
   font-size: 12px;
   letter-spacing: 0.1em;
-  color: var(--gold);
+  color: var(--celadon-d);
   margin-top: 10px;
 }
 .type-card-nick {
@@ -1137,7 +1190,7 @@ header.top {
 
 /* ---------- result-card share button ---------- */
 .btn.card-btn {
-  background: var(--gold);
+  background: var(--celadon);
   color: var(--ink);
 }
 .btn.card-btn:hover { background: #5a8170; }
@@ -1238,7 +1291,7 @@ header.top {
   font-size: 10.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(31, 38, 32, 0.5);
+  color: rgba(31, 38, 32, 0.6);
   margin-right: 4px;
 }
 .chip {
@@ -1258,7 +1311,7 @@ header.top {
   color: var(--accent-2);
 }
 .chip.ghost {
-  color: rgba(31, 38, 32, 0.45);
+  color: rgba(31, 38, 32, 0.6);
   border-style: dashed;
 }
 .chip.ghost:hover {
@@ -1282,7 +1335,7 @@ header.top {
 }
 .counter.ok { color: var(--accent-2); }
 .counter-hint {
-  color: rgba(31, 38, 32, 0.42);
+  color: rgba(31, 38, 32, 0.6);
   text-transform: uppercase;
   font-size: 10px;
 }
@@ -1343,14 +1396,14 @@ header.top {
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(31, 38, 32, 0.45);
+  color: rgba(31, 38, 32, 0.6);
   margin-top: -10px;
   margin-bottom: 14px;
   min-height: 14px;
   padding: 0 4px;
 }
 .mic-hint.recording { color: var(--accent-2); }
-.mic-hint.error { color: var(--gold); }
+.mic-hint.error { color: var(--celadon-d); }
 
 .ai-input.has-interim {
   border-color: var(--accent-2);
@@ -1403,13 +1456,19 @@ textarea.ai-input::placeholder {
 }
 .mode-pill .dot {
   width: 6px; height: 6px;
-  background: var(--gold);
+  background: var(--celadon);
   border-radius: 50%;
 }
 .mode-pill.live .dot {
   background: var(--accent-2);
   animation: pulse 1.4s infinite ease-in-out;
 }
+.mode-pill.fallback {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  border-style: solid;
+}
+.mode-pill.fallback .dot { background: var(--accent); }
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.4; }
@@ -1428,7 +1487,7 @@ textarea.ai-input::placeholder {
 .loading-bar .stripe {
   height: 100%;
   width: 30%;
-  background: linear-gradient(90deg, transparent, var(--accent-2), var(--gold), transparent);
+  background: linear-gradient(90deg, transparent, var(--accent-2), var(--celadon), transparent);
   animation: slide 1.6s infinite linear;
 }
 @keyframes slide {
@@ -1470,7 +1529,7 @@ footer.bottom {
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(31, 38, 32, 0.4);
+  color: rgba(31, 38, 32, 0.6);
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
@@ -1481,7 +1540,6 @@ footer.bottom {
   .shell { padding: 22px 18px 0; }
   header.top { flex-direction: column; gap: 14px; }
   .qchoice { padding: 18px 16px; font-size: 15px; }
-  .type-hero { padding: 28px 22px 24px; }
   .axes, .reading, .ai-intro { padding: 20px 20px; }
   .controls { flex-direction: column; align-items: stretch; }
   .controls > * { width: 100%; }
@@ -1516,7 +1574,7 @@ footer.bottom {
 <div class="tabs" role="tablist">
   <button class="tab active" data-mode="test" role="tab" id="tab-test" aria-selected="true" aria-controls="panel-test">
     <span data-i18n="tabTest">빠른 테스트</span>
-    <span class="meta" data-i18n="tabTestMeta">28문항 · 약 5분 · 빠른 진단</span>
+    <span class="meta" data-i18n="tabTestMeta">28 · 93문항 · 두 가지 길이</span>
   </button>
   <button class="tab" data-mode="ai" role="tab" id="tab-ai" aria-selected="false" aria-controls="panel-ai">
     <span data-i18n="tabAI">AI 깊이 읽기</span>
@@ -1557,12 +1615,19 @@ footer.bottom {
           <div class="length-cta" data-i18n="lenFullCta">시작 →</div>
         </button>
       </div>
+      <div class="resume-row" id="resume-row">
+        <span class="resume-text"><span data-i18n="resumeText">진행 중인 검사가 있어요</span><span class="n" id="resume-progress"></span></span>
+        <span class="resume-actions">
+          <button class="btn" type="button" data-action="resume" data-i18n="resumeBtn">이어서 하기 →</button>
+          <button class="btn secondary" type="button" data-action="discard" data-i18n="resumeDiscard">지우기</button>
+        </span>
+      </div>
     </div>
   </div>
 
   <div id="test-running" style="display:none">
     <div class="progress-row">
-      <span id="q-counter">01 / 12</span>
+      <span id="q-counter" aria-live="polite">01 / 28</span>
       <span id="q-axis">E · I</span>
     </div>
     <div class="progress-bar">
@@ -1605,13 +1670,12 @@ footer.bottom {
       </div>
     </div>
 
-    <p class="ai-intro-foot" data-i18n-html="aiIntroFoot">키 없이 <em>데모 모드</em>에서 미리 만든 예시 결과를 볼 수 있고,
-    본인 키를 입력하면 <em>실시간 모드</em>로 작동합니다.</p>
+    <p class="ai-intro-foot" data-i18n-html="aiIntroFoot">실시간 AI(Claude Sonnet)로 읽어요. 연결이 안 되면 미리 만든 <em>예시 결과</em>를 보여드려요 — 그때는 결과에 DEMO 표시가 붙습니다.</p>
   </div>
 
   <div class="sample-row">
     <span class="sample-label" data-i18n="sampleLabel">예시 글로 시작하기 →</span>
-    <button class="chip" data-sample="diary" data-i18n="sampleDiary">일기 (몽글 INFP풍)</button>
+    <button class="chip" data-sample="diary" data-i18n="sampleDiary">일기 (조용 INFJ풍)</button>
     <button class="chip" data-sample="kakao" data-i18n="sampleKakao">카톡 (인싸 ENFP풍)</button>
     <button class="chip" data-sample="reflect" data-i18n="sampleReflect">자기성찰 (조용 INTJ풍)</button>
     <button class="chip ghost" data-sample="clear" data-i18n="sampleClear">비우기</button>
@@ -1626,7 +1690,7 @@ footer.bottom {
   <div class="mic-hint" id="mic-hint"></div>
 
   <div class="controls">
-    <span class="mode-pill live" id="mode-pill"><span class="dot"></span><span id="mode-pill-text">실시간 AI · Sonnet 4.6</span></span>
+    <span class="mode-pill live" id="mode-pill"><span class="dot"></span><span id="mode-pill-text" data-i18n="modeLive">실시간 AI · Sonnet</span></span>
     <button class="mic-button" id="btn-mic" type="button" aria-pressed="false">
       <span class="mic-dot"></span><span class="mic-label" data-i18n="micLabel">말하기</span>
     </button>
@@ -1683,7 +1747,7 @@ const STR = {
     titleHTML: "MBTI · 성격의 <em>결</em>",
     sub: "짧은 검사로 16유형을 읽고, 내 결을 들여다보는 시간.",
     backLink: "← 인덱스",
-    tabTest: "빠른 테스트", tabTestMeta: "28문항 · 약 5분 · 빠른 진단",
+    tabTest: "빠른 테스트", tabTestMeta: "28 · 93문항 · 두 가지 길이",
     tabAI: "AI 깊이 읽기", tabAIMeta: "Free-text · Claude",
     tabGallery: "16유형 도감", tabGalleryMeta: "16유형 · 초상 도감",
     introH: "두 가지 길이로 풀 수 있어요",
@@ -1695,9 +1759,15 @@ const STR = {
     aiP1: "일기, 카톡 한 토막, SNS 게시물, 블로그 한 단락 — 200~600자 정도의 자연스러운 한국어 글을 붙여넣으면 Claude가 글의 결을 읽고 16유형 중 하나를 자신 있게 골라냅니다. 한국 MBTI 문화 별명까지 같이 달아줍니다.",
     hintGood1: "혼잣말처럼 적은 일기 한 토막", hintGood2: "친구에게 푸념하듯 보낸 카톡 단락", hintGood3: "최근 있었던 한 가지 사건·감정", hintGood4: "자연스러운 반말/존댓말, 솔직한 톤",
     hintBad1: "이력서·자기소개서처럼 정형화된 글", hintBad2: "공지문, 뉴스 인용, 기사 같은 톤", hintBad3: "한두 줄짜리 짧은 메시지 (50자 미만)", hintBad4: "여러 사람의 대화가 섞인 채팅 로그",
-    aiIntroFoot: "키 없이 <em>데모 모드</em>에서 미리 만든 예시 결과를 볼 수 있고, 본인 키를 입력하면 <em>실시간 모드</em>로 작동합니다.",
+    aiIntroFoot: "실시간 AI(Claude Sonnet)로 읽어요. 연결이 안 되면 미리 만든 <em>예시 결과</em>를 보여드려요 — 그때는 결과에 DEMO 표시가 붙습니다.",
     sampleLabel: "예시 글로 시작하기 →",
-    keyIssue: "키 발급 →",
+    modeLive: "실시간 AI · Sonnet", modeFallback: "예시 결과 — 실시간 연결 실패",
+    fallbackNote: "실시간 연결이 안 되어 예시 결과를 보여드려요",
+    resumeText: "진행 중인 검사가 있어요", resumeBtn: "이어서 하기 →", resumeDiscard: "지우기",
+    borderline: "경계",
+    lengthNoteFull: "{N}문항 정밀 검사 — 4축과 20개 하위 결을 함께 봅니다.",
+    lengthNoteQuick: "{N}문항 빠른 검사 — 인상 위주의 결과입니다. 더 정밀한 결은 93문항 검사 또는 AI 깊이 읽기에서.",
+    errBadShape: "AI 응답 형식이 맞지 않아요.",
     counterZero: "0자", counterHintInit: "한 단락 정도 더 적어주세요",
     docTitle: "MBTI · 성격의 결 — Korean MBTI Read",
     lenQuickLabel: "빠른 인상", lenQuickMeta: "~5분 · 7문항/축", lenQuickCta: "시작 →",
@@ -1705,12 +1775,8 @@ const STR = {
     aiH: "당신의 글을 읽고 유형을 추론합니다",
     hintGoodH: "잘 읽히는 글", hintBadH: "덜 읽히는 글",
     placeholder: "여기에 200~600자 정도의 한국어 글을 붙여넣어 주세요. 위 예시 칩을 눌러서 시작해도 됩니다.",
-    sampleDiary: "일기 (몽글 INFP풍)", sampleKakao: "카톡 (인싸 ENFP풍)", sampleReflect: "자기성찰 (조용 INTJ풍)", sampleClear: "비우기",
-    micLabel: "말하기", keyBtn: "키 입력 / 해제", readBtn: "읽어줘 →",
-    modeDemoPill: "데모 모드", modeLivePill: "실시간 모드",
-    keyPanelH: "본인의 Anthropic API 키를 사용합니다",
-    keyPanelP: "키는 이 브라우저의 localStorage에만 저장되며 어디로도 전송되지 않습니다.",
-    keyPaste: "붙여넣기", keySave: "저장", keyForget: "잊기",
+    sampleDiary: "일기 (조용 INFJ풍)", sampleKakao: "카톡 (인싸 ENFP풍)", sampleReflect: "자기성찰 (조용 INTJ풍)", sampleClear: "비우기",
+    micLabel: "말하기", micStop: "멈추기", readBtn: "읽어줘 →",
     stageReading: "분석 중 — 글의 결을 읽는 중…",
     footerTag: "MBTI는 가벼운 자기 이해 도구. 진단 아님.",
     galleryIntro: "열여섯 결을 한눈에. 카드를 누르면 그 유형의 결이 펼쳐집니다.",
@@ -1724,21 +1790,20 @@ const STR = {
     socialReading: "같은 결과를 본 사람들을 모으는 중…",
     socialLocal: "로컬 집계",
     socialConnected: "실시간 집계",
-    socialRarityRare: "전체 중 {PCT}% — 흔치 않은 결입니다.",
-    socialRarityCommon: "응답자의 {PCT}%가 같은 결과를 봤어요.",
+    socialRarityRare: "전체 중 {PCT} — 흔치 않은 결입니다.",
+    socialRarityCommon: "응답자의 {PCT}가 같은 결과를 봤어요.",
     socialSampleNote: "지금까지 {N}명의 응답 기준",
     socialCompanions: "지금까지 {N}명 중 · {NICK} 동료 {MYN}명",
     fnStackHeading: "인지 기능 스택 — Function Stack",
     fnStackSubHTML: "같은 성향을 <em>쓰는 순서</em>로 — 가장 기대는 결(#1)부터 가장 서툰 결(#4)까지.",
     fnOffStackTip: "이 유형의 기본 스택에는 없는 결.",
-    saveCardBtn: "결과 카드 저장", cardSaving: "그리는 중…", cardSaved: "저장됨 ✓", cardFailed: "저장 실패",
+    saveCardBtn: "결과 카드 저장", cardSaving: "그리는 중…", cardSaved: "저장됨 ✓", cardShared: "공유됨 ✓", cardFailed: "저장 실패",
     navBack: "← 이전", navNext: "다음 →", navSeeResult: "결과 보기 →",
     restartTest: "다시 풀기", restartAI: "지우고 다시",
     secondaryLabel: "2순위",
     pillFull: "93-Q FORM-M LENGTH", pillQuick: "28-Q QUICK", pillDemo: "DEMO",
-    errClipboard: "클립보드 읽기를 허용해 주세요.", errNoKey: "키를 입력해 주세요.",
     errTooShort: "조금 더 길게 적어주세요. 200자 이상이 가장 정확합니다.",
-    errKeyRejected: "키가 거부되었습니다. 다시 입력해 주세요.", errGeneric: "오류가 발생했습니다.",
+    errGeneric: "오류가 발생했습니다.",
     hintShort: "한 단락 정도 적어주세요", hintMin: "조금 더 길게 — 80자 이상부터 가능",
     hintMore: "200자 이상이면 더 정확해져요", hintGood: "좋아요, 읽기 좋은 길이", hintLong: "꽤 길어요 — 600자 안쪽이 가장 잘 읽혀요",
     micUnsupportedTitle: "이 브라우저는 음성 입력을 지원하지 않아요", micUnsupportedLabel: "음성 미지원",
@@ -1751,7 +1816,7 @@ const STR = {
     titleHTML: "MBTI · the <em>grain</em> of you",
     sub: "A short test reads your 16-type grain — a moment to look inward.",
     backLink: "← Index",
-    tabTest: "Quick Test", tabTestMeta: "28 items · ~5 min · fast read",
+    tabTest: "Quick Test", tabTestMeta: "28 · 93 items · two lengths",
     tabAI: "AI Deep Read", tabAIMeta: "Free-text · Claude",
     tabGallery: "16 Types", tabGalleryMeta: "16 types · portrait index",
     introH: "Two lengths to choose from",
@@ -1763,9 +1828,15 @@ const STR = {
     aiP1: "Paste a diary entry, a chat snippet, a social post, or a blog paragraph - about 200-600 characters of natural writing - and Claude reads its grain and confidently picks one of the 16 types. It even adds a Korean MBTI-culture nickname.",
     hintGood1: "A diary entry written like talking to yourself", hintGood2: "A chat message venting to a friend", hintGood3: "One recent event or feeling", hintGood4: "Natural casual or polite tone, honest voice",
     hintBad1: "Formal writing like a resume or cover letter", hintBad2: "Announcements, news quotes, article tone", hintBad3: "A one-or-two-line short message (under 50 chars)", hintBad4: "A chat log mixing several people's voices",
-    aiIntroFoot: "Without a key you can see pre-made examples in <em>Demo mode</em>; enter your own key to run in <em>Live mode</em>.",
+    aiIntroFoot: "Read live by Claude Sonnet. If the connection fails you'll see a pre-made <em>example result</em> instead — marked DEMO.",
     sampleLabel: "Start with a sample →",
-    keyIssue: "Get a key →",
+    modeLive: "Live AI · Sonnet", modeFallback: "Example result — live read failed",
+    fallbackNote: "Live read unavailable — showing an example result",
+    resumeText: "You have a test in progress", resumeBtn: "Continue →", resumeDiscard: "Discard",
+    borderline: "Borderline",
+    lengthNoteFull: "{N}-item precise test — 4 axes plus all 20 facets.",
+    lengthNoteQuick: "{N}-item quick test — an impression-level result. For finer grain, try the 93-item test or AI Deep Read.",
+    errBadShape: "The AI response didn't match the expected shape.",
     counterZero: "0 chars", counterHintInit: "About one more paragraph, please",
     docTitle: "MBTI · the grain of you — Korean MBTI Read",
     lenQuickLabel: "Quick impression", lenQuickMeta: "~5 min · 7 items/axis", lenQuickCta: "Start →",
@@ -1773,12 +1844,8 @@ const STR = {
     aiH: "It reads your writing and infers your type",
     hintGoodH: "Reads well", hintBadH: "Reads poorly",
     placeholder: "Paste about 200–600 characters of your own writing here. You can also tap a sample chip above to start.",
-    sampleDiary: "Diary (cozy INFP)", sampleKakao: "Chat (social ENFP)", sampleReflect: "Reflection (quiet INTJ)", sampleClear: "Clear",
-    micLabel: "Speak", keyBtn: "Enter / clear key", readBtn: "Read me →",
-    modeDemoPill: "Demo mode", modeLivePill: "Live mode",
-    keyPanelH: "Use your own Anthropic API key",
-    keyPanelP: "Your key is stored only in this browser's localStorage and is never sent anywhere else.",
-    keyPaste: "Paste", keySave: "Save", keyForget: "Forget",
+    sampleDiary: "Diary (quiet INFJ)", sampleKakao: "Chat (social ENFP)", sampleReflect: "Reflection (quiet INTJ)", sampleClear: "Clear",
+    micLabel: "Speak", micStop: "Stop", readBtn: "Read me →",
     stageReading: "Analyzing — reading the grain of your text…",
     footerTag: "MBTI is a light self-understanding tool. Not a diagnosis.",
     galleryIntro: "All sixteen at a glance. Tap a card to open that type's grain.",
@@ -1792,21 +1859,20 @@ const STR = {
     socialReading: "Gathering everyone who saw this result…",
     socialLocal: "local tally",
     socialConnected: "live tally",
-    socialRarityRare: "Just {PCT}% of takers — an uncommon grain.",
-    socialRarityCommon: "{PCT}% of takers saw the same result.",
+    socialRarityRare: "Just {PCT} of takers — an uncommon grain.",
+    socialRarityCommon: "{PCT} of takers saw the same result.",
     socialSampleNote: "Based on {N} responses so far",
     socialCompanions: "{MYN} {NICK} companions among {N} so far",
     fnStackHeading: "Cognitive Function Stack",
     fnStackSubHTML: "The same traits in <em>order of use</em> — from the one you lean on most (#1) to the clumsiest (#4).",
     fnOffStackTip: "Not part of this type's core stack.",
-    saveCardBtn: "Save result card", cardSaving: "Drawing…", cardSaved: "Saved ✓", cardFailed: "Save failed",
+    saveCardBtn: "Save result card", cardSaving: "Drawing…", cardSaved: "Saved ✓", cardShared: "Shared ✓", cardFailed: "Save failed",
     navBack: "← Back", navNext: "Next →", navSeeResult: "See result →",
     restartTest: "Retake", restartAI: "Clear & redo",
     secondaryLabel: "Runner-up",
     pillFull: "93-Q FORM-M LENGTH", pillQuick: "28-Q QUICK", pillDemo: "DEMO",
-    errClipboard: "Please allow clipboard access.", errNoKey: "Please enter your key.",
     errTooShort: "Please write a bit more — 200+ characters reads most accurately.",
-    errKeyRejected: "Key was rejected. Please re-enter it.", errGeneric: "Something went wrong.",
+    errGeneric: "Something went wrong.",
     hintShort: "About one paragraph, please", hintMin: "A little longer — 80+ characters to begin",
     hintMore: "200+ characters reads more accurately", hintGood: "Good — a comfortable length", hintLong: "Quite long — under 600 characters reads best",
     micUnsupportedTitle: "This browser doesn't support voice input", micUnsupportedLabel: "No voice support",
@@ -2639,8 +2705,8 @@ const $$ = sel => document.querySelectorAll(sel);
 
 // Proxy AI endpoint + PoW challenge solver
 const CLAUDE_PROXY = "https://ai.pb.gurum.se";
-async function solveProxyPoW() {
-  const r = await fetch(CLAUDE_PROXY + "/api/claude-challenge");
+async function solveProxyPoW(signal) {
+  const r = await fetch(CLAUDE_PROXY + "/api/claude-challenge", { signal });
   if (!r.ok) { const e = new Error("challenge " + r.status); e.status = r.status; throw e; }
   const { nonce, exp, sig, difficulty } = await r.json();
   const enc = new TextEncoder();
@@ -2650,6 +2716,7 @@ async function solveProxyPoW() {
     const d = await crypto.subtle.digest("SHA-256", enc.encode(nonce + ":" + counter));
     if (leadBits(d) >= difficulty) return { "X-PoW-Nonce": nonce, "X-PoW-Exp": exp, "X-PoW-Sig": sig, "X-PoW-Counter": String(counter) };
     if (counter > 5000000) throw new Error("pow-timeout");
+    if (signal && signal.aborted) throw new DOMException("aborted", "AbortError");
   }
 }
 
@@ -2726,36 +2793,59 @@ function syncLangToggle() {
     b.setAttribute("aria-pressed", on ? "true" : "false");
   });
 }
+// One mount sequence for every result surface (test result, live AI result,
+// canned fallback, language re-render): paint, animate the axis bars, wire the
+// restart / save-card / 女男 controls, then hand off to the social tally.
+// opts.submit → record a new tally row (only on a fresh, real result).
+function mountResult(container, result, cardPayload, opts) {
+  opts = opts || {};
+  const el = typeof container === "string" ? $(container) : container;
+  if (!el) return;
+  el.innerHTML = renderResultHTML(result);
+  requestAnimationFrame(() => {
+    el.querySelectorAll(".axis-fill").forEach(fill => {
+      fill.style.width = fill.dataset.target + "%";
+    });
+  });
+  el.querySelector("[data-action=restart]")?.addEventListener("click", () => {
+    if (result.fromTest) {
+      $("#test-result").style.display = "none";
+      $("#test-intro").style.display = "block";
+      updateResumeRow();
+    } else {
+      abortAnalyze();
+      el.innerHTML = "";
+      setModePill("live"); // nothing canned on screen any more
+      $("#ai-input").focus();
+    }
+  });
+  wireSaveCard(el, cardPayload);
+  wireGenderToggle(el);
+  // No-op when the social block was omitted (canned fallback) or PB is absent.
+  window.__mbtiSocial?.(result.type, L(result, "nickname"), "#" + el.id, { submit: !!opts.submit });
+}
+
+function testCardPayload(result) {
+  const meta = TYPES[result.type] || {};
+  return {
+    type: result.type,
+    nickname_ko: L(meta, "nickname"),
+    pull_quote: L(meta, "one_liner"),
+    fromTest: true,
+    testLength: result.testLength
+  };
+}
+
 function rerenderActivePanel() {
   const active = document.querySelector(".panel.active")?.id;
   if (active === "panel-test") {
     const rEl = $("#test-result");
     if (rEl && rEl.innerHTML.trim() && rEl.style.display !== "none" && state && state.lastResult) {
-      rEl.innerHTML = renderResultHTML(state.lastResult);
-      wireGenderToggle(rEl);
-      // Re-animate axis bars
-      requestAnimationFrame(() => {
-        $$("#test-result .axis-fill").forEach(fill => {
-          fill.style.width = fill.dataset.target + "%";
-        });
-      });
-      // Re-wire listeners
-      $("#test-result [data-action=restart]")?.addEventListener("click", () => {
-        $("#test-result").style.display = "none";
-        $("#test-intro").style.display = "block";
-      });
-      const meta = TYPES[state.lastResult.type] || {};
-      wireSaveCard($("#test-result"), {
-        type: state.lastResult.type,
-        nickname_ko: L(meta, "nickname"),
-        pull_quote: L(meta, "one_liner"),
-        fromTest: true,
-        testLength: state.lastResult.testLength
-      });
-      window.__mbtiSocial?.(state.lastResult.type, L(meta, "nickname"), "#test-result", { submit: false });
+      mountResult(rEl, state.lastResult, testCardPayload(state.lastResult), { submit: false });
     } else if (state && state.qIndex != null && typeof QUESTIONS !== "undefined" && QUESTIONS[state.qIndex]) {
       renderQuestion();
     }
+    updateResumeRow();
   } else if (active === "panel-gallery") {
     if ($("#gallery-grid")?.style.display !== "none") {
       showGalleryGrid();
@@ -2766,26 +2856,12 @@ function rerenderActivePanel() {
   } else if (active === "panel-ai") {
     const aEl = $("#ai-result");
     if (aEl && aEl.innerHTML.trim() && window.__lastAIResult) {
-      aEl.innerHTML = renderResultHTML(window.__lastAIResult);
-      wireGenderToggle(aEl);
-      // Re-animate axis bars
-      requestAnimationFrame(() => {
-        $$("#ai-result .axis-fill").forEach(fill => {
-          fill.style.width = fill.dataset.target + "%";
-        });
-      });
-      // Re-wire listeners
-      $("#ai-result [data-action=restart]")?.addEventListener("click", () => {
-        $("#ai-result").innerHTML = "";
-        $("#ai-input").focus();
-      });
       if (window.__lastAIResult._saveCardPayload) {
         // Refresh the card nickname to the current language; keep pull_quote
         // (it's a quote from the user's own input text, language-neutral).
         window.__lastAIResult._saveCardPayload.nickname_ko = L(window.__lastAIResult, "nickname");
-        wireSaveCard($("#ai-result"), window.__lastAIResult._saveCardPayload);
       }
-      window.__mbtiSocial?.(window.__lastAIResult.type, L(window.__lastAIResult, "nickname"), "#ai-result", { submit: false });
+      mountResult(aEl, window.__lastAIResult, window.__lastAIResult._saveCardPayload, { submit: false });
     }
   }
 }
@@ -2797,6 +2873,10 @@ function setLang(l) {
   document.documentElement.lang = LANG;
   syncLangToggle();
   applyStaticStrings();
+  // applyStaticStrings() resets the pill text to the live label; restore the
+  // fallback state if a canned example is what's currently on screen.
+  const aiShown = $("#ai-result")?.innerHTML.trim();
+  setModePill(aiShown && window.__lastAIResult && window.__lastAIResult.fromCanned ? "fallback" : "live");
   rerenderActivePanel();
 }
 document.addEventListener("click", (e) => {
@@ -2831,32 +2911,117 @@ $$(".tab").forEach(tab => {
 // ============================================================
 // TEST FLOW
 // ============================================================
-$$(".length-card").forEach(card => {
-  card.addEventListener("click", () => {
-    QUESTIONS = card.dataset.length === "full" ? QUESTIONS_FULL : QUESTIONS_QUICK;
-    state.testLength = card.dataset.length;
+// ---- progress persistence (sessionStorage) + history integration ----
+// Reload / back-swipe no longer wipes a half-finished 93-item test: every
+// answer is mirrored to sessionStorage and the intro offers "이어서 하기".
+const SS_PROGRESS = "vibe.korean-mbti.progress";
+function saveProgress() {
+  try {
+    sessionStorage.setItem(SS_PROGRESS, JSON.stringify({
+      testLength: state.testLength, qIndex: state.qIndex, answers: state.answers
+    }));
+  } catch (e) {}
+}
+function clearProgress() {
+  try { sessionStorage.removeItem(SS_PROGRESS); } catch (e) {}
+}
+function readProgress() {
+  let p = null;
+  try { p = JSON.parse(sessionStorage.getItem(SS_PROGRESS) || "null"); } catch (e) { p = null; }
+  if (!p || !Array.isArray(p.answers)) return null;
+  const list = p.testLength === "full" ? QUESTIONS_FULL : QUESTIONS_QUICK;
+  if (p.answers.length !== list.length) return null;
+  const answered = p.answers.filter(a => a === "a" || a === "b").length;
+  if (!answered || answered >= list.length) return null; // nothing to resume / already done
+  return { ...p, answered, total: list.length };
+}
+function updateResumeRow() {
+  const row = $("#resume-row");
+  if (!row) return;
+  const p = readProgress();
+  row.classList.toggle("active", !!p);
+  if (p) $("#resume-progress").textContent = `${p.answered} / ${p.total}`;
+}
+function startTest(length, resume) {
+  QUESTIONS = length === "full" ? QUESTIONS_FULL : QUESTIONS_QUICK;
+  state.testLength = length;
+  if (resume) {
+    state.answers = resume.answers.map(a => (a === "a" || a === "b") ? a : null);
+    // Land on the first unanswered question.
+    const firstBlank = state.answers.findIndex(a => a == null);
+    state.qIndex = firstBlank < 0 ? QUESTIONS.length - 1 : firstBlank;
+  } else {
     state.qIndex = 0;
     state.answers = new Array(QUESTIONS.length).fill(null);
-    $("#test-intro").style.display = "none";
-    $("#test-running").style.display = "block";
-    $("#test-result").style.display = "none";
-    renderQuestion();
+  }
+  $("#test-intro").style.display = "none";
+  $("#test-running").style.display = "block";
+  $("#test-result").style.display = "none";
+  // Own history entry per question so the browser Back button steps back one
+  // question instead of leaving the page (the intro stays as the base entry).
+  history.pushState({ mbtiQ: state.qIndex }, "");
+  renderQuestion({ push: false });
+}
+function goToQuestion(idx) {
+  state.qIndex = idx;
+  renderQuestion({ push: true });
+}
+$$(".length-card").forEach(card => {
+  card.addEventListener("click", () => {
+    clearProgress();
+    startTest(card.dataset.length, null);
   });
 });
+$("#resume-row [data-action=resume]").addEventListener("click", () => {
+  const p = readProgress();
+  if (p) startTest(p.testLength, p);
+});
+$("#resume-row [data-action=discard]").addEventListener("click", () => {
+  clearProgress();
+  updateResumeRow();
+});
+updateResumeRow();
 
-function renderQuestion() {
+window.addEventListener("popstate", (e) => {
+  const st = e.state;
+  const running = $("#test-running").style.display !== "none";
+  const resultShown = $("#test-result").style.display !== "none";
+  if (st && st.mbtiQ != null && QUESTIONS[st.mbtiQ] && state.answers.length === QUESTIONS.length) {
+    // Back from the result screen (or a later question) → that question.
+    $("#test-result").style.display = "none";
+    $("#test-intro").style.display = "none";
+    $("#test-running").style.display = "block";
+    state.qIndex = st.mbtiQ;
+    renderQuestion({ push: false });
+  } else if (st && st.mbtiResult && state.lastResult) {
+    $("#test-running").style.display = "none";
+    $("#test-result").style.display = "block";
+  } else if (!st && (running || resultShown)) {
+    // Popped past the first question → back to the intro; progress stays in
+    // sessionStorage so "이어서 하기" is offered.
+    $("#test-running").style.display = "none";
+    $("#test-result").style.display = "none";
+    $("#test-intro").style.display = "block";
+    updateResumeRow();
+  }
+});
+
+function renderQuestion(opts) {
+  opts = opts || {};
   const q = QUESTIONS[state.qIndex];
   if (!q) return showResult();
   const total = QUESTIONS.length;
   const idx = state.qIndex + 1;
   const prev = state.answers[state.qIndex]; // "a" | "b" | null
+  if (opts.push) history.pushState({ mbtiQ: state.qIndex }, "");
+  saveProgress();
   $("#q-counter").textContent = String(idx).padStart(2, "0") + " / " + String(total).padStart(2, "0");
   $("#q-axis").textContent = axisLabel(q.axis, "left").split(" · ")[0] + " · " + axisLabel(q.axis, "right").split(" · ")[0];
   $("#q-fill").style.width = (idx / total * 100) + "%";
 
   const isLast = state.qIndex === total - 1;
   $("#qcard").innerHTML = `
-    <div class="qprompt">${L(q, "prompt")}</div>
+    <div class="qprompt" tabindex="-1">${L(q, "prompt")}</div>
     <div class="qchoices">
       <button class="qchoice${prev === "a" ? " selected" : ""}" data-choice="a">
         <span class="marker">A</span>
@@ -2872,11 +3037,15 @@ function renderQuestion() {
       <button data-nav="forward" ${prev == null ? "disabled" : ""}>${isLast ? t("navSeeResult") : t("navNext")}</button>
     </div>
   `;
+  // Keep keyboard / screen-reader focus on the new prompt instead of letting it
+  // fall to <body> when the previous card's button is torn down.
+  $("#qcard .qprompt")?.focus({ preventScroll: opts.push === false && state.qIndex === 0 });
   $$("#qcard .qchoice").forEach(btn => {
     btn.addEventListener("click", () => {
       const choice = btn.dataset.choice;
       const wasUnanswered = state.answers[state.qIndex] == null;
       state.answers[state.qIndex] = choice;
+      saveProgress();
       $$("#qcard .qchoice").forEach(b => b.classList.toggle("selected", b === btn));
       const fwd = $("#qcard [data-nav=forward]");
       if (fwd) fwd.disabled = false;
@@ -2884,7 +3053,7 @@ function renderQuestion() {
       // revisiting a prior answer should let the user review before moving on.
       if (wasUnanswered) {
         if (state.qIndex < QUESTIONS.length - 1) {
-          setTimeout(() => { state.qIndex++; renderQuestion(); }, 140);
+          setTimeout(() => goToQuestion(state.qIndex + 1), 140);
         } else {
           setTimeout(showResult, 140);
         }
@@ -2892,11 +3061,11 @@ function renderQuestion() {
     });
   });
   $("#qcard [data-nav=back]")?.addEventListener("click", () => {
-    if (state.qIndex > 0) { state.qIndex--; renderQuestion(); }
+    if (state.qIndex > 0) goToQuestion(state.qIndex - 1);
   });
   $("#qcard [data-nav=forward]")?.addEventListener("click", () => {
     if (state.answers[state.qIndex] == null) return;
-    if (state.qIndex < QUESTIONS.length - 1) { state.qIndex++; renderQuestion(); }
+    if (state.qIndex < QUESTIONS.length - 1) goToQuestion(state.qIndex + 1);
     else showResult();
   });
 }
@@ -2918,23 +3087,35 @@ function computeType() {
     if (pick.letter === facet.leftLetter) f[q.facet].left += 1;
     else if (pick.letter === facet.rightLetter) f[q.facet].right += 1;
   });
-  const pick = (a, b) => s[a] >= s[b] ? a : b;
-  const type =
-    pick("E", "I") +
-    pick("S", "N") +
-    pick("T", "F") +
-    pick("J", "P");
+  // Tie-break: an even item split is resolved by which pole wins more of the
+  // axis's five facets. If the facets are even too, the axis is genuinely
+  // borderline — we still have to print a letter (the first pole), but flag it.
+  const borderline = {};
+  const pick = (a, b) => {
+    if (s[a] !== s[b]) return s[a] > s[b] ? a : b;
+    let fa = 0, fb = 0;
+    for (const [k, facet] of Object.entries(FACETS)) {
+      if (facet.leftLetter !== a && facet.rightLetter !== a) continue;
+      if (f[k].left === f[k].right) continue;
+      const winner = f[k].left > f[k].right ? facet.leftLetter : facet.rightLetter;
+      if (winner === a) fa++; else fb++;
+    }
+    if (fa !== fb) return fa > fb ? a : b;
+    borderline[a + b] = true;
+    return a;
+  };
   const conf = (a, b) => {
     const total = s[a] + s[b];
     if (!total) return 0.5;
     return Math.max(s[a], s[b]) / total;
   };
   state.axisConf = {
-    EI: { lean: pick("E", "I"), conf: conf("E", "I") },
-    SN: { lean: pick("S", "N"), conf: conf("S", "N") },
-    TF: { lean: pick("T", "F"), conf: conf("T", "F") },
-    JP: { lean: pick("J", "P"), conf: conf("J", "P") }
+    EI: { lean: pick("E", "I"), conf: conf("E", "I"), borderline: !!borderline.EI },
+    SN: { lean: pick("S", "N"), conf: conf("S", "N"), borderline: !!borderline.SN },
+    TF: { lean: pick("T", "F"), conf: conf("T", "F"), borderline: !!borderline.TF },
+    JP: { lean: pick("J", "P"), conf: conf("J", "P"), borderline: !!borderline.JP }
   };
+  const type = state.axisConf.EI.lean + state.axisConf.SN.lean + state.axisConf.TF.lean + state.axisConf.JP.lean;
   // Per-facet lean + confidence. For facets with no items answered (e.g. quick
   // mode covers each facet once but back-nav left it blank), confidence is 0.5
   // and lean defaults to the axis lean — keeps the UI coherent.
@@ -2980,52 +3161,40 @@ function showResult() {
     }
   }
   const total = QUESTIONS.length;
-  const lengthNote = state.testLength === "full"
-    ? `${total}문항 정밀 검사 — 4축과 20개 하위 결을 함께 봅니다.`
-    : `${total}문항 빠른 검사 — 인상 위주의 결과입니다. 더 정밀한 결은 93문항 검사 또는 AI 깊이 읽기에서.`;
+  // Both languages are baked in so a language toggle on the result screen can
+  // re-render through L() without recomputing anything.
+  const noteKey = state.testLength === "full" ? "lengthNoteFull" : "lengthNoteQuick";
+  const lengthNote = (lang) => STR[lang][noteKey].replace("{N}", String(total));
   state.lastResult = {
     type,
     nickname_ko: meta.nickname,
+    nickname_en: meta.nickname_en,
     one_liner_ko: meta.one_liner,
+    one_liner_en: meta.one_liner_en,
     axes: ["EI","SN","TF","JP"].map(k => {
       const a = state.axisConf[k];
       return {
         axis: AXIS_LABELS[k].left[0] + "/" + AXIS_LABELS[k].right[0],
         lean: a.lean,
         confidence: Math.round(a.conf * 100),
+        borderline: !!a.borderline,
         evidence_ko: "",
         facets: showFacets ? facetsByAxis[k] : null
       };
     }),
-    reading_ko: meta.one_liner + " — " + lengthNote,
+    reading_ko: meta.one_liner + " — " + lengthNote("ko"),
+    reading_en: meta.one_liner_en + " — " + lengthNote("en"),
     vibes_ko: meta.vibes,
+    vibes_en: meta.vibes_en,
     secondary_type: null,
     fromTest: true,
     testLength: state.testLength
   };
-  $("#test-result").innerHTML = renderResultHTML(state.lastResult);
-
-  // animate axis bars
-  requestAnimationFrame(() => {
-    $$("#test-result .axis-fill").forEach(fill => {
-      fill.style.width = fill.dataset.target + "%";
-    });
-  });
-
-  $("#test-result [data-action=restart]")?.addEventListener("click", () => {
-    $("#test-result").style.display = "none";
-    $("#test-intro").style.display = "block";
-  });
-  wireSaveCard($("#test-result"), {
-    type,
-    nickname_ko: meta.nickname,
-    pull_quote: meta.one_liner,
-    fromTest: true,
-    testLength: state.testLength
-  });
-  wireGenderToggle($("#test-result"));
-  // Submit + show the live type distribution (additive; no-op if unavailable).
-  window.__mbtiSocial?.(type, meta.nickname, "#test-result", { submit: true });
+  clearProgress();
+  updateResumeRow();
+  history.pushState({ mbtiResult: true }, "");
+  // Fresh real result → submit one row to the live type distribution.
+  mountResult($("#test-result"), state.lastResult, testCardPayload(state.lastResult), { submit: true });
 }
 
 // ============================================================
@@ -3101,7 +3270,7 @@ function renderResultHTML(r) {
             <span style="opacity:0.4">  ↔  </span>
             <span ${isRight ? 'class="selected"' : ''}>${right}</span>
           </span>
-          <span class="axis-conf">${a.confidence}%</span>
+          <span class="axis-conf">${a.borderline ? `<span class="axis-borderline">${t("borderline")}</span>` : ""}${a.confidence}%</span>
         </div>
         <div class="axis-track">
           <div class="axis-fill ${dir}" data-target="${a.confidence}" style="width:0%"></div>
@@ -3116,15 +3285,30 @@ function renderResultHTML(r) {
   const vibesHTML = vibes.map(v => `<span class="vibe">${escapeHTML(v)}</span>`).join("");
 
   const secondaryHTML = r.secondary_type
-    ? `<div class="secondary"><strong>${t("secondaryLabel")} ${r.secondary_type.type}</strong> — ${escapeHTML(L(r.secondary_type, "reasoning"))}</div>`
+    ? `<div class="secondary"><strong>${t("secondaryLabel")} ${escapeHTML(r.secondary_type.type)}</strong> — ${escapeHTML(L(r.secondary_type, "reasoning"))}</div>`
     : "";
 
   const testLengthLabel = r.testLength === "full" ? t("pillFull") : t("pillQuick");
+  // The client only knows the proxy's model *family*, never the exact
+  // version — so the live pill says "Sonnet", nothing more specific.
   const modeMeta = r.fromTest
     ? `<span class="pill">${testLengthLabel}</span>`
     : (r.fromCanned
-        ? `<span class="pill demo">${t("pillDemo")}</span>`
-        : `<span class="pill">CLAUDE · ${escapeHTML(r.modelLabel || "Sonnet 4.6")}</span>`);
+        ? `<span class="pill demo">${t("pillDemo")}</span><span class="meta-note">${t("fallbackNote")}</span>`
+        : `<span class="pill">CLAUDE · SONNET</span>`);
+
+  // A canned example isn't the reader's real result — don't invite them to
+  // compare it with everyone else's, and never count it in the tally.
+  const socialHTML = r.fromCanned ? "" : `
+      <div class="social is-loading" data-type="${escapeHTML(r.type)}">
+        <h3>
+          <span>${t("socialHeading")}</span>
+          <span class="lb-status off"><span class="dot">○</span><span class="lb-status-text">${t("socialLocal")}</span></span>
+        </h3>
+        <div class="rarity">${t("socialReading")}</div>
+        <div class="rarity-sub"></div>
+        <div class="dist">${renderDistSkeleton(r.type)}</div>
+      </div>`;
 
   const portraitHTML = renderPortrait(r.type, L(r, "nickname"));
 
@@ -3153,15 +3337,7 @@ function renderResultHTML(r) {
         ${secondaryHTML}
         ${vibesHTML ? `<div class="vibes">${vibesHTML}</div>` : ""}
       </div>
-      <div class="social is-loading" data-type="${escapeHTML(r.type)}">
-        <h3>
-          <span>${t("socialHeading")}</span>
-          <span class="lb-status off"><span class="dot">○</span><span class="lb-status-text">${t("socialLocal")}</span></span>
-        </h3>
-        <div class="rarity">${t("socialReading")}</div>
-        <div class="rarity-sub"></div>
-        <div class="dist">${renderDistSkeleton(r.type)}</div>
-      </div>
+      ${socialHTML}
       <div class="result-actions">
         <button class="btn card-btn" data-action="save-card">${t("saveCardBtn")}</button>
         <button class="btn secondary" data-action="restart">${r.fromTest ? t("restartTest") : t("restartAI")}</button>
@@ -3282,7 +3458,7 @@ function renderGalleryDetail(type) {
     <button class="gallery-back" data-action="gallery-back">${t("galleryBack")}</button>
     <div class="result">
       ${portraitHTML}
-      <div class="type-hero">
+      <div class="type-hero gallery-hero">
         <div class="code">${escapeHTML(type)}</div>
         <div class="nickname">${escapeHTML(L(meta, "nickname") || "")}</div>
       </div>
@@ -3314,22 +3490,50 @@ function wireSaveCard(rootEl, payload) {
     const original = btn.textContent;
     btn.disabled = true;
     btn.textContent = t("cardSaving");
+    const done = (label) => {
+      btn.textContent = label;
+      setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1600);
+    };
     try {
-      const url = await renderResultCard(payload);
+      const canvas = await renderResultCard(payload);
+      const blob = await new Promise((res, rej) => canvas.toBlob(b => b ? res(b) : rej(new Error("toBlob failed")), "image/png"));
+      const filename = `mbti-${payload.type.toLowerCase()}-card.png`;
+      const file = new File([blob], filename, { type: "image/png" });
+      // Phones: hand the PNG (plus a deep link back to this type) to the OS
+      // share sheet. Desktop / unsupported: fall back to a plain download.
+      const shareData = { files: [file], title: `MBTI · ${payload.type}`, url: typeDeepLink(payload.type) };
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share(shareData);
+          done(t("cardShared"));
+          return;
+        } catch (e) {
+          if (e && e.name === "AbortError") { done(original); return; } // user dismissed the sheet
+          // Any other share failure → download below.
+        }
+      }
+      const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `mbti-${payload.type.toLowerCase()}-card.png`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
-      btn.textContent = t("cardSaved");
-      setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1600);
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      done(t("cardSaved"));
     } catch (e) {
-      btn.textContent = t("cardFailed");
       console.error(e);
-      setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1600);
+      done(t("cardFailed"));
     }
   });
+}
+
+// Absolute URL that opens the 도감 detail for a type (see the ?type= handler in INIT).
+function typeDeepLink(type) {
+  const u = new URL(location.href);
+  u.search = "?type=" + encodeURIComponent(type);
+  u.hash = "";
+  return u.toString();
 }
 
 // 女/男 portrait toggle on the result hero — flips the watercolor set and
@@ -3491,7 +3695,7 @@ async function renderResultCard(payload) {
   ctx.arc(W / 2, 988, 3, 0, Math.PI * 2);
   ctx.fill();
 
-  return c.toDataURL("image/png");
+  return c;
 }
 
 function loadImage(src) {
@@ -3611,6 +3815,7 @@ document.querySelectorAll("[data-sample]").forEach(btn => {
   btn.addEventListener("click", () => {
     const k = btn.dataset.sample;
     if (k === "clear") {
+      abortAnalyze();
       aiInput.value = "";
     } else {
       const langKey = k + "_" + LANG;
@@ -3668,7 +3873,7 @@ updateCounter();
     recording = true;
     btn.classList.add("recording");
     btn.setAttribute("aria-pressed", "true");
-    label.textContent = "멈추기";
+    label.textContent = t("micStop");
     setHint(t("micListening"), "recording");
   }
 
@@ -3710,7 +3915,7 @@ updateCounter();
     recording = false;
     btn.classList.remove("recording");
     btn.setAttribute("aria-pressed", "false");
-    label.textContent = "말하기";
+    label.textContent = t("micLabel");
     aiInput.classList.remove("has-interim");
     if (!hint.classList.contains("error")) setHint("");
   };
@@ -3722,7 +3927,35 @@ updateCounter();
 
 $("#btn-analyze").addEventListener("click", runAnalyze);
 
+// The mode pill tells the truth about what the reader is looking at:
+// "live" while the proxy answers, "fallback" (rust) once a canned example
+// has been substituted for a failed live read.
+function setModePill(mode) {
+  const pill = $("#mode-pill");
+  const txt = $("#mode-pill-text");
+  if (!pill || !txt) return;
+  pill.classList.toggle("live", mode === "live");
+  pill.classList.toggle("fallback", mode === "fallback");
+  txt.textContent = mode === "fallback" ? t("modeFallback") : t("modeLive");
+}
+
+// One in-flight read at a time. The AbortController lets "지우고 다시" / the
+// 비우기 chip cancel a pending proxy call instead of racing its result.
+let analyzeBusy = false;
+let analyzeAbort = null;
+function abortAnalyze() {
+  if (analyzeAbort) { analyzeAbort.abort(); analyzeAbort = null; }
+  setAnalyzeBusy(false);
+}
+function setAnalyzeBusy(on) {
+  analyzeBusy = on;
+  $("#btn-analyze").disabled = on;
+  $("#loading-bar").classList.toggle("active", on);
+  $("#stage-label").classList.toggle("active", on);
+}
+
 async function runAnalyze() {
+  if (analyzeBusy) return;
   const text = $("#ai-input").value.trim();
   if (text.length < 80) {
     showError(t("errTooShort"));
@@ -3730,20 +3963,18 @@ async function runAnalyze() {
   }
   $("#error").classList.remove("active");
   $("#ai-result").innerHTML = "";
-  $("#loading-bar").classList.add("active");
-  $("#stage-label").classList.add("active");
+  setModePill("live");
+  const ctrl = new AbortController();
+  analyzeAbort = ctrl;
+  setAnalyzeBusy(true);
 
   try {
-    // Live mode: always call proxy. No canned fallback.
-    const modelLabel = "Sonnet 4.6 (Bedrock)";
-    const result = await callClaude(text);
-    $("#loading-bar").classList.remove("active");
-    $("#stage-label").classList.remove("active");
+    const result = await callClaude(text, ctrl.signal);
+    if (ctrl.signal.aborted) return;
     const pullQuote = pickPullQuote(text, result);
     window.__lastAIResult = {
       ...result,
       fromCanned: false,
-      modelLabel,
       _saveCardPayload: {
         type: result.type,
         nickname_ko: result.nickname_ko,
@@ -3751,31 +3982,20 @@ async function runAnalyze() {
         fromTest: false
       }
     };
-    $("#ai-result").innerHTML = renderResultHTML(window.__lastAIResult);
-    requestAnimationFrame(() => {
-      $$("#ai-result .axis-fill").forEach(fill => {
-        fill.style.width = fill.dataset.target + "%";
-      });
-    });
-    $("#ai-result [data-action=restart]")?.addEventListener("click", () => {
-      $("#ai-result").innerHTML = "";
-      $("#ai-input").focus();
-    });
-    wireSaveCard($("#ai-result"), window.__lastAIResult._saveCardPayload);
-    wireGenderToggle($("#ai-result"));
-    window.__mbtiSocial?.(result.type, L(window.__lastAIResult, "nickname"), "#ai-result", { submit: true });
+    // Fresh live result → one tally row.
+    mountResult($("#ai-result"), window.__lastAIResult, window.__lastAIResult._saveCardPayload, { submit: true });
   } catch (e) {
-    $("#loading-bar").classList.remove("active");
-    $("#stage-label").classList.remove("active");
-    // Canned-first ethos: if the live proxy is busy/unavailable (429/503/etc),
-    // fall back to a canned deep-read rather than dead-ending on an error.
+    if (ctrl.signal.aborted || (e && e.name === "AbortError")) return; // cancelled on purpose
+    console.warn("[MBTI] live read failed → canned example:", e && (e.detail || e.message));
+    // Canned-first ethos: if the live proxy is busy/unavailable (429/503/etc)
+    // or returned something the validator rejected, fall back to a canned
+    // deep-read — clearly labelled — rather than dead-ending on an error.
     try {
       const canned = pickCanned(text);
       const pullQuote = pickPullQuote(text, canned);
       window.__lastAIResult = {
         ...canned,
         fromCanned: true,
-        modelLabel: "데모 모드",
         _saveCardPayload: {
           type: canned.type,
           nickname_ko: canned.nickname_ko,
@@ -3783,18 +4003,16 @@ async function runAnalyze() {
           fromTest: false
         }
       };
-      $("#ai-result").innerHTML = renderResultHTML(window.__lastAIResult);
-      requestAnimationFrame(() => {
-        $$("#ai-result .axis-fill").forEach(fill => { fill.style.width = fill.dataset.target + "%"; });
-      });
-      $("#ai-result [data-action=restart]")?.addEventListener("click", () => {
-        $("#ai-result").innerHTML = ""; $("#ai-input").focus();
-      });
-      wireSaveCard($("#ai-result"), window.__lastAIResult._saveCardPayload);
-      wireGenderToggle($("#ai-result"));
+      setModePill("fallback");
+      // Example result: no social block, nothing submitted.
+      mountResult($("#ai-result"), window.__lastAIResult, window.__lastAIResult._saveCardPayload, { submit: false });
     } catch (e2) {
       showError(e.message || t("errGeneric"));
     }
+  } finally {
+    // Only the call that still owns the controller may clear the busy state —
+    // an aborted call must not stomp on a newer one.
+    if (analyzeAbort === ctrl) { analyzeAbort = null; setAnalyzeBusy(false); }
   }
 }
 
@@ -3822,7 +4040,7 @@ function showError(msg) {
 // ============================================================
 // CLAUDE PROMPT — domain-tuned per CLAUDE.md methodology
 // ============================================================
-async function callClaude(narrative) {
+async function callClaude(narrative, signal) {
   const SYS_KO = `<role>
 You are a Korean MBTI culture interpreter trained on the 어세스타(Assesta) Step II / Form Q facet system. You read free-form Korean text — 일기, 카톡, SNS — and infer the writer's 4-letter type AND the lean on all 20 하위척도 (subscales / facets) the way a Step II 결과지 would report them. You are NOT translating Western personality clichés; you are reading the writer the way a 한국MBTI연구소-trained 검사 해석자 would, in current Korean MBTI culture's natural register.
 </role>
@@ -4233,9 +4451,10 @@ Now read the user's text and return the result via the mbti_result tool.`;
     }
   };
 
-  const pow = await solveProxyPoW();
+  const pow = await solveProxyPoW(signal);
   const res = await fetch(CLAUDE_PROXY + "/api/claude", {
     method: "POST",
+    signal,
     headers: { "Content-Type": "application/json", ...pow },
     body: JSON.stringify({
       model: "sonnet",
@@ -4256,9 +4475,48 @@ Now read the user's text and return the result via the mbti_result tool.`;
   const tu = (data.content || []).find(b => b.type === "tool_use" && b.name === "mbti_result");
   if (!tu || !tu.input || typeof tu.input !== "object") {
     console.warn("[MBTI] AI returned no tool_use block | stop:", data.stop_reason);
-    throw new Error("구조화된 응답을 받지 못했습니다.");
+    throw new Error(t("errBadShape"));
   }
-  return tu.input;
+  return validateAIResult(tu.input);
+}
+
+// The tool schema constrains shape, not semantics — a model can still emit a
+// non-canonical type or a lean that isn't on its axis. Anything the renderer
+// or the tally would trust must pass here; failure routes to the canned
+// fallback (with the honest DEMO label) instead of painting garbage.
+function validateAIResult(r) {
+  const bad = (why) => { const e = new Error(t("errBadShape")); e.detail = why; return e; };
+  if (!r || typeof r !== "object") throw bad("not an object");
+  if (typeof r.type !== "string" || !TYPES[r.type]) throw bad("type " + r.type);
+  if (!Array.isArray(r.axes) || r.axes.length !== 4) throw bad("axes length");
+  const seen = new Set();
+  for (const a of r.axes) {
+    if (!a || typeof a.axis !== "string") throw bad("axis missing");
+    const sides = a.axis.split("/");
+    if (sides.length !== 2 || !["E/I", "S/N", "T/F", "J/P"].includes(a.axis)) throw bad("axis " + a.axis);
+    if (seen.has(a.axis)) throw bad("duplicate axis " + a.axis);
+    seen.add(a.axis);
+    if (!sides.includes(a.lean)) throw bad("lean " + a.lean + " not on " + a.axis);
+    a.confidence = Number(a.confidence);
+    if (!Number.isFinite(a.confidence)) throw bad("confidence");
+    a.confidence = Math.max(0, Math.min(100, Math.round(a.confidence)));
+    if (a.facets != null) {
+      if (!Array.isArray(a.facets)) throw bad("facets");
+      for (const f of a.facets) {
+        if (!f || typeof f !== "object" || (f.lean !== "L" && f.lean !== "R")) throw bad("facet lean");
+        f.confidence = Number(f.confidence);
+        if (!Number.isFinite(f.confidence)) throw bad("facet confidence");
+      }
+    }
+  }
+  // The letters must agree with the axes they came from.
+  const composed = r.axes.map(a => a.lean).join("");
+  if (composed !== r.type) throw bad("type " + r.type + " != axes " + composed);
+  if (r.secondary_type != null) {
+    if (typeof r.secondary_type !== "object" || !TYPES[r.secondary_type.type]) throw bad("secondary_type");
+  }
+  if (r.vibes_ko != null && !Array.isArray(r.vibes_ko)) throw bad("vibes");
+  return r;
 }
 
 // ============================================================
@@ -4272,6 +4530,15 @@ window.__mbtiI18n = {
   lang: () => LANG,
   order: MBTI_ORDER,
 };
+
+// ?type=INFP deep link (shared cards point here) → open that type in the 도감.
+(function openDeepLink() {
+  const raw = new URLSearchParams(location.search).get("type");
+  const type = raw ? raw.trim().toUpperCase() : "";
+  if (!TYPES[type]) return;
+  $("#tab-gallery").click();
+  showGalleryDetail(type);
+})();
 </script>
 
 <script type="module">
@@ -4407,7 +4674,12 @@ window.__mbtiI18n = {
     // rarity line
     const rarityEl = root.querySelector(".rarity");
     const subEl = root.querySelector(".rarity-sub");
-    if (total <= 0) {
+    if (!connected) {
+      // A one-device tally can only ever say "100% saw the same result" — not a
+      // rarity claim worth printing. Leave the bars + the 로컬 집계 status only.
+      if (rarityEl) rarityEl.textContent = "";
+      if (subEl) subEl.textContent = "";
+    } else if (total <= 0) {
       // No data anywhere yet — keep it honest, don't fake a percentage.
       if (rarityEl) {
         rarityEl.textContent = "";
@@ -4474,7 +4746,9 @@ window.__mbtiI18n = {
   window.__mbtiSocial = async function (type, nickname, rootSel, opts) {
     opts = opts || {};
     const root = document.querySelector(`${rootSel} .social`);
-    if (!root || !type) return;
+    // Same validation gate as the renderer: only a canonical 4-letter type may
+    // be tallied or written to PocketBase.
+    if (!root || !type || !ORDER.includes(String(type))) return;
 
     // Warm first paint from whatever local tally we have (incl. this result).
     let localTally = readLocalTally();
