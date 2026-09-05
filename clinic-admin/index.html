@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>한방병원 행정 도구함 — Clinic Admin Toolkit</title>
-  <meta name="description" content="한방병원 행정원장을 위한 6개 탭 도구함. 파일을 올리면 변환·검증·다운로드까지 브라우저 안에서 완료됩니다.">
+  <meta name="description" content="한방병원 행정원장을 위한 10개 탭 도구함. 파일을 올리면 변환·검증·다운로드까지 브라우저 안에서 완료됩니다.">
 
   <link rel="icon" type="image/svg+xml" href="icon.svg">
   <link rel="apple-touch-icon" href="icon.svg">
@@ -19,8 +19,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Noto+Serif+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-  <!-- SheetJS for client-side .xlsx parsing — pinned, integrity-free CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
+  <!-- SheetJS 0.18.5 (Apache-2.0) — vendored in ./vendor so the file tools work offline; LICENSE sits next to it -->
+  <script src="./vendor/xlsx.full.min.js" defer onerror="document.documentElement.dataset.xlsxFailed='1'"></script>
 
   <style>
     :root {
@@ -455,12 +455,12 @@
       display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px;
       padding-top: 14px; border-top: 1px solid var(--line-2);
     }
-    .intake-add input {
+    .intake-add input, .intake-add select {
       font-family: "Inter", sans-serif; font-size: 13px;
       padding: 8px 10px; border: 1px solid var(--line); border-radius: 5px;
       background: rgba(255,255,255,0.6); color: var(--ink);
     }
-    .intake-add input#intake-name { flex: 0 0 150px; }
+    .intake-add select#intake-name { flex: 0 0 150px; }
     .intake-add input#intake-summary { flex: 1 1 200px; }
     .intake-add .pc-btn { flex: 0 0 auto; }
     .intake-add .pc-btn:disabled { opacity: 0.5; cursor: default; }
@@ -1447,6 +1447,16 @@
       text-align: center;
       padding: 60px 0;
     }
+    /* Source label at the top of every result — canned output must never pass as live */
+    .ai-output .ai-note {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--celadon-2);
+      margin-bottom: 12px;
+    }
+    .ai-output .ai-note.live { color: var(--accent); }
     .ai-output h5 {
       font-family: "JetBrains Mono", monospace;
       font-size: 10px;
@@ -1696,21 +1706,27 @@
       transition: width .4s cubic-bezier(.2,.8,.2,1);
     }
 
-    /* Print stylesheet — collapse interactive UI, render printable summary */
+    /* Print — only the active panel, as one flowing document. The locked
+       shell (100dvh + overflow:hidden on body/.work-col/.work-scroll) is
+       undone here, otherwise everything past the first screen is clipped. */
     @media print {
-      header.app .privacy-pill, .tabs, .sync-strip, .demo-strip,
-      .drop, .drop-actions, .item-search, .btn, .ghost, .filter-chip,
-      .ai-input .model-toggle, .key-prompt, .wipe-btn { display: none !important; }
-      body { background: white !important; color: black !important; }
+      body, body.shell-v2 { overflow: visible !important; height: auto !important; background: white !important; color: black !important; }
       body::before { display: none !important; }
-      .panel { display: block !important; page-break-after: always; padding: 0 0 24px; }
+      .frame.shell { display: block !important; height: auto !important; max-width: none; padding: 12px; }
+      .work-col, .work-scroll { display: block !important; height: auto !important; overflow: visible !important; max-width: none; padding: 0; }
+      .rail, .rail-scrim, .topbar, .toast-tray, .palette-scrim, .welcome-scrim, .lightbox,
+      .install-nudge, .intake-board, .demo-strip, .drop, .drop-actions, .item-search,
+      .btn, .ghost, .filter-chip, .ai-input .model-toggle, .result-toolbar .actions,
+      .lic-actions, .lic-add, .accred-link { display: none !important; }
+      .panel { display: none !important; }
+      .panel.active { display: block !important; padding: 0 0 24px !important; }
       .panel-head, .panel-blurb { color: black !important; }
       .card { background: white !important; border: 1px solid #ccc !important; box-shadow: none !important; }
       .card::before { display: none !important; }
+      .result { max-height: none !important; overflow: visible !important; }
       table { font-size: 10px; }
       th { background: #eee !important; color: black !important; }
       tbody tr:hover { background: white !important; }
-      .frame { max-width: none; padding: 12px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -2651,11 +2667,11 @@
       <div class="eyebrow">Vibe Studio · Demo</div>
       <h2 id="welcome-title">엑셀과 포스트잇으로 하던 일,<br>여기서 <em>한 번에</em> 끝냅니다.</h2>
       <p class="deck">
-        매달 반복되는 <strong>자보 청구·삭감 추적</strong>, 반기마다 닥치는 <strong>비급여 보고</strong>, 늘 잊을 뻔하는 <strong>면허 만료일</strong>. 행정원장의 하루를 잡아먹는 그 일들을 <strong>한 페이지</strong>에 묶었습니다. 환자 정보는 이 브라우저 밖으로 한 발짝도 나가지 않습니다.
+        매달 반복되는 <strong>자보 청구·삭감 추적</strong>, 반기마다 닥치는 <strong>비급여 보고</strong>, 늘 잊을 뻔하는 <strong>면허신고 기한</strong>. 행정원장의 하루를 잡아먹는 그 일들을 <strong>한 페이지</strong>에 묶었습니다. 파일 변환·검증·양식은 이 브라우저 안에서 끝납니다 — 예외는 두 곳뿐입니다. <strong>AI 탭</strong>의 메모는 코드 추천을 위해 외부 AI 서버(ai.pb.gurum.se)로 전송되고(저장되지 않음), <strong>접수 보드</strong>는 공유 PocketBase에 기록되는 공개 데모입니다. 두 곳 모두 실제 환자 정보는 입력하지 마세요.
       </p>
       <ul class="demo-list">
         <li><strong>AI</strong>가 진료 메모를 읽고 <em>코드를 골라줍니다</em> — 30분 → 3분</li>
-        <li><strong>카메라</strong>로 면허증을 찍으면 <em>만료일이 자동입력</em>됩니다</li>
+        <li><strong>카메라</strong>로 면허증을 찍으면 <em>면허신고 기한이 자동입력</em>됩니다</li>
         <li><strong>마감일</strong>이 한 화면에 모이고, 일정앱으로 바로 내려받습니다</li>
         <li>청구·지급 차이가 한눈에 보여 <em>삭감 사유</em>를 빨리 잡습니다</li>
         <li>비급여·연말정산 보고 파일을 <em>형식 맞춰</em> 만들어드립니다</li>
@@ -2679,9 +2695,9 @@
     <div class="palette" id="palette">
       <div class="palette-input-row">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" id="palette-input" placeholder="이동 · 검색 · 시연 — 무엇이든 입력하세요" autocomplete="off">
+        <input type="text" id="palette-input" placeholder="이동 · 검색 · 시연 — 무엇이든 입력하세요" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="palette-results" aria-autocomplete="list">
       </div>
-      <div class="palette-results" id="palette-results"></div>
+      <div class="palette-results" id="palette-results" role="listbox" aria-label="명령 팔레트 결과"></div>
       <div class="palette-foot">
         <span><kbd>↑</kbd> <kbd>↓</kbd> 이동</span>
         <span><kbd>⏎</kbd> 선택</span>
@@ -2741,6 +2757,7 @@
         <button class="rail-btn" id="rail-info">ⓘ 정보 · 출처</button>
         <button class="rail-btn" id="rail-demo">▶ 둘러보기 다시 열기</button>
         <button class="rail-btn" id="rail-cmdk">⌕ 명령 팔레트 ⌘K</button>
+        <button class="rail-btn" id="wipe-all" title="이 브라우저에서 모든 입력·기록·첨부 사진을 지웁니다">⌫ 전체 초기화</button>
       </div>
     </aside>
 
@@ -2759,11 +2776,10 @@
       </div>
 
       <!-- Legacy outer shell removed — replaced by left rail + topbar above.
-           Hidden DOM nodes kept so SyncStatus + wipe-all keep working. -->
+           Hidden DOM nodes kept so SyncStatus keeps working. -->
       <div style="display:none">
         <span id="sync-broadcast"><span class="led live"></span></span>
         <span id="sync-saved">마지막 저장 <strong id="sync-when">—</strong></span>
-        <button id="wipe-all" title="이 브라우저에서 모든 입력·기록을 지웁니다">전체 초기화</button>
       </div>
 
       <div class="work-scroll" id="work-scroll">
@@ -2781,7 +2797,7 @@
         </div>
       </div>
       <p class="panel-blurb">
-        면허 만료, 반기보고 마감, 인증평가 — <em>잊은 순간</em>이 곧 사고입니다. 어제 하다 만 정산표도 다시 찾기 어렵죠. 출근하면 이 화면을 먼저 봐주세요. <em>오늘 챙길 마감</em>과 <em>이어할 작업</em>이 항상 위에 떠 있습니다.
+        면허신고 기한, 반기보고 마감, 인증평가 — <em>잊은 순간</em>이 곧 사고입니다. 어제 하다 만 정산표도 다시 찾기 어렵죠. 출근하면 이 화면을 먼저 봐주세요. <em>오늘 챙길 마감</em>과 <em>이어할 작업</em>이 항상 위에 떠 있습니다.
       </p>
 
       <div class="install-nudge" id="install-nudge" role="region" aria-label="앱 설치 안내">
@@ -2792,7 +2808,7 @@
           <path d="M9 11l3 3 3-3"/>
         </svg>
         <div class="copy">
-          <strong>홈 화면에 추가하면 더 빨라집니다</strong> — 한 번 탭으로 열리고, 오프라인에서도 동작해요. 행정실 데스크톱·외근용 휴대폰 모두 가능합니다.
+          <strong>홈 화면에 추가하면 더 빨라집니다</strong> — 한 번 탭으로 열리고, 대시보드·양식은 오프라인에서도 동작해요 (AI·OCR·공유 접수 보드는 온라인 필요). 행정실 데스크톱·외근용 휴대폰 모두 가능합니다.
         </div>
         <div class="actions">
           <button type="button" class="btn" id="install-nudge-open">설치 방법 보기</button>
@@ -2804,7 +2820,7 @@
       <div class="intake-board" id="intake-board" role="region" aria-label="실시간 접수 현황판">
         <div class="board-head">
           <h4><span class="step">★</span> 실시간 접수 현황판</h4>
-          <span class="intake-pill" title="이 현황판은 가상의 예시 환자 데이터입니다. 실제 진료기록이 아닙니다.">데모 · 예시 데이터</span>
+          <span class="intake-pill" title="이 현황판은 공유 PocketBase(clinic-admin.pb.gurum.se)에 기록되는 공개 데모 보드입니다. 환자명은 고정된 가상 이름만 선택할 수 있으며, 실제 진료기록이 아닙니다.">공유 보드 — 실명 입력 불가</span>
           <span class="intake-sync" id="intake-sync"><span class="dot">○</span><span id="intake-sync-text">로컬 — 이 기기에서만</span></span>
         </div>
         <div class="intake-cols">
@@ -2822,10 +2838,20 @@
           </div>
         </div>
         <div class="intake-add">
-          <input type="text" id="intake-name" maxlength="40" placeholder="예시 환자명" autocomplete="off" aria-label="예시 환자명">
-          <input type="text" id="intake-summary" maxlength="200" placeholder="간단 메모 (예: 요통 초진)" autocomplete="off" aria-label="접수 메모">
+          <select id="intake-name" aria-label="예시 환자명 (가상 이름만 선택 가능)">
+            <option value="예시 환자">예시 환자</option>
+            <option value="김민서">김민서</option>
+            <option value="이준호">이준호</option>
+            <option value="박서연">박서연</option>
+            <option value="정우진">정우진</option>
+            <option value="최하은">최하은</option>
+            <option value="강도윤">강도윤</option>
+            <option value="윤지아">윤지아</option>
+            <option value="임시우">임시우</option>
+          </select>
+          <input type="text" id="intake-summary" maxlength="120" placeholder="간단 메모 (예: 요통 초진)" autocomplete="off" aria-label="접수 메모">
           <button type="button" class="pc-btn advance" id="intake-add-btn">+ 접수 추가</button>
-          <p class="add-note" id="intake-add-note">다른 기기·탭에서 열어두면 추가·상태변경이 즉시 동기화됩니다. 예시 데이터만 사용하세요.</p>
+          <p class="add-note" id="intake-add-note">공개 공유 보드입니다 — 다른 기기·탭에서 열어두면 추가·상태변경이 즉시 동기화됩니다. 환자명은 가상 이름만 선택할 수 있고, 메모에도 실제 환자 정보를 쓰지 마세요.</p>
         </div>
       </div>
 
@@ -2899,7 +2925,7 @@
         진단코드 하나가 옛날 형식이거나 빠지면 청구가 통째로 반려됩니다. EMR에서 뽑은 진단 대장을 올려두기만 하면 — <em>옛날 코드는 표준형으로</em>, <em>중복은 정리</em>, <em>빠진 한방 보조코드는 표시</em>. 청구 누르기 전 5분의 점검이 한 달 매출을 지킵니다.
       </p>
       <div class="demo-strip">
-        <span class="demo-label">처음이신가요? <strong>한방 다빈도 8건</strong>(요통·오십견·염좌 등)으로 정비 결과를 미리 보실 수 있습니다.</span>
+        <span class="demo-label">처음이신가요? <strong>한방 다빈도 9건</strong>(요통·오십견·염좌 등)으로 정비 결과를 미리 보실 수 있습니다.</span>
         <button type="button" class="demo-cta" data-action="run-kcd"><span class="play">▶</span> 샘플로 시연</button>
       </div>
 
@@ -3033,6 +3059,7 @@
               <strong>0건</strong> 행위 · 청구 <strong>0원</strong> · 지급 <strong>0원</strong> · 삭감률 <strong>0%</strong>
             </div>
             <div class="actions">
+              <button class="btn secondary" id="jabo-new" title="환자·청구 정보와 행위 목록을 비우고 새 케이스를 시작합니다">새 케이스</button>
               <button class="btn" id="jabo-download" disabled>
                 정산표 XLSX <span class="arrow">↓</span>
               </button>
@@ -3061,7 +3088,7 @@
         </div>
       </div>
       <p class="panel-blurb">
-        매년 1월이면 <em>현금결제 비급여</em>·<em>간소화 누락분</em>을 챙겨달라는 환자 전화가 쏟아집니다. 진료기록을 올려두면 — 주민번호 자릿수, 금액 부호, 환자별 합계까지 자동 검증해서 <em>홈택스에 그대로 올리는 파일</em>로 만들어드립니다. 한 명씩 손으로 정리하던 오후 한 나절을 돌려드립니다.
+        매년 1월이면 <em>현금결제 비급여</em>·<em>간소화 누락분</em>을 챙겨달라는 환자 전화가 쏟아집니다. 진료기록을 올려두면 — 주민번호 자릿수, 금액 부호, 환자별 합계까지 자동 검증해서 <em>홈택스 제출용 정리 CSV</em>(형식 확인 필요)로 만들어드립니다. 한 명씩 손으로 정리하던 오후 한 나절을 돌려드립니다.
       </p>
       <div class="demo-strip">
         <span class="demo-label">3명 환자 · <strong>5건 진료</strong> — PCC 누락분과 환자 요청분을 합쳐 일괄제출 형식으로 변환하는 흐름을 미리 보실 수 있습니다.</span>
@@ -3369,7 +3396,7 @@
         <span class="panel-num">07 · AI 코딩 어시스트</span>
         <h3>코드 찾는 시간 30분 → <em>3분</em></h3>
         <div class="badges">
-          <span class="badge live"><span id="ai-mode-badge">데모 모드</span></span>
+          <span class="badge live"><span id="ai-mode-badge">예시 모드</span></span>
           <span class="badge">Claude AI · 한국어 그대로</span>
         </div>
       </div>
@@ -3393,12 +3420,19 @@
             </div>
             <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;">
               <button class="btn" id="ai-run">코드 추천 <span class="arrow">→</span></button>
+              <div class="model-toggle" id="ai-source" role="group" aria-label="추천 방식" style="margin-top:0">
+                <button type="button" data-source="live" class="active" title="메모를 외부 AI 서버로 보내 실제 추천을 받습니다">라이브</button>
+                <button type="button" data-source="canned" title="브라우저 안에서만 동작하는 규칙 기반 예시 결과">예시</button>
+              </div>
             </div>
+            <p class="caveat" id="ai-privacy" style="margin-top:10px">
+              ※ <em>라이브</em>에서는 이 메모가 외부 AI 서버(ai.pb.gurum.se)로 전송됩니다 — 서버에 저장되지 않고, 이 브라우저에도 남기지 않습니다. <strong>실제 환자 정보는 입력하지 마세요.</strong> <em>예시</em>는 아무것도 전송하지 않습니다.
+            </p>
           </div>
         </div>
 
         <div class="card">
-          <h4><span class="step">02</span> 추천 결과 <span id="ai-mode-pill" class="ai-mode-pill">데모 모드</span></h4>
+          <h4><span class="step">02</span> 추천 결과 <span id="ai-mode-pill" class="ai-mode-pill">예시 모드</span></h4>
           <div class="ai-output" id="ai-output">
             <div class="placeholder">메모를 입력하고 <em>코드 추천</em>을 누르면 결과가 여기에 표시됩니다.</div>
           </div>
@@ -3415,14 +3449,14 @@
     <section class="panel" id="tab-license" role="tabpanel">
       <div class="panel-head">
         <span class="panel-num">08 · 면허·자격 갱신</span>
-        <h3>"<em>다음달이 만료</em>예요" — 그 전화, 이제 안 옵니다</h3>
+        <h3>"<em>다음달이 신고 기한</em>이에요" — 그 전화, 이제 안 옵니다</h3>
         <div class="badges">
           <span class="badge law">의료법 §25 · §30</span>
           <span class="badge">한의사 3년 · 간호사 3년 · 보수교육 매년</span>
         </div>
       </div>
       <p class="panel-blurb">
-        면허·보수교육 마감은 직원마다 다 다른 날짜입니다. 50명이 넘어가면 머리로는 못 외우고, 한 명만 놓쳐도 <em>행정처분</em>이 됩니다. 명부에 한 번 등록해두면 — 6개월 전부터 자동 알림, 면허증 사진을 찍으면 <em>만료일을 자동으로 읽어 입력</em>합니다.
+        의료인 면허는 만료되지 않지만, <em>면허신고</em>(의료법 §25)는 사람마다 다른 날짜로 3년마다 돌아옵니다 — 마지막 신고일 + 3년. 50명이 넘어가면 머리로는 못 외우고, 한 명만 놓쳐도 <em>행정처분</em>이 됩니다. 명부에 신고일만 등록해두면 — 기한을 자동 계산하고 6개월 전부터 알림, 면허증 사진을 찍으면 <em>날짜를 자동으로 읽어 입력</em>합니다.
       </p>
 
       <div class="card">
@@ -3449,20 +3483,21 @@
             <input id="lic-name" type="text" placeholder="홍길동">
           </div>
           <div class="field">
-            <label>면허 만료일</label>
-            <input id="lic-expiry" type="date">
+            <label>최근 면허신고일 <span style="color:var(--faint);font-weight:400">(기한 = +3년)</span></label>
+            <input id="lic-reported" type="date">
           </div>
           <div class="field">
             <label>보수교육 마감</label>
             <input id="lic-cme" type="date">
           </div>
           <button class="btn" id="lic-add-btn">추가</button>
+          <button class="btn secondary" id="lic-cancel" style="display:none">취소</button>
         </div>
 
         <div class="result-toolbar" style="margin-top:18px">
-          <div class="summary" id="lic-summary">총 0명 · 만료 임박 0명</div>
+          <div class="summary" id="lic-summary">총 0명 · 기한 임박 0명</div>
           <div class="actions">
-            <button class="btn secondary" id="lic-ics">만료일 .ics <span class="arrow">↓</span></button>
+            <button class="btn secondary" id="lic-ics">신고기한 .ics <span class="arrow">↓</span></button>
             <button class="btn secondary" id="lic-share">공유 <span class="arrow">↗</span></button>
             <button class="btn secondary" id="lic-sample">샘플 5명 채우기</button>
           </div>
@@ -3531,7 +3566,8 @@
         <h5 style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">안내</h5>
         <p style="font-size:13px;line-height:1.6;color:var(--ink-2);margin-bottom:18px">
           본 도구는 행정 보조용이며, 최종 청구·제출 전 원본 고시·매뉴얼을 반드시 확인하십시오.<br>
-          모든 처리는 브라우저 내에서만 이루어지며, 환자정보·주민등록번호 등은 외부로 전송되지 않습니다.
+          파일 변환·검증·양식 처리는 브라우저 안에서만 이루어지며, 업로드한 엑셀·주민등록번호는 외부로 전송되지 않습니다.<br>
+          예외 두 곳 — <strong>AI 코딩 어시스트</strong> 탭의 메모는 코드 추천을 위해 외부 AI 서버(ai.pb.gurum.se)로 전송됩니다 (서버에 저장되지 않고, 이 브라우저에도 남기지 않습니다). <strong>실시간 접수 현황판</strong>은 공유 PocketBase(clinic-admin.pb.gurum.se)에 기록되는 공개 데모 보드입니다. 두 곳 모두 실제 환자 정보를 입력하지 마세요.
         </p>
       </div>
       <div class="footer-row">
@@ -3548,7 +3584,7 @@
       <div class="eyebrow">앱처럼 사용하기</div>
       <h2 id="install-title">홈 화면에 추가하면<br><em>한 번 탭</em>으로 열립니다.</h2>
       <p class="deck">
-        브라우저 주소창 없이, <strong>독립된 앱</strong>처럼 열려요. 오프라인에서도 동작하고 — 행정실 데스크톱이든 외근 중 휴대폰이든 바로 켜집니다. <strong>무료</strong>이고, <strong>설치 파일도 없습니다</strong> — 즐겨찾기를 한 단계 발전시킨 것뿐이에요.
+        브라우저 주소창 없이, <strong>독립된 앱</strong>처럼 열려요. 대시보드·양식은 오프라인에서도 동작하고 — 행정실 데스크톱이든 외근 중 휴대폰이든 바로 켜집니다. <strong>무료</strong>이고, <strong>설치 파일도 없습니다</strong> — 즐겨찾기를 한 단계 발전시킨 것뿐이에요.
       </p>
 
       <div class="install-tabs" role="tablist">
@@ -3770,6 +3806,8 @@
 
     const fmtKRW = (n) => new Intl.NumberFormat("ko-KR").format(Math.round(n || 0));
     const todayISO = () => new Date().toISOString().slice(0, 10);
+    // Escape untrusted strings before they go through innerHTML (model output, file cells).
+    const esc = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
     function setStatus(el, kind, text) {
       if (!el) return;
@@ -3817,10 +3855,24 @@
         const reader = new FileReader();
         reader.onload = (e) => {
           try {
+            if (typeof XLSX === "undefined") {
+              Toast.show({ tag: "system", html: "엑셀 라이브러리를 불러오지 못했습니다 — 페이지를 새로 고쳐주세요." });
+              throw new Error("xlsx-missing");
+            }
             const data = new Uint8Array(e.target.result);
-            const wb = XLSX.read(data, { type: "array" });
+            // cellDates:true → Excel date cells come back as JS Dates instead of
+            // 45xxx serials. They are then normalised to local "yyyy-mm-dd" here,
+            // because sheet_to_json's dateNF is ignored whenever the cell carries
+            // its own number format (which every real EMR export does — you'd get
+            // "12/10/25" or "2025년 12월 10일" depending on the file's locale).
+            const wb = XLSX.read(data, { type: "array", cellDates: true });
             const ws = wb.Sheets[wb.SheetNames[0]];
-            const rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
+            const pad = (n) => String(n).padStart(2, "0");
+            const ymd = (d) => isNaN(d) ? "" : `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+            const rows = XLSX.utils.sheet_to_json(ws, { defval: "" }).map(row => {
+              for (const k in row) if (row[k] instanceof Date) row[k] = ymd(row[k]);
+              return row;
+            });
             resolve(rows);
           } catch (err) {
             reject(err);
@@ -3914,8 +3966,15 @@
         }
         return out;
       },
-      wipeAll() {
+      async wipeAll() {
         for (const k of this.keys()) localStorage.removeItem(`${NS}.${k}`);
+        // Attachments (license photos) live in IndexedDB, not localStorage.
+        try { await Attachments.close(); } catch {}
+        await new Promise((res) => {
+          let r;
+          try { r = indexedDB.deleteDatabase("vibe-clinic-admin"); } catch { return res(); }
+          r.onsuccess = r.onerror = r.onblocked = () => res();
+        });
         EventBus.emit("store:wiped", null);
       }
     };
@@ -3934,7 +3993,9 @@
         emitLocal(e.data?.ev, e.data?.data);
         SyncStatus.peer();
       };
-      window.addEventListener("storage", (e) => {
+      // 'storage' is only the fallback when BroadcastChannel is unavailable —
+      // running both would deliver every cross-tab store event twice.
+      else window.addEventListener("storage", (e) => {
         if (!e.key || !e.key.startsWith(`${NS}.`)) return;
         const key = e.key.slice(NS.length + 1);
         try { emitLocal(`store:${key}`, e.newValue ? JSON.parse(e.newValue) : null); } catch {}
@@ -4061,9 +4122,9 @@
     function activateTab(panelId) {
       const panel = $("#" + panelId);
       if (!panel) return;
-      $$(".tab-btn, .rail-btn").forEach(b => b.classList.remove("active"));
+      $$(".rail-btn[data-panel]").forEach(b => b.classList.remove("active"));
       $$(".panel").forEach(p => p.classList.remove("active"));
-      $$(`.tab-btn[data-panel="${panelId}"], .rail-btn[data-panel="${panelId}"]`).forEach(b => b.classList.add("active"));
+      $$(`.rail-btn[data-panel="${panelId}"]`).forEach(b => b.classList.add("active"));
       panel.classList.add("active");
       Store.set("ui.activeTab", panelId);
       const meta = TAB_BY_ID[panelId];
@@ -4071,10 +4132,11 @@
         const cs = $("#crumb-section"); if (cs) cs.textContent = meta.section;
         const ct = $("#crumb-tab");     if (ct) ct.textContent = meta.label;
       }
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      // The body is a locked viewport; the work column is what actually scrolls.
+      $("#work-scroll")?.scrollTo({ top: 0 });
       EventBus.emit("tab:activated", panelId);
     }
-    $$(".tab-btn, .rail-btn").forEach(btn => {
+    $$(".rail-btn[data-panel]").forEach(btn => {
       btn.addEventListener("click", () => activateTab(btn.dataset.panel));
     });
     /* Restore last-viewed tab on load */
@@ -4084,9 +4146,9 @@
       else activateTab("tab-today");
     }
     /* Wipe-all button */
-    $("#wipe-all")?.addEventListener("click", () => {
-      if (!confirm("이 브라우저에 저장된 모든 입력·기록·면허·체크리스트를 삭제합니다.\n\n계속하시겠습니까?")) return;
-      Store.wipeAll();
+    $("#wipe-all")?.addEventListener("click", async () => {
+      if (!confirm("이 브라우저에 저장된 모든 입력·기록·면허·체크리스트·첨부 사진을 삭제합니다.\n\n계속하시겠습니까?")) return;
+      await Store.wipeAll();
       ActivityLog.push("system", "전체 초기화", {});
       location.reload();
     });
@@ -4105,22 +4167,24 @@
         retention: "보존", search: "검색", ai: "AI",
         license: "면허", accred: "인증", system: "시스템"
       };
-      function show({ tag, html, link, ttl = 4500 }) {
+      function show({ tag, html, link, ttl = 4500, action }) {
         if (!tray) return;
         const el = document.createElement("div");
         el.className = "toast";
-        const goBtn = link ? `<button class="go" data-link="${link}">보기 →</button>` : "";
+        const goBtn = link ? `<button class="go" data-link="${link}">보기 →</button>`
+                    : action ? `<button class="go">${esc(action.label)}</button>` : "";
         el.innerHTML = `<span class="tag">${TAG_LABEL[tag] || tag || "·"}</span><span class="text">${html}</span>${goBtn}`;
         tray.appendChild(el);
         const remove = () => { el.style.transition = "opacity .25s, transform .25s"; el.style.opacity = "0"; el.style.transform = "translateY(8px)"; setTimeout(() => el.remove(), 250); };
-        const t = setTimeout(remove, ttl);
+        const t = ttl > 0 ? setTimeout(remove, ttl) : null; // ttl 0 → stays until acted on
         if (link) el.querySelector(".go").addEventListener("click", () => { clearTimeout(t); remove(); activateTab(link); });
+        else if (action) el.querySelector(".go").addEventListener("click", () => { clearTimeout(t); remove(); action.fn(); });
       }
       // Subscribe to ActivityLog events (skip noisy ones)
       EventBus.on("activity:push", entry => {
         if (!entry) return;
         if (entry.tag === "system" && entry.text === "전체 초기화") return;
-        const meta = TAB_BY_ID[`tab-${entry.tag === "yearend" ? "yearend" : entry.tag}`];
+        const meta = TAB_BY_ID[`tab-${entry.tag}`];
         const link = meta ? meta.id : null;
         show({ tag: entry.tag, html: entry.text, link });
       });
@@ -4231,7 +4295,13 @@
           r.onerror   = () => rej(r.error);
         });
       }
-      return { put, getByOwner, del };
+      async function close() {
+        if (!dbp) return;
+        const db = await dbp;
+        dbp = null;
+        db.close();
+      }
+      return { put, getByOwner, del, close };
     })();
 
     // ── Lightbox ──
@@ -4241,9 +4311,9 @@
         const im = $("#lightbox-img");
         if (!sc || !im) return;
         im.src = src;
-        sc.classList.add("open");
+        Dialog.open(sc, "#lightbox-close");
       },
-      close() { $("#lightbox")?.classList.remove("open"); }
+      close() { Dialog.close($("#lightbox")); }
     };
     $("#lightbox-close")?.addEventListener("click", Lightbox.close);
     $("#lightbox")?.addEventListener("click", e => {
@@ -4255,12 +4325,14 @@
       let loadingP = null;
       function load() {
         if (window.Tesseract) return Promise.resolve(window.Tesseract);
+        // Tesseract (~2MB + language data) stays on the CDN and is never precached.
+        if (navigator.onLine === false) return Promise.reject(new Error("오프라인에서는 OCR을 사용할 수 없습니다"));
         if (loadingP) return loadingP;
         loadingP = new Promise((res, rej) => {
           const s = document.createElement("script");
           s.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
           s.onload  = () => res(window.Tesseract);
-          s.onerror = () => rej(new Error("Tesseract.js 로드 실패"));
+          s.onerror = () => { loadingP = null; rej(new Error("OCR 엔진(Tesseract.js) 로드 실패 — 네트워크 확인")); };
           document.head.appendChild(s);
         });
         return loadingP;
@@ -4281,7 +4353,7 @@
         for (const c of candidates) {
           const idx = norm.indexOf(c.src);
           const ctx = norm.slice(Math.max(0, idx - 14), idx).toLowerCase();
-          if (/유효|만료|expir|valid/.test(ctx)) c.score += 10;
+          if (/유효|만료|신고|expir|valid/.test(ctx)) c.score += 10;
           if (/발급|issue/.test(ctx)) c.score -= 4;
           // Prefer future dates over past
           if (new Date(c.date) > new Date()) c.score += 1;
@@ -4332,6 +4404,14 @@
         };
         r.onerror = (e) => {
           console.warn("Voice err", e.error);
+          const MSG = {
+            "not-allowed":         "마이크 권한이 거부되었습니다 — 브라우저 주소창의 자물쇠/설정에서 마이크를 허용해주세요.",
+            "service-not-allowed": "이 브라우저에서 음성 인식 서비스가 허용되지 않았습니다.",
+            "audio-capture":       "마이크를 찾을 수 없습니다 — 연결 상태를 확인해주세요.",
+            "network":             "음성 인식 서버에 연결할 수 없습니다 — 네트워크를 확인해주세요.",
+            "no-speech":           "음성이 감지되지 않았습니다 — 다시 눌러 말해주세요."
+          };
+          if (e.error !== "aborted") Toast.show({ tag: "ai", html: MSG[e.error] || `음성 입력 오류 — ${esc(e.error || "unknown")}` });
           stop();
         };
         r.onend = () => stop();
@@ -4401,6 +4481,51 @@
     }
 
     /* ─────────────────────────────────────────────────────────
+       Dialog focus management — every modal scrim goes through
+       here: focus moves into the dialog on open, returns to the
+       opener on close, the app shell is `inert` while any dialog
+       is up, and Tab is trapped inside the top-most dialog.
+       ───────────────────────────────────────────────────────── */
+    const Dialog = (() => {
+      const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]):not([type=hidden]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+      const stack = [];
+      const shell = () => $(".frame.shell");
+      const visible = (el) => el.offsetWidth > 0 || el.offsetHeight > 0 || el === document.activeElement;
+      function open(scrim, initial) {
+        if (!scrim || scrim.classList.contains("open")) return;
+        stack.push({ scrim, prev: document.activeElement });
+        scrim.classList.add("open");
+        const sh = shell(); if (sh) sh.inert = true;
+        const target = (typeof initial === "string" ? $(initial, scrim) : initial)
+                    || $$(FOCUSABLE, scrim).find(visible) || scrim;
+        setTimeout(() => { try { target.focus({ preventScroll: true }); } catch {} }, 30);
+      }
+      function close(scrim) {
+        if (!scrim || !scrim.classList.contains("open")) return;
+        scrim.classList.remove("open");
+        const i = stack.findIndex(e => e.scrim === scrim);
+        const entry = i >= 0 ? stack.splice(i, 1)[0] : null;
+        if (!stack.length) { const sh = shell(); if (sh) sh.inert = false; }
+        const prev = entry?.prev;
+        if (prev && prev.isConnected && prev !== document.body) {
+          try { prev.focus({ preventScroll: true }); } catch {}
+        }
+      }
+      const isOpen = (scrim) => !!scrim && scrim.classList.contains("open");
+      document.addEventListener("keydown", e => {
+        if (e.key !== "Tab" || !stack.length) return;
+        const top = stack[stack.length - 1].scrim;
+        const els = $$(FOCUSABLE, top).filter(visible);
+        if (!els.length) { e.preventDefault(); return; }
+        const first = els[0], last = els[els.length - 1];
+        if (!top.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+        else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      });
+      return { open, close, isOpen };
+    })();
+
+    /* ─────────────────────────────────────────────────────────
        Welcome overlay — first-run + reopenable via 시연 chip.
        Includes "샘플 데이터로 둘러보기" which seeds every tab
        at once so the dashboard, charts, license tracker, accred
@@ -4410,13 +4535,13 @@
     function openWelcome() {
       const scrim = $("#welcome-scrim");
       if (!scrim) return;
-      scrim.classList.add("open");
+      Dialog.open(scrim, "#welcome-seed");
       $("#welcome-dontshow").checked = !!Store.get(WELCOMED_KEY);
     }
     function closeWelcome(markSeen) {
       const scrim = $("#welcome-scrim");
       if (!scrim) return;
-      scrim.classList.remove("open");
+      Dialog.close(scrim);
       if (markSeen || $("#welcome-dontshow").checked) Store.set(WELCOMED_KEY, true);
     }
     $("#welcome-close")?.addEventListener("click", () => closeWelcome(false));
@@ -4427,8 +4552,8 @@
     $("#topbar-demo")?.addEventListener("click", openWelcome);
     $("#rail-demo")?.addEventListener("click", () => { closeRail(); openWelcome(); });
     /* Info modal */
-    function openInfo() { $("#info-scrim")?.classList.add("open"); }
-    function closeInfo() { $("#info-scrim")?.classList.remove("open"); }
+    function openInfo() { Dialog.open($("#info-scrim")); }
+    function closeInfo() { Dialog.close($("#info-scrim")); }
     $("#rail-info")?.addEventListener("click", () => { closeRail(); openInfo(); });
     $("#info-close")?.addEventListener("click", closeInfo);
     $("#info-scrim")?.addEventListener("click", e => { if (e.target.id === "info-scrim") closeInfo(); });
@@ -4443,12 +4568,15 @@
     EventBus.on("tab:activated", () => {
       if (window.innerWidth <= 880) closeRail();
     });
-    /* Esc closes drawer + modals */
+    /* Esc closes the top-most layer: palette → lightbox → install → info → welcome → drawer */
     document.addEventListener("keydown", e => {
       if (e.key !== "Escape") return;
-      if (document.body.classList.contains("rail-open")) closeRail();
-      else if ($("#info-scrim")?.classList.contains("open")) closeInfo();
-      else if ($("#welcome-scrim")?.classList.contains("open")) closeWelcome(false);
+      if (Dialog.isOpen($("#palette-scrim"))) Palette.close();
+      else if (Dialog.isOpen($("#lightbox"))) Lightbox.close();
+      else if (Dialog.isOpen($("#install-scrim"))) Install.close();
+      else if (Dialog.isOpen($("#info-scrim"))) closeInfo();
+      else if (Dialog.isOpen($("#welcome-scrim"))) closeWelcome(false);
+      else if (document.body.classList.contains("rail-open")) closeRail();
     });
     /* Rail-foot Cmd+K trigger */
     $("#rail-cmdk")?.addEventListener("click", () => {
@@ -4494,11 +4622,11 @@
       function open(initialTab) {
         const sc = $("#install-scrim");
         if (!sc) return;
-        sc.classList.add("open");
+        Dialog.open(sc);
         if (initialTab) selectTab(initialTab);
         $("#install-dontshow").checked = !!Store.get(NUDGE_KEY);
       }
-      function close() { $("#install-scrim")?.classList.remove("open"); }
+      function close() { Dialog.close($("#install-scrim")); }
 
       function selectTab(name) {
         $$('#install-scrim [data-install-tab]').forEach(b => {
@@ -4588,11 +4716,6 @@
         setTimeout(showNudge, 1200);
       }
 
-      // Esc key closes install modal too
-      document.addEventListener("keydown", e => {
-        if (e.key === "Escape" && $("#install-scrim")?.classList.contains("open")) close();
-      });
-
       EventBus.on("app:ready", maybeNudge);
 
       return { open, close, isStandalone };
@@ -4619,12 +4742,10 @@
       // Tab 9 — pre-check ~40% of accred items
       try {
         const accred = Store.get("accred.checked", {});
-        if (typeof ACCRED_ITEMS !== "undefined") {
-          const all = ACCRED_ITEMS.flatMap(c => c.items);
-          const n = Math.floor(all.length * 0.4);
-          for (let i = 0; i < n; i++) accred[all[i].id] = true;
-          Store.set("accred.checked", accred);
-        }
+        const all = ACCRED_ITEMS.flatMap(c => c.items);
+        const n = Math.floor(all.length * 0.4);
+        for (let i = 0; i < n; i++) accred[all[i].id] = true;
+        Store.set("accred.checked", accred);
       } catch {}
       // Land on dashboard so the user sees the result
       activateTab("tab-today");
@@ -4689,11 +4810,11 @@
         for (const l of lics) {
           const cap = `${l.name || "—"} · ${l.role || ""}`;
           if (!q || cap.toLowerCase().includes(q)) {
-            out.push({ kind: "면허", glyph: "L", label: cap, meta: `만료 ${l.expiry || "—"}`, run: () => activateTab("tab-license") });
+            out.push({ kind: "면허", glyph: "L", label: cap, meta: `신고기한 ${l.expiry || "—"}`, run: () => activateTab("tab-license") });
           }
         }
         // Accreditation items
-        if (q && q.length >= 2 && typeof ACCRED_ITEMS !== "undefined") {
+        if (q && q.length >= 2) {
           for (const cat of ACCRED_ITEMS) {
             for (const it of cat.items) {
               if (it.label.toLowerCase().includes(q)) {
@@ -4707,6 +4828,7 @@
       function render() {
         if (!items.length) {
           results.innerHTML = `<div class="palette-empty">검색 결과가 없습니다.</div>`;
+          input.removeAttribute("aria-activedescendant");
           return;
         }
         // Group by kind
@@ -4718,9 +4840,9 @@
           if (!groups[k]) continue;
           html += `<div class="palette-section-label">${k}</div>`;
           for (const { it, i } of groups[k]) {
-            html += `<div class="palette-item ${i === sel ? "sel" : ""}" data-i="${i}">
+            html += `<div class="palette-item ${i === sel ? "sel" : ""}" data-i="${i}" id="palette-opt-${i}" role="option" aria-selected="${i === sel}">
               <span class="glyph">${it.glyph || "·"}</span>
-              <span class="label">${it.label}${it.meta ? `<span class="meta">${it.meta}</span>` : ""}</span>
+              <span class="label">${esc(it.label)}${it.meta ? `<span class="meta">${esc(it.meta)}</span>` : ""}</span>
               <span class="kind">${it.kind}</span>
             </div>`;
           }
@@ -4730,7 +4852,7 @@
           el.addEventListener("click", () => { run(parseInt(el.dataset.i, 10)); });
         });
         const selEl = results.querySelector(".palette-item.sel");
-        if (selEl) selEl.scrollIntoView({ block: "nearest" });
+        if (selEl) { selEl.scrollIntoView({ block: "nearest" }); input.setAttribute("aria-activedescendant", selEl.id); }
       }
       function refresh(q) {
         items = buildItems(q);
@@ -4738,13 +4860,12 @@
         render();
       }
       function open() {
-        scrim.classList.add("open");
+        Dialog.open(scrim, input);
         input.value = "";
         sel = 0;
         refresh("");
-        setTimeout(() => input.focus(), 30);
       }
-      function close() { scrim.classList.remove("open"); }
+      function close() { Dialog.close(scrim); }
       function run(i) {
         const it = items[i];
         if (!it) return;
@@ -4781,12 +4902,11 @@
         const fixed = [
           { title: "HIRA 비급여 반기보고", date: `${Y}-03-31` },
           { title: "HIRA 비급여 반기보고", date: `${Y}-09-30` },
-          { title: "국세청 의료비 일괄제출", date: `${Y+1}-01-15` },
-          { title: "한의사 면허신고", date: `${Y}-04-30` }
+          { title: "국세청 의료비 일괄제출", date: `${Y+1}-01-15` }
         ];
         const lics = Store.get("license.list", []) || [];
         for (const l of lics) {
-          if (l.expiry) fixed.push({ title: `${l.name} 면허 만료`, date: l.expiry });
+          if (l.expiry) fixed.push({ title: `${l.name} 면허신고 기한`, date: l.expiry });
         }
         const upcoming = fixed
           .map(d => ({ ...d, d: days(d.date) }))
@@ -4832,7 +4952,22 @@
       initTab9();
       initTab0();
       EventBus.emit("app:ready", true);
-    }).catch(err => console.error("Data load failed:", err));
+    }).catch(err => {
+      console.error("Data load failed:", err);
+      const msg = $("#sync-msg"); if (msg) msg.textContent = "데이터 로드 실패";
+      const led = $("#sync-led"); if (led) { led.classList.remove("idle", "live"); led.classList.add("warn"); }
+      Toast.show({
+        tag: "system", ttl: 0,
+        html: "<strong>데이터를 불러오지 못했습니다.</strong> 기준 데이터(KCD·자보·비급여·보존)가 없어 도구가 동작하지 않습니다 — 네트워크를 확인해주세요.",
+        action: { label: "다시 시도", fn: () => location.reload() }
+      });
+    });
+    // Vendored SheetJS failed to load (onerror flag set in <head>) — say so once everything has settled.
+    window.addEventListener("load", () => {
+      if (document.documentElement.dataset.xlsxFailed) {
+        Toast.show({ tag: "system", ttl: 0, html: "<strong>엑셀 라이브러리를 불러오지 못했습니다.</strong> 파일 업로드·XLSX 다운로드가 동작하지 않습니다.", action: { label: "새로 고침", fn: () => location.reload() } });
+      }
+    });
 
     /* ─────────────────────────────────────────────────────────
        Tab 1 — KCD-8 진단코드 정비
@@ -5382,6 +5517,26 @@
 
       // Initial render (will pick up restored items)
       renderItems();
+
+      // 새 케이스 — the six identity fields + item list persist as a draft, so
+      // without this there is no way to start a second patient cleanly.
+      $("#jabo-new").addEventListener("click", () => {
+        const dirty = items.length > 0 || ["jabo-name", "jabo-pid", "jabo-claim"].some(id => $("#" + id).value.trim());
+        if (dirty && !confirm("현재 케이스의 환자·청구 정보와 행위 목록을 모두 비우고 새 케이스를 시작할까요?")) return;
+        const t = todayISO();
+        const reset = { "jabo-name": "", "jabo-pid": "", "jabo-insurer": "", "jabo-claim": "", "jabo-accident": t, "jabo-date": t };
+        for (const [id, v] of Object.entries(reset)) {
+          const el = $("#" + id); el.value = v;
+          el.dispatchEvent(new Event("change", { bubbles: true })); // lets bindPersist store the cleared value
+        }
+        dxSel.selectedIndex = 0;
+        dxSel.dispatchEvent(new Event("change", { bubbles: true }));
+        items.length = 0;
+        Store.remove("jabo.draft.items");
+        renderItems();
+        $("#jabo-status").style.display = "none";
+        Toast.show({ tag: "jabo", html: "새 케이스 — 입력을 비웠습니다." });
+      });
 
       $('[data-action="run-jabo"]').addEventListener("click", () => {
         $("#jabo-name").value = "박지훈";
@@ -6052,8 +6207,8 @@
           link: "tab-bigeup", source: "의료법 §45조의2" },
         { key: "yearend",   title: "국세청 의료비 일괄제출", date: `${Y+1}-01-15`,
           link: "tab-yearend", source: "국세청 홈택스" },
-        { key: "kma-renew", title: "한의사 면허신고 일제신고 (3년주기)", date: `${Y}-04-30`,
-          link: "tab-license", source: "의료법 §25" },
+        // 면허신고 (의료법 §25) is a per-person 3-year cycle from each person's last
+        // report — it comes from the license tracker below, not a fixed calendar date.
         { key: "audit",     title: "의무기록 보존 정기 감사 (분기)",
           date: `${Y}-${String(Math.min(12, (Math.floor((NOW.getMonth())/3) + 1) * 3)).padStart(2, "0")}-30`,
           link: "tab-retention", source: "의료법 시행규칙 §15" }
@@ -6068,8 +6223,8 @@
             const d = daysUntil(lic.expiry);
             if (d != null && d <= 365 && d >= -30) {
               list.push({
-                key: `lic-${lic.id}-exp`, title: `${lic.role} ${lic.name} — 면허 만료`,
-                date: lic.expiry, link: "tab-license", source: "의료법"
+                key: `lic-${lic.id}-exp`, title: `${lic.role} ${lic.name} — 면허신고 기한`,
+                date: lic.expiry, link: "tab-license", source: "의료법 §25 (신고일 + 3년)"
               });
             }
           }
@@ -6291,14 +6446,15 @@
        ───────────────────────────────────────────────────────── */
     function initTab7() {
       const CLAUDE_PROXY = "https://ai.pb.gurum.se";
-      async function solveProxyPoW() {
-        const r = await fetch(CLAUDE_PROXY + "/api/claude-challenge");
+      async function solveProxyPoW(signal) {
+        const r = await fetch(CLAUDE_PROXY + "/api/claude-challenge", { signal });
         if (!r.ok) { const e = new Error("challenge " + r.status); e.status = r.status; throw e; }
         const { nonce, exp, sig, difficulty } = await r.json();
         const enc = new TextEncoder();
         const leadBits = (buf) => { const b = new Uint8Array(buf); let bits = 0;
           for (const x of b) { if (x === 0) { bits += 8; continue; } let v = x, c = 0; while ((v & 0x80) === 0) { c++; v <<= 1; } bits += c; break; } return bits; };
         for (let counter = 0; ; counter++) {
+          if (signal?.aborted) throw new DOMException("aborted", "AbortError");
           const d = await crypto.subtle.digest("SHA-256", enc.encode(nonce + ":" + counter));
           if (leadBits(d) >= difficulty) return { "X-PoW-Nonce": nonce, "X-PoW-Exp": exp, "X-PoW-Sig": sig, "X-PoW-Counter": String(counter) };
           if (counter > 5000000) throw new Error("pow-timeout");
@@ -6309,18 +6465,29 @@
         const pill = $("#ai-mode-pill");
         const badge = $("#ai-mode-badge");
         if (live) {
-          pill.textContent = "라이브 — Opus 4.8";
+          pill.textContent = "라이브 — Opus (proxy)";
           pill.classList.add("live");
-          badge.textContent = "라이브 — Claude Opus 4.8 via Bedrock";
+          badge.textContent = "라이브 — Claude Opus via Bedrock 프록시";
         } else {
-          pill.textContent = "데모 모드";
+          pill.textContent = "예시 모드";
           pill.classList.remove("live");
-          badge.textContent = "데모 모드";
+          badge.textContent = "예시 모드";
         }
       };
-      setMode(false); // starts in canned mode
+      setMode(false); // nothing has been sent yet
 
-      bindPersist("#ai-input", "ai.draft");
+      // Source toggle — 라이브 (default) POSTs the note to the proxy; 예시 never leaves the browser.
+      let aiSource = Store.get("ai.source") === "canned" ? "canned" : "live";
+      const LIVE_ACK_KEY = "ai.liveAck"; // one-time consent for sending notes off-device
+      const syncSourceUI = () => $$("#ai-source button").forEach(b => b.classList.toggle("active", b.dataset.source === aiSource));
+      $$("#ai-source button").forEach(b => b.addEventListener("click", () => {
+        aiSource = b.dataset.source; Store.set("ai.source", aiSource); syncSourceUI();
+      }));
+      syncSourceUI();
+
+      // The note may contain clinical text — it is never persisted. Purge any
+      // draft an earlier build left in localStorage.
+      Store.remove("ai.draft");
 
       // Canned exemplar — calibrated against KCD/자보/비급여 data files
       const cannedFor = (note) => {
@@ -6362,55 +6529,89 @@
         return { kcd, uCode, jabo, bigeup };
       };
 
+      // Model output is untrusted: coerce each item to {code,name,ref,conf} with
+      // string/number types and length caps, or drop it.
+      const normItem = (x) => {
+        if (!x || typeof x !== "object" || typeof x.code !== "string" || typeof x.name !== "string") return null;
+        const conf = Number(x.conf);
+        return {
+          code: x.code.trim().slice(0, 20),
+          name: x.name.trim().slice(0, 120),
+          ref:  typeof x.ref === "string" ? x.ref.trim().slice(0, 160) : "",
+          conf: Number.isFinite(conf) ? Math.min(1, Math.max(0, conf)) : 0
+        };
+      };
+      const validateRec = (rec) => {
+        if (!rec || typeof rec !== "object" || !Array.isArray(rec.kcd) || !rec.uCode) return null;
+        const kcd = rec.kcd.map(normItem).filter(Boolean);
+        const uCode = normItem(rec.uCode);
+        const jabo = (Array.isArray(rec.jabo) ? rec.jabo : []).map(normItem).filter(Boolean);
+        const bigeup = (Array.isArray(rec.bigeup) ? rec.bigeup : []).map(normItem).filter(Boolean);
+        if (!kcd.length || !uCode) return null;
+        return { kcd, uCode, jabo, bigeup };
+      };
+
+      const rowHTML = (k) => `
+          <div class="row">
+            <code>${esc(k.code)}</code>
+            <div>${esc(k.name)}<div class="citation">${esc(k.ref)}</div></div>
+            <span class="conf">${Math.round((Number(k.conf) || 0) * 100)}%</span>
+          </div>`;
+      const EMPTY_ROW = `<div class="row"><code>—</code><div>추천 없음</div><span class="conf"></span></div>`;
+
       const renderRecommendation = (rec, opts = {}) => {
         const lines = [];
+        // Every result is labelled with its source — canned output must never read as live.
+        lines.push(opts.live
+          ? `<div class="ai-note live">라이브 — Claude Opus (proxy) 응답</div>`
+          : `<div class="ai-note">예시 결과 — 규칙 기반 데모, 실제 AI 응답이 아닙니다</div>`);
         lines.push(`<h5>KCD-8 진단</h5>`);
-        lines.push(`<div class="code-list">${rec.kcd.map(k => `
-          <div class="row">
-            <code>${k.code}</code>
-            <div>${k.name}<div class="citation">${k.ref}</div></div>
-            <span class="conf">${Math.round(k.conf*100)}%</span>
-          </div>`).join("")}</div>`);
-
+        lines.push(`<div class="code-list">${rec.kcd.map(rowHTML).join("")}</div>`);
         lines.push(`<h5>한의 변증 (U-code) — 양방 진단과 함께 청구</h5>`);
-        lines.push(`<div class="code-list"><div class="row">
-          <code>${rec.uCode.code}</code>
-          <div>${rec.uCode.name}<div class="citation">${rec.uCode.ref}</div></div>
-          <span class="conf">${Math.round(rec.uCode.conf*100)}%</span>
-        </div></div>`);
-
+        lines.push(`<div class="code-list">${rowHTML(rec.uCode)}</div>`);
         lines.push(`<h5>자보 수가</h5>`);
-        lines.push(`<div class="code-list">${rec.jabo.map(j => `
-          <div class="row">
-            <code>${j.code}</code>
-            <div>${j.name}<div class="citation">${j.ref}</div></div>
-            <span class="conf">${Math.round(j.conf*100)}%</span>
-          </div>`).join("")}</div>`);
-
+        lines.push(`<div class="code-list">${rec.jabo.map(rowHTML).join("") || EMPTY_ROW}</div>`);
         lines.push(`<h5>비급여 (병원 자체 산정)</h5>`);
-        lines.push(`<div class="code-list">${rec.bigeup.map(b => `
-          <div class="row">
-            <code>${b.code}</code>
-            <div>${b.name}<div class="citation">${b.ref}</div></div>
-            <span class="conf">${Math.round(b.conf*100)}%</span>
-          </div>`).join("")}</div>`);
-
-        if (opts.live) {
-          lines.unshift(`<h5 style="color:var(--accent)">라이브 — Opus 4.8</h5>`);
-        }
-
+        lines.push(`<div class="code-list">${rec.bigeup.map(rowHTML).join("") || EMPTY_ROW}</div>`);
         $("#ai-output").innerHTML = lines.join("");
       };
 
+      const SHIMMER = `<div class="ai-shimmer"></div><div class="ai-shimmer" style="width:80%"></div><div class="ai-shimmer" style="width:60%"></div>`;
+      const runBtn = $("#ai-run");
+      let aiBusy = false, aiAbort = null;
+      const setBusy = (on) => {
+        aiBusy = on;
+        runBtn.disabled = on;
+        runBtn.innerHTML = on ? `추천 중… <span class="arrow">⋯</span>` : `코드 추천 <span class="arrow">→</span>`;
+      };
+
       const runCanned = (note) => {
-        $("#ai-output").innerHTML = `<div class="ai-shimmer"></div><div class="ai-shimmer" style="width:80%"></div><div class="ai-shimmer" style="width:60%"></div>`;
+        if (aiBusy) return;
+        setBusy(true);
+        setMode(false);
+        $("#ai-output").innerHTML = SHIMMER;
         setTimeout(() => {
           const rec = cannedFor(note);
           renderRecommendation(rec, { live: false });
-          ActivityLog.push("ai", "AI 데모 코드 추천", { len: note.length });
+          ActivityLog.push("ai", "AI 예시 코드 추천 (규칙 기반)", { len: note.length });
+          setBusy(false);
         }, 700);
       };
 
+      // Live failure: revert the mode pill, say what happened, and offer the
+      // canned result only as an explicit button — never silently swap it in.
+      const showLiveError = (msg, note) => {
+        $("#ai-output").innerHTML = `<div class="placeholder" style="color:var(--accent)">라이브 호출 실패: ${esc(msg)}<br>
+          <button type="button" class="btn secondary" id="ai-fallback" style="margin-top:14px">예시 결과로 대신 보기</button></div>`;
+        $("#ai-fallback")?.addEventListener("click", () => runCanned(note));
+      };
+
+      /* System prompt — PROVENANCE: the <canonical_*> subsets below are hand-curated
+         excerpts mirroring this demo's own data files (data/kcd9.json, data/jabo.json,
+         data/bigeup.json), which are themselves demo extracts. They are NOT an
+         authoritative code master. Verify every code against 건강보험심사평가원 /
+         KOICD KCD-8, the current 국토교통부 자보수가 고시, and the HIRA 비급여 코드
+         마스터 before any clinical or billing use. */
       const runLive = async (note) => {
         const sys = `<role>
 You are a Korean Traditional Medicine (한방) 한방병원 행정원장 보조 — a coding assistant for a hospital admin who turns clinical 진료 메모 into draft EDI codes.
@@ -6508,12 +6709,19 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
 }
 </output>
 </exemplar>`;
-        $("#ai-output").innerHTML = `<div class="ai-shimmer"></div><div class="ai-shimmer" style="width:80%"></div><div class="ai-shimmer" style="width:60%"></div>`;
+        if (aiBusy) return;
+        setBusy(true);
+        setMode(true);
+        $("#ai-output").innerHTML = SHIMMER;
+        aiAbort = new AbortController();
+        const { signal } = aiAbort;
+        const timeout = setTimeout(() => aiAbort?.abort(), 60000);
         try {
-          const pow = await solveProxyPoW();
+          const pow = await solveProxyPoW(signal);
           const res = await fetch(CLAUDE_PROXY + "/api/claude", {
             method: "POST",
             headers: { "Content-Type": "application/json", ...pow },
+            signal,
             body: JSON.stringify({
               model: "opus",
               max_tokens: 1200,
@@ -6525,36 +6733,46 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
             const errText = res.status === 403 ? "프록시 인증 실패" :
                             res.status === 429 ? "요청 제한 초과 — 잠시 후 다시 시도" :
                             res.status === 503 ? "프록시 서버 점검 중" :
+                            res.status >= 500 ? `프록시 서버 오류 ${res.status}` :
                             `프록시 오류 ${res.status}`;
-            throw new Error(errText);
+            const e = new Error(errText); e.status = res.status; throw e;
           }
           const data = await res.json();
           const text = data.content?.[0]?.text || "";
           const jsonMatch = text.match(/\{[\s\S]*\}/);
-          if (!jsonMatch) throw new Error("응답에 JSON 없음");
-          const rec = JSON.parse(jsonMatch[0]);
+          let parsed = null;
+          try { parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : null; } catch {}
+          const rec = validateRec(parsed);
+          if (!rec) throw new Error("AI 응답 형식을 해석하지 못했습니다 — 다시 시도해주세요.");
           renderRecommendation(rec, { live: true });
-          ActivityLog.push("ai", "AI 라이브 코드 추천 (Opus 4.8 / Bedrock)", {});
+          ActivityLog.push("ai", "AI 라이브 코드 추천 (Opus / 프록시)", {});
         } catch (err) {
-          console.error(err);
-          const fallbackNote = err.status >= 500 ? " — 데모 모드로 대체됩니다." : "";
-          $("#ai-output").innerHTML = `<div class="placeholder" style="color:var(--accent)">라이브 호출 실패: ${err.message}${fallbackNote}</div>`;
-          if (err.status >= 500) {
-            setTimeout(() => {
-              const rec = cannedFor(note);
-              renderRecommendation(rec, { live: false });
-            }, 1000);
+          setMode(false);
+          if (err.name === "AbortError") {
+            $("#ai-output").innerHTML = `<div class="placeholder">요청 시간이 초과되어 취소되었습니다 — 다시 시도해주세요.</div>`;
+          } else {
+            console.error(err);
+            showLiveError(err.message, note);
           }
+        } finally {
+          clearTimeout(timeout);
+          aiAbort = null;
+          setBusy(false);
         }
       };
 
       $("#ai-run").addEventListener("click", () => {
+        if (aiBusy) return;
         const note = $("#ai-input").value.trim();
         if (!note) {
           $("#ai-output").innerHTML = `<div class="placeholder">진료 메모를 입력해주세요.</div>`;
           return;
         }
-        setMode(true); // proxy-only mode
+        if (aiSource === "canned") { runCanned(note); return; }
+        if (!Store.get(LIVE_ACK_KEY)) {
+          if (!confirm("이 메모는 외부 AI 서버로 전송됩니다. 실제 환자 정보는 입력하지 마세요.\n\n(ai.pb.gurum.se — 서버에 저장되지 않습니다. 이 안내는 한 번만 표시됩니다.)\n\n계속하시겠습니까?")) return;
+          Store.set(LIVE_ACK_KEY, true);
+        }
         runLive(note);
       });
 
@@ -6579,11 +6797,35 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
        Tab 8 — 면허·자격 갱신 트래커
        ───────────────────────────────────────────────────────── */
     function initTab8() {
+      // 의료법 §25: 면허신고 is per person, every 3 years from the last report.
+      // `reported` = last report date (user input); `expiry` = the computed
+      // deadline, kept under its historical key so dashboards/ics/palette
+      // that already read `expiry` keep working.
+      const addYears = (iso, n) => {
+        if (!iso) return "";
+        const d = new Date(iso + "T00:00:00");
+        if (isNaN(d)) return "";
+        d.setFullYear(d.getFullYear() + n);
+        return d.toISOString().slice(0, 10);
+      };
+      let editingId = null;
+      const setEditing = (on) => {
+        $("#lic-add-btn").textContent = on ? "저장" : "추가";
+        $("#lic-cancel").style.display = on ? "" : "none";
+      };
+      const resetForm = () => {
+        editingId = null;
+        $("#lic-name").value = "";
+        $("#lic-reported").value = "";
+        $("#lic-cme").value = "";
+        setEditing(false);
+      };
+
       const renderList = () => {
         const list = Store.get("license.list", []);
         if (!list.length) {
           $("#lic-list").innerHTML = `<div class="empty-state">등록된 직원이 없습니다 — 아래 양식에서 추가하거나 샘플 5명 채우기를 눌러보세요.</div>`;
-          $("#lic-summary").textContent = "총 0명 · 만료 임박 0명";
+          $("#lic-summary").textContent = "총 0명 · 기한 임박 0명";
           return;
         }
         let imminent = 0;
@@ -6598,14 +6840,14 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
           else if (minDays !== 99999) { note = `<em>${minDays}일 남음</em>`; }
           return `
             <div class="lic ${cls}" data-id="${lic.id}">
-              <span class="lic-role">${lic.role}</span>
-              <span class="lic-name">${lic.name}
-                <span class="lic-meta">면허 ${lic.expiry || "—"} · 보수교육 ${lic.cme || "—"}</span>
+              <span class="lic-role">${esc(lic.role)}</span>
+              <span class="lic-name">${esc(lic.name)}
+                <span class="lic-meta">면허신고 기한 ${lic.expiry || "—"}${lic.reported ? ` (신고 ${lic.reported})` : ""} · 보수교육 ${lic.cme || "—"}</span>
                 <span class="attach-row" data-attach-row data-owner="${lic.id}"></span>
               </span>
               <span class="lic-due">${note}</span>
               <span class="lic-actions">
-                <label class="icon-btn" data-act="cam" data-id="${lic.id}" title="면허증 촬영 · OCR로 만료일 추출" aria-label="면허증 촬영">
+                <label class="icon-btn" data-act="cam" data-id="${lic.id}" title="면허증 촬영 · OCR로 신고일/기한 추출" aria-label="면허증 촬영">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                   <input type="file" accept="image/*" capture="environment">
                 </label>
@@ -6615,7 +6857,7 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
             </div>`;
         }).join("");
         $("#lic-list").innerHTML = html;
-        $("#lic-summary").textContent = `총 ${list.length}명 · 만료 임박 ${imminent}명`;
+        $("#lic-summary").textContent = `총 ${list.length}명 · 기한 임박 ${imminent}명`;
 
         $$("#lic-list .lic-actions > button").forEach(b => {
           b.addEventListener("click", () => {
@@ -6627,13 +6869,16 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
               Haptic.del();
               renderList();
             } else if (b.dataset.act === "edit") {
+              // Edit in place — the record (and its IndexedDB attachments keyed by id) stays put
+              // until 저장; nothing is deleted up front.
               const lic = list.find(x => x.id === id);
+              if (!lic) return;
+              editingId = id;
               $("#lic-role").value = lic.role;
               $("#lic-name").value = lic.name;
-              $("#lic-expiry").value = lic.expiry || "";
+              $("#lic-reported").value = lic.reported || (lic.expiry ? addYears(lic.expiry, -3) : "");
               $("#lic-cme").value = lic.cme || "";
-              Store.set("license.list", list.filter(x => x.id !== id));
-              renderList();
+              setEditing(true);
               $("#lic-name").focus();
               Haptic.tap();
             }
@@ -6666,26 +6911,32 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
                 }
               });
               if (expiry) {
+                // A past date on the card is the report/issue date → deadline = +3y;
+                // a future date is taken as the deadline itself.
+                const isPast = expiry < todayISO();
+                const due = isPast ? addYears(expiry, 3) : expiry;
                 shim.classList.add("success");
-                shim.innerHTML = `✓ 만료일 ${expiry} 자동입력`;
+                shim.innerHTML = `✓ 면허신고 기한 ${due} 자동입력${isPast ? " (신고일 + 3년)" : ""}`;
                 const list2 = Store.get("license.list", []);
                 const target = list2.find(x => x.id === ownerId);
                 if (target) {
-                  target.expiry = expiry;
+                  target.expiry = due;
+                  if (isPast) target.reported = expiry;
                   Store.set("license.list", list2);
-                  ActivityLog.push("license", `OCR — ${target.name} 만료일 ${expiry}`, {});
+                  ActivityLog.push("license", `OCR — ${target.name} 면허신고 기한 ${due}`, {});
                 }
                 setTimeout(() => shim.remove(), 2500);
               } else {
                 shim.classList.add("fail");
-                shim.innerHTML = `× 만료일 인식 실패`;
+                shim.innerHTML = `× 날짜 인식 실패`;
                 setTimeout(() => shim.remove(), 2500);
               }
             } catch (err) {
               console.error(err);
               shim.classList.add("fail");
-              shim.innerHTML = `× OCR 실패`;
-              setTimeout(() => shim.remove(), 2500);
+              shim.textContent = `× ${err.message || "OCR 실패"}`;
+              Toast.show({ tag: "license", html: esc(err.message || "OCR 실패") });
+              setTimeout(() => shim.remove(), 4000);
             }
             // Re-render attachments thumbs for this row
             renderAttachments(ownerId);
@@ -6725,20 +6976,27 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
       $("#lic-add-btn").addEventListener("click", () => {
         const role = $("#lic-role").value;
         const name = $("#lic-name").value.trim();
-        const expiry = $("#lic-expiry").value;
+        const reported = $("#lic-reported").value;
+        const expiry = addYears(reported, 3);
         const cme = $("#lic-cme").value;
         if (!name) { Haptic.warn(); alert("이름을 입력해주세요."); return; }
         const list = Store.get("license.list", []);
-        list.push({ id: "lic-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
-          role, name, expiry, cme });
+        if (editingId) {
+          const target = list.find(x => x.id === editingId);
+          if (target) Object.assign(target, { role, name, reported, expiry, cme });
+          else list.push({ id: editingId, role, name, reported, expiry, cme });
+          ActivityLog.push("license", `직원 수정 — ${role} ${name}`, {});
+        } else {
+          list.push({ id: "lic-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
+            role, name, reported, expiry, cme });
+          ActivityLog.push("license", `직원 추가 — ${role} ${name}`, {});
+        }
         Store.set("license.list", list);
-        ActivityLog.push("license", `직원 추가 — ${role} ${name}`, {});
         Haptic.save();
-        $("#lic-name").value = "";
-        $("#lic-expiry").value = "";
-        $("#lic-cme").value = "";
+        resetForm();
         renderList();
       });
+      $("#lic-cancel").addEventListener("click", () => { resetForm(); Haptic.tap(); });
 
       $("#lic-sample").addEventListener("click", () => {
         const today = new Date();
@@ -6746,13 +7004,14 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
           const d = new Date(today); d.setMonth(d.getMonth() + m);
           return d.toISOString().slice(0, 10);
         };
+        // reported = last 면허신고 (months relative to today); deadline = reported + 3y
         const sample = [
-          { role: "한의사",     name: "윤지훈", expiry: offset(2),  cme: offset(8) },
-          { role: "한의사",     name: "박서영", expiry: offset(14), cme: offset(-1) },
-          { role: "간호사",     name: "이민하", expiry: offset(5),  cme: offset(11) },
-          { role: "물리치료사", name: "김도현", expiry: offset(22), cme: offset(4) },
-          { role: "간호조무사", name: "최유진", expiry: offset(-2), cme: offset(7) }
-        ].map(x => ({ ...x, id: "lic-sample-" + x.name }));
+          { role: "한의사",     name: "윤지훈", reported: offset(2 - 36),  cme: offset(8) },
+          { role: "한의사",     name: "박서영", reported: offset(14 - 36), cme: offset(-1) },
+          { role: "간호사",     name: "이민하", reported: offset(5 - 36),  cme: offset(11) },
+          { role: "물리치료사", name: "김도현", reported: offset(22 - 36), cme: offset(4) },
+          { role: "간호조무사", name: "최유진", reported: offset(-2 - 36), cme: offset(7) }
+        ].map(x => ({ ...x, id: "lic-sample-" + x.name, expiry: addYears(x.reported, 3) }));
         Store.set("license.list", sample);
         ActivityLog.push("license", "샘플 직원 5명 등록", {});
         renderList();
@@ -6772,9 +7031,9 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
             `UID:${lic.id}-exp@vibe-clinic-admin`,
             `DTSTAMP:${fmt(todayISO())}Z`, `DTSTART:${fmt(lic.expiry)}`,
             `DTEND:${fmt(lic.expiry).slice(0,11)}5959`,
-            `SUMMARY:${lic.role} ${lic.name} — 면허 만료`,
+            `SUMMARY:${lic.role} ${lic.name} — 면허신고 기한`,
             "BEGIN:VALARM","TRIGGER:-P30D","ACTION:DISPLAY",
-            `DESCRIPTION:면허 만료 예정`,"END:VALARM",
+            `DESCRIPTION:면허신고 기한 (의료법 §25 · 신고일 + 3년)`,"END:VALARM",
             "END:VEVENT");
           if (lic.cme) ics.push("BEGIN:VEVENT",
             `UID:${lic.id}-cme@vibe-clinic-admin`,
@@ -6792,7 +7051,7 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
         a.href = url; a.download = `licenses_${todayISO()}.ics`;
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
-        ActivityLog.push("license", "면허 만료 캘린더 .ics 내려받음", {});
+        ActivityLog.push("license", "면허신고 기한 캘린더 .ics 내려받음", {});
       });
 
       $("#lic-share")?.addEventListener("click", async () => {
@@ -6801,7 +7060,7 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
         const lines = list.map(l => {
           const expDays = daysUntil(l.expiry);
           const tag = expDays == null ? "—" : (expDays < 0 ? `D+${-expDays}` : `D-${expDays}`);
-          return `• ${l.role} ${l.name} · 면허 ${l.expiry || "—"} (${tag}) · 보수교육 ${l.cme || "—"}`;
+          return `• ${l.role} ${l.name} · 면허신고 기한 ${l.expiry || "—"} (${tag}) · 보수교육 ${l.cme || "—"}`;
         });
         const text = `[한방병원 면허·자격 명부]\n${lines.join("\n")}\n\n— ${todayISO()} 기준`;
         await Share.send({ title: "면허·자격 명부", text });
@@ -6928,7 +7187,7 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
         { id: "fa3", label: "환기 시설 (외래·병동) 정기 점검", meta: "분기 1회" }
       ]},
       { title: "인사·교육 (HR)", items: [
-        { id: "hr1", label: "한의사·간호사 면허 신고 및 보수교육 이수 관리", meta: "3년 주기 일제신고", linkTab: "tab-license" },
+        { id: "hr1", label: "한의사·간호사 면허 신고 및 보수교육 이수 관리", meta: "개인별 3년 주기 (의료법 §25)", linkTab: "tab-license" },
         { id: "hr2", label: "신규 입사자 오리엔테이션 기록 (감염관리·환자안전)", meta: "입사 후 7일 이내" },
         { id: "hr3", label: "직원 폭언·폭력 예방 교육 (의료기관 내)", meta: "연 1회 이상" }
       ]},
@@ -6948,9 +7207,12 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
        it (local-first); this layer is purely additive.
 
        ⚠ PURE DEMO DATA. Every card is a fictional sample patient.
-       There is NO real patient data in this collection, ever. The UI
-       carries a "데모 · 예시 데이터" pill so it never misrepresents
-       itself as real clinical records.
+       There is NO real patient data in this collection, ever. The board
+       is PUBLIC (open create/update rules), so the UI does not accept a
+       typed name at all — #intake-name is a <select> of fixed fictional
+       names (mirrored server-side by the pattern constraint in
+       pb/pb_migrations/003_field_limits.js), and the pill reads
+       "공유 보드 — 실명 입력 불가".
 
        Collection: intake_card (base) — https://clinic-admin.pb.gurum.se/_/
          patient_name (text, required, max 40)
@@ -7139,9 +7401,9 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
     async function addCard() {
       const nameEl = $id("intake-name"), sumEl = $id("intake-summary"), btn = $id("intake-add-btn");
       if (!nameEl) return;
-      let name = (nameEl.value || "").trim().slice(0, 40);
+      let name = (nameEl.value || "").trim().slice(0, 20); // <select> — fixed fictional names only
       if (!name) name = "예시 환자";
-      const summary = (sumEl ? sumEl.value : "").trim().slice(0, 200);
+      const summary = (sumEl ? sumEl.value : "").trim().slice(0, 120);
       const payload = { patient_name: name, status: "대기", summary, player_id: playerId() };
       if (btn) btn.disabled = true;
       if (online) {
@@ -7149,14 +7411,14 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
           const c = await getPB();
           if (!c) throw new Error("sdk");
           await c.collection("intake_card").create(payload);
-          nameEl.value = ""; if (sumEl) sumEl.value = "";
+          nameEl.selectedIndex = 0; if (sumEl) sumEl.value = "";
           if (btn) btn.disabled = false;
           return; // realtime event re-renders
         } catch (e) { online = false; setSync(false, "로컬 — 이 기기에서만"); }
       }
       const rec = Object.assign({ id: "local-" + (crypto.randomUUID ? crypto.randomUUID() : Date.now()) }, payload);
       cards.set(rec.id, rec); persistIfLocal();
-      nameEl.value = ""; if (sumEl) sumEl.value = "";
+      nameEl.selectedIndex = 0; if (sumEl) sumEl.value = "";
       if (btn) btn.disabled = false;
       render(rec.id);
     }
@@ -7166,8 +7428,8 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
       // Wire add controls immediately (work in every mode).
       const btn = $id("intake-add-btn");
       if (btn) btn.addEventListener("click", addCard);
-      const nameEl = $id("intake-name");
-      if (nameEl) nameEl.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addCard(); } });
+      const sumEl = $id("intake-summary");
+      if (sumEl) sumEl.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addCard(); } });
 
       let c = null;
       try { c = await getPB(); if (c) { await c.health.check(); online = true; } } catch (e) { online = false; }
