@@ -156,11 +156,12 @@
   #results:empty{min-height:8px;}
 
   .resbar{
-    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 12px;
     margin-bottom:14px;font-weight:800;font-size:1.04rem;color:var(--ink);
   }
-  .resbar > span{display:inline-flex;align-items:baseline;flex-wrap:wrap;gap:.1em;position:relative;}
-  .resbar .btns{display:flex;gap:8px;flex:0 0 auto;}
+  .resbar > span{display:inline-flex;align-items:center;flex-wrap:wrap;gap:.1em;position:relative;}
+  /* on a narrow phone the pill + two buttons don't fit one line: buttons drop to their own row */
+  .resbar .btns{display:flex;gap:8px;flex:0 0 auto;margin-left:auto;}
   .reroll{
     flex:0 0 auto;min-height:44px;padding:9px 16px;
     font:inherit;font-weight:800;font-size:.92rem;color:var(--ink);
@@ -173,10 +174,22 @@
   .reroll:active{transform:translateY(1px);box-shadow:2px 2px 0 var(--shadow);}
   .reroll.copy{background:#fff;}
 
-  /* mode pill: only shown when AI polish was requested (and whether it landed) */
+  /* AI status pill — three states only (busy / live / warn); default mode renders none */
   .resbar .demo-pill{
-    font-weight:700;font-size:.78rem;font-style:italic;color:var(--muted);
+    display:inline-flex;align-items:center;margin-left:8px;padding:3px 10px;
+    font-weight:800;font-size:.74rem;font-style:normal;line-height:1.3;color:var(--ink);
+    border:1.5px solid var(--ink);border-radius:12px;background:#fff;
+    white-space:nowrap;
   }
+  .resbar .demo-pill.busy{border-style:dashed;animation:badgePulse 1.1s ease-in-out infinite;}
+  .resbar .demo-pill.live{background:var(--green);}
+  .resbar .demo-pill.warn{background:var(--accent2);}
+  /* busy: trigger, toggle, reroll and shelf actions are disabled for the whole call */
+  #findBtn:disabled, #aiToggle:disabled, .reroll:disabled{
+    opacity:.55;cursor:progress;transform:none !important;box-shadow:none;
+  }
+  #findBtn:disabled{animation:badgePulse 1.1s ease-in-out infinite;}
+  #results.ai-busy .act{opacity:.45;pointer-events:none;}
 
   .grid{display:grid;grid-template-columns:1fr;gap:16px;}
   @media (min-width:640px){ .grid{grid-template-columns:1fr 1fr;} }
@@ -248,6 +261,70 @@
     color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:16px;cursor:pointer;
   }
 
+  /* per-card shelf actions: "이미 있어요" / "숨기기" */
+  .cardacts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  .act{
+    min-height:36px;padding:5px 11px;
+    font:inherit;font-weight:800;font-size:.8rem;color:var(--ink);
+    background:#fffdf7;border:2px dashed var(--ink);border-radius:14px;
+    cursor:pointer;transition:transform .12s ease, background .12s ease;
+  }
+  .act:active{transform:scale(.96);}
+  @media (hover:hover){ .act:hover{background:#fff4dd;transform:translateY(-1px) rotate(-.6deg);} }
+
+  /* first-run hint (phones only; hidden by default, app.js reveals once) */
+  .firsthint{
+    display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;
+    margin-top:18px;padding:12px 14px;
+    background:#fff4dd;border:2.5px dashed var(--ink);border-radius:18px;
+    font-size:.92rem;font-weight:700;line-height:1.45;color:var(--ink);
+    filter:url(#crayon);
+    animation:drawOn .45s ease both;
+  }
+  .firsthint[hidden]{display:none;}
+  .firsthint span{flex:1 1 200px;word-break:keep-all;}
+  .hintclose{
+    min-height:40px;padding:7px 14px;font:inherit;font-weight:800;font-size:.86rem;
+    color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:16px;cursor:pointer;
+  }
+
+  /* footer shelf: 우리 책장 (owned) + 숨긴 책 관리 (hidden) */
+  .shelf:empty{display:none;}
+  .shelfbox{
+    margin-top:22px;padding:12px 16px;
+    background:#fff;border:2.5px solid var(--ink);border-radius:18px;
+    box-shadow:4px 5px 0 var(--shadow);filter:url(#crayon);
+  }
+  .shelfbox summary{
+    cursor:pointer;font-weight:800;font-size:.98rem;color:var(--ink);
+    list-style:none;display:flex;align-items:center;gap:8px;min-height:32px;
+  }
+  .shelfbox summary::-webkit-details-marker{display:none;}
+  .shelfbox summary::after{content:"▾";margin-left:auto;font-size:.9rem;transition:transform .15s ease;}
+  .shelfbox[open] summary::after{transform:rotate(180deg);}
+  .shelfbox.hiddenbox{
+    background:transparent;border:none;box-shadow:none;filter:none;margin-top:14px;padding:4px 6px;
+  }
+  .shelfbox.hiddenbox summary{
+    font-size:.84rem;font-weight:700;color:var(--muted);
+    text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--accent2);
+  }
+  .shelfnote{margin:6px 0 0;font-size:.82rem;font-weight:600;color:var(--muted);}
+  .shelfbox ul{list-style:none;margin:8px 0 0;padding:0;}
+  .shelfbox li{
+    display:flex;align-items:center;gap:10px;padding:9px 0;
+    border-top:1.5px dashed rgba(58,48,38,.22);font-size:.9rem;
+  }
+  .sflag{font-size:1.1rem;line-height:1;flex:0 0 auto;}
+  .sname{flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;gap:2px 8px;align-items:baseline;}
+  .stitle{font-weight:800;}
+  .sauth{font-size:.8rem;color:var(--muted);}
+  .restore{
+    flex:0 0 auto;min-height:36px;padding:5px 12px;
+    font:inherit;font-weight:800;font-size:.8rem;color:var(--ink);
+    background:#fff;border:2px solid var(--ink);border-radius:14px;cursor:pointer;
+  }
+
   /* Staggered draw-on */
   .cardwrap{
     animation:drawOn .45s ease both;
@@ -277,6 +354,12 @@
     <p class="sub">나이와 좋아하는 것을 골라 보세요 — 한국어·영어 그림책을 함께 추천해 드려요</p>
   </header>
 
+  <!-- one-time phone hint (≤600px); app.js shows it until dismissed or the first recommendation -->
+  <div class="firsthint" id="firstHint" hidden>
+    <span>나이와 관심사를 고르면 책 6권을 골라 드려요 — 🎲로 다시 섞을 수 있어요</span>
+    <button type="button" class="hintclose" aria-label="안내 닫기">알겠어요</button>
+  </div>
+
   <main class="card">
     <div class="group">
       <span class="lab" id="ageLab">나이 <span class="hint err" id="ageHint" role="alert" hidden>나이를 골라 주세요</span></span>
@@ -301,11 +384,13 @@
     <div class="actions">
       <button type="button" id="aiToggle" aria-pressed="false">✨ AI 맞춤 추천</button>
       <button type="button" id="findBtn">책 찾아주세요! ✏️</button>
-      <p class="disclose">AI 모드는 입력 내용을 ai.pb.gurum.se 로 전송해요 (저장되지 않음)</p>
+      <p class="disclose">AI 모드에서는 입력 내용이 ai.pb.gurum.se 로 전송되며 저장되지 않습니다.</p>
     </div>
   </main>
 
   <section id="results"></section>
+  <!-- "우리 책장" (owned) + "숨긴 책 N권 · 관리" (hidden) — rendered by app.js from localStorage -->
+  <footer class="shelf" id="shelf"></footer>
 </div>
 
 <script src="./catalog.js"></script>

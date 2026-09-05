@@ -139,6 +139,17 @@ function scoreBook(b, p){
 
 let shuffleSalt = 0;
 
+/* ── "이미 있어요" / "숨기기": per-book shelf state, persisted as id arrays ──
+   Both kinds drop the book from every future pool; the footer lets a parent restore. */
+const SHELF_KEYS = { owned: "kb.owned", hidden: "kb.hidden" };
+function loadIds(key){
+  try { const v = JSON.parse(localStorage.getItem(key) || "[]"); return new Set(Array.isArray(v) ? v.filter(x => typeof x === "string") : []); }
+  catch(_) { return new Set(); }
+}
+const SHELF = { owned: loadIds(SHELF_KEYS.owned), hidden: loadIds(SHELF_KEYS.hidden) };
+function saveShelf(kind){ try { localStorage.setItem(SHELF_KEYS[kind], JSON.stringify([...SHELF[kind]])); } catch(_){} }
+function shelved(id){ return SHELF.owned.has(id) || SHELF.hidden.has(id); }
+
 /* ── rendering, crayon SVG covers, Open Library swap, varied reroll ── */
 
 // A crayon mini-book cover: framed rect, emoji, title. Always renders, never breaks.
@@ -182,6 +193,10 @@ function cardHtml(b, pending){
       <p class="why"><b>왜 이 책일까요?</b> <span class="why-tx">${escapeHtml(b.blurb)}</span></p>
       <p class="tip"><b>함께 읽기 팁</b> <span class="tip-tx">${escapeHtml(b.readAloud)}</span></p>
       <a class="findlink" href="${escapeHtml(link.href)}" target="_blank" rel="noopener">${link.label}</a>
+      <div class="cardacts">
+        <button type="button" class="act" data-act="owned" aria-label="『${escapeHtml(b.title)}』 이미 있어요 — 우리 책장에 넣고 추천에서 빼기">📚 이미 있어요</button>
+        <button type="button" class="act" data-act="hidden" aria-label="『${escapeHtml(b.title)}』 숨기기 — 다음 추천에서 빼기">🙈 숨기기</button>
+      </div>
     </div>
   </article>`;
 }
@@ -203,18 +218,34 @@ function patchCard(id, upd){
 // CSS.escape isn't on all engines for attribute selectors; ids are kebab so this is safe.
 function cssEsc(s){ return String(s).replace(/["\\]/g, "\\$&"); }
 
+// AI status pill (shared convention across the AI demos): exactly three states —
+// busy "다듬는 중…", success "라이브 · Claude", failure "기본 추천 · AI 다듬기 실패".
+// Default (AI off) renders no pill at all.
+const PILL = {
+  busy: { text: "다듬는 중…",             cls: "busy" },
+  live: { text: "라이브 · Claude",         cls: "live" },
+  warn: { text: "기본 추천 · AI 다듬기 실패", cls: "warn" },
+};
+function pillHtml(state){
+  const p = PILL[state]; if (!p) return "";
+  return `<span class="demo-pill ${p.cls}">${escapeHtml(p.text)}</span>`;
+}
 function renderResults(books, opts){
   opts = opts || {};
   const wrap = document.getElementById("results");
-  const label = opts.modeLabel ? `<span class="demo-pill">${escapeHtml(opts.modeLabel)}</span>` : "";
   const pend = opts.pending instanceof Set ? opts.pending : null;
-  // aria-live sits on the count only — announcing the whole grid on every reroll is noisy.
-  wrap.innerHTML = `<div class="resbar"><span aria-live="polite">${books.length}권 추천${label}</span>
+  // aria-live sits on the count + pill only — announcing the whole grid on every reroll is noisy.
+  wrap.innerHTML = `<div class="resbar"><span aria-live="polite"><span class="cnt">${books.length}권 추천</span>${pillHtml(opts.pill)}</span>
     <span class="btns"><button id="copyLink" class="reroll copy" type="button">링크 복사 🔗</button>
     <button id="reroll" class="reroll" type="button">다시 추천 🎲</button></span></div>
     <div class="grid">${books.map((b,i) => `<div class="cardwrap" style="--i:${i}">${cardHtml(b, pend ? pend.has(b.id) : false)}</div>`).join("")}</div>`;
   // lazy real-cover swap (English ISBNs only). Open Library; silent fallback to SVG.
   swapCovers(wrap);
+}
+function updateCount(){
+  const c = document.querySelector("#results .resbar .cnt");
+  const n = document.querySelectorAll("#results .bookcard").length;
+  if (c) c.textContent = `${n}권 추천`;
 }
 function swapCovers(wrap){
   wrap.querySelectorAll(".bookcard[data-isbn]").forEach(card => {
@@ -265,7 +296,9 @@ function pickDiverse(sortedPool, n, pickedThemes, age){
   return out.slice(0, n);
 }
 function recommend(p, varied){
+  // owned ("이미 있어요") and hidden ("숨기기") books never enter the pool
   let scored = window.BOOKS
+    .filter(b => !shelved(b.id))
     .map(b => ({ b, s: scoreBook(b,p) }))
     .filter(x => x.s > -2)
     .sort((a,b) => b.s - a.s);
@@ -422,15 +455,30 @@ let aiGen = 0;
 let aiAbort = null;
 let lastRun = null;   // { p, books } — what "다시 시도" re-polishes
 
-function setModePill(text){
-  const pill = document.querySelector("#results .resbar .demo-pill");
-  if (pill) pill.textContent = text;
+function setModePill(state){
+  const live = document.querySelector("#results .resbar [aria-live]");
+  if (!live) return;
+  const old = live.querySelector(".demo-pill"); if (old) old.remove();
+  live.insertAdjacentHTML("beforeend", pillHtml(state));
 }
-function showAiFailNote(){
+// Error line under the results bar: "라이브 서버가 잠시 바쁩니다 (NNN) — 다시 시도".
+// `code` is the proxy HTTP status when we have one, else a short cause.
+function showAiFailNote(code){
   const grid = document.querySelector("#results .grid");
-  if (!grid || document.querySelector("#results .ainote")) return;
+  if (!grid) return;
+  const old = document.querySelector("#results .ainote"); if (old) old.remove();
   grid.insertAdjacentHTML("beforebegin",
-    `<div class="ainote"><span>AI 문장 다듬기를 지금 불러올 수 없어 기본 추천을 보여드려요.</span><button type="button" class="retry">다시 시도</button></div>`);
+    `<div class="ainote" role="status"><span>라이브 서버가 잠시 바쁩니다 (${escapeHtml(code)}) —</span><button type="button" class="retry">다시 시도</button></div>`);
+}
+// Busy = whole call (challenge + PoW + fetch). Trigger, toggle, reroll and the per-card
+// shelf actions are disabled so a double-submit can't burn a nonce or race the render.
+const FIND_LABEL = document.getElementById("findBtn").textContent;
+function setBusy(on){
+  const find = document.getElementById("findBtn");
+  find.disabled = on; find.textContent = on ? "다듬는 중…" : FIND_LABEL;
+  document.getElementById("aiToggle").disabled = on;
+  const rr = document.getElementById("reroll"); if (rr) rr.disabled = on;
+  document.getElementById("results").classList.toggle("ai-busy", on);
 }
 
 async function polishWithAI(p, books){
@@ -438,9 +486,11 @@ async function polishWithAI(p, books){
   if (aiAbort) aiAbort.abort();
   const ctl = new AbortController();
   aiAbort = ctl;
-  // safety net: don't let a stalled request hang the badges forever. Abort THIS run's
+  // safety net: don't let a stalled request lock the UI forever. Abort THIS run's
   // controller, not whatever aiAbort points at by the time the timer fires.
-  const timer = setTimeout(() => { try { ctl.abort(); } catch(_){} }, 40000);
+  const timer = setTimeout(() => { try { ctl.abort(); } catch(_){} }, 30000);
+  setBusy(true);
+  setModePill("busy");
   books.forEach(b => { const c = document.querySelector(`#results .bookcard[data-bookid="${cssEsc(b.id)}"]`);
     if (c && !c.querySelector(".aibadge")) { c.classList.add("ai-pending"); c.querySelector(".toprow").insertAdjacentHTML("beforeend", `<span class="aibadge">✨ AI 다듬는 중…</span>`); } });
   try {
@@ -453,17 +503,18 @@ async function polishWithAI(p, books){
       else patchCard(b.id, { failed: true });
     }
     if (!anyOk) throw new Error("empty result");
-    setModePill(" · AI 맞춤 추천");
+    setModePill("live");
   } catch(err) {
     // Only bail silently when a NEWER run superseded us (its render replaced our cards).
     if (gen !== aiGen) return;
-    const why = err.name === "AbortError" ? "aborted (timeout)" : (err.status ? "proxy "+err.status : err.message);
-    console.warn("[책친구] AI polish failed:", why);
+    const code = err.name === "AbortError" ? "시간 초과" : (err.status ? String(err.status) : "연결 실패");
+    console.warn("[책친구] AI polish failed:", code, err.message);
     books.forEach(b => patchCard(b.id, { failed: true }));   // keep catalog blurbs, drop badges
-    setModePill(" · AI 문장 다듬기 실패 — 기본 추천");
-    showAiFailNote();
+    setModePill("warn");                                      // deterministic engine is the fallback
+    showAiFailNote(code);
   } finally {
     clearTimeout(timer);
+    if (gen === aiGen) setBusy(false);
   }
 }
 
@@ -480,28 +531,106 @@ function runRecommend(varied){
   const books = recommend(p, !!varied);
   const aiOn = document.getElementById("aiToggle").getAttribute("aria-pressed")==="true";
   writeHash(p);
-  lastRun = { p, books };
+  lastRun = { p, books, varied: !!varied };
+  dismissHint();
 
   // a new render supersedes any in-flight AI call
   aiGen++;
   if (aiAbort) aiAbort.abort();
+  setBusy(false);
 
   if(!aiOn){ renderResults(books); scrollResults(); return; }
 
   // Render all cards IMMEDIATELY with catalog blurbs + a per-card "AI 다듬는 중…" badge,
   // then fill them in place when the single batched call returns.
-  renderResults(books, { modeLabel:" · AI 맞춤 추천", pending: new Set(books.map(b => b.id)) });
+  renderResults(books, { pill:"busy", pending: new Set(books.map(b => b.id)) });
   scrollResults();
   polishWithAI(p, books);
 }
+
+/* ── shelf actions on a card: "이미 있어요" → owned, "숨기기" → hidden ──
+   The card is swapped in place for the next-best unseen book (scoring is deterministic,
+   so recommend() with the book excluded yields the same set plus one newcomer). */
+function shelveBook(id, kind){
+  if (!SHELF[kind]) return;
+  SHELF[kind].add(id); saveShelf(kind);
+  const card = document.querySelector(`#results .bookcard[data-bookid="${cssEsc(id)}"]`);
+  const wrap = card ? card.closest(".cardwrap") : null;
+  if (lastRun){
+    const shown = new Set(lastRun.books.map(b => b.id));
+    const repl = recommend(lastRun.p, lastRun.varied).find(b => !shown.has(b.id)) || null;
+    lastRun.books = lastRun.books.filter(b => b.id !== id);
+    if (repl) lastRun.books.push(repl);
+    if (wrap){
+      if (repl){
+        wrap.innerHTML = cardHtml(repl, false);
+        wrap.style.animation = "none"; void wrap.offsetWidth; wrap.style.animation = ""; // replay draw-on
+        wrap.style.setProperty("--i", 0);
+        swapCovers(wrap);
+        const aiOn = document.getElementById("aiToggle").getAttribute("aria-pressed")==="true";
+        if (aiOn) polishWithAI(lastRun.p, [repl]);
+      } else wrap.remove();
+    }
+  } else if (wrap) wrap.remove();
+  updateCount();
+  renderShelf();
+}
+
+/* ── footer: "우리 책장" (owned, collapsed) + "숨긴 책 N권 · 관리" (hidden) with restore ── */
+function bookById(id){ return window.BOOKS.find(b => b.id === id); }
+function renderShelf(){
+  const el = document.getElementById("shelf"); if (!el) return;
+  const owned  = [...SHELF.owned].map(bookById).filter(Boolean);
+  const hidden = [...SHELF.hidden].map(bookById).filter(Boolean);
+  const wasOpen = (id) => { const d = document.getElementById(id); return !!(d && d.open); };
+  const openOwned = wasOpen("ownedBox"), openHidden = wasOpen("hiddenBox");
+  if (!owned.length && !hidden.length){ el.innerHTML = ""; return; }
+  const row = (b, kind) => `<li><span class="sflag">${FLAG[b.lang]||""}</span>
+    <span class="sname"><span class="stitle">${escapeHtml(b.title)}</span> <span class="sauth">${escapeHtml(b.author)}</span></span>
+    <button type="button" class="restore" data-kind="${kind}" data-id="${escapeHtml(b.id)}" aria-label="『${escapeHtml(b.title)}』 ${kind==="owned"?"책장에서 빼기":"다시 추천받기"}">${kind==="owned"?"빼기":"되살리기"}</button></li>`;
+  el.innerHTML =
+    (owned.length ? `<details class="shelfbox" id="ownedBox"${openOwned?" open":""}><summary>📚 우리 책장 · ${owned.length}권</summary>
+      <p class="shelfnote">이미 있다고 표시한 책이에요. 추천에서는 빠져요.</p><ul>${owned.map(b => row(b,"owned")).join("")}</ul></details>` : "")
+  + (hidden.length ? `<details class="shelfbox hiddenbox" id="hiddenBox"${openHidden?" open":""}><summary>숨긴 책 ${hidden.length}권 · 관리</summary>
+      <ul>${hidden.map(b => row(b,"hidden")).join("")}</ul></details>` : "");
+}
+document.getElementById("shelf").addEventListener("click", e => {
+  const r = e.target.closest(".restore"); if (!r) return;
+  const kind = r.dataset.kind; if (!SHELF[kind]) return;
+  SHELF[kind].delete(r.dataset.id); saveShelf(kind);
+  renderShelf();
+});
+renderShelf();
+
+/* ── one-time first-run hint on phones (≤600px) ── */
+const HINT_KEY = "vibe.kids-bookshelf.hinted";
+function dismissHint(){
+  const el = document.getElementById("firstHint"); if (!el || el.hidden) return;
+  el.hidden = true;
+  try { localStorage.setItem(HINT_KEY, "1"); } catch(_){}
+}
+(function initHint(){
+  const el = document.getElementById("firstHint"); if (!el) return;
+  let seen = false; try { seen = localStorage.getItem(HINT_KEY) === "1"; } catch(_){}
+  if (seen || location.hash || !window.matchMedia("(max-width:600px)").matches) return;
+  el.hidden = false;
+  el.querySelector(".hintclose").addEventListener("click", dismissHint);
+})();
+
 document.getElementById("findBtn").addEventListener("click", () => { shuffleSalt = 0; runRecommend(false); });
 document.getElementById("results").addEventListener("click", e => {
   if (e.target.closest("#reroll")) { shuffleSalt++; runRecommend(true); return; }
   const copy = e.target.closest("#copyLink");
   if (copy) { copyLink(copy); return; }
+  const act = e.target.closest(".act[data-act]");
+  if (act) {
+    if (document.getElementById("results").classList.contains("ai-busy")) return;
+    const card = act.closest(".bookcard");
+    if (card) shelveBook(card.dataset.bookid, act.dataset.act);
+    return;
+  }
   if (e.target.closest(".ainote .retry") && lastRun) {
     const note = document.querySelector("#results .ainote"); if (note) note.remove();
-    setModePill(" · AI 맞춤 추천");
     polishWithAI(lastRun.p, lastRun.books);
   }
 });

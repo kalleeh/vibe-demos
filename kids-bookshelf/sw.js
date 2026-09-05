@@ -1,5 +1,5 @@
 /* kids-bookshelf — offline shell SW (network-first HTML, cache-first assets) */
-const CACHE = "vibe-kids-bookshelf-v8";
+const CACHE = "vibe-kids-bookshelf-v9";
 const SHELL = [
   "./", "./index.html", "./app.js", "./catalog.js", "./manifest.webmanifest", "./icon.svg",
   // crayon chip icons — precached so an installed PWA shows them offline first-open
