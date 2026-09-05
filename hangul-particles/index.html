@@ -47,7 +47,7 @@
       position: fixed;
       inset: 0;
       width: 100vw;
-      height: 100vh;
+      height: 100dvh;
       z-index: 1;
       cursor: crosshair;
     }
@@ -67,6 +67,8 @@
       transition: opacity .8s ease;
     }
     #loading.hidden { opacity: 0; pointer-events: none; }
+    #loading.failed .bar::after { animation: none; left: 0; width: 100%; opacity: 0.35; }
+    #loading.failed .lbl { color: var(--ink-dim); text-transform: none; letter-spacing: 0.5px; font-size: 13px; }
     #loading .lbl {
       font-family: "JetBrains Mono", monospace;
       font-size: 11px;
@@ -128,7 +130,7 @@
     .dock {
       position: fixed;
       left: 50%;
-      bottom: 30px;
+      bottom: calc(30px + env(safe-area-inset-bottom));
       transform: translateX(-50%);
       z-index: 10;
       display: flex;
@@ -241,28 +243,40 @@
   <script type="importmap">
     {
       "imports": {
-        "three":          "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-        "three/addons/":  "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        "three": "./vendor/three.module.js"
       }
     }
   </script>
 
   <script type="module">
     import * as THREE from "three";
-    import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
     const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const finePointer = window.matchMedia("(pointer: fine)");
+    const smallScreen = window.matchMedia("(max-width: 600px)");
     const narrow = window.innerWidth < 700;
     const PARTICLE_COUNT = narrow ? 18000 : 45000;
     const FONT_FAMILY = "'Noto Sans KR', sans-serif";
     const SAMPLE_FONT_PX = 240;         // offscreen canvas glyph render size
-    const WORLD_WIDTH = 9.2;             // world units the sampled text spans
+    const WORLD_WIDTH = 9.2;             // max world units the sampled text spans
+    const CAMERA_Z = 11;
+    const CAMERA_FOV = 42;
+
+    const loadingEl = document.getElementById("loading");
+    const loadingLbl = document.getElementById("loadingLbl");
 
     /* ─────────────────────────────────────────────
        Renderer / scene / camera — fidelity 4-liner
        ───────────────────────────────────────────── */
     const container = document.getElementById("scene");
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+    } catch (err) {
+      loadingLbl.textContent = "WebGL을 사용할 수 없어요 / WebGL unavailable";
+      loadingEl.classList.add("failed");
+      throw err; // module stops here; the loader stays up with the message
+    }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x05060a, 1);
@@ -272,12 +286,17 @@
     container.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 100);
-    camera.position.set(0, 0, 11);
+    const camera = new THREE.PerspectiveCamera(CAMERA_FOV, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 0, CAMERA_Z);
 
-    const pmrem = new THREE.PMREMGenerator(renderer);
-    pmrem.compileEquirectangularShader();
-    scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+    // World width the sampled text may span: capped at WORLD_WIDTH, and on
+    // narrow (portrait) viewports at 85% of the frustum width at z=0.
+    function computeFitWidth() {
+      const fovRad = CAMERA_FOV * Math.PI / 180;
+      const visibleWidth = 2 * CAMERA_Z * Math.tan(fovRad / 2) * (window.innerWidth / window.innerHeight);
+      return Math.min(WORLD_WIDTH, 0.85 * visibleWidth);
+    }
+    let fitWidth = computeFitWidth();
 
     /* faint starfield so the void behind the particles isn't dead */
     (function addStars() {
@@ -320,9 +339,8 @@
 
       const { data } = sampleCtx.getImageData(0, 0, w, h);
       const pts = [];
-      const step = w > 500 ? 1 : 1; // full-res scan; canvases here are small enough
-      for (let y = 0; y < h; y += step) {
-        for (let x = 0; x < w; x += step) {
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
           const a = data[(y * w + x) * 4 + 3];
           if (a > 80) pts.push(x, y);
         }
@@ -330,7 +348,7 @@
       if (pts.length === 0) pts.push(w / 2, h / 2);
 
       const nPix = pts.length / 2;
-      const scale = WORLD_WIDTH / w; // world units per canvas pixel
+      const scale = fitWidth / w; // world units per canvas pixel
       const out = new Float32Array(count * 3);
       for (let i = 0; i < count; i++) {
         const pick = nPix >= count
@@ -531,9 +549,14 @@
     const targetAttr = geometry.getAttribute("aTarget");
 
     let currentWord = "";
-    function setWord(word, { instant } = {}) {
+    let setWordSeq = 0;
+    async function setWord(word, { instant } = {}) {
       if (word === currentWord && !instant) return;
       currentWord = word;
+      const seq = ++setWordSeq;
+      // Make sure the 900-weight subset covering these glyphs is in before sampling.
+      try { await document.fonts.load(`900 ${SAMPLE_FONT_PX}px ${FONT_FAMILY}`, word); } catch (e) { /* fall back to whatever's loaded */ }
+      if (seq !== setWordSeq) return; // a newer word superseded this one while awaiting
       const newTarget = sampleGlyphPoints(word, PARTICLE_COUNT);
 
       if (instant) {
@@ -566,8 +589,8 @@
        ───────────────────────────────────────────── */
     let pointerNX = 0, pointerNY = 0; // normalized -1..1
     function onPointerMoveParallax(e) {
-      const x = (e.touches ? e.touches[0].clientX : e.clientX) / window.innerWidth;
-      const y = (e.touches ? e.touches[0].clientY : e.clientY) / window.innerHeight;
+      const x = e.clientX / window.innerWidth;
+      const y = e.clientY / window.innerHeight;
       pointerNX = x * 2 - 1;
       pointerNY = y * 2 - 1;
     }
@@ -609,22 +632,36 @@
       input.value = btn.dataset.word;
       clearTimeout(debounceTimer);
       setWord(btn.dataset.word);
-      input.focus();
+      if (finePointer.matches) input.focus(); // don't pop the keyboard on touch devices
     });
+    // Enter = centre scatter poke (keyboard/mobile equivalent of tapping the canvas).
+    input.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      onPoke(window.innerWidth / 2, window.innerHeight / 2);
+      if (!finePointer.matches) input.blur();
+    });
+    // On small screens the top hint is hidden — fold it into the placeholder.
+    const DEFAULT_PLACEHOLDER = input.placeholder;
+    function applyPlaceholder() {
+      input.placeholder = smallScreen.matches ? "탭하면 흩어져요 · type a word" : DEFAULT_PLACEHOLDER;
+    }
+    applyPlaceholder();
+    smallScreen.addEventListener("change", applyPlaceholder);
 
     /* ─────────────────────────────────────────────
        Boot: wait for the font, sample the initial word
        ───────────────────────────────────────────── */
-    const loadingEl = document.getElementById("loading");
-    const loadingLbl = document.getElementById("loadingLbl");
+    const PRESET_WORDS = [...document.querySelectorAll(".chip")].map(b => b.dataset.word);
 
     async function boot() {
       try {
-        await document.fonts.load(`900 ${SAMPLE_FONT_PX}px ${FONT_FAMILY}`);
+        // Load the 900-weight subsets for the initial word and every preset up front.
+        await document.fonts.load(`900 ${SAMPLE_FONT_PX}px ${FONT_FAMILY}`, PRESET_WORDS.join("") + (input.value || "안녕"));
         await document.fonts.ready;
       } catch (e) { /* font API unsupported — fall back to whatever's loaded */ }
       loadingLbl.textContent = "assembling";
-      setWord(input.value || "안녕", { instant: true });
+      await setWord(input.value || "안녕", { instant: true });
       requestAnimationFrame(() => {
         loadingEl.classList.add("hidden");
         setTimeout(() => { loadingEl.style.display = "none"; }, 900);
@@ -635,10 +672,10 @@
     /* ─────────────────────────────────────────────
        Animation loop
        ───────────────────────────────────────────── */
-    let rendering = true;
+    let rendering = false;
+    let rafId = 0;
     function tick() {
       if (!rendering) return;
-      const dt = Math.min(clock.getDelta(), 0.05);
       const t = clock.getElapsedTime();
       uniforms.uTime.value = t;
 
@@ -659,20 +696,56 @@
       }
 
       renderer.render(scene, camera);
-      requestAnimationFrame(tick);
+      rafId = requestAnimationFrame(tick);
     }
-    tick();
+    function startLoop() {
+      if (rendering) return; // guard against a second concurrent rAF loop
+      rendering = true;
+      clock.getDelta(); // drop the time spent hidden / in bfcache
+      tick();
+    }
+    function stopLoop() {
+      rendering = false;
+      cancelAnimationFrame(rafId);
+    }
+    startLoop();
+
+    // Re-fit the word when the viewport changes (rotation, address-bar
+    // collapse): rescale x/y of every position attribute by the new/old ratio
+    // so an in-flight transition keeps its shape instead of popping.
+    function refitWord() {
+      const next = computeFitWidth();
+      if (Math.abs(next - fitWidth) < 1e-6) return;
+      const ratio = next / fitWidth;
+      fitWidth = next;
+      for (const attr of [startAttr, scatterAttr, targetAttr]) {
+        const a = attr.array;
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+          a[i*3]   *= ratio;
+          a[i*3+1] *= ratio;
+        }
+        attr.needsUpdate = true;
+      }
+    }
 
     function onResize() {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3));
       renderer.setSize(window.innerWidth, window.innerHeight);
       uniforms.uPixelRatio.value = Math.min(window.devicePixelRatio, 3);
       uniforms.uSizeScale.value = computeSizeScale();
+      refitWord();
     }
     window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
 
-    window.addEventListener("pagehide", () => { rendering = false; });
+    window.addEventListener("pagehide", stopLoop);
+    window.addEventListener("pageshow", startLoop);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") stopLoop();
+      else startLoop();
+    });
   </script>
 
   <script>
