@@ -630,6 +630,42 @@
     }
     .end-panel .lb-submit input:focus { outline: none; border-color: var(--bloom); }
     .end-panel .lb-note { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; min-height: 12px; }
+    #lbEndNote { margin-top: 10px; }
+    /* Busy state (health re-check) — typographic shimmer, no spinner. */
+    .end-panel .lb-note.busy {
+      background: linear-gradient(90deg, var(--muted) 0%, var(--bloom) 50%, var(--muted) 100%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      animation: lbShimmer 1.1s linear infinite;
+    }
+    /* While the name field has focus, dock the panel to the top so a
+       landscape-phone keyboard doesn't cover the input. */
+    .end-panel.docked { top: 8px; transform: translateX(-50%); }
+    @media (prefers-reduced-motion: reduce) {
+      .end-panel .lb-note.busy { animation: none; background: none; color: var(--muted); }
+    }
+
+    /* Pause card — shown when the tab was hidden mid-run; waits for a tap so
+       the player isn't dropped straight back into a live dive. */
+    .pause-card {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%) rotate(-0.8deg);
+      display: none;
+      flex-direction: column; align-items: center; gap: 6px;
+      padding: 18px 28px;
+      background: rgba(244, 236, 214, 0.94);
+      border: 1px dashed var(--ink-soft);
+      box-shadow: 0 12px 30px rgba(42,38,29,0.14);
+      z-index: 7;
+      cursor: pointer;
+      pointer-events: auto;
+      touch-action: manipulation;
+      text-align: center;
+    }
+    .pause-card.live { display: flex; }
+    .pause-card .kicker { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; }
+    .pause-card .msg { font-family: "Caveat", cursive; font-size: 24px; color: var(--ink); }
 
     @media (max-width: 640px) {
       .topbar { padding: 12px 14px 2px; gap: 6px; }
@@ -771,6 +807,12 @@
 
     <!-- HUD pointer (minimap / off-screen arrow callouts) -->
     <div class="hud-pointer" id="hudPointer"></div>
+
+    <!-- Pause card (tab was hidden mid-run) -->
+    <div class="pause-card" id="pauseCard" role="button" aria-label="Resume">
+      <div class="kicker">paused</div>
+      <div class="msg">tap to resume the glide →</div>
+    </div>
 
     <div class="rotate-hint" id="rotateHint" aria-hidden="true">
       <div class="phone-glyph" aria-hidden="true">
@@ -1057,6 +1099,7 @@
         <button type="button" id="lbSubmitBtn">submit to leaderboard</button>
         <div class="lb-note" id="lbSubmitNote" role="status" aria-live="polite"></div>
       </div>
+      <div class="lb-note" id="lbEndNote" role="status" aria-live="polite"></div>
       <button id="restartBtn">begin again</button>
     </div>
     <div class="lb-overlay" id="lbOverlay" role="dialog" aria-modal="true" aria-label="Leaderboard">
@@ -1316,6 +1359,12 @@
       gameOver: false,
       muted: false,
 
+      // Pause — see pauseGame/resumeGame. Physics and every wall-clock stamp
+      // above freeze while any reason is held ("hidden" tab, "lb" overlay).
+      paused: false,
+      _pausedAt: 0,
+      _pauseReasons: new Set(),
+
       // Visual jitter rng (separate so jitter doesn't desync determinism)
       jrand: Math.random,
 
@@ -1396,6 +1445,28 @@
       }
       return best;
     }
+    // Stars (night) or clouds (any other palette), seeded off the day seed so
+    // they're stable per run. `originX` lets a mid-flight day rollover spawn
+    // the clouds ahead of the bird instead of back at the start line.
+    function seedSky(originX) {
+      G.stars.length = 0;
+      G.clouds.length = 0;
+      if (PALETTES[G.paletteIdx].name === "night") {
+        const r = mulberry32(G.seed ^ 0x9999);
+        for (let i = 0; i < 60; i++) G.stars.push({ x: r(), y: r() * 0.5, r: 0.6 + r() * 1.0 });
+      } else {
+        const r = mulberry32(G.seed ^ 0x7777);
+        const count = 4 + Math.floor(r() * 4);
+        for (let i = 0; i < count; i++) {
+          G.clouds.push({
+            x: r() * 4000 + originX + i * 600,
+            y: 60 + r() * 90,
+            w: 80 + r() * 120,
+            speed: 0.04 + r() * 0.04,
+          });
+        }
+      }
+    }
     function newDay(dayN) {
       G.day = dayN;
       const pick = chooseFriendlySeed(dayN);
@@ -1404,29 +1475,7 @@
       G.paletteIdx = (dayN - 1) % PALETTES.length;
       G.dayStartT = performance.now();
       G.transitioning = false;
-
-      // Stars only at night
-      G.stars.length = 0;
-      if (PALETTES[G.paletteIdx].name === "night") {
-        const r = mulberry32(G.seed ^ 0x9999);
-        for (let i = 0; i < 60; i++) {
-          G.stars.push({ x: r(), y: r() * 0.5, r: 0.6 + r() * 1.0 });
-        }
-      }
-      // Clouds for non-night palettes
-      G.clouds.length = 0;
-      if (PALETTES[G.paletteIdx].name !== "night") {
-        const r = mulberry32(G.seed ^ 0x7777);
-        const count = 4 + Math.floor(r() * 4);
-        for (let i = 0; i < count; i++) {
-          G.clouds.push({
-            x: r() * 4000 + i * 600,
-            y: 60 + r() * 90,
-            w: 80 + r() * 120,
-            speed: 0.04 + r() * 0.04,
-          });
-        }
-      }
+      seedSky(0);
       document.getElementById("dayNum").textContent = String(dayN);
     }
 
@@ -1448,6 +1497,7 @@
       G.nightfall = { active: false, startedAt: 0, phase: "engulf", surge: false, surgeFromX: 0, reason: "" };
       G.graceUntil = 0;
       G.gameOver = false;
+      clearPause();
       G.tutorial = false;
       G.tutorialStep = 0;
       // Tear down any visible tutorial UI on (re)start so a mid-tutorial
@@ -1604,10 +1654,8 @@
           // bird visibly soars to its apex and hangs there waiting for the tap.
           G.by = G.terrain.h(G.bx) - 10;
         }
-        // Show the current boost on the meter immediately (the meter is updated
-        // in the render loop, which keeps running during the freeze).
-        const bf = document.getElementById("boostFill");
-        if (bf) bf.style.width = (G.boost * 100).toFixed(1) + "%";
+        // The meter itself is redrawn by frame(), which keeps running during
+        // the freeze, so the new value shows immediately.
       }
       if (G.tutorialStep < TUTORIAL_STEPS.length) {
         showCoachmark(TUTORIAL_STEPS[G.tutorialStep]);
@@ -1676,7 +1724,7 @@
     }
 
     function beginPress() {
-      if (G.gameOver) return;
+      if (G.gameOver || G.paused) return;
       G.pressActive = true;
       G.pressStartAt = performance.now();
       if (G.airborne) {
@@ -1712,6 +1760,8 @@
     canvas.addEventListener("pointerdown", e => {
       e.preventDefault();
       ensureAudio();
+      // Tap anywhere resumes a hidden-tab pause; the tap itself is not a dive.
+      if (G.paused) { if (G._pauseReasons.has("hidden")) resumeGame("hidden"); return; }
       if (G.gameOver) return;
       // Capture the pointer so we still get pointerup even if the finger/cursor
       // releases over the topbar/footer that overlay the playfield — otherwise
@@ -1742,6 +1792,11 @@
       // double-fired startGame, manifesting as flicker / panel flash.
       if (now - _lastRestart < 600) return;
       _lastRestart = now;
+      // While the story card is up (first visit, or "how to play"), a restart
+      // must go through dismissIntro — otherwise the bird takes off behind the
+      // card and the player can't see it.
+      const introEl = document.getElementById("introPanel");
+      if (introEl && !introEl.classList.contains("gone")) { dismissIntro({ tutorial: false }); return; }
       if (isManual) G.gameOver = true; // bypass endRun guard
       startGame();
       // Blur whatever has focus so a subsequent Space keypress doesn't
@@ -1788,27 +1843,96 @@
     bindRestart(_restartBtn, false);
     bindRestart(_manualRestartBtn, true);
 
-    // Keyboard alt — space/up = pitch down, mirrors tap
+    // Keyboard alt — space/up = pitch down, mirrors tap.
+    // Space inside a text field or on a dialog button must never be read as
+    // game input (typing a space in the leaderboard name field used to restart
+    // the run). HUD chrome buttons in the footer are deliberately NOT in this
+    // list: a lingering focus on "⚙ settings" shouldn't steal the dive key.
+    const KEY_PASSTHROUGH = "input, textarea, select, .end-panel button, .lb-overlay button, .intro-panel button, .tuner button, .coachmark button, .rotate-hint button";
     window.addEventListener("keydown", e => {
       if (e.repeat) return;
-      if (e.code === "Space" || e.code === "ArrowDown") {
-        if (G.gameOver) {
-          // Route through doRestart so the 600ms debounce also covers the
-          // synthesized click that a focused restart button fires on Space —
-          // otherwise the game restarts twice.
-          e.preventDefault();
-          doRestart(false);
-        } else {
-          // Mirror the canvas tap/hold split: a quick Space/Down tap in the
-          // air spends boost; holding it pitches the bird down to dive.
-          e.preventDefault();
-          beginPress();
-        }
+      if (e.code !== "Space" && e.code !== "ArrowDown") return;
+      if (e.target && e.target.closest && e.target.closest(KEY_PASSTHROUGH)) return;
+      e.preventDefault();
+      if (G.paused) {
+        if (G._pauseReasons.has("hidden")) resumeGame("hidden");
+        return;
+      }
+      if (G.gameOver) {
+        // Route through doRestart so the 600ms debounce also covers the
+        // synthesized click that a focused restart button fires on Space —
+        // otherwise the game restarts twice.
+        doRestart(false);
+      } else {
+        // Mirror the canvas tap/hold split: a quick Space/Down tap in the
+        // air spends boost; holding it pitches the bird down to dive.
+        beginPress();
       }
     });
     window.addEventListener("keyup", e => {
       if (e.code === "Space" || e.code === "ArrowDown") endPress();
     });
+
+    // ── Pause ────────────────────────────────────────────────────
+    // Every timer in G is a wall-clock performance.now() stamp. When the tab
+    // is hidden (rAF stops) or an overlay is up, wall time keeps running, so
+    // on return checkStopped / graceUntil / dayStartT all read the gap as
+    // "seconds of no progress" and the run dies instantly. Pausing freezes
+    // physics; resuming shifts every stamp forward by the frozen duration so
+    // simulated time stays continuous. Reasons are a set: a hidden tab AND an
+    // open leaderboard both have to clear before physics runs again.
+    function shiftClocks(ms) {
+      if (!(ms > 0)) return;
+      G.dayStartT += ms;
+      G.flightStartT += ms;
+      G.lastProgressAt += ms;
+      G.pressStartAt += ms;
+      G.pitchReleasedAt += ms;
+      G.boostFlashUntil += ms;
+      G.nightfall.startedAt += ms;
+      if (G.graceUntil) G.graceUntil += ms;
+      if (G.transitionEnd) G.transitionEnd += ms;
+      if (G._perfectAt) G._perfectAt += ms;
+      if (_offscreenCaptionUntil) _offscreenCaptionUntil += ms;
+      for (const p of trail) p.t += ms;
+    }
+    const pauseCardEl = document.getElementById("pauseCard");
+    function runLive() {
+      return !G.gameOver && document.getElementById("introPanel").classList.contains("gone");
+    }
+    function pauseGame(reason) {
+      G._pauseReasons.add(reason);
+      if (!G.paused) {
+        G.paused = true;
+        G._pausedAt = performance.now();
+        // Drop any held press so the bird doesn't resume mid-dive.
+        G.pressActive = false;
+        G.pitchDown = false;
+      }
+      if (reason === "hidden" && runLive()) pauseCardEl.classList.add("live");
+    }
+    function resumeGame(reason) {
+      G._pauseReasons.delete(reason);
+      if (reason === "hidden") pauseCardEl.classList.remove("live");
+      if (!G.paused || G._pauseReasons.size) return;
+      G.paused = false;
+      shiftClocks(performance.now() - G._pausedAt);
+    }
+    function clearPause() {
+      G.paused = false;
+      G._pauseReasons.clear();
+      pauseCardEl.classList.remove("live");
+    }
+    document.addEventListener("visibilitychange", () => {
+      // Only ever pause here. On return we stay paused and show the card —
+      // the player taps when they're ready, instead of being dropped back
+      // into a live dive the instant the tab reappears.
+      if (document.hidden) pauseGame("hidden");
+    });
+    pauseCardEl.addEventListener("click", () => resumeGame("hidden"));
+    // Bridge for the leaderboard module (separate <script type="module">).
+    window.__gamePause = pauseGame;
+    window.__gameResume = resumeGame;
 
     // ── Physics tick ──────────────────────────────────────────────
     // Gravity values are split so airborne flight is glider-light while
@@ -1832,10 +1956,22 @@
       NIGHT_GAP:     600,   // px the night starts behind the bird each run
     };
     const PHYS = Object.assign({}, PHYS_DEFAULTS);
+    const PHYS_KEY = "vibe.tinywings.phys";
     try {
-      const saved = JSON.parse(localStorage.getItem("sketchwings.phys") || "{}");
+      // One-time migration from the pre-namespace key.
+      const legacy = localStorage.getItem("sketchwings.phys");
+      if (legacy !== null) {
+        if (localStorage.getItem(PHYS_KEY) === null) localStorage.setItem(PHYS_KEY, legacy);
+        localStorage.removeItem("sketchwings.phys");
+      }
+      const saved = JSON.parse(localStorage.getItem(PHYS_KEY) || "{}");
       for (const k in PHYS_DEFAULTS) if (typeof saved[k] === "number") PHYS[k] = saved[k];
     } catch {}
+    // True when every knob matches shipping defaults. Tuned runs stay fully
+    // playable but are not eligible for the shared leaderboard.
+    function physIsDefault() {
+      return Object.keys(PHYS_DEFAULTS).every(k => PHYS[k] === PHYS_DEFAULTS[k]);
+    }
     const STALL_ANGLE_DEG  = 55;  // landing angle above this = bonk
     const PERFECT_ANGLE_DEG = 12; // launch within this angle of slope tangent = perfect
 
@@ -1896,7 +2032,7 @@
           const val = parseFloat(slider.value);
           PHYS[k] = val;
           display.textContent = fmtTuner(k, val);
-          try { localStorage.setItem("sketchwings.phys", JSON.stringify(PHYS)); } catch {}
+          try { localStorage.setItem(PHYS_KEY, JSON.stringify(PHYS)); } catch {}
         });
       }
     }
@@ -1947,7 +2083,7 @@
 
     tuneResetBtn.addEventListener("click", () => {
       Object.assign(PHYS, PHYS_DEFAULTS);
-      try { localStorage.removeItem("sketchwings.phys"); } catch {}
+      try { localStorage.removeItem(PHYS_KEY); } catch {}
       buildTuner();
     });
     tuneCopyBtn.addEventListener("click", async () => {
@@ -2147,14 +2283,6 @@
           G.vy = newProj * ty;
         }
 
-        // Detect launch: if next position's slope curves up sharper than
-        // the bird's velocity vector, the bird leaves the surface.
-        // Approximate by checking if slope is decreasing (heading from
-        // downhill to upslope crest) and forward speed is high enough.
-        const slopeNext = t.slope(G.bx + Math.max(20, G.vx * dt * 2));
-        if (slope > 0.02 && slopeNext < slope - 0.01 && G.vx > 220) {
-          // Player about to crest — fine, stay surfing for one more step
-        }
         // Natural launch: only on MEANINGFUL uphills, not the micro-noise
         // layer. slope < -0.18 ≈ a real ramp (≈10°+); below that the
         // bird should just track the terrain smoothly. Without this
@@ -2262,9 +2390,8 @@
       // Boost is earned, not idled into. Soft landings (+0.10) and
       // perfect releases (+0.35) charge it; passive airtime does not.
       // Otherwise a do-nothing bird gets a forward kick handed to it.
-
-      // Boost meter UI
-      document.getElementById("boostFill").style.width = (G.boost * 100).toFixed(1) + "%";
+      // (Boost / distance / best HUD writes live in frame(), once per frame,
+      // not once per physics sub-step.)
 
       // End-of-flight detection. Two independent loss paths, both ending the
       // run via the nightfall sequence (see checkStopped / triggerNightfall):
@@ -2317,17 +2444,7 @@
           // the slope under the bird doesn't snap. Reseeding mid-flight
           // would teleport the surface and stall the run.
           G.paletteIdx = newPaletteIdx;
-          // Stars / clouds
-          G.stars.length = 0;
-          G.clouds.length = 0;
-          if (PALETTES[G.paletteIdx].name === "night") {
-            const r = mulberry32(G.seed ^ 0x9999);
-            for (let i = 0; i < 60; i++) G.stars.push({ x: r(), y: r() * 0.5, r: 0.6 + r() * 1.0 });
-          } else {
-            const r = mulberry32(G.seed ^ 0x7777);
-            const count = 4 + Math.floor(r() * 4);
-            for (let i = 0; i < count; i++) G.clouds.push({ x: r() * 4000 + G.bx + i * 600, y: 60 + r() * 90, w: 80 + r() * 120, speed: 0.04 + r() * 0.04 });
-          }
+          seedSky(G.bx);
           document.getElementById("dayNum").textContent = String(nextDay);
         }
       }
@@ -2336,11 +2453,9 @@
       // current-x, so a backsliding hill never steals progress on the HUD.
       const reachedM = Math.max(0, Math.floor((G.bx - 200) / 14));
       if (reachedM > G.maxDistM) G.maxDistM = reachedM;
-      document.getElementById("distV").textContent = String(G.maxDistM);
       if (G.maxDistM > G.bestDist) {
         G.bestDist = G.maxDistM;
         try { localStorage.setItem("vibe.tinywings.best", String(G.bestDist)); } catch (e) {}
-        document.getElementById("bestV").textContent = String(G.bestDist);
       }
     }
 
@@ -2418,7 +2533,7 @@
       const endNewBest = $("endNewBest"); if (endNewBest) endNewBest.style.display = newBest ? "" : "none";
       // Notify the leaderboard layer (module script). Fire-and-forget; the
       // game never depends on it. window.__lbOnEnd is defined by the module.
-      try { if (window.__lbOnEnd) window.__lbOnEnd({ distM, newBest }); } catch (e) {}
+      try { if (window.__lbOnEnd) window.__lbOnEnd({ distM, newBest, physDefault: physIsDefault() }); } catch (e) {}
       const ep = $("endPanel"); if (ep) ep.classList.add("live");
     }
 
@@ -3148,19 +3263,42 @@
     }
 
     // ── Main loop ─────────────────────────────────────────────────
+    // HUD nodes written once per frame (not per physics sub-step).
+    const hudBoost = document.getElementById("boostFill");
+    const hudDist = document.getElementById("distV");
+    const hudBest = document.getElementById("bestV");
+    let _hudBoostW = "", _hudDist = -1, _hudBest = -1;
+    function drawHud() {
+      const w = (G.boost * 100).toFixed(1) + "%";
+      if (w !== _hudBoostW) { _hudBoostW = w; hudBoost.style.width = w; }
+      if (G.maxDistM !== _hudDist) { _hudDist = G.maxDistM; hudDist.textContent = String(_hudDist); }
+      if (G.bestDist !== _hudBest) { _hudBest = G.bestDist; hudBest.textContent = String(_hudBest); }
+    }
+
     let lastT = performance.now();
     function frame(now) {
-      const dt = Math.min(0.040, (now - lastT) / 1000);
+      let dt = 0;
+      if (!G.paused) {
+        const gapMs = now - lastT;
+        // Anything beyond the 40 ms clamp is dead time (throttled tab, long
+        // GC, debugger), not simulated time — shift the wall-clock stamps so
+        // the stop detector / grace / day timers never see it.
+        if (gapMs > 40) shiftClocks(gapMs - 40);
+        dt = Math.min(0.040, Math.max(0, gapMs) / 1000);
+      }
       lastT = now;
       // Wing flap phase advances faster while airborne or boosting
       G._wingPhase = (G._wingPhase || 0) + dt * (G.airborne ? 18 : 6);
 
-      // Tick physics (clamped sub-steps for stability at low fps)
-      const sub = Math.max(1, Math.ceil(dt / 0.016));
-      const dts = dt / sub;
-      for (let i = 0; i < sub; i++) physicsStep(dts);
+      if (dt > 0) {
+        // Tick physics (clamped sub-steps for stability at low fps)
+        const sub = Math.max(1, Math.ceil(dt / 0.016));
+        const dts = dt / sub;
+        for (let i = 0; i < sub; i++) physicsStep(dts);
 
-      updateNightfall(now); // progresses the loss animation (physics is frozen meanwhile)
+        updateNightfall(now); // progresses the loss animation (physics is frozen meanwhile)
+      }
+      drawHud();
 
       // Render
       ctx.clearRect(0, 0, viewW, viewH);
@@ -3234,6 +3372,11 @@
       ensureAudio();
       intro.classList.add("gone");
       setOnboarded();
+      // The clicked intro button keeps focus once the card fades; blur it so
+      // the player's first Space is a dive, not a synthesized re-click.
+      if (document.activeElement && document.activeElement.blur) {
+        try { document.activeElement.blur(); } catch {}
+      }
       startGame();
       if (opts && opts.tutorial) startTutorial();
     }
@@ -3345,15 +3488,21 @@
   <script type="module">
     /* ============================================================
        LEADERBOARD (PocketBase, Tier 1 public)
-       Isolated from the game script. Communicates only via the
-       global window.G state (distance) and the DOM. The game never
-       awaits PocketBase — this layer is purely additive.
+       Isolated from the game script. The game calls
+       window.__lbOnEnd({ distM, newBest, physDefault }) when a run ends
+       and exposes window.__gamePause / __gameResume so this overlay can
+       freeze the run; otherwise this layer only touches the DOM. The game
+       never awaits PocketBase — this layer is purely additive.
 
        Collection: leaderboard (base)  — https://tinywings.pb.gurum.se/_/
          name      (text, required, max 20)
-         score     (number, required, min 0)
+         score     (number, required, min 0, max 20000 — pb_migrations/002)
          player_id (text)   ← anonymous UUID, used only to highlight "you"
          Rules: list="" view="" create="" update=null delete=null
+       Limitation: the score is CLIENT-TRUSTED. createRule "" means anyone
+       can POST any value ≤ 20000; the max only bounds the damage. Refusing
+       to submit tuned-physics runs (physDefault) is a courtesy, not a
+       control. Fine for a demo board; not for anything with stakes.
        ============================================================ */
     // PocketBase SDK is loaded lazily by full URL via dynamic import() — NOT a
     // static `import` + importmap. Importmaps need iOS Safari 16.4+; a static
@@ -3393,40 +3542,69 @@
       try { return localStorage.getItem("vibe.tinywings.name") || ""; } catch (e) { return ""; }
     }
 
-    // One-time, best-effort. No reconnection polling (per CLAUDE.md).
+    // Race a promise against a timeout so a hung CDN/health call can't leave
+    // the end panel or overlay waiting forever.
+    const NET_TIMEOUT_MS = 6000;
+    function withTimeout(p, ms = NET_TIMEOUT_MS) {
+      return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
+    }
+
+    // Best-effort, on user-driven moments only (page load, end of a run,
+    // opening the overlay). No reconnection polling (per CLAUDE.md).
     async function checkHealth() {
       try {
-        const c = await getPB();
+        const c = await withTimeout(getPB());
         if (!c) { online = false; return online; }
-        await c.health.check(); online = true;
+        await withTimeout(c.health.check()); online = true;
       } catch (e) { online = false; }
       return online;
     }
     checkHealth();
 
-    // Exposed so later steps (and quick console checks) can reach them.
-    window.__lb = { getPB, get pb() { return pb; }, playerId, rememberedName, get online() { return online; }, checkHealth };
+    // Console handle for debugging only — opt in with ?debug.
+    if (location.search.includes("debug")) {
+      window.__lb = { getPB, get pb() { return pb; }, playerId, rememberedName, get online() { return online; }, checkHealth };
+    }
 
     const $id = (id) => document.getElementById(id);
 
     function setSubmitNote(msg) { const n = $id("lbSubmitNote"); if (n) n.textContent = msg || ""; }
+    function setEndNote(msg, busy) {
+      const n = $id("lbEndNote"); if (!n) return;
+      n.textContent = msg || "";
+      n.classList.toggle("busy", !!busy);
+    }
 
     // Called by the game's endRun. Reveal the submit field only on a genuine
-    // new personal best AND when we have a backend. Otherwise keep it hidden —
-    // the existing "— a new best —" line still shows (local-first, unchanged).
-    window.__lbOnEnd = function ({ distM, newBest }) {
+    // new personal best, on default physics, AND when we have a backend.
+    // Otherwise keep it hidden — the existing "— a new best —" line still shows
+    // (local-first, unchanged) — and say why in #lbEndNote.
+    let _endToken = 0;
+    window.__lbOnEnd = async function ({ distM, newBest, physDefault }) {
       const block = $id("lbSubmit");
       if (!block) return;
-      block.dataset.score = String(Math.max(0, Math.round(distM || 0)));
-      const eligible = !!newBest && online && (distM | 0) > 0;
-      block.hidden = !eligible;
-      if (eligible) {
-        const input = $id("lbName");
-        if (input && !input.value) input.value = rememberedName();
-        setSubmitNote("");
-        const btn = $id("lbSubmitBtn");
-        if (btn) btn.disabled = false;
+      const token = ++_endToken;
+      const score = Math.max(0, Math.round(distM || 0));
+      block.dataset.score = String(score);
+      block.hidden = true;
+      setEndNote("");
+      if (!newBest || score <= 0) return;
+      if (physDefault === false) { setEndNote("tuned physics — score not submitted"); return; }
+      if (!online) {
+        // `online` was decided once at page load; a flaky first check would
+        // otherwise hide the submit block for the whole session. Re-check now.
+        setEndNote("reaching the leaderboard…", true);
+        await checkHealth();
+        if (token !== _endToken) return; // another run ended meanwhile
+        if (!online) { setEndNote("couldn't reach the leaderboard"); return; }
+        setEndNote("");
       }
+      block.hidden = false;
+      const input = $id("lbName");
+      if (input && !input.value) input.value = rememberedName();
+      setSubmitNote("");
+      const btn = $id("lbSubmitBtn");
+      if (btn) btn.disabled = false;
     };
 
     async function submitScore() {
@@ -3434,6 +3612,7 @@
       const input = $id("lbName");
       const btn = $id("lbSubmitBtn");
       if (!block || !input || !btn) return;
+      if (btn.disabled) return; // already submitting / submitted this run
       const score = parseInt(block.dataset.score || "0", 10) || 0;
       let name = (input.value || "").trim().slice(0, 20);
       if (!name) name = "anon";
@@ -3444,7 +3623,7 @@
         if (!c) throw new Error("sdk unavailable");
         await c.collection("leaderboard").create({ name, score, player_id: playerId() });
         try { localStorage.setItem("vibe.tinywings.name", name); } catch (e) {}
-        lbCacheDirty = true; // overlay refetches next open (Task 6)
+        lbCacheDirty = true; // overlay refetches on next open
         // Compute rank: how many strictly-greater scores exist, +1.
         let rank = null;
         try {
@@ -3467,13 +3646,25 @@
       }
     }
 
-    let lbCacheDirty = true; // shared with Task 6
+    let lbCacheDirty = true;
     const _submitBtn = $id("lbSubmitBtn");
     if (_submitBtn) _submitBtn.addEventListener("click", submitScore);
     const _nameInput = $id("lbName");
-    if (_nameInput) _nameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); submitScore(); } });
+    if (_nameInput) {
+      _nameInput.addEventListener("keydown", (e) => {
+        if (e.repeat) return;
+        if (e.key === "Enter") { e.preventDefault(); submitScore(); }
+      });
+      // Landscape-phone keyboards cover a centered panel; dock it to the top
+      // while the field has focus.
+      const ep = $id("endPanel");
+      _nameInput.addEventListener("focus", () => { if (ep) ep.classList.add("docked"); });
+      _nameInput.addEventListener("blur", () => { if (ep) ep.classList.remove("docked"); });
+    }
 
-    let lbCache = null; // last fetched rows
+    let lbCache = null;   // last fetched (deduped) rows
+    let lbCacheAt = 0;    // Date.now() of that fetch
+    const LB_CACHE_MS = 60_000;
 
     function renderSkeleton() {
       const list = $id("lbList");
@@ -3519,28 +3710,71 @@
       });
     }
 
+    // Offline is not "empty" — say so, instead of "no glides logged yet".
+    function renderOffline() {
+      const list = $id("lbList");
+      if (!list) return;
+      list.innerHTML = "";
+      const li = document.createElement("li");
+      li.className = "lb-empty";
+      li.textContent = "can't reach the leaderboard right now — your best is still kept on this device.";
+      list.appendChild(li);
+    }
+
+    // The collection holds one row per RUN, so a regular could fill the top 25
+    // alone. Fetch a deeper page (already sorted -score) and keep only each
+    // player's first — i.e. highest — row. Rows without a player_id pass through.
+    function dedupePlayers(items) {
+      const seen = new Set(), out = [];
+      for (const r of items) {
+        if (r.player_id) {
+          if (seen.has(r.player_id)) continue;
+          seen.add(r.player_id);
+        }
+        out.push(r);
+        if (out.length >= 25) break;
+      }
+      return out;
+    }
+
     async function loadBoard() {
-      if (!online) { await checkHealth(); }
-      if (!online) { setStatus(false, "local — leaderboard unavailable"); renderRows([]); return; }
-      setStatus(true, "connected");
-      if (lbCache && !lbCacheDirty) { renderRows(lbCache); return; }
-      renderSkeleton();
+      const fresh = online && lbCache && !lbCacheDirty && (Date.now() - lbCacheAt) < LB_CACHE_MS;
+      if (fresh) { setStatus(true, "connected"); renderRows(lbCache); return; }
+      renderSkeleton(); // shimmer rows are the loading state — never static text alone
+      setStatus(false, "connecting…");
+      if (!online) await checkHealth();
+      if (!online) { setStatus(false, "offline"); renderOffline(); return; }
       try {
         const c = await getPB();
         if (!c) throw new Error("sdk unavailable");
-        const rows = await c.collection("leaderboard").getList(1, 25, { sort: "-score" });
-        lbCache = rows.items || [];
+        const rows = await withTimeout(c.collection("leaderboard").getList(1, 100, { sort: "-score" }));
+        lbCache = dedupePlayers(rows.items || []);
+        lbCacheAt = Date.now();
         lbCacheDirty = false;
+        setStatus(true, "connected");
         renderRows(lbCache);
       } catch (e) {
         online = false;
-        setStatus(false, "local — leaderboard unavailable");
-        renderRows([]);
+        setStatus(false, "offline");
+        renderOffline();
       }
     }
 
-    function openBoard() { const o = $id("lbOverlay"); if (o) { o.classList.add("live"); loadBoard(); } }
-    function closeBoard() { const o = $id("lbOverlay"); if (o) o.classList.remove("live"); }
+    // Opening the overlay pauses the run (the game's wall-clock timers would
+    // otherwise count the browsing time as "stopped"); closing resumes it.
+    function openBoard() {
+      const o = $id("lbOverlay");
+      if (!o || o.classList.contains("live")) return;
+      o.classList.add("live");
+      if (window.__gamePause) window.__gamePause("lb");
+      loadBoard();
+    }
+    function closeBoard() {
+      const o = $id("lbOverlay");
+      if (!o || !o.classList.contains("live")) return;
+      o.classList.remove("live");
+      if (window.__gameResume) window.__gameResume("lb");
+    }
 
     const _open = $id("lbOpenBtn"); if (_open) _open.addEventListener("click", openBoard);
     const _close = $id("lbCloseBtn"); if (_close) _close.addEventListener("click", closeBoard);
