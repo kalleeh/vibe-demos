@@ -1413,6 +1413,7 @@
     .model-toggle button:last-child { border-right: none; }
     .model-toggle button.active { background: var(--ink); color: var(--paper); }
     .model-toggle button:hover:not(.active) { background: var(--paper-2); }
+    /* AI state pill — three states: muted 예시 모드 · celadon 라이브 · amber fallback */
     .ai-mode-pill {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 4px 10px;
@@ -1420,14 +1421,19 @@
       font-family: "JetBrains Mono", monospace;
       font-size: 10px;
       letter-spacing: 1px;
-      text-transform: uppercase;
-      background: rgba(123,168,154,0.15);
-      color: var(--celadon-2);
+      text-transform: none;
+      background: rgba(20,17,13,0.06);
+      color: var(--muted);
       margin-left: 10px;
     }
+    .ai-mode-pill[hidden] { display: none; }
     .ai-mode-pill.live {
-      background: rgba(176,74,47,0.10);
-      color: var(--accent);
+      background: rgba(93,140,126,0.16);
+      color: var(--celadon-2);
+    }
+    .ai-mode-pill.fallback {
+      background: rgba(184,122,28,0.14);
+      color: var(--warn);
     }
     .ai-output {
       min-height: 240px;
@@ -1452,11 +1458,24 @@
       font-family: "JetBrains Mono", monospace;
       font-size: 10px;
       letter-spacing: 0.8px;
-      text-transform: uppercase;
-      color: var(--celadon-2);
+      color: var(--muted);
       margin-bottom: 12px;
     }
-    .ai-output .ai-note.live { color: var(--accent); }
+    .ai-output .ai-note.live { color: var(--celadon-2); }
+    .ai-output .ai-note.fallback { color: var(--warn); }
+    /* Live-failure line: one sentence + 다시 시도 / 예시 결과 보기 */
+    .ai-output .placeholder.ai-error {
+      font-family: "Inter", sans-serif;
+      font-style: normal;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--warn);
+      padding: 44px 8px;
+    }
+    .ai-output .ai-error-actions {
+      display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+      margin-top: 16px;
+    }
     .ai-output h5 {
       font-family: "JetBrains Mono", monospace;
       font-size: 10px;
@@ -1595,6 +1614,20 @@
       padding: 0;
     }
     .lic .lic-actions button:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    /* Phone: the 4-column row squeezes the name to one glyph per line — stack it */
+    @media (max-width: 600px) {
+      .lic {
+        grid-template-columns: auto 1fr;
+        grid-template-areas:
+          "role name"
+          "due  actions";
+        row-gap: 10px;
+      }
+      .lic .lic-role { grid-area: role; width: auto; align-self: start; padding-top: 3px; }
+      .lic .lic-name { grid-area: name; }
+      .lic .lic-due { grid-area: due; text-align: left; font-size: 15px; }
+      .lic .lic-actions { grid-area: actions; justify-content: flex-end; }
+    }
     .lic-add {
       display: grid;
       grid-template-columns: 100px 1fr 130px 130px auto;
@@ -2033,6 +2066,17 @@
       border-radius: 3px;
       color: var(--ink);
     }
+    /* ⌘K means nothing on a phone: the palette trigger reads "검색" there, "⌘K" on desktop */
+    .cmdk-word { display: none; }
+    .topbar .chip { white-space: nowrap; }
+    @media (max-width: 880px) {
+      .cmdk-word { display: inline; }
+      .cmdk-key { display: none !important; }
+    }
+    @media (max-width: 600px) {
+      /* keep the 검색 chip on-screen: the sync message truncates instead of pushing it out */
+      .topbar .chip #sync-msg { max-width: 34vw; overflow: hidden; text-overflow: ellipsis; }
+    }
     .topbar .chip.urgent { border-color: rgba(176,74,47,0.4); color: var(--accent); background: rgba(176,74,47,0.06); }
     .topbar .chip.warn   { border-color: rgba(184,122,28,0.4); color: var(--warn); background: rgba(184,122,28,0.07); }
 
@@ -2277,6 +2321,10 @@
       border: 1px solid var(--line);
       border-radius: 3px;
       color: var(--ink-2);
+    }
+    /* Keyboard hints are noise on a phone */
+    @media (max-width: 600px) {
+      .palette-foot { display: none; }
     }
 
     /* Toasts */
@@ -2685,7 +2733,7 @@
         <label class="dont-show">
           <input type="checkbox" id="welcome-dontshow"> 다시 보지 않기
         </label>
-        <span>언제든지 상단 <strong style="color:var(--ink)">시연</strong> 칩에서 다시 열 수 있습니다 · <kbd style="font-family:'JetBrains Mono',monospace;font-size:9.5px;padding:1px 5px;background:rgba(255,255,255,0.6);border:1px solid var(--line);border-radius:3px;color:var(--ink)">⌘K</kbd> 로 빠른 이동</span>
+        <span>언제든지 왼쪽 메뉴 <strong style="color:var(--ink)">▶ 둘러보기 다시 열기</strong>로 다시 볼 수 있습니다 · <strong style="color:var(--ink)">⌕ 검색</strong> <kbd class="cmdk-key" style="font-family:'JetBrains Mono',monospace;font-size:9.5px;padding:1px 5px;background:rgba(255,255,255,0.6);border:1px solid var(--line);border-radius:3px;color:var(--ink)">⌘K</kbd> 으로 어디든 바로 이동</span>
       </div>
     </div>
   </div>
@@ -2756,7 +2804,7 @@
         <button class="rail-btn" id="rail-install" style="display:none">↓ 홈 화면에 추가</button>
         <button class="rail-btn" id="rail-info">ⓘ 정보 · 출처</button>
         <button class="rail-btn" id="rail-demo">▶ 둘러보기 다시 열기</button>
-        <button class="rail-btn" id="rail-cmdk">⌕ 명령 팔레트 ⌘K</button>
+        <button class="rail-btn" id="rail-cmdk">⌕ 검색 · 명령 팔레트 <span class="cmdk-key">⌘K</span></button>
         <button class="rail-btn" id="wipe-all" title="이 브라우저에서 모든 입력·기록·첨부 사진을 지웁니다">⌫ 전체 초기화</button>
       </div>
     </aside>
@@ -2772,7 +2820,7 @@
         <span class="spacer"></span>
         <span class="chip" id="topbar-due" style="display:none"><span class="led warn"></span><span id="topbar-due-text">—</span></span>
         <span class="chip" id="topbar-sync"><span class="led idle" id="sync-led"></span><span id="sync-msg">로컬 저장</span></span>
-        <span class="chip action" id="topbar-cmdk" title="명령 팔레트 (⌘K · Ctrl+K)"><span style="font-size:11px">⌕</span> <kbd>⌘K</kbd></span>
+        <span class="chip action" id="topbar-cmdk" role="button" title="검색 · 명령 팔레트 (⌘K · Ctrl+K)"><span style="font-size:11px">⌕</span> <span class="cmdk-word">검색</span><kbd class="cmdk-key">⌘K</kbd></span>
       </div>
 
       <!-- Legacy outer shell removed — replaced by left rail + topbar above.
@@ -3396,7 +3444,6 @@
         <span class="panel-num">07 · AI 코딩 어시스트</span>
         <h3>코드 찾는 시간 30분 → <em>3분</em></h3>
         <div class="badges">
-          <span class="badge live"><span id="ai-mode-badge">예시 모드</span></span>
           <span class="badge">Claude AI · 한국어 그대로</span>
         </div>
       </div>
@@ -3426,13 +3473,13 @@
               </div>
             </div>
             <p class="caveat" id="ai-privacy" style="margin-top:10px">
-              ※ <em>라이브</em>에서는 이 메모가 외부 AI 서버(ai.pb.gurum.se)로 전송됩니다 — 서버에 저장되지 않고, 이 브라우저에도 남기지 않습니다. <strong>실제 환자 정보는 입력하지 마세요.</strong> <em>예시</em>는 아무것도 전송하지 않습니다.
+              입력 내용은 ai.pb.gurum.se 로 전송되며 저장되지 않습니다. <strong>실제 환자 정보는 입력하지 마세요.</strong> <em>예시</em> 모드는 아무것도 전송하지 않습니다.
             </p>
           </div>
         </div>
 
         <div class="card">
-          <h4><span class="step">02</span> 추천 결과 <span id="ai-mode-pill" class="ai-mode-pill">예시 모드</span></h4>
+          <h4><span class="step">02</span> 추천 결과 <span id="ai-mode-pill" class="ai-mode-pill" role="status" hidden>예시 모드</span></h4>
           <div class="ai-output" id="ai-output">
             <div class="placeholder">메모를 입력하고 <em>코드 추천</em>을 누르면 결과가 여기에 표시됩니다.</div>
           </div>
@@ -4147,7 +4194,18 @@
     }
     /* Wipe-all button */
     $("#wipe-all")?.addEventListener("click", async () => {
-      if (!confirm("이 브라우저에 저장된 모든 입력·기록·면허·체크리스트·첨부 사진을 삭제합니다.\n\n계속하시겠습니까?")) return;
+      // Too big to undo — so the confirm spells out exactly what goes.
+      const len = (k) => (Store.get(k, []) || []).length;
+      const attCount = await Attachments.count().catch(() => 0);
+      const lines = [
+        `· 자보 정산 기록 ${len("jabo.history")}건 + 작성 중인 케이스 초안`,
+        `· 면허 직원 ${len("license.list")}명 + 첨부 사진 ${attCount}장`,
+        `· 인증평가 체크 ${Object.values(Store.get("accred.checked", {}) || {}).filter(Boolean).length}개`,
+        `· 비급여 단가 ${Object.keys(Store.get("bigeup.tariff", {}) || {}).length}개 항목 + 기관 정보`,
+        `· KCD 정비·보존 감사 최근 결과, 연말정산 기관 정보`,
+        `· 최근 활동 ${len("activity")}건, 접수 보드 로컬 카드, 화면 설정`
+      ];
+      if (!confirm(`이 브라우저에 저장된 다음 데이터를 모두 삭제합니다 — 되돌릴 수 없습니다.\n\n${lines.join("\n")}\n\n계속하시겠습니까?`)) return;
       await Store.wipeAll();
       ActivityLog.push("system", "전체 초기화", {});
       location.reload();
@@ -4180,15 +4238,25 @@
         if (link) el.querySelector(".go").addEventListener("click", () => { clearTimeout(t); remove(); activateTab(link); });
         else if (action) el.querySelector(".go").addEventListener("click", () => { clearTimeout(t); remove(); action.fn(); });
       }
+      // Undo for destructive actions — a 6 s toast whose only button runs
+      // restoreFn, which must put the exact record back (same id, same position).
+      // Callers log the delete with { silent: true } so this is the only toast.
+      function withUndo(label, restoreFn, tag = "system") {
+        show({
+          tag, html: esc(label), ttl: 6000,
+          action: { label: "되돌리기", fn: () => { Promise.resolve().then(restoreFn).then(() => Haptic.tap()).catch(e => console.error(e)); } }
+        });
+      }
       // Subscribe to ActivityLog events (skip noisy ones)
       EventBus.on("activity:push", entry => {
         if (!entry) return;
         if (entry.tag === "system" && entry.text === "전체 초기화") return;
+        if (entry.meta?.silent) return; // the caller shows its own (undo) toast
         const meta = TAB_BY_ID[`tab-${entry.tag}`];
         const link = meta ? meta.id : null;
         show({ tag: entry.tag, html: entry.text, link });
       });
-      return { show };
+      return { show, withUndo };
     })();
 
     /* Patch ActivityLog.push to emit so toasts hear it.
@@ -4295,13 +4363,21 @@
           r.onerror   = () => rej(r.error);
         });
       }
+      async function count() {
+        const s = await tx("readonly");
+        return new Promise((res, rej) => {
+          const r = s.count();
+          r.onsuccess = () => res(r.result);
+          r.onerror   = () => rej(r.error);
+        });
+      }
       async function close() {
         if (!dbp) return;
         const db = await dbp;
         dbp = null;
         db.close();
       }
-      return { put, getByOwner, del, close };
+      return { put, getByOwner, del, count, close };
     })();
 
     // ── Lightbox ──
@@ -5356,8 +5432,14 @@
           });
           list.querySelectorAll(".remove-btn").forEach(btn => {
             btn.addEventListener("click", e => {
-              items.splice(+e.target.dataset.i, 1);
+              const i = +e.target.dataset.i;
+              const [removed] = items.splice(i, 1);
               renderItems();
+              Haptic.del();
+              Toast.withUndo(`삭제됨 · ${removed.name}`, () => {
+                items.splice(Math.min(i, items.length), 0, removed);
+                renderItems();
+              }, "jabo");
             });
           });
         }
@@ -5520,22 +5602,38 @@
 
       // 새 케이스 — the six identity fields + item list persist as a draft, so
       // without this there is no way to start a second patient cleanly.
+      // No confirm — the cleared case is restorable from the toast for 6 s.
       $("#jabo-new").addEventListener("click", () => {
+        const FIELDS = ["jabo-name", "jabo-pid", "jabo-insurer", "jabo-claim", "jabo-accident", "jabo-date"];
         const dirty = items.length > 0 || ["jabo-name", "jabo-pid", "jabo-claim"].some(id => $("#" + id).value.trim());
-        if (dirty && !confirm("현재 케이스의 환자·청구 정보와 행위 목록을 모두 비우고 새 케이스를 시작할까요?")) return;
+        const statusEl = $("#jabo-status");
+        const snap = {
+          fields: Object.fromEntries(FIELDS.map(id => [id, $("#" + id).value])),
+          dx: dxSel.value,
+          items: items.map(it => ({ ...it })),
+          status: statusEl.style.display !== "none" ? statusEl.innerHTML : null
+        };
+        const apply = (fields, dx, list) => {
+          for (const [id, v] of Object.entries(fields)) {
+            const el = $("#" + id); el.value = v;
+            el.dispatchEvent(new Event("change", { bubbles: true })); // lets bindPersist store the value
+          }
+          if (dx) dxSel.value = dx; else dxSel.selectedIndex = 0;
+          dxSel.dispatchEvent(new Event("change", { bubbles: true }));
+          items.length = 0;
+          items.push(...list);
+          renderItems();
+        };
         const t = todayISO();
-        const reset = { "jabo-name": "", "jabo-pid": "", "jabo-insurer": "", "jabo-claim": "", "jabo-accident": t, "jabo-date": t };
-        for (const [id, v] of Object.entries(reset)) {
-          const el = $("#" + id); el.value = v;
-          el.dispatchEvent(new Event("change", { bubbles: true })); // lets bindPersist store the cleared value
-        }
-        dxSel.selectedIndex = 0;
-        dxSel.dispatchEvent(new Event("change", { bubbles: true }));
-        items.length = 0;
+        apply({ "jabo-name": "", "jabo-pid": "", "jabo-insurer": "", "jabo-claim": "", "jabo-accident": t, "jabo-date": t }, "", []);
         Store.remove("jabo.draft.items");
-        renderItems();
-        $("#jabo-status").style.display = "none";
-        Toast.show({ tag: "jabo", html: "새 케이스 — 입력을 비웠습니다." });
+        statusEl.style.display = "none";
+        if (!dirty) { Toast.show({ tag: "jabo", html: "새 케이스 — 입력을 비웠습니다." }); return; }
+        Haptic.del();
+        Toast.withUndo(`새 케이스 — 이전 케이스(${snap.fields["jabo-name"] || snap.fields["jabo-pid"] || "미입력"} · 행위 ${snap.items.length}건)를 비웠습니다`, () => {
+          apply(snap.fields, snap.dx, snap.items);
+          if (snap.status != null) { statusEl.innerHTML = snap.status; statusEl.style.display = "flex"; }
+        }, "jabo");
       });
 
       $('[data-action="run-jabo"]').addEventListener("click", () => {
@@ -6461,20 +6559,22 @@
         }
       }
 
-      const setMode = (live) => {
-        const pill = $("#ai-mode-pill");
-        const badge = $("#ai-mode-badge");
-        if (live) {
-          pill.textContent = "라이브 — Opus (proxy)";
-          pill.classList.add("live");
-          badge.textContent = "라이브 — Claude Opus via Bedrock 프록시";
-        } else {
-          pill.textContent = "예시 모드";
-          pill.classList.remove("live");
-          badge.textContent = "예시 모드";
-        }
+      // Shared AI-state pill (the one next to the result header) — exactly three
+      // visible states; hidden while there is no result to label (idle, busy, error).
+      const PILL = {
+        live:     { text: "라이브 · Claude",             cls: "live" },
+        fallback: { text: "예시 결과 · 실시간 연결 실패", cls: "fallback" },
+        canned:   { text: "예시 모드",                   cls: "" }
       };
-      setMode(false); // nothing has been sent yet
+      const setPill = (state) => {
+        const pill = $("#ai-mode-pill");
+        pill.classList.remove("live", "fallback");
+        pill.hidden = !state;
+        if (!state) return;
+        pill.textContent = PILL[state].text;
+        if (PILL[state].cls) pill.classList.add(PILL[state].cls);
+      };
+      setPill(null); // nothing has been sent yet
 
       // Source toggle — 라이브 (default) POSTs the note to the proxy; 예시 never leaves the browser.
       let aiSource = Store.get("ai.source") === "canned" ? "canned" : "live";
@@ -6562,9 +6662,10 @@
       const renderRecommendation = (rec, opts = {}) => {
         const lines = [];
         // Every result is labelled with its source — canned output must never read as live.
-        lines.push(opts.live
-          ? `<div class="ai-note live">라이브 — Claude Opus (proxy) 응답</div>`
-          : `<div class="ai-note">예시 결과 — 규칙 기반 데모, 실제 AI 응답이 아닙니다</div>`);
+        const src = opts.source || "canned";
+        lines.push(src === "live"     ? `<div class="ai-note live">라이브 · Claude 응답</div>`
+                 : src === "fallback" ? `<div class="ai-note fallback">예시 결과 · 실시간 연결 실패 — 규칙 기반 데모, 실제 AI 응답이 아닙니다</div>`
+                 :                      `<div class="ai-note">예시 결과 — 규칙 기반 데모, 실제 AI 응답이 아닙니다</div>`);
         lines.push(`<h5>KCD-8 진단</h5>`);
         lines.push(`<div class="code-list">${rec.kcd.map(rowHTML).join("")}</div>`);
         lines.push(`<h5>한의 변증 (U-code) — 양방 진단과 함께 청구</h5>`);
@@ -6574,6 +6675,7 @@
         lines.push(`<h5>비급여 (병원 자체 산정)</h5>`);
         lines.push(`<div class="code-list">${rec.bigeup.map(rowHTML).join("") || EMPTY_ROW}</div>`);
         $("#ai-output").innerHTML = lines.join("");
+        setPill(src);
       };
 
       const SHIMMER = `<div class="ai-shimmer"></div><div class="ai-shimmer" style="width:80%"></div><div class="ai-shimmer" style="width:60%"></div>`;
@@ -6582,28 +6684,34 @@
       const setBusy = (on) => {
         aiBusy = on;
         runBtn.disabled = on;
-        runBtn.innerHTML = on ? `추천 중… <span class="arrow">⋯</span>` : `코드 추천 <span class="arrow">→</span>`;
+        runBtn.innerHTML = on ? `분석 중… <span class="arrow">⋯</span>` : `코드 추천 <span class="arrow">→</span>`;
       };
 
-      const runCanned = (note) => {
+      // source: "canned" (user chose 예시) | "fallback" (live failed, user asked for the example)
+      const runCanned = (note, source = "canned") => {
         if (aiBusy) return;
         setBusy(true);
-        setMode(false);
+        setPill(null);
         $("#ai-output").innerHTML = SHIMMER;
         setTimeout(() => {
           const rec = cannedFor(note);
-          renderRecommendation(rec, { live: false });
-          ActivityLog.push("ai", "AI 예시 코드 추천 (규칙 기반)", { len: note.length });
+          renderRecommendation(rec, { source });
+          ActivityLog.push("ai", source === "fallback" ? "AI 예시 코드 추천 (라이브 실패 → 규칙 기반)" : "AI 예시 코드 추천 (규칙 기반)", { len: note.length });
           setBusy(false);
         }, 700);
       };
 
-      // Live failure: revert the mode pill, say what happened, and offer the
-      // canned result only as an explicit button — never silently swap it in.
-      const showLiveError = (msg, note) => {
-        $("#ai-output").innerHTML = `<div class="placeholder" style="color:var(--accent)">라이브 호출 실패: ${esc(msg)}<br>
-          <button type="button" class="btn secondary" id="ai-fallback" style="margin-top:14px">예시 결과로 대신 보기</button></div>`;
-        $("#ai-fallback")?.addEventListener("click", () => runCanned(note));
+      // Live failure: hide the pill, say what happened, and offer retry or the
+      // canned result as explicit buttons — never silently swap the example in.
+      const showLiveError = (code, note) => {
+        setPill(null);
+        $("#ai-output").innerHTML = `<div class="placeholder ai-error">라이브 서버가 잠시 바쁩니다 (${esc(code)}) — 다시 시도하거나 예시 결과를 볼 수 있어요
+          <div class="ai-error-actions">
+            <button type="button" class="btn secondary" id="ai-retry">다시 시도</button>
+            <button type="button" class="btn secondary" id="ai-fallback">예시 결과 보기</button>
+          </div></div>`;
+        $("#ai-retry")?.addEventListener("click", () => runLive(note));
+        $("#ai-fallback")?.addEventListener("click", () => runCanned(note, "fallback"));
       };
 
       /* System prompt — PROVENANCE: the <canonical_*> subsets below are hand-curated
@@ -6711,7 +6819,7 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
 </exemplar>`;
         if (aiBusy) return;
         setBusy(true);
-        setMode(true);
+        setPill(null); // "라이브 · Claude" only once a live answer is actually rendered
         $("#ai-output").innerHTML = SHIMMER;
         aiAbort = new AbortController();
         const { signal } = aiAbort;
@@ -6729,31 +6837,23 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
               messages: [{ role: "user", content: `진료 메모:\n\n${note}\n\n위 메모에 맞는 KCD/자보/비급여 코드를 추천해주세요. JSON만 응답.` }]
             })
           });
-          if (!res.ok) {
-            const errText = res.status === 403 ? "프록시 인증 실패" :
-                            res.status === 429 ? "요청 제한 초과 — 잠시 후 다시 시도" :
-                            res.status === 503 ? "프록시 서버 점검 중" :
-                            res.status >= 500 ? `프록시 서버 오류 ${res.status}` :
-                            `프록시 오류 ${res.status}`;
-            const e = new Error(errText); e.status = res.status; throw e;
-          }
+          if (!res.ok) { const e = new Error("proxy " + res.status); e.status = res.status; throw e; }
           const data = await res.json();
           const text = data.content?.[0]?.text || "";
           const jsonMatch = text.match(/\{[\s\S]*\}/);
           let parsed = null;
           try { parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : null; } catch {}
           const rec = validateRec(parsed);
-          if (!rec) throw new Error("AI 응답 형식을 해석하지 못했습니다 — 다시 시도해주세요.");
-          renderRecommendation(rec, { live: true });
+          if (!rec) { const e = new Error("unparseable"); e.code = "응답 형식"; throw e; }
+          renderRecommendation(rec, { source: "live" });
           ActivityLog.push("ai", "AI 라이브 코드 추천 (Opus / 프록시)", {});
         } catch (err) {
-          setMode(false);
-          if (err.name === "AbortError") {
-            $("#ai-output").innerHTML = `<div class="placeholder">요청 시간이 초과되어 취소되었습니다 — 다시 시도해주세요.</div>`;
-          } else {
-            console.error(err);
-            showLiveError(err.message, note);
-          }
+          // (NNN) is the proxy status; non-HTTP failures get a short label instead.
+          const code = err.name === "AbortError" ? "시간 초과"
+                     : err.status ? String(err.status)
+                     : err.code || (err.message === "pow-timeout" ? "PoW" : "연결 오류");
+          if (err.name !== "AbortError") console.error(err);
+          showLiveError(code, note);
         } finally {
           clearTimeout(timeout);
           aiAbort = null;
@@ -6863,11 +6963,24 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
           b.addEventListener("click", () => {
             const id = b.dataset.id;
             if (b.dataset.act === "del") {
-              if (!confirm("이 직원을 삭제하시겠습니까?")) return;
+              // No confirm — the row (and its IndexedDB attachments, which are keyed
+              // by id and left untouched) comes back from the undo toast for 6 s.
+              const idx = list.findIndex(x => x.id === id);
+              const removed = list[idx];
+              if (!removed) return;
+              if (editingId === id) resetForm();
               Store.set("license.list", list.filter(x => x.id !== id));
-              ActivityLog.push("license", "면허 직원 삭제", {});
+              ActivityLog.push("license", `면허 직원 삭제 — ${removed.role} ${removed.name}`, { silent: true });
               Haptic.del();
               renderList();
+              Toast.withUndo(`삭제됨 · ${removed.role} ${removed.name}`, () => {
+                const cur = Store.get("license.list", []);
+                if (cur.some(x => x.id === id)) return;
+                cur.splice(Math.min(idx, cur.length), 0, removed);
+                Store.set("license.list", cur);
+                ActivityLog.push("license", `삭제 취소 — ${removed.role} ${removed.name}`, { silent: true });
+                renderList();
+              }, "license");
             } else if (b.dataset.act === "edit") {
               // Edit in place — the record (and its IndexedDB attachments keyed by id) stays put
               // until 저장; nothing is deleted up front.
@@ -6966,9 +7079,14 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
         row.querySelectorAll(".attach-thumb .x").forEach(x => {
           x.addEventListener("click", async (e) => {
             e.stopPropagation();
+            const att = atts.find(a => a.id === x.dataset.att);
             await Attachments.del(x.dataset.att);
             Haptic.del();
             renderAttachments(ownerId);
+            if (att) Toast.withUndo("삭제됨 · 첨부 사진", async () => {
+              await Attachments.put(att); // same id + timestamp → same slot
+              renderAttachments(ownerId);
+            }, "license");
           });
         });
       }
@@ -7108,7 +7226,10 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
             if (e.target.classList.contains("accred-link")) return;
             const id = el.dataset.id;
             checked[id] = !checked[id];
-            Store.set("accred.checked", checked);
+            // Pass a copy: Store.set re-emits the value to the store:accred.checked
+            // handler below, which clears `checked` before copying the payload in —
+            // with the same reference that wiped every earlier check.
+            Store.set("accred.checked", { ...checked });
             ActivityLog.push("accred", `인증평가 항목 ${checked[id] ? "체크" : "해제"}`, { id });
             render();
           });
@@ -7137,13 +7258,20 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
         await Share.send({ title: "인증평가 자체점검 진행률", text });
         ActivityLog.push("accred", "인증평가 진행률 공유", {});
       });
+      // No confirm — the cleared checks come back from the undo toast for 6 s.
       $("#accred-reset").addEventListener("click", () => {
-        if (!confirm("체크리스트를 초기화하시겠습니까?")) return;
+        const snap = { ...checked };
+        const n = Object.values(snap).filter(Boolean).length;
+        if (!n) { Toast.show({ tag: "accred", html: "체크된 항목이 없습니다." }); return; }
         Store.remove("accred.checked");
         for (const k in checked) delete checked[k];
-        ActivityLog.push("accred", "인증평가 초기화", {});
+        ActivityLog.push("accred", `인증평가 초기화 — 체크 ${n}개 해제`, { silent: true });
         Haptic.del();
         render();
+        Toast.withUndo(`초기화됨 · 인증평가 체크 ${n}개 해제`, () => {
+          Store.set("accred.checked", { ...snap }); // store handler copies it into `checked` + renders
+          ActivityLog.push("accred", `초기화 취소 — 체크 ${n}개 복원`, { silent: true });
+        }, "accred");
       });
 
       EventBus.on("store:accred.checked", (v) => {
@@ -7386,16 +7514,43 @@ JSON: { "kcd": [{ "code", "name", "conf", "ref" }], "uCode": { "code", "name", "
       rec.status = nx; cards.set(id, rec); persistIfLocal(); render(id);
     }
 
+    // Undo toast via the classic-script Toast helper (a top-level const is a
+    // shared global lexical binding, so it is reachable from this module).
+    function undoToast(rec, restore) {
+      if (typeof Toast === "undefined") return;
+      Toast.withUndo(`지움 · ${rec.patient_name || "환자"} (${rec.status})`, restore, "system");
+    }
+
     async function deleteCard(id) {
+      const rec = cards.get(id);
+      if (!rec) return;
+      const idx = Array.from(cards.keys()).indexOf(id);
       if (online) {
         try {
           const c = await getPB();
           if (!c) throw new Error("sdk");
           await c.collection("intake_card").delete(id);
+          // Re-create with the same id (PocketBase accepts a client id that matches
+          // its 15-char pattern); if the server refuses, fall back to a fresh id.
+          undoToast(rec, async () => {
+            const body = { patient_name: rec.patient_name, status: rec.status, summary: rec.summary, player_id: rec.player_id };
+            const c2 = await getPB();
+            if (!c2) throw new Error("sdk");
+            try { await c2.collection("intake_card").create({ id: rec.id, ...body }); }
+            catch (e) { await c2.collection("intake_card").create(body); }
+            // realtime event re-renders
+          });
           return; // realtime event re-renders
         } catch (e) { online = false; setSync(false, "로컬 — 이 기기에서만"); }
       }
       cards.delete(id); persistIfLocal(); render();
+      undoToast(rec, () => {
+        if (cards.has(rec.id)) return;
+        const entries = Array.from(cards.entries());
+        entries.splice(Math.min(idx, entries.length), 0, [rec.id, rec]); // same id, same slot
+        cards = new Map(entries);
+        persistIfLocal(); render(rec.id);
+      });
     }
 
     async function addCard() {
