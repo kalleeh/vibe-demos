@@ -18,6 +18,7 @@ the original synthetic demo did):
     { "name","gu","dong","built","lat","lng","dealCount","saleCount","brand","maxFloor","dcore","trend",
       "sizes": [ {"pyeong":26,"area_m2":84.9,"n":183,"floor":9,
                   "sale":6.9,"saleN":40,"saleYm":"2026-05","saleMed":6.8,
+                  "hist":[["2025-07",2650,3],["2025-09",2700,1],...],   # monthly median 평단가 (만원/평) + n
                   "jeonse":4.7,"jeonseN":22,"jeonseYm":"2026-04",
                   "wDep":0.5,"wMon":60,"wolseN":8,"wolseYm":"2026-03"}, ... ] },
     ...
@@ -60,6 +61,7 @@ def main(path, period):
                 if "sale_n" in s:   row["saleN"] = s["sale_n"]
                 if "sale_ym" in s:  row["saleYm"] = s["sale_ym"]
                 if "sale_med" in s: row["saleMed"] = s["sale_med"]
+                if s.get("sale_hist"): row["hist"] = s["sale_hist"]   # [[YYYY-MM, 만원/평, n], ...]
             if "jeonse" in s:
                 row["jeonse"] = s["jeonse"]; n_jeo += 1
                 if "jeonse_n" in s:  row["jeonseN"] = s["jeonse_n"]

@@ -3,7 +3,7 @@
    - data.json: network-first, cache fallback (see note below).
    - everything else in SHELL (vendored Leaflet/MarkerCluster, icon, manifest): cache-first.
    Bump CACHE whenever any shell file changes — that is the only invalidation. */
-const CACHE = "vibe-changwon-homes-v9";
+const CACHE = "vibe-changwon-homes-v10";
 /* data.json is precached so the app is fully usable offline, BUT it is served network-first by the
    fetch handler below — a cache-first precache would make index.html's fetch(…,{cache:"no-cache"})
    meaningless (it would always get the install-time copy). Cross-origin (OSM tiles, fonts) is never
