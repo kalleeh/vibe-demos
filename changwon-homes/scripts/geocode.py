@@ -21,7 +21,11 @@ Strategy:
 Output: complexes.geo.json (records + lat/lng + geo_src).
 
 Usage:
-    python3 geocode.py data/complexes.json [INDEX_NAME] [REGION] > data/complexes.geo.json
+    python3 geocode.py data/complexes.json [INDEX_NAME] [REGION] [--reuse=PREV.geo.json] > data/complexes.geo.json
+
+--reuse=PATH: before querying AWS for a cache miss, copy lat/lng from an
+earlier complexes.geo.json for the same (name, gu, dong). Lets a re-bake run
+fully offline when only the parsed 도로명 string changed for a known complex.
 """
 import sys, os, json, subprocess
 
@@ -70,10 +74,15 @@ def esri_geocode(text, index, region):
         return None
     return (lat, lng)
 
-def main(path, index, region):
+def main(path, index, region, reuse_path=None):
     cx = json.load(open(path, encoding="utf-8"))
     cache = load_cache()
-    hits = misses = cached = 0
+    prior = {}
+    if reuse_path:
+        for p in json.load(open(reuse_path, encoding="utf-8")):
+            if p.get("lat") is not None and p.get("geo_src") not in ("pending",):
+                prior[(p["name"], p["gu"], p["dong"])] = (p["lat"], p["lng"], p.get("geo_src", "reused"))
+    hits = misses = cached = reused = 0
 
     for i, c in enumerate(cx):
         road = (c.get("road") or "").strip()
@@ -83,8 +92,12 @@ def main(path, index, region):
             key = f"경상남도 창원시 {gu} {dong} {road}"
 
         coord = None
+        src = "esri"
         if key and key in cache:
             coord = cache[key]; cached += 1
+        elif (c["name"], c["gu"], c["dong"]) in prior:
+            lat, lng, src0 = prior[(c["name"], c["gu"], c["dong"])]
+            coord = (lat, lng); src = src0; reused += 1
         elif key:
             try:
                 coord = esri_geocode(key, index, region)
@@ -97,7 +110,7 @@ def main(path, index, region):
 
         if coord:
             c["lat"], c["lng"] = coord[0], coord[1]
-            c["geo_src"] = "esri"
+            c["geo_src"] = src
             hits += 1
         else:
             c["lat"], c["lng"] = None, None
@@ -129,12 +142,14 @@ def main(path, index, region):
             filled += 1
 
     sys.stderr.write(
-        f"geocoded {len(cx)}: esri/cache {hits}, centroid-filled {filled}\n")
+        f"geocoded {len(cx)}: esri/cache {hits} (reused from prior: {reused}), centroid-filled {filled}\n")
     print(json.dumps(cx, ensure_ascii=False, indent=1))
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit("usage: geocode.py complexes.json [index] [region] > out.json")
-    idx = sys.argv[2] if len(sys.argv) > 2 else "changwon-esri"
-    reg = sys.argv[3] if len(sys.argv) > 3 else "eu-north-1"
-    main(sys.argv[1], idx, reg)
+    reuse = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--reuse=")), None)
+    pos = [a for a in sys.argv[1:] if not a.startswith("--")]
+    idx = pos[1] if len(pos) > 1 else "changwon-esri"
+    reg = pos[2] if len(pos) > 2 else "eu-north-1"
+    main(pos[0], idx, reg, reuse)

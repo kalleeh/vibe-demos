@@ -28,9 +28,10 @@ CACHE= os.path.join(HERE, "..", "data", "geocache.json")
 
 CORE = [(35.232079, 128.681025),  # 용지호수공원 (성산 신도시)
         (35.256943, 128.626998)]  # 중동 유니시티 (의창 신도시)
-BRANDS = ["자이","래미안","푸르지오","아이파크","더샵","힐스테이트","이편한세상",
-          "e편한세상","롯데캐슬","sk뷰","SK뷰","위브","센트럴","데시앙","꿈에그린",
-          "한라비발디","코오롱하늘채","유니시티","베르디움","어울림","스위첸"]
+# ONE brand list for the whole pipeline — the regression's `brand` dummy must
+# be defined exactly like the `brand` flag baked into data.json.
+sys.path.insert(0, HERE)
+from parse_molit import BRAND_TOKENS as BRANDS
 
 def cells(rx):
     o=[]

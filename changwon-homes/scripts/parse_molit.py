@@ -10,12 +10,21 @@ NOT shipped to the browser. stdlib only (no openpyxl) — MOLIT uses inline
 strings in xl/worksheets/sheet1.xml.
 
 Aggregation: group by 단지명 + 법정동. Within a complex, per 평-band keep the
-LATEST contract for each of: sale price, 전세 deposit. (월세 rows are counted
-but not priced — the demo compares sale vs 전세.)
+LATEST contract for each of: sale price, 전세 deposit, 월세 deposit+monthly —
+each floor-normalized — PLUS, per mode, the contract count, the contract month
+of that latest deal, and (sale only) a recent-window median so the client can
+show how thin / how old a band's headline price is.
 
 Output: complexes.json — one record per complex with:
-  name, gu, dong, road, built, deal_count,
-  sizes: { band: { pyeong, area_m2, sale?, jeonse?, sale_ym?, jeonse_ym?, n } }
+  name, gu, dong, road, built, deal_count, sale_count, jeonse_count, wolse_count,
+  ym_min, ym_max (YYYYMM, all contract types),
+  sizes: { band: { pyeong, area_m2, n, medFloor,
+                   sale?, saleRaw?, sale_n?, sale_ym?, sale_med?,
+                   jeonse?, jeonse_n?, jeonse_ym?,
+                   wDeposit?, wMonthly?, wolse_n?, wolse_ym? } }
+  *_ym are "YYYY-MM" of the latest contract in that mode. sale_med is the
+  median floor-normalized sale price (억) over the dataset's most recent
+  RECENT_MONTHS calendar months, only when >= 2 deals fall in that window.
 
 Usage:
     python3 parse_molit.py data/raw/*.xlsx > data/complexes.json
@@ -83,6 +92,21 @@ def _latest(txns):
     """txns: list of tuples with ym first. Return the max-ym tuple, or None."""
     return max(txns, key=lambda t: t[0]) if txns else None
 
+def _ym_label(ym):
+    """'20260514' → '2026-05'."""
+    return f"{ym[:4]}-{ym[4:6]}" if ym and len(ym) >= 6 else None
+
+# Recent window (calendar months, inclusive of the dataset's latest month) for
+# the per-band median 평단가. 6 months balances recency vs. sample size.
+RECENT_MONTHS = 6
+
+def _months_back(yyyymm, k):
+    y, m = int(yyyymm[:4]), int(yyyymm[4:6])
+    m -= k
+    while m <= 0:
+        m += 12; y -= 1
+    return f"{y:04d}{m:02d}"
+
 # 1군 construction brands (hedonic-measured +13.6% premium). Substring match on
 # 단지명. Kept tight — only unambiguous brand tokens (no loose "센트럴" etc.).
 BRAND_TOKENS = ["자이","래미안","푸르지오","아이파크","더샵","힐스테이트",
@@ -93,12 +117,14 @@ def is_brand(name):
     low = name.lower()
     return any(b.lower() in low for b in BRAND_TOKENS)
 
-def finalize(complexes):
+def finalize(complexes, latest_ym):
     """Turn the per-band transaction lists into floor-normalized headline
     prices. Keeps the LATEST contract per mode, but normalizes its price for
     floor so a band's 시세 reflects a standard-floor unit, not whichever floor
-    happened to trade last."""
+    happened to trade last. Also records per-mode counts, the latest contract
+    month, and a recent-window sale median (see module docstring)."""
     import statistics
+    recent_from = _months_back(latest_ym[:6], RECENT_MONTHS - 1) if latest_ym else None
     for c in complexes:
         mf = c.get("_maxfloor", 0)
         c.pop("_maxfloor", None)
@@ -127,26 +153,40 @@ def finalize(complexes):
             floors = s.pop("_floors", [])
             s["medFloor"] = int(statistics.median(floors)) if floors else None
             # sale
-            t = _latest(s.pop("_sale", []))
+            sales = s.pop("_sale", [])
+            t = _latest(sales)
             if t:
                 ym, price, fl = t
                 s["sale"] = round(price / floor_mult(fl, mf), 2)
                 s["saleRaw"] = round(price, 2)
+                s["sale_n"] = len(sales)
+                s["sale_ym"] = _ym_label(ym)
+                if recent_from:
+                    recent = [p / floor_mult(f, mf) for (y, p, f) in sales if y[:6] >= recent_from]
+                    if len(recent) >= 2:
+                        s["sale_med"] = round(statistics.median(recent), 2)
             # jeonse
-            t = _latest(s.pop("_jeonse", []))
+            rents = s.pop("_jeonse", [])
+            t = _latest(rents)
             if t:
                 ym, dep, fl = t
                 s["jeonse"] = round(dep / floor_mult(fl, mf), 2)
+                s["jeonse_n"] = len(rents)
+                s["jeonse_ym"] = _ym_label(ym)
             # wolse (normalize deposit; monthly left as-is — floor effect is small)
-            t = _latest(s.pop("_wolse", []))
+            wol = s.pop("_wolse", [])
+            t = _latest(wol)
             if t:
                 ym, dep, mon, fl = t
                 s["wDeposit"] = round(dep, 2)
                 s["wMonthly"] = mon
+                s["wolse_n"] = len(wol)
+                s["wolse_ym"] = _ym_label(ym)
 
 def main(paths):
     complexes = {}
     n_sale = n_jeonse = n_wolse = 0
+    latest_ym = ""
 
     for path in paths:
         rows = read_rows(path)
@@ -181,8 +221,13 @@ def main(paths):
             cx = complexes.setdefault(key, {
                 "name": name, "gu": gu, "dong": dong,
                 "road": road, "built": built, "sizes": {}, "deal_count": 0,
+                "sale_count": 0, "jeonse_count": 0, "wolse_count": 0,
+                "ym_min": ym[:6], "ym_max": ym[:6],
             })
             cx["deal_count"] += 1
+            if ym[:6] < cx["ym_min"]: cx["ym_min"] = ym[:6]
+            if ym[:6] > cx["ym_max"]: cx["ym_max"] = ym[:6]
+            if ym > latest_ym: latest_ym = ym
             if built and not cx["built"]: cx["built"] = built
             if road and (not cx["road"] or cx["road"] == "-"): cx["road"] = road
 
@@ -213,21 +258,21 @@ def main(paths):
                     monthly = 0
                 is_jeonse = (monthly == 0) or kind == "전세"
                 if is_jeonse and deposit is not None:
-                    n_jeonse += 1
+                    n_jeonse += 1; cx["jeonse_count"] += 1
                     slot["_jeonse"].append((ym, deposit, floor))
                 elif deposit is not None and monthly > 0:
-                    n_wolse += 1
+                    n_wolse += 1; cx["wolse_count"] += 1
                     slot["_wolse"].append((ym, deposit, monthly, floor))
                 else:
-                    n_wolse += 1
+                    n_wolse += 1; cx["wolse_count"] += 1
             else:
                 price = eok(get(row, idx, "거래금액(만원)"))
                 if price is not None:
-                    n_sale += 1
+                    n_sale += 1; cx["sale_count"] += 1
                     slot["_sale"].append((ym, price, floor))
 
     out = list(complexes.values())
-    finalize(out)
+    finalize(out, latest_ym)
     # drop size bands with no price in any mode (sale / jeonse / wolse)
     for c in out:
         c["sizes"] = {b: s for b, s in c["sizes"].items()
@@ -247,7 +292,7 @@ def main(paths):
 if __name__ == "__main__":
     args = []
     for a in sys.argv[1:]:
-        args += glob.glob(a)
+        args += sorted(glob.glob(a))   # deterministic file order → deterministic first-seen fields
     if not args:
         sys.exit("usage: parse_molit.py data/raw/*.xlsx > data/complexes.json")
     main(args)
