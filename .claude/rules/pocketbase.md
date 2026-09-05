@@ -9,7 +9,7 @@ paths:
 
 PocketBase is the backend for vibe-demos that need shared/persistent state. Local-first: every demo MUST work without it. The backend enhances — it never gates.
 
-Reference implementation: `tinywings/` — canonical PocketBase demo (Tier 1 public leaderboard, local-first fallback, fetch-on-open refresh, anonymous `player_id` identity, XSS-safe `textContent` rendering, graceful offline degradation). Its leaderboard logic lives in its own `<script type="module">`, bridged to the classic game script via a `window.__lbOnEnd` hook.
+Reference implementation: `tinywings/` — canonical PocketBase demo (Tier 2 leaderboard since 2026-09-05: one row per `player_id` with `updateRule: "player_id = @request.body.player_id"` + partial unique index, all-time / this-week tabs; local-first fallback, 60s-cached refresh on open, anonymous `player_id` identity, XSS-safe `textContent` rendering, graceful offline degradation). Its leaderboard logic lives in its own `<script type="module">`, bridged to the classic game script via a `window.__lbOnEnd` hook.
 
 > **ALWAYS check Context7 for current PocketBase docs before any backend work.** PocketBase ships breaking changes frequently (schema API, migration helpers, JSVM hooks, SDK methods churn across minor versions), so snippets here WILL drift. Before writing a migration, a JSVM hook, or SDK frontend code, query Context7 to confirm current syntax — if it contradicts this file, Context7 wins, and update this file in the same commit.
 > - `/websites/pocketbase_io_jsvm` — JSVM (migrations, hooks, cron) — needed most for backend files
