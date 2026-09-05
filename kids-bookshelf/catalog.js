@@ -6066,7 +6066,7 @@ window.BOOKS = [
   "title": "Sam and Dave Dig a Hole",
   "author": "Mac Barnett & Jon Klassen",
   "publisher": "",
-  "isbn": "9781406357790",
+  "isbn": "9780763662295",
   "ages": [
    "3-4",
    "5-6"
@@ -9759,7 +9759,7 @@ window.BOOKS = [
   "title": "Superworm",
   "author": "Julia Donaldson & Axel Scheffler",
   "publisher": "",
-  "isbn": "9781407137766",
+  "isbn": "9781407132044",
   "ages": [
    "3-4",
    "5-6"
@@ -11626,5 +11626,1341 @@ window.BOOKS = [
   },
   "source": "curated",
   "quality": 0.8
+ },
+ {
+  "id": "ko-꼬마구름-파랑이-d326",
+  "lang": "ko",
+  "title": "꼬마구름 파랑이",
+  "author": "토미 웅게러",
+  "publisher": "비룡소",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "자연",
+   "환상",
+   "감정"
+  ],
+  "mood": [
+   "잔잔한",
+   "따뜻한"
+  ],
+  "blurb": "하늘을 자유롭게 떠다니는 꼬마 구름 '파랑이'가 세상을 탐험하며 자신만의 자리를 찾아가는 이야기입니다.",
+  "readAloud": "아이와 함께 창밖 구름을 가리키며 \"저 구름은 어떤 기분일까?\" 물어보세요.",
+  "cover": {
+   "emoji": "🌧️",
+   "palette": [
+    "#87CEEB",
+    "#B0C4DE"
+   ]
+  },
+  "quality": 0.6,
+  "source": "curated"
+ },
+ {
+  "id": "ko-마음이-아플까봐-e079",
+  "lang": "ko",
+  "title": "마음이 아플까봐",
+  "author": "올리버 제퍼스",
+  "publisher": "아름다운사람들",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "감정",
+   "가족"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "올리버 제퍼스 특유의 따뜻한 시선으로 아이의 마음 속 감정을 섬세하게 어루만져 주는 그림책입니다.",
+  "readAloud": "책을 읽으며 \"너는 언제 마음이 아팠어?\" 하고 아이의 감정 경험을 함께 나눠 보세요.",
+  "cover": {
+   "emoji": "💛",
+   "palette": [
+    "#F5E6C8",
+    "#7EB5D6"
+   ]
+  },
+  "quality": 0.5,
+  "source": "curated"
+ },
+ {
+  "id": "en-the-crayons-christmas-af2b",
+  "lang": "en",
+  "title": "The Crayons' Christmas",
+  "author": "Drew Daywalt & Oliver Jeffers",
+  "publisher": "",
+  "isbn": "9780525515746",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "감정",
+   "유머",
+   "일상",
+   "친구"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "크레용들이 크리스마스를 맞아 저마다 자기 색깔로 꾸미고 싶다고 편지를 쓰는, 유머 넘치는 크리스마스 이야기예요.",
+  "readAloud": "각 크레용의 편지를 읽을 때 해당 색 목소리를 다르게 흉내 내며 읽어 주세요!",
+  "cover": {
+   "emoji": "🖍️",
+   "palette": [
+    "#E63946",
+    "#F4D35E"
+   ]
+  },
+  "quality": 0.45,
+  "source": "curated"
+ },
+ {
+  "id": "en-the-day-the-crayons-came-home-5c4c",
+  "lang": "en",
+  "title": "The Day the Crayons Came Home",
+  "author": "Drew Daywalt & Oliver Jeffers",
+  "publisher": "",
+  "isbn": "9780399172755",
+  "ages": [
+   "5-6",
+   "7-9"
+  ],
+  "level": "그림책",
+  "themes": [
+   "유머",
+   "감정",
+   "일상"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "잃어버렸거나 상처받은 크레용들이 집으로 돌아오고 싶다는 편지를 보내오는 유쾌하고 따뜻한 이야기로, 색깔마다 개성 넘치는 목소리가 웃음을 자아냅니다.",
+  "readAloud": "각 크레용의 편지를 읽을 때 목소리와 표정을 달리해 보세요—아이가 직접 크레용이 되어 읽어도 신나요!",
+  "cover": {
+   "emoji": "🖍️",
+   "palette": [
+    "#FF6B6B",
+    "#FFD93D"
+   ]
+  },
+  "quality": 0.72,
+  "source": "curated"
+ },
+ {
+  "id": "en-cave-baby-c276",
+  "lang": "en",
+  "title": "Cave Baby",
+  "author": "Julia Donaldson & Emily Gravett",
+  "publisher": "",
+  "isbn": "9780230741393",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "모험",
+   "가족",
+   "동물",
+   "환상"
+  ],
+  "mood": [
+   "따뜻한",
+   "모험"
+  ],
+  "blurb": "동굴 아기가 털복숭이 맘모스를 타고 밤하늘 아래 동굴 벽에 그림을 그리며 펼치는 따뜻하고 신나는 모험 이야기예요.",
+  "readAloud": "동물들이 등장할 때마다 목소리를 바꿔 읽어 주면 아이가 더 즐거워해요!",
+  "cover": {
+   "emoji": "🦣",
+   "palette": [
+    "#8B5E3C",
+    "#1A1A2E"
+   ]
+  },
+  "quality": 0.6,
+  "source": "curated"
+ },
+ {
+  "id": "ko-구두구두-걸어라-073f",
+  "lang": "ko",
+  "title": "구두구두 걸어라",
+  "author": "하야시 아키코",
+  "publisher": "한림출판사",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "일상",
+   "동물"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "아기의 작은 발에 신긴 귀여운 구두가 아장아장 걸음마를 떼는 순간을 담은 그림책으로, 걷기 시작하는 아이들에게 큰 공감과 즐거움을 선사해요.",
+  "readAloud": "아이의 발을 잡고 \"구두구두 걸어라!\" 하며 리듬감 있게 함께 읽어 보세요.",
+  "cover": {
+   "emoji": "👟",
+   "palette": [
+    "#F4A460",
+    "#FFFAF0"
+   ]
+  },
+  "quality": 0.88,
+  "source": "curated"
+ },
+ {
+  "id": "ko-손이-나왔네-afed",
+  "lang": "ko",
+  "title": "손이 나왔네",
+  "author": "하야시 아키코",
+  "publisher": "한림출판사",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "일상",
+   "가족",
+   "감정"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "옷을 입으며 소매 밖으로 쏙 나오는 손, 발, 머리를 반복되는 리듬으로 표현해 아기가 옷 입기의 즐거움을 자연스럽게 느낄 수 있어요.",
+  "readAloud": "\"손이 나왔네~!\" 부분에서 아이의 손을 살짝 잡아 흔들어 주면 더욱 생생한 교감이 돼요.",
+  "cover": {
+   "emoji": "👶",
+   "palette": [
+    "#F9C74F",
+    "#FFFFFF"
+   ]
+  },
+  "quality": 0.92,
+  "source": "curated"
+ },
+ {
+  "id": "ko-목욕은-즐거워-9b14",
+  "lang": "ko",
+  "title": "목욕은 즐거워",
+  "author": "마쓰오카 교코 · 하야시 아키코",
+  "publisher": "한림출판사",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "일상",
+   "가족",
+   "동물"
+  ],
+  "mood": [
+   "따뜻한",
+   "웃긴"
+  ],
+  "blurb": "목욕하기 싫다는 아이도 이 책을 보면 욕조가 기다려질 거예요! 물놀이처럼 신나는 목욕 시간을 정겨운 그림으로 담아낸 일상 그림책입니다.",
+  "readAloud": "\"첨벙첨벙!\" \"뽀글뽀글!\" 같은 목욕 소리를 아이와 함께 신나게 따라 해 보세요.",
+  "cover": {
+   "emoji": "🛁",
+   "palette": [
+    "#A8D8EA",
+    "#FFF3C4"
+   ]
+  },
+  "quality": 0.82,
+  "source": "curated"
+ },
+ {
+  "id": "ko-누구-그림자일까-3630",
+  "lang": "ko",
+  "title": "누구 그림자일까?",
+  "author": "최숙희",
+  "publisher": "보림",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "동물",
+   "일상"
+  ],
+  "mood": [
+   "학습",
+   "잔잔한"
+  ],
+  "blurb": "동물들의 그림자를 보며 \"누구일까?\" 맞혀보는 인지 그림책으로, 아이의 관찰력과 추리력을 자연스럽게 키워줍니다.",
+  "readAloud": "그림자 페이지에서 잠깐 멈추고 \"이게 누구 그림자일까?\" 물어보며 아이 스스로 맞혀볼 시간을 주세요.",
+  "cover": {
+   "emoji": "🐾",
+   "palette": [
+    "#2C2C2C",
+    "#F5E6C8"
+   ]
+  },
+  "quality": 0.88,
+  "source": "curated"
+ },
+ {
+  "id": "ko-응가하자-끙끙-8948",
+  "lang": "ko",
+  "title": "응가하자, 끙끙",
+  "author": "최민오",
+  "publisher": "보림",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "일상",
+   "동물",
+   "유머"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "강아지, 고양이, 아기 할 것 없이 모두 끙끙~ 응가하는 모습을 유쾌하게 담아, 배변 훈련 시기 아이들이 응가를 자연스럽고 즐겁게 받아들이도록 도와주는 책이에요.",
+  "readAloud": "\"끙끙~\" 소리를 아이와 함께 크게 따라 하며 읽으면 까르르 웃음이 터져요!",
+  "cover": {
+   "emoji": "💩",
+   "palette": [
+    "#F5C842",
+    "#FFFFFF"
+   ]
+  },
+  "quality": 0.88,
+  "source": "curated"
+ },
+ {
+  "id": "ko-열두-띠-동물-까꿍놀이-2f12",
+  "lang": "ko",
+  "title": "열두 띠 동물 까꿍놀이",
+  "author": "최숙희",
+  "publisher": "보림",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "동물",
+   "숫자/글자",
+   "일상",
+   "유머"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "쥐·소·호랑이…열두 띠 동물들이 숨었다 나타나며 까꿍 놀이를 펼쳐요. 아이가 가장 좋아하는 '까꿍' 놀이와 우리 전통 십이지를 한 번에 만날 수 있는 책이에요.",
+  "readAloud": "페이지를 넘기기 전에 \"누가 숨어 있을까?\" 하고 물어보며 아이가 동물 이름을 먼저 맞혀보게 해 보세요!",
+  "cover": {
+   "emoji": "🐯",
+   "palette": [
+    "#E8412A",
+    "#F5C842"
+   ]
+  },
+  "quality": 0.88,
+  "source": "curated"
+ },
+ {
+  "id": "ko-엄마랑-뽀뽀-44a6",
+  "lang": "ko",
+  "title": "엄마랑 뽀뽀",
+  "author": "김동수",
+  "publisher": "보림",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "가족",
+   "일상",
+   "감정"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "엄마와 아이가 나누는 뽀뽀 한 번에 사랑이 가득 담겨 있어요. 아장아장 걷는 아기도 엄마 품 안에서 세상 가장 따뜻한 순간을 느낄 수 있는 책이에요.",
+  "readAloud": "책을 읽으며 실제로 아이에게 뽀뽀해 주면 훨씬 더 생생하게 감정을 나눌 수 있어요!",
+  "cover": {
+   "emoji": "😘",
+   "palette": [
+    "#FADADD",
+    "#FFF8E7"
+   ]
+  },
+  "quality": 0.82,
+  "source": "curated"
+ },
+ {
+  "id": "ko-잘잘잘-123-88a9",
+  "lang": "ko",
+  "title": "잘잘잘 123",
+  "author": "이억배",
+  "publisher": "사계절",
+  "ages": [
+   "0-2",
+   "3-4",
+   "5-6"
+  ],
+  "level": "보드북",
+  "themes": [
+   "숫자/글자",
+   "일상",
+   "동물"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "익숙한 우리 주변 사물들과 함께 1부터 10까지 숫자를 자연스럽게 익힐 수 있는 책이에요. 이억배 작가의 따뜻하고 정겨운 그림이 아이의 눈을 사로잡아요.",
+  "readAloud": "숫자를 셀 때 손가락을 함께 꼽으며 \"하나, 둘, 셋!\" 소리 내어 읽어 주세요.",
+  "cover": {
+   "emoji": "🔢",
+   "palette": [
+    "#F9C74F",
+    "#90BE6D"
+   ]
+  },
+  "quality": 0.88,
+  "source": "curated"
+ },
+ {
+  "id": "ko-잘-자요-7f7a",
+  "lang": "ko",
+  "title": "잘 자요",
+  "author": "안나 클라라 티돌름",
+  "publisher": "사계절",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "잠자리",
+   "가족",
+   "동물",
+   "일상"
+  ],
+  "mood": [
+   "잔잔한",
+   "따뜻한"
+  ],
+  "blurb": "하루를 마무리하며 사랑하는 존재들에게 하나씩 \"잘 자요\"라고 인사하는 포근한 잠자리 그림책입니다. 아이가 스스로 잠드는 시간을 자연스럽고 평화롭게 받아들이도록 이끌어 줍니다.",
+  "readAloud": "아이가 아는 사람·동물·사물의 이름을 넣어 \"○○도 잘 자요~\"라고 함께 인사하며 읽어 보세요.",
+  "cover": {
+   "emoji": "🌙",
+   "palette": [
+    "#4A6FA5",
+    "#F9EBD3"
+   ]
+  },
+  "quality": 0.75,
+  "source": "curated"
+ },
+ {
+  "id": "ko-아기-오리는-어디로-갔을까요-e7df",
+  "lang": "ko",
+  "title": "아기 오리는 어디로 갔을까요?",
+  "author": "낸시 태퍼리",
+  "publisher": "비룡소",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "동물",
+   "가족",
+   "일상"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "아기 오리가 어디로 숨었는지 페이지를 넘기며 함께 찾아보는 까꿍 놀이 그림책으로, 아이의 호기심과 관찰력을 살며시 자극해요.",
+  "readAloud": "\"아기 오리가 어디 있을까?\" 하고 물으며 아이가 직접 페이지를 넘겨 찾아보게 유도해 보세요!",
+  "cover": {
+   "emoji": "🐥",
+   "palette": [
+    "#F9E04B",
+    "#A8D8EA"
+   ]
+  },
+  "quality": 0.75,
+  "source": "curated"
+ },
+ {
+  "id": "ko-사랑해-사랑해-사랑해-48ef",
+  "lang": "ko",
+  "title": "사랑해 사랑해 사랑해",
+  "author": "버나뎃 로제티 슈스탁",
+  "publisher": "보물창고",
+  "ages": [
+   "0-2",
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "가족",
+   "감정",
+   "자연",
+   "일상"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "엄마(혹은 보호자)가 아이에게 전하는 무조건적인 사랑을 자연의 아름다운 이미지와 함께 담아낸 책으로, 읽을 때마다 마음이 포근하게 채워집니다.",
+  "readAloud": "아이를 꼭 안고 눈을 맞추며 천천히 읽어주세요 — \"사랑해\"를 말할 때마다 이름을 넣어 불러주면 더욱 특별해져요.",
+  "cover": {
+   "emoji": "❤️",
+   "palette": [
+    "#F9A8C9",
+    "#FFF8E7"
+   ]
+  },
+  "quality": 0.92,
+  "source": "curated"
+ },
+ {
+  "id": "ko-트럭-5a87",
+  "lang": "ko",
+  "title": "트럭",
+  "author": "바이런 바튼",
+  "publisher": "비룡소",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "탈것",
+   "자동차",
+   "일상"
+  ],
+  "mood": [
+   "잔잔한",
+   "학습"
+  ],
+  "blurb": "빨간 트럭이 짐을 싣고 달리는 여정을 단순하고 굵직한 그림으로 담아낸 책으로, 탈것을 좋아하는 아이라면 페이지마다 눈을 반짝일 거예요.",
+  "readAloud": "트럭이 지나갈 때마다 \"부릉부릉!\" 효과음을 함께 내며 읽어 주세요.",
+  "cover": {
+   "emoji": "🚛",
+   "palette": [
+    "#D32F2F",
+    "#FDD835"
+   ]
+  },
+  "quality": 0.72,
+  "source": "curated"
+ },
+ {
+  "id": "ko-비행기-fbda",
+  "lang": "ko",
+  "title": "비행기",
+  "author": "바이런 바튼",
+  "publisher": "비룡소",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "탈것",
+   "일상"
+  ],
+  "mood": [
+   "학습",
+   "잔잔한"
+  ],
+  "blurb": "공항에서 출발해 목적지에 착륙하기까지, 비행기 여행의 전 과정을 간결하고 친근한 그림으로 담아낸 책이에요. 탈것에 관심 많은 아이라면 눈을 떼지 못할 거예요!",
+  "readAloud": "비행기가 이륙하는 장면에서 \"슈웅~!\" 하는 효과음을 함께 내보세요. 아이의 몰입도가 쑥 올라가요!",
+  "cover": {
+   "emoji": "✈️",
+   "palette": [
+    "#87CEEB",
+    "#FFFFFF"
+   ]
+  },
+  "quality": 0.75,
+  "source": "curated"
+ },
+ {
+  "id": "ko-맛있는-건-맛있어-0750",
+  "lang": "ko",
+  "title": "맛있는 건 맛있어",
+  "author": "김양미",
+  "publisher": "시공주니어",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "그림책",
+  "themes": [
+   "음식",
+   "일상",
+   "감정"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "맛있는 음식 앞에서 느끼는 솔직하고 유쾌한 감정을 담은 책으로, 아이들이 일상 속 작은 행복을 발견하게 해줍니다.",
+  "readAloud": "좋아하는 음식 이름을 직접 외치며 읽으면 더욱 신나고 맛있게 즐길 수 있어요!",
+  "cover": {
+   "emoji": "🍱",
+   "palette": [
+    "#F4A836",
+    "#FFF5E1"
+   ]
+  },
+  "quality": 0.7,
+  "source": "curated"
+ },
+ {
+  "id": "en-peek-a-who-b79f",
+  "lang": "en",
+  "title": "Peek-a-Who?",
+  "author": "Nina Laden",
+  "publisher": "",
+  "isbn": "9780811826020",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "일상",
+   "동물",
+   "유머"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "까꿍 놀이처럼 거울 모양 구멍을 들여다보며 \"누구일까?\" 맞히는 참여형 보드북으로, 아기의 호기심과 웃음을 동시에 자극해요.",
+  "readAloud": "구멍을 손가락으로 가리키며 \"누구일까~?\" 하고 천천히 뜸 들였다가 페이지를 넘겨 함께 깜짝 놀라 보세요!",
+  "cover": {
+   "emoji": "👀",
+   "palette": [
+    "#F9E04B",
+    "#FFFFFF"
+   ]
+  },
+  "quality": 0.88,
+  "source": "curated"
+ },
+ {
+  "id": "en-global-babies-cb42",
+  "lang": "en",
+  "title": "Global Babies",
+  "author": "The Global Fund for Children",
+  "publisher": "",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "가족",
+   "일상",
+   "동물"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "전 세계 17개국의 아기들이 저마다의 문화와 환경 속에서 살아가는 모습을 생생한 사진으로 담은 책으로, 서로 달라 보여도 모두 사랑스럽고 소중한 존재임을 느끼게 해 줍니다.",
+  "readAloud": "각 페이지의 아기 사진을 보며 \"이 아기는 어디 있을까?\", \"우리 OO이랑 닮았네!\" 하고 아이와 함께 이야기 나눠 보세요.",
+  "cover": {
+   "emoji": "🌍",
+   "palette": [
+    "#E8A87C",
+    "#4A90D9"
+   ]
+  },
+  "quality": 0.88,
+  "source": "curated"
+ },
+ {
+  "id": "en-pat-the-bunny-36d3",
+  "lang": "en",
+  "title": "Pat the Bunny",
+  "author": "Dorothy Kunhardt",
+  "publisher": "",
+  "isbn": "9780307120007",
+  "ages": [
+   "0-2"
+  ],
+  "level": "보드북",
+  "themes": [
+   "동물",
+   "일상",
+   "감정"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "폭신폭신한 토끼 털을 직접 만져볼 수 있는 촉감 보드북으로, 아기가 오감으로 세상을 탐색하는 기쁨을 선사하는 1940년대 고전 명작입니다.",
+  "readAloud": "\"Pat the bunny!\" 하고 읽을 때 아이 손을 잡고 함께 토끼 털 페이지를 쓰다듬어 보세요.",
+  "cover": {
+   "emoji": "🐰",
+   "palette": [
+    "#F9E4C8",
+    "#FFFFFF"
+   ]
+  },
+  "quality": 0.97,
+  "source": "curated"
+ },
+ {
+  "id": "en-hug-32d0",
+  "lang": "en",
+  "title": "Hug",
+  "author": "Jez Alborough",
+  "publisher": "",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "가족",
+   "동물",
+   "감정"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "아기 침팬지 보보가 정글 속 동물 친구들 사이에서 엄마를 찾아 포옹을 바라는 이야기로, \"HUG\"라는 단 한 단어로 아이의 마음을 따뜻하게 적셔 줍니다.",
+  "readAloud": "\"HUG!\" 페이지마다 아이와 함께 크게 외치며 실제로 꼭 안아 주세요.",
+  "cover": {
+   "emoji": "🤗",
+   "palette": [
+    "#5B8A3C",
+    "#F4C842"
+   ]
+  },
+  "quality": 0.88,
+  "source": "curated"
+ },
+ {
+  "id": "en-freight-train-3bb7",
+  "lang": "en",
+  "title": "Freight Train",
+  "author": "Donald Crews",
+  "publisher": "",
+  "isbn": "9780688117016",
+  "ages": [
+   "0-2",
+   "3-4",
+   "5-6"
+  ],
+  "level": "보드북",
+  "themes": [
+   "탈것",
+   "숫자/글자",
+   "자연"
+  ],
+  "mood": [
+   "잔잔한",
+   "학습"
+  ],
+  "blurb": "알록달록 화물 기차가 색깔을 입고 달려가요! 색깔과 기차 각 칸의 이름을 자연스럽게 익힐 수 있는 클래식 그림책이에요.",
+  "readAloud": "각 화차가 나올 때마다 \"빨간색 유조차~\" 처럼 색깔을 함께 외치며 읽어 보세요!",
+  "cover": {
+   "emoji": "🚂",
+   "palette": [
+    "#E82A2A",
+    "#1A3A6B"
+   ]
+  },
+  "quality": 0.95,
+  "source": "curated"
+ },
+ {
+  "id": "en-chugga-chugga-choo-choo-7356",
+  "lang": "en",
+  "title": "Chugga-Chugga Choo-Choo",
+  "author": "Kevin Lewis & Daniel Kirk",
+  "publisher": "",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "탈것",
+   "일상",
+   "잠자리"
+  ],
+  "mood": [
+   "웃긴",
+   "잔잔한"
+  ],
+  "blurb": "칙칙폭폭 달리는 장난감 기차가 하루를 신나게 보내고 잠자리에 드는 이야기로, 리드미컬한 의성어 반복이 아이의 귀를 사로잡아요.",
+  "readAloud": "\"Chugga-chugga choo-choo!\" 구절을 기차 소리처럼 점점 빠르게, 그리고 잠들 때는 속삭이듯 천천히 읽어 주세요.",
+  "cover": {
+   "emoji": "🚂",
+   "palette": [
+    "#E83B2A",
+    "#F5C842"
+   ]
+  },
+  "quality": 0.78,
+  "source": "curated"
+ },
+ {
+  "id": "en-dig-dig-digging-987e",
+  "lang": "en",
+  "title": "Dig Dig Digging",
+  "author": "Margaret Mayo & Alex Ayliffe",
+  "publisher": "",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "탈것",
+   "자동차",
+   "일상"
+  ],
+  "mood": [
+   "학습",
+   "웃긴"
+  ],
+  "blurb": "굴착기, 소방차, 트랙터 등 다양한 작업 차량들이 신나게 일하는 모습을 리드미컬한 문장으로 담아낸 책으로, 탈것을 좋아하는 아이라면 눈을 떼지 못할 거예요!",
+  "readAloud": "\"Dig dig digging!\" 구절을 읽을 때 팔을 크게 굴착기처럼 움직이며 함께 소리 내어 읽어보세요.",
+  "cover": {
+   "emoji": "🚜",
+   "palette": [
+    "#F4A020",
+    "#4A90D9"
+   ]
+  },
+  "quality": 0.85,
+  "source": "curated"
+ },
+ {
+  "id": "en-my-car-8bb7",
+  "lang": "en",
+  "title": "My Car",
+  "author": "Byron Barton",
+  "publisher": "",
+  "isbn": "9780060296247",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "자동차",
+   "탈것",
+   "일상"
+  ],
+  "mood": [
+   "학습",
+   "잔잔한"
+  ],
+  "blurb": "샘이 자기 자동차를 아끼고 돌보며 도시를 달리는 이야기로, 자동차 부품과 운전 과정을 쉽고 친근하게 알려줍니다.",
+  "readAloud": "실제 자동차를 가리키며 \"이건 뭐지?\" 하고 물어보면서 함께 읽어 보세요!",
+  "cover": {
+   "emoji": "🚗",
+   "palette": [
+    "#E8352A",
+    "#F5E642"
+   ]
+  },
+  "quality": 0.82,
+  "source": "curated"
+ },
+ {
+  "id": "en-the-wheels-on-the-bus-5b6d",
+  "lang": "en",
+  "title": "The Wheels on the Bus",
+  "author": "Paul O. Zelinsky",
+  "publisher": "",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "탈것",
+   "일상",
+   "숫자/글자"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "버스 바퀴가 빙글빙글, 와이퍼가 쓱싹쓱싹! 아이들이 가장 좋아하는 동요를 폴 O. 젤린스키가 팝업 장치를 곁들인 그림책으로 되살렸어요.",
+  "readAloud": "각 페이지의 움직이는 장치를 아이 손으로 직접 조작하게 하며 노래를 함께 불러 보세요!",
+  "cover": {
+   "emoji": "🚌",
+   "palette": [
+    "#FFCC00",
+    "#E63B2E"
+   ]
+  },
+  "quality": 0.88,
+  "source": "curated"
+ },
+ {
+  "id": "en-dinosaurs-dinosaurs-e44e",
+  "lang": "en",
+  "title": "Dinosaurs, Dinosaurs",
+  "author": "Byron Barton",
+  "publisher": "",
+  "isbn": "9780064432986",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "공룡",
+   "자연"
+  ],
+  "mood": [
+   "학습",
+   "잔잔한"
+  ],
+  "blurb": "뿔이 있는 공룡, 등에 뼈가 있는 공룡, 크고 무서운 공룡… 다양한 공룡들이 굵고 선명한 그림으로 펼쳐지며 아이들의 공룡 사랑을 활짝 깨워 줍니다.",
+  "readAloud": "각 공룡의 특징을 손가락으로 짚어가며 \"이 공룡은 어떤 점이 달라?\"라고 물어보세요.",
+  "cover": {
+   "emoji": "🦕",
+   "palette": [
+    "#E8A838",
+    "#4A7C59"
+   ]
+  },
+  "quality": 0.82,
+  "source": "curated"
+ },
+ {
+  "id": "en-dinosaur-vs-bedtime-2cb9",
+  "lang": "en",
+  "title": "Dinosaur vs. Bedtime",
+  "author": "Bob Shea",
+  "publisher": "",
+  "isbn": "9781423113355",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "그림책",
+  "themes": [
+   "공룡",
+   "잠자리",
+   "유머",
+   "일상"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "잠자리를 앞에 두고 \"내가 이긴다!\"를 외치는 씩씩한 공룡이지만, 결국 침대 앞에서 꾸벅꾸벅 — 잠이 드는 순간을 유쾌하게 담아낸 잠자리 그림책입니다.",
+  "readAloud": "\"ROAR!\" 외칠 때마다 아이와 함께 큰 소리로 따라 외치면 침대 들어가기 거부감이 쏙 사라져요!",
+  "cover": {
+   "emoji": "🦕",
+   "palette": [
+    "#E63B2E",
+    "#F5E6C8"
+   ]
+  },
+  "quality": 0.88,
+  "source": "curated"
+ },
+ {
+  "id": "en-dinosaur-dance-8284",
+  "lang": "en",
+  "title": "Dinosaur Dance!",
+  "author": "Sandra Boynton",
+  "publisher": "",
+  "isbn": "9781481480994",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "공룡",
+   "일상",
+   "유머"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "다양한 공룡들이 저마다의 개성 넘치는 춤을 신나게 추는 모습을 유머러스하게 담은 보드북으로, 아이들이 몸을 들썩이며 함께 즐길 수 있어요!",
+  "readAloud": "각 공룡의 춤 동작을 따라 몸을 흔들며 읽어 주세요 — 아이가 직접 일어나 춤추게 해도 좋아요!",
+  "cover": {
+   "emoji": "🦕",
+   "palette": [
+    "#F4A636",
+    "#6DC8E0"
+   ]
+  },
+  "quality": 0.82,
+  "source": "curated"
+ },
+ {
+  "id": "en-hello-world-solar-system-e868",
+  "lang": "en",
+  "title": "Hello, World! Solar System",
+  "author": "Jill McDonald",
+  "publisher": "",
+  "isbn": "9780553521030",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "우주",
+   "자연"
+  ],
+  "mood": [
+   "학습",
+   "따뜻한"
+  ],
+  "blurb": "태양계의 행성들을 밝고 귀여운 그림과 함께 쉽고 재미있게 소개해 주는 책으로, 어린 아이들이 우주에 첫발을 내딛기에 딱 좋아요!",
+  "readAloud": "각 행성 페이지에서 \"이 행성 이름이 뭘까?\" 하고 물으며 아이가 직접 따라 말해 보게 해 주세요.",
+  "cover": {
+   "emoji": "🪐",
+   "palette": [
+    "#1B2A6B",
+    "#F9D84B"
+   ]
+  },
+  "quality": 0.82,
+  "source": "curated"
+ },
+ {
+  "id": "en-zoom-rocket-zoom-32b5",
+  "lang": "en",
+  "title": "Zoom, Rocket, Zoom!",
+  "author": "Margaret Mayo & Alex Ayliffe",
+  "publisher": "",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "그림책",
+  "themes": [
+   "탈것",
+   "우주",
+   "자연",
+   "모험"
+  ],
+  "mood": [
+   "웃긴",
+   "모험"
+  ],
+  "blurb": "로켓, 우주왕복선, 달 탐사차까지! 하늘을 가로질러 우주로 날아오르는 다양한 탈것들을 신나는 리듬감 넘치는 문장으로 만나 보세요.",
+  "readAloud": "\"Zoom~!\" 부분에서 아이와 함께 두 팔을 쭉 뻗으며 로켓 소리를 흉내 내 보세요!",
+  "cover": {
+   "emoji": "🚀",
+   "palette": [
+    "#1B2A6B",
+    "#F4A623"
+   ]
+  },
+  "quality": 0.72,
+  "source": "curated"
+ },
+ {
+  "id": "en-jamberry-1af2",
+  "lang": "en",
+  "title": "Jamberry",
+  "author": "Bruce Degen",
+  "publisher": "",
+  "isbn": "9780694006519",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "음식",
+   "환상",
+   "자연",
+   "유머"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "곰과 아이가 함께 딸기, 블루베리, 라즈베리 등 온갖 베리가 가득한 환상의 세계를 신나게 누비는 이야기로, 리드미컬한 말놀이가 읽는 재미를 두 배로 높여줍니다.",
+  "readAloud": "\"Boomberry, zoomberry\" 같은 신조어 구절을 아이와 함께 큰 소리로 따라 읽으며 박자를 맞춰 보세요!",
+  "cover": {
+   "emoji": "🍓",
+   "palette": [
+    "#D94F5C",
+    "#4AAD52"
+   ]
+  },
+  "quality": 0.82,
+  "source": "curated"
+ },
+ {
+  "id": "en-yummy-yucky-7529",
+  "lang": "en",
+  "title": "Yummy Yucky",
+  "author": "Leslie Patricelli",
+  "publisher": "",
+  "isbn": "9780763619503",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "음식",
+   "감정",
+   "일상"
+  ],
+  "mood": [
+   "웃긴",
+   "학습"
+  ],
+  "blurb": "스파게티는 냠냠(yummy), 지렁이는 으악(yucky)! 맛있는 것과 맛없는 것을 대비하며 아이가 언어와 감각을 신나게 익히는 보드북입니다.",
+  "readAloud": "\"yummy\"와 \"yucky\"를 읽을 때 목소리와 표정을 과장되게 바꿔가며 읽으면 아이가 깔깔 웃으며 따라 해요!",
+  "cover": {
+   "emoji": "😋",
+   "palette": [
+    "#F9E04B",
+    "#5DBB63"
+   ]
+  },
+  "quality": 0.82,
+  "source": "curated"
+ },
+ {
+  "id": "en-eating-the-alphabet-0425",
+  "lang": "en",
+  "title": "Eating the Alphabet",
+  "author": "Lois Ehlert",
+  "publisher": "",
+  "isbn": "9780152244361",
+  "ages": [
+   "0-2",
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "숫자/글자",
+   "음식",
+   "자연"
+  ],
+  "mood": [
+   "학습",
+   "잔잔한"
+  ],
+  "blurb": "A부터 Z까지 알파벳 순서로 알록달록한 과일과 채소를 소개하는 책으로, 선명한 콜라주 그림이 눈을 사로잡아요.",
+  "readAloud": "각 페이지에서 알파벳을 함께 소리 내어 말하고, 아이가 아는 채소나 과일을 찾아보게 해주세요!",
+  "cover": {
+   "emoji": "🍎",
+   "palette": [
+    "#E8F5A3",
+    "#F4A623"
+   ]
+  },
+  "quality": 0.88,
+  "source": "curated"
+ },
+ {
+  "id": "en-time-for-bed-ee5b",
+  "lang": "en",
+  "title": "Time for Bed",
+  "author": "Mem Fox & Jane Dyer",
+  "publisher": "",
+  "isbn": "9780152010669",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "잠자리",
+   "동물",
+   "가족"
+  ],
+  "mood": [
+   "잔잔한",
+   "따뜻한"
+  ],
+  "blurb": "엄마 동물들이 아기에게 \"이제 잘 시간이야\"라고 속삭이는 자장가 같은 그림책으로, 반복되는 리듬이 아이를 포근하게 잠자리로 이끌어 줍니다.",
+  "readAloud": "각 동물 엄마의 목소리를 부드럽게 낮추어 가며 읽어 주면 아이가 자연스럽게 졸음을 느낄 수 있어요.",
+  "cover": {
+   "emoji": "🌙",
+   "palette": [
+    "#4A6FA5",
+    "#F7E6C4"
+   ]
+  },
+  "quality": 0.9,
+  "source": "curated"
+ },
+ {
+  "id": "en-llama-llama-red-pajama-dea5",
+  "lang": "en",
+  "title": "Llama Llama Red Pajama",
+  "author": "Anna Dewdney",
+  "publisher": "",
+  "isbn": "9780670059836",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "잠자리",
+   "가족",
+   "감정"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "잠자리에 든 아기 라마가 엄마를 기다리며 불안해하는 마음을 리드미컬한 문장으로 담아낸 책으로, 엄마는 항상 곁에 있다는 따뜻한 메시지를 전합니다.",
+  "readAloud": "\"llama llama\" 부분을 아이와 함께 리듬감 있게 반복해서 읽어 보세요!",
+  "cover": {
+   "emoji": "🦙",
+   "palette": [
+    "#D94F3D",
+    "#F7E6C4"
+   ]
+  },
+  "quality": 0.95,
+  "source": "curated"
+ },
+ {
+  "id": "en-ten-nine-eight-288a",
+  "lang": "en",
+  "title": "Ten, Nine, Eight",
+  "author": "Molly Bang",
+  "publisher": "",
+  "isbn": "9780688009069",
+  "ages": [
+   "0-2",
+   "3-4"
+  ],
+  "level": "보드북",
+  "themes": [
+   "숫자/글자",
+   "가족",
+   "잠자리",
+   "일상"
+  ],
+  "mood": [
+   "따뜻한",
+   "잔잔한"
+  ],
+  "blurb": "열부터 하나까지 거꾸로 세며 잠자리에 드는 아이와 아빠의 다정한 밤을 담은 그림책으로, 숫자를 자연스럽게 익히며 포근한 취침 루틴을 만들어 줍니다.",
+  "readAloud": "아이와 함께 10부터 1까지 손가락으로 짚어가며 천천히 세어 보세요.",
+  "cover": {
+   "emoji": "🌙",
+   "palette": [
+    "#1B3A6B",
+    "#F5C842"
+   ]
+  },
+  "quality": 0.93,
+  "source": "curated"
+ },
+ {
+  "id": "en-where-is-baby-s-belly-button-d6a6",
+  "lang": "en",
+  "title": "Where Is Baby's Belly Button?",
+  "author": "Karen Katz",
+  "publisher": "",
+  "ages": [
+   "0-2"
+  ],
+  "level": "보드북",
+  "themes": [
+   "일상",
+   "가족",
+   "감정"
+  ],
+  "mood": [
+   "웃긴",
+   "따뜻한"
+  ],
+  "blurb": "플랩을 들추며 아기의 눈, 귀, 배꼽을 찾아가는 까꿍 놀이 그림책으로, 아기 자신의 몸을 즐겁게 인식하게 해줍니다.",
+  "readAloud": "플랩을 넘기기 전에 \"배꼽이 어디 있을까?\" 하고 아이 배를 살짝 간지럽히며 읽어 보세요!",
+  "cover": {
+   "emoji": "👶",
+   "palette": [
+    "#F9C74F",
+    "#F4845F"
+   ]
+  },
+  "quality": 0.88,
+  "source": "curated"
+ },
+ {
+  "id": "en-hop-on-pop-6675",
+  "lang": "en",
+  "title": "Hop on Pop",
+  "author": "Dr. Seuss",
+  "publisher": "",
+  "isbn": "9780394800295",
+  "ages": [
+   "3-4",
+   "5-6"
+  ],
+  "level": "그림책",
+  "themes": [
+   "숫자/글자",
+   "유머",
+   "가족",
+   "일상"
+  ],
+  "mood": [
+   "웃긴",
+   "잔잔한"
+  ],
+  "blurb": "짧고 리듬감 넘치는 단어들이 반복되며 아이가 자연스럽게 영어 파닉스를 익힐 수 있는 Dr. Seuss의 대표 입문 리더스예요. 아빠 위에 껑충 뛰어오르는 장면까지, 읽는 내내 웃음이 터집니다!",
+  "readAloud": "한 줄씩 손가락으로 짚어가며 아이와 함께 소리 내어 따라 읽어 보세요 — 운율이 살아 있어 금세 외울 수 있어요!",
+  "cover": {
+   "emoji": "🐱",
+   "palette": [
+    "#E8F4FC",
+    "#F7C948"
+   ]
+  },
+  "quality": 0.95,
+  "source": "curated"
  }
 ];
