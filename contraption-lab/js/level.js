@@ -9,21 +9,53 @@ import { PARTS, makePart } from "./parts.js";
 export const SCHEMA_VERSION = 1;
 const SUPPORTED_GOALS = ["dwell"];
 
+// Payload caps for community levels. A level blob comes from an untrusted author and
+// is simulated on every Browse visitor's device, so bound everything that scales the
+// per-frame work (body count, rope chain length) and the wire size. The PocketBase
+// `level.data` field enforces the same byte cap server-side (pb_migrations/004).
+export const LEVEL_LIMITS = Object.freeze({
+  fixed: 200,            // max fixed (scenery) parts
+  start: 100,            // max start (movable object) parts
+  inventory: 60,         // max inventory entries
+  invCount: 99,          // max count per inventory entry
+  ropeSegments: 60,      // max segments per rope (each is a body + constraint)
+  worldMax: 4000,        // max world w/h in world units
+  jsonBytes: 64 * 1024,  // max serialized size
+});
+const finiteNum = (v) => typeof v === "number" && Number.isFinite(v);
+
 export function validateLevel(level) {
   if (!level || typeof level !== "object") return { ok:false, reason:"not an object" };
   if (level.schema !== SCHEMA_VERSION) return { ok:false, reason:`schema ${level.schema} != ${SCHEMA_VERSION}` };
   if (!level.world || !level.goal || !Array.isArray(level.inventory)) return { ok:false, reason:"missing world/goal/inventory" };
+  const W = level.world.w, H = level.world.h;
+  if (!finiteNum(W) || !finiteNum(H) || W <= 0 || H <= 0 || W > LEVEL_LIMITS.worldMax || H > LEVEL_LIMITS.worldMax) {
+    return { ok:false, reason:`world size must be 1..${LEVEL_LIMITS.worldMax}` };
+  }
   if (!SUPPORTED_GOALS.includes(level.goal.type)) return { ok:false, reason:`unsupported goal ${level.goal.type}` };
   const z = level.goal.zone;
-  if (!z || typeof z.x !== "number" || typeof z.y !== "number" || typeof z.w !== "number" || typeof z.h !== "number") {
+  if (!z || !finiteNum(z.x) || !finiteNum(z.y) || !finiteNum(z.w) || !finiteNum(z.h)) {
     return { ok:false, reason:"goal.zone missing or invalid" };
   }
+  if ((level.fixed||[]).length > LEVEL_LIMITS.fixed) return { ok:false, reason:`too many fixed parts (max ${LEVEL_LIMITS.fixed})` };
+  if ((level.start||[]).length > LEVEL_LIMITS.start) return { ok:false, reason:`too many start parts (max ${LEVEL_LIMITS.start})` };
+  if (level.inventory.length > LEVEL_LIMITS.inventory) return { ok:false, reason:`too many inventory entries (max ${LEVEL_LIMITS.inventory})` };
   for (const grp of ["fixed","start"]) {
     for (const e of (level[grp]||[])) {
-      if (!PARTS[e.type]) return { ok:false, reason:`unknown part type ${e.type}` };
+      if (!e || !PARTS[e.type]) return { ok:false, reason:`unknown part type ${e && e.type}` };
+      if (!finiteNum(e.x) || !finiteNum(e.y)) return { ok:false, reason:`${e.type} missing x/y` };
+      if (e.type === "rope" && e.segments != null && !(finiteNum(e.segments) && e.segments >= 1 && e.segments <= LEVEL_LIMITS.ropeSegments)) {
+        return { ok:false, reason:`rope segments must be 1..${LEVEL_LIMITS.ropeSegments}` };
+      }
     }
   }
-  for (const inv of level.inventory) if (!PARTS[inv.type]) return { ok:false, reason:`unknown inventory type ${inv.type}` };
+  for (const inv of level.inventory) {
+    if (!inv || !PARTS[inv.type]) return { ok:false, reason:`unknown inventory type ${inv && inv.type}` };
+    if (!Number.isInteger(inv.count) || inv.count < 0 || inv.count > LEVEL_LIMITS.invCount) return { ok:false, reason:`inventory count for ${inv.type} must be 0..${LEVEL_LIMITS.invCount}` };
+  }
+  let bytes = 0;
+  try { bytes = JSON.stringify(level).length; } catch { return { ok:false, reason:"level is not serializable" }; }
+  if (bytes > LEVEL_LIMITS.jsonBytes) return { ok:false, reason:`level too large (${bytes} > ${LEVEL_LIMITS.jsonBytes} bytes)` };
   // link integrity for paired parts
   const all = [...(level.fixed||[]), ...(level.start||[])];
   const portals = all.filter(e => e.type === "portal");

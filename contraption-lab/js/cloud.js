@@ -143,19 +143,35 @@ export function levelCard(rec, plays=0, likes=0) {
   };
 }
 
+// Count rows of `collection` per level id for a whole page of ids in ONE request
+// (filter `level="a" || level="b" …`, fetching only the `level` relation field) —
+// instead of two requests per card. Ids are server-generated record ids (never
+// user text), so interpolating them into the filter is safe (see NOTE above).
+async function countsByLevel(collection, ids, extraFilter = "") {
+  const counts = Object.fromEntries(ids.map(id => [id, 0]));
+  if (!ids.length) return counts;
+  const idFilter = "(" + ids.map(id => `level="${id}"`).join(" || ") + ")";
+  const filter = extraFilter ? `${idFilter} && ${extraFilter}` : idFilter;
+  const rows = await pb.collection(collection).getFullList({ filter, fields: "level" });
+  for (const r of rows) if (r.level in counts) counts[r.level]++;
+  return counts;
+}
+
+// Lists one page of published levels. NOTE: the "played"/"rated" sorts rank only
+// WITHIN the fetched page (PocketBase can't sort by a related-row count without a
+// server-side aggregate); the UI labels those tabs "(this page)" accordingly.
 export async function listLevels(tab="recent", page=1, perPage=24) {
   if (!pb || !cloud.available) return [];
   try {
     const res = await pb.collection("level").getList(page, perPage, { sort: "-created" });
+    const ids = res.items.map(r => r.id);
+    const [plays, likes] = await Promise.all([
+      countsByLevel("play", ids).catch(() => ({})),
+      countsByLevel("rating", ids, "value>0").catch(() => ({})),
+    ]);
+    const cards = res.items.map(rec => levelCard(rec, plays[rec.id] || 0, likes[rec.id] || 0));
 
-    // Attach play/like counts for each level
-    const cards = await Promise.all(res.items.map(async (rec) => {
-      const plays = await playsCount(rec.id);
-      const likes = await likesCount(rec.id);
-      return levelCard(rec, plays, likes);
-    }));
-
-    // Sort by tab preference
+    // Sort by tab preference (within this page only — see note above)
     if (tab === "played") {
       return cards.sort((a, b) => b.plays - a.plays);
     } else if (tab === "rated") {

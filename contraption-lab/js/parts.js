@@ -15,7 +15,9 @@ export const PARTS = {
   },
   ramp: {
     label: "Ramp", movable: true, fixedByDefault: true,
-    build: (s, M) => ({ bodies: [cat(M,"ramp",s.tag)(M.Bodies.rectangle(s.x, s.y, s.w||160, s.h||16, { isStatic:true, angle:s.angle ?? -0.3, friction:0.3 }))], constraints: [] }),
+    // Default tilt is -15° — on the UI's 15° rotation grid (geom.js ROTATE_STEP) so
+    // every reachable ramp angle is a whole number of rotate-steps from the default.
+    build: (s, M) => ({ bodies: [cat(M,"ramp",s.tag)(M.Bodies.rectangle(s.x, s.y, s.w||160, s.h||16, { isStatic:true, angle:s.angle ?? -Math.PI/12, friction:0.3 }))], constraints: [] }),
   },
   domino: {
     label: "Domino", movable: true, fixedByDefault: false,
@@ -69,7 +71,7 @@ export const PARTS = {
   crate: { label:"Crate", movable:true, fixedByDefault:false,
     build:(s,M)=>({ bodies:[cat(M,"crate",s.tag)(M.Bodies.rectangle(s.x,s.y,s.w||56,s.h||56,{density:0.006,friction:0.5}))], constraints:[] }) },
   pipe: { label:"Pipe", movable:true, fixedByDefault:true,
-    build:(s,M)=>({ bodies:[cat(M,"pipe",s.tag)(M.Bodies.rectangle(s.x,s.y,s.w||160,16,{isStatic:true,angle:s.angle??0.5,friction:0.1}))], constraints:[] }) },
+    build:(s,M)=>({ bodies:[cat(M,"pipe",s.tag)(M.Bodies.rectangle(s.x,s.y,s.w||160,16,{isStatic:true,angle:s.angle??Math.PI/6,friction:0.1}))], constraints:[] }) }, // default 30°: on the 15° rotate grid
   pinwheel: { label:"Pinwheel", movable:true, fixedByDefault:true,
     build:(s,M)=>{ const v=cat(M,"pinwheel",s.tag)(M.Bodies.rectangle(s.x,s.y,s.w||110,12,{density:0.002,friction:0.3}));
       const pivot=M.Constraint.create({pointA:{x:s.x,y:s.y},bodyB:v,pointB:{x:0,y:0},stiffness:1,length:0}); return {bodies:[v],constraints:[pivot]}; } },

@@ -22,11 +22,13 @@ export const OFFICIAL_LEVELS = [
     [ {type:"ramp",count:1} ], {parts:1}),
 
   // 02 — Bounce: teach bumper. The ball falls off the first slope into open air; the
-  // bumper redirects the fall onto the goal slope below.
+  // bumper redirects the fall onto the goal slope below. The tall right wall catches
+  // any rightward bounce and drops it back onto the slope, so the exact bounce angle
+  // (very sensitive to where the ball meets the bumper) doesn't have to be perfect.
   lvl("official-02","Bounce", goalAt(1000,660,220,120),
     [ {type:"wall",x:280,y:300,w:320,h:28,angle:0.17},
-      {type:"wall",x:900,y:620,w:500,h:28,angle:0.15},
-      {type:"wall",x:1180,y:680,w:24,h:80},
+      {type:"wall",x:880,y:640,w:600,h:28,angle:0.15},
+      {type:"wall",x:1180,y:520,w:24,h:400},
       {type:"goal",x:1000,y:660} ],
     [ {type:"ball",x:150,y:220,tag:"ball"} ],
     [ {type:"bumper",count:1} ], {parts:1}),
@@ -59,14 +61,14 @@ export const OFFICIAL_LEVELS = [
     [ {type:"ball",x:280,y:120,tag:"ball"} ],
     [ {type:"magnet",count:1} ], {parts:1}),
 
-  // 06 — Conveyor Run: ball drops through a pipe chute, then a conveyor carries it
-  // across a pit to the goal ledge.
-  lvl("official-06","Conveyor Run", goalAt(1040,520,280,200),
+  // 06 — Conveyor Run: ball drops through a pipe chute into a pit it can't cross;
+  // the (standard 160-wide) conveyor bridges the pit and carries it onto the goal ledge.
+  lvl("official-06","Conveyor Run", goalAt(1040,560,280,200),
     [ {type:"pipe",x:150,y:300,w:220,angle:0.35},
       {type:"wall",x:240,y:600,w:340,h:28},
-      {type:"wall",x:1000,y:520,w:480,h:28,angle:0.12},
-      {type:"wall",x:1200,y:480,w:24,h:240},
-      {type:"goal",x:1040,y:520} ],
+      {type:"wall",x:900,y:600,w:680,h:28,angle:0.06},
+      {type:"wall",x:1200,y:500,w:24,h:300},
+      {type:"goal",x:1040,y:560} ],
     [ {type:"ball",x:60,y:160,tag:"ball"} ],
     [ {type:"conveyor",count:1} ], {parts:1}),
 
@@ -81,13 +83,13 @@ export const OFFICIAL_LEVELS = [
     [ {type:"ball",x:610,y:440,tag:"ball"} ],
     [ {type:"weight",count:1} ], {parts:1}),
 
-  // 08 — Accelerator Gap: a wedge redirects the ball down into a corner, then an
-  // angled accelerator pad launches it up and across to the goal ledge.
-  lvl("official-08","Accelerator Gap", goalAt(960,420,220,180),
+  // 08 — Accelerator Gap: a wedge redirects the ball down into the bottom-left corner;
+  // an angled accelerator pad there launches it up onto the goal ledge across the pit.
+  lvl("official-08","Accelerator Gap", goalAt(960,600,220,180),
     [ {type:"wedge",x:280,y:180,w:180,h:120,angle:-0.35},
-      {type:"wall",x:940,y:420,w:600,h:28},
-      {type:"wall",x:1220,y:510,w:28,h:420},
-      {type:"goal",x:960,y:420} ],
+      {type:"wall",x:780,y:600,w:920,h:28},
+      {type:"wall",x:1220,y:520,w:28,h:400},
+      {type:"goal",x:960,y:600} ],
     [ {type:"ball",x:260,y:80,tag:"ball"} ],
     [ {type:"accelerator",count:1} ], {parts:1}),
 
@@ -150,13 +152,14 @@ export const OFFICIAL_LEVELS = [
     [ {type:"ball",x:300,y:380,tag:"ball"} ],
     [ {type:"crate",count:1} ], {parts:1}),
 
-  // 14 — Pinwheel Relay: a platform bridges the gap between the entry ramp and the
-  // goal ledge; domino/pinwheel round out the inventory for style points.
-  lvl("official-14","Pinwheel Relay", goalAt(1080,460,180,150),
+  // 14 — Pinwheel Relay: a platform (tilted one 15° step so the ball keeps rolling —
+  // it stalls on a flat one) bridges the gap between the entry ramp and the lower goal
+  // ledge; domino/pinwheel round out the inventory for style points.
+  lvl("official-14","Pinwheel Relay", goalAt(1080,480,180,150),
     [ {type:"wall",x:420,y:420,w:680,h:28,angle:0.16},
-      {type:"wall",x:1080,y:500,w:400,h:24},
-      {type:"wall",x:1280,y:460,w:24,h:320},
-      {type:"goal",x:1080,y:460} ],
+      {type:"wall",x:1080,y:540,w:400,h:24},
+      {type:"wall",x:1280,y:480,w:24,h:320},
+      {type:"goal",x:1080,y:480} ],
     [ {type:"ball",x:220,y:300,tag:"ball"} ],
     [ {type:"domino",count:2}, {type:"pinwheel",count:1}, {type:"platform",count:1} ], {parts:4}),
 
@@ -171,7 +174,9 @@ export const OFFICIAL_LEVELS = [
     [ {type:"trampoline",count:1} ], {parts:1}),
 
   // 16 — Gear Drive: a weight tips the seesaw, launching the ball past a hanging rope
-  // and onto the gears, which fling it across the gap to the goal ledge.
+  // and over the pit onto the goal ledge. The gears are optional style inventory: a
+  // ball that lands on a spinning gear is flung unpredictably, so the documented
+  // solution (tools/solutions.mjs) uses the weight alone — par stays 2.
   lvl("official-16","Gear Drive", goalAt(1080,560,220,200),
     [ {type:"wall",x:320,y:560,w:400,h:28},
       {type:"seesaw",x:520,y:480,w:220,fixedByDefault:true},

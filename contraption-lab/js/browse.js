@@ -21,7 +21,7 @@ export function thumbnailFor(levelData, canvas) {
     // Build throwaway sim (no run, just the initial state)
     const sim = new Sim(levelData);
     const ctx = canvas.getContext("2d");
-    const transform = fitTransform(1280, 720, canvas.width, canvas.height);
+    const transform = fitTransform(levelData.world.w, levelData.world.h, canvas.width, canvas.height);
     const theme = tokens();
 
     drawWorld(ctx, sim, transform, theme, { themeId: document.documentElement.dataset.theme });
@@ -30,18 +30,39 @@ export function thumbnailFor(levelData, canvas) {
   }
 }
 
+// Building a Sim per card is the expensive part of Browse (each is a full Matter
+// world). Defer it until the card actually scrolls into view; a page of 24 cards
+// then costs one Sim per visible card instead of 24 up front.
+const pendingThumbs = new WeakMap(); // canvas -> levelData
+const thumbObserver = typeof IntersectionObserver === "function"
+  ? new IntersectionObserver((entries) => {
+      for (const en of entries) {
+        if (!en.isIntersecting) continue;
+        const data = pendingThumbs.get(en.target);
+        thumbObserver.unobserve(en.target);
+        pendingThumbs.delete(en.target);
+        if (data) thumbnailFor(data, en.target);
+      }
+    }, { rootMargin: "200px" })
+  : null;
+function queueThumbnail(levelData, canvas) {
+  if (!thumbObserver) { thumbnailFor(levelData, canvas); return; }
+  pendingThumbs.set(canvas, levelData);
+  thumbObserver.observe(canvas);
+}
+
 const BROWSE_PER_PAGE = 24;
 
 function appendLevelCard(container, level) {
   const card = document.createElement("div");
   card.className = "browsecard";
 
-  // Thumbnail canvas
+  // Thumbnail canvas (rendered lazily when the card scrolls into view)
   const canvas = document.createElement("canvas");
   canvas.width = 320;
   canvas.height = 180;
   canvas.className = "browsethumb";
-  thumbnailFor(level.data, canvas);
+  queueThumbnail(level.data, canvas);
 
   // Metadata
   const meta = document.createElement("div");
@@ -123,9 +144,9 @@ export async function renderBrowse(container, tab = "recent") {
 /**
  * Append a "Load more" button; clicking fetches the next page, appends its cards,
  * and re-mounts itself for the following page (or removes itself once a short
- * page comes back — the tab-sort re-sorts only within each fetched page, so
- * "most played"/"top rated" ordering is approximate past the first page, same
- * tradeoff as the original single-page fetch).
+ * page comes back). The tab-sort re-sorts only within each fetched page — the
+ * "Most Played"/"Top Rated" tabs are labelled "(this page)" in index.html for
+ * exactly that reason; a global rank would need server-side aggregate counts.
  */
 function mountLoadMoreButton(container, tab, nextPage) {
   const btn = document.createElement("button");

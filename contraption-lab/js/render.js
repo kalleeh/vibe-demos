@@ -467,13 +467,33 @@ function drawSprite(ctx, body, spr, transform, opts = {}) {
   return true;
 }
 
-export function resizeCanvas(canvas) {
+// Size the backing store to the element × dpr and return the letterbox transform for
+// the level's world (`world` = level.world {w,h}).
+export function resizeCanvas(canvas, world) {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const cw = canvas.clientWidth, ch = canvas.clientHeight;
   canvas.width = Math.round(cw * dpr);
   canvas.height = Math.round(ch * dpr);
-  const transform = fitTransform(1280, 720, canvas.width, canvas.height);
+  const transform = fitTransform(world.w, world.h, canvas.width, canvas.height);
   return { transform, dpr };
+}
+
+// Selection ring around a placed part's bodies (play-mode select → rotate/delete).
+// Dashed accent circle sized to the union AABB, marching so it reads as "active".
+function drawSelection(ctx, bodies, t, theme, opts) {
+  if (!bodies || !bodies.length) return;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const b of bodies) { minX = Math.min(minX, b.bounds.min.x); minY = Math.min(minY, b.bounds.min.y); maxX = Math.max(maxX, b.bounds.max.x); maxY = Math.max(maxY, b.bounds.max.y); }
+  const c = worldToScreen((minX + maxX) / 2, (minY + maxY) / 2, t);
+  const r = (Math.hypot(maxX - minX, maxY - minY) / 2 + 14) * t.scale;
+  ctx.save();
+  ctx.strokeStyle = theme.accent || "#ffd166";
+  ctx.lineWidth = Math.max(1.5, 2.5 * t.scale);
+  ctx.setLineDash([8, 6]);
+  ctx.lineDashOffset = opts.reducedMotion ? 0 : -(opts.now || 0) / 40;
+  ctx.globalAlpha = 0.9;
+  ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2); ctx.stroke();
+  ctx.restore();
 }
 
 // Goal target: a soft pulsing fill + a static dashed frame (marching-ants dash
@@ -730,6 +750,9 @@ export function drawWorld(ctx, state, transform, theme, opts = {}) {
     ctx.setLineDash([]);
     ctx.restore();
   }
+
+  // selection ring (build mode: the tapped placed part, target of ⟲ ✕ ⟳ / R keys)
+  if (opts.selectedBodies) drawSelection(ctx, opts.selectedBodies, t, theme, opts);
 
   // particles (impacts, explosions, confetti) ride above the bodies
   if (fx) fx.drawParticles(ctx, t);

@@ -41,7 +41,42 @@ export function gateOpen(buttonBody, bodies) {
 }
 
 const MAX_RUN_MS = 30000;
+// Fixed physics timestep. The sim ALWAYS steps at exactly this dt (see Sim.advance);
+// rendering may run at any frame rate, but the physics result must not depend on it.
+export const STEP_MS = 1000 / 60;
+const MAX_STEPS_PER_FRAME = 4; // after a long stall, drop the remainder instead of spiralling
+// Tap-target radius (world units) for selecting a placed part — shared by play
+// (Sim.placedAt) and the editor's spec hit-test so the two feel identical.
+export const TAP_RADIUS = 80;
+// Portal re-entry cooldown in ms (was a tick count; ms keeps it frame-rate independent).
+const PORTAL_COOL_MS = 500;
 const M = () => Matter;
+
+// Shared per-tick helper: a spinning disc (gears driver/follower, powered motor)
+// drags any contacting dynamic body along its rim's tangent. `sense` is +1/-1 for
+// the rotation direction; imparted speed is bounded by `cap`.
+function tangentialDrag(m, disc, bodies, r, surf, sense, cap = 8) {
+  const sp = Math.min(surf, cap);
+  for (const b of bodies) {
+    if (b.isStatic || b === disc) continue;
+    const dx = b.position.x - disc.position.x, dy = b.position.y - disc.position.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist < r + 26 && dist > 1) {
+      const tx = (-dy / dist) * sense, ty = (dx / dist) * sense;
+      m.Body.setVelocity(b, { x: tx * sp, y: b.velocity.y + ty * sp * 0.5 });
+    }
+  }
+}
+
+// Shared capture-band test (accelerator pad, cannon barrel): project `b` into the
+// pad's local frame and accept anything within ±halfLen along the pad and within
+// a generous band above/just below its surface, so a slow/resting ball still fires.
+function inCaptureBand(pad, ca, sa, b, halfLen) {
+  const dx = b.position.x - pad.position.x, dy = b.position.y - pad.position.y;
+  const along = dx * ca + dy * sa;        // distance along the pad
+  const perp = -dx * sa + dy * ca;         // distance off the pad surface
+  return Math.abs(along) < halfLen && perp > -40 && perp < 16;
+}
 
 export class Sim {
   constructor(level) {
@@ -100,16 +135,22 @@ export class Sim {
     return bodies;
   }
 
+  // The ONLY way a player adds a part: type, grid position, angle. Every other
+  // property comes from the part's defaults in parts.js — nothing else is settable
+  // from the UI, so the solvability verifier (tools/solve-verify.mjs) must place its
+  // solutions through this exact call.
   addPlayerPart(type, x, y, angle = 0) {
     const spec = { type, x, y, angle };
     this.placed.push(spec);
     return this._spawn(spec, true);
   }
 
+  // Bodies currently spawned for a placed spec (selection highlight), or [].
+  bodiesOf(spec) { return this._specBodies.get(spec) || []; }
+
   // Index of the closest placed part within tap range of (wx,wy), or -1.
-  // 80 world-unit radius (comfortable tap target; ~40px at 0.5 letterbox scale).
   placedAt(wx, wy) {
-    let idx = -1, best = 80 * 80;
+    let idx = -1, best = TAP_RADIUS * TAP_RADIUS;
     this.placed.forEach((s, i) => {
       const d = (s.x - wx) ** 2 + (s.y - wy) ** 2;
       if (d < best) { best = d; idx = i; }
@@ -131,15 +172,15 @@ export class Sim {
     return true;
   }
 
-  removeBodyAt(wx, wy) {
-    const idx = this.placedAt(wx, wy);
-    if (idx >= 0) {
-      this.placed.splice(idx, 1);
-      this._build();  // Rebuild to remove the part
-      return true;
-    }
-    return false;
+  // Remove the placed part at index `idx` (rebuilds the world without it).
+  removePlacedAt(idx) {
+    if (idx < 0 || idx >= this.placed.length) return false;
+    this.placed.splice(idx, 1);
+    this._build();
+    return true;
   }
+
+  removeBodyAt(wx, wy) { return this.removePlacedAt(this.placedAt(wx, wy)); }
 
   run() {
     const m = M();
@@ -161,6 +202,22 @@ export class Sim {
     this.state = "running";
     this.elapsed = 0;
     this.dwell = 0;
+    this._acc = 0;
+  }
+
+  // Frame-rate independent driver: accumulate wall-clock dt and run whole fixed
+  // STEP_MS steps (at most MAX_STEPS_PER_FRAME per call; any excess is dropped so a
+  // tab stall can't fast-forward the world). Every caller with a variable dt (rAF
+  // loops, the verifier's dt-variant pass) must go through here, never step().
+  advance(dtMs) {
+    if (this.state !== "running") return this.state;
+    this._acc = (this._acc || 0) + Math.max(0, dtMs);
+    let n = 0;
+    while (this._acc >= STEP_MS && n < MAX_STEPS_PER_FRAME && this.state === "running") {
+      this.step(STEP_MS); this._acc -= STEP_MS; n++;
+    }
+    if (this._acc >= STEP_MS) this._acc = 0;
+    return this.state;
   }
 
   step(dtMs) {
@@ -236,25 +293,7 @@ export class Sim {
         // center; this keeps it turning), then drag contacting dynamic bodies along
         // the disc's tangential surface direction — same idea as the conveyor.
         if (typeof pl.driven === "number") m.Body.setAngularVelocity(f, pl.driven);
-        const r = pl.radius || 34;
-        const surf = pl.surface || 0;            // tangential speed at the rim
-        const w = pl.driven >= 0 ? 1 : -1;        // rotation sense
-        for (const b of this.bodies) {
-          if (b.isStatic || b === f) continue;
-          const dx = b.position.x - f.position.x;
-          const dy = b.position.y - f.position.y;
-          const dist = Math.hypot(dx, dy);
-          if (dist < r + 26 && dist > 1) {
-            // tangent = perpendicular to the radius, scaled by sense of rotation
-            const tx = (-dy / dist) * w, ty = (dx / dist) * w;
-            const cap = 8;                          // bound the imparted speed
-            const sp = Math.min(surf, cap);
-            m.Body.setVelocity(b, {
-              x: tx * sp,
-              y: b.velocity.y + ty * sp * 0.5,      // gentler vertical kick
-            });
-          }
-        }
+        tangentialDrag(m, f, this.bodies, pl.radius || 34, pl.surface || 0, pl.driven >= 0 ? 1 : -1);
       }
       else if (pl.partType === "zipline") {
         // No slider constraint exists in this Matter.js build, so the basket's
@@ -303,21 +342,17 @@ export class Sim {
         // so a slow/resting ball still fires reliably.
         const ca = Math.cos(f.angle), sa = Math.sin(f.angle);
         const halfLen = (pl.w || 90) / 2 + 22;
-        const dir = { x: ca, y: sa };
         for (const b of this.bodies) {
           if (b.isStatic || b === f) continue;
-          const dx = b.position.x - f.position.x, dy = b.position.y - f.position.y;
-          const along = dx * ca + dy * sa;        // distance along the pad
-          const perp = -dx * sa + dy * ca;         // distance off the pad surface
-          if (Math.abs(along) < halfLen && perp > -40 && perp < 16) {
+          if (inCaptureBand(f, ca, sa, b, halfLen)) {
             const boost = pl.boost || 9;
             // kick along the pad facing + a small lift, replacing current velocity
-            m.Body.setVelocity(b, { x: dir.x * boost, y: dir.y * boost - 2 });
+            m.Body.setVelocity(b, { x: ca * boost, y: sa * boost - 2 });
           }
         }
       }
       else if (pl.partType === "portal") {
-        pl._cool = Math.max(0, (pl._cool || 0) - 1);
+        pl._cool = Math.max(0, (pl._cool || 0) - dtMs);
         if (pl._cool > 0) continue;
         const partner = this.bodies.find(o => o !== f && o.plugin && o.plugin.partType === "portal" && o.plugin.link === pl.link);
         if (!partner) continue;
@@ -327,8 +362,8 @@ export class Sim {
           if (Math.hypot(dx, dy) < (pl.r || 28)) {
             const exit = portalExit(partner);
             m.Body.setPosition(b, exit);
-            partner.plugin._cool = 30;  // ~0.5s at 60fps: stop immediate re-entry on the other side
-            pl._cool = 30;
+            partner.plugin._cool = PORTAL_COOL_MS;  // stop immediate re-entry on the other side
+            pl._cool = PORTAL_COOL_MS;
             break;
           }
         }
@@ -505,26 +540,13 @@ export class Sim {
       }
       else if (pl.partType === "motor") {
         // Dead until an outlet is in range; once powered, reuses gears' exact
-        // tangential-drag-on-contact math (engine.js lines ~226-250), just gated.
+        // tangential-drag-on-contact math (shared tangentialDrag helper), just gated.
         const outletInRange = this.bodies.some(o => o.plugin && o.plugin.partType === "outlet" &&
           Math.hypot(o.position.x - f.position.x, o.position.y - f.position.y) < (o.plugin.range || 220));
         pl._powered = outletInRange;
         if (outletInRange) {
           if (typeof pl.spin === "number") m.Body.setAngularVelocity(f, pl.spin);
-          const r = pl.radius || 30;
-          const surf = pl.surface || 0;
-          const w = pl.spin >= 0 ? 1 : -1;
-          for (const b of this.bodies) {
-            if (b.isStatic || b === f) continue;
-            const dx = b.position.x - f.position.x, dy = b.position.y - f.position.y;
-            const dist = Math.hypot(dx, dy);
-            if (dist < r + 26 && dist > 1) {
-              const tx = (-dy / dist) * w, ty = (dx / dist) * w;
-              const cap = 8;
-              const sp = Math.min(surf, cap);
-              m.Body.setVelocity(b, { x: tx * sp, y: b.velocity.y + ty * sp * 0.5 });
-            }
-          }
+          tangentialDrag(m, f, this.bodies, pl.radius || 30, pl.surface || 0, pl.spin >= 0 ? 1 : -1);
         }
       }
       else if (pl.partType === "vacuum") {
@@ -627,8 +649,8 @@ export class Sim {
   }
 
   // One-shot cannon: decrement fuses, and at <=0 kick the first dynamic body
-  // resting in the barrel's capture band (pad-local projection, same ca/sa/
-  // along/perp math as accelerator) along the barrel's facing direction, then
+  // resting in the barrel's capture band (shared inCaptureBand helper, same as
+  // the accelerator) along the barrel's facing direction, then
   // spend the charge. If nothing sits in the band when the fuse expires, it
   // still spends itself with no shot — matches TNT's "always detonates on
   // schedule" behavior.
@@ -645,10 +667,7 @@ export class Sim {
           const halfLen = 32 + 22;
           for (const b of this.bodies) {
             if (b.isStatic || b === c) continue;
-            const dx = b.position.x - c.position.x, dy = b.position.y - c.position.y;
-            const along = dx * ca + dy * sa;
-            const perp = -dx * sa + dy * ca;
-            if (Math.abs(along) < halfLen && perp > -40 && perp < 16) {
+            if (inCaptureBand(c, ca, sa, b, halfLen)) {
               const boost = c.plugin.boost || 18;
               m.Body.setVelocity(b, { x: ca * boost, y: sa * boost - 2 });
               break; // one shot, one target

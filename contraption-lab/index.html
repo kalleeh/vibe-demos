@@ -73,6 +73,14 @@
   <div class="stagewrap">
     <div class="well">
       <canvas id="stage"></canvas>
+      <!-- Selected-part controls: follow the tapped part (build mode only). Rotation
+           is in 15° steps; the same steps the keyboard (R / Shift+R, [ / ]) and the
+           two-finger twist snap to. -->
+      <div id="partCtl" class="partctl" hidden>
+        <button id="rotL" type="button" aria-label="Rotate left 15°" title="Rotate left (Shift+R or [)">⟲</button>
+        <button id="delPart" type="button" aria-label="Remove part" title="Remove (Delete)">✕</button>
+        <button id="rotR" type="button" aria-label="Rotate right 15°" title="Rotate right (R or ])">⟳</button>
+      </div>
       <span class="welltag welltag-l">PLAYFIELD · 0,0</span>
       <span class="welltag welltag-r">SCALE 1:1</span>
       <div id="banner" class="banner" hidden></div>
@@ -86,7 +94,7 @@
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8l9-4 9 4-9 4z"/><path d="M3 8v8l9 4 9-4V8"/><path d="M12 12v8"/></svg>
         <span class="trayttl">PARTS TRAY</span>
         <span class="traysub" id="trayCount">· 0 TYPES</span>
-        <span class="trayhint">TAP TO SELECT · TAP FIELD TO PLACE</span>
+        <span class="trayhint">TAP TO SELECT · TAP FIELD TO PLACE · TAP A PART, THEN ⟲ ⟳ OR R TO ROTATE</span>
       </div>
       <div class="traywell">
         <footer class="palette" id="palette"></footer>
@@ -121,7 +129,8 @@
       <span class="coachstep">How to play</span>
       <ol>
         <li><b>Pick a part</b> from the tray below.</li>
-        <li><b>Tap the playfield</b> to place it (tap a placed part to remove it).</li>
+        <li><b>Tap the playfield</b> to place it.</li>
+        <li><b>Tap a placed part</b> to select it, then <b>⟲ ⟳</b> (or <b>R</b> / <b>[ ]</b>) rotate it in 15° steps — or twist it with two fingers. <b>✕</b> (or tapping it again) removes it.</li>
         <li>Hit <b>▶ Run</b> and watch the ball reach the <b>🏆 goal</b>.</li>
       </ol>
       <button id="coachDismiss" class="coachbtn" type="button">Got it</button>
@@ -179,8 +188,8 @@
     <div class="browsebar">
       <span class="brandmark" style="margin-right:auto"><span class="wordmark"><span class="title">Community Levels</span></span></span>
       <button data-tab="recent" class="navbtn browsetab active">Recent</button>
-      <button data-tab="played" class="navbtn browsetab">Most Played</button>
-      <button data-tab="rated" class="navbtn browsetab">Top Rated</button>
+      <button data-tab="played" class="navbtn browsetab" title="Ranked within the loaded page only">Most Played (this page)</button>
+      <button data-tab="rated" class="navbtn browsetab" title="Ranked within the loaded page only">Top Rated (this page)</button>
     </div>
     <div id="browseGrid" class="browsegrid"></div>
   </div>

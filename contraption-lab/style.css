@@ -209,6 +209,15 @@ html, body {
 #stage, #editorCanvas { display:block; width:100%; height:100%; touch-action:none; }
 .welltag { position:absolute; top:10px; font-family:var(--font-mono); font-size:9px; letter-spacing:2px; color:color-mix(in srgb,var(--ink-2) 55%, transparent); pointer-events:none; z-index:2; }
 .welltag-l { left:12px; } .welltag-r { right:12px; letter-spacing:1px; }
+/* selected-part controls: ⟲ ✕ ⟳ pinned just below the tapped part (build mode) */
+.partctl { position:absolute; z-index:3; display:flex; gap:6px; transform:translate(-50%,0); }
+.partctl button { width:40px; height:40px; border-radius:50%; display:grid; place-items:center; cursor:pointer;
+  border:1px solid color-mix(in srgb,var(--accent) 55%, transparent);
+  background:color-mix(in srgb,var(--panel) 88%, transparent); color:var(--accent);
+  font-size:20px; line-height:1; box-shadow:0 3px 10px rgba(0,0,0,.35); touch-action:manipulation; }
+.partctl button:hover { background:var(--accent); color:var(--accent-ink); }
+.partctl button:disabled { opacity:.35; pointer-events:none; }
+.partctl #delPart { font-size:16px; }
 [data-theme="neon"] #stage { filter:saturate(1.2) drop-shadow(0 0 2px var(--accent)); }
 [data-theme="blueprint"] #stage { filter:contrast(1.04); }
 @media (prefers-reduced-motion: reduce){ [data-theme="neon"] #stage,[data-theme="blueprint"] #stage{filter:none} }
