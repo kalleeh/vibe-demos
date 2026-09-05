@@ -13,7 +13,7 @@ Every field is required except `titleRoman` and `isbn`.
 
 | field        | type                  | notes |
 |--------------|-----------------------|-------|
-| `id`         | string                | stable kebab slug, globally unique, NEVER reused (e.g. `kr-gureumppang`, `en-gruffalo`) |
+| `id`         | string                | stable kebab slug, globally unique, NEVER reused. The original hand-typed Korean entries use a `kr-` prefix (e.g. `kr-gureumppang`) and are kept as-is; **new Korean ids use `ko-`** (the build emits `ko-<slug>-<hash>`), English use `en-` (e.g. `en-gruffalo`). Both prefixes exist in the file — do not rename the old ones |
 | `lang`       | `"ko"` \| `"en"`      | drives the 🇰🇷/🇬🇧 flag and cover behavior |
 | `title`      | string                | canonical title in its own script (한글 for `ko`, English for `en`) |
 | `titleRoman` | string? (optional)    | romanization / original English title — EN-reader reference only |
@@ -28,11 +28,14 @@ Every field is required except `titleRoman` and `isbn`.
 | `cover`      | `{emoji, palette[]}`  | SVG placeholder cover; `palette` is 2 hex colors |
 | `isbn`       | string? (optional)    | ISBN-13. EN titles use it to swap in an Open Library cover; omit if unsure |
 | `source`     | `"curated"` \| `"ai"` | launch data is `curated`; promoted AI suggestions are `ai` |
-| `quality`    | number 0–1            | build-time prior — award winners / canonical classics score higher. Used as a small ranking nudge so strong titles surface first on ties. Present on **all generated entries** (the build pipeline assigns it; hand-appended books may omit it and fall back to a neutral default). |
+| `quality`    | number 0–1            | build-time prior — award winners / canonical classics score higher. Used as a small ranking nudge so strong titles surface first on ties. Present on **all generated entries** (the build pipeline assigns it; hand-appended books may omit it and fall back to the neutral default **0.7** — the same value in both `build-catalog.mjs` and `app.js`). |
 
 ### Controlled vocabularies
 
-Keep the picker chips and scoring weights in sync with these exact strings.
+**Source of truth is `scripts/kids-bookshelf/build-catalog.mjs`** (`THEME_VOCAB`, `MOOD_VOCAB`,
+`AGES`, `LEVELS`); `emit` writes the theme/mood arrays into `catalog.js` and refuses to run if
+`catalog.js` has drifted from them. The picker chips read `window.THEME_VOCAB` / `MOOD_VOCAB`
+at runtime, so they follow automatically. The lists below are a copy for reference:
 
 ```
 THEME_VOCAB: 공룡 우주 동물 공주 자동차 탈것 그림그리기 잠자리 자연 음식 가족 친구 감정 일상 환상 모험 숫자/글자 유머
@@ -50,7 +53,7 @@ Append one object to the `BOOKS` array. A complete Korean example:
 
 ```js
 {
-  id: "kr-ddalgi-bat",                  // unique kebab slug, ko- / en- prefix by convention
+  id: "ko-ddalgi-mujigae",              // unique kebab slug; new ids use ko- / en- (legacy kr- ids stay)
   lang: "ko",
   title: "딸기 무지개",                  // 한글 canonical title
   author: "홍길동",                      // 한글
@@ -70,7 +73,7 @@ Append one object to the `BOOKS` array. A complete Korean example:
 English books are identical in shape, with `lang: "en"`, an English `title`/`author`,
 `blurb`/`readAloud` still written **in Korean** (the audience is a Korean parent), and an
 `isbn` where a real edition can be verified (the card swaps the SVG for an Open Library
-cover at `https://covers.openlibrary.org/b/isbn/<isbn>-L.jpg`). If you are not confident
+cover at `https://covers.openlibrary.org/b/isbn/<isbn>-M.jpg`). If you are not confident
 an ISBN is real, **omit it** — a missing ISBN just keeps the SVG placeholder cover, which
 is fine. Never fabricate an ISBN.
 
@@ -87,9 +90,12 @@ The bulk of the catalog is now generated, not hand-typed. The pipeline lives at
    model, and it happens on your machine, not in the browser.
 
 2. **Emit** — `node build-catalog.mjs emit`
-   Verifies a sample of `enriched.json`, sanitizes tags (drops anything off-vocab),
-   merges the enriched entries with the existing hand-curated books (append-only — never
-   reuses an `id`), and regenerates `catalog.js`.
+   Verifies a sample of English ISBNs against Open Library (**the build fails** if any
+   sampled ISBN doesn't resolve), sanitizes tags (drops anything off-vocab), merges the
+   enriched entries with the existing hand-curated books (append-only — never reuses an
+   `id`), and regenerates `catalog.js`. The model's `real`/`confidence` flags **never drop
+   a title automatically** — emit prints the flagged titles and a human moves any confirmed
+   fake into `scripts/kids-bookshelf/sources/blocklist.json` (`"blocked": ["<lang>|<title>"]`).
 
 To grow the catalog, add titles to the `sources/{en,ko}-canon.json` lists and re-run both
 phases. Hand-appending a single book directly to `catalog.js` (the worked example above)
@@ -101,7 +107,9 @@ Recommendations are computed entirely in the browser with **no runtime LLM**: a 
 keyword→theme lexicon turns the parent's note into scoring signals, a weighted score ranks
 every book, and a diversity pass spreads the final picks across themes/languages. The
 optional **AI 맞춤 추천** layer only *polishes the wording* of books that have already been
-chosen by the deterministic scorer, one card at a time — it never does the recommending.
+chosen by the deterministic scorer, in one batched call for the whole set — it never does the
+recommending. The picked profile is mirrored into the URL hash
+(`#age=3-4&t=공룡,동물&m=웃긴&s=2&n=…`), so a copied link reproduces the exact same six books.
 
 ### `NOTE_LEXICON` (in `app.js`)
 
@@ -114,10 +122,16 @@ scoring nudges — deterministic and offline. Each entry is:
 { kw: ["무서워","scary"], mood:"모험", dir:-1 }            // dir:-1 DOWNweights
 ```
 
-To add a keyword, append one `{ kw:[...], theme?, mood?, dir? }` object: `kw` is the list
-of substrings matched case-insensitively against the note, `theme`/`mood` must be valid
-`THEME_VOCAB`/`MOOD_VOCAB` strings, and `dir:-1` flips the signal negative (down-weights a
-theme/mood the parent wants to avoid). Omit `dir` for a normal positive nudge.
+To add a keyword, append one `{ kw:[...], theme?, mood?, dir? }` object: `theme`/`mood` must
+be valid `THEME_VOCAB`/`MOOD_VOCAB` strings, and `dir:-1` flips the signal negative
+(down-weights a theme/mood the parent wants to avoid). Omit `dir` for a normal positive nudge.
+Matching rules for `kw`:
+
+- **Korean keys** are case-insensitive substrings and must be **2+ syllables**. Single
+  syllables are banned — `화` fires on 동**화**책, `별` on 특**별**한, `잠` on 잠깐 — so
+  write the inflected forms you actually mean (`화나`, `별자리`, `잠들`).
+- **Latin keys** match **whole words only** (`\b…\b`, case-insensitive) — `car` no longer
+  matches s**car**y and `plane` no longer matches **plane**t. Add plurals explicitly (`cars`).
 
 ## Validate after editing
 

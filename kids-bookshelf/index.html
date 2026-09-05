@@ -14,7 +14,8 @@
 <meta name="apple-mobile-web-app-title" content="책친구">
 <style>
   :root{
-    --paper:#fbf3e2; --ink:#3a3026; --accent:#e8643c; --accent2:#f7b733;
+    --paper:#fbf3e2; --ink:#3a3026; --accent:#c94f28; --accent2:#f7b733;
+    --muted:#7a6b58; /* ≥4.5:1 on white and on paper */
     --blue:#7ec4e6; --green:#9cd07f; --pink:#f4a6c0; --purple:#c4a6e6;
     --chip:#fff; --shadow:rgba(58,48,38,.12);
     font-size:17px;
@@ -55,11 +56,13 @@
     display:block;font-weight:800;font-size:1.02rem;margin:0 0 9px;
     color:var(--ink);
   }
-  .group > .lab .hint{font-weight:600;font-size:.82rem;color:#9a8b78;}
+  .group > .lab .hint{font-weight:600;font-size:.82rem;color:var(--muted);}
+  .group > .lab .hint.err{color:var(--accent);}
+  .group > .lab .hint[hidden]{display:none;}
 
   .chips{display:flex;flex-wrap:wrap;gap:9px;}
 
-  /* ── Chip pills (Task 3 fills the containers; this styles them) ── */
+  /* ── Chip pills (app.js fills the containers; this styles them) ── */
   .chip{
     display:inline-flex;align-items:center;justify-content:center;
     min-height:44px;padding:9px 16px;
@@ -70,8 +73,15 @@
     filter:url(#crayon);
     transition:transform .12s ease, background .12s ease, box-shadow .12s ease;
   }
-  .chip:hover{transform:translateY(-1px) rotate(-.6deg);}
   .chip:active{transform:scale(.96);}
+  /* hover lifts only on devices that actually hover — on touch, :hover sticks after a
+     tap and the chip stays tilted until you tap somewhere else */
+  @media (hover:hover){
+    .chip:hover{transform:translateY(-1px) rotate(-.6deg);}
+    #findBtn:hover{transform:translateY(-2px);}
+    #aiToggle:hover{transform:translateY(-1px);}
+    .reroll:hover{transform:translateY(-1px) rotate(-.8deg);}
+  }
   /* crayon icon chips: icon + label side by side */
   .chip.has-ic{padding-left:10px;gap:6px;}
   .chip-ic{
@@ -96,7 +106,7 @@
     0%{transform:scale(1) rotate(0)}
     30%{transform:scale(1.1) rotate(-3deg)}
     60%{transform:scale(1.06) rotate(2.5deg)}
-    100%{transform:scale(1.05) rotate(0)}
+    100%{transform:scale(1) rotate(0)}
   }
 
   /* ── Note box ── */
@@ -124,7 +134,6 @@
     box-shadow:5px 6px 0 var(--shadow);
     transition:transform .12s ease, box-shadow .12s ease;
   }
-  #findBtn:hover{transform:translateY(-2px);}
   #findBtn:active{transform:translateY(1px);box-shadow:3px 3px 0 var(--shadow);}
 
   #aiToggle{
@@ -135,11 +144,12 @@
     cursor:pointer;filter:url(#crayon);
     transition:transform .12s ease, background .12s ease, color .12s ease;
   }
-  #aiToggle:hover{transform:translateY(-1px);}
   #aiToggle[aria-pressed="true"]{
     background:var(--accent2);border-style:solid;color:var(--ink);
     box-shadow:3px 4px 0 var(--shadow);
   }
+  /* AI-mode data disclosure: always visible under the toggle */
+  .disclose{flex:1 0 100%;margin:0;font-size:.8rem;font-weight:600;color:var(--muted);line-height:1.4;}
 
   /* ── Results ── */
   #results{margin-top:26px;}
@@ -149,9 +159,8 @@
     display:flex;align-items:center;justify-content:space-between;gap:12px;
     margin-bottom:14px;font-weight:800;font-size:1.04rem;color:var(--ink);
   }
-  .resbar > span{display:inline-flex;align-items:baseline;flex-wrap:wrap;gap:.1em;}
-  /* the " · 추천 예시" suffix reads as a subtle demo-mode label */
-  .resbar > span{position:relative;}
+  .resbar > span{display:inline-flex;align-items:baseline;flex-wrap:wrap;gap:.1em;position:relative;}
+  .resbar .btns{display:flex;gap:8px;flex:0 0 auto;}
   .reroll{
     flex:0 0 auto;min-height:44px;padding:9px 16px;
     font:inherit;font-weight:800;font-size:.92rem;color:var(--ink);
@@ -161,12 +170,12 @@
     box-shadow:3px 4px 0 var(--shadow);
     transition:transform .12s ease, box-shadow .12s ease;
   }
-  .reroll:hover{transform:translateY(-1px) rotate(-.8deg);}
   .reroll:active{transform:translateY(1px);box-shadow:2px 2px 0 var(--shadow);}
+  .reroll.copy{background:#fff;}
 
-  /* demo-mode pill: visibly label canned output */
+  /* mode pill: only shown when AI polish was requested (and whether it landed) */
   .resbar .demo-pill{
-    font-weight:700;font-size:.78rem;font-style:italic;color:#9a8b78;
+    font-weight:700;font-size:.78rem;font-style:italic;color:var(--muted);
   }
 
   .grid{display:grid;grid-template-columns:1fr;gap:16px;}
@@ -216,9 +225,15 @@
   .bookcard.ai-justfilled{ animation:cardFill .7s ease; }
   @keyframes cardFill{ 0%{background:#fff8e6} 100%{background:transparent} }
   .btitle{margin:.1em 0 .15em;font-weight:900;font-size:1.05rem;line-height:1.2;}
-  .bmeta{font-size:.82rem;color:#9a8b78;margin-bottom:8px;}
+  .bmeta{font-size:.82rem;color:var(--muted);margin-bottom:8px;}
   .why, .tip{margin:.35em 0;font-size:.92rem;line-height:1.45;}
   .why b, .tip b{color:var(--accent);font-weight:800;margin-right:.2em;}
+  /* per-book "find it" link (알라딘 for ko, Open Library for en) */
+  .findlink{
+    display:inline-block;margin-top:6px;font-size:.84rem;font-weight:800;color:var(--ink);
+    text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;
+    text-decoration-color:var(--accent2);
+  }
 
   /* AI-error fallback note */
   .ainote{
@@ -226,6 +241,11 @@
     background:#fff4dd;border:2px dashed var(--ink);border-radius:16px;
     font-size:.9rem;font-weight:700;color:var(--ink);
     filter:url(#crayon);
+    display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;
+  }
+  .ainote .retry{
+    min-height:40px;padding:7px 14px;font:inherit;font-weight:800;font-size:.88rem;
+    color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:16px;cursor:pointer;
   }
 
   /* Staggered draw-on */
@@ -259,13 +279,8 @@
 
   <main class="card">
     <div class="group">
-      <span class="lab" id="ageLab">나이</span>
+      <span class="lab" id="ageLab">나이 <span class="hint err" id="ageHint" role="alert" hidden>나이를 골라 주세요</span></span>
       <div class="chips" id="ageChips" role="group" aria-labelledby="ageLab"></div>
-    </div>
-
-    <div class="group">
-      <span class="lab" id="genderLab">성별</span>
-      <div class="chips" id="genderChips" role="group" aria-labelledby="genderLab"></div>
     </div>
 
     <div class="group">
@@ -286,10 +301,11 @@
     <div class="actions">
       <button type="button" id="aiToggle" aria-pressed="false">✨ AI 맞춤 추천</button>
       <button type="button" id="findBtn">책 찾아주세요! ✏️</button>
+      <p class="disclose">AI 모드는 입력 내용을 ai.pb.gurum.se 로 전송해요 (저장되지 않음)</p>
     </div>
   </main>
 
-  <section id="results" aria-live="polite"></section>
+  <section id="results"></section>
 </div>
 
 <script src="./catalog.js"></script>

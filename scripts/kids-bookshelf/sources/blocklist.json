@@ -1,0 +1,4 @@
+{
+  "_comment": "Human-approved exclusions for `build-catalog.mjs emit`. The model's real/confidence flags never drop a title on their own; emit prints the flagged list and a human copies any confirmed-fake or miscredited title here. Keys are \"<lang>|<title>\" exactly as in enriched.json, e.g. \"ko|가짜 제목\".",
+  "blocked": []
+}
