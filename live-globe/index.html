@@ -36,6 +36,7 @@
       --warm:      #ffb37a;
       --seoul:     #ff7a4a;
       --sthlm:     #6cc5ff;
+      --ok:        #7fe0a8;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -207,6 +208,23 @@
       100% { transform: translateX(2px); }
     }
 
+    /* Ambient toggle — moon glyph; label hides on phones (icon only) */
+    .topbar .ambient-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .topbar .ambient-toggle svg {
+      width: 12px; height: 12px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: fill .2s, stroke .2s;
+    }
+    body.ambient .topbar .ambient-toggle svg { fill: var(--accent); stroke: var(--accent); }
+
     /* Focus mode: fade out the city cards (and any open AI panel) */
     body.focus .city-card {
       opacity: 0;
@@ -359,6 +377,18 @@
       transition: transform .25s;
     }
     .city-card .ai-btn:hover .arrow { transform: translateX(3px); }
+    /* Busy: the trigger is disabled and reads "asking…" for the whole
+       challenge + PoW + fetch (see setBusy in the script). */
+    .city-card .ai-btn .busy { display: none; font-style: italic; }
+    body.ai-busy .city-card .ai-btn .txt  { display: none; }
+    body.ai-busy .city-card .ai-btn .busy { display: inline; }
+    .city-card .ai-btn:disabled,
+    .city-card .ai-btn:disabled:hover {
+      background: rgba(108,197,255,0.05);
+      border-color: rgba(108,197,255,0.2);
+      color: var(--muted);
+      cursor: default;
+    }
 
     /* ── AI blurb panel ── */
     .ai-panel {
@@ -425,28 +455,85 @@
     }
     .ai-panel .close:hover { color: var(--accent); border-color: var(--accent); }
 
-    .ai-panel .demo-pill {
+    /* Status pill — exactly three states (shared AI-demo convention):
+         (default)            demo mode, by user choice   → muted
+         .ai-panel.live       live success                → accent
+         .ai-panel.fallback   demo text after a failed live call → warning */
+    .ai-panel .status-pill {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      flex-wrap: wrap;
+      gap: 0 8px;
       align-self: flex-start;
       padding: 5px 11px;
-      background: rgba(255,179,122,0.10);
-      border: 1px solid rgba(255,179,122,0.35);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--line);
       border-radius: 999px;
       font-family: "JetBrains Mono", monospace;
       font-size: 9px;
       letter-spacing: 1.5px;
       text-transform: uppercase;
-      color: var(--warm);
+      color: var(--muted);
       font-style: italic;
+      transition: color .2s, border-color .2s, background .2s;
     }
-    .ai-panel.live .demo-pill {
+    .ai-panel .status-pill .sep { opacity: 0.5; }
+    .ai-panel.live .status-pill {
       background: rgba(108,197,255,0.10);
       border-color: rgba(108,197,255,0.35);
       color: var(--accent);
       font-style: normal;
     }
+    .ai-panel.fallback .status-pill {
+      background: rgba(255,179,122,0.10);
+      border-color: rgba(255,179,122,0.35);
+      color: var(--warm);
+    }
+
+    /* Error line after a failed live call: status + Retry / Show demo text */
+    .ai-panel .ai-error {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      font-family: "Inter", sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--warm);
+    }
+    .ai-panel .ai-error .en { color: var(--ink-dim); font-style: italic; font-size: 13px; }
+    .ai-panel .ai-error .row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .ai-panel .ai-error button {
+      padding: 8px 13px;
+      background: rgba(108,197,255,0.10);
+      border: 1px solid rgba(108,197,255,0.35);
+      color: var(--accent);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 999px;
+      transition: background .2s, color .2s;
+    }
+    .ai-panel .ai-error button:hover { background: var(--accent); color: var(--bg); }
+    .ai-panel .ai-error button.ghost {
+      background: none;
+      border-color: var(--line-2);
+      color: var(--ink-dim);
+    }
+    .ai-panel .ai-error button.ghost:hover { color: var(--ink); border-color: var(--ink-dim); background: none; }
+
+    /* Disclosure under the live-mode trigger */
+    .ai-panel .controls .disclosure {
+      flex-basis: 100%;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.3px;
+      line-height: 1.6;
+      color: var(--muted);
+      text-align: right;
+    }
+    .ai-panel .controls .disclosure span { display: block; }
 
     .ai-panel .blurb {
       font-family: "Fraunces", serif;
@@ -510,25 +597,169 @@
     /* ── Presence layer ("who's looking right now") ── */
     /* A compact panel, centered low, listing the recent visitor pins + a
        drop-your-own form. Editorial monospace/serif grammar, like the cards. */
-    .presence {
+    /* The "good time to call?" strip and the presence panel share one
+       bottom-centre column on desktop. */
+    .center-stack {
       position: fixed;
       left: 50%;
       bottom: 26px;
       transform: translateX(-50%);
       width: min(380px, calc(100% - 40px));
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 9;
+      transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .25s;
+    }
+    body.focus .center-stack {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-50%) translateY(20px);
+    }
+    .presence {
+      width: 100%;
       background: var(--panel);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--line);
       border-radius: 4px;
-      z-index: 9;
-      transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .25s;
       overflow: hidden;
     }
-    body.focus .presence {
+
+    /* ── "Good time to call?" strip ── one computed line from the two local
+       hours. data-state: good (both 08–22) / edge (one at 07–08 or 22–23) /
+       bad (someone asleep). */
+    .call-strip {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px 10px;
+      padding: 10px 14px;
+      background: var(--panel);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      white-space: nowrap;
+      overflow: hidden;
+      font-variant-numeric: tabular-nums;
+    }
+    .call-strip .cdot {
+      flex: none;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--muted);
+      transition: background .3s, box-shadow .3s;
+    }
+    .call-strip[data-state="good"] .cdot { background: var(--ok);    box-shadow: 0 0 8px var(--ok); }
+    .call-strip[data-state="edge"] .cdot { background: var(--warm);  box-shadow: 0 0 8px var(--warm); }
+    .call-strip[data-state="bad"]  .cdot { background: var(--seoul); box-shadow: 0 0 8px var(--seoul); }
+    .call-strip .c-status { color: var(--ink); font-weight: 600; }
+    .call-strip[data-state="good"] .c-mark { color: var(--ok); }
+    .call-strip[data-state="edge"] .c-mark { color: var(--warm); }
+    .call-strip[data-state="bad"]  .c-mark { color: var(--seoul); }
+    .call-strip .c-next {
+      flex-basis: 100%;   /* the window hint takes its own line */
+      color: var(--muted);
+      text-transform: none;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Ambient mode ── chrome off, two clocks + a dim snapshot strip stay.
+       Placed after the focus rules so it wins when both classes are set. */
+    .ambient-strip {
+      position: fixed;
+      left: 50%;
+      bottom: 30px;
+      transform: translateX(-50%);
+      width: min(520px, calc(100% - 40px));
+      text-align: center;
       opacity: 0;
       pointer-events: none;
-      transform: translateX(-50%) translateY(20px);
+      transition: opacity .6s ease;
+      z-index: 7;
+    }
+    .ambient-strip .a-lbl {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .ambient-strip .a-lbl.asking { animation: ambient-breathe 1.6s ease-in-out infinite; }
+    @keyframes ambient-breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+    .ambient-strip .a-body {
+      font-family: "Fraunces", serif;
+      font-weight: 300;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--ink-dim);
+    }
+    .ambient-strip .a-body .ko { display: block; margin-bottom: 8px; }
+    .ambient-strip .a-body .en { display: block; font-style: italic; font-size: 13px; color: var(--muted); }
+    body.ambient .ambient-strip { opacity: 0.75; }
+    body.ambient .topbar,
+    body.ambient .center-stack,
+    body.ambient .ai-panel,
+    body.ambient .pin-tip,
+    body.ambient .first-hint { opacity: 0 !important; pointer-events: none !important; }
+    body.ambient .city-card {
+      opacity: 0.62;
+      transform: none;
+      pointer-events: none;
+      background: transparent;
+      border-color: transparent;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+    body.ambient .city-card .lbl,
+    body.ambient .city-card .native,
+    body.ambient .city-card .stats,
+    body.ambient .city-card .ai-btn { display: none; }
+    body.ambient .city-card .clock-meta { margin-bottom: 0; }
+    body.ambient #globe { cursor: default; }
+
+    /* ── Mobile first-run hint (≤600px, once) ── */
+    .first-hint {
+      position: fixed;
+      top: 58px;
+      left: 14px; right: 14px;
+      z-index: 30;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      padding: 14px 16px;
+      background: var(--panel);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--line-2);
+      border-radius: 4px;
+      font-family: "Fraunces", serif;
+      font-weight: 300;
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--ink);
+      transition: opacity .25s;
+    }
+    .first-hint.on { display: flex; }
+    .first-hint .en { font-style: italic; font-size: 13px; color: var(--ink-dim); }
+    .first-hint button {
+      align-self: flex-start;
+      padding: 7px 12px;
+      background: rgba(108,197,255,0.10);
+      border: 1px solid rgba(108,197,255,0.35);
+      color: var(--accent);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      border-radius: 999px;
+      cursor: pointer;
     }
     .presence .p-head {
       display: flex;
@@ -761,6 +992,31 @@
       }
       .city-card.left, .city-card.right { left: auto; right: auto; bottom: auto; }
       body.focus .city-card, body.focus .presence { transform: none; }
+      /* The strip + presence column dissolves into the sheet; the call strip
+         becomes the sheet header, presence stays last. */
+      .center-stack { display: contents; }
+      .call-strip { order: -1; flex: none; }
+      /* display:contents has no box to fade, so hide the children directly. */
+      body.ambient .call-strip, body.ambient .presence { display: none; }
+      /* Ambient on a phone: the two clocks sit side by side, snapshot above. */
+      .ambient-strip { position: static; transform: none; width: auto; order: -1; flex-basis: 100%; display: none; }
+      body.ambient .ambient-strip { display: block; padding: 0 6px 6px; }
+      body.ambient .sheet {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 0;
+        max-height: none;
+        overflow: visible;
+        opacity: 1;
+        transform: none;
+      }
+      body.ambient .sheet > * { pointer-events: none; }
+      body.ambient .city-card { flex: 1 1 0; padding: 10px 12px 12px; }
+      body.ambient .city-card.seoul { text-align: right; }
+      body.ambient .city-card .name { font-size: 20px; }
+      body.ambient .city-card .clock { font-size: 26px; }
+      .topbar .ambient-toggle .lbl { display: none; }
       /* Slightly denser type so one card + the next card's header fit a phone. */
       .city-card { padding: 16px 18px 16px; }
       .city-card .name { font-size: 26px; }
@@ -783,6 +1039,8 @@
       body.fastforward .topbar .ff-btn .ff-glyph::before,
       body.fastforward .topbar .ff-btn .ff-glyph::after { animation: none; }
       .presence .p-skel { animation: none; background: rgba(255,255,255,0.07); }
+      .ambient-strip .a-lbl.asking { animation: none; }
+      .ambient-strip, .first-hint, .center-stack, .call-strip .cdot { transition: none; }
     }
   </style>
 </head>
@@ -805,6 +1063,9 @@
       <button class="focus-toggle" id="focusToggle" type="button" aria-pressed="false" aria-label="Toggle focus mode">
         <span class="dot" aria-hidden="true"></span><span class="lbl">Focus</span>
       </button>
+      <button class="ambient-toggle" id="ambientToggle" type="button" aria-pressed="false" aria-label="Toggle ambient mode — clocks only, tap anywhere to exit">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span class="lbl">Ambient</span>
+      </button>
       <a href="../" aria-label="back">← Back</a>
     </div>
   </header>
@@ -812,6 +1073,11 @@
   <!-- City cards + presence panel. The .sheet wrapper is display:contents on
        desktop and a scrollable bottom sheet on phones (see CSS). -->
   <div class="sheet" id="sheet">
+  <!-- Ambient-mode snapshot (only visible under body.ambient) -->
+  <div class="ambient-strip" id="ambientStrip" aria-live="polite">
+    <div class="a-lbl" id="ambientLbl"></div>
+    <div class="a-body" id="ambientBody"></div>
+  </div>
   <aside class="city-card sthlm left" data-city="stockholm">
     <div class="lbl">Stockholm · 59.33°N</div>
     <div class="name">Stock<em>holm</em></div>
@@ -825,7 +1091,7 @@
       <div class="stat"><div class="k">Sunset</div><div class="v shimmer" id="ss-stockholm">—</div></div>
     </div>
     <button class="ai-btn" data-ai="stockholm">
-      Ask Claude what's happening <span class="arrow">→</span>
+      <span class="txt">Ask Claude what's happening <span class="arrow">→</span></span><span class="busy">asking…</span>
     </button>
   </aside>
 
@@ -842,9 +1108,21 @@
       <div class="stat"><div class="k">Sunset</div><div class="v shimmer" id="ss-seoul">—</div></div>
     </div>
     <button class="ai-btn" data-ai="seoul">
-      Ask Claude what's happening <span class="arrow">→</span>
+      <span class="txt">Ask Claude what's happening <span class="arrow">→</span></span><span class="busy">asking…</span>
     </button>
   </aside>
+
+  <!-- Bottom-centre column on desktop (display:contents in the phone sheet,
+       where the call strip floats to the top via `order`). -->
+  <div class="center-stack" id="centerStack">
+  <!-- "Good time to call?" — computed from the two local hours -->
+  <div class="call-strip" id="callStrip" data-state="" role="status" aria-live="polite">
+    <span class="cdot" aria-hidden="true"></span>
+    <span class="c-status" id="cStatus">—</span>
+    <span class="c-times" id="cTimes"></span>
+    <span class="c-mark" id="cMark" aria-hidden="true"></span>
+    <span class="c-next" id="cNext"></span>
+  </div>
 
   <!-- Presence layer: who's looking right now -->
   <aside class="presence collapsed" id="presence" aria-label="Who's looking right now">
@@ -869,7 +1147,15 @@
       </div>
     </div>
   </aside>
+  </div><!-- /.center-stack -->
   </div><!-- /.sheet -->
+
+  <!-- Mobile first-run hint (≤600px, shown once) -->
+  <div class="first-hint" id="firstHint" role="note">
+    <span lang="ko">드래그해 지구를 돌리고, 도시 카드를 열어 지금 그곳을 읽어보세요</span>
+    <span class="en">Drag the globe, open a city for its now</span>
+    <button type="button" id="firstHintOk">알겠어요 · Got it</button>
+  </div>
 
   <!-- AI panel -->
   <div class="ai-panel" id="aiPanel" role="dialog" aria-modal="true" aria-labelledby="aiTitle">
@@ -880,11 +1166,12 @@
       </div>
       <button class="close" id="aiClose" aria-label="Close">×</button>
     </div>
-    <span class="demo-pill" id="demoPill">demo mode · canned output</span>
+    <span class="status-pill" id="statusPill"><span class="ko" lang="ko" id="pillKo">예시 모드</span><span class="sep" aria-hidden="true">/</span><span class="en" id="pillEn">demo mode</span></span>
     <div class="progress" id="aiProgress"></div>
     <div class="blurb" id="aiBlurb"></div>
     <div class="controls">
       <button class="mode-toggle" id="modeToggle">Try live mode →</button>
+      <span class="disclosure"><span lang="ko">도시와 날씨 정보가 ai.pb.gurum.se로 전송되며 저장되지 않습니다.</span><span>Your city + weather context is sent to ai.pb.gurum.se and not stored.</span></span>
     </div>
   </div>
 
@@ -1497,6 +1784,7 @@
       clearInterval(clockTimer);
       clearInterval(sunTimer);
       clearInterval(weatherTimer);
+      clearInterval(ambientTimer);
       window.removeEventListener("resize", onResize);
       container.removeEventListener("pointerdown", onPointerDown);
       container.removeEventListener("pointermove", onPointerMove);
@@ -1578,6 +1866,7 @@
       tick();
       requestAnimationFrame(() => {
         document.getElementById("loading").classList.add("hidden");
+        showFirstHint();
       });
     });
 
@@ -1610,6 +1899,82 @@
       }).format(now);
       const utcEl = document.getElementById("utcClock");
       if (utcEl) utcEl.textContent = `UTC · ${utc}`;
+      updateCallStrip(now);
+    }
+
+    /* ───────────────────────────────────────────────
+       "Good time to call?" — awake = 08–22 local, edge = 07–08 / 22–23.
+       The block between the markers is pure (Intl + CITIES only) so
+       tools/ can run it under Node against fixed UTC instants.
+       ─────────────────────────────────────────────── */
+    // @overlap-begin
+    const HOUR_FMT = {};
+    function hourIn(date, key) {
+      const tz = CITIES[key].tz;
+      HOUR_FMT[tz] ||= new Intl.DateTimeFormat("en-GB", { timeZone: tz, hour: "numeric", hourCycle: "h23" });
+      return parseInt(HOUR_FMT[tz].format(date), 10);
+    }
+    // 2 = awake (08–22), 1 = edge (07–08 or 22–23), 0 = asleep
+    function awakeState(h) {
+      if (h >= 8 && h < 22) return 2;
+      if (h === 7 || h === 22) return 1;
+      return 0;
+    }
+    function bothAwake(date) {
+      return awakeState(hourIn(date, "seoul")) === 2 && awakeState(hourIn(date, "stockholm")) === 2;
+    }
+    /* Returns { state: "good"|"edge"|"bad", hs, ho, start, end } where
+       start/end bound the current (good) or next both-awake window. Awake
+       state only flips on the hour, and both zones sit on whole-hour UTC
+       offsets, so walking UTC hour boundaries is exact. */
+    function callWindow(now) {
+      const hs = hourIn(now, "seoul"), ho = hourIn(now, "stockholm");
+      const ss = awakeState(hs), so = awakeState(ho);
+      const state = (ss === 2 && so === 2) ? "good" : (ss === 0 || so === 0) ? "bad" : "edge";
+      const t0 = new Date(now.getTime()); t0.setUTCMinutes(0, 0, 0);
+      let start = state === "good" ? now : null, end = null;
+      for (let i = 1; i <= 48 && !end; i++) {
+        const t = new Date(t0.getTime() + i * 3600000);
+        const both = bothAwake(t);
+        if (!start && both) start = t;
+        else if (start && !both) end = t;
+      }
+      return { state, hs, ho, start, end };
+    }
+    // @overlap-end
+
+    const callStrip = document.getElementById("callStrip");
+    const cStatus = document.getElementById("cStatus");
+    const cTimes  = document.getElementById("cTimes");
+    const cMark   = document.getElementById("cMark");
+    const cNext   = document.getElementById("cNext");
+    let lastStripKey = "";
+    function updateCallStrip(now) {
+      const key = fmtTime(now, CITIES.seoul.tz) + fmtTime(now, CITIES.stockholm.tz);
+      if (key === lastStripKey) return; // minute resolution is plenty
+      lastStripKey = key;
+      const w = callWindow(now);
+      const seo = fmtTime(now, CITIES.seoul.tz), sto = fmtTime(now, CITIES.stockholm.tz);
+      let label;
+      if (w.state === "good") label = "Both awake";
+      else if (w.state === "bad") {
+        const sA = awakeState(w.hs) === 0, oA = awakeState(w.ho) === 0;
+        label = sA && oA ? "Both asleep" : sA ? "Seoul asleep" : "Stockholm asleep";
+      } else {
+        const edgeKey = awakeState(w.hs) === 1 ? "seoul" : "stockholm";
+        const h = edgeKey === "seoul" ? w.hs : w.ho;
+        const cityName = edgeKey === "seoul" ? "Seoul" : "Stockholm";
+        const both = awakeState(w.hs) === 1 && awakeState(w.ho) === 1;
+        label = both ? "Both at the edge" : `${cityName} ${h < 12 ? "waking" : "winding down"}`;
+      }
+      callStrip.dataset.state = w.state;
+      cStatus.textContent = label;
+      cTimes.textContent = `· ${seo} SEO / ${sto} STO`;
+      cMark.textContent = w.state === "good" ? "✓" : w.state === "edge" ? "~" : "✗";
+      const fmtS = d => d ? fmtTime(d, CITIES.seoul.tz) : "—";
+      cNext.textContent = w.state === "good"
+        ? `until ${fmtS(w.end)} SEO`
+        : `next overlap ${fmtS(w.start)}–${fmtS(w.end)} SEO`;
     }
     tickClocks();
     // Real-time tick — pauses while fast-forward is active to avoid stomping
@@ -1722,11 +2087,37 @@
     const aiTitle    = document.getElementById("aiTitle");
     const aiBlurb    = document.getElementById("aiBlurb");
     const aiProgress = document.getElementById("aiProgress");
-    const demoPill   = document.getElementById("demoPill");
+    const pillKo     = document.getElementById("pillKo");
+    const pillEn     = document.getElementById("pillEn");
     const modeToggle = document.getElementById("modeToggle");
 
     let currentCity = null;
     let liveMode = false;
+
+    /* Status pill — the shared AI-demo convention, exactly three states. */
+    const AI_STATES = {
+      live:     { ko: "라이브 · Claude",           en: "live · Claude" },
+      fallback: { ko: "예시 결과 · 실시간 연결 실패", en: "demo text · live unavailable" },
+      demo:     { ko: "예시 모드",                  en: "demo mode" }
+    };
+    function setAiState(state) {
+      const s = AI_STATES[state];
+      pillKo.textContent = s.ko;
+      pillEn.textContent = s.en;
+      aiPanel.classList.toggle("live", state === "live");
+      aiPanel.classList.toggle("fallback", state === "fallback");
+    }
+
+    /* Busy for the whole challenge + PoW + fetch: card triggers disabled and
+       reading "asking…", shimmer bar on. */
+    let aiBusy = false;
+    const aiButtons = document.querySelectorAll(".ai-btn");
+    function setBusy(on) {
+      aiBusy = on;
+      document.body.classList.toggle("ai-busy", on);
+      aiButtons.forEach(b => { b.disabled = on; });
+      aiProgress.classList.toggle("on", on);
+    }
 
     /* One in-flight live request at a time. Every open / mode switch bumps
        the id and aborts the previous fetch; results whose id is no longer
@@ -1736,6 +2127,7 @@
     function cancelLiveRequest() {
       aiReqId++;
       if (aiAbort) { aiAbort.abort(); aiAbort = null; }
+      setBusy(false);
     }
 
     const CLAUDE_PROXY = "https://ai.pb.gurum.se";
@@ -1783,35 +2175,139 @@
     try { if (localStorage.getItem(FOCUS_STORAGE) === "1") setFocus(true); } catch (_) {}
 
     document.addEventListener("keydown", e => {
-      if (e.key === "Escape") closeAiPanel();
-      if (e.key === "f" || e.key === "F") {
-        if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
-        setFocus(!document.body.classList.contains("focus"));
-      }
+      if (e.key === "Escape") { closeAiPanel(); setAmbient(false); }
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      if (e.key === "f" || e.key === "F") setFocus(!document.body.classList.contains("focus"));
+      if (e.key === "a" || e.key === "A") setAmbient(!ambient);
     });
 
-    const PILL_LIVE = "live mode · Sonnet 4.6 via Bedrock";
-    const PILL_DEMO = "demo mode · canned output";
-    const PILL_LIVE_FALLBACK = "live unavailable · showing demo text";
-    function setPill(text, isLive) {
-      demoPill.textContent = text;
-      aiPanel.classList.toggle("live", isLive);
+    /* ── Mobile first-run hint (≤600px, shown once) ── */
+    const HINT_STORAGE = "vibe.live-globe.hinted";
+    const firstHint = document.getElementById("firstHint");
+    function showFirstHint() {
+      if (ambient || !window.matchMedia("(max-width: 600px)").matches) return;
+      try { if (localStorage.getItem(HINT_STORAGE) === "1") return; } catch (_) {}
+      firstHint.classList.add("on");
     }
+    function hideFirstHint() {
+      if (!firstHint.classList.contains("on")) return;
+      firstHint.classList.remove("on");
+      try { localStorage.setItem(HINT_STORAGE, "1"); } catch (_) {}
+    }
+    document.getElementById("firstHintOk").addEventListener("click", hideFirstHint);
+    // The first real touch anywhere else (globe drag, card tap) dismisses it too.
+    document.addEventListener("pointerdown", e => { if (!e.target.closest("#firstHint")) hideFirstHint(); });
+
+    /* ── Ambient mode: chrome off, the two clocks + a dim snapshot stay ──
+       Left open on a phone or laptop. The snapshot refreshes at most once an
+       hour (persisted, so reloads don't reset the clock) and only goes to the
+       proxy when the user has chosen live mode; otherwise it's the canned
+       text. Cities alternate per refresh so both get covered. */
+    const AMBIENT_STORAGE = "vibe.live-globe.ambient";
+    const AMBIENT_SNAP    = "vibe.live-globe.ambient-snap";
+    const AMBIENT_REFRESH_MS = 60 * 60 * 1000; // never call the proxy more often than this
+    const ambientToggle = document.getElementById("ambientToggle");
+    const ambientLbl    = document.getElementById("ambientLbl");
+    const ambientBody   = document.getElementById("ambientBody");
+    let ambient = false, ambientTimer = null, ambientAbort = null;
+
+    function readSnap() {
+      try {
+        const s = JSON.parse(localStorage.getItem(AMBIENT_SNAP) || "null");
+        return s && CITIES[s.city] && AI_STATES[s.state] && typeof s.at === "number" ? s : null;
+      } catch (_) { return null; }
+    }
+    function writeSnap(s) { try { localStorage.setItem(AMBIENT_SNAP, JSON.stringify(s)); } catch (_) {} }
+
+    function paintAmbient(snap) {
+      const c = CITIES[snap.city];
+      const st = AI_STATES[snap.state];
+      ambientLbl.classList.remove("asking");
+      ambientLbl.textContent = `${c.name} · ${fmtTime(new Date(snap.at), c.tz)} · ${st.ko} / ${st.en}`;
+      ambientBody.replaceChildren(paraSpan("ko", snap.ko), paraSpan("en", snap.en));
+    }
+
+    async function ambientTick() {
+      if (!ambient || document.visibilityState !== "visible" || ambientAbort) return;
+      const now = Date.now();
+      const snap = readSnap();
+      const liveAt = snap?.liveAt || 0;
+      const canGoLive = liveMode && now - liveAt >= AMBIENT_REFRESH_MS;
+      // Reuse a fresh snapshot — unless the user has since switched to live
+      // mode and the hourly live budget is free, in which case upgrade it.
+      if (snap && now - snap.at < AMBIENT_REFRESH_MS && !(canGoLive && snap.state === "demo")) {
+        paintAmbient(snap);
+        return;
+      }
+      const cityKey = snap?.city === "seoul" ? "stockholm" : "seoul";
+      const c = CITIES[cityKey];
+      if (!canGoLive) {
+        const next = { at: now, liveAt, city: cityKey, state: "demo", ...cannedBlurb(c) };
+        writeSnap(next);
+        paintAmbient(next);
+        return;
+      }
+      ambientAbort = new AbortController();
+      ambientLbl.classList.add("asking");
+      ambientLbl.textContent = `${c.name} · asking…`;
+      let next;
+      try {
+        const b = await callClaude(c, ambientAbort.signal);
+        next = { at: Date.now(), liveAt: now, city: cityKey, state: "live", ...b };
+      } catch (err) {
+        if (err.name === "AbortError") { ambientAbort = null; return; }
+        // Nobody is here to press Retry — show the demo text under the warning label.
+        next = { at: Date.now(), liveAt: now, city: cityKey, state: "fallback", ...cannedBlurb(c) };
+      }
+      ambientAbort = null;
+      writeSnap(next);
+      if (ambient) paintAmbient(next);
+    }
+
+    function setAmbient(on) {
+      if (ambient === on) return;
+      ambient = on;
+      document.body.classList.toggle("ambient", on);
+      ambientToggle.setAttribute("aria-pressed", String(on));
+      try { localStorage.setItem(AMBIENT_STORAGE, on ? "1" : "0"); } catch (_) {}
+      if (on) {
+        closeAiPanel();
+        hideFirstHint();
+        ambientTick();
+        ambientTimer = setInterval(ambientTick, 60 * 1000);
+      } else {
+        clearInterval(ambientTimer); ambientTimer = null;
+        if (ambientAbort) { ambientAbort.abort(); ambientAbort = null; }
+        ambientLbl.classList.remove("asking");
+      }
+    }
+    ambientToggle.addEventListener("click", () => setAmbient(!ambient));
+    // Any tap exits. The topbar is pointer-events: none while ambient, so a
+    // tap on the (invisible) toggle lands on the globe and exits cleanly.
+    // The exit tap is consumed: clearing pointerDownXY stops onPointerUp
+    // from treating it as a globe click (pin placement would otherwise arm
+    // and focus the city input — a keyboard pop on phones).
+    document.addEventListener("pointerdown", () => {
+      if (!ambient) return;
+      setAmbient(false);
+      pointerDownXY = null;
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && ambient) ambientTick();
+    });
+    try { if (localStorage.getItem(AMBIENT_STORAGE) === "1") setAmbient(true); } catch (_) {}
 
     modeToggle.addEventListener("click", () => {
       liveMode = !liveMode;
       cancelLiveRequest();
-      if (liveMode) {
-        setPill(PILL_LIVE, true);
-        modeToggle.textContent = "Back to demo mode ←";
-      } else {
-        setPill(PILL_DEMO, false);
-        modeToggle.textContent = "Try live mode →";
-      }
+      modeToggle.textContent = liveMode ? "Back to demo mode ←" : "Try live mode →";
+      setAiState(liveMode ? "live" : "demo");
       if (currentCity) renderBlurb(currentCity);
     });
 
     function openAiPanel(cityKey) {
+      // Re-tapping the same city mid-call must not burn another nonce.
+      if (aiBusy && currentCity === cityKey && aiPanel.classList.contains("open")) return;
       cancelLiveRequest();
       currentCity = cityKey;
       const c = CITIES[cityKey];
@@ -1821,7 +2317,6 @@
     }
     function closeAiPanel() {
       cancelLiveRequest();
-      aiProgress.classList.remove("on");
       aiPanel.classList.remove("open");
       currentCity = null;
     }
@@ -1886,7 +2381,8 @@
     async function renderBlurb(cityKey) {
       const c = CITIES[cityKey];
       if (!liveMode) {
-        aiProgress.classList.remove("on");
+        setBusy(false);
+        setAiState("demo");
         paintBlurb(cannedBlurb(c));
         return;
       }
@@ -1895,24 +2391,49 @@
       const signal = aiAbort.signal;
       const stillCurrent = () => reqId === aiReqId && currentCity === cityKey && liveMode;
 
-      setPill(PILL_LIVE, true);
+      setAiState("live");
+      setBusy(true);
       paintNote("Solving challenge…", "var(--muted)");
-      aiProgress.classList.add("on");
       try {
         const blurb = await callClaude(c, signal, stage => { if (stillCurrent()) paintNote(stage, "var(--muted)"); });
         if (!stillCurrent()) return;
         paintBlurb(blurb);
       } catch (err) {
         if (!stillCurrent() || err.name === "AbortError") return;
-        if (err.status === 403 || err.status === 429 || err.status === 503) {
-          setPill(PILL_LIVE_FALLBACK, false);
-          paintBlurb(cannedBlurb(c));
-        } else {
-          paintNote(err.message || "Request failed", "var(--seoul)");
-        }
+        // Live failed: warning pill + error line. The demo text only renders
+        // when the user asks for it, so it never sits under a live label.
+        setAiState("fallback");
+        paintError(err.status, cityKey);
       } finally {
-        if (stillCurrent()) { aiProgress.classList.remove("on"); aiAbort = null; }
+        if (stillCurrent()) { setBusy(false); aiAbort = null; }
       }
+    }
+
+    /* Error line: `Live server is busy (NNN) — retry or read the demo text`
+       with Retry / Show demo text. Status is a number from the proxy; text
+       nodes only, nothing from the model is involved. */
+    function paintError(status, cityKey) {
+      const wrap = document.createElement("div");
+      wrap.className = "ai-error";
+      const ko = document.createElement("span"); ko.className = "ko"; ko.lang = "ko";
+      const en = document.createElement("span"); en.className = "en";
+      if (status) {
+        ko.textContent = `라이브 서버가 바쁩니다 (${status}) — 다시 시도하거나 예시 결과를 읽어보세요`;
+        en.textContent = `Live server is busy (${status}) — retry or read the demo text`;
+      } else {
+        ko.textContent = "라이브 서버에 연결할 수 없습니다 — 다시 시도하거나 예시 결과를 읽어보세요";
+        en.textContent = "Live server is unreachable — retry or read the demo text";
+      }
+      const row = document.createElement("div"); row.className = "row";
+      const retry = document.createElement("button");
+      retry.type = "button"; retry.textContent = "다시 시도 · Retry";
+      retry.addEventListener("click", () => renderBlurb(cityKey));
+      const demo = document.createElement("button");
+      demo.type = "button"; demo.className = "ghost"; demo.textContent = "예시 결과 · Show demo text";
+      demo.addEventListener("click", () => paintBlurb(cannedBlurb(CITIES[cityKey])));
+      row.append(retry, demo);
+      wrap.append(ko, en, row);
+      aiBlurb.replaceChildren(wrap);
     }
 
     /* ── Proxy-only Claude call via Bedrock (Sonnet 4.6) ── */
