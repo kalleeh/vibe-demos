@@ -53,7 +53,7 @@ Every AI demo ships two modes:
 2. **Live mode** — a toggle ("Try live mode →") that switches to real proxy calls.
 
 Error-handling contract:
-- `403` / `429` / `503` from the proxy (origin, PoW, rate limit, daily cap, proxy not configured) → fall back to the closest canned output AND say so on screen (intake: "라이브 데모가 잠시 바쁩니다 — 예시 결과를 보여드릴게요"). A canned result MUST never render under a live label.
+- `403` / `429` / `503` from the proxy (origin, PoW, rate limit, daily cap, proxy not configured) → fall back to the closest canned output AND say so on screen (intake: "라이브 서버가 잠시 바쁩니다 (NNN) — 다시 시도하거나 예시 결과를 볼 수 있어요"). A canned result MUST never render under a live label.
 - Any other failure → show the error inline; keep the previous output.
 - MUST set a busy flag / disable the trigger for the whole call (challenge + PoW + fetch). Double-submits burn nonces and rate budget and race the render.
 - MUST escape model output before any `innerHTML` (`esc()` in intake-companion) or render with `textContent`. Model text is untrusted input.
@@ -95,3 +95,14 @@ Skip this only for purely aesthetic demos (shaders, particle effects) — no dom
 - Positive-only guidance ("be authentic") with no errors-to-avoid list.
 - Re-running the research every session — do it once, embed the results, then only tune.
 - Romanizing/translating the canon — if the audience reads 한글, the lists stay 한글.
+
+## Shared AI-state convention (all AI demos, since 2026-09-05)
+
+Same states and copy in every demo, styled in each demo's own palette (no shared CSS):
+
+- **Status pill** next to the output header, exactly three states: live success `라이브 · Claude`; fallback after a failed live call `예시 결과 · 실시간 연결 실패` (warning colour); canned by user choice `예시 모드` (muted). English demos mirror: `live · Claude` / `demo text · live unavailable` / `demo mode`.
+- **Busy**: the trigger button is disabled and relabelled (`분석 중…`, `읽는 중…`, `asking…`) with the demo's own skeleton/shimmer and stage text (challenge → request → response).
+- **Error line**: `라이브 서버가 잠시 바쁩니다 (NNN) — 다시 시도하거나 예시 결과를 볼 수 있어요` with two buttons `다시 시도` / `예시 결과 보기`. Never auto-substitute canned output for a real live request.
+- **Disclosure** under the trigger: `입력 내용은 ai.pb.gurum.se 로 전송되며 저장되지 않습니다.`
+- **Mobile first-run hint**: one dismissible sentence (KO + EN as the demo's language) at ≤600px, stored in `localStorage["vibe.<slug>.hinted"]`.
+
