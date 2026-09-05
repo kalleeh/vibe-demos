@@ -84,6 +84,16 @@
       position: relative;
       overflow: hidden;
     }
+    /* Real progress (THREE.LoadingManager onProgress) — the shimmer above
+       it only signals "still working" before the first byte arrives. */
+    #loading .bar .fill {
+      position: absolute;
+      top: 0; left: 0;
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width .3s ease;
+    }
     #loading .bar::after {
       content: "";
       position: absolute;
@@ -377,8 +387,46 @@
       }
       .chapter:nth-child(even) .num { justify-content: flex-start; }
       .chapter:nth-child(even) .num::before { order: 0; }
+      /* Mobile quality tier: backdrop-filter over a live WebGL canvas is the
+         single most expensive thing on this page on a phone — trade the blur
+         for a more opaque panel. */
+      .chapter .copy {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: rgba(5,6,8,0.72);
+      }
       .topbar { padding: 16px 18px; font-size: 10px; }
       .topbar .progress .track { width: 60px; }
+    }
+
+    /* ── No-WebGL / CDN-failure fallback: copy reads on the dark background ── */
+    .fallback-note {
+      display: none;
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      z-index: 6;
+      max-width: 90vw;
+      padding: 8px 14px;
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 999px;
+      background: rgba(5,6,8,0.85);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      letter-spacing: 1.2px;
+      line-height: 1.5;
+      color: var(--muted);
+      text-align: center;
+    }
+    body.no-webgl .fallback-note { display: block; }
+    body.no-webgl #scene,
+    body.no-webgl .vignette,
+    body.no-webgl .vib-caption { display: none; }
+    body.no-webgl .chapter .copy {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      background: rgba(5,6,8,0.85);
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -577,10 +625,11 @@
 </head>
 <body>
 
-  <div id="loading">
-    <div class="lbl">Initializing scene</div>
-    <div class="bar"></div>
+  <div id="loading" role="status" aria-live="polite">
+    <div class="lbl" id="loadLbl">Initializing scene</div>
+    <div class="bar"><span class="fill" id="loadFill"></span></div>
   </div>
+  <div class="fallback-note" id="fallbackNote">3D 장면을 불러올 수 없어 글로만 보여드립니다 · 3D scene unavailable, reading mode</div>
 
   <div id="scene"></div>
   <div class="vignette"></div>
@@ -612,7 +661,7 @@
         <div class="num">Chapter 01</div>
         <h2>새벽의 <em>접안</em></h2>
         <div class="en">A tanker at dawn</div>
-        <p>인천의 LNG 터미널, 새벽 다섯 시. 적도에서 출발한 거대한 탱커가 16일간의 항해 끝에 조용히 접안한다.</p>
+        <p>인천의 LNG 터미널, 새벽 다섯 시. 적도에서 출발한 거대한 탱커가 약 18–22일의 항해 끝에 조용히 접안한다.</p>
         <p>그 안에는 −162°C로 냉각되어 액체가 된 천연가스. 한 분자 — CH₄ — 가 깨어난다.</p>
         <span class="stat">−162°C · 액화 천연가스</span>
         <div class="hotspots">
@@ -629,7 +678,7 @@
         <h2>차가운 <em>저장</em></h2>
         <div class="en">Cryogenic storage</div>
         <p>두꺼운 단열 탱크 안. 외부 공기보다 200도 가까이 차가운 어둠 속에서, 분자는 거의 움직이지 않는다.</p>
-        <p>한국 가정의 7개월치 난방을 담은 탱크 하나가, 별처럼 고요하게 빛난다.</p>
+        <p>수십만 가구의 한 겨울 난방을 담은 탱크 하나가, 별처럼 고요하게 빛난다.</p>
         <span class="stat">한 탱크 · 200,000m³</span>
         <div class="hotspots">
           <button class="hotspot" data-hotspot="capacity">탱커 용량</button>
@@ -647,7 +696,7 @@
         <p>압력 조절 밸브를 통과하는 순간, 여행이 시작된다.</p>
         <span class="stat">×600 · 부피 팽창</span>
         <div class="hotspots">
-          <button class="hotspot" data-hotspot="peakDemand">동절기 피크</button>
+          <button class="hotspot" data-hotspot="peakDemand">일일 송출량</button>
           <button class="hotspot" data-hotspot="calorific">발열량</button>
         </div>
       </div>
@@ -689,7 +738,7 @@
         <h2>푸른 <em>불꽃</em></h2>
         <div class="en">The blue flame</div>
         <p>저녁 일곱 시. 누군가 손잡이를 돌린다. 분자는 산소를 만나, 잠깐의 빛이 된다.</p>
-        <p>CH₄ + 2O₂ → CO₂ + 2H₂O. 16일간의 여정이, 된장찌개 한 냄비를 데운다.</p>
+        <p>CH₄ + 2O₂ → CO₂ + 2H₂O. 약 18–22일의 여정이, 된장찌개 한 냄비를 데운다.</p>
         <span class="stat">≈ 1,950°C · 연소</span>
         <div class="hotspots">
           <button class="hotspot" data-hotspot="combustion">연소 온도</button>
@@ -705,11 +754,33 @@
     <section class="outro">
       <div class="eyebrow">Fin</div>
       <h2>한 분자의 <em>긴 여행</em>이<br>저녁 식탁이 된다.</h2>
-      <p>One molecule. Sixteen days. One bowl of stew.</p>
+      <p>One molecule. Some twenty days. One bowl of stew.</p>
       <a href="../" class="back">← Back to Studio</a>
     </section>
 
   </main>
+
+  <script>
+    /* Fallback guard — runs before the module so its `onerror` has a target.
+       Three trigger paths: the module graph fails to fetch (CDN down → the
+       script element's error event), WebGL context creation throws (module
+       calls __sceneFail), or nothing boots within 8s (timeout). All three
+       hide the loading overlay and flip the page into reading mode. */
+    (function () {
+      var failed = false, booted = false;
+      var timer = setTimeout(function () { if (!booted) window.__sceneFail("timeout"); }, 8000);
+      window.__sceneBooted = function () { booted = true; clearTimeout(timer); };
+      window.__sceneFail = function (reason) {
+        if (failed) return;
+        failed = true;
+        clearTimeout(timer);
+        document.body.classList.add("no-webgl");
+        var l = document.getElementById("loading");
+        if (l) l.classList.add("hidden");
+        console.warn("[molecule-journey] 3D scene unavailable (" + reason + ") — reading mode");
+      };
+    })();
+  </script>
 
   <script type="importmap">
     {
@@ -720,7 +791,7 @@
     }
   </script>
 
-  <script type="module">
+  <script type="module" onerror="window.__sceneFail('module')">
     import * as THREE from "three";
     import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
     import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -747,11 +818,47 @@
        ============================================================ */
 
     const container = document.getElementById("scene");
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true, alpha: true,
-      powerPreference: "high-performance"
-    });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3));
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        antialias: true, alpha: true,
+        powerPreference: "high-performance"
+      });
+    } catch (err) {
+      // No WebGL (or context creation refused). Reading-mode fallback owns the
+      // page from here; rethrow so the failure is visible in the console.
+      window.__sceneFail("webgl");
+      throw err;
+    }
+    window.__sceneBooted();
+
+    /* ── Loading overlay: real per-asset progress from THREE.LoadingManager.
+       Hidden on onLoad, or after 10s regardless so a 404'd GLB can't hold
+       the page hostage. Idempotent. ── */
+    const loadingEl = document.getElementById("loading");
+    const loadLbl = document.getElementById("loadLbl");
+    const loadFill = document.getElementById("loadFill");
+    let loadingHidden = false;
+    function hideLoading() {
+      if (loadingHidden) return;
+      loadingHidden = true;
+      loadFill.style.width = "100%";
+      requestAnimationFrame(() => requestAnimationFrame(() => loadingEl.classList.add("hidden")));
+    }
+    setTimeout(hideLoading, 10000);
+    const loadManager = new THREE.LoadingManager();
+    loadManager.onProgress = (url, loaded, total) => {
+      const pct = Math.round((loaded / Math.max(1, total)) * 100);
+      loadFill.style.width = pct + "%";
+      loadLbl.textContent = `Loading scene · ${pct}%`;
+    };
+    loadManager.onLoad = () => { stateDirty = true; hideLoading(); };
+    loadManager.onError = url => console.warn("[molecule-journey] asset failed to load:", url);
+
+    // Quality tier: phones don't need 3× DPR over a full-viewport canvas.
+    const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+    const maxDpr = coarsePointer ? (window.innerWidth < 720 ? 1.5 : 2) : 3;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxDpr));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
@@ -768,19 +875,52 @@
     camera.position.set(0, 0, 8);
 
     /* ── Environment map gives PBR materials something to reflect ── */
-    const pmrem = new THREE.PMREMGenerator(renderer);
-    pmrem.compileEquirectangularShader();
-    const envTex = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
-    scene.environment = envTex;
+    let pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+
+    /* ── WebGL context loss (mobile tab switching, GPU reset). preventDefault
+       tells the browser we want the context back; on restore, rebuild the
+       PMREM env map (its render targets died with the context) and re-apply
+       the scroll state so uniforms/opacities are fresh. ── */
+    renderer.domElement.addEventListener("webglcontextlost", e => e.preventDefault());
+    renderer.domElement.addEventListener("webglcontextrestored", () => {
+      pmrem.dispose();
+      pmrem = new THREE.PMREMGenerator(renderer);
+      scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+      stateDirty = true;
+      applyState(smoothProgress);
+    });
+
+    /* Burner centre — the point the kitchen, combustion and hero-reform
+       scenes all converge on. */
+    const BURNER_POS = new THREE.Vector3(0, -0.3, -4.5);
 
     /* ── GLTF loader for Kenney CC0 props (ship, kitchen) ── */
-    const gltfLoader = new GLTFLoader();
+    const gltfLoader = new GLTFLoader(loadManager);
+
+    /* Auto-fit a GLB to scene units: scale so its larger footprint axis
+       equals targetSize, then re-centre on x/z and anchor its bottom (or
+       top) at y. Returns the post-scale size for orientation checks. */
+    function fitGLB(root, { targetSize, anchor = "bottom", x = 0, y = 0, z = 0 }) {
+      const box = new THREE.Box3().setFromObject(root);
+      const size = box.getSize(new THREE.Vector3());
+      root.scale.setScalar(targetSize / Math.max(size.x, size.z));
+      const fitted = new THREE.Box3().setFromObject(root);
+      const c = fitted.getCenter(new THREE.Vector3());
+      const yOff = anchor === "top" ? -fitted.max.y : -fitted.min.y;
+      root.position.set(x - c.x, y + yOff, z - c.z);
+      return fitted.getSize(new THREE.Vector3());
+    }
 
     /* Paint Kenney palette materials so they stop reading as flat gray.
        Kenney exports default to metalness:0 roughness:1, which the bright
        RoomEnvironment then washes out. Match by material name to add the
        right amount of specular per surface type, and tint the few that
-       Kenney left at neutral light-gray (metal, carpetWhite). */
+       Kenney left at neutral light-gray (metal, carpetWhite).
+       opts.override = { metalness, roughness, env, hex? } applies one tone to
+       every material regardless of name (for palette-atlas props like the
+       pot, where slot names carry no meaning). opts.boost multiplies
+       envMapIntensity. */
     function paintKenney(root, opts = {}) {
       const tint = (m, hex) => {
         if (m.color && hex !== undefined) m.color.setHex(hex);
@@ -803,7 +943,7 @@
           // Make sure baseColorMap is sRGB (GLTFLoader does this in r152+
           // but be defensive) so palette atlases render at the right hue.
           if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
-          const t = tones[m.name];
+          const t = opts.override || tones[m.name];
           if (t) {
             if ("metalness" in m) m.metalness = t.metalness;
             if ("roughness" in m) m.roughness = t.roughness;
@@ -842,11 +982,13 @@
     scene.add(heroMolecule);
 
     const carbonGeo = new THREE.IcosahedronGeometry(0.55, 6);
+    // transparent from birth: applyState fades these via .opacity, and
+    // flipping .transparent at runtime needs a shader recompile to take.
     const carbonMat = new THREE.MeshPhysicalMaterial({
       color: 0x1a2538, metalness: 0.35, roughness: 0.16,
       clearcoat: 1.0, clearcoatRoughness: 0.06,
       emissive: 0x0a1830, emissiveIntensity: 0.6,
-      reflectivity: 0.75
+      reflectivity: 0.75, transparent: true
     });
     const carbon = new THREE.Mesh(carbonGeo, carbonMat);
     heroMolecule.add(carbon);
@@ -920,7 +1062,7 @@
     const hMat = new THREE.MeshPhysicalMaterial({
       color: 0xeaf3ff, metalness: 0.0, roughness: 0.18,
       clearcoat: 0.9, clearcoatRoughness: 0.05,
-      emissive: 0x223244, emissiveIntensity: 0.45
+      emissive: 0x223244, emissiveIntensity: 0.45, transparent: true
     });
     const hGeo = new THREE.IcosahedronGeometry(0.24, 5);
     const hHaloGeo = new THREE.SphereGeometry(0.42, 64, 64);
@@ -1038,14 +1180,15 @@
           uniforms: {
             top: { value: new THREE.Color(0x2a1a3a) },
             mid: { value: new THREE.Color(0xff8c5a) },
-            bot: { value: new THREE.Color(0xffd2a0) }
+            bot: { value: new THREE.Color(0xffd2a0) },
+            uOpacity: { value: 1 }
           },
           vertexShader: `varying float vH; void main(){ vH=position.y; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
-          fragmentShader: `varying float vH; uniform vec3 top, mid, bot;
+          fragmentShader: `varying float vH; uniform vec3 top, mid, bot; uniform float uOpacity;
             void main(){
               float h = clamp((vH+30.0)/60.0, 0.0, 1.0);
               vec3 c = h < 0.5 ? mix(bot, mid, h*2.0) : mix(mid, top, (h-0.5)*2.0);
-              gl_FragColor = vec4(c, 1.0);
+              gl_FragColor = vec4(c, uOpacity);
             }`
         })
       );
@@ -1068,7 +1211,7 @@
 
       // Ocean — animated wave shader plane
       const oceanMat = new THREE.ShaderMaterial({
-        uniforms: { time: { value: 0 } },
+        uniforms: { time: { value: 0 }, uOpacity: { value: 1 } },
         vertexShader: `
           varying vec2 vUv; varying float vH;
           uniform float time;
@@ -1087,11 +1230,12 @@
           }`,
         fragmentShader: `
           varying vec2 vUv; varying float vH;
+          uniform float uOpacity;
           void main(){
             vec3 deep = vec3(0.05, 0.08, 0.16);
             vec3 crest = vec3(0.6, 0.65, 0.8);
             vec3 c = mix(deep, crest, smoothstep(0.0, 0.18, vH));
-            gl_FragColor = vec4(c, 1.0);
+            gl_FragColor = vec4(c, uOpacity);
           }`
       });
       const ocean = new THREE.Mesh(new THREE.PlaneGeometry(120, 80, 240, 180), oceanMat);
@@ -1107,18 +1251,11 @@
       sceneTanker.add(tanker);
       gltfLoader.load("./assets/ship-cargo.glb", gltf => {
         const ship = gltf.scene;
-        const box = new THREE.Box3().setFromObject(ship);
-        const size = box.getSize(new THREE.Vector3());
-        const scale = 14 / Math.max(size.x, size.z);
-        ship.scale.setScalar(scale);
-        const center = box.getCenter(new THREE.Vector3()).multiplyScalar(scale);
-        ship.position.set(-center.x, -box.min.y * scale, -center.z);
+        const sz = fitGLB(ship, { targetSize: 14, anchor: "bottom" });
         paintKenney(ship);
-        const box2 = new THREE.Box3().setFromObject(ship);
-        const sz = box2.getSize(new THREE.Vector3());
         if (sz.z > sz.x) ship.rotation.y = Math.PI / 2;
         tanker.add(ship);
-      });
+      }, undefined, err => console.warn("[molecule-journey] ship GLB failed", err));
 
       // Pier on right side
       const pier = new THREE.Mesh(
@@ -1176,7 +1313,7 @@
       for (let i = 0; i < 3; i++) {
         const b = new THREE.Mesh(
           new THREE.SphereGeometry(0.07, 32, 32),
-          new THREE.MeshBasicMaterial({ color: 0xffcc66 })
+          new THREE.MeshBasicMaterial({ color: 0xffcc66, transparent: true })
         );
         b.position.set(8 + i * 1.6, -1.1, -1.2);
         sceneTanker.add(b);
@@ -1230,7 +1367,7 @@
       // Liquid LNG surface — animated subtle wave shader
       const liquidMat = new THREE.ShaderMaterial({
         transparent: true, side: THREE.DoubleSide,
-        uniforms: { time: { value: 0 } },
+        uniforms: { time: { value: 0 }, uOpacity: { value: 1 } },
         vertexShader: `
           varying vec2 vUv; uniform float time;
           float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
@@ -1246,9 +1383,10 @@
           }`,
         fragmentShader: `
           varying vec2 vUv;
+          uniform float uOpacity;
           void main(){
             vec3 c = mix(vec3(0.5,0.75,0.95), vec3(0.7,0.88,1.0), vUv.y);
-            gl_FragColor = vec4(c, 0.65);
+            gl_FragColor = vec4(c, 0.65 * uOpacity);
           }`
       });
       const liquid = new THREE.Mesh(
@@ -1434,11 +1572,11 @@
       // Inside-out pipe wall with shader showing weld bands + distance text
       const pipeMat = new THREE.ShaderMaterial({
         side: THREE.BackSide, transparent: true, depthWrite: false,
-        uniforms: { time: { value: 0 } },
+        uniforms: { time: { value: 0 }, uOpacity: { value: 1 } },
         vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
         fragmentShader: `
           varying vec2 vUv;
-          uniform float time;
+          uniform float time, uOpacity;
           void main(){
             // Weld band every 0.1 of length (pipe is long; uv.x = around, uv.y = along)
             float band = smoothstep(0.99, 1.0, sin(vUv.y * 60.0)*0.5+0.5);
@@ -1449,7 +1587,7 @@
             float light = exp(-pow((vUv.y - head)*8.0, 2.0)) * 0.45;
             vec3 base = vec3(0.06, 0.08, 0.12) + stripe;
             vec3 col = base + vec3(0.42, 0.62, 0.95) * (band*0.6 + light);
-            gl_FragColor = vec4(col, 1.0);
+            gl_FragColor = vec4(col, uOpacity);
           }`
       });
       const pipe = new THREE.Mesh(
@@ -1537,15 +1675,16 @@
       const window1 = new THREE.Mesh(
         new THREE.PlaneGeometry(4.5, 3),
         new THREE.ShaderMaterial({
-          uniforms: { time: { value: 0 } },
+          uniforms: { time: { value: 0 }, uOpacity: { value: 1 } },
           vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
           fragmentShader: `
             varying vec2 vUv;
+            uniform float uOpacity;
             void main(){
               vec3 sky = mix(vec3(0.95,0.65,0.42), vec3(0.85,0.45,0.55), vUv.y);
               // Mullion grid
               float g = step(0.02, abs(fract(vUv.x*3.0)-0.5)) * step(0.04, abs(fract(vUv.y*2.0)-0.5));
-              gl_FragColor = vec4(sky * mix(0.7, 1.0, g), 1.0);
+              gl_FragColor = vec4(sky * mix(0.7, 1.0, g), uOpacity);
             }`
         })
       );
@@ -1572,16 +1711,10 @@
       // inset so the burner ring sits on its hob.
       gltfLoader.load("./assets/kitchen-stove.glb", gltf => {
         const stove = gltf.scene;
-        const box = new THREE.Box3().setFromObject(stove);
-        const size = box.getSize(new THREE.Vector3());
-        const scale = 3.0 / Math.max(size.x, size.z);
-        stove.scale.setScalar(scale);
-        const b2 = new THREE.Box3().setFromObject(stove);
-        const c = b2.getCenter(new THREE.Vector3());
-        stove.position.set(-c.x, -0.92 - b2.max.y, -4.5 - c.z);
+        fitGLB(stove, { targetSize: 3.0, anchor: "top", y: -0.92, z: BURNER_POS.z });
         paintKenney(stove);
         sceneKitchen.add(stove);
-      });
+      }, undefined, err => console.warn("[molecule-journey] stove GLB failed", err));
       // Burner ring (the gas-jet circle)
       const burnerRing = new THREE.Mesh(
         new THREE.RingGeometry(0.55, 0.78, 96),
@@ -1616,31 +1749,15 @@
       // its rim near y = -0.18 so the stew shader still aligns.
       gltfLoader.load("./assets/pot-stew.glb", gltf => {
         const pot = gltf.scene;
-        const box = new THREE.Box3().setFromObject(pot);
-        const size = box.getSize(new THREE.Vector3());
-        const scale = 1.7 / Math.max(size.x, size.z);
-        pot.scale.setScalar(scale);
-        const b2 = new THREE.Box3().setFromObject(pot);
-        const c = b2.getCenter(new THREE.Vector3());
-        pot.position.set(-c.x, -0.78 - b2.min.y, -4.5 - c.z);
+        fitGLB(pot, { targetSize: 1.7, anchor: "bottom", y: -0.78, z: BURNER_POS.z });
         // Pot is a textured palette atlas; treat the whole thing as
         // brushed steel so it picks up the stove highlights.
-        pot.traverse(o => {
-          if (!o.isMesh || !o.material) return;
-          const mats = Array.isArray(o.material) ? o.material : [o.material];
-          for (const m of mats) {
-            if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
-            if ("metalness" in m) m.metalness = 0.7;
-            if ("roughness" in m) m.roughness = 0.32;
-            if ("envMapIntensity" in m) m.envMapIntensity = 0.65;
-            m.needsUpdate = true;
-          }
-        });
+        paintKenney(pot, { override: { metalness: 0.7, roughness: 0.32, env: 0.65 } });
         sceneKitchen.add(pot);
-      });
+      }, undefined, err => console.warn("[molecule-journey] pot GLB failed", err));
       // Stew surface
       const stewMat = new THREE.ShaderMaterial({
-        uniforms: { time: { value: 0 } },
+        uniforms: { time: { value: 0 }, uOpacity: { value: 1 } },
         vertexShader: `varying vec2 vUv; uniform float time;
           float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
           void main(){
@@ -1649,10 +1766,10 @@
             p.y += sin(p.x*8.0 + time*1.5)*0.008 + cos(p.z*8.0 - time*1.3)*0.008;
             gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);
           }`,
-        fragmentShader: `varying vec2 vUv;
+        fragmentShader: `varying vec2 vUv; uniform float uOpacity;
           void main(){
             vec3 c = mix(vec3(0.5,0.2,0.1), vec3(0.7,0.35,0.18), vUv.y);
-            gl_FragColor = vec4(c, 1.0);
+            gl_FragColor = vec4(c, uOpacity);
           }`
       });
       const stew = new THREE.Mesh(new THREE.CircleGeometry(0.78, 192), stewMat);
@@ -1737,7 +1854,7 @@
             }`
         })
       );
-      flamePlane.position.set(0, -0.3, -4.5);
+      flamePlane.position.copy(BURNER_POS);
       sceneKitchen.add(flamePlane);
 
       sceneKitchen.userData = {
@@ -1961,7 +2078,7 @@
         cam: v(0, -0.1, 1.6), look: v(0, -0.4, -4.5),
         scenes: { tanker:0, cryo:0, regas:0, pipeline:0, kitchen:0.6, combustion:1 },
         heroVis: 1, // molecule re-appears here at small scale (handled below)
-        markerStart: v(0, -0.3, -4.5), markerEnd: v(0, -0.3, -4.5),
+        markerStart: BURNER_POS.clone(), markerEnd: BURNER_POS.clone(),
         products: 1, starsOpacity: 0.0
       },
       { // 7 — Outro
@@ -1995,6 +2112,16 @@
     const _c1 = new THREE.Color();
     const _c2 = new THREE.Color();
     const _ce = new THREE.Color();
+    // Scratch vectors for the hero-molecule hydrogen math (applyState fly-out
+    // and the per-frame vibration in tick) — allocated once, never per frame.
+    const _heroDir = new THREE.Vector3();
+    const _heroPerp = new THREE.Vector3();
+    const _heroOff = new THREE.Vector3();
+    // Scene groups keyed the same way as states[n].scenes.
+    const sceneGroups = {
+      tanker: sceneTanker, cryo: sceneCryo, regas: sceneRegas,
+      pipeline: scenePipeline, kitchen: sceneKitchen, combustion: sceneCombustion
+    };
 
     function lerp(a, b, t) { return a + (b - a) * t; }
     function lerpColor(out, a, b, t) {
@@ -2006,6 +2133,13 @@
 
     let scrollProgress = 0;
     let smoothProgress = 0;
+    // applyState is a full traverse of every visible scene group; only run it
+    // when something that feeds it changed (scroll, resize, asset arrival,
+    // context restore) or while the smoothing is still converging.
+    let stateDirty = true;
+    // Un-bobbed camera height from the last applyState (tick's tanker bob is
+    // applied relative to this so skipping applyState can't accumulate drift).
+    let camBaseY = 0;
 
     // Vibration mode picked per chapter — drives hydrogen displacement and
     // the lower-left ν(C–H) caption. Real frequencies, slowed ×10¹¹.
@@ -2029,10 +2163,42 @@
       }
     }
 
+    /* Progress is anchored per section, not to total document height: state N
+       is exactly reached when section N's centre crosses the viewport centre,
+       and interpolates linearly between neighbouring centres. This keeps the
+       3D scene in sync with the copy even when a .copy panel overflows its
+       130vh chapter (landscape phones) and stretches the document. */
+    const sections = [
+      document.querySelector(".hero"),
+      ...[1, 2, 3, 4, 5, 6].map(n => document.querySelector(`.chapter[data-chapter="${n}"]`)),
+      document.querySelector(".outro")
+    ];
+    const anchors = new Float64Array(sections.length);
     function computeProgress() {
-      const total = document.body.scrollHeight - window.innerHeight;
-      const t = Math.max(0, Math.min(1, window.scrollY / total));
-      scrollProgress = t * (states.length - 1);
+      const vh = window.innerHeight;
+      const scrollY = window.scrollY;
+      const maxScroll = document.documentElement.scrollHeight - vh;
+      const centre = scrollY + vh / 2;
+      const last = sections.length - 1;
+      for (let i = 0; i <= last; i++) {
+        const r = sections[i].getBoundingClientRect();
+        anchors[i] = r.top + scrollY + r.height / 2;
+      }
+      // The outro's centre may sit below the deepest reachable viewport
+      // centre; pull it up so the final state is reachable at page bottom.
+      anchors[last] = Math.min(anchors[last], maxScroll + vh / 2);
+
+      let p;
+      if (centre <= anchors[0]) p = 0;
+      else if (centre >= anchors[last]) p = last;
+      else {
+        let i = 0;
+        while (i < last - 1 && centre >= anchors[i + 1]) i++;
+        const span = anchors[i + 1] - anchors[i];
+        p = i + (span > 0 ? (centre - anchors[i]) / span : 0);
+      }
+      scrollProgress = Math.max(0, Math.min(last, p));
+      stateDirty = true;
     }
 
     /* Animate chapter visibility transitions; we keep a fade buffer so when
@@ -2059,6 +2225,7 @@
       // Camera
       _v3.copy(a.cam).lerp(b.cam, t);
       camera.position.copy(_v3);
+      camBaseY = _v3.y;
       _vL.copy(a.look).lerp(b.look, t);
       camera.lookAt(_vL);
 
@@ -2084,17 +2251,15 @@
       // Hero scale: full in ch0, small in ch6
       let heroScale = 1.0;
       if (idx >= 6) heroScale = 0.55;
-      else if (idx === 0 && next === 1) heroScale = lerp(1.0, 0.5, t); // shrink as we leave hero
-      else if (idx === 0) heroScale = 1.0;
+      else if (idx === 0) heroScale = lerp(1.0, 0.5, t); // shrink as we leave hero
       else heroScale = 0.5;
       heroMolecule.scale.setScalar(heroScale);
 
       const heroOpacity = heroVis;
-      // Apply opacity to all hero materials
+      // Apply opacity to all hero materials (carbonMat/hMat are transparent
+      // from construction so this takes effect without a recompile)
       carbonMat.opacity = heroOpacity;
-      carbonMat.transparent = heroOpacity < 0.999;
       hMat.opacity = heroOpacity;
-      hMat.transparent = heroOpacity < 0.999;
       orbitals.forEach(o => o.material.opacity = heroOpacity * 0.55);
       cloudMat.opacity = heroOpacity * 0.75;
       heroGlowMat.uniforms.intensity.value = heroOpacity * 0.55;
@@ -2102,14 +2267,14 @@
 
       // For chapter 6, hero re-forms at burner location
       if (idx >= 5) {
-        heroMolecule.position.set(0, -0.3, -4.5);
+        heroMolecule.position.copy(BURNER_POS);
       } else {
         heroMolecule.position.set(0, 0, 0);
       }
 
       // Scene visibilities (fade via opacity helper)
       const sm = (key) => {
-        const g = ({ tanker: sceneTanker, cryo: sceneCryo, regas: sceneRegas, pipeline: scenePipeline, kitchen: sceneKitchen, combustion: sceneCombustion })[key];
+        const g = sceneGroups[key];
         const op = lerp(a.scenes[key], b.scenes[key], t);
         g.visible = op > 0.005;
         // Set opacity on traverse for materials that support it
@@ -2124,6 +2289,9 @@
                 // fades back in. Toggling .transparent needs a recompile (needsUpdate).
                 if (m._origOpacity === undefined) m._origOpacity = m.opacity;
                 if (m._origTransparent === undefined) m._origTransparent = m.transparent;
+                // Custom shaders ignore .opacity — they read uOpacity instead
+                // (each scene shader multiplies its alpha by it).
+                if (m.isShaderMaterial && m.uniforms.uOpacity) m.uniforms.uOpacity.value = op;
                 if (op < 0.999) {
                   if (!m.transparent) { m.transparent = true; m.needsUpdate = true; }
                   m.opacity = m._origOpacity * op;
@@ -2206,9 +2374,6 @@
     const trailHistory = Array.from({ length: TRAIL_LEN }, () => new THREE.Vector3());
     let trailHead = 0;
     let trailCount = 0;
-    const _heroDir = new THREE.Vector3();
-    const _heroPerp = new THREE.Vector3();
-    const _heroOff = new THREE.Vector3();
 
     // Honor reduced-motion: freeze all idle/time-driven motion (rotation,
     // vibration, shader time) to a static frame, but KEEP scroll-driven
@@ -2221,8 +2386,26 @@
       const dt = reduceMotion ? 0 : Math.min(clock.getDelta(), 0.05);
       const elapsed = reduceMotion ? 0 : clock.getElapsedTime();
 
-      smoothProgress += (scrollProgress - smoothProgress) * 0.08;
-      applyState(smoothProgress);
+      // Ease toward the scroll target; once converged, snap and stop marking
+      // the state dirty so the per-frame scene traverse can idle.
+      const diff = scrollProgress - smoothProgress;
+      if (Math.abs(diff) > 0.0005) {
+        smoothProgress += diff * 0.08;
+        stateDirty = true;
+      } else if (smoothProgress !== scrollProgress) {
+        smoothProgress = scrollProgress;
+        stateDirty = true;
+      }
+      if (stateDirty) {
+        applyState(smoothProgress);
+        stateDirty = false;
+      } else if (reduceMotion) {
+        // Nothing moves under reduced motion and nothing changed — skip the
+        // frame entirely. (With motion on, every scene animates per frame, so
+        // rendering has to continue.)
+        requestAnimationFrame(tick);
+        return;
+      }
 
       /* Hero molecule idle motion (only when visible) */
       if (heroMolecule.visible) {
@@ -2318,8 +2501,8 @@
         u.beacons.forEach((b, i) => {
           b.material.opacity = 0.5 + 0.5 * Math.sin(elapsed * 2.5 + i * 1.2);
         });
-        // gentle camera bob
-        camera.position.y += Math.sin(elapsed * 0.4) * 0.0015;
+        // gentle camera bob (relative to the applyState height, not cumulative)
+        camera.position.y = camBaseY + Math.sin(elapsed * 0.4) * 0.0015;
       }
 
       /* Cryo scene motion */
@@ -2405,25 +2588,25 @@
           );
           pair.rotation.y = elapsed * 1.2 + i;
           // Center the pairs at the burner location in ch5/6
-          pair.position.x += 0; pair.position.y += -0.3; pair.position.z += -4.5;
+          pair.position.add(BURNER_POS);
         });
-        u.co2.position.set(0, -0.3, -4.5);
+        u.co2.position.copy(BURNER_POS);
         u.co2.rotation.y = elapsed * 0.6;
         u.waters.forEach((w, i) => {
           const a = elapsed * 0.5 + (i * Math.PI);
           const products = u.co2.scale.x;
           const productR = products * 1.6;
           w.position.set(
-            Math.cos(a) * productR,
-            -0.3 + Math.sin(a*0.7) * productR * 0.6,
-            -4.5 + Math.sin(a) * productR
+            BURNER_POS.x + Math.cos(a) * productR,
+            BURNER_POS.y + Math.sin(a*0.7) * productR * 0.6,
+            BURNER_POS.z + Math.sin(a) * productR
           );
           w.rotation.y = elapsed * 0.8 * (i === 0 ? 1 : -1);
           w.rotation.x = elapsed * 0.4;
         });
-        u.core.position.set(0, -0.3, -4.5);
+        u.core.position.copy(BURNER_POS);
         u.core.scale.setScalar(0.8 + Math.sin(elapsed * 4) * 0.15);
-        u.shock.position.set(0, -0.3, -4.5);
+        u.shock.position.copy(BURNER_POS);
         u.shock.rotation.x = -Math.PI / 2;
       }
 
@@ -2447,15 +2630,19 @@
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
+      computeProgress(); // section anchors move with layout
     }
     window.addEventListener("resize", onResize);
     window.addEventListener("scroll", computeProgress, { passive: true });
 
-    /* Teardown: when the page is hidden (tab close, navigation, BFCache),
+    /* Teardown: when the page is really going away (tab close, navigation),
        dispose GPU resources and detach listeners so a quick back-forward
        doesn't pile up WebGL contexts. Pattern follows the Three.js docs
        (traverse → dispose geometry/material/material.map → dispose renderer
-       + PMREMGenerator). Idempotent — running twice is safe. */
+       + PMREMGenerator). Idempotent — running twice is safe.
+       NOT run when the page is entering the back/forward cache
+       (e.persisted) — a BFCache restore resumes this exact JS state, and a
+       disposed renderer would come back as a blank canvas. */
     let disposed = false;
     function teardown() {
       if (disposed) return;
@@ -2478,18 +2665,14 @@
       pmrem.dispose();
       renderer.dispose();
     }
-    window.addEventListener("pagehide", teardown);
+    window.addEventListener("pagehide", e => { if (!e.persisted) teardown(); });
 
     computeProgress();
     smoothProgress = scrollProgress;
     applyState(smoothProgress);
     tick();
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        document.getElementById("loading").classList.add("hidden");
-      });
-    });
+    // The loading overlay is released by loadManager.onLoad (or its 10s
+    // fallback) once the GLBs are in, so nothing pops in after the reveal.
   </script>
 
   <script>
@@ -2514,25 +2697,25 @@
       src: "KOGAS 도입항로 · MOTIE 2024"
     },
     peakDemand: {
-      eyebrow: "동절기 일일 피크 수요",
-      num: '약 <em>80M</em>',
-      unit: "m³/일 · 겨울철 최대",
-      desc: "한파 시 전국 일일 가스 송출량 정점. 발전·도시가스·산업용 합산. 여름철 평균의 약 3배.",
-      src: "KOGAS 수급통계 2024"
+      eyebrow: "일일 가스 송출량 · Daily send-out",
+      num: '약 <em>1.7억</em>',
+      unit: "m³/일 · 연평균 환산",
+      desc: "연간 LNG 수입량 약 4,600만 톤을 기체로 환산해(1톤 ≈ 1,360 m³) 365일로 나눈 값. 발전·도시가스·산업용 합산. 한파 시 겨울 피크 송출량은 이보다 높다.",
+      src: "MOTIE · KOGAS 수입현황 2024 기준 환산"
     },
     mainPressure: {
       eyebrow: "주배관 운영 압력",
       num: '약 <em>70</em>',
       unit: "bar · 본관 송출 압력",
-      desc: "전국 5,000km 강관 본관의 일반 운영 압력. 도시 인입 정압소에서 0.4 bar (중압) 또는 2.5 kPa (저압)로 단계적으로 감압.",
-      src: "KOGAS 배관망 운영기준 2024"
+      desc: "전국 5,000km 강관 본관의 일반 운영 압력. 도시 인입 정압소에서 0.4 MPa (중압) 또는 2.5 kPa (저압)로 단계적으로 감압.",
+      src: "KOGAS 공개 자료 기준"
     },
     combustion: {
       eyebrow: "메탄 화염 온도",
       num: '약 <em>1,950</em>',
       unit: "°C · 단열 화염 온도",
       desc: "CH₄ + 2O₂ → CO₂ + 2H₂O. 충분한 산소 공급 시 이론 단열 화염 온도. 일반 가정용 가스레인지의 푸른 불꽃 핵심부 온도.",
-      src: "NIST 화염 데이터 · EIA 2024"
+      src: "일반적인 메탄 연소 특성"
     },
     calorific: {
       eyebrow: "총 발열량 · Calorific value",
@@ -2638,7 +2821,8 @@
     document.addEventListener("keydown", onDocKey);
     window.addEventListener("scroll", onWinScroll, { passive: true });
     window.addEventListener("resize", onWinResize);
-    window.addEventListener("pagehide", () => {
+    window.addEventListener("pagehide", e => {
+      if (e.persisted) return; // BFCache: page comes back with this state intact
       document.removeEventListener("click", onDocClick);
       document.removeEventListener("keydown", onDocKey);
       window.removeEventListener("scroll", onWinScroll);
@@ -3073,9 +3257,9 @@
       const panels = [
         { num: "266,000", unit: "m³",        kr: "탱커 1척 용량",    en: "Q-Max LNG carrier capacity",      src: "KOGAS, 2024" },
         { num: "18–22",   unit: "일",         kr: "전형적 항해 일수",  en: "Qatar / Australia → Incheon",      src: "MOTIE, 2024" },
-        { num: "80M",     unit: "m³/일",     kr: "동절기 일일 피크 수요", en: "Winter peak gas dispatch",      src: "KOGAS, 2024" },
+        { num: "1.7억",   unit: "m³/일",     kr: "연평균 일일 송출량", en: "Avg daily send-out, from 46 Mt/yr", src: "MOTIE · KOGAS, 2024 (derived)" },
         { num: "70",      unit: "bar",       kr: "주배관 운영 압력",  en: "Mainline operating pressure",     src: "KOGAS, 2024" },
-        { num: "1,950",   unit: "°C",        kr: "메탄 화염 온도",    en: "Adiabatic flame, CH₄ + 2O₂",      src: "NIST · EIA, 2024" },
+        { num: "1,950",   unit: "°C",        kr: "메탄 화염 온도",    en: "Adiabatic flame, CH₄ + 2O₂",      src: "Methane, stoichiometric" },
         { num: "10,500",  unit: "kcal/m³",  kr: "총 발열량 (HHV)",  en: "Korean city-gas calorific value", src: "KOGAS, 2024" }
       ];
 
@@ -3105,11 +3289,8 @@
         ctx.textAlign = "left";
         ctx.fillText(p.num, px + 24, py + 90);
 
-        // Unit
+        // Unit — measured in the number's own font so it hugs the digits
         ctx.fillStyle = PALETTE.inkDim;
-        ctx.font = 'italic 300 22px "Inter", sans-serif';
-        const numW = ctx.measureText(p.num).width;
-        ctx.font = '300 72px "Noto Serif KR", serif';
         const realNumW = ctx.measureText(p.num).width;
         ctx.font = 'italic 300 22px "Inter", sans-serif';
         ctx.fillText(p.unit, px + 24 + realNumW + 12, py + 86);
@@ -3157,7 +3338,7 @@
 
       ctx.fillStyle = PALETTE.muted;
       ctx.font = 'italic 300 18px "Inter", sans-serif';
-      ctx.fillText("One molecule. Sixteen days. One bowl of stew.", W / 2, footY + 62);
+      ctx.fillText("One molecule. Some twenty days. One bowl of stew.", W / 2, footY + 62);
 
       ctx.fillStyle = PALETTE.muted;
       ctx.font = '500 12px "JetBrains Mono", monospace';
@@ -3174,18 +3355,31 @@
       try {
         await loadFonts();
         const canvas = await buildPoster();
-        const url = canvas.toDataURL("image/png");
-        const a = document.createElement("a");
-        a.href = url;
+        const blob = await new Promise((res, rej) =>
+          canvas.toBlob(b => b ? res(b) : rej(new Error("toBlob failed")), "image/png"));
         const stamp = new Date().toISOString().slice(0, 10);
-        a.download = `molecule-journey-poster-${stamp}.png`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        const name = `molecule-journey-poster-${stamp}.png`;
+        const file = new File([blob], name, { type: "image/png" });
+        // Installed iOS PWAs (standalone) silently drop <a download>; the
+        // share sheet is the only route to Photos/Files there. Prefer it
+        // wherever file sharing is supported, fall back to a download link.
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: "가스의 여정 — 포스터" });
+        } else {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = name;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 5000);
+        }
         btn.textContent = "저장 완료 ✓";
         setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2200);
       } catch (err) {
-        btn.textContent = "오류 — 다시";
+        // User dismissed the share sheet — not an error, just reset.
+        btn.textContent = (err && err.name === "AbortError") ? orig : "오류 — 다시";
         setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2200);
       }
     });
