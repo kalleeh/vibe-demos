@@ -490,6 +490,215 @@
       line-height: 1.5;
     }
 
+    /* ── Structured patient header (optional fields above the narrative) ── */
+    .patient-head {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      align-items: flex-end;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.35);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+    }
+    .ph-field { display: flex; flex-direction: column; gap: 5px; }
+    .ph-field.grow { flex: 1 1 160px; min-width: 0; }
+    .ph-lbl {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9.5px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .ph-seg {
+      display: inline-flex;
+      background: rgba(255,255,255,0.4);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px;
+    }
+    .ph-seg button {
+      padding: 4px 11px;
+      min-height: 32px;
+      background: none;
+      border: none;
+      border-radius: 999px;
+      color: var(--muted);
+      font-family: "Noto Serif KR", serif;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .ph-seg button:hover { color: var(--ink); }
+    .ph-seg button.on { background: var(--ink); color: var(--paper); }
+    .ph-num { display: inline-flex; align-items: center; gap: 6px; }
+    .ph-num .unit { font-family: "Noto Serif KR", serif; font-size: 13px; color: var(--muted); }
+    .patient-head input {
+      background: rgba(255,255,255,0.45);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      padding: 7px 10px;
+      min-height: 38px;
+      font-family: "Noto Serif KR", serif;
+      font-weight: 300;
+      font-size: 14px;
+      color: var(--ink);
+      outline: none;
+      transition: border-color .2s;
+    }
+    .patient-head input:focus { border-color: var(--celadon); background: rgba(255,255,255,0.7); }
+    .patient-head input::placeholder { color: var(--faint); font-style: italic; }
+    .patient-head input[type="number"] { width: 76px; -moz-appearance: textfield; }
+    .patient-head input[type="number"]::-webkit-outer-spin-button,
+    .patient-head input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .patient-head input[type="text"] { width: 100%; }
+
+    /* Patient summary line echoed at the top of the brief (same string that is sent to the model). */
+    .patient-line {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.8px;
+      color: var(--ink-2);
+      padding: 7px 12px;
+      border-left: 2px solid var(--celadon);
+      background: rgba(255,255,255,0.45);
+      word-break: keep-all;
+    }
+
+    /* ── AI-state pill (shared convention across the AI demos) — exactly three states ── */
+    .ai-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      border: 1px solid var(--line-2);
+      background: rgba(255,255,255,0.4);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9.5px;
+      letter-spacing: 1.2px;
+      color: var(--muted);
+      align-self: center;
+      white-space: nowrap;
+    }
+    .ai-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .ai-pill.live     { color: var(--celadon-d); border-color: var(--celadon); background: rgba(107,148,130,0.10); }
+    .ai-pill.fallback { color: var(--rust); border-color: var(--rust); background: rgba(181,74,50,0.07); font-weight: 600; }
+    .ai-pill[hidden]  { display: none; }
+
+    /* ── First-run hint (mobile only, once) ── */
+    .first-hint {
+      display: none;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 14px 16px;
+      border: 1px dashed var(--celadon);
+      border-radius: 10px;
+      background: rgba(107,148,130,0.08);
+    }
+    .first-hint.on { display: flex; }
+    .first-hint .fh-copy { flex: 1; min-width: 0; }
+    .first-hint .fh-ko {
+      font-family: "Noto Serif KR", serif;
+      font-size: 14.5px;
+      font-weight: 500;
+      color: var(--ink);
+      line-height: 1.5;
+      word-break: keep-all;
+    }
+    .first-hint .fh-en {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 3px;
+      line-height: 1.4;
+    }
+    .first-hint .cm-close { width: 30px; height: 30px; font-size: 15px; }
+
+    /* ── 최근 기록 (private brief history, this device only) ── */
+    .hist-list { list-style: none; display: flex; flex-direction: column; }
+    .hist-list li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 4px;
+      border-bottom: 1px solid var(--line);
+    }
+    .hist-open {
+      flex: 1;
+      min-width: 0;
+      text-align: left;
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      font: inherit;
+      color: inherit;
+    }
+    .hist-open:hover .h-cc { color: var(--celadon-d); }
+    .h-meta {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9.5px;
+      letter-spacing: 1px;
+      color: var(--muted);
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .h-meta .tag { color: var(--celadon-d); }
+    .h-meta .tag.canned { color: var(--faint); }
+    .h-meta .tag.fallback { color: var(--rust); font-weight: 600; }
+    .h-cc {
+      font-family: "Noto Serif KR", serif;
+      font-size: 15px;
+      font-weight: 500;
+      margin-top: 2px;
+      transition: color .15s;
+    }
+    .h-pat {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .h-patient {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: var(--ink-2);
+      margin-top: 3px;
+      word-break: keep-all;
+    }
+    .hist-del {
+      flex: none;
+      background: none;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 10px;
+      min-height: 32px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9.5px;
+      letter-spacing: 1px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .hist-del:hover { background: var(--rust); border-color: var(--rust); color: var(--paper); }
+    .hist-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding-top: 14px;
+    }
+    .hist-foot .hf-note {
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: 13.5px;
+      color: var(--muted);
+    }
+
     /* Dictation status line (errors, unsupported browser) */
     .mic-status {
       font-family: "Noto Serif KR", serif;
@@ -1020,6 +1229,12 @@
       .complaints { grid-template-columns: 1fr; }
       .frame { padding: 0 18px; }
     }
+    /* Phones: the output header's pill + language toggle drop under the title
+       instead of squeezing "임상 브리프" / "Clinical brief" into two lines. */
+    @media (max-width: 600px) {
+      .panel-head { flex-wrap: wrap; }
+      .panel-head > div:last-child { width: 100%; justify-content: flex-start !important; }
+    }
 
     /* ── 사상체질 badge ── */
     .sasang {
@@ -1047,6 +1262,7 @@
     .sasang.tae-yang .glyph   { background: var(--rust); }
     .sasang.tae-eum .glyph    { background: #4a5b48; }
     .sasang.so-eum .glyph     { background: var(--celadon-d); }
+    .sasang.deferred .glyph   { background: var(--faint); }
     .sasang .name {
       font-family: "Noto Serif KR", serif;
       font-size: 15px;
@@ -1619,7 +1835,38 @@
           </div>
         </header>
 
+        <div class="first-hint" id="firstHint" role="note">
+          <div class="fh-copy">
+            <div class="fh-ko">증상을 말하거나 적으면 변증·처방·경혈 브리프를 만들어 드려요.</div>
+            <div class="fh-en">Speak or type the symptoms — a 변증 / formula / acupoint brief appears below.</div>
+          </div>
+          <button class="cm-close" id="firstHintClose" type="button" aria-label="닫기">×</button>
+        </div>
+
         <div class="input-area">
+          <div class="patient-head" id="patientHead" role="group" aria-label="환자 기본 정보 (선택)">
+            <div class="ph-field">
+              <span class="ph-lbl" id="phSexLbl">성별</span>
+              <div class="ph-seg" data-key="sex" role="group" aria-labelledby="phSexLbl">
+                <button type="button" data-v="남" aria-pressed="false">남</button><button type="button" data-v="여" aria-pressed="false">여</button><button type="button" data-v="기타" aria-pressed="false">기타</button>
+              </div>
+            </div>
+            <div class="ph-field">
+              <label class="ph-lbl" for="phAge">연령</label>
+              <span class="ph-num"><input type="number" id="phAge" min="0" max="120" inputmode="numeric" placeholder="—" autocomplete="off"><span class="unit">세</span></span>
+            </div>
+            <div class="ph-field">
+              <span class="ph-lbl" id="phBuildLbl">체형</span>
+              <div class="ph-seg" data-key="build" role="group" aria-labelledby="phBuildLbl">
+                <button type="button" data-v="마른" aria-pressed="false">마른</button><button type="button" data-v="보통" aria-pressed="false">보통</button><button type="button" data-v="튼튼" aria-pressed="false">튼튼</button>
+              </div>
+            </div>
+            <div class="ph-field grow">
+              <label class="ph-lbl" for="phMeds">복용 중인 약</label>
+              <input type="text" id="phMeds" maxlength="80" placeholder="예) 혈압약, 갑상선약" autocomplete="off" spellcheck="false">
+            </div>
+          </div>
+
           <textarea
             id="narrative"
             aria-label="환자 진술 · Patient narrative"
@@ -1635,6 +1882,7 @@
               진료 노트 생성 →
             </button>
             <button class="btn" id="clearBtn" type="button">Clear</button>
+            <button class="btn" id="historyBtn" type="button" title="이 기기에 남은 최근 브리프 (최대 10건)">최근 기록</button>
           </div>
           <div class="mic-status" id="micStatus" role="status" aria-live="polite"></div>
 
@@ -1642,7 +1890,8 @@
             <input type="checkbox" id="shareCase">
             <span>이 사례를 익명으로 공유 (진단명·처방만, 서술 제외)</span>
           </label>
-          <p class="privacy-note">라이브 모드에서는 서술이 분석을 위해 ai.pb.gurum.se 로 전송되며 저장되지 않습니다. 위 공유를 켜지 않으면 이 기기 밖에 다른 저장은 없습니다.</p>
+          <p class="privacy-note" id="aiDisclosure">입력 내용은 ai.pb.gurum.se 로 전송되며 저장되지 않습니다.</p>
+          <p class="privacy-note">(라이브 모드에서만 전송됩니다.) 위 공유를 켜지 않으면 이 기기 밖에 다른 저장은 없습니다. 「최근 기록」(최대 10건)은 이 기기의 브라우저에만 남고 업로드되지 않으며, 언제든 지울 수 있습니다.</p>
 
           <div class="examples">
             <span class="lbl">Example cases →</span>
@@ -1663,7 +1912,8 @@
             <h2>Clinical <em>brief</em></h2>
             <div class="ai-note">AI 보조 초안 · 한의사 검토 필요</div>
           </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;align-items:center;">
+            <span class="ai-pill" id="aiPill" role="status" aria-live="polite" hidden></span>
             <div class="lang-seg" id="langSeg" role="group" aria-label="브리프 언어">
               <button type="button" data-lang="ko" class="active" aria-pressed="true">한국어</button>
               <button type="button" data-lang="en" aria-pressed="false">English</button>
@@ -1788,6 +2038,21 @@
       </div>
     </div>
 
+    <!-- ── 최근 기록 overlay (private, this device only) ─────────── -->
+    <div class="cases-overlay" id="historyOverlay" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+      <div class="cases-modal">
+        <div class="cm-head">
+          <div>
+            <div class="lbl">05 · 최근 기록</div>
+            <h2 id="historyTitle">최근 <em>브리프</em></h2>
+            <span class="cm-demo-pill">이 기기에만 저장 · 최대 10건 · 업로드 없음</span>
+          </div>
+          <button class="cm-close" id="historyCloseBtn" type="button" aria-label="닫기">×</button>
+        </div>
+        <div class="cm-body" id="historyBody"></div>
+      </div>
+    </div>
+
     <div class="footer-note">
       <span>한방 Intake Companion · Live demo · 데모 도구입니다</span>
       <span><a href="../">← Back to Vibe Studio</a></span>
@@ -1804,6 +2069,13 @@
     "요즘 잠을 잘 못 자고, 손발이 차고, 소화도 잘 안 돼요. 피곤해도 자꾸 새벽에 깨고, 일어나면 더 무거워요. 식욕도 떨어졌어요.",
     "두 달 전부터 식후에 속이 더부룩하고 트림이 자주 나와요. 항상 피곤하고, 말하기도 귀찮을 때가 있어요. 대변도 묽고, 차가운 음식 먹으면 더 심해져요.",
     "오후만 되면 머리가 무겁고 어지러워요. 일어설 때 핑 돌고, 가끔 귀에서 소리가 나요. 잠은 자는데 꿈을 많이 꿔요. 입이 쓰고 마른 느낌이에요."
+  ];
+
+  // Plausible header values for each example — 소음인 / 태음인 / 소양인 pictures.
+  const EXAMPLE_PATIENTS = [
+    { sex: "여", age: "38", build: "마른", meds: "" },
+    { sex: "남", age: "52", build: "튼튼", meds: "혈압약" },
+    { sex: "여", age: "45", build: "보통", meds: "" }
   ];
 
   /* ───────────────────────────────────────────────
@@ -2031,11 +2303,74 @@
     liveMode: false,
     lang: "ko",
     currentBrief: null,
-    briefOpts: null,   // { live, fallback } the current brief was rendered with
+    briefOpts: null,   // { live, fallback, patient, fromHistory } the current brief was rendered with
     busy: false,
-    abort: null        // AbortController for the in-flight analyze()
+    abort: null,       // AbortController for the in-flight analyze()
+    patient: { sex: "", age: "", build: "", meds: "" }
   };
   const $ = s => document.querySelector(s);
+
+  /* ── Structured patient header ──
+     Optional 성별 / 연령 / 체형 / 복용약. Drafted to sessionStorage only — it is
+     patient-ish, so it must not outlive the tab. The one-line summary is prepended
+     to the narrative sent to the model and echoed on the brief / chart / text copy. */
+  const PATIENT_KEY = "vibe.intake-companion.patient";
+  const PATIENT_KEYS = ["sex", "age", "build", "meds"];
+  function patientSummary(p) {
+    p = p || {};
+    const parts = [];
+    if (p.sex) parts.push(p.sex);
+    const age = parseInt(p.age, 10);
+    if (Number.isFinite(age) && age >= 0 && age <= 120) parts.push(age + "세");
+    if (p.build) parts.push(p.build + " 체형");
+    const meds = String(p.meds || "").trim();
+    if (meds) parts.push("복용약: " + meds);
+    return parts.length ? "[환자: " + parts.join(", ") + "]" : "";
+  }
+  function savePatientDraft() {
+    try { sessionStorage.setItem(PATIENT_KEY, JSON.stringify(state.patient)); } catch (e) {}
+  }
+  function paintPatientHead() {
+    document.querySelectorAll("#patientHead .ph-seg").forEach(seg => {
+      const v = state.patient[seg.dataset.key] || "";
+      seg.querySelectorAll("button").forEach(b => {
+        const on = b.dataset.v === v;
+        b.classList.toggle("on", on);
+        b.setAttribute("aria-pressed", String(on));
+      });
+    });
+    $("#phAge").value = state.patient.age || "";
+    $("#phMeds").value = state.patient.meds || "";
+  }
+  function setPatient(p) {
+    PATIENT_KEYS.forEach(k => { state.patient[k] = (p && p[k] != null) ? String(p[k]) : ""; });
+    paintPatientHead();
+    savePatientDraft();
+  }
+  (function initPatientHead() {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(PATIENT_KEY) || "null");
+      if (saved && typeof saved === "object") PATIENT_KEYS.forEach(k => { if (typeof saved[k] === "string") state.patient[k] = saved[k]; });
+    } catch (e) {}
+    paintPatientHead();
+    // Segments: tap to select, tap again to clear.
+    document.querySelectorAll("#patientHead .ph-seg").forEach(seg => {
+      seg.addEventListener("click", e => {
+        const b = e.target.closest("button");
+        if (!b) return;
+        const k = seg.dataset.key;
+        state.patient[k] = state.patient[k] === b.dataset.v ? "" : b.dataset.v;
+        paintPatientHead();
+        savePatientDraft();
+      });
+    });
+    $("#phAge").addEventListener("input", e => {
+      const v = e.target.value.replace(/[^\d]/g, "").slice(0, 3);
+      state.patient.age = v;
+      savePatientDraft();
+    });
+    $("#phMeds").addEventListener("input", e => { state.patient.meds = e.target.value; savePatientDraft(); });
+  })();
 
   /* ── Top bar mode toggle ── */
   const topbar = $("#topbar");
@@ -2055,7 +2390,9 @@
   /* ── Examples ── */
   document.querySelectorAll(".examples button").forEach(b => {
     b.addEventListener("click", () => {
-      $("#narrative").value = EXAMPLES[parseInt(b.dataset.ex, 10)];
+      const i = parseInt(b.dataset.ex, 10);
+      $("#narrative").value = EXAMPLES[i];
+      setPatient(EXAMPLE_PATIENTS[i]);
       $("#narrative").focus();
     });
   });
@@ -2068,11 +2405,13 @@
     $("#printBar").style.display = "none";
     $("#copyFallback").style.display = "none";
     $("#emptyState").style.display = "flex";
+    $("#aiPill").hidden = true;
     const ap = $("#atlasPanel"); if (ap) ap.style.display = "none";
   }
   $("#clearBtn").addEventListener("click", () => {
     if (state.abort) state.abort.abort(); // cancels an in-flight analyze()
     $("#narrative").value = "";
+    setPatient(null); // Clear = new patient; the header draft goes too
     state.currentBrief = null;
     state.briefOpts = null;
     resetOutput();
@@ -2187,6 +2526,8 @@
 
   /* ── Analyze button ── */
   const analyzeBtn = $("#analyzeBtn");
+  const ANALYZE_IDLE = "진료 노트 생성 →";
+  const ANALYZE_BUSY = "분석 중…";
   analyzeBtn.addEventListener("click", analyze);
 
   const abortError = () => { const e = new Error("aborted"); e.name = "AbortError"; return e; };
@@ -2220,23 +2561,38 @@
     if (fallbackText) {
       const sub = document.createElement("div");
       sub.className = "sub";
-      sub.textContent = "원하시면 서술에 가장 가까운 예시 브리프를 대신 볼 수 있습니다 — 실제 분석이 아닙니다.";
+      sub.textContent = "예시 결과는 서술에 가장 가까운 예시 브리프이며 실제 분석이 아닙니다.";
       box.appendChild(sub);
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex;gap:8px;flex-wrap:wrap;";
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.className = "btn primary";
+      retry.textContent = "다시 시도";
+      retry.addEventListener("click", analyze);
+      row.appendChild(retry);
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "btn";
       btn.textContent = "예시 결과 보기";
       btn.addEventListener("click", () => {
-        const brief = CANNED_BRIEFS[matchExample(fallbackText)];
-        state.currentBrief = brief;
-        state.briefOpts = { live: false, fallback: true };
-        renderBrief(brief, state.briefOpts);
+        commitBrief(CANNED_BRIEFS[matchExample(fallbackText)], { live: false, fallback: true, patient: patientSummary(state.patient) });
       });
-      box.appendChild(btn);
+      row.appendChild(btn);
+      box.appendChild(row);
     }
     $("#outputSkeleton").style.display = "none";
     $("#emptyState").style.display = "none";
     box.style.display = "flex";
+  }
+
+  /* Render a freshly produced brief and file it in the private on-device history.
+     History re-opens call renderBrief() directly so they are never re-saved. */
+  function commitBrief(brief, opts) {
+    state.currentBrief = brief;
+    state.briefOpts = opts;
+    renderBrief(brief, opts);
+    historySave(brief, opts);
   }
 
   async function analyze() {
@@ -2249,24 +2605,25 @@
     state.abort = ctrl;
     state.busy = true;
     analyzeBtn.disabled = true;
+    analyzeBtn.textContent = ANALYZE_BUSY;
     $("#outputProgress").classList.add("on");
     showSkeleton(state.liveMode ? "도전 해결 중" : "예시 불러오는 중");
+    const patient = patientSummary(state.patient);
 
     try {
       let brief, opts;
       if (state.liveMode) {
-        brief = await callClaude(text, { signal: ctrl.signal, onStage: setStage });
-        opts = { live: true };
+        // The header summary rides in front of the narrative — one line the model can parse.
+        brief = await callClaude(patient ? patient + "\n" + text : text, { signal: ctrl.signal, onStage: setStage });
+        opts = { live: true, patient };
       } else {
         // Canned: pick the closest example, or default to case 0 if free-form
         await sleep(700, ctrl.signal); // simulate think
         brief = CANNED_BRIEFS[matchExample(text)];
-        opts = { live: false };
+        opts = { live: false, patient };
       }
       if (ctrl.signal.aborted) return;
-      state.currentBrief = brief;
-      state.briefOpts = opts;
-      renderBrief(brief, opts);
+      commitBrief(brief, opts);
       // Shared corpus is opt-in and live-only. Canned and fallback briefs are never uploaded.
       if (opts.live) {
         try { if (window.__caseOnBrief) window.__caseOnBrief(brief, { live: true, share: $("#shareCase").checked }); } catch (e) {}
@@ -2274,7 +2631,7 @@
     } catch (err) {
       if (err && err.name === "AbortError") return; // superseded by Clear / a newer Analyze
       if (err.status === 403 || err.status === 429 || err.status === 503) {
-        showError("라이브 서버가 잠시 바쁩니다 (" + err.status + ") — 잠시 후 다시 시도해 주세요.", text);
+        showError("라이브 서버가 잠시 바쁩니다 (" + err.status + ") — 다시 시도하거나 예시 결과를 볼 수 있어요", text);
       } else {
         showError((err && err.message) || "요청 실패 — 다시 시도해 주세요.", text);
       }
@@ -2283,6 +2640,7 @@
         state.abort = null;
         state.busy = false;
         analyzeBtn.disabled = false;
+        analyzeBtn.textContent = ANALYZE_IDLE;
         $("#outputProgress").classList.remove("on");
         $("#outputSkeleton").style.display = "none";
       }
@@ -2314,12 +2672,14 @@
     const t = (obj) => typeof obj === "string" ? obj : (obj[lang] || obj.ko);
     const et = (obj) => esc(t(obj));
 
-    const sasangSlug = (brief.sasang && brief.sasang.latin) ?
+    // "체질 판단 보류" — the model declined to guess a constitution (no build/age cues).
+    const sasangDeferred = !!(brief.sasang && brief.sasang.type === "체질 판단 보류");
+    const sasangSlug = sasangDeferred ? "deferred" : (brief.sasang && brief.sasang.latin) ?
       brief.sasang.latin.toLowerCase().replace(/[^a-z]+/g, "-") : "";
 
     const sasangHtml = brief.sasang ? `
       <div class="sasang ${sasangSlug}" title="${esc(brief.sasang.latin)}">
-        <span class="glyph">${esc((brief.sasang.type || "").charAt(0))}</span>
+        <span class="glyph">${sasangDeferred ? "?" : esc((brief.sasang.type || "").charAt(0))}</span>
         <span class="name">${esc(brief.sasang.type)}</span>
         <span class="conf">${et(brief.sasang.why)}</span>
       </div>
@@ -2344,8 +2704,19 @@
       </div>`;
     }
 
+    // AI-state pill — exactly three states, shared copy across the AI demos.
+    const pill = $("#aiPill");
+    pill.classList.remove("live", "fallback", "canned");
+    if (opts.live)          { pill.textContent = "라이브 · Claude";              pill.classList.add("live"); }
+    else if (opts.fallback) { pill.textContent = "예시 결과 · 실시간 연결 실패"; pill.classList.add("fallback"); }
+    else                    { pill.textContent = "예시 모드";                    pill.classList.add("canned"); }
+    pill.hidden = false;
+
+    const patientLine = opts.patient ? `<div class="patient-line">${esc(opts.patient)}</div>` : "";
+
     const html = `
       ${demoNote}
+      ${patientLine}
       <div class="section">
         <h3>주소 · Chief complaints</h3>
         <div class="complaints">
@@ -3014,6 +3385,17 @@
     return (FORMULA_HERBS[baseName] || []).map(([s, r]) => `${HERB_META[s] ? HERB_META[s].ko : s} (${ROLE_GLYPH[r]})`).join(" · ");
   }
   const sevDots = (c) => { const n = Math.max(0, Math.min(4, Number(c.sev) || 0)); return "●".repeat(n) + "○".repeat(4 - n); };
+  // History keeps the brief + header summary only — never the free-text narrative.
+  const HISTORY_NARRATIVE_NOTE = "— (최근 기록에서 불러옴 · 서술 원문은 저장되지 않음)";
+  // The patient summary always belongs to the brief being shown (opts), not to whatever
+  // is in the header right now; the narrative textarea is only trusted for a fresh brief.
+  function chartContext() {
+    const opts = state.briefOpts || {};
+    return {
+      patient: opts.patient || "",
+      narrative: opts.fromHistory ? "" : (document.getElementById("narrative").value || "").trim()
+    };
+  }
 
   function buildChartPrint(brief) {
     if (!brief) return;
@@ -3022,7 +3404,7 @@
     const et = (obj) => esc(t(obj));
     const { date, time } = chartStamp();
     const herbs = chartHerbs(brief);
-    const narrative = (document.getElementById("narrative").value || "").trim();
+    const { patient, narrative } = chartContext();
 
     // Every field below is model output in live mode — all interpolations go through esc()/et().
     const html = `
@@ -3040,7 +3422,8 @@
       <div class="ai-draft">${AI_DRAFT_LINE} · 생성 ${date} ${time}</div>
 
       <h3>환자 진술 · Patient narrative</h3>
-      <p>${narrative ? esc(narrative) : "—"}</p>
+      ${patient ? `<div class="field"><span class="k">환자</span>${esc(patient)}</div>` : ""}
+      <p>${narrative ? esc(narrative) : ((state.briefOpts && state.briefOpts.fromHistory) ? HISTORY_NARRATIVE_NOTE : "—")}</p>
 
       <div class="grid-2">
         <div>
@@ -3097,7 +3480,7 @@
     const t = (obj) => typeof obj === "string" ? obj : (obj && (obj[lang] || obj.ko)) || "";
     const { date, time } = chartStamp();
     const herbs = chartHerbs(brief);
-    const narrative = (document.getElementById("narrative").value || "").trim();
+    const { patient, narrative } = chartContext();
     const L = [];
     L.push("한방 진료 동반자 — Intake Companion");
     L.push("Korean Traditional Medicine — Clinical Brief (AI-assisted draft)");
@@ -3105,7 +3488,8 @@
     L.push(`${AI_DRAFT_LINE} · 생성 ${date} ${time}`);
     L.push("");
     L.push("[환자 진술 · Patient narrative]");
-    L.push(narrative || "—");
+    if (patient) L.push(patient);
+    L.push(narrative || ((state.briefOpts && state.briefOpts.fromHistory) ? HISTORY_NARRATIVE_NOTE : "—"));
     L.push("");
     L.push("[주소 · Chief complaints]");
     (brief.complaints || []).forEach(c => L.push(`- ${lang === "ko" ? c.ko : c.en} — ${sevDots(c)} · ${t(c.dur)}`));
@@ -3174,6 +3558,149 @@
   });
   window.addEventListener("afterprint", () => document.body.classList.remove("printing-chart"));
 
+  /* ───────────────────────────────────────────────
+     최근 기록 — private brief history, THIS DEVICE ONLY.
+     Last 10 full briefs in localStorage: brief JSON + header summary +
+     timestamp + live/canned/fallback flag. Never uploaded anywhere; the
+     narrative text is deliberately not kept.
+     ─────────────────────────────────────────────── */
+  const HISTORY_KEY = "vibe.intake-companion.history";
+  const HISTORY_MAX = 10;
+  function historyLoad() {
+    try {
+      const a = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+      return Array.isArray(a) ? a.filter(h => h && h.brief && h.brief.pattern) : [];
+    } catch (e) { return []; }
+  }
+  function historyWrite(items) {
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, HISTORY_MAX))); } catch (e) {}
+  }
+  function historySave(brief, opts) {
+    opts = opts || {};
+    const items = historyLoad();
+    items.unshift({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+      ts: Date.now(),
+      mode: opts.live ? "live" : (opts.fallback ? "fallback" : "canned"),
+      patient: opts.patient || "",
+      brief
+    });
+    historyWrite(items);
+  }
+  const MODE_LABEL = { live: "라이브 · Claude", fallback: "예시 결과 · 실시간 연결 실패", canned: "예시 모드" };
+  function historyStamp(ts) {
+    const d = new Date(ts);
+    const p = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+  const historyOverlay = $("#historyOverlay");
+  const historyBody = $("#historyBody");
+  let historyLastFocus = null;
+  function renderHistory() {
+    const items = historyLoad();
+    historyBody.innerHTML = ""; // rebuilt below with textContent only — stored briefs are model output
+    if (!items.length) {
+      const p = document.createElement("p");
+      p.className = "cm-empty";
+      p.textContent = "아직 기록이 없습니다 — 진료 노트를 생성하면 최근 10건이 이 기기에만 남습니다.";
+      historyBody.appendChild(p);
+      return;
+    }
+    const ul = document.createElement("ul");
+    ul.className = "hist-list";
+    items.forEach(h => {
+      const li = document.createElement("li");
+      const open = document.createElement("button");
+      open.type = "button";
+      open.className = "hist-open";
+      const meta = document.createElement("div");
+      meta.className = "h-meta";
+      const when = document.createElement("span");
+      when.textContent = historyStamp(h.ts);
+      const tag = document.createElement("span");
+      tag.className = "tag " + (h.mode || "canned");
+      tag.textContent = MODE_LABEL[h.mode] || MODE_LABEL.canned;
+      meta.appendChild(when); meta.appendChild(tag);
+      const cc = document.createElement("div");
+      cc.className = "h-cc";
+      const c0 = Array.isArray(h.brief.complaints) && h.brief.complaints[0];
+      cc.textContent = (c0 && (c0.ko || c0.en)) || "—";
+      const pat = document.createElement("div");
+      pat.className = "h-pat";
+      pat.textContent = (h.brief.pattern && h.brief.pattern.ko) || "—";
+      open.appendChild(meta); open.appendChild(cc); open.appendChild(pat);
+      if (h.patient) {
+        const pl = document.createElement("div");
+        pl.className = "h-patient";
+        pl.textContent = h.patient;
+        open.appendChild(pl);
+      }
+      open.addEventListener("click", () => {
+        if (state.abort) state.abort.abort();
+        state.currentBrief = h.brief;
+        state.briefOpts = { live: h.mode === "live", fallback: h.mode === "fallback", patient: h.patient || "", fromHistory: true };
+        renderBrief(h.brief, state.briefOpts);
+        closeHistory();
+        const out = $("#outputArea");
+        if (out) out.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "hist-del";
+      del.textContent = "삭제";
+      del.setAttribute("aria-label", "이 기록 삭제");
+      del.addEventListener("click", () => {
+        historyWrite(historyLoad().filter(x => x.id !== h.id));
+        renderHistory();
+      });
+      li.appendChild(open); li.appendChild(del);
+      ul.appendChild(li);
+    });
+    historyBody.appendChild(ul);
+    const foot = document.createElement("div");
+    foot.className = "hist-foot";
+    const note = document.createElement("span");
+    note.className = "hf-note";
+    note.textContent = "이 기록은 이 기기 브라우저에만 저장되며 어디에도 업로드되지 않습니다.";
+    const all = document.createElement("button");
+    all.type = "button";
+    all.className = "btn";
+    all.textContent = "모두 지우기";
+    all.addEventListener("click", () => { historyWrite([]); renderHistory(); });
+    foot.appendChild(note); foot.appendChild(all);
+    historyBody.appendChild(foot);
+  }
+  function openHistory() {
+    historyLastFocus = document.activeElement;
+    renderHistory();
+    historyOverlay.classList.add("live");
+    $("#historyCloseBtn").focus();
+  }
+  function closeHistory() {
+    if (!historyOverlay.classList.contains("live")) return;
+    historyOverlay.classList.remove("live");
+    if (historyLastFocus && typeof historyLastFocus.focus === "function") historyLastFocus.focus();
+    historyLastFocus = null;
+  }
+  $("#historyBtn").addEventListener("click", openHistory);
+  $("#historyCloseBtn").addEventListener("click", closeHistory);
+  historyOverlay.addEventListener("click", e => { if (e.target === historyOverlay) closeHistory(); });
+  window.addEventListener("keydown", e => { if (e.key === "Escape") closeHistory(); });
+
+  /* ── First-run hint — phones only (≤600px), shown once per device ── */
+  (function initFirstHint() {
+    const HINT_KEY = "vibe.intake-companion.hinted";
+    const card = $("#firstHint");
+    let seen = false;
+    try { seen = localStorage.getItem(HINT_KEY) === "1"; } catch (e) {}
+    if (seen || !window.matchMedia("(max-width: 600px)").matches) return;
+    card.classList.add("on");
+    $("#firstHintClose").addEventListener("click", () => {
+      card.classList.remove("on");
+      try { localStorage.setItem(HINT_KEY, "1"); } catch (e) {}
+    });
+  })();
+
   /* Boot the static figure layers */
   initAtlas();
   initWuxing();
@@ -3209,7 +3736,7 @@
         sasang: {
           type: "object",
           properties: {
-            type: { type: "string", enum: ["태양인", "소양인", "태음인", "소음인"] },
+            type: { type: "string", enum: ["태양인", "소양인", "태음인", "소음인", "체질 판단 보류"] },
             latin: { type: "string" },
             why: whyObj
           },
@@ -3338,7 +3865,7 @@ You are a licensed 한의사 (한국 한의학 전문의) practising in Korea. Y
 
 <reasoning_order>
 Reason silently in this order before producing JSON:
-1. **사상체질 inference.** From build, temperament, sleep, digestion, sweat patterns in the narrative, infer likely 체질: 태양인 / 소양인 / 태음인 / 소음인. If the narrative is silent on constitution-defining cues, default to a working hypothesis and let it shape formula choice.
+1. **사상체질 inference.** The narrative may open with a bracketed patient line — "[환자: 성별, 연령, 체형, 복용약: …]". When 체형 (build) and/or 연령 (age) are given there, use them as primary constitutional cues together with temperament, sleep, digestion, and sweat patterns in the narrative, and infer 태양인 / 소양인 / 태음인 / 소음인. When build and age are absent AND the narrative is silent on constitution-defining cues, do NOT guess: set sasang.type to "체질 판단 보류" (latin "Deferred") and say in sasang.why which cue would decide it. A committed 체질 shapes formula choice; a deferred one does not. If 복용약 lists a medication, respect it in the 처방 note (예: 항응고제 복용 시 활혈 약재 신중).
 2. **팔강 변증.** 음양 / 한열 / 표리 / 허실. Anchor the case here first.
 3. **장부 변증.** Identify the primary 장부 involvement (간/심/비/폐/신 + 담/소장/위/대장/방광/삼초). Name it precisely (예: 비기허 not "digestive weakness").
 4. **기혈진액.** State which of 기·혈·진액·정 are 허/체/울/어.
@@ -3402,7 +3929,7 @@ Use the international code in the 'code' field with a single space (ST 36, BL 20
 
 <output_constraints>
 - complaints: 4-6 items. Each is a clinically-named symptom group, not a verbatim quote.
-- sasang: exactly 1. type ∈ {태양인, 소양인, 태음인, 소음인}. Latin is the WHO-style romanization (Tae-yang / So-yang / Tae-eum / So-eum).
+- sasang: exactly 1. type ∈ {태양인, 소양인, 태음인, 소음인, 체질 판단 보류}. Latin is the WHO-style romanization (Tae-yang / So-yang / Tae-eum / So-eum), or "Deferred" for 체질 판단 보류.
 - pattern: exactly 1. Korean name in 'ko' (may be a "·"-joined dual pattern). 'latin' is the scholarly English form.
 - tongue: exactly 1. color ∈ {담홍, 홍, 담백, 자, 청, 암홍}. shape may include 반대 / 수척 / 치흔 / 정상. coating ∈ {박백, 백, 백니, 후니, 박황, 황, 황니, 회, 흑}. Choose the closest single canonical token, even if the case is mixed.
 - pulse: exactly 1. Each of the six cells (left[0..2], right[0..2]) is { "type": <한글 단일자>, "han": <漢字 단일자> }. Allowed types: 부浮·침沉·지遲·삭數·현弦·활滑·세細·약弱·유濡·완緩·긴緊·허虛.
@@ -3423,8 +3950,8 @@ Return your brief by calling the clinical_brief tool — its input is the struct
     { "ko": "<한글 증상명>", "en": "<English symptom>", "sev": 1|2|3|4, "dur": { "ko": "<지속기간>", "en": "<duration phrase>" } }
   ],
   "sasang": {
-    "type": "<태양인 | 소양인 | 태음인 | 소음인>",
-    "latin": "<Tae-yang | So-yang | Tae-eum | So-eum>",
+    "type": "<태양인 | 소양인 | 태음인 | 소음인 | 체질 판단 보류>",
+    "latin": "<Tae-yang | So-yang | Tae-eum | So-eum | Deferred>",
     "why": { "ko": "<1문장 — 체질 단서>", "en": "<1 sentence>" }
   },
   "pattern": {
