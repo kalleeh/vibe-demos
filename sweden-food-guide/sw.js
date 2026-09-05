@@ -1,5 +1,5 @@
 /* sweden-food-guide — minimal offline shell SW */
-const CACHE = "vibe-sweden-food-guide-v9";
+const CACHE = "vibe-sweden-food-guide-v10";
 // Dish photos are NOT precached — they're lazy-loaded and picked up by the
 // runtime cache below the first time each tab is viewed.
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
