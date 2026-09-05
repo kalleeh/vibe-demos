@@ -1,14 +1,8 @@
 /* sweden-food-guide — minimal offline shell SW */
-const CACHE = "vibe-sweden-food-guide-v8";
-const SHELL = [
-  "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
-  // First-tab dish photos so the initial paint is instant offline.
-  // The rest are picked up by the runtime cache as the user switches tabs.
-  "./images/kottbullar.jpg",
-  "./images/pyttipanna.jpg",
-  "./images/raggmunk.jpg",
-  "./images/renskav.jpg"
-];
+const CACHE = "vibe-sweden-food-guide-v9";
+// Dish photos are NOT precached — they're lazy-loaded and picked up by the
+// runtime cache below the first time each tab is viewed.
+const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });
