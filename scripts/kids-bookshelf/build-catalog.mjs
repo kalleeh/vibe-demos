@@ -12,6 +12,9 @@ const THEME_VOCAB = ["공룡","우주","동물","공주","자동차","탈것","�
 const MOOD_VOCAB  = ["웃긴","따뜻한","모험","학습","잔잔한"];
 const AGES = ["0-2","3-4","5-6","7-9"];
 const LEVELS = ["보드북","그림책","책읽기","초기챕터북"];
+// Neutral quality prior for entries the model didn't score. app.js scoreBook() uses the
+// same 0.7 for hand-appended books that omit `quality` — keep the two in sync.
+const DEFAULT_QUALITY = 0.7;
 
 const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
 
@@ -118,7 +121,7 @@ async function main(){
       ages: tags.ages, level: tags.level, themes: tags.themes, mood: tags.mood,
       blurb: tags.blurb, readAloud: tags.readAloud,
       cover: { emoji: tags.coverEmoji, palette: tags.palette },
-      quality: Math.max(0, Math.min(1, Number(tags.quality)||0.5)),
+      quality: Math.max(0, Math.min(1, Number(tags.quality)||DEFAULT_QUALITY)),
       real: tags.real, confidence: tags.confidence, source: "curated"
     });
     ok++;
@@ -129,6 +132,8 @@ async function main(){
 }
 
 // --- verification: sampled Open Library check for EN ISBNs (build-time integrity signal) ---
+// Any sampled ISBN that Open Library doesn't resolve (or that can't be fetched) FAILS the
+// build: an unresolvable ISBN is exactly the fabrication signal this pipeline exists to catch.
 async function verifySampleEN(entries, sampleSize){
   const en = entries.filter(e=>e.lang==="en" && e.isbn);
   const step = Math.max(1, Math.floor(en.length / sampleSize));
@@ -140,8 +145,20 @@ async function verifySampleEN(entries, sampleSize){
     catch(err){ bad.push(`${e.title} → ${err.message}`); }
   }
   console.log(`OL sample check: ${ok}/${sample.length} resolved`);
-  if(bad.length) console.warn("unresolved sample:\n  "+bad.join("\n  "));
+  if(bad.length){
+    console.error("OL sample check FAILED — unresolved ISBNs (fix the source row or add the title to sources/blocklist.json):\n  "+bad.join("\n  "));
+    process.exit(1);
+  }
   return { ok, total: sample.length };
+}
+
+// Human-approved exclusions. The model's `real`/`confidence` flags are advisory only —
+// the build never drops a title on its own. Keys are "<lang>|<title>", matching the dedupe key.
+function loadBlocklist(){
+  const p = path.join(HERE,"sources/blocklist.json");
+  if(!fs.existsSync(p)) return new Set();
+  const j = JSON.parse(fs.readFileSync(p,"utf8"));
+  return new Set(Array.isArray(j.blocked) ? j.blocked : []);
 }
 
 function sanitizeTags(e){
@@ -164,15 +181,28 @@ function loadExistingCatalog(){
   const g = {};
   // the file does `window.X = ...`; run it with a fake window
   new Function("window", cur)(g);
-  return (g.BOOKS||[]).map(b=>({ ...b, quality: (typeof b.quality==="number"?b.quality:0.7) }));
+  // vocab drift guard: this script is the source of truth for THEME/MOOD vocab and
+  // re-emits it; if someone hand-edited catalog.js's vocab, stop before silently overwriting.
+  const same = (a,b) => JSON.stringify(a) === JSON.stringify(b);
+  if (g.THEME_VOCAB && !same(g.THEME_VOCAB, THEME_VOCAB)) throw new Error("THEME_VOCAB in catalog.js differs from build-catalog.mjs — reconcile before emitting");
+  if (g.MOOD_VOCAB  && !same(g.MOOD_VOCAB,  MOOD_VOCAB))  throw new Error("MOOD_VOCAB in catalog.js differs from build-catalog.mjs — reconcile before emitting");
+  return (g.BOOKS||[]).map(b=>({ ...b, quality: (typeof b.quality==="number"?b.quality:DEFAULT_QUALITY) }));
 }
 
 function emitCatalog(){
   const enriched = JSON.parse(fs.readFileSync(path.join(HERE,"enriched.json"),"utf8"));
   const existing = loadExistingCatalog();
+  const blocked = loadBlocklist();
 
-  // keep enriched entries: drop ONLY if (real===false AND confidence<0.5)
-  const kept = enriched.filter(e => !(e.real===false && (e.confidence==null || e.confidence < 0.5)));
+  // Never auto-drop on the model's `real`/`confidence` — the flag is unreliable (it has
+  // marked real titles false). Print the flagged list for a human to review; only titles
+  // listed in sources/blocklist.json are actually excluded.
+  const flagged = enriched.filter(e => e.real===false || (typeof e.confidence==="number" && e.confidence < 0.5));
+  if (flagged.length){
+    console.log(`${flagged.length} enriched entries flagged by the model (real=false or confidence<0.5) — review; add to sources/blocklist.json to exclude:`);
+    for (const e of flagged) console.log(`  ${blocked.has(e.lang+"|"+e.title) ? "[blocked] " : ""}${e.lang}|${e.title} — ${e.author} (real=${e.real}, confidence=${e.confidence})`);
+  }
+  const kept = enriched.filter(e => !blocked.has(e.lang+"|"+e.title));
   const dropped = enriched.length - kept.length;
 
   const seen = new Set(existing.map(b=>b.lang+"|"+b.title));
@@ -187,7 +217,7 @@ function emitCatalog(){
       ages: clean.ages, level: clean.level, themes: clean.themes, mood: clean.mood,
       blurb: String(e.blurb||"").trim(), readAloud: String(e.readAloud||"").trim(),
       cover: { emoji: (e.cover&&e.cover.emoji)||"📖", palette: (e.cover&&Array.isArray(e.cover.palette)&&e.cover.palette.length?e.cover.palette:["#ffe9c7","#fff"]) },
-      quality: Math.max(0, Math.min(1, typeof e.quality==="number"?e.quality:0.5)),
+      quality: Math.max(0, Math.min(1, typeof e.quality==="number"?e.quality:DEFAULT_QUALITY)),
       source: "curated"
     });
   }
@@ -203,7 +233,7 @@ function emitCatalog(){
     + `window.BOOKS = ${JSON.stringify(final, null, 1)};\n`;
   fs.writeFileSync(path.join(HERE,"../../kids-bookshelf/catalog.js"), header + body);
   const ko=final.filter(b=>b.lang==="ko").length, en=final.filter(b=>b.lang==="en").length;
-  console.log(`emitted catalog.js: ${final.length} books (ko ${ko}, en ${en}); dropped ${dropped} low-confidence`);
+  console.log(`emitted catalog.js: ${final.length} books (ko ${ko}, en ${en}); excluded ${dropped} via sources/blocklist.json`);
 }
 
 // entry-point switch

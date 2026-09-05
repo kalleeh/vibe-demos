@@ -1,6 +1,5 @@
 /* 책친구 — app logic. Reads window.BOOKS / THEME_VOCAB / MOOD_VOCAB from catalog.js. */
 "use strict";
-// (filled in Tasks 3–5)
 
 // Hand-drawn crayon icons (SD3.5-generated, bg-removed) live in ./icons/<key>.png.
 // Map each theme/mood to its icon key; missing keys fall back to a label-only chip.
@@ -13,29 +12,42 @@ const MOOD_ICON = { "웃긴":"yumeo","따뜻한":"mood-ttaseuthan","모험":"moh
 
 // Free-text → signal lexicon. Maps words a parent types in the note to theme/mood nudges.
 // Deterministic, offline — this is how the note steers recs without any model.
+// Matching rules (see matchKw): Korean keys are substrings but MUST be 2+ syllables —
+// single syllables (화, 별, 잠, 먹, 곰) fire on unrelated words ("동화책" → 감정, "특별한" → 우주).
+// Latin keys match whole words only ("scary" must not hit "car", "planet" must not hit "plane").
 const NOTE_LEXICON = [
-  { kw: ["공룡","티라노","브라키오","다이노","dino","dinosaur"], theme:"공룡" },
-  { kw: ["우주","로켓","행성","별","space","rocket","planet"], theme:"우주" },
-  { kw: ["동물","강아지","고양이","토끼","곰","사자","animal","puppy","cat"], theme:"동물" },
-  { kw: ["공주","왕자","드레스","princess"], theme:"공주" },
-  { kw: ["자동차","부릉","car"], theme:"자동차" },
-  { kw: ["기차","버스","비행기","탈것","train","bus","plane"], theme:"탈것" },
-  { kw: ["그림","색칠","크레용","draw","paint","color"], theme:"그림그리기" },
-  { kw: ["잠","자기 전","잠들기","재우","잠자리","bedtime","sleep"], theme:"잠자리", mood:"잔잔한" },
+  { kw: ["공룡","티라노","브라키오","다이노","dino","dinos","dinosaur","dinosaurs"], theme:"공룡" },
+  { kw: ["우주","로켓","행성","별님","별자리","별들","별을","별이","space","rocket","rockets","planet","planets","stars"], theme:"우주" },
+  { kw: ["동물","강아지","고양이","토끼","곰돌이","곰 인형","북극곰","사자","animal","animals","puppy","puppies","cat","cats","dog","dogs"], theme:"동물" },
+  { kw: ["공주","왕자","드레스","princess","princesses"], theme:"공주" },
+  { kw: ["자동차","부릉","car","cars"], theme:"자동차" },
+  { kw: ["기차","버스","비행기","탈것","train","trains","bus","buses","plane","planes"], theme:"탈것" },
+  { kw: ["그리기","그림 그리","색칠","크레용","낙서","draw","drawing","paint","painting","color","colors","colour","colours"], theme:"그림그리기" },
+  { kw: ["잠자","잠들","잠들기","자기 전","재우","잠자리","낮잠","bedtime","sleep","sleepy"], theme:"잠자리", mood:"잔잔한" },
   { kw: ["자연","숲","나무","꽃","바다","nature","forest"], theme:"자연" },
-  { kw: ["음식","먹","요리","빵","과자","food","eat"], theme:"음식" },
-  { kw: ["가족","엄마","아빠","할머니","형제","family"], theme:"가족" },
-  { kw: ["친구","우정","friend"], theme:"친구" },
-  { kw: ["감정","마음","화","슬픔","무서","feeling","emotion"], theme:"감정" },
+  { kw: ["음식","먹는","먹을","먹기","요리","빵","과자","간식","food","eat","eating"], theme:"음식" },
+  { kw: ["가족","엄마","아빠","할머니","할아버지","형제","family"], theme:"가족" },
+  { kw: ["친구","우정","friend","friends"], theme:"친구" },
+  { kw: ["감정","마음","화나","화가 나","슬픔","슬퍼","무서","feeling","feelings","emotion","emotions"], theme:"감정" },
   { kw: ["환상","마법","요정","상상","fantasy","magic"], theme:"환상" },
   { kw: ["일상","하루","어린이집","유치원","daily","routine"], theme:"일상" },
-  { kw: ["모험","탐험","여행","adventure","explore"], theme:"모험", mood:"모험" },
-  { kw: ["숫자","글자","한글","abc","number","letter","알파벳"], theme:"숫자/글자", mood:"학습" },
+  { kw: ["모험","탐험","여행","adventure","adventures","explore"], theme:"모험", mood:"모험" },
+  { kw: ["숫자","글자","한글","알파벳","abc","number","numbers","letter","letters"], theme:"숫자/글자", mood:"학습" },
   { kw: ["웃긴","까르르","웃겨","재밌","funny","laugh"], theme:"유머", mood:"웃긴" },
   { kw: ["따뜻","포근","사랑","warm","cozy"], mood:"따뜻한" },
-  { kw: ["배우","공부","교육","learn","educational"], mood:"학습" },
+  { kw: ["배우","공부","교육","learn","learning","educational"], mood:"학습" },
   { kw: ["무서워","무서운","scary","afraid"], mood:"모험", dir:-1 }, // downweight scary/adventure
 ];
+
+const LATIN_RE_CACHE = new Map();
+function matchKw(noteLower, k){
+  if (/^[a-z]/i.test(k)){
+    let re = LATIN_RE_CACHE.get(k);
+    if (!re){ re = new RegExp("\\b" + k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "i"); LATIN_RE_CACHE.set(k, re); }
+    return re.test(noteLower);
+  }
+  return noteLower.includes(k.toLowerCase());
+}
 
 // Returns {themes:{theme:weight}, moods:{mood:weight}} derived from the note text.
 function lexiconSignals(note){
@@ -43,7 +55,7 @@ function lexiconSignals(note){
   if(!note) return out;
   const n = note.toLowerCase();
   for(const e of NOTE_LEXICON){
-    if(e.kw.some(k => n.includes(k.toLowerCase()))){
+    if(e.kw.some(k => matchKw(n, k))){
       const w = (e.dir===-1) ? -1 : 1;
       if(e.theme) out.themes[e.theme] = (out.themes[e.theme]||0) + w;
       if(e.mood)  out.moods[e.mood]   = (out.moods[e.mood]||0) + w;
@@ -57,11 +69,11 @@ function chip(val, iconKey, pressed, label){
   return `<button type="button" class="chip${iconKey?" has-ic":""}" data-val="${val}" aria-pressed="${pressed?"true":"false"}">${img}<span class="chip-tx">${label || val}</span></button>`;
 }
 
-// Age & gender groups (static vocab, label-only); themes & moods get crayon icons.
+// Age bands (static vocab, label-only); themes & moods get crayon icons.
+// No gender input: books carry no gender field (tagging picture books by gender would
+// bake in stereotypes), so a gender chip would be a dead input.
 const AGE_BANDS = ["0-2","3-4","5-6","7-9"];
-const GENDERS = ["남아","여아","상관없음"];
 document.getElementById("ageChips").innerHTML    = AGE_BANDS.map(a => chip(a, "", false, a + "세")).join("");
-document.getElementById("genderChips").innerHTML = GENDERS.map(g => chip(g, "", g==="상관없음")).join("");
 document.getElementById("themeChips").innerHTML  = window.THEME_VOCAB.map(t => chip(t, THEME_ICON[t]||"", false)).join("");
 document.getElementById("moodChips").innerHTML   = window.MOOD_VOCAB.map(m => chip(m, MOOD_ICON[m]||"", false)).join("");
 
@@ -71,38 +83,39 @@ function wireGroup(containerId, single){
     const b = e.target.closest(".chip"); if(!b) return;
     if (single) el.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c===b ? "true":"false"));
     else b.setAttribute("aria-pressed", b.getAttribute("aria-pressed")==="true" ? "false":"true");
+    if (containerId === "ageChips") document.getElementById("ageHint").hidden = true;
   });
 }
-["ageChips","genderChips"].forEach(id => wireGroup(id, true));
+wireGroup("ageChips", true);
 ["themeChips","moodChips"].forEach(id => wireGroup(id, false));
 
 function readProfile(){
   const sel = (id) => [...document.getElementById(id).querySelectorAll('.chip[aria-pressed="true"]')].map(c=>c.dataset.val);
   return {
     age: sel("ageChips")[0] || null,
-    gender: sel("genderChips")[0] || "상관없음",
     themes: sel("themeChips"),
     moods: sel("moodChips"),
     note: (document.getElementById("noteBox").value||"").trim()
   };
 }
 
+// "exact" | "adj" | "far" — how a book's age bands sit relative to the picked band.
+function ageFit(b, age){
+  if (b.ages.includes(age)) return "exact";
+  const pi = AGE_BANDS.indexOf(age);
+  return b.ages.some(a => Math.abs(AGE_BANDS.indexOf(a)-pi)===1) ? "adj" : "far";
+}
+
 // Deterministic fit score. Higher = better. Uses age curve, weighted theme/mood match,
 // the note lexicon, and a small build-time quality prior. No model, no randomness here
 // (reroll variety lives in pickVaried); a tiny id tiebreak keeps equal scores stable.
 function scoreBook(b, p){
-  // p.gender is deliberately NOT scored: books carry no gender field (tagging picture
-  // books by gender would bake in stereotypes). It only flavors the AI-mode prompt.
   let s = 0;
-  // age: exact band best, adjacent soft, far penalized (soft gate, not hard)
+  // age: exact band must outrank ANY single theme hit (primary theme = +4), so a
+  // 3-4 dinosaur book can't beat a 0-2 book for a 0-2 child. Adjacent soft, far penalized.
   if (p.age){
-    if (b.ages.includes(p.age)) s += 5;
-    else {
-      const order = ["0-2","3-4","5-6","7-9"];
-      const pi = order.indexOf(p.age);
-      const adj = b.ages.some(a => Math.abs(order.indexOf(a)-pi)===1);
-      s += adj ? 1.5 : -4;
-    }
+    const fit = ageFit(b, p.age);
+    s += fit === "exact" ? 8 : fit === "adj" ? 1.5 : -4;
   }
   // themes: primary (first listed) match weighted higher than secondary matches
   const picked = new Set(p.themes||[]);
@@ -116,8 +129,9 @@ function scoreBook(b, p){
   const sig = lexiconSignals(p.note);
   for (const t of (b.themes||[])) if (sig.themes[t]) s += sig.themes[t] * 2.5;
   for (const m of (b.mood||[])) if (sig.moods[m]) s += sig.moods[m] * 1.5;
-  // build-time quality prior: small nudge so classics surface (range ~0..1.2)
-  s += (typeof b.quality === "number" ? b.quality : 0.5) * 1.2;
+  // build-time quality prior: small nudge so classics surface (range ~0..1.2).
+  // 0.7 is the same neutral default the build pipeline assigns.
+  s += (typeof b.quality === "number" ? b.quality : 0.7) * 1.2;
   // stable tiny tiebreak
   s += (b.id.charCodeAt(b.id.length-1) % 7) * 0.01;
   return s;
@@ -125,7 +139,7 @@ function scoreBook(b, p){
 
 let shuffleSalt = 0;
 
-/* ── Task 4: rendering, crayon SVG covers, Open Library swap, varied reroll ── */
+/* ── rendering, crayon SVG covers, Open Library swap, varied reroll ── */
 
 // A crayon mini-book cover: framed rect, emoji, title. Always renders, never breaks.
 function svgCover(b){
@@ -142,12 +156,22 @@ function svgCover(b){
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
 
+// Where to actually find the book: 알라딘 title search for Korean titles, Open Library
+// for English (by ISBN when we have one, else a title search).
+function findLink(b){
+  if (b.lang === "ko") return { href: "https://www.aladin.co.kr/search/wsearchresult.aspx?SearchWord=" + encodeURIComponent(b.title), label: "알라딘에서 찾기 →" };
+  const href = b.isbn ? "https://openlibrary.org/isbn/" + encodeURIComponent(b.isbn)
+                      : "https://openlibrary.org/search?q=" + encodeURIComponent(b.title);
+  return { href, label: "Open Library에서 보기 →" };
+}
+
 const FLAG = { ko:"🇰🇷", en:"🇬🇧" };
 function cardHtml(b, pending){
   const lvl = escapeHtml(b.level);
   const meta = escapeHtml(b.author) + (b.publisher ? " · " + escapeHtml(b.publisher) : "");
-  // pending = this card's AI reason/tip is still being written (per-book progressive load)
+  // pending = this card's AI reason/tip is still being written
   const badge = pending ? `<span class="aibadge">✨ AI 다듬는 중…</span>` : "";
+  const link = findLink(b);
   return `<article class="bookcard${pending?" ai-pending":""}" data-bookid="${escapeHtml(b.id)}" data-isbn="${b.lang==="en" && b.isbn ? escapeHtml(b.isbn) : ""}">
     <div class="cover">${svgCover(b)}</div>
     <div class="info">
@@ -157,11 +181,12 @@ function cardHtml(b, pending){
       <div class="bmeta">${meta}</div>
       <p class="why"><b>왜 이 책일까요?</b> <span class="why-tx">${escapeHtml(b.blurb)}</span></p>
       <p class="tip"><b>함께 읽기 팁</b> <span class="tip-tx">${escapeHtml(b.readAloud)}</span></p>
+      <a class="findlink" href="${escapeHtml(link.href)}" target="_blank" rel="noopener">${link.label}</a>
     </div>
   </article>`;
 }
 
-// Patch one already-rendered card in place when its per-book AI result arrives.
+// Patch one already-rendered card in place when its AI result arrives.
 function patchCard(id, upd){
   const card = document.querySelector(`#results .bookcard[data-bookid="${cssEsc(id)}"]`);
   if (!card) return;
@@ -183,8 +208,10 @@ function renderResults(books, opts){
   const wrap = document.getElementById("results");
   const label = opts.modeLabel ? `<span class="demo-pill">${escapeHtml(opts.modeLabel)}</span>` : "";
   const pend = opts.pending instanceof Set ? opts.pending : null;
-  wrap.innerHTML = `<div class="resbar"><span>${books.length}권 추천${label}</span>
-    <button id="reroll" class="reroll" type="button">다시 추천 🎲</button></div>
+  // aria-live sits on the count only — announcing the whole grid on every reroll is noisy.
+  wrap.innerHTML = `<div class="resbar"><span aria-live="polite">${books.length}권 추천${label}</span>
+    <span class="btns"><button id="copyLink" class="reroll copy" type="button">링크 복사 🔗</button>
+    <button id="reroll" class="reroll" type="button">다시 추천 🎲</button></span></div>
     <div class="grid">${books.map((b,i) => `<div class="cardwrap" style="--i:${i}">${cardHtml(b, pend ? pend.has(b.id) : false)}</div>`).join("")}</div>`;
   // lazy real-cover swap (English ISBNs only). Open Library; silent fallback to SVG.
   swapCovers(wrap);
@@ -216,10 +243,15 @@ function pickVaried(sortedPool, n, poolSize){
 // repeating the same PRIMARY theme. Keeps strong fits but spreads across themes so
 // results aren't 6 near-identical books. Themes the user EXPLICITLY picked get a cap
 // of 2 instead of 1 — diversity shouldn't fight stated intent ("공룡 좋아해요" should
-// surface more than one dino book).
-function pickDiverse(sortedPool, n, pickedThemes){
+// surface more than one dino book). When the exact-age pool is thin (fewer distinct
+// primary themes than slots — the 0-2 shelf is mostly 동물), the cap relaxes so we
+// repeat a theme inside the right age band rather than leave the band for variety.
+function pickDiverse(sortedPool, n, pickedThemes, age){
   const out = [], primCount = {};
-  const cap = (prim) => (pickedThemes && pickedThemes.has(prim)) ? 2 : 1;
+  const exact = age ? sortedPool.filter(x => ageFit(x.b, age) === "exact") : sortedPool;
+  const distinct = new Set(exact.map(x => x.b.themes && x.b.themes[0]).filter(Boolean)).size;
+  const relaxed = distinct < n ? Math.ceil(n / Math.max(1, distinct)) : 0;
+  const cap = (prim) => relaxed || ((pickedThemes && pickedThemes.has(prim)) ? 2 : 1);
   for (const x of sortedPool){
     if (out.length >= n) break;
     const prim = x.b.themes && x.b.themes[0];
@@ -232,22 +264,27 @@ function pickDiverse(sortedPool, n, pickedThemes){
   }
   return out.slice(0, n);
 }
-function recommend2(p, varied){
-  const scored = window.BOOKS
+function recommend(p, varied){
+  let scored = window.BOOKS
     .map(b => ({ b, s: scoreBook(b,p) }))
     .filter(x => x.s > -2)
     .sort((a,b) => b.s - a.s);
+  // babies: never reach two bands up. A 5-6 book is not a 0-2 book however well its theme fits.
+  if (p.age === "0-2") scored = scored.filter(x => ageFit(x.b, "0-2") !== "far");
   const ko = scored.filter(x => x.b.lang==="ko");
   const en = scored.filter(x => x.b.lang==="en");
   const pickedThemes = new Set(p.themes || []);
   let koPick, enPick;
   if (varied){
-    // reroll: rotate a wider pool for variety, THEN diversify by theme
-    koPick = pickDiverse(pickVaried(ko, 8, 16), 3, pickedThemes);
-    enPick = pickDiverse(pickVaried(en, 8, 16), 3, pickedThemes);
+    // reroll: rotate a wider pool for variety, THEN diversify by theme. The pool is
+    // clamped to the exact-age books (they lead the sorted list) so rotation never
+    // walks past them into adjacent bands — with a floor of 8 when the band is thin.
+    const poolFor = (list) => p.age ? Math.min(16, Math.max(8, list.filter(x => ageFit(x.b, p.age) === "exact").length)) : 16;
+    koPick = pickDiverse(pickVaried(ko, 8, poolFor(ko)), 3, pickedThemes, p.age);
+    enPick = pickDiverse(pickVaried(en, 8, poolFor(en)), 3, pickedThemes, p.age);
   } else {
-    koPick = pickDiverse(ko, 3, pickedThemes);
-    enPick = pickDiverse(en, 3, pickedThemes);
+    koPick = pickDiverse(ko, 3, pickedThemes, p.age);
+    enPick = pickDiverse(en, 3, pickedThemes, p.age);
   }
   let pick = [...koPick, ...enPick];
   if (pick.length < 6){
@@ -259,7 +296,39 @@ function recommend2(p, varied){
 
 function scrollResults(){ document.getElementById("results").scrollIntoView({behavior:"smooth", block:"start"}); }
 
-/* ── Task 5: optional AI mode via shared Bedrock proxy (non-streaming) ── */
+/* ── shareable results: profile ⇄ URL hash (#age=3-4&t=공룡,동물&m=웃긴&s=2&n=…) ──
+   Scoring is deterministic, so the same hash reproduces the same 6 books exactly. */
+function writeHash(p){
+  const q = new URLSearchParams();
+  if (p.age) q.set("age", p.age);
+  if (p.themes.length) q.set("t", p.themes.join(","));
+  if (p.moods.length)  q.set("m", p.moods.join(","));
+  if (shuffleSalt)     q.set("s", String(shuffleSalt));
+  if (p.note)          q.set("n", p.note);
+  history.replaceState(null, "", location.pathname + location.search + "#" + q.toString());
+}
+function applyHash(){
+  const h = location.hash.replace(/^#/, "");
+  if (!h) return false;
+  const q = new URLSearchParams(h);
+  const press = (id, vals) => document.getElementById(id).querySelectorAll(".chip").forEach(c =>
+    c.setAttribute("aria-pressed", vals.includes(c.dataset.val) ? "true" : "false"));
+  const age = q.get("age");
+  press("ageChips",   AGE_BANDS.includes(age) ? [age] : []);
+  press("themeChips", (q.get("t")||"").split(",").filter(t => window.THEME_VOCAB.includes(t)));
+  press("moodChips",  (q.get("m")||"").split(",").filter(m => window.MOOD_VOCAB.includes(m)));
+  document.getElementById("noteBox").value = q.get("n") || "";
+  shuffleSalt = Math.max(0, parseInt(q.get("s")||"0", 10) || 0);
+  return AGE_BANDS.includes(age);
+}
+async function copyLink(btn){
+  const old = btn.textContent;
+  try { await navigator.clipboard.writeText(location.href); btn.textContent = "복사됐어요 ✓"; }
+  catch(_) { btn.textContent = "복사 실패"; }
+  setTimeout(() => { btn.textContent = old; }, 1600);
+}
+
+/* ── optional AI mode via shared Bedrock proxy (non-streaming) ── */
 
 const CLAUDE_PROXY = "https://ai.pb.gurum.se";
 async function solveProxyPoW(signal){
@@ -295,120 +364,147 @@ function buildSys(){
 9) 한국 명절·정서 책(추석, 설, 한복)에 중국/미국 문화 틀을 섞지 말 것.
 10) 지나치게 망설이는 말투("혹시 고려해 보실 수도…") 금지 — 사서답게 따뜻하고 분명하게.
 </errors_to_avoid>
-<output_constraints>reason은 1~2문장 한국어, tip은 한 줄 한국어. 부모의 '한마디'가 있으면 reason에 자연스럽게 반영.</output_constraints>
-<output>반드시 book_blurb 도구를 호출해 결과를 구조화해 반환하세요. 평문으로 답하지 마세요.</output>`;
+<output_constraints>각 책의 reason은 1~2문장 한국어, tip은 한 줄 한국어. 부모의 '한마디'가 있으면 reason에 자연스럽게 반영. 제공된 모든 책에 대해 하나씩, id를 그대로 돌려줄 것.</output_constraints>
+<output>반드시 book_blurbs 도구를 호출해 결과를 구조화해 반환하세요. 평문으로 답하지 마세요.</output>`;
 }
 
-// Per-book tool: one book in, {reason, tip} out. Lets cards fill progressively.
-// The proxy forwards tools/tool_choice to Bedrock, so Sonnet returns a
-// guaranteed-shape tool_use block (no fragile text parsing).
-const BOOK_TOOL = {
-  name: "book_blurb",
-  description: "이 한 권에 대한 추천 이유와 함께 읽기 팁을 한국어로 작성한다.",
+// One tool call covers the whole set: {items:[{id, reason, tip}, …]} keyed by book id.
+// One request = one proof-of-work challenge per run (the proxy caps challenges at
+// 20/min/IP; six per run burned through that after ~3 runs). The proxy forwards
+// tools/tool_choice to Bedrock, so Sonnet returns a guaranteed-shape tool_use block.
+const BOOKS_TOOL = {
+  name: "book_blurbs",
+  description: "제공된 그림책 각각에 대한 추천 이유와 함께 읽기 팁을 한국어로 작성한다. 책 id를 그대로 돌려준다.",
   input_schema: {
     type: "object",
-    properties: { reason: { type: "string" }, tip: { type: "string" } },
-    required: ["reason", "tip"]
+    properties: {
+      items: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: { id: { type: "string" }, reason: { type: "string" }, tip: { type: "string" } },
+          required: ["id", "reason", "tip"]
+        }
+      }
+    },
+    required: ["items"]
   }
 };
 
-// Recommend ONE book — fast (~3-5s) so the grid fills card-by-card. Reuses buildSys()
-// for the same voice/errors, but the user turn is scoped to a single title.
-async function aiBlurbForBook(p, b, signal){
+// Polish ALL picked books in one call. Returns Map<id, {reason, tip}>; books the model
+// skipped simply aren't in the map (their cards keep the catalog text).
+async function aiBlurbsForBooks(p, books, signal){
   const sys = buildSys();
-  const user = `아이 정보: 나이 ${p.age||"미정"}, 성별 ${p.gender}, 관심사 [${p.themes.join(", ")||"없음"}], 분위기 [${p.moods.join(", ")||"없음"}]\n부모 한마디: ${p.note||"(없음)"}\n\n추천할 책 한 권:\n${JSON.stringify({id:b.id,lang:b.lang,title:b.title,author:b.author,ages:b.ages,level:b.level,themes:b.themes,mood:b.mood})}\n\n이 책에 대한 추천 이유(reason)와 함께 읽기 팁(tip)을 book_blurb 도구로 반환하세요. 부모의 '한마디'를 자연스럽게 반영하세요.`;
+  const slim = books.map(b => ({ id:b.id, lang:b.lang, title:b.title, author:b.author, ages:b.ages, level:b.level, themes:b.themes, mood:b.mood }));
+  const user = `아이 정보: 나이 ${p.age||"미정"}, 관심사 [${p.themes.join(", ")||"없음"}], 분위기 [${p.moods.join(", ")||"없음"}]\n부모 한마디: ${p.note||"(없음)"}\n\n추천할 책 ${books.length}권:\n${JSON.stringify(slim)}\n\n각 책에 대한 추천 이유(reason)와 함께 읽기 팁(tip)을 book_blurbs 도구로 반환하세요. 부모의 '한마디'를 자연스럽게 반영하세요.`;
   const pow = await solveProxyPoW(signal);
   const res = await fetch(CLAUDE_PROXY + "/api/claude", {
     method:"POST", headers:{ "Content-Type":"application/json", ...pow }, signal,
-    body: JSON.stringify({ model:"sonnet", max_tokens:600, system:sys,
+    body: JSON.stringify({ model:"sonnet", max_tokens:2500, system:sys,
       messages:[{ role:"user", content:user }],
-      tools:[BOOK_TOOL], tool_choice:{ type:"tool", name:"book_blurb" } })
+      tools:[BOOKS_TOOL], tool_choice:{ type:"tool", name:"book_blurbs" } })
   });
   if(!res.ok){ const e=new Error("proxy "+res.status); e.status=res.status; throw e; }
   const j = await res.json();
-  const tu = (j.content || []).find(c => c.type === "tool_use" && c.name === "book_blurb");
-  if (!tu || !tu.input) throw new Error("no structured output");
-  return tu.input;   // { reason, tip }
-}
-
-// Run up to `limit` async tasks at a time (keeps us under the proxy rate window
-// and avoids hammering — 6 books at 3-wide finishes in ~2 waves).
-async function runPool(items, limit, worker){
-  let i = 0;
-  const runners = Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (i < items.length) {
-      const idx = i++;
-      await worker(items[idx], idx);
-    }
-  });
-  await Promise.all(runners);
+  const tu = (j.content || []).find(c => c.type === "tool_use" && c.name === "book_blurbs");
+  if (!tu || !tu.input || !Array.isArray(tu.input.items)) throw new Error("no structured output");
+  const out = new Map();
+  for (const it of tu.input.items) if (it && typeof it.id === "string") out.set(it.id, { reason: it.reason, tip: it.tip });
+  return out;
 }
 
 document.getElementById("aiToggle").addEventListener("click", function(){
   this.setAttribute("aria-pressed", this.getAttribute("aria-pressed")==="true" ? "false":"true");
 });
-// Generation token: a reroll/new search bumps this so in-flight per-book patches
-// from a previous run are discarded instead of writing onto the new cards.
+// Generation token: a reroll/new search bumps this so an in-flight result from a
+// previous run is discarded instead of writing onto the new cards.
 let aiGen = 0;
 let aiAbort = null;
+let lastRun = null;   // { p, books } — what "다시 시도" re-polishes
 
-async function runRecommend(varied){
-  const p = readProfile();
-  const books = recommend2(p, !!varied);
-  const aiOn = document.getElementById("aiToggle").getAttribute("aria-pressed")==="true";
+function setModePill(text){
+  const pill = document.querySelector("#results .resbar .demo-pill");
+  if (pill) pill.textContent = text;
+}
+function showAiFailNote(){
+  const grid = document.querySelector("#results .grid");
+  if (!grid || document.querySelector("#results .ainote")) return;
+  grid.insertAdjacentHTML("beforebegin",
+    `<div class="ainote"><span>AI 문장 다듬기를 지금 불러올 수 없어 기본 추천을 보여드려요.</span><button type="button" class="retry">다시 시도</button></div>`);
+}
 
-  // cancel any previous run's in-flight calls
+async function polishWithAI(p, books){
   aiGen++; const gen = aiGen;
   if (aiAbort) aiAbort.abort();
-
-  if(!aiOn){ renderResults(books, { modeLabel:" · 추천 예시" }); scrollResults(); return; }
-
-  // Render all cards IMMEDIATELY with catalog blurbs + a per-card "AI 다듬는 중…" badge,
-  // then fill each card in place as its single-book call returns (progressive load).
-  const pending = new Set(books.map(b => b.id));
-  renderResults(books, { modeLabel:" · AI 맞춤 추천", pending });
-  scrollResults();
-
-  aiAbort = new AbortController();
-  const signal = aiAbort.signal;
-  // safety net: don't let a stalled book hang its card forever
-  const timer = setTimeout(() => { try { aiAbort && aiAbort.abort(); } catch(_){} }, 40000);
-
-  let anyOk = false, anyFail = false;
+  const ctl = new AbortController();
+  aiAbort = ctl;
+  // safety net: don't let a stalled request hang the badges forever. Abort THIS run's
+  // controller, not whatever aiAbort points at by the time the timer fires.
+  const timer = setTimeout(() => { try { ctl.abort(); } catch(_){} }, 40000);
+  books.forEach(b => { const c = document.querySelector(`#results .bookcard[data-bookid="${cssEsc(b.id)}"]`);
+    if (c && !c.querySelector(".aibadge")) { c.classList.add("ai-pending"); c.querySelector(".toprow").insertAdjacentHTML("beforeend", `<span class="aibadge">✨ AI 다듬는 중…</span>`); } });
   try {
-    await runPool(books, 3, async (b) => {
-      if (gen !== aiGen) return;                 // a newer run superseded this one
-      try {
-        const r = await aiBlurbForBook(p, b, signal);
-        if (gen !== aiGen) return;
-        anyOk = true;
-        patchCard(b.id, { reason: r.reason, tip: r.tip });
-      } catch(err) {
-        // Only bail silently when a NEWER run superseded us (its render replaced our
-        // cards). An abort on the CURRENT gen is the 40s safety timer firing — that
-        // card must still be released or its "AI 다듬는 중…" badge pulses forever.
-        if (gen !== aiGen) return;
-        anyFail = true;
-        const why = err.name === "AbortError" ? "aborted (timeout)" : (err.status ? "proxy "+err.status : err.message);
-        console.warn("[책친구] book", b.id, "AI failed:", why);
-        patchCard(b.id, { failed: true });        // keep the catalog blurb, drop the badge
-      }
-    });
+    const got = await aiBlurbsForBooks(p, books, ctl.signal);
+    if (gen !== aiGen) return;
+    let anyOk = false;
+    for (const b of books){
+      const r = got.get(b.id);
+      if (r && (r.reason || r.tip)) { anyOk = true; patchCard(b.id, r); }
+      else patchCard(b.id, { failed: true });
+    }
+    if (!anyOk) throw new Error("empty result");
+    setModePill(" · AI 맞춤 추천");
+  } catch(err) {
+    // Only bail silently when a NEWER run superseded us (its render replaced our cards).
+    if (gen !== aiGen) return;
+    const why = err.name === "AbortError" ? "aborted (timeout)" : (err.status ? "proxy "+err.status : err.message);
+    console.warn("[책친구] AI polish failed:", why);
+    books.forEach(b => patchCard(b.id, { failed: true }));   // keep catalog blurbs, drop badges
+    setModePill(" · AI 문장 다듬기 실패 — 기본 추천");
+    showAiFailNote();
   } finally {
     clearTimeout(timer);
   }
-  if (gen !== aiGen) return;
-  // if literally nothing succeeded, surface the soft fallback note
-  if (!anyOk && anyFail) {
-    const bar = document.querySelector("#results .resbar span .demo-pill");
-    if (bar) bar.textContent = " · 추천 예시";
-    const grid = document.querySelector("#results .grid");
-    if (grid && !document.querySelector("#results .ainote")) {
-      grid.insertAdjacentHTML("beforebegin", `<div class="ainote">AI 추천을 지금 불러올 수 없어 기본 추천을 보여드려요.</div>`);
-    }
-  }
 }
-document.getElementById("findBtn").addEventListener("click", () => runRecommend(false));
+
+function runRecommend(varied){
+  const p = readProfile();
+  if (!p.age){
+    const hint = document.getElementById("ageHint");
+    hint.hidden = false;
+    const first = document.querySelector("#ageChips .chip");
+    if (first) first.focus();
+    document.getElementById("ageLab").scrollIntoView({ behavior:"smooth", block:"center" });
+    return;
+  }
+  const books = recommend(p, !!varied);
+  const aiOn = document.getElementById("aiToggle").getAttribute("aria-pressed")==="true";
+  writeHash(p);
+  lastRun = { p, books };
+
+  // a new render supersedes any in-flight AI call
+  aiGen++;
+  if (aiAbort) aiAbort.abort();
+
+  if(!aiOn){ renderResults(books); scrollResults(); return; }
+
+  // Render all cards IMMEDIATELY with catalog blurbs + a per-card "AI 다듬는 중…" badge,
+  // then fill them in place when the single batched call returns.
+  renderResults(books, { modeLabel:" · AI 맞춤 추천", pending: new Set(books.map(b => b.id)) });
+  scrollResults();
+  polishWithAI(p, books);
+}
+document.getElementById("findBtn").addEventListener("click", () => { shuffleSalt = 0; runRecommend(false); });
 document.getElementById("results").addEventListener("click", e => {
-  if (e.target.closest("#reroll")) { shuffleSalt++; runRecommend(true); }
+  if (e.target.closest("#reroll")) { shuffleSalt++; runRecommend(true); return; }
+  const copy = e.target.closest("#copyLink");
+  if (copy) { copyLink(copy); return; }
+  if (e.target.closest(".ainote .retry") && lastRun) {
+    const note = document.querySelector("#results .ainote"); if (note) note.remove();
+    setModePill(" · AI 맞춤 추천");
+    polishWithAI(lastRun.p, lastRun.books);
+  }
 });
+
+// Shared link? Restore the profile and show the same 6 books (AI mode stays off).
+if (applyHash()) runRecommend(shuffleSalt > 0);
