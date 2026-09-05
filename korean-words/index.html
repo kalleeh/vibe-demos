@@ -56,8 +56,13 @@
   .back:active { transform: scale(0.9); }
   .title {
     font-weight: 900; font-size: clamp(20px, 5.5vw, 30px);
-    display: none; align-items: center; gap: 8px;
+    display: none; align-items: center; gap: 8px; min-width: 0;
   }
+  .title-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* Keep centred content clear of the round 🏠 / 🔊 buttons on both sides */
+  body.in-category header, body.in-test header { padding-left: 76px; padding-right: 76px; }
+  /* Phones: emoji-only category title so the tabs never collide with the corner buttons */
+  @media (max-width: 599px) { body.in-category .title-text { display: none; } }
   .tabs {
     display: none; gap: 8px;
     background: rgba(255,255,255,0.5);
@@ -324,6 +329,129 @@
   .confetti { position: absolute; top: -20px; font-size: 26px; pointer-events: none; }
   @keyframes fall { to { transform: translateY(110vh) rotate(540deg); opacity: 0.9; } }
 
+  /* ---------- Home title (long-press = parent settings) ---------- */
+  .home-title {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 900; font-size: clamp(22px, 6vw, 32px);
+    padding: 6px 18px; border-radius: 999px; position: relative;
+    -webkit-touch-callout: none; cursor: default;
+  }
+  .home-title::after {
+    /* Fills while a finger is held, so the parent knows the press is registering */
+    content: ""; position: absolute; left: 14px; right: 14px; bottom: 0; height: 4px;
+    border-radius: 2px; background: var(--ink); transform: scaleX(0); transform-origin: left;
+    opacity: 0.5;
+  }
+  .home-title.pressing::after { transform: scaleX(1); transition: transform 1.2s linear; }
+  body.in-category .home-title, body.in-test .home-title { display: none; }
+
+  /* ---------- Sound-state indicator (every screen, top-right) ---------- */
+  .sound-btn {
+    position: absolute; right: 12px; top: max(8px, env(safe-area-inset-top));
+    border: none; cursor: pointer; font-family: inherit;
+    width: clamp(52px, 14vw, 60px); height: clamp(52px, 14vw, 60px);
+    border-radius: 50%; font-size: clamp(22px, 6vw, 28px);
+    background: rgba(255,255,255,0.8); color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 10px var(--shadow);
+  }
+  .sound-btn:active { transform: scale(0.9); }
+  .sound-btn[data-state="off"] { background: rgba(43,33,64,0.85); color: #fff; }
+  .sound-btn[data-state="novoice"]::after {
+    content: "!"; position: absolute; top: -2px; right: -2px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #e63946; color: #fff; font-size: 15px; font-weight: 900;
+    display: flex; align-items: center; justify-content: center;
+  }
+  /* While muted the word is unhearable, so show romanization like the no-voice case */
+  body.sound-off .rom-hint { display: block; }
+  body.hide-se .se-text { display: none; }
+
+  /* ---------- Overlays: parent panel, sound popover, first-run hint ---------- */
+  .overlay {
+    position: fixed; inset: 0; z-index: 50;
+    background: rgba(43,33,64,0.45);
+    display: none; align-items: center; justify-content: center;
+    padding: 16px;
+  }
+  .overlay.open { display: flex; }
+  .sheet {
+    background: var(--card); color: var(--ink);
+    border-radius: 30px; box-shadow: 0 16px 40px rgba(43,33,64,0.35);
+    width: 100%; max-width: 460px; max-height: calc(100dvh - 32px);
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
+    position: relative;
+  }
+  .sheet h2 { margin: 6px 64px 14px 4px; font-size: clamp(20px, 5.5vw, 26px); font-weight: 900; }
+  .close-btn {
+    position: absolute; top: 10px; right: 10px;
+    width: 56px; height: 56px; border-radius: 50%; border: none; cursor: pointer;
+    font-family: inherit; font-size: 28px; font-weight: 900;
+    background: #eef0ff; color: var(--ink);
+  }
+  .close-btn:active { transform: scale(0.9); }
+  .setting { padding: 10px 4px; border-top: 2px solid #f1eefb; }
+  .setting:first-of-type { border-top: none; }
+  .setting-label { font-weight: 800; font-size: clamp(15px, 4.2vw, 18px); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: baseline; }
+  .setting-label small { color: #8a7fa6; font-weight: 700; font-size: 0.85em; }
+  .seg { display: flex; gap: 8px; }
+  .seg-btn, .chip {
+    flex: 1 1 0; min-height: 56px; border: none; cursor: pointer; font-family: inherit;
+    font-weight: 800; font-size: clamp(15px, 4.2vw, 18px);
+    background: #eef0ff; color: #4a4a8a; border-radius: 18px;
+    transition: transform .1s ease, background .15s ease;
+  }
+  .seg-btn:active, .chip:active { transform: scale(0.95); }
+  .seg-btn.active, .chip.active { background: var(--ink); color: #fff; }
+  .slider-row { display: flex; align-items: center; gap: 12px; min-height: 56px; }
+  .slider-row span { font-weight: 800; color: #8a7fa6; font-size: clamp(14px, 4vw, 16px); min-width: 2.2em; text-align: right; }
+  input[type="range"] { flex: 1 1 auto; height: 56px; accent-color: var(--ink); margin: 0; cursor: pointer; }
+  .danger-btn {
+    width: 100%; min-height: 56px; border: none; cursor: pointer; font-family: inherit;
+    font-weight: 800; font-size: clamp(15px, 4.2vw, 18px);
+    background: #ffe3e3; color: #b3261e; border-radius: 18px;
+  }
+  .danger-btn:active { transform: scale(0.97); }
+  .confirm-row { display: none; gap: 8px; margin-top: 8px; }
+  .confirm-row.open { display: flex; }
+  .confirm-row .seg-btn.yes { background: #b3261e; color: #fff; }
+  .sheet .note { color: #8a7fa6; font-weight: 700; font-size: clamp(13px, 3.6vw, 15px); margin: 8px 4px 0; }
+
+  /* Small "Ljud av?" popover under the sound icon */
+  .pop {
+    position: fixed; z-index: 60; display: none;
+    top: calc(max(8px, env(safe-area-inset-top)) + 66px); right: 12px;
+    background: var(--card); color: var(--ink);
+    border-radius: 22px; box-shadow: 0 12px 30px rgba(43,33,64,0.3);
+    padding: 12px; width: min(280px, calc(100vw - 24px));
+  }
+  .pop.open { display: block; }
+  .pop-backdrop { position: fixed; inset: 0; z-index: 55; display: none; }
+  .pop-backdrop.open { display: block; }
+  .pop p { margin: 4px 4px 10px; font-weight: 900; font-size: clamp(17px, 4.6vw, 20px); text-align: center; }
+  .pop .seg-btn.yes { background: var(--ink); color: #fff; }
+  .pop .link-btn {
+    width: 100%; min-height: 56px; margin-top: 8px; border: none; cursor: pointer; font-family: inherit;
+    font-weight: 800; font-size: clamp(14px, 4vw, 16px); background: transparent; color: #4a4a8a;
+    border-radius: 18px;
+  }
+
+  /* First-run parent hint */
+  .hint-card { text-align: center; }
+  .hint-card h2 { margin: 6px 4px 8px; }
+  .hint-card p { margin: 0 4px 16px; font-weight: 700; font-size: clamp(15px, 4.2vw, 18px); line-height: 1.4; }
+  .ok-btn {
+    min-width: 160px; min-height: 56px; border: none; cursor: pointer; font-family: inherit;
+    font-weight: 900; font-size: clamp(17px, 4.6vw, 20px);
+    background: var(--ink); color: #fff; border-radius: 999px; padding: 0 30px;
+    box-shadow: 0 8px 20px var(--shadow);
+  }
+  .ok-btn:active { transform: scale(0.95); }
+
+  /* 3 choices: two on top, one centred below (keeps every tile big on a phone) */
+  .choices[data-n="3"] .choice:last-child { grid-column: 1 / -1; width: calc(50% - 9px); justify-self: center; }
+
   /* ---------- Reduced motion: calm fades, no bouncing/wiggling ---------- */
   @keyframes cheerCalm { 0%{opacity:0;} 25%{opacity:1;} 75%{opacity:1;} 100%{opacity:0;} }
   @media (prefers-reduced-motion: reduce) {
@@ -331,13 +459,16 @@
     .listen.speaking { box-shadow: 0 0 0 8px rgba(255,255,255,0.6), 0 8px 20px var(--shadow); }
     #cheer.show { animation: cheerCalm 1s ease; }
     .confetti { display: none; }
+    .home-title.pressing::after { transition: none; }
   }
 </style>
 </head>
 <body>
   <header>
     <button class="back" id="backBtn" aria-label="Hem">🏠</button>
+    <div class="home-title" id="homeTitle" aria-label="Vroom! Håll fingret här för föräldrainställningar">🚗 Vroom!</div>
     <div class="title" id="catTitle"></div>
+    <button class="sound-btn" id="soundBtn" data-state="ok" aria-label="Ljud">🔊</button>
     <div class="tabs" id="tabs">
       <button class="tab active" data-screen="explore">
         <span class="tab-icon">🔎</span><span class="tab-label">Utforska</span>
@@ -427,6 +558,86 @@
 
     <div id="cheer"></div>
   </main>
+
+  <!-- Parent settings (long-press the home title, or via the sound icon) -->
+  <div class="overlay" id="parentPanel" role="dialog" aria-modal="true" aria-labelledby="parentTitle">
+    <div class="sheet">
+      <button class="close-btn" id="panelClose" aria-label="Stäng">✕</button>
+      <h2 id="parentTitle">⚙️ Inställningar för föräldrar</h2>
+
+      <div class="setting">
+        <div class="setting-label">Ålder <small>väljer lämpliga standardvärden</small></div>
+        <div class="seg" id="ageChips">
+          <button class="chip" data-age="4-5">4–5 år</button>
+          <button class="chip" data-age="6-7">6–7 år</button>
+          <button class="chip" data-age="8-9">8–9 år</button>
+        </div>
+      </div>
+
+      <div class="setting">
+        <div class="setting-label">Antal svarsalternativ <small>Lyssna &amp; Test</small></div>
+        <div class="seg" id="choiceSeg">
+          <button class="seg-btn" data-choices="2">2</button>
+          <button class="seg-btn" data-choices="3">3</button>
+          <button class="seg-btn" data-choices="4">4</button>
+        </div>
+      </div>
+
+      <div class="setting">
+        <div class="setting-label">Talhastighet</div>
+        <div class="slider-row">
+          <span aria-hidden="true">🐢</span>
+          <input type="range" id="rateSlider" min="0.6" max="1.2" step="0.05" aria-label="Talhastighet">
+          <span id="rateValue">0.8</span>
+        </div>
+      </div>
+
+      <div class="setting">
+        <div class="setting-label">Ljud <small>koreanska, svenska och applåder</small></div>
+        <div class="seg" id="soundSeg">
+          <button class="seg-btn" data-sound="1">🔊 På</button>
+          <button class="seg-btn" data-sound="0">🔇 Av</button>
+        </div>
+      </div>
+
+      <div class="setting">
+        <div class="setting-label">Visa svenska <small>ordet under korten i Utforska</small></div>
+        <div class="seg" id="seSeg">
+          <button class="seg-btn" data-se="1">Visa</button>
+          <button class="seg-btn" data-se="0">Dölj</button>
+        </div>
+      </div>
+
+      <div class="setting">
+        <button class="danger-btn" id="resetStars">⭐ Återställ stjärnor</button>
+        <div class="confirm-row" id="resetConfirm">
+          <button class="seg-btn yes" id="resetYes">Ja, ta bort alla</button>
+          <button class="seg-btn" id="resetNo">Avbryt</button>
+        </div>
+      </div>
+      <p class="note">Tips: håll fingret på titeln på startsidan i en sekund för att öppna den här panelen.</p>
+    </div>
+  </div>
+
+  <!-- Tiny confirm when the sound icon is tapped -->
+  <div class="pop-backdrop" id="popBackdrop"></div>
+  <div class="pop" id="soundPop" role="dialog">
+    <p id="soundPopText">Ljud av?</p>
+    <div class="seg">
+      <button class="seg-btn yes" id="soundPopYes">Ja</button>
+      <button class="seg-btn" id="soundPopNo">Nej</button>
+    </div>
+    <button class="link-btn" id="soundPopSettings">⚙️ Fler inställningar</button>
+  </div>
+
+  <!-- One-time parent hint on first launch -->
+  <div class="overlay" id="hintOverlay" role="dialog" aria-modal="true">
+    <div class="sheet hint-card">
+      <h2>👋 Tips för föräldrar</h2>
+      <p>Håll fingret på titeln <strong>🚗 Vroom!</strong> i en sekund för inställningar: antal svar, talhastighet, ljud av/på och ålder.</p>
+      <button class="ok-btn" id="hintOk">Okej</button>
+    </div>
+  </div>
 
 <script>
 /* =========================================================
@@ -577,6 +788,39 @@ const CATEGORIES = [
   }
 ];
 
+/* ===== Parent settings (localStorage "kw.settings") ===== */
+const SETTINGS_KEY = 'kw.settings';
+const DEFAULT_SETTINGS = { choices: 2, rate: 0.8, sound: true, showSe: true, age: null };
+// One-tap presets: younger kids get fewer tiles; older readers lose the Swedish crutch.
+const AGE_PRESETS = { '4-5': { choices: 2, showSe: true }, '6-7': { choices: 3, showSe: true }, '8-9': { choices: 4, showSe: false } };
+function loadSettings(){
+  try {
+    const raw = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+    const s = Object.assign({}, DEFAULT_SETTINGS, raw || {});
+    s.choices = [2, 3, 4].includes(s.choices) ? s.choices : 2;
+    s.rate = Math.min(1.2, Math.max(0.6, Number(s.rate) || 0.8));
+    s.sound = !!s.sound; s.showSe = !!s.showSe;
+    if (!AGE_PRESETS[s.age]) s.age = null;
+    return s;
+  } catch (e) { return Object.assign({}, DEFAULT_SETTINGS); }
+}
+const settings = loadSettings();
+function saveSettings(){ try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e) {} }
+// Sound icon: off (parent muted) beats novoice (device has no Korean TTS) beats ok.
+function updateSoundIndicator(){
+  const btn = document.getElementById('soundBtn');
+  const state = !settings.sound ? 'off' : (koVoiceMissing ? 'novoice' : 'ok');
+  btn.dataset.state = state;
+  btn.textContent = state === 'off' ? '🔇' : (state === 'novoice' ? '🔈' : '🔊');
+  btn.setAttribute('aria-label', state === 'off' ? 'Ljud av — tryck för att slå på' : (state === 'novoice' ? 'Ingen koreansk röst — inställningar' : 'Ljud på — tryck för att stänga av'));
+}
+function applySettings(){
+  document.body.classList.toggle('sound-off', !settings.sound);
+  document.body.classList.toggle('hide-se', !settings.showSe);
+  if (!settings.sound && window.speechSynthesis) speechSynthesis.cancel();
+  updateSoundIndicator();
+}
+
 /* ===== Speech ===== */
 let voices = [];
 let koVoiceMissing = false;
@@ -590,6 +834,7 @@ function checkKoreanVoice(final){
   koVoiceMissing = missing;
   document.body.classList.toggle('no-ko-voice', missing);
   document.getElementById('voiceBanner').hidden = !missing;
+  updateSoundIndicator();
 }
 function loadVoices(){ voices = window.speechSynthesis ? speechSynthesis.getVoices() : []; checkKoreanVoice(false); }
 if (window.speechSynthesis){
@@ -615,12 +860,12 @@ function pickVoice(lang){
 }
 let currentUtterance = null;
 function speak(text, lang, onstart, onend){
-  if (!window.speechSynthesis){ if(onend) onend(); return; }
+  if (!window.speechSynthesis || !settings.sound){ if(onend) onend(); return; }
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = lang;
   const v = pickVoice(lang); if (v) u.voice = v;
-  u.rate = 0.8; u.pitch = 1.05;
+  u.rate = settings.rate; u.pitch = 1.05;
   if (onstart) u.onstart = onstart;
   // Only the newest utterance may run its end callback: a cancel()'d one
   // fires onend/onerror late and would otherwise clear the "speaking"
@@ -641,6 +886,7 @@ function getAudioCtx(){
 }
 // Synthesized applause (no audio files): a few filtered noise bursts.
 async function playClap(){
+  if (!settings.sound) return;
   const ctx = getAudioCtx();
   if (ctx.state !== 'running'){ try { await ctx.resume(); } catch (e) { return; } }
   const now = ctx.currentTime;
@@ -800,7 +1046,7 @@ function openCategory(cat){
   body.classList.add('in-category');
   body.style.background = `linear-gradient(160deg, ${cat.bg[0]}, ${cat.bg[1]})`;
   catTitle.style.display = 'flex';
-  catTitle.innerHTML = `${cat.emoji} ${cat.name}`;
+  catTitle.innerHTML = `${cat.emoji} <span class="title-text">${cat.name}</span>`;
   buildExplore(cat);
   // reset tabs to Utforska
   tabs.forEach(t => t.classList.toggle('active', t.dataset.screen === 'explore'));
@@ -825,7 +1071,7 @@ function openTest(cat){
   body.classList.add('in-test');
   body.style.background = `linear-gradient(160deg, ${cat.bg[0]}, ${cat.bg[1]})`;
   catTitle.style.display = 'flex';
-  catTitle.innerHTML = `${cat.emoji} ${cat.name}`;
+  catTitle.innerHTML = `${cat.emoji} <span class="title-text">${cat.name}</span>`;
   setScreen('test');
   startTestQuiz();
 }
@@ -853,7 +1099,7 @@ function buildExplore(cat){
       ${pictureHTML(item)}
       <div class="ko">${item.ko}</div>
       <div class="rom">${item.rom}</div>
-      <button class="se-btn">🇸🇪 ${item.se}</button>`;
+      <button class="se-btn" aria-label="Svenska: ${item.se}">🇸🇪 <span class="se-text">${item.se}</span></button>`;
     card.addEventListener('click', (e) => {
       if (e.target.closest('.se-btn')) return;
       card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
@@ -925,7 +1171,7 @@ function renderListenRound(){
   if (!activeCat) return;
   locked = false;
   clearHint();
-  const n = Math.min(2, activeCat.items.length);
+  const n = Math.min(settings.choices, activeCat.items.length);
   const review = takeReview(activeCat.id);
   let options;
   if (review){
@@ -936,6 +1182,7 @@ function renderListenRound(){
     current = options[Math.floor(Math.random()*options.length)];
   }
   choicesEl.innerHTML = '';
+  choicesEl.dataset.n = options.length;
   options.forEach(item => {
     const b = document.createElement('button');
     b.className = 'choice';
@@ -1206,7 +1453,8 @@ function renderNumberChoices(correctN, poolMax){
   testChoices.innerHTML = '';
   const options = new Set([correctN]);
   let guard = 0;
-  while (options.size < Math.min(4, poolMax) && guard++ < 50) options.add(1 + Math.floor(Math.random() * poolMax));
+  while (options.size < Math.min(settings.choices, poolMax) && guard++ < 50) options.add(1 + Math.floor(Math.random() * poolMax));
+  testChoices.dataset.n = options.size;
   shuffle([...options]).forEach(n => {
     const b = document.createElement('button');
     b.className = 'choice';
@@ -1269,9 +1517,10 @@ function renderCategoryQuestion(){
   testScene.innerHTML = '';
   testPromptText.textContent = 'Vilken kategori hör ordet till? 🧩';
   speakTestPrompt(item.ko, item.rom);
-  const wrongCats = shuffle(pool.filter(c => c !== cat)).slice(0, 3);
+  const wrongCats = shuffle(pool.filter(c => c !== cat)).slice(0, settings.choices - 1);
   const options = shuffle([cat, ...wrongCats]);
   testChoices.innerHTML = '';
+  testChoices.dataset.n = options.length;
   options.forEach(c => {
     const b = document.createElement('button');
     b.className = 'choice cat-choice';
@@ -1303,6 +1552,120 @@ document.body.addEventListener('touchstart', function warm(){
   getAudioCtx();
   document.body.removeEventListener('touchstart', warm);
 }, { once:true });
+
+/* ===== Parent panel ===== */
+const parentPanel = document.getElementById('parentPanel');
+const rateSlider  = document.getElementById('rateSlider');
+const rateValue   = document.getElementById('rateValue');
+const resetConfirm = document.getElementById('resetConfirm');
+function renderPanel(){
+  document.querySelectorAll('#ageChips .chip').forEach(b => b.classList.toggle('active', b.dataset.age === settings.age));
+  document.querySelectorAll('#choiceSeg .seg-btn').forEach(b => b.classList.toggle('active', Number(b.dataset.choices) === settings.choices));
+  document.querySelectorAll('#soundSeg .seg-btn').forEach(b => b.classList.toggle('active', (b.dataset.sound === '1') === settings.sound));
+  document.querySelectorAll('#seSeg .seg-btn').forEach(b => b.classList.toggle('active', (b.dataset.se === '1') === settings.showSe));
+  rateSlider.value = settings.rate;
+  rateValue.textContent = settings.rate.toFixed(2).replace(/0$/, '');
+}
+function commitSettings(){
+  saveSettings();
+  applySettings();
+  renderPanel();
+  if (activeCat && !activeCat.isTest) buildExplore(activeCat); // Swedish label toggle
+}
+function openPanel(){
+  resetConfirm.classList.remove('open');
+  closeSoundPop();
+  renderPanel();
+  parentPanel.classList.add('open');
+}
+function closePanel(){ parentPanel.classList.remove('open'); }
+document.getElementById('panelClose').addEventListener('click', closePanel);
+parentPanel.addEventListener('click', e => { if (e.target === parentPanel) closePanel(); });
+
+document.getElementById('ageChips').addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  settings.age = b.dataset.age;
+  Object.assign(settings, AGE_PRESETS[settings.age]);
+  commitSettings();
+});
+document.getElementById('choiceSeg').addEventListener('click', e => {
+  const b = e.target.closest('.seg-btn'); if (!b) return;
+  settings.choices = Number(b.dataset.choices);
+  commitSettings();
+});
+document.getElementById('soundSeg').addEventListener('click', e => {
+  const b = e.target.closest('.seg-btn'); if (!b) return;
+  settings.sound = b.dataset.sound === '1';
+  commitSettings();
+});
+document.getElementById('seSeg').addEventListener('click', e => {
+  const b = e.target.closest('.seg-btn'); if (!b) return;
+  settings.showSe = b.dataset.se === '1';
+  commitSettings();
+});
+rateSlider.addEventListener('input', () => {
+  settings.rate = Number(rateSlider.value);
+  rateValue.textContent = settings.rate.toFixed(2).replace(/0$/, '');
+});
+rateSlider.addEventListener('change', () => {
+  settings.rate = Number(rateSlider.value);
+  commitSettings();
+  sayKorean('사과'); // let the parent hear the new pace
+});
+document.getElementById('resetStars').addEventListener('click', () => resetConfirm.classList.add('open'));
+document.getElementById('resetNo').addEventListener('click', () => resetConfirm.classList.remove('open'));
+document.getElementById('resetYes').addEventListener('click', () => {
+  try { localStorage.removeItem(STARS_KEY); } catch (e) {}
+  renderHomeStars();
+  resetConfirm.classList.remove('open');
+});
+
+/* Long-press (1.2 s) on the home title opens the panel — a child tapping
+   around won't stumble into it. */
+const homeTitle = document.getElementById('homeTitle');
+const LONG_PRESS_MS = 1200;
+let pressTimer = null;
+function pressStart(e){
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  clearTimeout(pressTimer);
+  homeTitle.classList.add('pressing');
+  pressTimer = setTimeout(() => {
+    homeTitle.classList.remove('pressing');
+    if (navigator.vibrate) navigator.vibrate(30);
+    openPanel();
+  }, LONG_PRESS_MS);
+}
+function pressEnd(){ clearTimeout(pressTimer); homeTitle.classList.remove('pressing'); }
+homeTitle.addEventListener('pointerdown', pressStart);
+['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => homeTitle.addEventListener(ev, pressEnd));
+homeTitle.addEventListener('contextmenu', e => e.preventDefault());
+
+/* Sound icon: tap → tiny "Ljud av?/på?" confirm (child-tap guard) + settings shortcut */
+const soundPop = document.getElementById('soundPop');
+const popBackdrop = document.getElementById('popBackdrop');
+function openSoundPop(){
+  document.getElementById('soundPopText').textContent = settings.sound ? 'Ljud av?' : 'Ljud på?';
+  soundPop.classList.add('open'); popBackdrop.classList.add('open');
+}
+function closeSoundPop(){ soundPop.classList.remove('open'); popBackdrop.classList.remove('open'); }
+document.getElementById('soundBtn').addEventListener('click', () => soundPop.classList.contains('open') ? closeSoundPop() : openSoundPop());
+document.getElementById('soundPopYes').addEventListener('click', () => { settings.sound = !settings.sound; commitSettings(); closeSoundPop(); });
+document.getElementById('soundPopNo').addEventListener('click', closeSoundPop);
+document.getElementById('soundPopSettings').addEventListener('click', openPanel);
+popBackdrop.addEventListener('click', closeSoundPop);
+
+/* First-run parent hint (once per device) */
+const HINT_KEY = 'kw.hinted';
+const hintOverlay = document.getElementById('hintOverlay');
+let hinted = false;
+try { hinted = !!localStorage.getItem(HINT_KEY); } catch (e) {}
+if (!hinted) hintOverlay.classList.add('open');
+document.getElementById('hintOk').addEventListener('click', () => {
+  hintOverlay.classList.remove('open');
+  try { localStorage.setItem(HINT_KEY, '1'); } catch (e) {}
+});
+
+applySettings();
 
 /* Block pinch-zoom and stray multi-touch gestures — clumsy little fingers
    shouldn't be able to zoom the page while playing. */

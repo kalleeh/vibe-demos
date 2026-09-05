@@ -1,5 +1,5 @@
 /* korean-words — minimal offline shell SW */
-const CACHE = "vibe-korean-words-v2";
+const CACHE = "vibe-korean-words-v3";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", e => {
