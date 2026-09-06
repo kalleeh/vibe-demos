@@ -1,8 +1,11 @@
 /* clinic-admin — minimal offline shell SW */
-const CACHE = "vibe-clinic-admin-v19";
+const CACHE = "vibe-clinic-admin-v20";
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
   "./styles.css",
+  "./styles-security.css",
+  "./styles-claims.css",
+  "./styles-reporting.css",
   "./js/main.js", "./js/shell.js", "./js/board.js",
   "./js/core/dom.js", "./js/core/attachments.js", "./js/core/store.js", "./js/core/nav.js",
   "./js/core/ui.js", "./js/core/files.js", "./js/core/ocr.js", "./js/core/ai-client.js",
