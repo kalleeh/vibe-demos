@@ -18,10 +18,10 @@ import { allDeadlines } from "./core/calendar.js";
 import { Org, Staff, Patients, Insurers } from "./core/entities.js";
 import { renderOrgForm } from "./core/org-form.js";
 import { Session } from "./security/session.js";
-import { destroyAll } from "./security/lifecycle.js";
-import { initSecurityUI, Lock, UsersPanel, PrivacyPanel, isDestroyWord } from "./security/lockscreen.js";
+import { initSecurityUI, Lock, UsersPanel, PrivacyPanel } from "./security/lockscreen.js";
 import { renderOrgReadOnly } from "./tabs/reporting-shared.js";
 import { initGlobalSearch } from "./global-search.js";
+import { Tour } from "./tour.js";
 
 const PHONE = () => window.innerWidth <= 880;
 
@@ -81,14 +81,8 @@ document.addEventListener("keydown", (e) => {
   else if (/^[1-5]$/.test(e.key)) { e.preventDefault(); activateArea(AREAS[+e.key - 1].id); }
 });
 
-/* 전체 파기 — data, attachments, users AND the wrapped keys. Typed confirmation, no undo. */
-$("#wipe-all")?.addEventListener("click", async () => {
-  const typed = prompt(t("shell.wipePrompt"));
-  if (typed == null) return;
-  if (!isDestroyWord(typed)) { Toast.show({ tag: "system", html: esc(t("shell.wipeTypeWord")) }); return; }
-  await destroyAll();
-  location.reload();
-});
+/* 전체 파기 lives in 조직 › 데이터 처리 현황 (#privacy-destroy-all, 원장 only); the ⌘K command routes there. */
+const openWipe = () => { PrivacyPanel.open("status"); setTimeout(() => $("#privacy-destroy-all")?.click(), 120); };
 /* Sync-status periodic refresh */
 setInterval(() => SyncStatus.refresh(), 30000);
 SyncStatus.refresh();
@@ -119,6 +113,10 @@ $("#welcome-scrim")?.addEventListener("click", e => {
   if (e.target.id === "welcome-scrim") closeWelcome(false);
 });
 $("#rail-demo")?.addEventListener("click", () => { closeMore(); openWelcome(); });
+/* Guided tour — 7 steps along the connected story (js/tour.js). Started from the welcome deck's link or the ⌘K command;
+   step 1 offers seedAll() when the workspace has no claim batch yet. */
+Tour.init({ seed: seedAll, closeLayers: () => { closeMore(); AiDrawer.close(); } });
+$("#welcome-tour")?.addEventListener("click", () => { closeWelcome(false); Tour.start(); });
 /* Info modal — sources + a READ-ONLY org summary; the editor itself is the 조직 › 기관 프로필 panel. */
 function renderInfoOrg() {
   const el = $("#info-org"); if (!el) return;
@@ -130,7 +128,7 @@ $("#rail-info")?.addEventListener("click", () => { closeMore(); openInfo(); });
 $("#info-close")?.addEventListener("click", closeInfo);
 $("#info-scrim")?.addEventListener("click", e => { if (e.target.id === "info-scrim") closeInfo(); });
 Org.onChange(() => { if (Dialog.isOpen($("#info-scrim"))) renderInfoOrg(); });
-/* Phone ⋯ sheet — the rail foot (lock · users · privacy · info · tour · search · AI · language · wipe) as a bottom sheet. */
+/* Phone ⋯ sheet — the rail foot (KO|EN · install · lock · users · info · demo) as a bottom sheet. */
 function openMore()  { document.body.classList.add("more-open"); $("#bottombar-more")?.setAttribute("aria-expanded", "true"); }
 function closeMore() { document.body.classList.remove("more-open"); $("#bottombar-more")?.setAttribute("aria-expanded", "false"); }
 $("#bottombar-more")?.addEventListener("click", () => {
@@ -138,13 +136,14 @@ $("#bottombar-more")?.addEventListener("click", () => {
 });
 $("#more-scrim")?.addEventListener("click", closeMore);
 EventBus.on("shell:closeAll", () => { closeMore(); AiDrawer.close(); });
-/* Esc closes the top-most layer: search overlay → lightbox → any modal scrim (install/info/welcome/users/consent/preview)
-   → AI drawer → ⋯ sheet. The lock screen is deliberately NOT closable with Esc. */
+/* Esc closes the top-most layer: search overlay → lightbox → tour card → any modal scrim (install/info/welcome/users/consent/
+   preview) → AI drawer → ⋯ sheet. The lock screen is deliberately NOT closable with Esc. */
 document.addEventListener("keydown", e => {
   if (e.key !== "Escape") return;
   if (document.body.classList.contains("locked")) return;
   if (Dialog.isOpen($("#search-scrim"))) GlobalSearch.close();
   else if (Dialog.isOpen($("#lightbox"))) Lightbox.close();
+  else if (Tour.isOpen() && !$$(".welcome-scrim.open").length && !AiDrawer.isOpen()) Tour.close();
   else if ($$(".welcome-scrim.open").length) {
     const top = $$(".welcome-scrim.open").pop();
     if (top.id === "welcome-scrim") closeWelcome(false); else if (top.id === "org-scrim") OrgStep.close(); else Dialog.close(top);
@@ -209,7 +208,7 @@ EventBus.on("app:ready", refreshOrgChip);
 onLangChange(refreshOrgChip);
 
 /* ─────────────────────────────────────────────────────────
-   AI 코딩 어시스트 — right-side drawer (phone: full-screen sheet). Utility, not an area: activateTab("tab-ai", ctx)
+   AI 어시스트 — right-side drawer (phone: full-screen sheet). Utility, not an area: activateTab("tab-ai", ctx)
    opens it, then nav.js emits tab:activated { id: "tab-ai", ctx } so tabs/tab7-ai.js fills the note exactly as before.
    ───────────────────────────────────────────────────────── */
 const AiDrawer = (() => {
@@ -237,7 +236,6 @@ const AiDrawer = (() => {
   }
   registerUtility("tab-ai", () => open());
   $("#topbar-ai")?.addEventListener("click", () => isOpen() ? close() : activateTab("tab-ai"));
-  $("#rail-ai")?.addEventListener("click", () => { closeMore(); activateTab("tab-ai"); });
   $("#ai-drawer-close")?.addEventListener("click", close);
   return { open, close, isOpen };
 })();
@@ -426,13 +424,17 @@ async function seedEntities() {
    todo list is now populated. */
 async function seedAll() {
   let ent = null;
-  try { ent = await seedEntities(); } catch (e) { console.warn("seedEntities", e); }
-  for (const mod of tabModules) {
-    try { await mod.seed({ DATA }); } catch (e) { console.warn("seed", mod.name, e); }
-  }
+  // One summary toast instead of one per tool — the per-tool activity still lands in the 활동 feed.
+  Toast.quiet(true);
+  try {
+    try { ent = await seedEntities(); } catch (e) { console.warn("seedEntities", e); }
+    for (const mod of tabModules) {
+      try { await mod.seed({ DATA }); } catch (e) { console.warn("seed", mod.name, e); }
+    }
+  } finally { setTimeout(() => Toast.quiet(false), 1500); } // debounced saves (org · tariff) still log a beat later
   AiDrawer.close();
   activateTab("tab-today");
-  Toast.show({ tag: "system", html: t("shell.seededToast") + (ent?.logins ? ` ${t("shell.seededLogins", { pin: SEED_PIN })}` : "") });
+  Toast.show({ tag: "system", ttl: 9000, force: true, html: t("shell.seededToast") + (ent?.logins ? ` ${t("shell.seededLogins", { pin: SEED_PIN })}` : "") });
 }
 $("#welcome-seed")?.addEventListener("click", () => {
   seedAll();
@@ -447,17 +449,17 @@ const GlobalSearch = initGlobalSearch({
   commands: () => [
     { label: t("shell.pal.ai"), meta: t("shell.pal.aiMeta"), run: () => activateTab("tab-ai"), glyph: "✦" },
     { label: t("shell.pal.seed"), meta: t("shell.pal.seedMeta"), run: seedAll, glyph: "▶" },
-    { label: t("shell.pal.tour"), meta: t("shell.pal.tourMeta"), run: openWelcome, glyph: "?" },
+    { label: t("shell.pal.tour"), meta: t("shell.pal.tourMeta"), run: openWelcome, glyph: "▶" },
+    { label: t("shell.pal.guide"), meta: t("shell.pal.guideMeta"), run: () => Tour.start(), glyph: "?" },
     { label: t("shell.pal.ics"), meta: t("shell.pal.icsMeta"), run: () => { activateTab("tab-today"); setTimeout(() => $("#dday-ics")?.click(), 300); }, glyph: "↓" },
     { label: t("shell.pal.lang"), meta: t("shell.pal.langMeta"), run: () => setLang(isEn() ? "ko" : "en"), glyph: "文" },
     { label: t("shell.pal.lock"), meta: t("shell.pal.lockMeta"), run: () => Lock.lock("manual"), glyph: "🔒" },
     { label: t("shell.pal.users"), meta: t("shell.pal.usersMeta"), run: () => UsersPanel.open(), glyph: "👤" },
     { label: t("shell.pal.privacy"), meta: t("shell.pal.privacyMeta"), run: () => PrivacyPanel.open("status"), glyph: "▤" },
     { label: t("shell.pal.info"), meta: t("shell.pal.infoMeta"), run: openInfo, glyph: "ⓘ" },
-    { label: t("shell.pal.wipe"), meta: t("shell.pal.wipeMeta"), run: () => $("#wipe-all")?.click(), glyph: "⌫" }
+    { label: t("shell.pal.wipe"), meta: t("shell.pal.wipeMeta"), run: openWipe, glyph: "⌫" }
   ]
 });
-$("#rail-cmdk")?.addEventListener("click", () => { closeMore(); setTimeout(() => GlobalSearch.open(), 50); });
 $("#topbar-search")?.addEventListener("click", () => GlobalSearch.open());
 
 /* Topbar · today date + due-this-week chip */
@@ -541,4 +543,4 @@ window.addEventListener("load", () => {
     Toast.show({ tag: "system", ttl: 0, html: t("shell.xlsxFailToast"), action: { label: t("common.reload"), fn: () => location.reload() } });
   }
 });
-export { DATA, boot, seedAll, seedEntities, SEED, SEED_PIN, openWelcome, closeWelcome, openInfo, closeInfo, openMore, closeMore, Install, GlobalSearch, AiDrawer, OrgStep };
+export { DATA, boot, seedAll, seedEntities, SEED, SEED_PIN, openWelcome, closeWelcome, openInfo, closeInfo, openMore, closeMore, Install, GlobalSearch, AiDrawer, OrgStep, Tour };

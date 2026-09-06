@@ -24,11 +24,17 @@ import { Session } from "../security/session.js";
 
 export const KEYS = { guarantee: "guarantee.list", docs: "docs.list", consent: "consent.list" };
 
-/* Intro block rendered INSIDE the slot (the panel head above it belongs to the coordinator's scaffold): the two badges
-   and the domain blurb, from the <ns>.badgeLaw / <ns>.badge / <ns>.blurb keys. */
-export const introHTML = (ns) => `
-  <div class="badges p3-badges"><span class="badge law">${esc(t(ns + ".badgeLaw"))}</span><span class="badge">${esc(t(ns + ".badge"))}</span></div>
-  <p class="panel-blurb">${t(ns + ".blurb")}</p>`;
+/* Intro rendered INSIDE the slot: the domain blurb (<ns>.blurb). The two badges (<ns>.badgeLaw / <ns>.badge) go into the
+   scaffold's .panel-head so the five Phase-3 panels look like the other thirteen (badges right of the title, above the rule). */
+export const introHTML = (ns) => {
+  const panel = $(`#tab-${ns}`), head = panel?.querySelector(".panel-head");
+  if (head) {
+    let b = head.querySelector(".badges.p3-badges");
+    if (!b) { b = document.createElement("div"); b.className = "badges p3-badges"; head.appendChild(b); }
+    b.innerHTML = `<span class="badge law">${esc(t(ns + ".badgeLaw"))}</span><span class="badge">${esc(t(ns + ".badge"))}</span>`;
+  }
+  return `<p class="panel-blurb">${t(ns + ".blurb")}</p>`;
+};
 export const rid = (p) => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 export const str = (v) => String(v ?? "").trim();
 export const num = (v) => { const n = Number(String(v ?? "").replace(/[^\d.-]/g, "")); return Number.isFinite(n) ? n : 0; };

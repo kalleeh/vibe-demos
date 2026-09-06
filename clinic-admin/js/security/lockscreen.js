@@ -377,7 +377,6 @@ const PrivacyPanel = (() => {
   function open(tab = "status") { if (!Session.isUnlocked()) return; msg(""); selectTab(tab); activateTab("tab-privacy", { section: tab }); }
   function close() { /* a panel has nothing to close — kept for callers */ }
   function wire() {
-    $("#rail-privacy")?.addEventListener("click", () => { document.body.classList.remove("more-open"); open("status"); });
     // The info-modal link is inside a data-i18n-html block and is re-created on every language swap → delegate.
     $("#info-scrim")?.addEventListener("click", (e) => { if (e.target.closest?.("#info-privacy-link")) { e.preventDefault(); Dialog.close($("#info-scrim")); open("legal"); } });
     $("#poc-banner-link")?.addEventListener("click", (e) => { e.preventDefault(); open("legal"); });

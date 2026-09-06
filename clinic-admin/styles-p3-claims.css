@@ -1,7 +1,7 @@
 /* clinic-admin — Phase 3 claims styles. Append-only; owned by the claims builder. */
 
 /* ── 청구 배치 landing: two payer cards side by side, the 미지정 payer ask ── */
-.claims-payers { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.claims-payers { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
 .claims-payer { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; background: rgba(255,255,255,0.35); }
 .claims-payer-h { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-family: "Fraunces", "Noto Serif KR", serif; font-weight: 400; font-size: 14px; color: var(--ink-2); }
 .claims-payer-h .pill { display: inline-block; padding: 2px 8px; border-radius: 3px; font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.6px; text-transform: uppercase; background: rgba(123,168,154,0.16); color: var(--celadon-2); }
@@ -25,7 +25,9 @@ tr.focus td { background: rgba(123,168,154,0.14); }
 .nhis-next-actions .hint { font-size: 11px; color: var(--muted); }
 
 /* ── 이의신청 관리 ── */
-#tab-appeal .appeal-work { grid-template-columns: 1.55fr 1fr; }
+/* register + draft side by side only on very wide screens; otherwise the 10-column register needs the full width */
+#tab-appeal .appeal-work { grid-template-columns: 1fr; }
+@media (min-width: 1500px) { #tab-appeal .appeal-work { grid-template-columns: 1.55fr 1fr; } }
 .appeal-toolbar { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin: 12px 0 8px; }
 .appeal-toolbar label { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
 .appeal-toolbar select { padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper); font-size: 12px; color: var(--ink-2); max-width: 180px; }
@@ -70,7 +72,6 @@ tr.appeal-edit td { padding: 0 0 14px; background: rgba(123,168,154,0.06); }
 .appeal-draft-actions { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-top: 12px; }
 .appeal-draft-actions .hint { font-size: 11px; color: var(--muted); }
 @media (max-width: 880px) {
-  #tab-appeal .appeal-work { grid-template-columns: 1fr; }
   .appeal-grid { grid-template-columns: 1fr 1fr; }
   .appeal-toolbar .btn { margin-left: 0; width: 100%; justify-content: center; }
 }

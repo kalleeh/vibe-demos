@@ -3,7 +3,6 @@
 /* ── 환자 trackers (tab-guarantee · tab-docs · tab-consent) — shared layout: intro → filter row → patient strip →
    inline editor → responsive table → toolbar. Same grammar as styles.css (paper · Fraunces · Inter · JetBrains Mono ·
    rust accent · celadon). The panel head lives in the scaffold; everything below it is rendered by the tab module. ── */
-.p3-badges { margin: -4px 0 12px; }
 .panel-body > .panel-blurb { margin-bottom: 18px; }
 .p3-card h4 { display: flex; align-items: baseline; gap: 8px; }
 .p3-card h4 .p3-count { margin-left: auto; font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 1px; color: var(--muted); }

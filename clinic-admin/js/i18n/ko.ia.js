@@ -7,9 +7,9 @@ export default {
   "nav.area.home": "홈", "nav.area.patients": "환자", "nav.area.claims": "청구", "nav.area.records": "보고·기록", "nav.area.org": "조직",
   "nav.board": "접수 보드", "nav.claims": "청구 배치", "nav.org": "기관 프로필", "nav.privacy": "데이터 처리 현황", "nav.masters": "마스터 업로드",
   "shell.areasAria": "영역", "shell.subnavAria": "하위 메뉴", "shell.moreBtn": "더보기",
-  "shell.railAi": "✦ AI 코딩 어시스트", "shell.aiWord": "AI",
-  "shell.aiBtnTitle": "AI 코딩 어시스트 — 어느 화면에서든 오른쪽 드로어로 (⌘K 안에서도 열 수 있습니다)",
-  "shell.pal.utility": "유틸리티", "shell.pal.ai": "AI 코딩 어시스트 열기", "shell.pal.aiMeta": "진료 메모 → 상병·행위 코드 초안 (드로어)",
+  "shell.aiWord": "AI",
+  "shell.aiBtnTitle": "AI 어시스트 — 어느 화면에서든 오른쪽 드로어로 (⌘K 안에서도 열 수 있습니다)",
+  "shell.pal.utility": "유틸리티", "shell.pal.ai": "AI 어시스트 열기", "shell.pal.aiMeta": "진료 메모 → 상병·행위 코드 초안 (드로어)",
   "shell.pal.info": "정보 · 출처", "shell.pal.infoMeta": "근거 링크 · 버전 · 기관 요약",
 
   /* ── global search overlay ── */
@@ -45,7 +45,7 @@ export default {
   "claims.step.kcdNoSide": "이 배치에는 상병 컬럼이 없습니다 (행위만)",
   "claims.step.kcdTodo": "상병 {n}줄 — 아직 정비하지 않았습니다", "claims.step.kcdDone": "{n}건 검토 · 미수록/오류 {m}건 · 검토필요 {r}건",
   "claims.step.kcdBtn": "상병 정비 시작", "claims.step.kcdOpen": "상병 정비 열기",
-  "claims.step.recon": "심사결과 대조", "claims.step.reconNoSide": "이 배치에는 행위 컬럼이 없습니다 (상병만)",
+  "claims.step.recon": "자보 심사결과 대조", "claims.step.reconNoSide": "이 배치에는 행위 컬럼이 없습니다 (상병만)",
   "claims.step.reconNeed": "심평원 심사결과 파일이 아직 없습니다 — 올리면 명세서·행위 단위로 대조됩니다",
   "claims.step.reconTodo": "심사결과 {n}줄 연결됨 — 대조표를 확인하세요", "claims.step.reconDone": "조정 {cut} · 조정률 {rate}%",
   "claims.step.reconUpload": "심사결과 파일 올리기", "claims.step.reconBtn": "대조표 보기", "claims.step.reconOpen": "심사결과 대조 열기",
@@ -73,7 +73,7 @@ export default {
   "nav.docs": "서류 발급 대장",
   "nav.consent": "비급여 설명·동의",
   "nav.nhis": "건보 심사결과 대조",
-  "nav.appeal": "이의신청 관리",
+  "nav.appeal": "이의신청",
   "p3.guarantee.num": "환자 · 자보 지불보증",
   "p3.guarantee.h3": "보험사 <em>지불보증</em>, 전화·팩스 로그를 한 곳에",
   "p3.docs.num": "환자 · 서류 발급 대장",
@@ -82,6 +82,16 @@ export default {
   "p3.consent.h3": "비급여 <em>사전설명·동의</em> 기록",
   "p3.nhis.num": "청구 · 건보 심사결과 대조",
   "p3.nhis.h3": "건강보험 <em>심사결과</em>를 청구 명세서와 대조",
-  "p3.appeal.num": "청구 · 이의신청 관리",
+  "p3.appeal.num": "청구 · 이의신청",
   "p3.appeal.h3": "조정 건의 <em>이의신청</em>, 기한과 함께",
+
+  /* ── guided tour (js/tour.js) — 7 steps along the connected story ── */
+  "tour.n": "{i} / {n}", "tour.prev": "← 이전", "tour.next": "다음 →", "tour.done": "완료", "tour.seedBtn": "샘플 데이터 채우기", "tour.seeded": "샘플 데이터가 채워져 있습니다",
+  "tour.seed.title": "샘플 데이터로 시작", "tour.seed.body": "가상의 한솔한방병원 — 직원 7명, 가명 환자 5명, 2026-08 자보·건보 청구 배치, 심사결과, 이의신청 3건, 지불보증·발급 대장·동의 기록 — 이 한 번에 모든 화면을 채웁니다. 실제 환자 정보는 어디에도 입력하지 마세요.",
+  "tour.todo.title": "홈 · 지금 할 일", "tour.todo.body": "출근하면 여기부터. 30일 안의 마감, 열려 있는 청구 단계, 만료 임박 지불보증, 기한 초과 이의신청이 한 줄씩 — 줄마다 버튼 하나로 그 자리로 갑니다. 아래 「이번 달 숫자」는 원장 보고용으로 복사할 수 있습니다.",
+  "tour.claims.title": "청구 · 청구 배치", "tour.claims.body": "EMR 명세서 export 한 장이 배치가 되고, 보험유형에 따라 자보·건보로 나뉩니다. 각 배치의 세 단계 — 상병 정비 → 심사결과 대조 → 이의신청 — 가 어디까지 왔는지 나란히 보이고, 단계마다 버튼 하나로 이동합니다.",
+  "tour.recon.title": "청구 · 자보 심사결과 대조", "tour.recon.body": "청구 명세서와 심평원 심사결과를 명세서번호+행위코드로 줄마다 대조합니다. 조정된 줄은 사유별·월별로 묶이고, 줄마다 「이의신청 준비」로 넘길 수 있습니다. 건보는 옆 패널에서 같은 방식으로.",
+  "tour.appeal.title": "청구 · 이의신청", "tour.appeal.body": "조정 줄에서 넘어온 초안이 대장이 됩니다 — 통보일을 적으면 기한(+90일, 확인 필요)이 D-day로 붙고, 준비중 → 제출 → 결과로 상태를 옮기며, 초안은 인쇄할 수 있습니다. 기한 초과는 홈의 할 일에도 올라갑니다.",
+  "tour.patients.title": "환자 · 세 추적기", "tour.patients.body": "자보 지불보증(보험사 통화·만료 D-day), 서류 발급 대장(법정 대장·발급자 확인), 비급여 설명·동의(단가표 기준) — 모두 가명 환자번호(****0142)만 저장합니다. 접수 보드의 카드 ⋯ 메뉴에서도 바로 열립니다.",
+  "tour.org.title": "조직 · 직원 명부와 나머지", "tour.org.body": "직원 명부는 면허신고 기한(3년)을 계산하고 로그인(PIN)을 발급합니다. 기관 프로필은 모든 보고 파일의 머리글, 인증 자체점검은 다른 화면의 결과로 자동 판정, 데이터 처리 현황은 항목별 암호화·보존·파기·백업, 마스터 업로드는 KOICD·심평원 표. 끝 — 왼쪽 메뉴로 다니세요.",
 };

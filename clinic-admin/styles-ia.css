@@ -246,8 +246,57 @@
 @media (max-width: 480px) { #tab-org .org-form .org-grid { grid-template-columns: 1fr; } }
 #tab-masters .source-badge { margin: -6px 0 14px; }
 
+/* ── 청구 배치 landing (UX polish) — upload card full width, then one progress column per 보험유형 (자보 · 건보) ── */
+.claims-landing { display: flex; flex-direction: column; gap: 22px; }
+.claims-progress-h { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; display: flex; align-items: baseline; gap: 8px; }
+.claims-progress-h .step { color: var(--accent); font-weight: 600; }
+.claims-progress .claims-payer { padding: 14px 16px 12px; background: rgba(255,255,255,0.5); }
+.claims-progress .claims-payer-h { margin-bottom: 12px; font-size: 15px; color: var(--ink); }
+.claims-progress .claims-payer-h .pill { white-space: nowrap; flex-shrink: 0; }
+.claims-progress .claims-batch-card .cb-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.claims-progress .claims-batch-card .cb-head strong { overflow-wrap: anywhere; }
+.claims-progress .claims-step { padding: 12px 14px; gap: 12px; }
+.claims-progress .cs-title { font-size: 15.5px; }
+@media (max-width: 600px) { .claims-progress .claims-batch-card .cb-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Korean table cells keep words together (no character-per-line columns); the dense ledgers scroll sideways inside .result instead */
+th, td, .cs-title, .cs-detail, .todo-title, .cb-head { word-break: keep-all; }
+#jabo-recon-result table, #nhis-recon-result table { min-width: 880px; }
+#appeal-list table, #appeal-candidates table { min-width: 720px; }
+.total-strip { flex-wrap: wrap; gap: 6px 14px; }
+.total-strip .label { white-space: nowrap; }
+.total-strip .value { text-align: right; font-size: clamp(18px, 1.8vw, 26px); margin-left: auto; }
+@media (min-width: 881px) { #tab-guarantee .p3-table { min-width: 880px; } #tab-docs .p3-table, #tab-consent .p3-table { min-width: 760px; } }
+
+/* Welcome footer — the walkthrough link */
+.welcome .footer-row .welcome-foot { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.welcome .footer-row .link { background: none; border: none; padding: 0; color: var(--accent); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; font: inherit; font-weight: 500; }
+
+/* ── Guided tour card (js/tour.js) — fixed bottom-right; phone: above the bottom bar ── */
+.tour-card {
+  position: fixed; right: 22px; bottom: 22px; z-index: 70; width: min(380px, calc(100vw - 32px));
+  padding: 14px 16px 12px; border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px;
+  background: var(--paper); box-shadow: 0 18px 50px rgba(20,17,13,0.22); animation: fadeIn .2s ease-out;
+}
+.tour-card[hidden], .tour-card .btn[hidden] { display: none !important; }
+.tour-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.tour-n { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 1.4px; color: var(--muted); }
+.tour-card .close-x { width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: var(--muted); font-size: 15px; cursor: pointer; }
+.tour-card .close-x:hover { background: var(--ink); color: var(--paper); }
+.tour-title { font-family: "Fraunces", "Noto Serif KR", serif; font-weight: 400; font-size: 17px; color: var(--ink); margin: 0 0 6px; letter-spacing: -0.01em; }
+.tour-body { font-size: 13px; line-height: 1.55; color: var(--ink-2); margin: 0 0 12px; word-break: keep-all; }
+.tour-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tour-actions .spacer { flex: 1 1 auto; }
+.tour-actions .btn.sm { padding: 6px 12px; font-size: 11px; }
+.tour-target { outline: 2px solid var(--accent); outline-offset: 6px; border-radius: 8px; }
+body.tour-open .work-scroll { padding-bottom: 200px; }
+@media (max-width: 880px) {
+  .tour-card { right: 12px; left: 12px; width: auto; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+  body.tour-open .work-scroll { padding-bottom: calc(260px + env(safe-area-inset-bottom, 0px)); }
+}
+
 /* ── Print · reduced motion ── */
-@media print { .ai-drawer, .search-scrim, .bottombar, .subnav, .more-scrim { display: none !important; } .home-fold { border: none; padding: 0; } }
+@media print { .ai-drawer, .search-scrim, .bottombar, .subnav, .more-scrim, .tour-card { display: none !important; } .home-fold { border: none; padding: 0; } .tour-target { outline: none; } }
 @media (prefers-reduced-motion: reduce) {
-  .ai-drawer, .rail, .area-panels.active, .search-scrim.open, .more-scrim, .home-fold summary::before, .todo, .drop.flash { transition: none !important; animation: none !important; }
+  .ai-drawer, .rail, .area-panels.active, .search-scrim.open, .more-scrim, .home-fold summary::before, .todo, .drop.flash, .tour-card { transition: none !important; animation: none !important; }
 }

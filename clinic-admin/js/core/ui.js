@@ -38,8 +38,10 @@ function bindDrop(zoneId, onFile) {
    ───────────────────────────────────────────────────────── */
 const Toast = (() => {
   const tray = $("#toast-tray");
-  function show({ tag, html, link, ttl = 4500, action }) {
-    if (!tray) return;
+  let quietMode = false; // seedAll() mutes the per-tool toasts and shows one summary instead
+  const quiet = (on) => { quietMode = !!on; };
+  function show({ tag, html, link, ttl = 4500, action, force = false }) {
+    if (!tray || (quietMode && !force)) return;
     const el = document.createElement("div");
     el.className = "toast";
     const goBtn = link ? `<button class="go" data-link="${link}">${esc(t("common.view"))} →</button>`
@@ -71,7 +73,7 @@ const Toast = (() => {
     const html = esc(entry.action || entry.text || "") + (entry.subject ? ` <span class="toast-subject">${esc(entry.subject)}</span>` : "");
     show({ tag: entry.tag, html, link });
   });
-  return { show, withUndo };
+  return { show, withUndo, quiet };
 })();
 
 /* ActivityLog.add emits `activity:push` itself (store.js); peers get it after decrypting the

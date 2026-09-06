@@ -219,6 +219,21 @@ async function noOverflow(label, p = page) {
     sheet: (() => { const g = document.querySelector("#search-scrim.open .gsearch, #ai-drawer.open"); return g ? g.scrollWidth : 0; })() }));
   ok(r.sw <= r.iw + 1 && r.shell <= r.iw + 1 && r.work <= r.iw + 1 && r.lock <= r.iw + 1 && r.sheet <= r.iw + 1, `${label}: no horizontal overflow (doc ${r.sw} / shell ${r.shell} / work ${r.work} / lock ${r.lock} / sheet ${r.sheet} ≤ ${r.iw})`);
 }
+/* i18n leak guard — no visible text node may be a bare dictionary key (`nav.today`, `claims.p3.stepsH`). Storage keys in the
+   processing register sit in <code>, URLs in <a>; hostnames (ai.pb.gurum.se) are excluded by TLD. */
+const KEY_RE = /^[a-z]+(\.[a-zA-Z0-9_]+){1,4}$/;
+const leakedKeys = (p, scope) => p.evaluate(([sel, re]) => {
+  const rx = new RegExp(re), out = [];
+  for (const root of document.querySelectorAll(sel)) {
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n;
+    while ((n = w.nextNode())) { const s = n.textContent.trim(); if (!s || !rx.test(s) || /\.(kr|se|com|org|net|io)$/.test(s) || n.parentElement.closest("code, .code, a, kbd, script, style")) continue; out.push(s); }
+  }
+  return out;
+}, [scope, KEY_RE.source]);
+const CHROME_SCOPE = "#topbar, #rail, #subnav, #bottombar, #toast-tray";
+async function noKeys(label, scope, p = page) { const l = await leakedKeys(p, scope); ok(l.length === 0, `${label}: no raw i18n keys in the visible text (${l.slice(0, 4).join(", ") || "none"})`); }
+/* Rail foot / ⋯ sheet contract: exactly install · lock · users · info · demo (+ the KO|EN toggle), no duplicates of the topbar utilities. */
+const RAIL_FOOT = ["rail-install", "rail-lock", "rail-users", "rail-info", "rail-demo"];
 const expandLater = async () => { await page.evaluate(() => { const d = document.querySelector("#home-deadlines"); if (d) d.open = true; }); const m = $("#dday-more"); if (await m.count() && (await m.getAttribute("aria-expanded")) === "false") { await m.click(); await wait(100); } };
 const storeSnapshot = () => page.evaluate(async () => {
   const ls = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); ls[k] = localStorage.getItem(k); }
@@ -270,6 +285,14 @@ try {
   ok(welcomeKo.includes("마스터"), "welcome deck mentions 마스터 업로드");
   ok(/다섯 영역/.test(welcomeKo) && ["홈", "환자", "청구", "보고·기록", "조직", "검색", "AI 어시스트"].every(w => welcomeKo.includes(w)) && !/10개 탭|\b0\d\b/.test(welcomeKo), "first-run deck describes the five areas + two utilities, no tab numbers");
   ok((await $("#rail-areas .area-btn").count()) === 5 && (await $("#rail-areas [data-panel]").count()) === 18 && (await $("#rail-areas .num").count()) === 0, "rail: 5 areas · 18 panels · no numbers");
+  ok(/PIN/.test(welcomeKo) && /기관 정보/.test(welcomeKo) && /KO \| EN/.test(welcomeKo) && /PoC/.test(welcomeKo) && /샘플 데이터로 둘러보기/.test(welcomeKo) && /▶ 시연/.test(welcomeKo) && !/다음 단계에서|둘러보기 다시 열기/.test(welcomeKo), "deck covers PIN + 기관 정보 first-run, the sample-data button, KO|EN, PoC rules, the ▶ 시연 menu entry");
+  ok((await $("#welcome-tour").count()) === 1, "deck offers the 7-step walkthrough link");
+  const foot = await page.evaluate(() => [...document.querySelectorAll(".rail-foot .rail-btn")].map(b => b.id));
+  ok(foot.join(",") === RAIL_FOOT.join(",") && new Set(foot).size === foot.length && (await $(".rail-foot .lang-toggle").count()) === 1, `rail foot = ${foot.join(" · ")} + KO|EN (no search / AI / privacy / wipe duplicates)`);
+  ok((await $("#topbar-search, #topbar-ai, #topbar-user, #topbar-org, #topbar-sync, .topbar .lang-toggle").count()) === 6 && (await $("#rail-cmdk, #rail-ai, #rail-privacy, #wipe-all").count()) === 0, "topbar = org · user · sync · KO|EN · 🔍 · ✦; those actions are not repeated in the rail foot");
+  const railLabels = await page.evaluate(() => [...document.querySelectorAll(".rail-foot .rail-btn")].map(b => b.textContent.trim()));
+  ok(railLabels.every(l => l.length > 1 && !/^[a-z]+\./.test(l)), `rail foot labels are real labels (${railLabels.join(" · ")})`);
+  await noKeys("welcome deck + chrome", "#welcome-scrim, " + CHROME_SCOPE);
 
   /* 2 · seed */
   at("샘플 데이터로 둘러보기 (seed-all → shared entities + every tab, awaited in order)");
@@ -308,6 +331,22 @@ try {
   ok(seededP3.gd.length === 2 && seededP3.gd.some(([k, st]) => k === "guar-seed-gu-0142" && st === "expiring") && seededP3.gd.some(([k, st, d]) => k === "guar-seed-gu-0418" && st === "expired" && d < 0), `guaranteeDeadlines(): ${seededP3.gd.map(x => x.join(":")).join(" · ")}`);
   const chip = await $("#topbar-due-text").innerText().catch(() => "");
   ok(!ALL_NAMES.some(n => chip.includes(n)), `topbar due chip carries no name (“${chip}”)`);
+  const toasts = await page.evaluate(() => [...document.querySelectorAll("#toast-tray .toast")].map(t => t.textContent.replace(/\s+/g, " ").trim()));
+  ok(toasts.filter(x => /샘플 데이터가 채워졌습니다/.test(x)).length === 1 && toasts.every(x => /샘플 데이터가 채워졌습니다|기관 정보 저장/.test(x)), `seed shows ONE summary toast, per-tool toasts muted (${toasts.length} on screen)`);
+
+  /* 2a · every panel (KO): no raw i18n key anywhere, rail label = crumb = panel head, no horizontal overflow on the phone */
+  at("KO: 18 panels — no key leaks, consistent labels (rail · crumb · panel head), phone: no horizontal overflow");
+  const stripParen = (s) => s.replace(/\s*\([^)]*\)\s*$/, "").trim();
+  for (const panel of PANELS) {
+    await goTab(panel);
+    if (panel === "tab-privacy") await page.waitForFunction(() => document.querySelectorAll("#privacy-table tr").length > 5);
+    if (panel === "tab-today") await page.evaluate(() => document.querySelectorAll("#tab-today details").forEach(d => { d.open = true; }));
+    const lab = await page.evaluate((id) => ({ rail: document.querySelector(`#rail-areas [data-panel="${id}"]`)?.textContent.trim(), crumb: document.querySelector("#crumb-tab")?.textContent.trim(), area: document.querySelector("#crumb-section")?.textContent.trim(), num: document.querySelector(`#${id} .panel-num`)?.textContent.trim(), sub: document.querySelector(`#subnav [data-panel="${id}"]`)?.textContent.trim() }), panel);
+    ok(lab.rail && lab.rail === lab.crumb && (!MOBILE || lab.sub == null || lab.sub === lab.rail) && stripParen(lab.num) === `${lab.area} · ${lab.rail}`, `${panel}: rail “${lab.rail}” = crumb = sub-nav, panel head “${lab.num}” = area · panel`); // 홈 has one panel → no sub-nav segment
+    await noKeys(panel, `#${panel}, ${CHROME_SCOPE}`);
+    if (MOBILE) await noOverflow(panel);
+  }
+  await goTab("tab-today");
 
   /* 2b · the connected story, part 1 — 00 오늘 right after the seed */
   at("홈 — KPIs by payer from the seeded reconciliations, no nudges, resume cards, deadlines carry ctx, todo rows deep-link");
@@ -356,6 +395,7 @@ try {
   await page.waitForSelector("#users-scrim.open");
   await page.waitForFunction(() => document.querySelectorAll("#users-list .sec-row").length === 4);
   ok(/한의사/.test(await $("#users-list").innerText()), "users panel shows the job next to the system role (view over Staff)");
+  await noKeys("users modal", "#users-scrim");
   await $("#users-add-name").fill("행정 김"); await $("#users-add-role").selectOption("행정"); await $("#users-add-pin").fill("5678");
   await $("#users-add-btn").click();
   await page.waitForFunction(() => document.querySelectorAll("#users-list .sec-row").length === 5);
@@ -366,7 +406,7 @@ try {
   /* 4 · the connected story, part 2 — claims tabs on the ONE shared batch */
   at("02 자보 — reconciliation of the shared 2026-08 batch: cuts on ****0142, insurer on the history entry");
   await goTab("tab-jabo");
-  ok((await $("#crumb-section").innerText()) === "청구" && (await $("#crumb-tab").innerText()) === "심사결과 대조", "crumb shows area › panel labels");
+  ok((await $("#crumb-section").innerText()) === "청구" && (await $("#crumb-tab").innerText()) === "자보 심사결과 대조", "crumb shows area › panel labels");
   const strip02 = (await $("#jabo-batch-strip").innerText()).replace(/\s+/g, " ");
   ok(/청구 배치/.test(strip02) && /명세서 12건/.test(strip02) && /환자 5명/.test(strip02) && /2026-08/.test(strip02) && /샘플/.test(strip02), `compact batch strip: 12 명세서 · 5 환자 · 2026-08 · 샘플 (${strip02.slice(0, 100)})`);
   ok((await $("#jabo-batch-strip .batch-strip.compact [data-batch-open]").count()) === 1 && (await $("#jabo-batch-strip [data-batch-new]").count()) === 0, "strip collapsed to one line linking back to 청구 배치 (no 새 파일 here)");
@@ -450,6 +490,7 @@ try {
   await page.waitForSelector("#search-result table");
   ok((await $("#search-input").inputValue()) === "S13.4" && /경추의 염좌/.test(await $("#search-result").innerText()), "overlay searched the code");
   ok((await $("#search-nav-results .palette-item, #search-nav-results .palette-empty").count()) >= 1 && /코드/.test(await $(".gsearch-codes-head .palette-section-label").innerText()), "overlay groups: 이동·명령 list (empty for a bare code) + 코드 table");
+  await noKeys("search overlay", "#search-scrim");
   if (MOBILE) await noOverflow("search overlay (phone sheet)");
   await $("#search-input").fill("약침"); await wait(250);
   await page.waitForSelector("#search-result table");
@@ -505,10 +546,48 @@ try {
   await page.evaluate(() => document.querySelector('#claims-batch-strip [data-batch-pick]').click());
   ok((await $("#claims-batch-strip .batch-picker .batch-row").count()) === 2 && (await $("#claims-batch-strip .batch-picker .pill.payer").allInnerTexts()).sort().join(",") === "건보,자보", "batch picker lists both batches with payer pills");
   ok(await $("#claims-payer-ask").isHidden(), "no 보험유형 ask while the current batch has a payer");
+  // Layout: the progress section is its own full-width block (not squeezed into the 2-column .work grid); a step row keeps its
+  // title on one line and its button beside it on desktop, and nothing overflows the phone.
+  const landing = await page.evaluate(() => {
+    const prog = document.querySelector("#claims-progress"), up = document.querySelector("#tab-claims .claims-upload");
+    const titles = [...document.querySelectorAll("#tab-claims .cs-title")].map(e => e.getBoundingClientRect().height);
+    const pills = [...document.querySelectorAll("#tab-claims .claims-payer-h .pill")].map(e => e.getBoundingClientRect().height);
+    return { progW: prog.getBoundingClientRect().width, upW: up.getBoundingClientRect().width, payers: document.querySelectorAll("#claims-progress .claims-payer").length, steps: document.querySelectorAll("#claims-progress .claims-step").length, btns: document.querySelectorAll("#claims-progress .claims-step > button").length, maxTitle: Math.max(...titles), maxPill: Math.max(...pills), stateChips: [...document.querySelectorAll("#claims-progress .cs-state")].map(e => e.textContent.trim()) };
+  });
+  ok(Math.abs(landing.progW - landing.upW) < 2 && landing.payers === 2 && landing.steps === 6 && landing.btns === 6 && landing.stateChips.every(s => s && !/^[a-z]+\./.test(s)), `landing: upload card and progress section share the full width, 2 payer columns × 3 step rows, one action each, real state chips (${[...new Set(landing.stateChips)].join(" · ")})`);
+  ok(landing.maxPill < 30 && (MOBILE || landing.maxTitle < 44), `landing: payer pill on one line (${landing.maxPill}px), step titles not wrapped char-by-char (${landing.maxTitle}px)`);
   await page.evaluate(() => document.querySelector('#claims-steps [data-step-go="recon"]').click());
   await page.waitForSelector("#tab-jabo.active");
-  ok(true, "step button → 심사결과 대조");
+  ok(true, "step button → 자보 심사결과 대조");
   if (MOBILE) { await goTab("tab-claims"); await noOverflow("청구 배치 landing"); }
+
+  at("guided tour — ▶ 시연 deck → 화면 안내 7단계: each step lands on its panel with the target ringed, reaches 완료");
+  await railClick("#rail-demo");
+  await page.waitForSelector("#welcome-scrim.open");
+  await $("#welcome-tour").click();
+  await closed("#welcome-scrim");
+  await page.waitForSelector("#tour-card:not([hidden])");
+  const TOUR = [["seed", "tab-today"], ["todo", "tab-today"], ["claims", "tab-claims"], ["recon", "tab-jabo"], ["appeal", "tab-appeal"], ["patients", "tab-guarantee"], ["org", "tab-license"]];
+  ok((await $("#tour-card").getAttribute("data-step")) === "1" && (await $("#tour-n").innerText()) === "1 / 7" && (await $("#tour-seed").isDisabled()) && /채워져/.test(await $("#tour-seed").innerText()), "step 1: seeded workspace → the seed button reads 채워져 있습니다 and is disabled");
+  for (let i = 0; i < TOUR.length; i++) {
+    const [key, panel] = TOUR[i];
+    await page.waitForSelector(`#${panel}.active`);
+    const st = await page.evaluate(() => ({ step: document.querySelector("#tour-card").dataset.step, key: document.querySelector("#tour-card").dataset.key, title: document.querySelector("#tour-title").textContent, body: document.querySelector("#tour-body").textContent, ring: document.querySelectorAll(".tour-target").length, ringInPanel: !!document.querySelector(".panel.active .tour-target"), next: document.querySelector("#tour-next").textContent.trim() }));
+    ok(st.step === String(i + 1) && st.key === key && st.title.length > 3 && st.body.length > 40 && !KEY_RE.test(st.title) && st.ring === 1 && st.ringInPanel, `tour ${st.step}/7 “${st.title}” → ${panel}, target ringed`);
+    if (MOBILE) await noOverflow(`tour step ${i + 1}`);
+    if (i < TOUR.length - 1) { ok(st.next === "다음 →", "next button"); await $("#tour-next").click(); }
+    else { ok(st.next === "완료", "final step offers 완료"); await $("#tour-next").click(); }
+  }
+  await page.waitForSelector("#tour-card[hidden]", { state: "attached" });
+  ok((await $(".tour-target").count()) === 0 && !(await page.evaluate(() => document.body.classList.contains("tour-open"))), "tour closed on 완료 — ring and body flag removed");
+  await openSearch("화면 안내");
+  ok(/화면 안내 시작/.test(await $("#search-nav-results").innerText()), "⌘K lists the walkthrough command");
+  await page.keyboard.press("Enter");
+  await page.waitForSelector("#tour-card:not([hidden])");
+  ok((await $("#tour-card").getAttribute("data-step")) === "1" && !(await $("#search-scrim.open").count()), "command palette starts the tour at step 1");
+  await page.keyboard.press("Escape");
+  await page.waitForSelector("#tour-card[hidden]", { state: "attached" });
+  ok(true, "Esc closes the tour card");
 
   /* 5 · the connected story, part 3 — reporting tabs on the same entities */
   at("03 연말정산 — org read-only, cross-check against the shared claims batch, 3 issues, batch without names");
@@ -542,6 +621,9 @@ try {
   await railClick("#rail-info");
   await page.waitForSelector("#info-scrim.open");
   ok(/한솔한방병원/.test(await $("#info-org").innerText()) && (await $("#info-org input").count()) === 0 && (await $("#info-org [data-org-edit]").count()) === 1, "ⓘ modal keeps a READ-ONLY org summary + link (no editor)");
+  const infoTxt = await $("#info-scrim").innerText();
+  ok(/앱 v2\.4\.0-poc/.test(infoTxt) && /▶ 시연/.test(infoTxt) && /AI 어시스트/.test(infoTxt) && !/AI 코딩|다음 단계에서|둘러보기 다시/.test(infoTxt), "info modal: current version line, ▶ 시연 pointer, no stale wording");
+  await noKeys("info modal", "#info-scrim");
   await $("#info-close").click(); await closed("#info-scrim");
   await goTab("tab-yearend");
 
@@ -623,6 +705,7 @@ try {
   await runDemo("run-ai");
   await page.waitForFunction(() => { const p = document.querySelector("#ai-mode-pill"); return p && !p.hidden && p.textContent.includes("예시 모드"); }, null, { timeout: 8000 });
   ok(/\*\*\*\*0142/.test(await $("#ai-ctx").innerText()) && /M2608-0001/.test(await $("#ai-ctx").innerText()), "07 sample note is ****0142's (M2608-0001)");
+  await noKeys("AI drawer", "#ai-drawer");
 
   at("AI drawer — live: consent → redaction preview → mocked tool_use → 라이브 pill · system prompt carries Org + tariff");
   await $('#ai-source button[data-source="live"]').click();
@@ -733,8 +816,8 @@ try {
   const apCtx = await page.evaluate(() => { const el = document.querySelector('#todo-list .todo[data-key^="dl:appeal-"]'); const c = JSON.parse(el.dataset.ctx); el.querySelector("[data-todo-go]").click(); return c; });
   await page.waitForSelector("#tab-appeal.active");
   await page.waitForSelector(`#appeal-list tr.appeal-edit[data-id="${apCtx.appealId}"]`);
-  ok(/N2608-0005/.test(await $("#appeal-draft").innerText()) && (await $("#crumb-tab").innerText()) === "이의신청 관리", "todo → 청구 › 이의신청 관리 with that appeal's drawer + draft open");
-  if (MOBILE) await noOverflow("이의신청 관리");
+  ok(/N2608-0005/.test(await $("#appeal-draft").innerText()) && (await $("#crumb-tab").innerText()) === "이의신청", "todo → 청구 › 이의신청 with that appeal's drawer + draft open");
+  if (MOBILE) await noOverflow("이의신청");
   await goTab("tab-today");
   if (await $("#todo-more").count()) await $("#todo-more").click();
   await page.evaluate(() => document.querySelector('#todo-list .todo[data-key="dl:guar-seed-gu-0142"] [data-todo-go]').click());
@@ -1171,7 +1254,9 @@ try {
     await goTab("tab-today");
     ok(await page.evaluate(() => document.querySelector("#subnav").hidden), "phone: sub-nav hidden for a single-panel area (홈)");
     await $("#bottombar-more").click(); await wait(350);
-    ok(await page.evaluate(() => document.body.classList.contains("more-open") && document.querySelector("#rail-lock").offsetHeight > 0 && document.querySelector(".rail-foot .lang-toggle").offsetHeight > 0), "phone: ⋯ sheet shows lock/users/privacy/language");
+    const sheet = await page.evaluate(() => ({ open: document.body.classList.contains("more-open"), lang: document.querySelector(".rail-foot .lang-toggle").offsetHeight > 0, visible: [...document.querySelectorAll(".rail-foot .rail-btn")].filter(b => b.offsetHeight > 0).map(b => b.id), areasHidden: document.querySelector("#rail-areas").offsetHeight === 0 }));
+    ok(sheet.open && sheet.lang && sheet.areasHidden && sheet.visible.join(",") === RAIL_FOOT.filter(id => id !== "rail-install" || sheet.visible.includes("rail-install")).join(","), `phone: ⋯ sheet = KO|EN + ${sheet.visible.join(" · ")} (the rail foot, nothing else)`);
+    await noKeys("⋯ sheet", "#rail");
     await noOverflow("⋯ sheet");
     await $("#more-scrim").click({ position: { x: 20, y: 20 } }); await page.waitForFunction(() => !document.body.classList.contains("more-open")); // tap above the sheet
   } else {
@@ -1197,9 +1282,10 @@ try {
 
   /* 6 · privacy panel */
   at("조직 › 데이터 처리 현황 — a panel now; zero 미등록 after using every tool");
-  await railClick("#rail-privacy");
+  await openSearch("데이터 처리");
+  await page.keyboard.press("Enter"); // the ⌘K command (the rail foot no longer duplicates the 조직 panel)
   await page.waitForSelector("#tab-privacy.active");
-  ok((await $("#crumb-tab").innerText()) === "데이터 처리 현황" && !(await $("#privacy-scrim").count()), "privacy register opened as the 조직 › 데이터 처리 현황 panel (modal retired)");
+  ok((await $("#crumb-tab").innerText()) === "데이터 처리 현황" && !(await $("#privacy-scrim").count()) && !(await $("#search-scrim.open").count()), "privacy register opened as the 조직 › 데이터 처리 현황 panel via ⌘K (modal retired, no rail duplicate)");
   await page.evaluate(() => document.querySelector("#poc-banner-link").click());
   ok(await page.evaluate(() => document.querySelector('#tab-privacy [data-privacy-pane="legal"]').classList.contains("active")), "PoC banner link → legal pane of the panel");
   await page.evaluate(() => document.querySelector('#tab-privacy [data-privacy-tab="status"]').click());
@@ -1244,6 +1330,7 @@ try {
   at("lock → locked state → unlock as 정수아 (seeded 행정 · PIN 0000)");
   await railClick("#rail-lock");
   await page.waitForSelector("body.locked");
+  await noKeys("lock screen", "#lock-scrim");
   ok(await page.evaluate(() => getComputedStyle(document.querySelector(".frame.shell")).visibility === "hidden" && document.querySelector(".frame.shell").inert === true), "shell hidden + inert while locked");
   ok(await ent(page, (E, S, Store) => E.Staff.list().length === 0 && E.Patients.list().length === 0 && E.Batches.list().length === 0 && Store.get("jabo.history", []).length === 0), "Staff / Patients / Batches / sensitive keys read empty while locked");
   ok(await M(({ CS, P, Store }) => CS.Appeals.list().length === 0 && CS.appealStats().open === 0 && P.guaranteeDeadlines().length === 0 && Store.get("consent.list", []).length === 0 && Store.get("retention.disposals", []).length === 0), "appeals · guarantees · consents · disposals read empty while locked (producers are lock-safe)");
@@ -1273,10 +1360,19 @@ try {
   ok(audit.some(e => e.subject && /^\*\*\*\*/.test(e.subject)), "patient subjects are ****NNNN");
   ok(audit.some(e => e.actor === "정수아") && audit.some(e => e.actor === "홍 원장"), "both users appear as actors");
 
-  /* 9 · 전체 파기 */
-  at("전체 파기 (typed 「파기」) → clean first-run state, masters DB gone");
+  /* 9 · 전체 파기 — lives in 조직 › 데이터 처리 현황 and is 원장-only: 정수아 (행정) sees it disabled, 홍 원장 runs it */
+  at("전체 파기 (typed 「파기」, 원장 only, from 조직 › 데이터 처리 현황) → clean first-run state, masters DB gone");
+  await goTab("tab-privacy");
+  ok(await $("#privacy-destroy-all").isDisabled(), "행정 user: 전체 파기 disabled (Director permission)");
+  await railClick("#rail-lock");
+  await page.waitForSelector("body.locked");
+  await page.locator(".lock-user", { hasText: "홍 원장" }).click();
+  await $("#lock-pin").fill("1234"); await $("#lock-submit").click();
+  await page.waitForSelector("body:not(.locked)", { timeout: 20000 });
+  await goTab("tab-privacy");
+  await page.waitForFunction(() => document.querySelector("#privacy-destroy-all") && !document.querySelector("#privacy-destroy-all").disabled);
   page.once("dialog", d => d.accept("파기"));
-  await Promise.all([page.waitForNavigation({ waitUntil: "domcontentloaded" }), railClick("#wipe-all")]);
+  await Promise.all([page.waitForNavigation({ waitUntil: "domcontentloaded" }), $("#privacy-destroy-all").click()]);
   await page.waitForSelector("#lock-scrim.open");
   ok(await $("#lock-setup").isVisible(), "setup pane again (no workspace)");
   const after = await page.evaluate(async () => ({ ls: Object.keys(localStorage).filter(k => k.startsWith("vibe.clinic-admin")), dbs: (await indexedDB.databases()).map(d => d.name) }));
@@ -1407,8 +1503,7 @@ try {
       attachments: []
     });
   });
-  await pL.evaluate(() => { const b = document.querySelector("#rail-privacy"); b && b.click(); });
-  await pL.waitForSelector("#tab-privacy.active");
+  await goTab("tab-privacy", pL);
   await $L("#privacy-restore").click();
   await pL.waitForSelector("#lock-restore:not([hidden])");
   await $L("#restore-file").setInputFiles({ name: "clinic-admin_backup_v1.json", mimeType: "application/json", buffer: Buffer.from(v1) });
@@ -1492,6 +1587,9 @@ try {
     if (["tab-guarantee", "tab-docs", "tab-consent"].includes(panel)) { await $2(`#${panel} [data-new]`).click(); await p2.waitForSelector(`#${panel} [data-editor]:not([hidden])`); }
     const left = leftoverHangul(await panelTexts2(panel));
     ok(left.length === 0, `${panel}: English only (leftovers: ${left.slice(0, 5).join(" | ") || "none"})`);
+    await noKeys(`[EN] ${panel}`, `#${panel}, ${CHROME_SCOPE}`, p2);
+    const labEn = await p2.evaluate((id) => ({ rail: document.querySelector(`#rail-areas [data-panel="${id}"]`)?.textContent.trim(), crumb: document.querySelector("#crumb-tab")?.textContent.trim(), area: document.querySelector("#crumb-section")?.textContent.trim(), num: document.querySelector(`#${id} .panel-num`)?.textContent.trim() }), panel);
+    ok(labEn.rail === labEn.crumb && labEn.num.replace(/\s*\([^)]*\)\s*$/, "") === `${labEn.area} · ${labEn.rail}`, `[EN] ${panel}: rail “${labEn.rail}” = crumb, head “${labEn.num}”`);
     if (MOBILE) await noOverflow2(panel);
     if (["tab-guarantee", "tab-docs", "tab-consent"].includes(panel)) await $2(`#${panel} [data-editor] [data-cancel]`).click();
   }
@@ -1558,8 +1656,25 @@ try {
   ok(/Patient name/.test(yeHead) && /RRN \(masked\)/.test(yeHead) && !HANGUL.test(yeHead), `EN CSV headers (${yeHead.slice(0, 80)}…)`);
   ok(/PoC — not for real submission/.test(yeMark), "EN CSV watermark row in English");
   await openSearch(null, p2);
-  ok(/Switch to Korean/.test(await $2("#search-nav-results").innerText()) && /Open AI coding assist/.test(await $2("#search-nav-results").innerText()), "overlay lists the language command + the AI utility");
+  ok(/Switch to Korean/.test(await $2("#search-nav-results").innerText()) && /Open AI assist/.test(await $2("#search-nav-results").innerText()), "overlay lists the language command + the AI utility");
+  await noKeys("[EN] search overlay", "#search-scrim", p2);
   await p2.keyboard.press("Escape");
+  await mods(p2, ({ activateTab }) => activateTab("tab-ai"));
+  await p2.waitForSelector("#ai-drawer.open");
+  await noKeys("[EN] AI drawer", "#ai-drawer", p2);
+  await $2("#ai-drawer-close").click();
+  await railClick("#rail-info", p2); await p2.waitForSelector("#info-scrim.open");
+  await noKeys("[EN] info modal", "#info-scrim", p2); await $2("#info-close").click();
+  await railClick("#rail-users", p2); await p2.waitForSelector("#users-scrim.open");
+  await noKeys("[EN] users modal", "#users-scrim", p2); await $2("#users-close").click();
+  await railClick("#rail-demo", p2); await p2.waitForSelector("#welcome-scrim.open");
+  await noKeys("[EN] welcome deck", "#welcome-scrim", p2);
+  await $2("#welcome-tour").click(); await p2.waitForSelector("#tour-card:not([hidden])");
+  for (let i = 1; i < 7; i++) await $2("#tour-next").click();
+  const tourEn = await p2.evaluate(() => ({ step: document.querySelector("#tour-card").dataset.step, next: document.querySelector("#tour-next").textContent.trim(), title: document.querySelector("#tour-title").textContent }));
+  ok(tourEn.step === "7" && tourEn.next === "Done" && /Organisation/.test(tourEn.title) && (await $2("#tab-license.active").count()) === 1, `[EN] tour reaches step 7 (“${tourEn.title}” · ${tourEn.next})`);
+  await noKeys("[EN] tour card", "#tour-card", p2);
+  await $2("#tour-next").click(); await p2.waitForSelector("#tour-card[hidden]", { state: "attached" });
 
   at("EN: reload persists the choice (lock screen in English)");
   await p2.reload({ waitUntil: "domcontentloaded" });
