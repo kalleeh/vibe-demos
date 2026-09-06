@@ -12,7 +12,7 @@
 //   summary       → max 120 (was 200)
 //   player_id     → max 64 (was unbounded)
 //
-// NOT DEPLOYED YET — apply with sync-backends.sh on explicit request. The
+// deployed 2026-09-05 via sync-backends.sh
 // seed names in index.html (김민서·이준호·박서연·정우진) are in the allow-list,
 // so existing seed rows stay valid.
 const FICTIONAL_NAMES = ["예시 환자", "김민서", "이준호", "박서연", "정우진", "최하은", "강도윤", "윤지아", "임시우"];
