@@ -8,7 +8,7 @@
 import { $, $$, esc, Toast, Dialog, relTime } from "../core/ui.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { downloadCSV } from "../core/files.js";
-import { Session, ROLES } from "./session.js";
+import { Session } from "./session.js";
 import { inventory, purgeExpired, destroy, destroyAll, exportBackup, parseBackup, restoreBackup } from "./lifecycle.js";
 
 const HIDDEN_LOCK_MS = 60000;

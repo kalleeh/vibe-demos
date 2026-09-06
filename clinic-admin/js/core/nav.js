@@ -9,7 +9,7 @@ import { Store, EventBus } from "./store.js";
 /* Tab metadata used by rail, palette, crumb */
 const TABS = [
   { id: "tab-today",     num: "00", label: "오늘",                section: "시작",      glyph: "◐" },
-  { id: "tab-kcd",       num: "01", label: "KCD-8 정비",          section: "청구·코드", glyph: "K" },
+  { id: "tab-kcd",       num: "01", label: "상병코드 정비",         section: "청구·코드", glyph: "K" },
   { id: "tab-jabo",      num: "02", label: "자보 정산",            section: "청구·코드", glyph: "J" },
   { id: "tab-search",    num: "06", label: "코드 검색",            section: "청구·코드", glyph: "Q" },
   { id: "tab-ai",        num: "07", label: "AI 코딩 어시스트",     section: "청구·코드", glyph: "A" },

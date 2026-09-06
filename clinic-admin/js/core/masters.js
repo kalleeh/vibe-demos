@@ -152,6 +152,17 @@ async function clear(kind) {
 }
 const get = (kind) => cache[kind];
 const onChange = (fn) => EventBus.on(EV, fn);
+// 전체 파기: close our connection (else deleteDatabase blocks) and drop the whole masters DB.
+async function destroy() {
+  cache.kcd = null; cache.fee = null;
+  if (dbp) { try { (await dbp).close(); } catch {} dbp = null; }
+  await new Promise((res) => {
+    let r;
+    try { r = indexedDB.deleteDatabase(DB); } catch { return res(); }
+    r.onsuccess = r.onerror = r.onblocked = () => res();
+  });
+  EventBus.emit(EV, { kind: "all" });
+}
 
 // ── Unified accessors — uploaded master if present, else the bundled 발췌/예시 ──
 function kcd() {
@@ -198,5 +209,5 @@ function contextFor(note, n = 12) {
   return `\n\n<master_context>\n업로드된 실제 마스터가 있습니다. 아래 행에 있는 코드만 추천하고, 위 예시 목록의 코드는 마스터에 없으면 사용하지 마십시오.\n${parts.join("\n")}\n</master_context>`;
 }
 
-const Masters = { FIELDS, init, ready, get, put, clear, onChange, suggestMapping, normalizeRows, kcd, fee, kcdIndex, contextFor, toEdi, toDotted };
+const Masters = { FIELDS, init, ready, get, put, clear, destroy, onChange, suggestMapping, normalizeRows, kcd, fee, kcdIndex, contextFor, toEdi, toDotted };
 export { Masters, toEdi, toDotted };

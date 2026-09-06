@@ -1,9 +1,9 @@
 /* clinic-admin — Tab 08 · 면허·자격 트래커 */
-import { $, $$, esc, todayISO, daysUntil, Haptic, Toast, Lightbox, Share, bindCameraButton } from "../core/ui.js";
+import { $, $$, esc, todayISO, daysUntil, Haptic, Toast, Lightbox, Share, bindCameraButton, redactStaff } from "../core/ui.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { Attachments } from "../core/attachments.js";
 import { OCR } from "../core/ocr.js";
-import { redactSubject } from "./reporting-shared.js";
+import { downloadText, POC_MARK } from "../core/files.js";
 
 /* ─────────────────────────────────────────────────────────
    Tab 8 — 면허·자격 트래커
@@ -45,7 +45,9 @@ export function initTab8() {
     if (acquired) return { expiry: addYears(acquired, duty.years), basis: "acquired" };
     return { expiry: "", basis: "unknown" };
   };
-  const who = (lic) => `${lic.role} ${redactSubject({ name: lic.name })}`;
+  // Audit entries never carry the staff name in `text`; the pseudonymised subject
+  // ("한의사 윤○○") is derived by ActivityLog from meta.subject = { role, name }.
+  const subj = (lic) => ({ subject: { role: lic.role, name: lic.name } });
 
   let editingId = null;
   const setEditing = (on) => {
@@ -126,15 +128,15 @@ export function initTab8() {
           if (!removed) return;
           if (editingId === id) resetForm();
           Store.set("license.list", list.filter(x => x.id !== id));
-          ActivityLog.push("license", `면허 직원 삭제 — ${who(removed)}`, { silent: true });
+          ActivityLog.push("license", "면허 직원 삭제", { silent: true, ...subj(removed) });
           Haptic.del();
           renderList();
-          Toast.withUndo(`삭제됨 · ${removed.role} ${removed.name}`, () => {
+          Toast.withUndo(`삭제됨 · ${redactStaff(removed)}`, () => {
             const cur = Store.get("license.list", []);
             if (cur.some(x => x.id === id)) return;
             cur.splice(Math.min(idx, cur.length), 0, removed);
             Store.set("license.list", cur);
-            ActivityLog.push("license", `삭제 취소 — ${who(removed)}`, { silent: true });
+            ActivityLog.push("license", "삭제 취소", { silent: true, ...subj(removed) });
             renderList();
           }, "license");
         } else if (b.dataset.act === "edit") {
@@ -190,7 +192,7 @@ export function initTab8() {
               if (licenseNo) target.licenseNo = licenseNo;
               Object.assign(target, computeDue(target));
               Store.set("license.list", list2);
-              ActivityLog.push("license", `OCR — ${who(target)} 면허증 ${[issued && "취득일", licenseNo && "면허번호"].filter(Boolean).join("·")} 읽음`, {});
+              ActivityLog.push("license", `OCR — 면허증 ${[issued && "취득일", licenseNo && "면허번호"].filter(Boolean).join("·")} 읽음`, subj(target));
             }
             shim.classList.add("success");
             shim.innerHTML = `✓ ${[issued && `취득일 ${esc(issued)}`, licenseNo && `면허번호 ${esc(licenseNo)}`].filter(Boolean).join(" · ")} 입력`;
@@ -263,10 +265,10 @@ export function initTab8() {
       const target = list.find(x => x.id === editingId);
       if (target) Object.assign(target, rec);
       else list.push({ id: editingId, ...rec });
-      ActivityLog.push("license", `직원 수정 — ${who(rec)}`, {});
+      ActivityLog.push("license", "직원 수정", subj(rec));
     } else {
       list.push({ id: "lic-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6), ...rec });
-      ActivityLog.push("license", `직원 추가 — ${who(rec)}`, {});
+      ActivityLog.push("license", "직원 추가", subj(rec));
     }
     Store.set("license.list", list);
     Haptic.save();
@@ -283,7 +285,8 @@ export function initTab8() {
       return ymd(d);
     };
     // reported = last 면허신고 (months relative to today); one row has only a 취득일 (basis
-    // "acquired" → flagged), and one 원무 row has no duty at all.
+    // "acquired" → flagged), and one 원무 row has no duty at all. Ids are opaque — an id is
+    // the attachment owner + .ics UID, so it must never embed the name.
     const sample = [
       { role: "한의사",     name: "윤지훈", licenseNo: "12345", acquired: "2009-02-27", reported: offset(2 - 36),  cme: offset(8) },
       { role: "한의사",     name: "박서영", licenseNo: "23456", acquired: "1998-02-27", reported: "",              cme: offset(-1) },
@@ -291,7 +294,7 @@ export function initTab8() {
       { role: "물리치료사", name: "김도현", licenseNo: "45678", acquired: "2016-03-01", reported: offset(22 - 36), cme: offset(4) },
       { role: "간호조무사", name: "최유진", licenseNo: "567890", acquired: "2018-01-20", reported: offset(-2 - 36), cme: offset(7) },
       { role: "원무",       name: "한지원", licenseNo: "", acquired: "", reported: "", cme: "" }
-    ].map(x => ({ ...x, id: "lic-sample-" + x.name, ...computeDue(x) }));
+    ].map((x, i) => ({ ...x, id: `lic-sample-${String(i + 1).padStart(2, "0")}`, ...computeDue(x) }));
     Store.set("license.list", sample);
     ActivityLog.push("license", `샘플 직원 ${sample.length}명 등록`, {});
     renderList();
@@ -305,33 +308,32 @@ export function initTab8() {
       const dt = new Date(d + "T09:00:00");
       return `${dt.getFullYear()}${pad(dt.getMonth()+1)}${pad(dt.getDate())}T090000`;
     };
-    const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Vibe Studio//Clinic Admin//KO"];
+    const icsText = (s) => String(s).replace(/\\/g, "\\\\").replace(/[,;]/g, m => "\\" + m).replace(/\n/g, "\\n");
+    // PoC watermark: calendar-level notice + every event DESCRIPTION opens with the mark.
+    const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Vibe Studio//Clinic Admin//KO", `X-POC-NOTICE:${icsText(POC_MARK)}`];
     for (const lic of list) {
       const duty = ROLE_DUTY[lic.role];
       if (duty && lic.expiry) ics.push("BEGIN:VEVENT",
         `UID:${lic.id}-exp@vibe-clinic-admin`,
         `DTSTAMP:${fmt(todayISO())}Z`, `DTSTART:${fmt(lic.expiry)}`,
         `DTEND:${fmt(lic.expiry).slice(0,11)}5959`,
-        `SUMMARY:${lic.role} ${lic.name} — 면허신고 기한${lic.basis === "acquired" ? " (신고 이력 미확인)" : ""}`,
+        `SUMMARY:${icsText(`${lic.role} ${lic.name} — 면허신고 기한${lic.basis === "acquired" ? " (신고 이력 미확인)" : ""}`)}`,
+        `DESCRIPTION:${icsText(`${POC_MARK} · 면허신고 기한 (${duty.law} · ${lic.basis === "acquired" ? "취득일" : "신고일"} + ${duty.years}년)`)}`,
         "BEGIN:VALARM","TRIGGER:-P30D","ACTION:DISPLAY",
-        `DESCRIPTION:면허신고 기한 (${duty.law} · ${lic.basis === "acquired" ? "취득일" : "신고일"} + ${duty.years}년)`,"END:VALARM",
+        `DESCRIPTION:${icsText(`면허신고 기한 (${duty.law})`)}`,"END:VALARM",
         "END:VEVENT");
       if (lic.cme) ics.push("BEGIN:VEVENT",
         `UID:${lic.id}-cme@vibe-clinic-admin`,
         `DTSTAMP:${fmt(todayISO())}Z`, `DTSTART:${fmt(lic.cme)}`,
         `DTEND:${fmt(lic.cme).slice(0,11)}5959`,
-        `SUMMARY:${lic.role} ${lic.name} — 보수교육 마감`,
+        `SUMMARY:${icsText(`${lic.role} ${lic.name} — 보수교육 마감`)}`,
+        `DESCRIPTION:${icsText(`${POC_MARK} · 보수교육 마감 예정`)}`,
         "BEGIN:VALARM","TRIGGER:-P30D","ACTION:DISPLAY",
-        `DESCRIPTION:보수교육 마감 예정`,"END:VALARM",
+        "DESCRIPTION:보수교육 마감 예정","END:VALARM",
         "END:VEVENT");
     }
     ics.push("END:VCALENDAR");
-    const blob = new Blob([ics.join("\r\n")], { type: "text/calendar;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `licenses_${todayISO()}.ics`;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    downloadText(ics.join("\r\n"), `licenses_${todayISO()}.ics`, "text/calendar;charset=utf-8"); // filename → _PoC
     ActivityLog.push("license", "면허신고 기한 캘린더 .ics 내려받음", {});
   });
 

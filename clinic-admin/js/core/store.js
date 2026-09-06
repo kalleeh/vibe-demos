@@ -12,7 +12,7 @@
    ─ Plaintext values left by an earlier build are migrated (read → encrypt → overwrite) on the
      first unlock (Store.unlockedInit), together with IndexedDB attachments.
    Events: `session:unlocked` (after the cache is populated) and `session:locked` (local only). */
-import { $, relTime, debounce, redactSubject } from "./dom.js";
+import { $, relTime, debounce, redactSubject, redactStaff } from "./dom.js";
 import { Attachments } from "./attachments.js";
 import { Session } from "../security/session.js";
 import { encryptJSON, decryptJSON, isEnvelope } from "../security/crypto.js";
@@ -237,10 +237,12 @@ Session.onChange((what, reason) => {
    Entry: { at, actor, role, tag, action, subject, text, meta }
      actor/role  — the unlocked user (never a patient)
      action      — what happened; RRN/phone digits scrubbed defensively
-     subject     — pseudonymised reference from redactSubject(), e.g. "****0142"; NEVER a name
+     subject     — pseudonymised reference: redactSubject() for a patient ("****0142"),
+                   redactStaff() for a staff row ("한의사 윤○○"); NEVER a full name
      text        — alias of `action` (older render code reads entry.text)
-   push(tag, text, meta) is the legacy signature: pass meta.subject = { name, pid } (or meta.pid)
-   and the subject is derived; do NOT embed a patient name in `text`.
+   push(tag, text, meta) is the legacy signature: pass meta.subject = { name, pid } for a patient,
+   { role, name } for a staff member (or meta.pid) and the subject is derived; do NOT embed a
+   name in `text`.
    No per-entry delete. clear()/export() are 원장-only (compliance panel). Retention 1 year
    (lifecycle.js purges on unlock). */
 const ActivityLog = {
@@ -259,7 +261,8 @@ const ActivityLog = {
     return entry;
   },
   push(tag, text, meta = {}) {
-    const subject = meta?.subject ? redactSubject(meta.subject) : meta?.pid ? redactSubject({ pid: meta.pid }) : null;
+    const s = meta?.subject;
+    const subject = s ? (s.role ? redactStaff(s) : redactSubject(s)) : meta?.pid ? redactSubject({ pid: meta.pid }) : null;
     return this.add({ tag, action: text, subject, meta: meta || {} });
   },
   recent(n = 10) { return (Store.get("activity", []) || []).slice(0, n); },

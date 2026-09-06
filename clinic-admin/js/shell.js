@@ -1,14 +1,16 @@
 /* clinic-admin — app chrome — rail/drawer, tab restore, 전체 파기, welcome/info/install modals, seed-all, ⌘K palette, topbar due chip, data boot
    Security pass: the lock screen (js/security/lockscreen.js) is initialised here and boot() waits for the
    first unlock before loading data / initialising tabs, so tabs never see a locked Store at init. */
-import { $, $$, esc, redactSubject, Toast, Dialog, Lightbox } from "./core/ui.js";
+import { $, $$, esc, redactSubject, redactStaff, Toast, Dialog, Lightbox } from "./core/ui.js";
 import { Store, EventBus, ActivityLog, SyncStatus } from "./core/store.js";
 import { TABS, TAB_BY_ID, activateTab } from "./core/nav.js";
 import { loadJSON } from "./core/files.js";
+import { statutoryDeadlines } from "./core/calendar.js";
 import { Session } from "./security/session.js";
 import { destroyAll } from "./security/lifecycle.js";
 import { initSecurityUI, Lock, UsersPanel, PrivacyPanel } from "./security/lockscreen.js";
 import { ACCRED_ITEMS } from "./tabs/tab9-accred.js";
+import { hasDuty } from "./tabs/tab8-license.js";
 
 /* Lock screen first — it covers the shell until a PIN unlocks the workspace (or one is created). */
 const sessionReady = initSecurityUI();
@@ -97,11 +99,9 @@ $("#rail-cmdk")?.addEventListener("click", () => {
   // Palette opens itself on next tick
   setTimeout(() => Palette.open(), 50);
 });
-/* Open welcome on first visit */
-if (!Store.get(WELCOMED_KEY)) {
-  // Defer until DATA loads so seed button works on first click
-  EventBus.on("app:ready", () => { setTimeout(openWelcome, 350); });
-}
+/* Open welcome on first visit. The flag is read at app:ready, not at import time: a backup restore
+   on a fresh page writes ui.welcomed back between the two, and must not re-open the tour. */
+EventBus.on("app:ready", () => { if (!Store.get(WELCOMED_KEY)) setTimeout(openWelcome, 350); });
 
 /* ─────────────────────────────────────────────────────────
    Install — detect standalone, show rail-foot button +
@@ -309,20 +309,20 @@ const Palette = (() => {
         out.push({ kind: "KCD", glyph: "K", label: c.name, meta: c.kcd9 + (c.kcd8 && c.kcd8 !== c.kcd9 ? ` (← ${c.kcd8})` : ""), run: () => { activateTab("tab-search"); setTimeout(() => EventBus.emit("search:query", c.kcd9), 200); } });
       }
     }
-    // Saved 자보 cases — pseudonymised (****1234), never the patient name
+    // Saved 자보 cases — file reconciliations by 명세서 count, manual cases pseudonymised (****1234); never a name
     const jhist = Store.get("jabo.history", []) || [];
     for (const j of jhist.slice(0, 8)) {
-      const cap = `${redactSubject({ name: j.name, pid: j.pid })} · ${j.insurer || "—"} · ${j.claimNo || "—"}`;
+      const cap = j.kind === "recon" ? `심사결과 대조 · 명세서 ${j.stmts || 0}건` : `${redactSubject({ name: j.name, pid: j.pid })} · ${j.insurer || "—"}`;
       if (!q || cap.toLowerCase().includes(q)) {
         out.push({ kind: "자보", glyph: "J", label: cap, meta: `${j.date || ""} · ${j.itemCount || 0}건`, run: () => activateTab("tab-jabo") });
       }
     }
-    // Licenses
+    // Licenses — pseudonymised (한의사 윤○○); 원무·기타 carry no 신고 duty, so no deadline.
     const lics = Store.get("license.list", []) || [];
     for (const l of lics) {
-      const cap = `${l.name || "—"} · ${l.role || ""}`;
+      const cap = redactStaff(l);
       if (!q || cap.toLowerCase().includes(q)) {
-        out.push({ kind: "면허", glyph: "L", label: cap, meta: `신고기한 ${l.expiry || "—"}`, run: () => activateTab("tab-license") });
+        out.push({ kind: "면허", glyph: "L", label: cap, meta: hasDuty(l.role) ? `신고기한 ${l.expiry || "—"}` : "면허신고 해당 없음", run: () => activateTab("tab-license") });
       }
     }
     // Accreditation items
@@ -410,15 +410,12 @@ const Palette = (() => {
       const t = new Date(iso + "T09:00:00").getTime();
       return Math.ceil((t - Date.now()) / 86400000);
     };
-    const Y = new Date().getFullYear();
-    const fixed = [
-      { title: "HIRA 비급여 반기보고", date: `${Y}-03-31` },
-      { title: "HIRA 비급여 반기보고", date: `${Y}-09-30` },
-      { title: "국세청 의료비 일괄제출", date: `${Y+1}-01-15` }
-    ];
+    // Same calendar as 00 오늘 (core/calendar.js) — never a second copy of the statutory dates.
+    const fixed = statutoryDeadlines().map(d => ({ title: d.title, date: d.date }));
     const lics = Store.get("license.list", []) || [];
     for (const l of lics) {
-      if (l.expiry) fixed.push({ title: `${l.name} 면허신고 기한`, date: l.expiry });
+      if (l.expiry && hasDuty(l.role)) fixed.push({ title: `${redactStaff(l)} 면허신고 기한`, date: l.expiry });
+      if (l.cme) fixed.push({ title: `${redactStaff(l)} 보수교육 마감`, date: l.cme });
     }
     const upcoming = fixed
       .map(d => ({ ...d, d: days(d.date) }))
@@ -429,7 +426,7 @@ const Palette = (() => {
     if (!chip) return;
     if (!upcoming.length) { chip.style.display = "none"; return; }
     const next = upcoming[0];
-    text.innerHTML = `D-${next.d} · ${next.title}`;
+    text.textContent = `D-${next.d} · ${next.title}`;
     chip.style.display = "inline-flex";
     chip.classList.toggle("urgent", next.d <= 3);
     chip.classList.toggle("warn", next.d > 3);

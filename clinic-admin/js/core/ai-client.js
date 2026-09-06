@@ -21,7 +21,6 @@ async function solveProxyPoW(signal) {
 
 // Source toggle state — 라이브 (default) POSTs the note to the proxy; 예시 never leaves the browser.
 let aiSource = Store.get("ai.source") === "canned" ? "canned" : "live";
-const LIVE_ACK_KEY = "ai.liveAck"; // one-time consent for sending notes off-device
 function getAiSource() { return aiSource; }
 function setAiSource(src) { aiSource = src; Store.set("ai.source", aiSource); }
 
@@ -140,4 +139,4 @@ async function requestRecommendation({ system, note, signal }) {
   if (!rec) { const e = new Error("unparseable"); e.code = "응답 형식"; throw e; }
   return rec;
 }
-export { CLAUDE_PROXY, solveProxyPoW, LIVE_ACK_KEY, RECOMMEND_TOOL, getAiSource, setAiSource, cannedFor, normItem, validateRec, requestRecommendation };
+export { CLAUDE_PROXY, solveProxyPoW, RECOMMEND_TOOL, getAiSource, setAiSource, cannedFor, normItem, validateRec, requestRecommendation };

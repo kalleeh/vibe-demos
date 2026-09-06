@@ -1,10 +1,11 @@
 /* clinic-admin — Tab 00 · 오늘 dashboard */
-import { $, $$, esc, fmtKRW, todayISO, relTime, daysUntil, Share } from "../core/ui.js";
+import { $, $$, esc, fmtKRW, todayISO, relTime, daysUntil, Share, redactSubject, redactStaff } from "../core/ui.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { activateTab } from "../core/nav.js";
+import { downloadText, POC_MARK } from "../core/files.js";
+import { statutoryDeadlines } from "../core/calendar.js";
 import { ACCRED_ITEMS } from "./tab9-accred.js";
 import { hasDuty } from "./tab8-license.js";
-import { redactSubject, BIGEUP_WINDOWS, YEAREND_DEADLINE, nextOccurrence } from "./reporting-shared.js";
 
 /* ─────────────────────────────────────────────────────────
    Tab 0 — 오늘 / Today dashboard
@@ -20,22 +21,13 @@ export function initTab0(ctx) {
   // Per-person 면허신고 deadlines come from the license tracker (의료법 §25 · 3-year cycle).
   const NOW = new Date();
   const Y = NOW.getFullYear();
-  const fixedDeadlines = () => [
-    ...BIGEUP_WINDOWS.map(w => ({
-      key: w.key, title: w.label, date: nextOccurrence(w.month, null, NOW),
-      link: "tab-bigeup", source: `${w.refMonth}월 진료분 · 의료법 §45조의2 · 비급여 보고 고시`
-    })),
-    { key: YEAREND_DEADLINE.key, title: YEAREND_DEADLINE.label,
-      date: nextOccurrence(YEAREND_DEADLINE.month, YEAREND_DEADLINE.day, NOW),
-      link: "tab-yearend", source: "소득세법 시행령 §216조의3 · 홈택스" }
-  ];
 
   // All deadlines in the window (recurring: next 12 months; per-person: −30 … +365 days).
   function loadDeadlines() {
-    const list = fixedDeadlines();
+    const list = statutoryDeadlines(NOW);
     const licenses = Store.get("license.list", []);
     for (const lic of licenses) {
-      const who = `${lic.role} ${redactSubject({ name: lic.name })}`;
+      const who = redactStaff(lic);
       // 원무·기타 carry no 신고 duty — never a D-day, even for legacy records with an expiry.
       if (lic.expiry && hasDuty(lic.role)) {
         const d = daysUntil(lic.expiry);
@@ -166,15 +158,8 @@ export function initTab0(ctx) {
       $("#act-feed").innerHTML = `<div class="act-empty">최근 활동이 없습니다.</div>`;
       return;
     }
-    // Entries carrying meta.subject get the redacted label appended; the legacy 자보 line
-    // format ("자보 정산표 — <name> · …") is redacted in place so no raw name reaches the feed.
-    const feedText = (it) => {
-      let text = String(it.text ?? "");
-      if (it.tag === "jabo") text = text.replace(/^(자보 정산표 — )(.+?)( · )/, (_, a, who, b) => a + redactSubject({ name: who }) + b);
-      let out = esc(text);
-      if (it.meta?.subject) out += ` <span class="act-subject">${esc(redactSubject(it.meta.subject))}</span>`;
-      return out;
-    };
+    // entry.subject is already pseudonymised by ActivityLog (store.js) — never a raw name.
+    const feedText = (it) => esc(it.action || it.text || "") + (it.subject ? ` <span class="act-subject">${esc(it.subject)}</span>` : "");
     $("#act-feed").innerHTML = items.map(it => `
       <div class="act-row">
         <span class="act-when">${relTime(it.at)}</span>
@@ -243,9 +228,10 @@ export function initTab0(ctx) {
       return `${dt.getFullYear()}${pad(dt.getMonth()+1)}${pad(dt.getDate())}T090000`;
     };
     const icsText = (s) => String(s).replace(/\\/g, "\\\\").replace(/[,;]/g, m => "\\" + m).replace(/\n/g, "\\n");
+    // PoC watermark: a calendar-level notice line + every DESCRIPTION opens with the mark.
     const ics = [
       "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Vibe Studio//Clinic Admin//KO",
-      "CALSCALE:GREGORIAN", "METHOD:PUBLISH"
+      "CALSCALE:GREGORIAN", "METHOD:PUBLISH", `X-POC-NOTICE:${icsText(POC_MARK)}`
     ];
     // Every deadline in the window — not just the ones expanded on screen.
     for (const d of list) {
@@ -256,18 +242,13 @@ export function initTab0(ctx) {
         `DTSTART:${fmt(d.date)}`,
         `DTEND:${fmt(d.date).slice(0,11)}5959`,
         `SUMMARY:${icsText(d.title)}`,
-        `DESCRIPTION:${icsText(d.source)}`,
+        `DESCRIPTION:${icsText(POC_MARK + " · " + d.source)}`,
         "BEGIN:VALARM", "TRIGGER:-P14D", "ACTION:DISPLAY", `DESCRIPTION:${icsText(d.title)}`, "END:VALARM",
         "END:VEVENT"
       );
     }
     ics.push("END:VCALENDAR");
-    const blob = new Blob([ics.join("\r\n")], { type: "text/calendar;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `clinic_admin_deadlines_${todayISO()}.ics`;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    downloadText(ics.join("\r\n"), `clinic_admin_deadlines_${todayISO()}.ics`, "text/calendar;charset=utf-8"); // filename → _PoC
     ActivityLog.push("system", "마감 캘린더 .ics 내려받음", {});
   });
 

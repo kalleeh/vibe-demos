@@ -2,7 +2,7 @@
 import { $, $$, esc, todayISO, Haptic, Toast, Share } from "../core/ui.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { activateTab } from "../core/nav.js";
-import { pocWatermark } from "./reporting-shared.js";
+import { POC_MARK } from "../core/files.js";
 
 /* ─────────────────────────────────────────────────────────
    자체점검 예시 — 의료기관평가인증원 한방병원 인증기준의 영역을 따라
@@ -26,7 +26,7 @@ const ACCRED_ITEMS = [
     { id: "mr1", label: "진료기록부 보존기간 준수 (10년)", meta: "의료법 시행규칙 §15", linkTab: "tab-retention" },
     { id: "mr2", label: "처방전 사본 2년 보존", meta: "의료법 시행규칙 §15" },
     { id: "mr3", label: "기록부 폐기 심의 절차 운영 규정", meta: "내부 절차 (법정 의무 아님)", linkTab: "tab-retention" },
-    { id: "mr4", label: "KCD-8 진단코드 정확도 분기 점검", meta: "EDI 청구 정합성", linkTab: "tab-kcd" }
+    { id: "mr4", label: "상병코드(KCD) 정확도 분기 점검", meta: "EDI 청구 정합성 · 최신 개정판 대조", linkTab: "tab-kcd" }
   ]},
   { title: "감염관리 (Infection Control)", items: [
     { id: "ic1", label: "침구·부항 멸균 SOP 및 감염관리 일지", meta: "한방 특화" },
@@ -122,7 +122,7 @@ export function initTab9() {
 
   // Print footer — PoC watermark, visible only in print (styles-reporting.css).
   const foot = $("#accred-print-footer");
-  if (foot) foot.textContent = `${pocWatermark()} · 자체점검 예시 ${allItems.length}항목 — 실제 기준은 의료기관평가인증원 한방병원 인증기준`;
+  if (foot) foot.textContent = `${POC_MARK} · 생성 ${todayISO()} · 자체점검 예시 ${allItems.length}항목 — 실제 기준은 의료기관평가인증원 한방병원 인증기준`;
 
   $("#accred-print").addEventListener("click", () => {
     ActivityLog.push("accred", "자체점검표 PDF 출력", {});
@@ -135,7 +135,7 @@ export function initTab9() {
       const cdone = cat.items.filter(it => checked[it.id]).length;
       return `• ${cat.title} — ${cdone} / ${cat.items.length}`;
     });
-    const text = `[한방병원 인증 자체점검 진행률 (예시 ${allItems.length}항목)]\n진행: ${doneTotal} / ${allItems.length} (${pct}%)\n\n${lines.join("\n")}\n\n— ${todayISO()} 기준 · ${pocWatermark()}`;
+    const text = `[한방병원 인증 자체점검 진행률 (예시 ${allItems.length}항목)]\n진행: ${doneTotal} / ${allItems.length} (${pct}%)\n\n${lines.join("\n")}\n\n— ${todayISO()} 기준 · ${POC_MARK}`;
     await Share.send({ title: "인증 자체점검 진행률", text });
     ActivityLog.push("accred", "자체점검 진행률 공유", {});
   });

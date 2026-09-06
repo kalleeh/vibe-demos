@@ -10,6 +10,7 @@ import { Attachments } from "../core/attachments.js";
 import { Session } from "./session.js";
 import { encryptJSON, decryptJSON, isEnvelope } from "./crypto.js";
 import { downloadText, POC_MARK } from "../core/files.js";
+import { Masters } from "../core/masters.js";
 
 const DAY = 86400000;
 const len = (v) => Array.isArray(v) ? v.length : (v && typeof v === "object") ? Object.keys(v).length : (v == null || v === "" ? 0 : 1);
@@ -30,12 +31,16 @@ const REGISTRY = [
   { id: "activity", match: exact("activity"), label: "활동 기록 (감사 로그)", detail: "일시·사용자·역할·작업·가명 대상(****1234)",
     purpose: "누가 언제 무엇을 처리했는지 기록", basis: "개인정보보호법 §29 · 안전성 확보조치 기준 §8 접속기록 보관 (PoC: 브라우저 내 1년)",
     encrypted: true, retention: "1년 · 추가만 가능", days: 365, purge: (v, cutoff) => (Array.isArray(v) ? v.filter(e => (e.at || 0) >= cutoff) : v) },
-  { id: "license.list", match: exact("license.list"), label: "직원 면허 명부", detail: "이름·역할·면허신고일·보수교육 마감",
+  { id: "license.list", match: exact("license.list"), label: "직원 면허 명부", detail: "이름·역할·면허번호·취득일·면허신고일·보수교육 마감",
     purpose: "면허신고 기한 관리", basis: "의료법 §25 면허신고 의무 이행 · 개인정보보호법 §15①2 (법령상 의무)", encrypted: true, retention: "직원 삭제 시까지", days: null },
   { id: "attachments", store: "IndexedDB", label: "면허증 사진", detail: "카메라 촬영 이미지 (data URL)",
     purpose: "면허신고일 OCR 확인", basis: "동일", encrypted: true, retention: "직원 삭제 시까지 · 고아 첨부는 잠금 해제 시 파기", days: null },
   { id: "intake-cards", match: exact("intake-cards"), label: "접수 보드 로컬 카드", detail: "고정 가상 환자명·메모·상태",
     purpose: "실시간 접수 현황 데모 (오프라인 사본)", basis: "데모 데이터 — 실명 입력 불가", encrypted: true, retention: "삭제 시까지", days: null },
+  { id: "player-id", match: exact("player-id"), label: "접수 보드 기기 식별자", detail: "무작위 UUID — 「내가 추가」 표시용 (개인정보 아님)",
+    purpose: "공유 보드에서 이 기기가 올린 카드 표시", basis: "—", encrypted: false, retention: "전체 파기 시까지", days: null },
+  { id: "masters", store: "IndexedDB (masters)", label: "업로드 마스터 (KOICD 상병 · 심평원 행위·수가)", detail: "공개 참조표 (개인정보 아님)",
+    purpose: "정비·정산·검색·AI 탭의 대조 기준", basis: "—", encrypted: false, retention: "「업로드본 지우기」 또는 전체 파기 시까지", days: null },
   { id: "yearend", match: prefix("yearend."), label: "연말정산 기관 정보", detail: "사업자등록번호·의료기관명·증빙코드",
     purpose: "의료비 자료제출 파일 헤더", basis: "소득세법 §165 자료제출 준비", encrypted: true, retention: "수정 시까지", days: null },
   { id: "bigeup.profile", match: prefix("bigeup.profile."), label: "비급여 보고 기관 정보", detail: "요양기관기호·기관명·적용일",
@@ -61,6 +66,11 @@ async function inventory() {
   const rows = [];
   const seen = new Set();
   for (const r of REGISTRY) {
+    if (r.id === "masters") {
+      const recs = ["kcd", "fee"].map(k => Masters.get(k)).filter(Boolean);
+      rows.push({ ...r, keys: recs.map(m => m.id), count: recs.reduce((n, m) => n + (m.count || 0), 0), lastModified: null, present: recs.length > 0 });
+      continue;
+    }
     if (r.store === "IndexedDB") {
       let st = { count: 0, lastAt: 0 };
       try { st = await Attachments.stats(); } catch {}
@@ -121,6 +131,7 @@ async function destroy(ids) {
   for (const id of ids) {
     const r = REGISTRY.find(x => x.id === id);
     if (!r) continue;
+    if (r.id === "masters") { await Masters.clear("kcd"); await Masters.clear("fee"); n++; continue; }
     if (r.store === "IndexedDB") { await Attachments.clearAll(); n++; continue; }
     if (r.id === "__ws" || r.id === "__internal") continue; // only via 전체 파기
     for (const k of Store.keys().filter(r.match)) { Store.remove(k); n++; }
@@ -129,10 +140,12 @@ async function destroy(ids) {
   return n;
 }
 
-/* 전체 파기 — data + attachments + users + wrapped keys. Caller has already collected the typed "파기". */
+/* 전체 파기 — data + attachments + uploaded masters + users + wrapped keys. Caller has already
+   collected the typed "파기". Masters are public reference tables, but a wipe is total. */
 async function destroyAll() {
   try { ActivityLog.add({ tag: "system", action: "전체 파기", meta: { silent: true } }); } catch {}
   await Store.wipeAll({ keepWorkspace: false });
+  try { await Masters.destroy(); } catch (e) { console.warn("masters wipe", e); }
   Session.destroy();
   try { localStorage.removeItem("vibe.clinic-admin.player-id"); } catch {}
 }

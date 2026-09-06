@@ -33,7 +33,7 @@
    attribute), and only then imported from a blob URL. A mismatch keeps
    the board in local mode.
    ============================================================ */
-import { Toast, esc } from "./core/ui.js";
+import { Toast } from "./core/ui.js";
 import { Store, EventBus } from "./core/store.js";
 import { Session } from "./security/session.js";
 import { encryptJSON, decryptJSON, sha256hex, sha384b64, isEnvelope } from "./security/crypto.js";

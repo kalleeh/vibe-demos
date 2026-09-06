@@ -155,8 +155,7 @@ const Voice = (() => {
     r.interimResults = true;
     r.continuous = true;
     const baseValue = textarea.value;
-    const baseLen = baseValue.length;
-    const sep = baseValue && !/\s$/.test(baseValue) ? " " : "";
+    const sep =baseValue && !/\s$/.test(baseValue) ? " " : "";
     let finalText = "";
     r.onresult = (e) => {
       let interim = "";

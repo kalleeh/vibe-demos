@@ -6,15 +6,6 @@ import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { readSpreadsheet, downloadXLSX } from "../core/files.js";
 import { Masters, toEdi, toDotted } from "../core/masters.js";
 
-// TODO(coordinator): replace with `import { pocWatermark } from "../core/files.js"` once the
-// security agent lands it. Same signature: rows → rows with a PoC watermark row appended.
-const pocWatermark = (rows) => {
-  if (!rows.length) return rows;
-  const blank = Object.fromEntries(Object.keys(rows[0]).map(k => [k, ""]));
-  const first = Object.keys(rows[0])[0];
-  return [...rows, { ...blank, [first]: `※ PoC 데모 출력 — 실제 청구·제출용 문서가 아닙니다 (생성 ${todayISO()})` }];
-};
-
 export function initTab1(ctx) {
   const { DATA } = ctx;
   Masters.init(DATA);
@@ -199,8 +190,8 @@ export function initTab1(ctx) {
 
   $("#kcd-download").addEventListener("click", () => {
     if (!lastResult) return;
-    const exportRows = pocWatermark(lastResult.rows.map(({ _kind, ...rest }) => rest));
-    downloadXLSX(exportRows, `상병코드_정리표_${todayISO()}.xlsx`, "상병코드 정리표");
+    // downloadXLSX stamps the PoC watermark row + _PoC filename itself.
+    downloadXLSX(lastResult.rows.map(({ _kind, ...rest }) => rest), `상병코드_정리표_${todayISO()}.xlsx`, "상병코드 정리표");
     ActivityLog.push("kcd", `상병코드 정리표 내려받음 (${lastResult.rows.length}건)`, {});
   });
 

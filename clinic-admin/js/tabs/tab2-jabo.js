@@ -2,24 +2,10 @@
    Primary path: file-based reconciliation — 청구 명세서 export ⨝ 심평원 심사결과통보
    (join 명세서번호 + 행위코드) → per-line 청구 vs 인정 delta, grouped by 조정사유 and month.
    Secondary path: manual single-case entry (kept from the earlier build, focus-loss fixed). */
-import { $, esc, fmtKRW, todayISO, fuzzyMatch, setStatus, debounce, bindDrop, Haptic, Toast } from "../core/ui.js";
+import { $, esc, fmtKRW, todayISO, fuzzyMatch, setStatus, debounce, bindDrop, Haptic, Toast, redactSubject } from "../core/ui.js";
 import { Store, ActivityLog, bindPersist } from "../core/store.js";
 import { readSpreadsheet, downloadXLSX, loadJSON } from "../core/files.js";
 import { Masters } from "../core/masters.js";
-
-// TODO(coordinator): replace with `import { redactSubject } from "../core/dom.js"` once the
-// security agent lands it. Same signature: ({name,pid}) → display string with no name.
-const redactSubject = ({ pid } = {}) => {
-  const p = String(pid || "").trim();
-  return p ? `환자 ****${p.slice(-4)}` : "환자";
-};
-// TODO(coordinator): replace with `import { pocWatermark } from "../core/files.js"`.
-const pocWatermark = (rows) => {
-  if (!rows.length) return rows;
-  const blank = Object.fromEntries(Object.keys(rows[0]).map(k => [k, ""]));
-  const first = Object.keys(rows[0])[0];
-  return [...rows, { ...blank, [first]: `※ PoC 데모 출력 — 실제 이의제기·제출용 문서가 아닙니다 (생성 ${todayISO()})` }];
-};
 
 export function initTab2(ctx) {
   const { DATA } = ctx;
@@ -231,7 +217,7 @@ export function initTab2(ctx) {
     for (const o of lastRecon.orphans) rows.push({ "명세서번호": o.stmt, "환자번호": "", "진료일자": "", "행위코드": o.code, "행위명": "청구 명세서에 없는 심사 줄", "청구횟수": "", "청구금액": "", "인정횟수": "", "인정금액": o.approved, "차액": "", "결과": "대조 불가", "조정사유": o.reason });
     rows.push({ "명세서번호": "", "환자번호": "", "진료일자": "", "행위코드": "", "행위명": "합계", "청구횟수": "", "청구금액": lastRecon.totals.claimed, "인정횟수": "", "인정금액": lastRecon.totals.approved, "차액": lastRecon.totals.cut, "결과": "", "조정사유": "" });
     for (const g of lastRecon.byReason) rows.push({ "명세서번호": "", "환자번호": "", "진료일자": "", "행위코드": "", "행위명": "사유별 · " + g.reason, "청구횟수": "", "청구금액": "", "인정횟수": "", "인정금액": "", "차액": g.cut, "결과": `${g.lines}줄`, "조정사유": "" });
-    downloadXLSX(pocWatermark(rows), `자보_심사결과_대조표_${todayISO()}.xlsx`, "자보 심사결과 대조표");
+    downloadXLSX(rows, `자보_심사결과_대조표_${todayISO()}.xlsx`, "자보 심사결과 대조표"); // watermark + _PoC applied inside
     ActivityLog.push("jabo", `자보 대조표 내려받음 (${lastRecon.lines.length}줄)`, {});
   });
 
@@ -419,11 +405,12 @@ export function initTab2(ctx) {
     const dxName = DATA.jabo.diagnosis_examples.find(d => d.code === dx)?.name || "";
     const { totals, cutTotal } = refreshTotals();
 
-    // History + activity carry 환자번호 + totals only — no name, no claim number.
+    // History + activity carry 환자번호 + totals only — no name, no claim number. The 환자번호 goes
+    // through meta.subject so the log stores only its pseudonymised form (****0142).
     const history = Store.get("jabo.history", []);
     history.unshift({ at: Date.now(), kind: "manual", pid, insurer, date, claimed: totals.claimed, paid: totals.paid, cut: cutTotal, itemCount: items.length });
     Store.set("jabo.history", history.slice(0, 100));
-    ActivityLog.push("jabo", `자보 정산표 — ${redactSubject({ pid })} · ${insurer} · 청구 ${fmtKRW(totals.claimed)}원 · 조정 ${fmtKRW(cutTotal)}원`, { insurer });
+    ActivityLog.push("jabo", `자보 정산표 — ${insurer} · 청구 ${fmtKRW(totals.claimed)}원 · 조정 ${fmtKRW(cutTotal)}원`, { subject: { pid } });
     Haptic.save();
 
     const rows = items.map(it => {
@@ -436,7 +423,7 @@ export function initTab2(ctx) {
       };
     });
     rows.push({ "환자번호": "", "보험사/공제": "", "접수번호": "", "사고일자": "", "진료일자": "", "주상병코드": "", "주상병명": "", "행위코드": "", "행위명": "합계", "분류": "", "단가": "", "단위": "", "횟수": "", "청구액": totals.claimed, "인정액": totals.paid, "조정액": cutTotal, "조정사유": "" });
-    downloadXLSX(pocWatermark(rows), `자보정산_${pid}_${date}.xlsx`, "자보 정산(수기)");
+    downloadXLSX(rows, `자보정산_${pid}_${date}.xlsx`, "자보 정산(수기)"); // watermark + _PoC applied inside
   });
 
   const today = todayISO();

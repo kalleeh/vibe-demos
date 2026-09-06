@@ -81,4 +81,12 @@ function redactSubject({ name, pid } = {}) {
   if (name && String(name).trim()) return "[환자]";
   return "—";
 }
-export { $, $$, fmtKRW, todayISO, esc, setStatus, CHO, extractCho, fuzzyMatch, relTime, daysUntil, debounce, redactSubject };
+/* Staff (면허 명부) reference for the same surfaces — role + surname initial: "한의사 윤○○".
+   Staff are not patients, so the role is the useful part; the initial only disambiguates two
+   people with the same role. Never the full name. */
+function redactStaff({ role, name } = {}) {
+  const n = String(name ?? "").trim();
+  const initial = n ? n[0] + "○".repeat(Math.min(Math.max(n.length - 1, 1), 3)) : "—";
+  return [String(role ?? "").trim(), initial].filter(Boolean).join(" ");
+}
+export { $, $$, fmtKRW, todayISO, esc, setStatus, CHO, extractCho, fuzzyMatch, relTime, daysUntil, debounce, redactSubject, redactStaff };

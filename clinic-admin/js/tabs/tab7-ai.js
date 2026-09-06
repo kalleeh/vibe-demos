@@ -19,7 +19,7 @@ const CONSENT_VERSION = 1;
 
 /* ─────────────────────────────────────────────────────────
    Tab 7 — AI 코딩 어시스트
-   Pastes 진료 메모 → KCD-8 + 자보 + 비급여 추천 with
+   Pastes 진료 메모 → 상병(KCD) + U코드 + 행위 + 비급여 추천 with
    citations. Proxy-only live mode via Bedrock Opus.
    Non-streaming (structured JSON brief).
    ───────────────────────────────────────────────────────── */
@@ -76,7 +76,7 @@ export function initTab7() {
     lines.push(src === "live"     ? `<div class="ai-note live">라이브 · Claude 응답 — 마스킹된 메모 기준</div>`
              : src === "fallback" ? `<div class="ai-note fallback">예시 결과 · 실시간 연결 실패 — 규칙 기반 데모, 실제 AI 응답이 아닙니다</div>`
              :                      `<div class="ai-note">예시 결과 — 규칙 기반 데모, 실제 AI 응답이 아닙니다</div>`);
-    lines.push(`<h5>KCD-8 진단</h5>`);
+    lines.push(`<h5>상병 (KCD)</h5>`);
     lines.push(`<div class="code-list">${rec.kcd.map(rowHTML).join("")}</div>`);
     lines.push(`<h5>한의 변증 (U-code) — 양방 진단과 함께 청구</h5>`);
     lines.push(`<div class="code-list">${rowHTML(rec.uCode)}</div>`);

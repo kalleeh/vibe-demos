@@ -2,7 +2,7 @@
 import { $, $$, esc, fmtKRW, todayISO, setStatus, debounce } from "../core/ui.js";
 import { Store, ActivityLog, bindPersist } from "../core/store.js";
 import { downloadXLSX } from "../core/files.js";
-import { BIGEUP_WINDOWS, nextOccurrence, withWatermarkRow } from "./reporting-shared.js";
+import { BIGEUP_WINDOWS, nextOccurrence } from "../core/calendar.js";
 
 /* ─────────────────────────────────────────────────────────
    Tab 4 — 비급여 진료비용 보고 준비 (의료법 §45조의2)
@@ -158,7 +158,7 @@ export function initTab4(ctx) {
         "비고":               "예시 항목 — 실제 항목코드는 심평원 표준코드 목록으로 대체"
       };
     });
-    downloadXLSX(withWatermarkRow(rows), `비급여_보고_준비표_${ykiho}_${date}.xlsx`, "비급여 보고 준비표");
+    downloadXLSX(rows, `비급여_보고_준비표_${ykiho}_${date}.xlsx`, "비급여 보고 준비표"); // watermark + _PoC applied inside
     ActivityLog.push("bigeup", `비급여 보고 준비표 내려받음 (${rows.length}개 항목)`, {});
   });
 

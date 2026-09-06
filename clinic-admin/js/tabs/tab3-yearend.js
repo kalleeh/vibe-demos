@@ -2,7 +2,7 @@
 import { $, esc, fmtKRW, todayISO, setStatus, bindDrop } from "../core/ui.js";
 import { ActivityLog, bindPersist } from "../core/store.js";
 import { readSpreadsheet, downloadXLSX, downloadCSV } from "../core/files.js";
-import { checkRRN, maskRRN, withWatermarkRow } from "./reporting-shared.js";
+import { checkRRN, maskRRN } from "./reporting-shared.js";
 
 /* ─────────────────────────────────────────────────────────
    Tab 3 — 연말정산 의료비 자료 사전점검
@@ -180,7 +180,7 @@ export function initTab3() {
   $("#ye-download").addEventListener("click", () => {
     if (!lastRows) return;
     const biz = ($("#ye-biz").value || "biz").replace(/-/g, "");
-    downloadCSV(withWatermarkRow(lastRows), `의료비_사전점검_정리표_${biz}_${todayISO().replace(/-/g, "")}.csv`);
+    downloadCSV(lastRows, `의료비_사전점검_정리표_${biz}_${todayISO().replace(/-/g, "")}.csv`); // watermark + _PoC applied inside
     ActivityLog.push("yearend", `의료비 사전점검 정리표 내려받음 (${lastRows.length}행)`, {});
   });
 

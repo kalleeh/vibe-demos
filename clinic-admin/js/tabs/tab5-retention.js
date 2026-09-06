@@ -2,7 +2,6 @@
 import { $, esc, todayISO, setStatus, bindDrop } from "../core/ui.js";
 import { Store, ActivityLog } from "../core/store.js";
 import { readSpreadsheet, downloadXLSX } from "../core/files.js";
-import { withWatermarkRow } from "./reporting-shared.js";
 
 /* ─────────────────────────────────────────────────────────
    Tab 5 — 의무기록 보존기간 점검 (의료법 시행규칙 §15)
@@ -189,7 +188,7 @@ export function initTab5(ctx) {
 
   $("#ret-download").addEventListener("click", () => {
     if (!lastRows) return;
-    downloadXLSX(withWatermarkRow(lastRows), `의무기록_보존기간_점검표_${todayISO()}.xlsx`, "보존기간 점검표");
+    downloadXLSX(lastRows, `의무기록_보존기간_점검표_${todayISO()}.xlsx`, "보존기간 점검표"); // watermark + _PoC applied inside
     ActivityLog.push("retention", `보존기간 점검표 내려받음 (${lastRows.length}건)`, {});
   });
 
