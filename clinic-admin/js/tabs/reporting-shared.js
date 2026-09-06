@@ -60,3 +60,19 @@ export function orgHeaderPairs(org) {
   const v = orgView(org);
   return [["reporting.col.ykiho", v.ykiho], ["reporting.col.clinic", v.name], ["reporting.col.bizNo", v.biz]];
 }
+
+/* ── Phase 3 (P3c) · helpers shared by 홈 KPIs, 비급여 history and the 파기 대장 ── */
+// yyyy-mm of a timestamp (local time).
+export const monthKeyOf = (ms) => { const d = new Date(ms); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; };
+// The month a jabo.history entry belongs to: the claims batch month (recon rows carry `month`), else the case date,
+// else when it was recorded. The seeded 2026-08 batch therefore lands on 2026-08 even when reconciled in September.
+export const entryMonth = (h) => {
+  if (h?.month && /^\d{4}-\d{2}$/.test(h.month)) return h.month;
+  const d = String(h?.date || "").slice(0, 7);
+  return /^\d{4}-\d{2}$/.test(d) ? d : monthKeyOf(h?.at || Date.now());
+};
+// Payer of a history entry — P3a stamps `payer: "nhis"` on 건보 rows; anything else (the pre-P3 data) is 자보.
+export const payerOf = (h) => (h?.payer === "nhis" ? "nhis" : "auto");
+// Pseudonymised record id for ledgers that leave the building: everything but the last four characters is masked
+// ("REC-2014-0001" → "***-****-0001"), same idea as the ****0142 patient alias.
+export const pseudoId = (id) => { const s = String(id ?? ""); if (!s) return ""; return s.slice(0, -4).replace(/[0-9A-Za-z가-힣]/g, "*") + s.slice(-4); };

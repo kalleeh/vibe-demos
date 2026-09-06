@@ -2,7 +2,11 @@
    Sits in core so shell.js and the tabs read ONE set of dates. Labels are resolved through t() at call time so a
    language toggle re-renders them.
    Every item carries `ctx` for activateTab(link, ctx): { refMonth } for a 비급여 window, { taxYear } for 연말정산,
-   { staffId } for the per-person licence items produced from the shared Staff roster (core/entities.js). */
+   { staffId } for the per-person licence items produced from the shared Staff roster (core/entities.js).
+   EXTERNAL SOURCES (Phase 3): the calendar cannot import tabs, so tab modules that own dated items (이의신청 기한 in
+   tab-appeal.js, 지불보증 만료 in tab-guarantee.js) register a producer at load with registerDeadlineSource(fn, opts) —
+   see the contract above that function. allDeadlines() then carries them like every statutory item, so 00's D-day list,
+   the todo rows, the topbar chip and the .ics export all include appeals and guarantee expiries. */
 import { t } from "./i18n.js";
 import { daysUntil } from "./dom.js";
 import { Org, Staff } from "./entities.js";
@@ -77,9 +81,47 @@ export function staffDeadlines() {
   return out;
 }
 
-// Everything, with daysLeft; sorted soonest first, past-due last.
+/* ── external deadline sources (registered by tab modules — the calendar never imports a tab) ──
+   registerDeadlineSource(fn, { link, kind, source? })
+     fn()   → [{ key, label|title, due|date, link?, source?, ctx }]   (the producer's native shape is accepted as is:
+              tab-appeal.appealDeadlines() → { key, label, due, ctx:{ appealId } }; tab-guarantee.guaranteeDeadlines() →
+              { key, label, due, ctx:{ guaranteeId } })
+     link   panel id opened with the item's ctx when the row is clicked (item.link wins when present)
+     kind   "appeal" | "guarantee" | … — resolves the default source text through t("today.dl." + kind + "Source")
+     source optional fixed source text (item.source wins, then this, then the kind key)
+   Registering the same fn twice is a no-op; items whose key already exists are dropped (dedupe by key), so a module
+   registering at load while the shim also registers is harmless. Producers that throw are skipped (console.warn). */
+const SOURCES = new Map(); // fn → opts
+export function registerDeadlineSource(fn, opts = {}) {
+  if (typeof fn !== "function") return () => {};
+  SOURCES.set(fn, opts || {});
+  return () => { SOURCES.delete(fn); };
+}
+export function externalDeadlines() {
+  const out = [];
+  for (const [fn, opts] of SOURCES) {
+    let items = [];
+    try { items = fn() || []; } catch (e) { console.warn("deadline source", e); continue; }
+    for (const it of items) {
+      if (!it) continue;
+      const date = String(it.due ?? it.date ?? "").slice(0, 10);
+      const key = String(it.key ?? "");
+      if (!key || !/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+      out.push({
+        key, title: String(it.label ?? it.title ?? key), date,
+        link: it.link ?? opts.link ?? null,
+        source: it.source ?? opts.source ?? (opts.kind ? t(`today.dl.${opts.kind}Source`) : ""),
+        ctx: it.ctx ?? null, kind: opts.kind || "external"
+      });
+    }
+  }
+  return out;
+}
+
+// Everything, with daysLeft; sorted soonest first, past-due last. Keys are unique (first producer wins).
 export function allDeadlines(now = new Date()) {
-  const list = [...statutoryDeadlines(now), ...staffDeadlines()];
+  const seen = new Set();
+  const list = [...statutoryDeadlines(now), ...staffDeadlines(), ...externalDeadlines()].filter(d => { if (seen.has(d.key)) return false; seen.add(d.key); return true; });
   for (const d of list) d.daysLeft = daysUntil(d.date);
   list.sort((a, b) => {
     if (a.daysLeft < 0 && b.daysLeft >= 0) return 1;

@@ -1,1 +1,79 @@
-/* clinic-admin — Phase 3 kpi styles. Append-only; owned by the kpi builder. */
+/* clinic-admin — Phase 3 (P3c) · 홈 management KPIs, merged todo groups, 비급여 history, 파기 대장, 연말정산 문의 대응.
+   Appended after styles-ia.css; reuses the .insight / .todo / .result vocabulary — no new visual language. */
+
+/* ── 홈 · section header row with the month selector + summary copy ── */
+.home-h-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0 0 12px; }
+.home-h-row .home-h { margin: 0; }
+.kpi-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.kpi-month-label { display: inline-flex; align-items: center; gap: 6px; font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+.kpi-month-label select { font: inherit; font-size: 12px; letter-spacing: 0; text-transform: none; padding: 4px 8px; border: 1px solid var(--line); border-radius: 4px; background: rgba(255,255,255,0.7); color: var(--ink); }
+.kpi-month-label select:disabled { opacity: .7; }
+.kpi-summary-out {
+  margin: 0 0 14px; padding: 12px 14px; white-space: pre-wrap; font-family: "JetBrains Mono", monospace; font-size: 11.5px; line-height: 1.55;
+  color: var(--ink-2); background: rgba(255,255,255,0.6); border: 1px dashed var(--line); border-radius: 6px; animation: fadeIn .3s ease-out;
+}
+.kpi-summary-out[hidden] { display: none; }
+.kpi-caveat { margin: -6px 0 18px; }
+.insight.kpi .num.text.money { font-size: 17px; }
+
+/* ── 홈 · merged todo: group labels, nudge rows, 더 보기 ── */
+.todo-group-label { font-family: "JetBrains Mono", monospace; font-size: 9.5px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); margin: 6px 0 -2px 2px; }
+.todo-group-label:first-child { margin-top: 0; }
+.todo-group-label[data-group="over"] { color: var(--accent); }
+/* .nudge (styles-reporting.css) is the old flex chip — the row grammar of .todo wins here */
+.todo.nudge { display: grid; padding: 12px 14px; font-size: inherit; color: inherit; border-left-color: var(--warn); background: rgba(184,122,28,0.06); }
+#today-nudges { display: flex; flex-direction: column; gap: 8px; }
+.todo.nudge .todo-when { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--warn); display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.todo.nudge .nudge-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--warn); animation: pulse 1.6s ease-in-out infinite; }
+.todo-more {
+  align-self: flex-start; margin-top: 2px; background: none; border: 1px dashed var(--line); border-radius: 6px; padding: 8px 12px; cursor: pointer;
+  font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted);
+}
+.todo-more:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── 04 · 변경 이력 ── */
+.bg-history-count { margin: 0 0 8px; font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+.bg-history-count strong { color: var(--ink); font-size: 13px; }
+.bg-history td.code { white-space: nowrap; }
+
+/* ── 05 · 파기 대장 ── */
+.ret-dispose-form { display: flex; align-items: end; gap: 14px; flex-wrap: wrap; padding: 10px 12px 12px; border-bottom: 1px solid var(--line); background: rgba(255,255,255,0.4); }
+.ret-dispose-field { display: flex; flex-direction: column; gap: 4px; }
+.ret-dispose-form label { font-family: "JetBrains Mono", monospace; font-size: 9.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+.ret-dispose-form select { font: inherit; font-size: 12.5px; letter-spacing: 0; text-transform: none; padding: 5px 8px; border: 1px solid var(--line); border-radius: 4px; background: rgba(255,255,255,0.8); color: var(--ink); min-width: 140px; }
+.ret-dispose-officer { font-family: "JetBrains Mono", monospace; font-size: 9.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); align-self: center; }
+.ret-dispose-officer strong { color: var(--ink); font-size: 12.5px; letter-spacing: 0; text-transform: none; margin-left: 4px; }
+.ret-dispose-table tr.disposed td { color: var(--muted); }
+h4 .home-count { vertical-align: middle; margin-left: 4px; }
+
+/* ── 03 · 환자 문의 대응 ── */
+.ye-lookup-row { display: flex; gap: 8px; align-items: stretch; margin: 0 0 10px; }
+.ye-lookup-row input { flex: 1 1 auto; min-width: 0; font: inherit; font-family: "JetBrains Mono", monospace; font-size: 13px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 5px; background: rgba(255,255,255,0.8); color: var(--ink); }
+.ye-lookup .empty-state.small { padding: 18px; font-size: 13px; }
+.ye-lookup-card { padding: 12px 14px; }
+.ye-lookup-card.missing { border-left: 3px solid var(--accent); }
+.ye-lookup-card.found { border-left: 3px solid var(--ok); }
+.ye-lookup-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; font-size: 14px; }
+.ye-lookup-head .code { font-family: "JetBrains Mono", monospace; }
+.ye-lookup-head .pill, .ye-lookup-grid .pill { display: inline-block; padding: 2px 8px; border-radius: 3px; font-family: "JetBrains Mono", monospace; font-size: 9.5px; letter-spacing: 0.6px; text-transform: uppercase; background: rgba(20,17,13,0.06); color: var(--muted); }
+.ye-lookup-head .pill.ok, .ye-lookup-grid .pill.ok { background: rgba(74,122,79,0.13); color: var(--ok); }
+.ye-lookup-head .pill.warn { background: rgba(184,122,28,0.15); color: var(--warn); }
+.ye-lookup-head .pill.err, .ye-lookup-grid .pill.err, .ye-lookup-visits .pill.err { background: rgba(176,74,47,0.13); color: var(--err); }
+.ye-lookup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px 14px; margin-bottom: 10px; }
+.ye-lookup-grid .k { display: block; font-family: "JetBrains Mono", monospace; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+.ye-lookup-grid .v { font-family: "Fraunces", serif; font-size: 18px; font-weight: 300; color: var(--ink); font-variant-numeric: tabular-nums; }
+.ye-lookup-visits { list-style: none; margin: 0 0 12px; padding: 0; font-size: 12.5px; color: var(--ink-2); display: grid; gap: 3px; }
+.ye-lookup-visits .code { font-family: "JetBrains Mono", monospace; }
+.ye-lookup-visits .more { color: var(--muted); font-style: italic; }
+.ye-lookup-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ye-lookup-actions .caveat { margin: 0; }
+
+@media (max-width: 600px) {
+  .home-h-row { align-items: flex-start; }
+  .kpi-tools { width: 100%; justify-content: space-between; }
+  .ret-dispose-form { gap: 10px; }
+  .ret-dispose-form select { min-width: 0; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .todo.nudge .nudge-dot, .kpi-summary-out { animation: none; }
+}

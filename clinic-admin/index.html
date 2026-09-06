@@ -338,14 +338,27 @@
         <div class="todo-list" id="todo-list" role="list"></div>
       </section>
 
-      <!-- 이번 달 숫자 — KPI tiles from jabo.history + review batches (tab0-today.js). The .kpi-loading skeleton is the first paint. -->
+      <!-- 이번 달 숫자 — management KPIs for ONE month (#kpi-month; default = latest month with reconciliation data), split by payer
+           자보 / 건보, plus 이의신청 · 미수금 · 비급여 매출 추정 · 지불보증 만료 (tab0-today.js). The .kpi-loading skeleton is the first paint;
+           "원장 보고용 요약 복사" renders the same numbers as watermarked plain text. -->
       <section class="home-sec" id="home-numbers" aria-labelledby="home-numbers-h">
-      <h4 class="home-h" id="home-numbers-h" data-i18n="home.numbersH">이번 달 숫자</h4>
+      <div class="home-h-row">
+        <h4 class="home-h" id="home-numbers-h" data-i18n="home.numbersH">이번 달 숫자</h4>
+        <div class="kpi-tools">
+          <label class="kpi-month-label" for="kpi-month"><span data-i18n="today.kpi.month">기준 월</span> <select id="kpi-month" aria-label="기준 월" data-i18n-attr="aria-label:today.kpi.month"></select></label>
+          <button type="button" class="btn secondary sm" id="kpi-summary-copy" data-i18n-html="today.kpi.copyBtn">원장 보고용 요약 복사 <span class="arrow">⧉</span></button>
+        </div>
+      </div>
       <div class="insights" id="today-insights">
         <div class="insight kpi kpi-loading" id="ins-jabo-card">
           <div class="label" data-i18n="today.insJabo">이번 달 자보 청구</div>
           <div class="num" id="ins-jabo" data-i18n-html="today.insJaboEmpty">— <em>건</em></div>
           <div class="sub" id="ins-jabo-sub" data-i18n="today.insJaboSub">아직 정산 기록 없음 — 자보 탭에서 시작</div>
+        </div>
+        <div class="insight kpi kpi-loading" id="ins-nhis-card">
+          <div class="label" data-i18n="today.kpi.nhis">건보 청구</div>
+          <div class="num" id="ins-nhis" data-i18n-html="today.insJaboEmpty">— <em>건</em></div>
+          <div class="sub" id="ins-nhis-sub" data-i18n="today.kpi.nhisNone">건보 심사결과 배치 없음</div>
         </div>
         <div class="insight kpi kpi-loading" id="ins-cut-card">
           <div class="label" data-i18n="today.insCut">조정률</div>
@@ -362,7 +375,27 @@
           <div class="num text" id="ins-insurer">—</div>
           <div class="sub" id="ins-insurer-sub" data-i18n="today.kpi.insurerSub">조정액이 가장 큰 보험사</div>
         </div>
-        <div class="insight" id="ins-ret-card">
+        <div class="insight kpi kpi-loading" id="ins-appeal-card">
+          <div class="label" data-i18n="today.kpi.appeal">이의신청 현황</div>
+          <div class="num" id="ins-appeal">— <em>건</em></div>
+          <div class="sub" id="ins-appeal-sub" data-i18n="today.kpi.appealSub">진행 중 · 지연 · 회수 금액</div>
+        </div>
+        <div class="insight kpi kpi-loading" id="ins-ar-card">
+          <div class="label" data-i18n="today.kpi.ar">미수금 지표</div>
+          <div class="num text" id="ins-ar">—</div>
+          <div class="sub" id="ins-ar-sub" data-i18n="today.kpi.arSub">청구 − 인정 중 아직 이의신청하지 않은 금액</div>
+        </div>
+        <div class="insight kpi kpi-loading" id="ins-nonpay-card">
+          <div class="label" data-i18n="today.kpi.nonpay">비급여 매출 추정</div>
+          <div class="num text" id="ins-nonpay">—</div>
+          <div class="sub" id="ins-nonpay-sub" data-i18n="today.kpi.nonpayNone">비급여 동의 기록이 쌓이면 단가표로 추정</div>
+        </div>
+        <div class="insight kpi kpi-loading" id="ins-guar-card">
+          <div class="label" data-i18n="today.kpi.guar">지불보증 만료 임박</div>
+          <div class="num" id="ins-guar">— <em>건</em></div>
+          <div class="sub" id="ins-guar-sub" data-i18n="today.kpi.guarSub">30일 안에 만료되는 지불보증</div>
+        </div>
+        <div class="insight clickable" id="ins-ret-card" role="button" tabindex="0">
           <div class="label" data-i18n="today.insRet">폐기 시점 지난 기록</div>
           <div class="num" id="ins-ret">—</div>
           <div class="sub" id="ins-ret-sub" data-i18n="today.insRetSub">감사 한 번 돌리면 한눈에</div>
@@ -374,6 +407,8 @@
         </div>
       </div>
       <p class="kpi-empty" id="kpi-empty" data-i18n="today.kpi.empty" style="display:none">청구 배치를 올리면 여기에 숫자가 채워져요</p>
+      <pre class="kpi-summary-out" id="kpi-summary-out" hidden></pre>
+      <p class="caveat kpi-caveat" data-i18n-html="today.kpi.caveat">※ 자보·건보는 심사결과 대조 기록에서, 이의신청·지불보증·비급여 동의는 각 대장에서 집계합니다. 미수금·비급여 매출은 <em>추정치</em>입니다 — 회계 자료가 아닙니다.</p>
       </section>
 
       <!-- 최근 작업 — resume cards -->
@@ -837,6 +872,16 @@
           <p class="caveat" data-i18n-html="yearend.caveatSubmit">
             ※ 이 파일은 <em>사전점검용</em>입니다. 국세청 제출은 <a class="small-link" href="https://www.hometax.go.kr" target="_blank" rel="noopener noreferrer">홈택스 연말정산간소화 자료제출</a> 또는 EMR의 국세청 자료제출 모듈에서 수행하며, 제출 형식·기한은 연도별 국세청 안내로 확인하십시오.
           </p>
+
+          <!-- 환자 문의 대응 — January's "영수증 빠졌어요" call: pid → is it in the latest yearend batch? → hand-off to the 발급 대장 (tab3-yearend.js) -->
+          <h4 style="margin-top: 22px;"><span class="step">04</span> <span data-i18n="yearend.lookup.h">환자 문의 대응 — "제 자료 들어갔나요?"</span></h4>
+          <p class="caveat" style="margin-top:0" data-i18n-html="yearend.lookup.summary">1월 전화 대응용 — <em>환자번호</em>를 넣으면 최근 점검 배치에 그 환자의 진료가 들어 있는지, 합계는 얼마인지 바로 보입니다. 영수증 재발급이 필요하면 <em>발급 대장</em>으로 넘깁니다.</p>
+          <div class="ye-lookup-row">
+            <input id="ye-lookup-pid" list="ye-lookup-list" type="text" placeholder="P-2026-0142" autocomplete="off" aria-label="환자번호" data-i18n-attr="aria-label:yearend.thPid">
+            <datalist id="ye-lookup-list"></datalist>
+            <button type="button" class="btn secondary" id="ye-lookup-btn" data-i18n="yearend.lookup.btn">조회</button>
+          </div>
+          <div class="result ye-lookup" id="ye-lookup-out"></div>
         </div>
       </div>
     </section>
@@ -938,6 +983,18 @@
             </div>
           </div>
           <div class="result bg-notice" id="bg-notice" style="max-height: 360px;"></div>
+
+          <!-- 가격표 as an entity output — website CSV + change history (tariff.history, appended by tab4-bigeup.js on every price save) -->
+          <h4 style="margin-top: 22px;"><span class="step">05</span> <span data-i18n="bigeup.history.h">홈페이지 고지용 CSV · 가격표 변경 이력</span></h4>
+          <div class="result-toolbar" style="margin-bottom:8px">
+            <div class="summary" data-i18n-html="bigeup.history.summary">홈페이지 게시용 가격표는 <em>항목 · 가격 · 적용일</em> 세 컬럼의 CSV로, 변경 이력은 단가를 저장할 때마다 자동으로 쌓입니다 (변경 시각 · 적용일 · 이전 → 이후 금액 · 담당).</div>
+            <div class="actions">
+              <button type="button" class="btn secondary" id="bg-web-csv" disabled data-i18n-html="bigeup.web.btn">홈페이지 고지용 CSV <span class="arrow">↓</span></button>
+              <button type="button" class="btn secondary" id="bg-history-csv" data-i18n-html="bigeup.history.csvBtn">이력 CSV <span class="arrow">↓</span></button>
+            </div>
+          </div>
+          <p class="bg-history-count"><span data-i18n="bigeup.history.count">변경 기록</span> <strong id="bg-history-count">0</strong></p>
+          <div class="result bg-history" id="bg-history" style="max-height: 300px;"></div>
         </div>
       </div>
     </section>
@@ -1031,6 +1088,26 @@
           <div class="result" id="ret-result">
             <div class="empty-state" data-i18n="retention.empty">기록 대장을 올리면 점검 결과가 여기에 표시됩니다.</div>
           </div>
+
+          <!-- 파기 대장 — the 초과 rows become the disposal list; 파기 대장 생성 stores retention.disposals (encrypted) + downloads the XLSX ledger (tab5-retention.js) -->
+          <h4 style="margin-top: 22px;"><span class="step">04</span> <span data-i18n="retention.dispose.h">파기 대상 목록 → 파기 대장</span> <span class="home-count" id="ret-dispose-count">0</span></h4>
+          <p class="caveat" style="margin-top:0" data-i18n-html="retention.dispose.caveat">보존기간이 지난 기록만 대상입니다. 파기는 <em>내부 폐기 심의</em>(법정 의무 아님)를 거친 뒤 실행하고, 대장에는 기록ID를 가명화해 남깁니다 — 담당자는 현재 로그인, 승인자는 명부에서 고릅니다. 저장되는 대장은 이 브라우저 안에서 암호화됩니다.</p>
+          <div class="result-toolbar" style="margin-bottom:8px">
+            <div class="summary" id="ret-dispose-summary" data-i18n="retention.dispose.empty">점검 결과에 보존기간 경과 기록이 있으면 여기에 파기 대상이 나열됩니다.</div>
+            <div class="actions">
+              <button type="button" class="btn" id="ret-dispose-btn" disabled data-i18n-html="retention.dispose.btn">파기 대장 생성 <span class="arrow">↓</span></button>
+            </div>
+          </div>
+          <div class="result ret-dispose" id="ret-dispose"></div>
+
+          <h4 style="margin-top: 22px;"><span class="step">05</span> <span data-i18n="retention.ledger.h">파기 대장 (누적)</span> <span class="home-count" id="ret-ledger-count">0</span></h4>
+          <div class="result-toolbar" style="margin-bottom:8px">
+            <div class="summary" data-i18n="retention.ledger.summary">생성된 파기 대장은 여기에 누적됩니다 — 인증 자체점검(기록부 폐기 심의 절차)의 증빙으로 쓰입니다.</div>
+            <div class="actions">
+              <button type="button" class="btn secondary" id="ret-ledger-download" disabled data-i18n-html="retention.ledger.btn">전체 대장 XLSX <span class="arrow">↓</span></button>
+            </div>
+          </div>
+          <div class="result ret-ledger" id="ret-ledger" style="max-height: 300px;"></div>
         </div>
       </div>
     </section>

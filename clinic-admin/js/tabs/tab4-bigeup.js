@@ -1,12 +1,15 @@
 /* clinic-admin — Tab 04 · 비급여 보고 준비표 */
-import { $, $$, esc, fmtKRW, todayISO, setStatus, debounce } from "../core/ui.js";
+import { $, $$, esc, fmtKRW, todayISO, relTime, setStatus, debounce } from "../core/ui.js";
 import { t, tOr, pick, getLang, onLangChange } from "../core/i18n.js";
-import { EventBus, ActivityLog } from "../core/store.js";
-import { downloadXLSX, headerRow, pocMark } from "../core/files.js";
+import { Store, EventBus, ActivityLog } from "../core/store.js";
+import { downloadXLSX, downloadCSV, headerRow, pocMark } from "../core/files.js";
 import { bigeupWindows, nextOccurrence } from "../core/calendar.js";
 import { activateTab } from "../core/nav.js";
-import { Org, Tariff } from "../core/entities.js";
+import { Session } from "../security/session.js";
+import { Org, Staff, Tariff } from "../core/entities.js";
 import { renderOrgReadOnly, orgView, orgHeaderPairs } from "./reporting-shared.js";
+// TODO(integrator): swap for the real registerRows once lifecycle.js exports one (see _p3-shim.js).
+import { registerRows } from "./_p3-shim.js";
 
 /* ─────────────────────────────────────────────────────────
    Tab 4 — 비급여 진료비용 보고 준비 (의료법 §45조의2)
@@ -17,9 +20,22 @@ import { renderOrgReadOnly, orgView, orgHeaderPairs } from "./reporting-shared.j
      병원급 reports March + September data (twice a year), 의원급 March only.
    · Prices live in the Tariff entity (Tariff.get/set/all), the 적용일 in Tariff.effectiveDate.
    · 가격 고지문 — a printable 비급여 가격표 for the 접수 counter (의료법 §45 고지 duty), PoC-watermarked.
+   · 가격표 변경 이력 (Phase 3) — every price write from this panel goes through setPrices(), which diffs the Tariff
+     before/after and appends ONE `tariff.history` entry per save burst: { at, effectiveDate, staffId, changes:[{ code,
+     from:{min,max,med,freq}, to }] }. Plaintext (no names — the 담당 is resolved from the roster at render time).
+     Tariff.set is the entity's API and stays untouched; the wrapper lives here because this panel is its only writer.
+   · 홈페이지 고지용 CSV — item · price(중간값) · 적용일 for the clinic website, watermarked like every export.
    ───────────────────────────────────────────────────────── */
 let api = null;
 export function seed() { api?.seed(); }
+
+const HISTORY_KEY = "tariff.history";
+const HISTORY_MAX = 200;
+registerRows([{
+  key: HISTORY_KEY, label: "비급여 가격표 변경 이력", detail: "변경 시각·적용일·항목별 이전/이후 금액·담당 staffId (이름 없음 — 개인정보 아님)",
+  purpose: "가격 고지 변경 근거 (의료법 §45 고지 · 인증 자체점검)", basis: "의료법 §45 · §45의2", encrypted: false, retention: "최근 200회", days: null
+}]);
+const readHistory = () => { const v = Store.get(HISTORY_KEY, []); return Array.isArray(v) ? v : []; };
 
 export function init(ctx) {
   const { DATA } = ctx;
@@ -68,13 +84,33 @@ export function init(ctx) {
   const state = items.map(it => ({ ...it, ...fromTariff(it) }));
   const reloadState = () => { for (const it of state) Object.assign(it, fromTariff(it)); };
   const dirty = new Set();
+  // Price writes: Tariff.set per code + ONE history entry for the burst (only codes whose stored entry actually changed).
+  const sameEntry = (a, b) => ["min", "max", "med", "freq"].every(k => String(a?.[k] ?? "") === String(b?.[k] ?? ""));
+  const setPrices = (list) => {
+    const changes = [];
+    for (const { code, entry } of list) {
+      const before = Tariff.get(code);
+      const after = entry && ["min", "max", "med", "freq"].some(k => entry[k] !== "" && entry[k] != null) ? entry : null;
+      if (sameEntry(before, after)) continue;
+      Tariff.set(code, after);
+      changes.push({ code, from: before ? { min: before.min, max: before.max, med: before.med, freq: before.freq } : null, to: after ? { min: after.min, max: after.max, med: after.med, freq: after.freq } : null });
+    }
+    if (!changes.length) return 0;
+    const u = Session.user();
+    const hist = readHistory();
+    hist.unshift({ at: Date.now(), effectiveDate: Tariff.effectiveDate() || "", staffId: u?.staffId || null, changes });
+    Store.set(HISTORY_KEY, hist.slice(0, HISTORY_MAX));
+    return changes.length;
+  };
   const flushDirty = debounce(() => {
+    const list = [];
     for (const code of dirty) {
       const it = state.find(x => x.code === code);
       const has = it && (it.min_input !== "" || it.max_input !== "" || it.med_input !== "" || it.freq_input !== "");
-      Tariff.set(code, has ? { min: it.min_input, max: it.max_input, med: it.med_input, freq: it.freq_input } : null);
+      list.push({ code, entry: has ? { min: it.min_input, max: it.max_input, med: it.med_input, freq: it.freq_input } : null });
     }
     dirty.clear();
+    setPrices(list);
   }, 400);
   const writeAll = () => { for (const it of state) dirty.add(it.code); flushDirty(); };
 
@@ -149,6 +185,45 @@ export function init(ctx) {
     ActivityLog.push("bigeup", t("bigeup.notice.log", { n: rows.length }), {});
   });
 
+  // ── 가격표 변경 이력 + 홈페이지 고지용 CSV ──
+  const itemName = (code) => { const it = items.find(x => x.code === code); return it ? pick(it, "name") : code; };
+  const staffRef = (id) => { const s = id ? Staff.get(id) : null; return s ? Staff.ref(s) : "—"; };
+  const priceOf = (e) => e ? (+e.med || (e.min !== "" && e.max !== "" ? Math.round((+e.min + +e.max) / 2) : +e.min || +e.max || 0)) : 0;
+  const changeText = (c) => `${c.code} ${c.from ? fmtKRW(priceOf(c.from)) : "—"} → ${c.to ? fmtKRW(priceOf(c.to)) : "—"}`;
+  const renderHistory = () => {
+    const el = $("#bg-history"); if (!el) return;
+    const hist = readHistory();
+    $("#bg-history-count").textContent = String(hist.length);
+    if (!hist.length) { el.innerHTML = `<div class="empty-state">${esc(t("bigeup.history.empty"))}</div>`; return; }
+    el.innerHTML = `<table>
+      <thead><tr><th class="code">${esc(t("bigeup.history.thWhen"))}</th><th class="code">${esc(t("bigeup.fDate"))}</th><th class="code">${esc(t("bigeup.history.thCount"))}</th><th>${esc(t("bigeup.history.thChanges"))}</th><th>${esc(t("bigeup.history.thBy"))}</th></tr></thead>
+      <tbody>${hist.slice(0, 30).map(h => {
+        const ch = h.changes || [];
+        const head = ch.slice(0, 2).map(changeText).join(" · ");
+        return `<tr><td class="code">${esc(new Date(h.at).toISOString().slice(0, 10))} <span class="bg-unit">${esc(relTime(h.at))}</span></td><td class="code">${esc(h.effectiveDate || "—")}</td><td class="code" style="text-align:right">${ch.length}</td><td class="code">${esc(head)}${ch.length > 2 ? ` <span class="bg-unit">${esc(t("bigeup.history.more", { n: ch.length - 2 }))}</span>` : ""}</td><td>${esc(staffRef(h.staffId))}</td></tr>`;
+      }).join("")}</tbody></table>`;
+  };
+  $("#bg-web-csv")?.addEventListener("click", () => {
+    const date = Tariff.effectiveDate() || todayISO();
+    const rows = noticeRows().map(r => headerRow([["bigeup.web.col.item", r.name], ["bigeup.web.col.cat", r.cat], ["bigeup.web.col.unit", r.unit], ["bigeup.web.col.price", r.price], ["bigeup.web.col.date", date]]));
+    if (!rows.length) return;
+    downloadCSV(rows, t("bigeup.web.file", { date })); // watermark + _PoC applied inside
+    ActivityLog.push("bigeup", t("bigeup.web.log", { n: rows.length }), {});
+  });
+  $("#bg-history-csv")?.addEventListener("click", () => {
+    const rows = [];
+    for (const h of readHistory()) for (const c of h.changes || []) rows.push(headerRow([
+      ["bigeup.history.col.when", new Date(h.at).toISOString()], ["bigeup.history.col.date", h.effectiveDate || ""], ["bigeup.col.code", c.code], ["bigeup.col.name", itemName(c.code)],
+      ["bigeup.history.col.from", c.from ? priceOf(c.from) : ""], ["bigeup.history.col.to", c.to ? priceOf(c.to) : ""], ["bigeup.history.col.by", staffRef(h.staffId)]
+    ]));
+    if (!rows.length) return;
+    downloadCSV(rows, t("bigeup.history.file", { date: todayISO() }));
+    ActivityLog.push("bigeup", t("bigeup.history.log", { n: rows.length }), {});
+  });
+  EventBus.on(`store:${HISTORY_KEY}`, renderHistory);
+  EventBus.on("session:unlocked", renderHistory);
+  Staff.onChange(renderHistory);
+
   let lastStatus = null; // null → hidden; { kind, fn } otherwise (the summary strip is recomputed instead)
   const updateSummary = () => {
     let done = 0, empty = 0, errs = 0, noFreq = 0;
@@ -181,6 +256,7 @@ export function init(ctx) {
     if (lastStatus) setStatus($("#bg-status"), lastStatus.kind, lastStatus.fn()); else $("#bg-status").style.display = "none";
     $("#bg-summary").innerHTML = t("bigeup.summary", { d: done, e: empty, x: errs }) + (noFreq ? t("bigeup.summaryNoFreq", { n: noFreq }) : "");
     renderNotice();
+    const csv = $("#bg-web-csv"); if (csv) csv.disabled = done === 0;
   };
 
   const fillPrefill = () => {
@@ -249,10 +325,10 @@ export function init(ctx) {
   });
 
   // init
-  renderOrg(); renderWindow(); render(); updateSummary();
+  renderOrg(); renderWindow(); render(); updateSummary(); renderHistory();
 
   onLangChange(() => {
-    fillCounts(); renderOrg(); fillRefMonths(); renderWindow(); render(); updateSummary();
+    fillCounts(); renderOrg(); fillRefMonths(); renderWindow(); render(); updateSummary(); renderHistory();
   });
 
   api = { seed: runSample };

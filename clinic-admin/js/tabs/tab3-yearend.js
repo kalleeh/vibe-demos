@@ -1,5 +1,5 @@
 /* clinic-admin — Tab 03 · 연말정산 의료비 자료 사전점검 */
-import { $, esc, fmtKRW, won, todayISO, relTime, setStatus, bindDrop } from "../core/ui.js";
+import { $, esc, fmtKRW, won, todayISO, relTime, setStatus, bindDrop, Toast } from "../core/ui.js";
 import { t, onLangChange } from "../core/i18n.js";
 import { EventBus, ActivityLog, bindPersist } from "../core/store.js";
 import { readSpreadsheet, downloadXLSX, downloadCSV, headerRow } from "../core/files.js";
@@ -16,6 +16,10 @@ import { checkRRN, maskRRN, renderOrgReadOnly, orgHeaderPairs } from "./reportin
    · The run is stored as a `yearend` batch WITHOUT names or RRNs (pid · date · amounts · verdict) so the
      정리표 and the claims cross-check can be re-opened without re-uploading.
    · Cross-check: when a `claims` batch exists, pid+date pairs in the tax year are compared both ways.
+   · 환자 문의 대응 (Phase 3): January's "영수증 빠졌어요" call — type a 환자번호, see whether it is in the latest yearend
+     batch (visits · 합계 · errors, alias only) and hand the case to the 발급 대장:
+     activateTab("tab-docs", { pid, create: true, docType: "영수증 재발급" }). While that panel is not mounted the button
+     explains so (toast) — the ctx it would send is on the button's data-ctx.
    i18n: rows keep neutral fields + [key, vars] issue messages so tables, status and CSV headers re-render. */
 let api = null;
 export function seed() { api?.seed(); }
@@ -254,7 +258,59 @@ export function init() {
   };
   renderRecent();
   // Any batch change: a new 연말정산 run (recent strip) or a new claims batch (cross-check card re-derived).
-  Batches.onChange(() => { renderRecent(); if (lastResult) render(lastResult); });
+  Batches.onChange(() => { renderRecent(); if (lastResult) render(lastResult); lookup(); });
+
+  // ── 환자 문의 대응 — pid lookup against the latest yearend batch ──
+  const pidInput = $("#ye-lookup-pid");
+  const fillPidList = () => {
+    const dl = $("#ye-lookup-list"); if (!dl) return;
+    dl.innerHTML = Patients.list().map(p => `<option value="${esc(p.pid)}">${esc(p.alias)}</option>`).join("");
+  };
+  fillPidList();
+  Patients.onChange(fillPidList);
+  const DOC_CTX = (pid) => ({ pid, create: true, docType: "영수증 재발급" });
+  function lookup() {
+    const out = $("#ye-lookup-out"); if (!out) return;
+    const pid = String(pidInput?.value || "").trim();
+    if (!pid) { out.innerHTML = `<div class="empty-state small">${esc(t("yearend.lookup.empty"))}</div>`; return; }
+    const b = Batches.latest("yearend");
+    const alias = Patients.alias(pid);
+    const known = !!Patients.get(pid);
+    if (!b) { out.innerHTML = `<div class="status-line warn" style="display:flex"><span class="dot"></span><span>${esc(t("yearend.lookup.noBatch", { who: alias }))}</span></div>`; return; }
+    const rows = (b.rows || []).filter(r => String(r.pid || "").trim() === pid);
+    const total = rows.reduce((s, r) => s + (+r.total || 0), 0), own = rows.reduce((s, r) => s + (+r.own || 0), 0), non = rows.reduce((s, r) => s + (+r.non || 0), 0);
+    const errs = rows.filter(r => r.verdict === "error").length;
+    const y = b.meta?.taxYear || "—";
+    const ctx = JSON.stringify(DOC_CTX(pid));
+    out.innerHTML = `
+      <div class="ye-lookup-card ${rows.length ? "found" : "missing"}" data-pid="${esc(pid)}">
+        <div class="ye-lookup-head"><span class="code">${esc(alias)}</span> ${known ? "" : `<span class="pill warn">${esc(t("yearend.lookup.unknownPid"))}</span>`}
+          <span class="pill ${rows.length ? "ok" : "err"}">${esc(rows.length ? t("yearend.lookup.inBatch", { y }) : t("yearend.lookup.notInBatch", { y }))}</span></div>
+        ${rows.length ? `<div class="ye-lookup-grid">
+          <div><span class="k">${esc(t("yearend.thCount"))}</span><span class="v">${rows.length}</span></div>
+          <div><span class="k">${esc(t("yearend.thSum"))}</span><span class="v">${esc(won(total))}</span></div>
+          <div><span class="k">${esc(t("yearend.thOwn"))}</span><span class="v">${esc(won(own))}</span></div>
+          <div><span class="k">${esc(t("yearend.thNon"))}</span><span class="v">${esc(won(non))}</span></div>
+          <div><span class="k">${esc(t("yearend.thLevel"))}</span><span class="v">${errs ? `<span class="pill err">${esc(t("yearend.errBadge", { n: errs }))}</span>` : `<span class="pill ok">${esc(t("yearend.v.ok"))}</span>`}</span></div>
+        </div>
+        <ul class="ye-lookup-visits">${rows.slice(0, 8).map(r => `<li><span class="code">${esc(r.date)}</span> · ${esc(won(r.total))}${r.verdict === "error" ? ` · <span class="pill err">${esc(verdictText("error"))}</span>` : ""}</li>`).join("")}${rows.length > 8 ? `<li class="more">${esc(t("yearend.xc.more", { n: rows.length - 8 }))}</li>` : ""}</ul>` : `<p class="caveat" style="margin:6px 0 10px">${esc(t("yearend.lookup.missingHint"))}</p>`}
+        <div class="ye-lookup-actions">
+          <button type="button" class="btn" id="ye-lookup-docs" data-ctx='${esc(ctx)}'>${esc(t("yearend.lookup.docsBtn"))} <span class="arrow">→</span></button>
+          <span class="caveat">${esc(t("yearend.lookup.docsHint"))}</span>
+        </div>
+      </div>`;
+    $("#ye-lookup-docs")?.addEventListener("click", () => {
+      const c = DOC_CTX(pid);
+      Patients.ensure(pid, { tags: ["연말정산"] });
+      ActivityLog.push("yearend", t("yearend.lookup.log"), { pid });
+      if (document.getElementById("tab-docs")) activateTab("tab-docs", c);
+      else Toast.show({ tag: "system", html: esc(t("yearend.lookup.docsSoon")) });
+    });
+  }
+  $("#ye-lookup-btn")?.addEventListener("click", lookup);
+  pidInput?.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); lookup(); } });
+  pidInput?.addEventListener("change", lookup);
+  lookup();
 
   const finish = (result, statusFn) => {
     fromBatch = false;
@@ -344,10 +400,12 @@ export function init() {
       $("#ye-year").dispatchEvent(new Event("change", { bubbles: true }));
       if (lastResult && lastResult.taxYear !== +ctx.taxYear) status("warn", () => t("yearend.statusYearChanged", { y: ctx.taxYear }));
     }
+    // { pid } from 환자 (patients-shared) or the search overlay → run the 문의 대응 lookup for that patient.
+    if (ctx?.pid && pidInput) { pidInput.value = String(ctx.pid); lookup(); $("#ye-lookup-out")?.scrollIntoView({ block: "center", behavior: "smooth" }); }
   });
 
   onLangChange(() => {
-    renderOrg(); renderRecent();
+    renderOrg(); renderRecent(); lookup();
     if (lastResult) render(lastResult);
     if (lastStatus) setStatus($("#ye-status"), lastStatus.kind, lastStatus.fn());
   });

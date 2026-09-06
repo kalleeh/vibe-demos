@@ -1,10 +1,13 @@
 /* clinic-admin — Tab 05 · 의무기록 보존기간 점검 */
-import { $, esc, todayISO, relTime, setStatus, bindDrop } from "../core/ui.js";
+import { $, esc, todayISO, relTime, setStatus, bindDrop, Toast } from "../core/ui.js";
 import { t, pick, onLangChange } from "../core/i18n.js";
-import { Store, ActivityLog } from "../core/store.js";
-import { readSpreadsheet, downloadXLSX, headerRow } from "../core/files.js";
-import { Org, Batches, Patients } from "../core/entities.js";
-import { orgHeaderPairs } from "./reporting-shared.js";
+import { Store, EventBus, ActivityLog } from "../core/store.js";
+import { readSpreadsheet, downloadXLSX, headerRow, pocMark } from "../core/files.js";
+import { Session } from "../security/session.js";
+import { Org, Staff, Batches, Patients } from "../core/entities.js";
+import { orgHeaderPairs, pseudoId } from "./reporting-shared.js";
+// TODO(integrator): swap for the real registerRows once lifecycle.js exports one (see _p3-shim.js).
+import { registerRows } from "./_p3-shim.js";
 
 /* ─────────────────────────────────────────────────────────
    Tab 5 — 의무기록 보존기간 점검 (의료법 시행규칙 §15)
@@ -13,9 +16,29 @@ import { orgHeaderPairs } from "./reporting-shared.js";
      점검표 can be re-opened without re-uploading; retention.lastAudit keeps the dashboard counts.
    i18n: rows keep neutral fields, a verdict kind and [key, vars] note parts, so table, status and XLSX
    headers re-render from `lastResult` in either language. Record-type VALUES from the ledger stay as typed.
+   · 파기 대장 (Phase 3): the 초과 rows of the current result become the 파기 대상 목록; "파기 대장 생성" writes one
+     disposal per row to `retention.disposals` (encrypted — it carries the staff name snapshot and the pid) and downloads
+     the ledger as XLSX (기록ID pseudonymised, 종류, 보존기한, 파기일, 담당자, 방법, 승인자; PoC watermark). The 폐기 심의
+     itself is an internal procedure, not a statutory duty — the ledger is its evidence (인증 mr3 reads retentionStats()).
    ───────────────────────────────────────────────────────── */
 let api = null;
 export function seed() { api?.seed(); }
+
+const DISPOSALS_KEY = "retention.disposals";
+const METHODS = ["shred", "erase"]; // 파쇄 · 전자삭제 — labels via retention.method.*
+registerRows([{
+  key: DISPOSALS_KEY, label: "의무기록 파기 대장", detail: "기록ID(가명)·환자번호·종류·보존기한·파기일·방법·담당자/승인자 이름 스냅샷",
+  purpose: "보존기간 경과 기록의 파기 근거 (내부 폐기 심의 · 인증 자체점검 mr3)", basis: "의료법 시행규칙 §15 보존기간 · 개인정보보호법 §21 파기 (PoC: 5년 보존, 확인 필요)",
+  encrypted: true, retention: "5년 (확인 필요)", days: 5 * 365 + 1,
+  purge: (v, cutoff) => (Array.isArray(v) ? v.filter(d => (d.at || 0) >= cutoff) : v)
+}]);
+const readDisposals = () => { const v = Store.get(DISPOSALS_KEY, []); return Array.isArray(v) ? v : []; };
+/* retentionStats() — for 인증 자체점검 (tab9 mr3) and 홈: { disposals, lastDisposalAt, lastAudit }.
+   TODO(integrator): tab9-accred.js mr3 should count `disposals` as the disposal-review evidence (not P3c's file). */
+export function retentionStats() {
+  const rows = readDisposals();
+  return { disposals: rows.length, lastDisposalAt: rows.reduce((m, r) => Math.max(m, r.at || 0), 0) || null, lastAudit: Store.get("retention.lastAudit") || null };
+}
 
 export function init(ctx) {
   const { DATA } = ctx;
@@ -139,7 +162,92 @@ export function init(ctx) {
           }).join("")}
         </tbody>
       </table>`;
+    renderDisposal(result);
   };
+
+  // ── 파기 대장 — the 초과 rows of the current result ──
+  const methodLabel = (m) => t("retention.method." + m);
+  const disposalTargets = (result) => (result?.rows || []).filter(r => r.kind === "over");
+  const doneKey = (batchId, recId) => `${batchId || ""}|${recId}`;
+  let disposalMethod = "shred", approverId = "";
+  const renderDisposal = (result) => {
+    const box = $("#ret-dispose"); if (!box) return;
+    const targets = disposalTargets(result);
+    const done = readDisposals();
+    const doneIds = new Set(done.map(d => doneKey(d.batchId, d.recId)));
+    const approvers = Staff.list().filter(s => s.job === "한의사" || s.job === "행정");
+    if (!approverId && approvers.length) approverId = (approvers.find(s => Staff.loginOf(s)?.role === "원장") || approvers[0]).id;
+    const batchId = Batches.latest("retention")?.id || "";
+    const pending = targets.filter(r => !doneIds.has(doneKey(batchId, pseudoId(r.id))));
+    $("#ret-dispose-count").textContent = String(targets.length);
+    $("#ret-dispose-btn").disabled = pending.length === 0;
+    $("#ret-dispose-summary").innerHTML = targets.length
+      ? t("retention.dispose.summary", { n: targets.length, p: pending.length, d: done.length })
+      : t("retention.dispose.empty");
+    if (!targets.length) { box.innerHTML = ""; return; }
+    box.innerHTML = `
+      <div class="ret-dispose-form">
+        <div class="ret-dispose-field"><label for="ret-dispose-method">${esc(t("retention.dispose.method"))}</label>
+          <select id="ret-dispose-method">${METHODS.map(m => `<option value="${m}" ${m === disposalMethod ? "selected" : ""}>${esc(methodLabel(m))}</option>`).join("")}</select></div>
+        <div class="ret-dispose-field"><label for="ret-dispose-approver">${esc(t("retention.dispose.approver"))}</label>
+          <select id="ret-dispose-approver">${approvers.length ? approvers.map(s => `<option value="${esc(s.id)}" ${s.id === approverId ? "selected" : ""}>${esc(Staff.ref(s))}</option>`).join("") : `<option value="">${esc(t("retention.dispose.noApprover"))}</option>`}</select></div>
+        <span class="ret-dispose-officer">${esc(t("retention.dispose.officer"))} <strong>${esc(Session.user()?.name || "—")}</strong></span>
+      </div>
+      <table class="ret-dispose-table">
+        <thead><tr><th class="code">${esc(t("retention.dispose.thRec"))}</th><th class="code">${esc(t("retention.thPatient"))}</th><th>${esc(t("retention.thType2"))}</th><th class="code">${esc(t("retention.thExpiry"))}</th><th>${esc(t("common.thResult"))}</th></tr></thead>
+        <tbody>${targets.map(r => { const dn = doneIds.has(doneKey(batchId, pseudoId(r.id))); return `<tr class="${dn ? "disposed" : ""}"><td class="code">${esc(pseudoId(r.id))}</td><td class="code">${esc(r.pid ? Patients.alias(r.pid) : "—")}</td><td>${esc(typeText(r))}</td><td class="code">${esc(r.expiry)}</td><td><span class="pill ${dn ? "ok" : "err"}">${esc(dn ? t("retention.dispose.done") : t("retention.dispose.pending"))}</span></td></tr>`; }).join("")}</tbody>
+      </table>`;
+    $("#ret-dispose-method")?.addEventListener("change", (e) => { disposalMethod = e.target.value; });
+    $("#ret-dispose-approver")?.addEventListener("change", (e) => { approverId = e.target.value; });
+  };
+  const renderLedger = () => {
+    const el = $("#ret-ledger"); if (!el) return;
+    const rows = readDisposals();
+    $("#ret-ledger-count").textContent = String(rows.length);
+    $("#ret-ledger-download").disabled = rows.length === 0;
+    if (!rows.length) { el.innerHTML = `<div class="empty-state">${esc(t("retention.ledger.empty"))}</div>`; return; }
+    const recent = [...rows].sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 30);
+    el.innerHTML = `<table>
+      <thead><tr><th class="code">${esc(t("retention.ledger.thDate"))}</th><th class="code">${esc(t("retention.dispose.thRec"))}</th><th>${esc(t("retention.thType2"))}</th><th class="code">${esc(t("retention.thExpiry"))}</th><th>${esc(t("retention.dispose.method"))}</th><th>${esc(t("retention.dispose.officer"))}</th><th>${esc(t("retention.dispose.approver"))}</th></tr></thead>
+      <tbody>${recent.map(d => `<tr><td class="code">${esc(d.disposedOn)}</td><td class="code">${esc(d.recId)}</td><td>${esc(d.type)}</td><td class="code">${esc(d.expiry)}</td><td>${esc(methodLabel(d.method))}</td><td>${esc(d.staffName || "—")}</td><td>${esc(d.approverName || "—")}</td></tr>`).join("")}</tbody>
+    </table>${rows.length > recent.length ? `<p class="caveat">${esc(t("retention.ledger.more", { n: rows.length - recent.length }))}</p>` : ""}`;
+  };
+  const ledgerRows = (rows) => rows.map(d => headerRow([
+    ...orgHeaderPairs(Org.get()),
+    ["retention.ledger.col.rec", d.recId], ["retention.ledger.col.pid", d.pid ? Patients.alias(d.pid) : ""], ["retention.ledger.col.type", d.type], ["retention.ledger.col.expiry", d.expiry],
+    ["retention.ledger.col.disposedOn", d.disposedOn], ["retention.ledger.col.officer", d.staffName || ""], ["retention.ledger.col.method", methodLabel(d.method)], ["retention.ledger.col.approver", d.approverName || ""],
+    ["retention.ledger.col.note", pocMark()]
+  ]));
+  $("#ret-dispose-btn")?.addEventListener("click", () => {
+    if (!lastResult) return;
+    if (!Session.isUnlocked()) { Toast.show({ tag: "system", html: esc(t("retention.dispose.locked")) }); return; }
+    const u = Session.user();
+    const batchId = Batches.latest("retention")?.id || "";
+    const existing = readDisposals();
+    const doneIds = new Set(existing.map(d => doneKey(d.batchId, d.recId)));
+    const today = todayISO();
+    const approver = approverId ? Staff.get(approverId) : null;
+    const fresh = disposalTargets(lastResult).filter(r => !doneIds.has(doneKey(batchId, pseudoId(r.id)))).map(r => ({
+      id: `dp-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`, at: Date.now(), batchId,
+      recId: pseudoId(r.id), pid: r.pid || "", type: typeText(r), typeKey: r.type, expiry: r.expiry, disposedOn: today,
+      method: disposalMethod, staffId: u?.staffId || null, staffName: u?.name || "", approverId: approver?.id || null, approverName: approver?.name || ""
+    }));
+    if (!fresh.length) return;
+    Store.set(DISPOSALS_KEY, [...existing, ...fresh]);
+    downloadXLSX(ledgerRows(fresh), t("retention.ledger.file", { date: today }), t("retention.ledger.sheet")); // watermark + _PoC applied inside
+    ActivityLog.push("retention", t("retention.dispose.log", { n: fresh.length, m: methodLabel(disposalMethod) }), {});
+    status(null, () => t("retention.dispose.status", { n: fresh.length }));
+    renderDisposal(lastResult); renderLedger();
+  });
+  $("#ret-ledger-download")?.addEventListener("click", () => {
+    const rows = readDisposals(); if (!rows.length) return;
+    downloadXLSX(ledgerRows(rows), t("retention.ledger.file", { date: todayISO() }), t("retention.ledger.sheet"));
+    ActivityLog.push("retention", t("retention.ledger.log", { n: rows.length }), {});
+  });
+  renderLedger();
+  EventBus.on(`store:${DISPOSALS_KEY}`, () => { renderLedger(); if (lastResult) renderDisposal(lastResult); });
+  EventBus.on("session:unlocked", () => { renderLedger(); if (lastResult) renderDisposal(lastResult); });
+  Staff.onChange(() => { if (lastResult) renderDisposal(lastResult); });
 
   const persistRet = (result) => {
     Store.set("retention.lastAudit", {
@@ -251,7 +359,7 @@ export function init(ctx) {
   $('[data-action="run-ret"]').addEventListener("click", runSample);
 
   onLangChange(() => {
-    renderLegal(); renderRecent();
+    renderLegal(); renderRecent(); renderLedger();
     if (lastResult) render(lastResult);
     if (lastStatus) setStatus($("#ret-status"), lastStatus.kind, lastStatus.fn());
   });
