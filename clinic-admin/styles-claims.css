@@ -1,1 +1,47 @@
 /* clinic-admin — claims area styles (Phase 2). Append-only; owned by the claims agent. */
+
+/* ── Master source badges (tabs 01/02/06) ── */
+.master-badge, .fee-badge, .source-badge { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 10px 0 4px; font-size: 12px; color: var(--muted); }
+.master-badge .basis em { color: var(--accent); font-style: italic; }
+.src-pill {
+  display: inline-block; padding: 2px 8px; border-radius: 3px;
+  font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.5px;
+  border: 1px solid var(--line); color: var(--muted); background: rgba(255,255,255,0.5);
+}
+.src-pill.master { color: var(--celadon-2); border-color: rgba(93,140,126,0.45); background: rgba(123,168,154,0.14); }
+.src-pill.demo   { color: var(--warn); border-color: rgba(184,122,28,0.35); background: rgba(184,122,28,0.10); }
+
+/* ── Tab 01 warnings above the result table ── */
+.kcd-warnings { padding: 8px 12px; font-size: 12px; color: var(--warn); background: rgba(184,122,28,0.08); border-bottom: 1px solid var(--line-2); }
+
+/* ── Tab 02 reconciliation ── */
+.recon-drops { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.recon-drops .drop { min-height: 132px; padding: 14px; }
+.recon-drops .drop p { font-size: 13px; }
+.recon-file { font-size: 12px; color: var(--muted); margin-top: 6px; min-height: 18px; }
+.recon-groups { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.recon-group { border: 1px solid var(--line); border-radius: 6px; background: rgba(255,255,255,0.6); overflow: auto; max-height: 260px; }
+.recon-group h5 { margin: 0; padding: 8px 12px; font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line-2); }
+.recon-group h5 span { text-transform: none; letter-spacing: 0; color: var(--faint); }
+.recon-group .empty-state.small { padding: 18px; font-size: 13px; }
+.qty-mini { color: var(--faint); font-size: 10px; margin-left: 4px; }
+tr.orphan td { background: rgba(184,122,28,0.06); }
+.process-note { font-size: 12px; color: var(--ink-2); background: rgba(123,168,154,0.10); border-left: 3px solid var(--celadon); padding: 8px 12px; border-radius: 0 4px 4px 0; margin: 0 0 12px; line-height: 1.6; }
+@media (max-width: 760px) { .recon-drops, .recon-groups { grid-template-columns: 1fr; } }
+
+/* ── Tab 06 master upload ── */
+.master-upload { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+.master-card { border: 1px solid var(--line); border-radius: 6px; background: rgba(255,255,255,0.55); padding: 12px 14px; }
+.master-card h5 { margin: 0 0 6px; font-size: 13px; color: var(--ink); }
+.master-card .desc { font-size: 12px; color: var(--muted); margin: 0 0 10px; line-height: 1.5; }
+.master-card .master-status { font-size: 12px; color: var(--ink-2); margin-bottom: 10px; min-height: 18px; }
+.master-card .master-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.master-card input[type="file"] { display: none; }
+.master-map { margin-top: 10px; padding: 10px 12px; border: 1px dashed var(--line); border-radius: 5px; background: var(--paper); }
+.master-map[hidden] { display: none; }
+.map-head { font-size: 12px; color: var(--ink-2); margin-bottom: 8px; }
+.map-row { display: grid; grid-template-columns: 110px 1fr; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.map-row select { padding: 5px 6px; border: 1px solid var(--line); border-radius: 3px; background: var(--paper); font-size: 12px; color: var(--ink-2); max-width: 100%; }
+.map-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+.map-msg { font-size: 12px; color: var(--err); }
+@media (max-width: 760px) { .master-upload { grid-template-columns: 1fr; } }
