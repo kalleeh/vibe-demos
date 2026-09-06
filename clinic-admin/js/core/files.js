@@ -1,6 +1,30 @@
 /* clinic-admin — spreadsheet read (SheetJS, vendored global XLSX), XLSX/CSV download, JSON fetch
-   Extracted verbatim from the former single-file index.html; behaviour unchanged. */
+
+   PoC WATERMARK (security pass): every file this app produces must carry
+     "PoC — 실제 제출 불가 · 데모 데이터"
+   downloadXLSX / downloadCSV apply pocWatermark() themselves, so existing callers are covered.
+   Anything that builds its own Blob (e.g. an .ics) should call
+     const { rows, filename } = pocWatermark(rows, filename)   // rows may be [] / null
+   or at least use POC_MARK + pocFilename(). The @media print footer lives in styles-security.css. */
 import { Toast } from "./ui.js";
+
+const POC_MARK = "PoC — 실제 제출 불가 · 데모 데이터";
+
+// "자보정산_0142_2026-09-06.xlsx" → "자보정산_0142_2026-09-06_PoC.xlsx"
+function pocFilename(filename) {
+  const s = String(filename || "download");
+  if (/_PoC(\.[^.]+)?$/.test(s)) return s;
+  const i = s.lastIndexOf(".");
+  return i > 0 ? `${s.slice(0, i)}_PoC${s.slice(i)}` : `${s}_PoC`;
+}
+// Prefix a watermark row (first column carries the text, other columns empty) + suffix the filename.
+function pocWatermark(rows, filename) {
+  const list = Array.isArray(rows) ? rows : [];
+  const headers = list.length ? Object.keys(list[0]) : ["비고"];
+  if (list.length && list[0][headers[0]] === POC_MARK) return { rows: list, filename: pocFilename(filename) };
+  const mark = Object.fromEntries(headers.map((h, i) => [h, i === 0 ? POC_MARK : ""]));
+  return { rows: [mark, ...list], filename: pocFilename(filename) };
+}
 
 async function loadJSON(path) {
   const r = await fetch(path);
@@ -42,14 +66,24 @@ function readSpreadsheet(file) {
 }
 
 function downloadXLSX(rows, filename, sheetName = "Sheet1") {
-  const ws = XLSX.utils.json_to_sheet(rows);
+  const wm = pocWatermark(rows, filename);
+  const ws = XLSX.utils.json_to_sheet(wm.rows);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, sheetName);
-  XLSX.writeFile(wb, filename);
+  XLSX.writeFile(wb, wm.filename);
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function downloadCSV(rows, filename) {
   if (!rows.length) return;
+  const wm = pocWatermark(rows, filename);
   const headers = Object.keys(rows[0]);
   const escape = (v) => {
     const s = String(v ?? "");
@@ -57,13 +91,13 @@ function downloadCSV(rows, filename) {
   };
   const csv = [
     headers.join(","),
-    ...rows.map(r => headers.map(h => escape(r[h])).join(","))
+    ...wm.rows.map(r => headers.map(h => escape(r[h])).join(","))
   ].join("\n");
-  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  downloadBlob(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }), wm.filename);
 }
-export { loadJSON, readSpreadsheet, downloadXLSX, downloadCSV };
+
+// Plain-text download (JSON backups etc.) — filename watermarked, content left to the caller.
+function downloadText(text, filename, type = "application/json") {
+  downloadBlob(new Blob([text], { type }), pocFilename(filename));
+}
+export { POC_MARK, pocFilename, pocWatermark, loadJSON, readSpreadsheet, downloadXLSX, downloadCSV, downloadText };

@@ -1,11 +1,17 @@
-/* clinic-admin — app chrome — rail/drawer, tab restore, wipe-all, welcome/info/install modals, seed-all, ⌘K palette, topbar due chip, data boot
-   Extracted verbatim from the former single-file index.html; behaviour unchanged. */
-import { $, $$, esc, Toast, Dialog, Lightbox } from "./core/ui.js";
+/* clinic-admin — app chrome — rail/drawer, tab restore, 전체 파기, welcome/info/install modals, seed-all, ⌘K palette, topbar due chip, data boot
+   Security pass: the lock screen (js/security/lockscreen.js) is initialised here and boot() waits for the
+   first unlock before loading data / initialising tabs, so tabs never see a locked Store at init. */
+import { $, $$, esc, redactSubject, Toast, Dialog, Lightbox } from "./core/ui.js";
 import { Store, EventBus, ActivityLog, SyncStatus } from "./core/store.js";
-import { Attachments } from "./core/attachments.js";
 import { TABS, TAB_BY_ID, activateTab } from "./core/nav.js";
 import { loadJSON } from "./core/files.js";
+import { Session } from "./security/session.js";
+import { destroyAll } from "./security/lifecycle.js";
+import { initSecurityUI, Lock, UsersPanel, PrivacyPanel } from "./security/lockscreen.js";
 import { ACCRED_ITEMS } from "./tabs/tab9-accred.js";
+
+/* Lock screen first — it covers the shell until a PIN unlocks the workspace (or one is created). */
+const sessionReady = initSecurityUI();
 
 /* Rail buttons, last-tab restore, wipe-all, sync-status ticker */
 $$(".rail-btn[data-panel]").forEach(btn => {
@@ -17,22 +23,12 @@ $$(".rail-btn[data-panel]").forEach(btn => {
   if (saved && TAB_BY_ID[saved]) activateTab(saved);
   else activateTab("tab-today");
 }
-/* Wipe-all button */
+/* 전체 파기 — data, attachments, users AND the wrapped keys. Typed confirmation, no undo. */
 $("#wipe-all")?.addEventListener("click", async () => {
-  // Too big to undo — so the confirm spells out exactly what goes.
-  const len = (k) => (Store.get(k, []) || []).length;
-  const attCount = await Attachments.count().catch(() => 0);
-  const lines = [
-    `· 자보 정산 기록 ${len("jabo.history")}건 + 작성 중인 케이스 초안`,
-    `· 면허 직원 ${len("license.list")}명 + 첨부 사진 ${attCount}장`,
-    `· 인증평가 체크 ${Object.values(Store.get("accred.checked", {}) || {}).filter(Boolean).length}개`,
-    `· 비급여 단가 ${Object.keys(Store.get("bigeup.tariff", {}) || {}).length}개 항목 + 기관 정보`,
-    `· KCD 정비·보존 감사 최근 결과, 연말정산 기관 정보`,
-    `· 최근 활동 ${len("activity")}건, 접수 보드 로컬 카드, 화면 설정`
-  ];
-  if (!confirm(`이 브라우저에 저장된 다음 데이터를 모두 삭제합니다 — 되돌릴 수 없습니다.\n\n${lines.join("\n")}\n\n계속하시겠습니까?`)) return;
-  await Store.wipeAll();
-  ActivityLog.push("system", "전체 초기화", {});
+  const typed = prompt("이 브라우저의 모든 입력·기록·첨부 사진과 사용자·암호화 키를 파기합니다 — 되돌릴 수 없고, 암호화 백업 없이는 복구도 불가능합니다.\n\n계속하려면 「파기」라고 입력하세요.");
+  if (typed == null) return;
+  if (typed.trim() !== "파기") { Toast.show({ tag: "system", html: "「파기」를 정확히 입력해야 합니다." }); return; }
+  await destroyAll();
   location.reload();
 });
 /* Sync-status periodic refresh */
@@ -57,13 +53,13 @@ function closeWelcome(markSeen) {
   if (!scrim) return;
   Dialog.close(scrim);
   if (markSeen || $("#welcome-dontshow").checked) Store.set(WELCOMED_KEY, true);
+  EventBus.emitLocal("welcome:closed", true);
 }
 $("#welcome-close")?.addEventListener("click", () => closeWelcome(false));
 $("#welcome-blank")?.addEventListener("click", () => closeWelcome(true));
 $("#welcome-scrim")?.addEventListener("click", e => {
   if (e.target.id === "welcome-scrim") closeWelcome(false);
 });
-$("#topbar-demo")?.addEventListener("click", openWelcome);
 $("#rail-demo")?.addEventListener("click", () => { closeRail(); openWelcome(); });
 /* Info modal */
 function openInfo() { Dialog.open($("#info-scrim")); }
@@ -82,14 +78,17 @@ $("#rail-scrim")?.addEventListener("click", closeRail);
 EventBus.on("tab:activated", () => {
   if (window.innerWidth <= 880) closeRail();
 });
-/* Esc closes the top-most layer: palette → lightbox → install → info → welcome → drawer */
+/* Esc closes the top-most layer: palette → lightbox → any modal scrim (install/info/welcome/users/privacy/AI) → drawer.
+   The lock screen is deliberately NOT closable with Esc. */
 document.addEventListener("keydown", e => {
   if (e.key !== "Escape") return;
+  if (document.body.classList.contains("locked")) return;
   if (Dialog.isOpen($("#palette-scrim"))) Palette.close();
   else if (Dialog.isOpen($("#lightbox"))) Lightbox.close();
-  else if (Dialog.isOpen($("#install-scrim"))) Install.close();
-  else if (Dialog.isOpen($("#info-scrim"))) closeInfo();
-  else if (Dialog.isOpen($("#welcome-scrim"))) closeWelcome(false);
+  else if ($$(".welcome-scrim.open").length) {
+    const top = $$(".welcome-scrim.open").pop();
+    if (top.id === "welcome-scrim") closeWelcome(false); else Dialog.close(top);
+  }
   else if (document.body.classList.contains("rail-open")) closeRail();
 });
 /* Rail-foot Cmd+K trigger */
@@ -212,19 +211,14 @@ const Install = (() => {
     $("#rail-install").style.display = "";
   }
 
-  // First-visit nudge — fires after welcome closes (or right away if welcome already seen)
+  // First-visit nudge — never competes with the welcome overlay. On a first run the welcome opens
+  // ~350 ms after app:ready (it was not yet open when this used to poll, so both showed at once);
+  // now we wait for the explicit `welcome:closed` event instead of polling the DOM.
   function maybeNudge() {
     if (isStandalone()) return;
-    // Don't compete with the welcome scrim
-    if ($("#welcome-scrim")?.classList.contains("open")) {
-      // Wait until they close it
-      const handler = () => {
-        if (!$("#welcome-scrim")?.classList.contains("open")) {
-          setTimeout(showNudge, 800);
-          clearInterval(timer);
-        }
-      };
-      const timer = setInterval(handler, 400);
+    if (!Store.get(WELCOMED_KEY) || $("#welcome-scrim")?.classList.contains("open")) {
+      let done = false;
+      EventBus.on("welcome:closed", () => { if (done) return; done = true; setTimeout(showNudge, 800); });
       return;
     }
     setTimeout(showNudge, 1200);
@@ -295,26 +289,30 @@ const Palette = (() => {
       { label: "샘플 데이터로 둘러보기", meta: "모든 탭을 한 번에 채우기", run: seedAll, glyph: "▶" },
       { label: "둘러보기 안내 다시 보기", meta: "환영 화면 열기", run: openWelcome, glyph: "?" },
       { label: ".ics 캘린더 내려받기", meta: "오늘 탭의 마감을 캘린더로", run: () => { activateTab("tab-today"); setTimeout(() => $("#dday-ics")?.click(), 300); }, glyph: "↓" },
-      { label: "전체 초기화", meta: "이 브라우저의 저장 상태 삭제", run: () => $("#wipe-all")?.click(), glyph: "⌫" }
+      { label: "지금 잠금", meta: "PIN을 다시 입력해야 열립니다", run: () => Lock.lock("manual"), glyph: "🔒" },
+      { label: "사용자 · PIN", meta: "사용자 추가, PIN 변경, 자동 잠금", run: () => UsersPanel.open(), glyph: "👤" },
+      { label: "데이터 처리 현황", meta: "보존·파기·암호화 백업", run: () => PrivacyPanel.open("status"), glyph: "▤" },
+      { label: "전체 파기", meta: "데이터·첨부·사용자·키 삭제 (「파기」 입력)", run: () => $("#wipe-all")?.click(), glyph: "⌫" }
     ];
     for (const c of cmds) {
       if (!q || c.label.toLowerCase().includes(q) || (c.meta || "").toLowerCase().includes(q)) {
         out.push({ kind: "명령", ...c });
       }
     }
-    // KCD codes (search ko/code) — only when query present
-    if (q && q.length >= 2 && DATA.kcd?.codes) {
-      const matches = DATA.kcd.codes.filter(c =>
-        c.code?.toLowerCase().includes(q) || c.name?.toLowerCase().includes(q)
+    // KCD codes (search ko/code) — only when query present. data/kcd9.json holds `mappings`
+    // ({ kcd8, kcd9, name, … }), not `codes` — the old check silently matched nothing.
+    if (q && q.length >= 2 && Array.isArray(DATA.kcd?.mappings)) {
+      const matches = DATA.kcd.mappings.filter(c =>
+        c.kcd9?.toLowerCase().includes(q) || c.kcd8?.toLowerCase().includes(q) || c.name?.toLowerCase().includes(q)
       ).slice(0, 6);
       for (const c of matches) {
-        out.push({ kind: "KCD", glyph: "K", label: c.name, meta: c.code, run: () => { activateTab("tab-search"); setTimeout(() => EventBus.emit("search:query", c.code), 200); } });
+        out.push({ kind: "KCD", glyph: "K", label: c.name, meta: c.kcd9 + (c.kcd8 && c.kcd8 !== c.kcd9 ? ` (← ${c.kcd8})` : ""), run: () => { activateTab("tab-search"); setTimeout(() => EventBus.emit("search:query", c.kcd9), 200); } });
       }
     }
-    // Saved 자보 cases
+    // Saved 자보 cases — pseudonymised (****1234), never the patient name
     const jhist = Store.get("jabo.history", []) || [];
-    for (const j of jhist.slice(-8).reverse()) {
-      const cap = `${j.name || "—"} · ${j.insurer || "—"} · ${j.claimNo || "—"}`;
+    for (const j of jhist.slice(0, 8)) {
+      const cap = `${redactSubject({ name: j.name, pid: j.pid })} · ${j.insurer || "—"} · ${j.claimNo || "—"}`;
       if (!q || cap.toLowerCase().includes(q)) {
         out.push({ kind: "자보", glyph: "J", label: cap, meta: `${j.date || ""} · ${j.itemCount || 0}건`, run: () => activateTab("tab-jabo") });
       }
@@ -450,16 +448,21 @@ const DATA = { kcd: null, jabo: null, bigeup: null, retention: null };
 
 // `initTabs` is the ordered list of initTabN functions (main.js passes 1‥9 then 0,
 // exactly the former inline order). Each receives ctx = { DATA }.
-function boot(initTabs) {
+// Waits for the first unlock (Lock.ready) so tabs initialise against a decrypted Store.
+function boot(initTabs, { version = "dev" } = {}) {
+  const ver = $("#info-version"); if (ver) ver.dataset.version = version;
+  showVersion(version);
   return Promise.all([
+    sessionReady,
     loadJSON("./data/kcd9.json"),
     loadJSON("./data/jabo.json"),
     loadJSON("./data/bigeup.json"),
     loadJSON("./data/retention.json")
-  ]).then(([kcd, jabo, bigeup, ret]) => {
+  ]).then(([, kcd, jabo, bigeup, ret]) => {
     DATA.kcd = kcd; DATA.jabo = jabo; DATA.bigeup = bigeup; DATA.retention = ret;
     for (const init of initTabs) init({ DATA });
-    EventBus.emit("app:ready", true);
+    // Local only: broadcasting this made a second tab's boot re-open the first tab's welcome overlay.
+    EventBus.emitLocal("app:ready", true);
   }).catch(err => {
     console.error("Data load failed:", err);
     const msg = $("#sync-msg"); if (msg) msg.textContent = "데이터 로드 실패";
@@ -471,6 +474,15 @@ function boot(initTabs) {
     });
   });
 }
+/* Info modal "버전" line — app version + the service-worker cache actually installed in this browser. */
+async function showVersion(version) {
+  const el = $("#info-version"); if (!el) return;
+  let cache = "미설치";
+  try { const keys = await caches.keys(); cache = keys.filter(k => k.startsWith("vibe-clinic-admin-")).sort().pop() || "미설치"; } catch {}
+  const ws = Session.workspaceId();
+  el.textContent = `앱 v${version} · SW 캐시 ${cache} · 워크스페이스 ${ws ? ws.slice(0, 8) + "…" : "없음"}`;
+}
+EventBus.on("session:unlocked", () => { const el = $("#info-version"); if (el?.dataset.version) showVersion(el.dataset.version); });
 // Vendored SheetJS failed to load (onerror flag set in <head>) — say so once everything has settled.
 window.addEventListener("load", () => {
   if (document.documentElement.dataset.xlsxFailed) {

@@ -1,1 +1,157 @@
-/* clinic-admin — security area styles (Phase 2). Append-only; owned by the security agent. */
+/* clinic-admin — security / privacy surface: lock screen, users + privacy panels, PoC banner,
+   AI consent + redaction preview, E2E tags, print watermark. Appended by the security pass; styles.css untouched. */
+
+/* ── PoC banner ── */
+.poc-banner {
+  position: relative; z-index: 3;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 7px 14px;
+  background: var(--ink); color: var(--paper);
+  font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.6px;
+}
+.poc-banner[hidden] { display: none; }
+.poc-banner .pb-mark { color: #f0c27b; font-weight: 600; }
+.poc-banner a { color: var(--paper); text-decoration: underline; text-underline-offset: 2px; }
+.poc-banner .pb-x { margin-left: auto; background: transparent; border: 1px solid rgba(243,238,226,0.35); color: var(--paper); border-radius: 4px; padding: 2px 8px; cursor: pointer; font: inherit; }
+.poc-banner .pb-x:hover { background: rgba(243,238,226,0.15); }
+body.shell-v2 { display: flex; flex-direction: column; }
+body.shell-v2 .frame.shell { flex: 1 1 auto; min-height: 0; }
+
+/* ── Lock screen — fully opaque; the shell underneath is hidden AND inert ── */
+.lock-scrim {
+  position: fixed; inset: 0; z-index: 200;
+  display: none; align-items: center; justify-content: center; padding: 24px;
+  background:
+    radial-gradient(ellipse at 18% -8%, rgba(123,168,154,0.16), transparent 55%),
+    radial-gradient(ellipse at 95% 5%, rgba(176,74,47,0.10), transparent 50%),
+    var(--paper);
+}
+.lock-scrim.open { display: flex; }
+body.locked .frame.shell, body.locked .toast-tray, body.locked .poc-banner { visibility: hidden; }
+.lock-card {
+  width: 100%; max-width: 460px; background: rgba(255,255,255,0.55);
+  border: 1px solid var(--line); border-radius: 12px; padding: 34px 34px 26px;
+  box-shadow: 0 24px 80px rgba(20,17,13,0.18); position: relative;
+}
+.lock-card .eyebrow { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+.lock-card .eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--ink); }
+.lock-card h2 { font-family: "Fraunces", "Noto Serif KR", serif; font-weight: 300; font-size: clamp(24px, 4vw, 30px); line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 10px; }
+.lock-card h2 em { font-style: italic; color: var(--accent); font-weight: 400; }
+.lock-reason { font-size: 12.5px; color: var(--warn); margin-bottom: 12px; }
+.lock-reason[hidden] { display: none; }
+.lock-pane[hidden] { display: none; }
+.lock-pane .field { margin-bottom: 12px; }
+.lock-pane .field input, .lock-pane .field select { font-size: 14px; }
+.lock-pane input[type=password] { font-family: "JetBrains Mono", monospace; letter-spacing: 4px; }
+.lock-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.lock-users { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 14px; }
+.lock-user { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: rgba(255,255,255,0.6); cursor: pointer; font: inherit; color: var(--ink); }
+.lock-user .lu-name { font-weight: 600; font-size: 13.5px; }
+.lock-user .lu-role { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 1px; color: var(--muted); }
+.lock-user.sel { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+.lock-user.sel .lu-role { color: rgba(243,238,226,0.7); }
+.lock-row { display: flex; gap: 10px; align-items: stretch; }
+.lock-row input { flex: 1 1 auto; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: rgba(255,255,255,0.8); }
+.lock-err { color: var(--err); font-size: 12.5px; margin-top: 10px; min-height: 1.2em; }
+.lock-err[hidden] { display: none; }
+.lock-note { font-size: 12px; line-height: 1.55; color: var(--muted); margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.lock-note strong { color: var(--ink-2); }
+.lock-note .link { background: none; border: none; padding: 0; color: var(--accent); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; font: inherit; }
+.lock-warn { background: rgba(184,122,28,0.10); border: 1px solid rgba(184,122,28,0.35); border-radius: 6px; padding: 10px 12px; font-size: 12.5px; line-height: 1.5; color: var(--ink-2); margin: 4px 0 14px; }
+
+/* ── panels (users / privacy) share the .welcome modal chrome ── */
+.welcome.wide { max-width: 980px; }
+.sec-section { margin: 16px 0 4px; }
+.sec-section h5 { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.sec-row { display: grid; grid-template-columns: minmax(80px, 1fr) 70px minmax(120px, 1.4fr) auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line-2); font-size: 13px; }
+.sec-row .sec-name { font-weight: 600; }
+.sec-row .sec-role, .sec-meta { font-family: "JetBrains Mono", monospace; font-size: 10.5px; color: var(--muted); }
+.sec-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.btn.sm { padding: 5px 10px; font-size: 11.5px; }
+.sec-tag { display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 9.5px; letter-spacing: 1px; padding: 1px 6px; border: 1px solid var(--celadon-2); color: var(--celadon-2); border-radius: 3px; vertical-align: middle; }
+.sec-inline { display: grid; grid-template-columns: 1fr 110px 130px auto; gap: 10px; align-items: end; }
+.sec-inline.two { grid-template-columns: 1fr 1fr auto; }
+.sec-inline .field input, .sec-inline .field select { font-size: 13px; }
+.sec-msg { margin-top: 10px; font-size: 12.5px; padding: 8px 10px; border-radius: 4px; border: 1px solid var(--line); background: rgba(255,255,255,0.5); }
+.sec-msg.ok { border-color: var(--ok); color: var(--ok); }
+.sec-msg.err { border-color: var(--err); color: var(--err); }
+.sec-msg[hidden] { display: none; }
+.sec-note { font-size: 12px; line-height: 1.55; color: var(--muted); }
+.sec-tabs { display: flex; gap: 6px; margin: 4px 0 14px; border-bottom: 1px solid var(--line); }
+.sec-tabs button { background: none; border: none; border-bottom: 2px solid transparent; padding: 8px 12px; font: inherit; font-size: 13px; color: var(--muted); cursor: pointer; }
+.sec-tabs button.active { color: var(--ink); border-bottom-color: var(--accent); }
+.sec-pane { display: none; }
+.sec-pane.active { display: block; }
+.sec-table-wrap { max-height: 46vh; overflow: auto; border: 1px solid var(--line); border-radius: 6px; background: rgba(255,255,255,0.45); }
+.sec-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.sec-table th { position: sticky; top: 0; background: var(--paper-2); font-family: "JetBrains Mono", monospace; font-size: 9.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); text-align: left; padding: 8px; border-bottom: 1px solid var(--line); }
+.sec-table td { padding: 8px; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+.sec-table tr.absent td { color: var(--faint); }
+.sec-table tr.unregistered td { background: rgba(176,74,47,0.06); }
+.sec-table td.num, .sec-table td.when { font-family: "JetBrains Mono", monospace; white-space: nowrap; }
+.sec-table td.enc-yes { color: var(--ok); }
+.sec-detail { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.sec-detail code { font-size: 10px; }
+.sec-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.sec-toolbar .spacer { flex: 1; }
+.sec-legal h6 { font-family: "Fraunces", "Noto Serif KR", serif; font-weight: 500; font-size: 15px; margin: 18px 0 6px; }
+.sec-legal p, .sec-legal li { font-size: 13px; line-height: 1.65; color: var(--ink-2); }
+.sec-legal ul { padding-left: 18px; margin: 4px 0 8px; }
+.sec-legal table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 6px 0 10px; }
+.sec-legal th, .sec-legal td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+.sec-legal th { font-family: "JetBrains Mono", monospace; font-size: 9.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+.sec-legal .yes { color: var(--ok); font-weight: 600; }
+.sec-legal .no { color: var(--warn); font-weight: 600; }
+
+/* ── topbar user chip / rail buttons ── */
+#topbar-user { cursor: pointer; }
+#topbar-user .led { background: var(--celadon-2); }
+@media (max-width: 880px) { #topbar-user #topbar-user-text { max-width: 22vw; overflow: hidden; text-overflow: ellipsis; } }
+/* Phones: the topbar is already crumb + sync + ⌘K; the user is one tap away in the rail (사용자 · PIN). */
+@media (max-width: 600px) { #topbar-user { display: none !important; } }
+
+/* ── toast subject ── */
+.toast .toast-subject { font-family: "JetBrains Mono", monospace; font-size: 10.5px; opacity: 0.8; margin-left: 4px; }
+
+/* ── 접수 보드 E2E marks ── */
+.e2e-tag { display: inline-block; margin-left: 6px; font-family: "JetBrains Mono", monospace; font-size: 9px; letter-spacing: 1px; padding: 0 5px; border: 1px solid var(--celadon-2); color: var(--celadon-2); border-radius: 3px; vertical-align: middle; }
+.intake-foreign { font-family: "JetBrains Mono", monospace; font-size: 10.5px; color: var(--warn); margin-left: 8px; }
+.intake-foreign[hidden] { display: none; }
+
+/* ── AI tab: voice toggle + consent + preview ── */
+#ai-mic[hidden] { display: none !important; } /* the .icon-btn.mic display rule would otherwise beat the hidden attribute */
+.ai-voice-opt { margin-top: 12px; padding: 10px 12px; border: 1px dashed var(--line); border-radius: 6px; background: rgba(255,255,255,0.4); }
+.ai-voice-toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; cursor: pointer; }
+.ai-voice-toggle input { accent-color: var(--accent); }
+.ai-voice-disclosure { display: block; margin-top: 6px; font-size: 12px; line-height: 1.55; color: var(--muted); }
+.ai-voice-disclosure strong { color: var(--ink-2); }
+.ai-preview-box { white-space: pre-wrap; word-break: break-word; font-size: 13.5px; line-height: 1.7; padding: 14px 16px; background: rgba(255,255,255,0.7); border: 1px solid var(--line); border-radius: 6px; max-height: 40vh; overflow: auto; }
+mark.redact { background: rgba(176,74,47,0.14); color: var(--accent); border-bottom: 2px solid var(--accent); padding: 0 3px; border-radius: 2px; font-weight: 600; }
+.ai-preview-summary { font-size: 13px; margin: 10px 0 12px; color: var(--ink-2); }
+.ai-preview-original summary { cursor: pointer; font-size: 12px; color: var(--muted); }
+.ai-preview-original pre { white-space: pre-wrap; font-family: inherit; font-size: 12.5px; padding: 10px 12px; border: 1px dashed var(--line); border-radius: 6px; margin-top: 6px; color: var(--muted); }
+.ai-consent-list { list-style: none; padding: 0; margin: 12px 0 14px; display: grid; gap: 8px; }
+.ai-consent-list li { display: grid; grid-template-columns: 110px 1fr; gap: 10px; font-size: 13px; line-height: 1.55; padding: 8px 0; border-bottom: 1px solid var(--line-2); }
+.ai-consent-list li b { font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.ai-consent-check { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.5; margin: 10px 0 14px; }
+.ai-consent-check input { margin-top: 3px; accent-color: var(--accent); }
+
+@media (max-width: 640px) {
+  .sec-row { grid-template-columns: 1fr 60px; }
+  .sec-row .sec-meta, .sec-actions { grid-column: 1 / -1; justify-content: flex-start; }
+  .sec-inline, .sec-inline.two { grid-template-columns: 1fr; }
+  .lock-two { grid-template-columns: 1fr; }
+  .lock-card { padding: 24px 20px; }
+}
+
+/* ── Print watermark: every printout carries the PoC mark ── */
+@media print {
+  body::after {
+    content: "PoC — 실제 제출 불가 · 데모 데이터";
+    position: fixed; left: 0; right: 0; bottom: 0;
+    text-align: center; font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 1.5px;
+    color: #000; border-top: 1px solid #000; padding: 4px 0; background: #fff;
+  }
+  .poc-banner, .lock-scrim, #users-scrim, #privacy-scrim, #ai-consent-scrim, #ai-preview-scrim, .ai-voice-opt { display: none !important; }
+  mark.redact { background: none; color: #000; border-bottom: 1px solid #000; }
+}

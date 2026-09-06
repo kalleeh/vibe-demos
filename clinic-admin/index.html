@@ -29,6 +29,72 @@
 </head>
 <body class="shell-v2">
 
+  <!-- ── PoC banner — persistent, dismissible per browser session ── -->
+  <div class="poc-banner" id="poc-banner" role="note">
+    <span class="pb-mark">PoC</span>
+    <span>실제 환자 정보 입력 금지 · 데모 데이터만</span>
+    <a href="#" id="poc-banner-link">개인정보 처리 현황 (PoC) 보기</a>
+    <button type="button" class="pb-x" id="poc-banner-x" aria-label="이 세션 동안 배너 닫기">닫기</button>
+  </div>
+
+  <!-- ── Lock screen — first-run setup / PIN unlock / encrypted-backup restore. Not a Dialog (never Esc-closable). ── -->
+  <div class="lock-scrim" id="lock-scrim" role="dialog" aria-modal="true" aria-labelledby="lock-title">
+    <div class="lock-card">
+      <div class="eyebrow">워크스페이스 잠금 · PIN</div>
+      <h2 id="lock-title">잠겨 <em>있습니다</em></h2>
+      <p class="lock-reason" id="lock-reason" hidden></p>
+
+      <form class="lock-pane" id="lock-setup" hidden autocomplete="off">
+        <div class="lock-warn">
+          이 브라우저에 <strong>새 워크스페이스</strong>를 만듭니다. 무작위 256-bit 마스터키가 생성되고, 각 사용자의 PIN(PBKDF2-SHA256 310k회)으로만 열 수 있게 감싸집니다.
+          <strong>모든 사용자의 PIN을 잃으면 데이터는 복구할 수 없습니다</strong> — 정기적으로 「암호화 백업」을 내려받아 두세요.
+        </div>
+        <div class="lock-two">
+          <div class="field"><label for="setup-name">이름 · 이니셜</label><input id="setup-name" type="text" maxlength="20" placeholder="예: 홍 원장 / KW" required></div>
+          <div class="field"><label for="setup-role">역할</label>
+            <select id="setup-role"><option value="원장">원장 (관리)</option><option value="행정">행정</option><option value="원무">원무</option></select></div>
+        </div>
+        <div class="lock-two">
+          <div class="field"><label for="setup-pin">PIN (4~8자리 숫자)</label><input id="setup-pin" type="password" inputmode="numeric" pattern="\d{4,8}" minlength="4" maxlength="8" required autocomplete="new-password"></div>
+          <div class="field"><label for="setup-pin2">PIN 확인</label><input id="setup-pin2" type="password" inputmode="numeric" pattern="\d{4,8}" minlength="4" maxlength="8" required autocomplete="new-password"></div>
+        </div>
+        <p class="lock-err" id="setup-err" hidden></p>
+        <button type="submit" class="btn" id="setup-submit" style="width:100%;justify-content:center">워크스페이스 만들기</button>
+        <p class="lock-note">이미 백업 파일이 있나요? <button type="button" class="link" id="lock-goto-restore">암호화 백업 복원</button></p>
+      </form>
+
+      <div class="lock-pane" id="lock-unlock" hidden>
+        <div class="lock-users" id="lock-users" role="radiogroup" aria-label="사용자 선택"></div>
+        <form id="lock-pin-form" class="lock-row" autocomplete="off">
+          <input id="lock-pin" type="password" inputmode="numeric" pattern="\d{4,8}" maxlength="8" placeholder="PIN" aria-label="PIN" autocomplete="current-password">
+          <button type="submit" class="btn" id="lock-submit">열기</button>
+        </form>
+        <p class="lock-err" id="lock-err" hidden></p>
+        <p class="lock-note">
+          PIN을 잊었다면 <strong>원장</strong> 사용자가 「사용자」 패널에서 재설정할 수 있습니다. 모든 사용자의 PIN을 잃으면 <strong>이 브라우저의 데이터는 복구할 수 없습니다</strong> — 유일한 복구 수단은 이전에 내려받은 암호화 백업입니다.
+          <button type="button" class="link" id="lock-goto-restore2">암호화 백업 복원</button>
+        </p>
+      </div>
+
+      <div class="lock-pane" id="lock-restore" hidden>
+        <p class="sec-note" style="margin-bottom:12px">「데이터 처리 현황 → 암호화 백업 내려받기」로 만든 JSON 파일과 그 워크스페이스 사용자의 PIN이 필요합니다. 파일에는 암호문·래핑된 키·salt만 들어 있어 PIN 없이는 읽을 수 없습니다.</p>
+        <div class="field"><label for="restore-file">백업 파일</label><input id="restore-file" type="file" accept="application/json,.json"></div>
+        <form id="restore-form" autocomplete="off">
+          <div id="restore-step2" hidden>
+            <p class="sec-note" id="restore-meta" style="margin:8px 0"></p>
+            <div class="lock-two">
+              <div class="field"><label for="restore-user">사용자</label><select id="restore-user"></select></div>
+              <div class="field"><label for="restore-pin">PIN</label><input id="restore-pin" type="password" inputmode="numeric" maxlength="8" autocomplete="current-password"></div>
+            </div>
+            <button type="submit" class="btn" id="restore-submit" style="width:100%;justify-content:center">복원</button>
+          </div>
+        </form>
+        <p class="lock-err" id="restore-err" hidden></p>
+        <p class="lock-note"><button type="button" class="link" id="restore-back">← 돌아가기</button></p>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Welcome overlay (first-run + reopenable via 시연 pill) ── -->
   <div class="welcome-scrim" id="welcome-scrim" role="dialog" aria-labelledby="welcome-title" aria-modal="true">
     <div class="welcome">
@@ -36,7 +102,7 @@
       <div class="eyebrow">Vibe Studio · Demo</div>
       <h2 id="welcome-title">엑셀과 포스트잇으로 하던 일,<br>여기서 <em>한 번에</em> 끝냅니다.</h2>
       <p class="deck">
-        매달 반복되는 <strong>자보 청구·삭감 추적</strong>, 반기마다 닥치는 <strong>비급여 보고</strong>, 늘 잊을 뻔하는 <strong>면허신고 기한</strong>. 행정원장의 하루를 잡아먹는 그 일들을 <strong>한 페이지</strong>에 묶었습니다. 파일 변환·검증·양식은 이 브라우저 안에서 끝납니다 — 예외는 두 곳뿐입니다. <strong>AI 탭</strong>의 메모는 코드 추천을 위해 외부 AI 서버(ai.pb.gurum.se)로 전송되고(저장되지 않음), <strong>접수 보드</strong>는 공유 PocketBase에 기록되는 공개 데모입니다. 두 곳 모두 실제 환자 정보는 입력하지 마세요.
+        매달 반복되는 <strong>자보 청구·삭감 추적</strong>, 반기마다 닥치는 <strong>비급여 보고</strong>, 늘 잊을 뻔하는 <strong>면허신고 기한</strong>. 행정원장의 하루를 잡아먹는 그 일들을 <strong>한 페이지</strong>에 묶었습니다. 파일 변환·검증·양식은 이 브라우저 안에서 끝나고, 이름·번호가 담기는 항목은 <strong>PIN으로 보호되는 키로 암호화</strong>되어 보관됩니다 — 예외는 두 곳뿐입니다. <strong>AI 탭</strong>의 메모는 동의·마스킹·미리보기를 거쳐 외부 AI 서버(ai.pb.gurum.se)로 전송되고(저장되지 않음), <strong>접수 보드</strong>는 종단간 암호화된 공유 PocketBase 데모입니다. 이 앱은 PoC입니다 — 실제 환자 정보는 어디에도 입력하지 마세요.
       </p>
       <ul class="demo-list">
         <li><strong>AI</strong>가 진료 메모를 읽고 <em>코드를 골라줍니다</em> — 30분 → 3분</li>
@@ -123,10 +189,13 @@
 
       <div class="rail-foot">
         <button class="rail-btn" id="rail-install" style="display:none">↓ 홈 화면에 추가</button>
+        <button class="rail-btn" id="rail-lock" title="마스터키를 메모리에서 지우고 PIN 화면으로 돌아갑니다">🔒 지금 잠금</button>
+        <button class="rail-btn" id="rail-users" title="사용자 추가·삭제, PIN 변경, 자동 잠금 시간">👤 사용자 · PIN</button>
+        <button class="rail-btn" id="rail-privacy" title="저장 항목별 목적·근거·암호화·보존기간, 파기, 암호화 백업">▤ 데이터 처리 현황</button>
         <button class="rail-btn" id="rail-info">ⓘ 정보 · 출처</button>
         <button class="rail-btn" id="rail-demo">▶ 둘러보기 다시 열기</button>
         <button class="rail-btn" id="rail-cmdk">⌕ 검색 · 명령 팔레트 <span class="cmdk-key">⌘K</span></button>
-        <button class="rail-btn" id="wipe-all" title="이 브라우저에서 모든 입력·기록·첨부 사진을 지웁니다">⌫ 전체 초기화</button>
+        <button class="rail-btn" id="wipe-all" title="이 브라우저에서 모든 입력·기록·첨부 사진과 사용자·암호화 키를 파기합니다 (「파기」 입력 필요)">⌫ 전체 파기</button>
       </div>
     </aside>
 
@@ -140,7 +209,8 @@
         <span class="crumb"><strong id="crumb-section">시작</strong> · <span id="crumb-tab">오늘</span></span>
         <span class="spacer"></span>
         <span class="chip" id="topbar-due" style="display:none"><span class="led warn"></span><span id="topbar-due-text">—</span></span>
-        <span class="chip" id="topbar-sync"><span class="led idle" id="sync-led"></span><span id="sync-msg">로컬 저장</span></span>
+        <span class="chip action" id="topbar-user" role="button" title="사용자 · PIN · 자동 잠금" style="display:none"><span class="led"></span><span id="topbar-user-text">—</span></span>
+        <span class="chip" id="topbar-sync"><span class="led idle" id="sync-led"></span><span id="sync-msg">로컬 저장 · 암호화</span></span>
         <span class="chip action" id="topbar-cmdk" role="button" title="검색 · 명령 팔레트 (⌘K · Ctrl+K)"><span style="font-size:11px">⌕</span> <span class="cmdk-word">검색</span><kbd class="cmdk-key">⌘K</kbd></span>
       </div>
 
@@ -994,10 +1064,13 @@
         </p>
         <h5 style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">안내</h5>
         <p style="font-size:13px;line-height:1.6;color:var(--ink-2);margin-bottom:18px">
-          본 도구는 행정 보조용이며, 최종 청구·제출 전 원본 고시·매뉴얼을 반드시 확인하십시오.<br>
-          파일 변환·검증·양식 처리는 브라우저 안에서만 이루어지며, 업로드한 엑셀·주민등록번호는 외부로 전송되지 않습니다.<br>
-          예외 두 곳 — <strong>AI 코딩 어시스트</strong> 탭의 메모는 코드 추천을 위해 외부 AI 서버(ai.pb.gurum.se)로 전송됩니다 (서버에 저장되지 않고, 이 브라우저에도 남기지 않습니다). <strong>실시간 접수 현황판</strong>은 공유 PocketBase(clinic-admin.pb.gurum.se)에 기록되는 공개 데모 보드입니다. 두 곳 모두 실제 환자 정보를 입력하지 마세요.
+          본 도구는 <strong>PoC</strong>(개념 검증)이며 행정 보조용입니다 — 실제 환자 정보를 입력하지 마시고, 최종 청구·제출 전 원본 고시·매뉴얼을 반드시 확인하십시오. 모든 다운로드·인쇄물에는 「PoC — 실제 제출 불가 · 데모 데이터」 표시가 붙습니다.<br>
+          파일 변환·검증·양식 처리는 브라우저 안에서만 이루어지며, 업로드한 엑셀·주민등록번호는 외부로 전송되지 않습니다. 이름·번호를 담는 저장 항목은 사용자 PIN으로 보호되는 워크스페이스 키로 <strong>AES-GCM 암호화</strong>되어 이 브라우저에만 보관됩니다.<br>
+          예외 두 곳 — <strong>AI 코딩 어시스트</strong> 탭의 메모는 사용자별 동의 후, 자동 마스킹과 전송 내용 미리보기를 거쳐 외부 AI 서버(ai.pb.gurum.se → Amazon Bedrock, 스톡홀름)로 전송됩니다 (서버에 저장되지 않고, 이 브라우저에도 남기지 않습니다). <strong>실시간 접수 현황판</strong>은 공유 PocketBase(clinic-admin.pb.gurum.se)에 기록되는 공개 데모 보드이며, 카드 내용은 워크스페이스 키로 종단간 암호화됩니다.
+          자세한 내용은 <a class="small-link" href="#" id="info-privacy-link">개인정보 처리 현황 (PoC)</a>.
         </p>
+        <h5 style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">버전</h5>
+        <p id="info-version" style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-2);margin-bottom:18px">—</p>
       </div>
       <div class="footer-row">
         <span>© MMXXVI · Vibe Studio · Set in Fraunces &amp; Inter</span>
@@ -1222,6 +1295,148 @@
           <input type="checkbox" id="install-dontshow"> 다시 권유하지 않기
         </label>
         <span style="font-size:11px;color:var(--muted)">언제든 좌측 메뉴 <strong style="color:var(--ink)">↓ 홈에 추가</strong>에서 다시 열 수 있습니다.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 사용자 · PIN panel ── -->
+  <div class="welcome-scrim" id="users-scrim" role="dialog" aria-modal="true" aria-labelledby="users-title">
+    <div class="welcome">
+      <button type="button" class="close-x" id="users-close" aria-label="닫기">×</button>
+      <div class="eyebrow">사용자 · PIN · 자동 잠금</div>
+      <h2 id="users-title">누가 <em>열 수 있는지</em></h2>
+      <p class="sec-note">현재 사용자: <span id="users-me">—</span>. 각 사용자는 자기 PIN으로만 워크스페이스를 엽니다. PIN은 저장되지 않고, PIN에서 유도한 키로 마스터키를 감싸둔 것만 저장됩니다.</p>
+
+      <div class="sec-section">
+        <h5>사용자 목록</h5>
+        <div id="users-list"></div>
+      </div>
+
+      <div class="sec-section">
+        <h5>사용자 추가 (열려 있는 동안 — 마스터키를 새 PIN으로 한 번 더 감쌉니다)</h5>
+        <form id="users-add-form" class="sec-inline" autocomplete="off">
+          <div class="field"><label for="users-add-name">이름 · 이니셜</label><input id="users-add-name" type="text" maxlength="20" required></div>
+          <div class="field"><label for="users-add-role">역할</label><select id="users-add-role"><option value="행정">행정</option><option value="원무">원무</option><option value="원장">원장</option></select></div>
+          <div class="field"><label for="users-add-pin">PIN (4~8자리)</label><input id="users-add-pin" type="password" inputmode="numeric" pattern="\d{4,8}" maxlength="8" required autocomplete="new-password"></div>
+          <button type="submit" class="btn" id="users-add-btn">추가</button>
+        </form>
+      </div>
+
+      <div class="sec-section">
+        <h5>내 PIN 변경</h5>
+        <form id="users-pin-form" class="sec-inline two" autocomplete="off">
+          <div class="field"><label for="users-old-pin">현재 PIN</label><input id="users-old-pin" type="password" inputmode="numeric" maxlength="8" required autocomplete="current-password"></div>
+          <div class="field"><label for="users-new-pin">새 PIN (4~8자리)</label><input id="users-new-pin" type="password" inputmode="numeric" pattern="\d{4,8}" maxlength="8" required autocomplete="new-password"></div>
+          <button type="submit" class="btn secondary">변경</button>
+        </form>
+      </div>
+
+      <div class="sec-section">
+        <h5>자동 잠금</h5>
+        <div class="sec-inline two" style="align-items:center">
+          <div class="field"><label for="users-autolock">무활동 시</label>
+            <select id="users-autolock"><option value="5">5분</option><option value="10">10분</option><option value="30">30분</option></select></div>
+          <p class="sec-note">화면을 60초 이상 벗어나면(다른 탭·앱) 항상 잠깁니다. 잠기면 마스터키가 메모리에서 지워지고 화면이 가려집니다.</p>
+          <button type="button" class="btn secondary" id="users-lock-now">지금 잠금</button>
+        </div>
+      </div>
+      <p class="sec-msg" id="users-msg" hidden></p>
+    </div>
+  </div>
+
+  <!-- ── 데이터 처리 현황 (PoC) panel — register + retention + erasure + backup, and the PIPA mapping ── -->
+  <div class="welcome-scrim" id="privacy-scrim" role="dialog" aria-modal="true" aria-labelledby="privacy-title">
+    <div class="welcome wide">
+      <button type="button" class="close-x" id="privacy-close" aria-label="닫기">×</button>
+      <div class="eyebrow">개인정보 처리 현황 · PoC</div>
+      <h2 id="privacy-title">무엇을, 왜, <em>얼마나</em> 보관하는가</h2>
+      <div class="sec-tabs" role="tablist">
+        <button type="button" class="active" data-privacy-tab="status" role="tab">처리 현황 · 파기 · 백업</button>
+        <button type="button" data-privacy-tab="legal" role="tab">법적 매핑 (PIPA · 의료법)</button>
+      </div>
+
+      <div class="sec-pane active" data-privacy-pane="status">
+        <p class="sec-note" style="margin-bottom:10px">이 브라우저의 워크스페이스 <code id="privacy-wsid">—</code>. 「암호화 예」인 항목은 워크스페이스 키(AES-GCM)로 암호문만 저장됩니다. 보존기간이 지난 항목은 잠금 해제 때마다 자동 파기됩니다.</p>
+        <div class="sec-table-wrap">
+          <table class="sec-table">
+            <thead><tr><th></th><th>항목 · 저장 위치</th><th>목적 · 근거 (PoC 문안)</th><th>암호화</th><th>보존</th><th>건수</th><th>최근 수정</th></tr></thead>
+            <tbody id="privacy-table"></tbody>
+          </table>
+        </div>
+        <div class="sec-toolbar">
+          <button type="button" class="btn secondary sm" id="privacy-destroy-selected">선택 항목 파기</button>
+          <button type="button" class="btn secondary sm" id="privacy-destroy-all" title="원장 권한">전체 파기 (사용자·키 포함)</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn sm" id="privacy-backup">암호화 백업 내려받기</button>
+          <button type="button" class="btn secondary sm" id="privacy-restore">백업 복원…</button>
+        </div>
+        <div class="sec-section">
+          <h5>활동 기록 (감사 로그) — 추가만 가능 · 암호화 · 1년</h5>
+          <div class="sec-toolbar" style="margin-top:4px;align-items:center">
+            <span class="sec-note" id="privacy-audit-count">—</span>
+            <span class="spacer"></span>
+            <button type="button" class="btn secondary sm" id="privacy-audit-export" title="원장 권한">CSV 내려받기</button>
+            <button type="button" class="btn secondary sm" id="privacy-audit-clear" title="원장 권한">기록 삭제</button>
+          </div>
+        </div>
+        <p class="sec-msg" id="privacy-msg" hidden></p>
+      </div>
+
+      <div class="sec-pane sec-legal" data-privacy-pane="legal">
+        <p>이 PoC는 실제 환자 정보를 다루지 않고 병원에 도입되지도 않습니다. 아래는 <strong>같은 설계를 실제로 쓰려면</strong> 각 흐름이 어떤 조항에 걸리는지, 여기서 <span class="yes">이미 한 것</span>과 <span class="no">아직 남은 것</span>을 정직하게 적은 표입니다. 법률 검토를 대신하지 않습니다.</p>
+        <table>
+          <thead><tr><th>흐름</th><th>관련 조항</th><th>이 PoC에서</th><th>실제 사용 시 추가로 필요</th></tr></thead>
+          <tbody>
+            <tr><td>자보 정산 · 면허 명부 (이름·번호·날짜 저장)</td><td>개인정보보호법 §23 민감정보(건강) · §29 안전성 확보조치 · 의료법 §21 기록 열람 제한</td><td><span class="yes">함</span> — PIN 잠금(사용자별), AES-GCM 암호화 저장, 10분 무활동·60초 이탈 시 자동 잠금, 원장 권한 분리</td><td>병원 내부 서버 또는 인증받은 EMR 연동, 접근권한 부여·변경 기록, 정기 점검</td></tr>
+            <tr><td>주민등록번호 (연말정산 탭 업로드)</td><td>§24 고유식별정보 · §24의2 주민등록번호 처리 제한</td><td><span class="yes">함</span> — 브라우저 안에서만 처리, 저장하지 않음(No persistence of RRN), 자동 마스킹, AI 전송 시 [주민번호]로 치환</td><td>법령상 근거(소득세법 §165) 범위 확인, 제출 파일 암호화·전송 경로 검토</td></tr>
+            <tr><td>AI 코드 추천 (메모를 ai.pb.gurum.se → Amazon Bedrock, eu-north-1 스톡홀름으로 전송)</td><td>§26 업무위탁 · §28의8 국외 이전 · §23</td><td><span class="yes">함</span> — 기본은 예시 모드, 사용자별 동의 대화상자(목적지·보존·위탁계약 없음 고지), 자동 마스킹 + 전송 내용 미리보기, 서버 미저장</td><td><span class="no">남음</span> — LLM 벤더와의 <strong>위탁계약</strong> 또는 온프레미스 모델, 국외 이전 고지·동의 절차, 위탁자 관리·감독</td></tr>
+            <tr><td>음성 받아쓰기 (브라우저 제조사 클라우드 STT)</td><td>§26 · §28의8</td><td><span class="yes">함</span> — 기본 OFF, 인라인 고지(No cloud STT by default)</td><td><span class="no">남음</span> — 온디바이스 STT 또는 위탁계약이 있는 서비스</td></tr>
+            <tr><td>실시간 접수 현황판 (공유 PocketBase)</td><td>§29 · 의료법 §21</td><td><span class="yes">함</span> — 카드 내용 종단간 암호화(E2E), 서버에는 워크스페이스 해시·암호문·상태만, 실명 입력 불가</td><td><span class="no">남음</span> — 로그인 기반 접근 규칙(Tier 3), 가용성·무결성 보호 (현재 누구나 암호문 삽입·삭제 가능)</td></tr>
+            <tr><td>활동 기록 (감사 로그)</td><td>§29 · 안전성 확보조치 기준 §8 접속기록</td><td><span class="yes">함</span> — 사용자·역할·작업·가명 대상(****1234) 기록, 이름 미기록, 추가만 가능, 암호화, 1년 보존, 원장만 내보내기·삭제</td><td><span class="no">남음</span> — 접속기록의 <strong>서버 측 1년 이상 보관</strong>(기준에 따라 2년)·위변조 방지·월 1회 점검. 브라우저 안의 기록은 사용자가 지울 수 있음</td></tr>
+            <tr><td>다운로드 · 인쇄물</td><td>§29 · 의료법 §21</td><td><span class="yes">함</span> — 모든 파일·인쇄에 「PoC — 실제 제출 불가 · 데모 데이터」 워터마크, 파일명 _PoC</td><td>반출 승인 절차, 출력물 관리대장</td></tr>
+            <tr><td>보존 · 파기</td><td>§21 파기 · 의료법 시행규칙 §15 보존기간</td><td><span class="yes">함</span> — 항목별 보존기간(자보 기록 90일·활동 1년·AI 메모 0일), 잠금 해제 시 자동 파기, 선택/전체 파기, 암호화 백업·복원</td><td>파기 기록·증적, 백업 매체 관리 규정</td></tr>
+            <tr><td>공급망 · 배포</td><td>§29 (안전한 배포)</td><td><span class="yes">일부</span> — SheetJS 자체 호스팅, PocketBase SDK 해시 검증(sha384) 후 로드, 버전·SW 캐시 표시</td><td><span class="no">남음</span> — <strong>자체 호스팅·고정 빌드</strong>(GitHub Pages·CDN 폰트·Tesseract CDN 제거), 코드 서명, 변경 관리, DPO(개인정보 보호책임자) 검토</td></tr>
+          </tbody>
+        </table>
+        <h6>한 문장 요약</h6>
+        <p>정적 사이트가 할 수 있는 만큼은 했습니다 — 암호화, PIN, 감사, 마스킹, E2E 보드, 주민번호 미저장, 클라우드 STT 기본 OFF. 그러나 위탁계약, 서버 측 접속기록 보관, 자체 호스팅 고정 빌드, DPO 검토 없이는 <strong>실제 환자 정보에 사용할 수 없습니다.</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── AI: per-user consent dialog ── -->
+  <div class="welcome-scrim" id="ai-consent-scrim" role="dialog" aria-modal="true" aria-labelledby="ai-consent-title">
+    <div class="welcome">
+      <button type="button" class="close-x" id="ai-consent-close" aria-label="닫기">×</button>
+      <div class="eyebrow">라이브 AI 전송 · 사용자별 동의</div>
+      <h2 id="ai-consent-title">메모가 <em>어디로</em> 가는지</h2>
+      <p class="sec-note">동의는 현재 사용자 <strong id="ai-consent-user">—</strong>의 계정에 저장되며(브라우저 단위가 아님), 「사용자」 패널에서 언제든 철회할 수 있습니다.</p>
+      <ul class="ai-consent-list">
+        <li><b>목적지</b><span><code>ai.pb.gurum.se</code> (PoC 프록시) → <strong>Amazon Bedrock</strong>, 리전 <strong>eu-north-1 (스톡홀름, 스웨덴)</strong>. 국외 전송입니다.</span></li>
+        <li><b>보존</b><span>프록시와 모델 서버는 요청을 저장하지 않습니다(없음). 이 브라우저에도 메모를 남기지 않습니다.</span></li>
+        <li><b>위탁</b><span>이 프록시는 <strong>데모용 처리자</strong>이며 <strong>위탁계약(개인정보보호법 §26)이 없습니다</strong>. 그래서 실제 환자 정보는 보낼 수 없고, PoC 데이터만 허용됩니다.</span></li>
+        <li><b>마스킹</b><span>전송 직전에 주민번호·연락처·이름·주소·차량번호·날짜가 자동으로 치환되고, 바뀐 결과를 미리 확인한 뒤에만 전송됩니다.</span></li>
+      </ul>
+      <label class="ai-consent-check"><input type="checkbox" id="ai-consent-check"><span>위 내용을 이해했고, <strong>실제 환자 정보가 아닌 데모 데이터</strong>만 라이브로 전송하는 데 동의합니다.</span></label>
+      <div class="actions">
+        <button type="button" class="btn" id="ai-consent-accept" disabled>동의하고 계속</button>
+        <button type="button" class="btn secondary" id="ai-consent-decline">예시 모드로 남기기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── AI: redaction preview — exactly what will be sent ── -->
+  <div class="welcome-scrim" id="ai-preview-scrim" role="dialog" aria-modal="true" aria-labelledby="ai-preview-title">
+    <div class="welcome">
+      <button type="button" class="close-x" id="ai-preview-close" aria-label="닫기">×</button>
+      <div class="eyebrow">전송될 내용 · 미리보기</div>
+      <h2 id="ai-preview-title">이 내용이 <em>그대로</em> 전송됩니다</h2>
+      <p class="ai-preview-summary" id="ai-preview-summary"></p>
+      <div class="ai-preview-box" id="ai-preview-text" aria-live="polite"></div>
+      <details class="ai-preview-original" id="ai-preview-original-wrap"><summary>원문 보기 (전송되지 않음)</summary><pre id="ai-preview-original"></pre></details>
+      <div class="actions" style="margin-top:16px">
+        <button type="button" class="btn" id="ai-preview-send">이 내용으로 전송</button>
+        <button type="button" class="btn secondary" id="ai-preview-cancel">취소 · 메모 수정</button>
       </div>
     </div>
   </div>

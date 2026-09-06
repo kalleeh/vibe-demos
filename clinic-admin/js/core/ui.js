@@ -1,7 +1,7 @@
 /* clinic-admin — Toast (+withUndo), Dialog focus management, Lightbox, Haptic, Camera, Voice, Share, drop-zone + camera-button wiring
    Extracted verbatim from the former single-file index.html; behaviour unchanged. */
 import { $, $$, esc } from "./dom.js";
-import { EventBus, ActivityLog } from "./store.js";
+import { EventBus } from "./store.js";
 import { TAB_BY_ID, activateTab } from "./nav.js";
 
 export * from "./dom.js";
@@ -69,21 +69,15 @@ const Toast = (() => {
     if (entry.meta?.silent) return; // the caller shows its own (undo) toast
     const meta = TAB_BY_ID[`tab-${entry.tag}`];
     const link = meta ? meta.id : null;
-    show({ tag: entry.tag, html: entry.text, link });
+    // entry.action is scrubbed + entry.subject is pseudonymised (store.js) — a toast never carries a name.
+    const html = esc(entry.action || entry.text || "") + (entry.subject ? ` <span class="toast-subject">${esc(entry.subject)}</span>` : "");
+    show({ tag: entry.tag, html, link });
   });
   return { show, withUndo };
 })();
 
-/* Patch ActivityLog.push to emit so toasts hear it.
-   (ActivityLog is defined earlier; this wrap stays compatible.) */
-(function patchActivity() {
-  const orig = ActivityLog.push;
-  ActivityLog.push = function (tag, text, ctx) {
-    const entry = orig.call(this, tag, text, ctx);
-    EventBus.emit("activity:push", entry || { tag, text, at: Date.now() });
-    return entry;
-  };
-})();
+/* ActivityLog.add emits `activity:push` itself (store.js); peers get it after decrypting the
+   `activity` key on a cross-tab notice. No patch needed any more. */
 
 /* ─────────────────────────────────────────────────────────
    Mobile features — camera, OCR, voice, share, haptics, lightbox.
