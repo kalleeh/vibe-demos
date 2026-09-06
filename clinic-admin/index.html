@@ -27,6 +27,9 @@
   <link rel="stylesheet" href="./styles-claims.css">
   <link rel="stylesheet" href="./styles-reporting.css">
   <link rel="stylesheet" href="./styles-ia.css">
+  <link rel="stylesheet" href="./styles-p3-patients.css">
+  <link rel="stylesheet" href="./styles-p3-claims.css">
+  <link rel="stylesheet" href="./styles-p3-kpi.css">
 </head>
 <body class="shell-v2">
 
@@ -206,6 +209,9 @@
           </button>
           <div class="area-panels" data-area="patients" role="group">
             <button type="button" class="rail-btn" data-panel="tab-board" data-i18n="nav.board">접수 보드</button>
+            <button type="button" class="rail-btn" data-panel="tab-guarantee" data-i18n="nav.guarantee">자보 지불보증</button>
+            <button type="button" class="rail-btn" data-panel="tab-docs" data-i18n="nav.docs">서류 발급 대장</button>
+            <button type="button" class="rail-btn" data-panel="tab-consent" data-i18n="nav.consent">비급여 설명·동의</button>
           </div>
         </div>
         <div class="area" data-area="claims">
@@ -217,6 +223,8 @@
             <button type="button" class="rail-btn" data-panel="tab-claims" data-i18n="nav.claims">청구 배치</button>
             <button type="button" class="rail-btn" data-panel="tab-kcd" data-i18n="nav.kcd">상병 정비</button>
             <button type="button" class="rail-btn" data-panel="tab-jabo" data-i18n="nav.jabo">심사결과 대조</button>
+            <button type="button" class="rail-btn" data-panel="tab-nhis" data-i18n="nav.nhis">건보 심사결과 대조</button>
+            <button type="button" class="rail-btn" data-panel="tab-appeal" data-i18n="nav.appeal">이의신청 관리</button>
           </div>
         </div>
         <div class="area" data-area="records">
@@ -452,6 +460,30 @@
     <!-- 청구 › 청구 배치 — the shared claim batch promoted to a landing page: current batch, both uploads, 3-step progress
          (상병 정비 → 심사결과 대조 → 이의신청). Steps + card rendered by js/tabs/claims-landing.js. -->
     <!-- ─────────────────────────────────────────── -->
+    <!-- Phase 3 slot: tab-guarantee (owner fills panel-body) -->
+    <section class="panel" id="tab-guarantee" role="tabpanel">
+      <div class="panel-head">
+        <span class="panel-num" data-i18n="p3.guarantee.num">환자 · 자보 지불보증</span>
+        <h3 data-i18n-html="p3.guarantee.h3">보험사 <em>지불보증</em>, 전화·팩스 로그를 한 곳에</h3>
+      </div>
+      <div class="panel-body" data-p3-slot="tab-guarantee"></div>
+    </section>
+    <!-- Phase 3 slot: tab-docs (owner fills panel-body) -->
+    <section class="panel" id="tab-docs" role="tabpanel">
+      <div class="panel-head">
+        <span class="panel-num" data-i18n="p3.docs.num">환자 · 서류 발급 대장</span>
+        <h3 data-i18n-html="p3.docs.h3">진단서·확인서 <em>발급 대장</em>, 법정 기록으로</h3>
+      </div>
+      <div class="panel-body" data-p3-slot="tab-docs"></div>
+    </section>
+    <!-- Phase 3 slot: tab-consent (owner fills panel-body) -->
+    <section class="panel" id="tab-consent" role="tabpanel">
+      <div class="panel-head">
+        <span class="panel-num" data-i18n="p3.consent.num">환자 · 비급여 설명·동의</span>
+        <h3 data-i18n-html="p3.consent.h3">비급여 <em>사전설명·동의</em> 기록</h3>
+      </div>
+      <div class="panel-body" data-p3-slot="tab-consent"></div>
+    </section>
     <section class="panel" id="tab-claims" role="tabpanel">
       <div class="panel-head">
         <span class="panel-num" data-i18n="claims.num">청구 · 청구 배치</span>
@@ -718,6 +750,22 @@
     <!-- ─────────────────────────────────────────── -->
     <!-- 보고·기록 › 연말정산 의료비 사전검증 / 누락보정 -->
     <!-- ─────────────────────────────────────────── -->
+    <!-- Phase 3 slot: tab-nhis (owner fills panel-body) -->
+    <section class="panel" id="tab-nhis" role="tabpanel">
+      <div class="panel-head">
+        <span class="panel-num" data-i18n="p3.nhis.num">청구 · 건보 심사결과 대조</span>
+        <h3 data-i18n-html="p3.nhis.h3">건강보험 <em>심사결과</em>를 청구 명세서와 대조</h3>
+      </div>
+      <div class="panel-body" data-p3-slot="tab-nhis"></div>
+    </section>
+    <!-- Phase 3 slot: tab-appeal (owner fills panel-body) -->
+    <section class="panel" id="tab-appeal" role="tabpanel">
+      <div class="panel-head">
+        <span class="panel-num" data-i18n="p3.appeal.num">청구 · 이의신청 관리</span>
+        <h3 data-i18n-html="p3.appeal.h3">조정 건의 <em>이의신청</em>, 기한과 함께</h3>
+      </div>
+      <div class="panel-body" data-p3-slot="tab-appeal"></div>
+    </section>
     <section class="panel" id="tab-yearend" role="tabpanel">
       <div class="panel-head">
         <span class="panel-num" data-i18n="yearend.num">보고·기록 · 연말정산 의료비 사전점검</span>

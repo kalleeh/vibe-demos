@@ -72,5 +72,21 @@ export default {
   /* ── Organisation › master upload panel ── */
   "masters.num": "Organisation · Master upload",
   "masters.h3": "The bundled tables are <em>samples</em> — upload the real masters and they become the reference",
-  "masters.blurb": "The bundled diagnosis and procedure tables are <em>demo excerpts</em>. Upload the <em>KOICD diagnosis master</em> and the <em>HIRA (심평원) procedure & fee master</em> (xlsx) here, map the headers, and diagnosis cleanup, review reconciliation, search and the AI assist all work against the real masters. Public reference tables — kept in this browser (IndexedDB) only."
+  "masters.blurb": "The bundled diagnosis and procedure tables are <em>demo excerpts</em>. Upload the <em>KOICD diagnosis master</em> and the <em>HIRA (심평원) procedure & fee master</em> (xlsx) here, map the headers, and diagnosis cleanup, review reconciliation, search and the AI assist all work against the real masters. Public reference tables — kept in this browser (IndexedDB) only.",
+  // Phase 3 slots (coordinator scaffold)
+  "nav.guarantee": "Auto-insurance guarantees",
+  "nav.docs": "Document issuance log",
+  "nav.consent": "Non-covered consent",
+  "nav.nhis": "NHIS review reconciliation",
+  "nav.appeal": "Appeals",
+  "p3.guarantee.num": "Patients · Auto-insurance guarantees (자보 지불보증)",
+  "p3.guarantee.h3": "Insurer <em>payment guarantees</em> and the phone/fax log in one place",
+  "p3.docs.num": "Patients · Document issuance log (발급 대장)",
+  "p3.docs.h3": "Certificates as a <em>statutory issuance log</em>",
+  "p3.consent.num": "Patients · Non-covered consent (비급여 설명·동의)",
+  "p3.consent.h3": "Records of <em>prior explanation and consent</em> for non-covered items",
+  "p3.nhis.num": "Claims · NHIS review reconciliation (건보 심사결과 대조)",
+  "p3.nhis.h3": "Match the NHIS <em>review result</em> against the claim statements",
+  "p3.appeal.num": "Claims · Appeals (이의신청)",
+  "p3.appeal.h3": "<em>Appeals</em> for adjusted lines, with their deadlines",
 };

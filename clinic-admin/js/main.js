@@ -18,10 +18,15 @@ import * as Tab7 from "./tabs/tab7-ai.js";
 import * as Tab8 from "./tabs/tab8-license.js";
 import * as Tab9 from "./tabs/tab9-accred.js";
 import * as Claims from "./tabs/claims-landing.js";
+import * as Guarantee from "./tabs/tab-guarantee.js";
+import * as Docs from "./tabs/tab-docs.js";
+import * as Consent from "./tabs/tab-consent.js";
+import * as Nhis from "./tabs/tab-nhis.js";
+import * as Appeal from "./tabs/tab-appeal.js";
 import { boot as bootBoard } from "./board.js";
 
 // Bump on every user-visible release; shown in the info modal next to the SW cache name.
 export const APP_VERSION = "2.2.0-poc";
 
-boot([Tab1, Tab2, Tab3, Tab4, Tab5, Tab6, Tab7, Tab8, Tab9, Claims, Tab0], { version: APP_VERSION })
+boot([Tab1, Tab2, Tab3, Tab4, Tab5, Tab6, Tab7, Tab8, Tab9, Claims, Guarantee, Docs, Consent, Nhis, Appeal, Tab0], { version: APP_VERSION })
   .then(() => bootBoard());

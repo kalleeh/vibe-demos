@@ -250,7 +250,7 @@ try {
   const welcomeKo = await $("#welcome-scrim").innerText();
   ok(welcomeKo.includes("마스터"), "welcome deck mentions 마스터 업로드");
   ok(/다섯 영역/.test(welcomeKo) && ["홈", "환자", "청구", "보고·기록", "조직", "검색", "AI 어시스트"].every(w => welcomeKo.includes(w)) && !/10개 탭|\b0\d\b/.test(welcomeKo), "first-run deck describes the five areas + two utilities, no tab numbers");
-  ok((await $("#rail-areas .area-btn").count()) === 5 && (await $("#rail-areas [data-panel]").count()) === 13 && (await $("#rail-areas .num").count()) === 0, "rail: 5 areas · 13 panels · no numbers");
+  ok((await $("#rail-areas .area-btn").count()) === 5 && (await $("#rail-areas [data-panel]").count()) === 18 && (await $("#rail-areas .num").count()) === 0, "rail: 5 areas · 18 panels · no numbers");
 
   /* 2 · seed */
   at("샘플 데이터로 둘러보기 (seed-all → shared entities + every tab, awaited in order)");
@@ -666,17 +666,17 @@ try {
   ok((await $("#crumb-tab").innerText()) === "접수 보드", "a never-visited area opens its first panel");
   await page.evaluate(() => document.activeElement?.blur());
   await page.keyboard.press("3"); await page.waitForSelector("#tab-jabo.active");
-  await page.keyboard.press("]"); await page.waitForSelector("#tab-claims.active");
-  await page.keyboard.press("]"); await page.waitForSelector("#tab-kcd.active");
-  await page.keyboard.press("["); await page.waitForSelector("#tab-claims.active");
+  await page.keyboard.press("]"); await page.waitForSelector("#tab-nhis.active");
+  await page.keyboard.press("]"); await page.waitForSelector("#tab-appeal.active");
+  await page.keyboard.press("["); await page.waitForSelector("#tab-nhis.active");
   await page.keyboard.press("1"); await page.waitForSelector("#tab-today.active");
-  ok(true, "keys: 3 → 청구 (last panel), ] ] [ cycle within the area (wraps), 1 → 홈");
+  ok(true, "keys: 3 → 청구 (last panel), ] ] [ cycle within the area, 1 → 홈");
   await goTab("tab-jabo"); await $("#jabo-pid").fill("P-2026-0142"); await $("#jabo-pid").press("]"); await $("#jabo-pid").press("5");
   ok((await $("#tab-jabo.active").count()) === 1 && (await $("#jabo-pid").inputValue()) === "P-2026-0142]5", "shortcuts are inert while typing in an input");
   await $("#jabo-pid").fill("P-2026-0142");
   if (MOBILE) {
     ok(await page.evaluate(() => { const b = document.querySelector("#bottombar"); return b && getComputedStyle(b).display !== "none" && b.querySelectorAll(".area-btn").length === 5 && getComputedStyle(document.querySelector("#rail")).transform !== "none"; }), "phone: bottom bar with 5 areas + ⋯; the rail is off-screen (⋯ sheet)");
-    ok(await page.evaluate(() => { const s = document.querySelector("#subnav"); return s && !s.hidden && s.querySelectorAll(".subnav-btn").length === 3 && s.querySelector(".subnav-btn.active")?.dataset.panel === "tab-jabo"; }), "phone: sub-nav segmented control lists the 3 청구 panels with the active one marked");
+    ok(await page.evaluate(() => { const s = document.querySelector("#subnav"); return s && !s.hidden && s.querySelectorAll(".subnav-btn").length === 5 && s.querySelector(".subnav-btn.active")?.dataset.panel === "tab-jabo"; }), "phone: sub-nav segmented control lists the 5 청구 panels with the active one marked");
     await goTab("tab-today");
     ok(await page.evaluate(() => document.querySelector("#subnav").hidden), "phone: sub-nav hidden for a single-panel area (홈)");
     await $("#bottombar-more").click(); await wait(350);

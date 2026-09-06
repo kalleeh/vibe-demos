@@ -73,5 +73,21 @@ export default {
   /* ── 조직 › 마스터 업로드 panel ── */
   "masters.num": "조직 · 마스터 업로드",
   "masters.h3": "내장 표는 <em>예시</em> — 실제 마스터를 올리면 그 표 기준",
-  "masters.blurb": "내장 상병·행위 표는 <em>데모 발췌·예시</em>입니다. 여기서 <em>KOICD 상병마스터</em>와 <em>심평원 행위·수가 마스터</em>(xlsx)를 올리고 헤더를 매핑하면 상병 정비·심사결과 대조·검색·AI 어시스트가 모두 실제 마스터를 기준으로 동작합니다. 공개 참조표이므로 이 브라우저(IndexedDB)에만 보관됩니다."
+  "masters.blurb": "내장 상병·행위 표는 <em>데모 발췌·예시</em>입니다. 여기서 <em>KOICD 상병마스터</em>와 <em>심평원 행위·수가 마스터</em>(xlsx)를 올리고 헤더를 매핑하면 상병 정비·심사결과 대조·검색·AI 어시스트가 모두 실제 마스터를 기준으로 동작합니다. 공개 참조표이므로 이 브라우저(IndexedDB)에만 보관됩니다.",
+  // Phase 3 slots (coordinator scaffold)
+  "nav.guarantee": "자보 지불보증",
+  "nav.docs": "서류 발급 대장",
+  "nav.consent": "비급여 설명·동의",
+  "nav.nhis": "건보 심사결과 대조",
+  "nav.appeal": "이의신청 관리",
+  "p3.guarantee.num": "환자 · 자보 지불보증",
+  "p3.guarantee.h3": "보험사 <em>지불보증</em>, 전화·팩스 로그를 한 곳에",
+  "p3.docs.num": "환자 · 서류 발급 대장",
+  "p3.docs.h3": "진단서·확인서 <em>발급 대장</em>, 법정 기록으로",
+  "p3.consent.num": "환자 · 비급여 설명·동의",
+  "p3.consent.h3": "비급여 <em>사전설명·동의</em> 기록",
+  "p3.nhis.num": "청구 · 건보 심사결과 대조",
+  "p3.nhis.h3": "건강보험 <em>심사결과</em>를 청구 명세서와 대조",
+  "p3.appeal.num": "청구 · 이의신청 관리",
+  "p3.appeal.h3": "조정 건의 <em>이의신청</em>, 기한과 함께",
 };

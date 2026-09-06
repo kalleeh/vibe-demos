@@ -234,4 +234,6 @@ async function restoreBackup(bk, userId, pin) {
   return { keys: Object.keys(bk.sensitive || {}).length + Object.keys(plain || {}).length, attachments: (bk.attachments || []).length, version: bk.v, migrated: r?.hooks || null };
 }
 
+/** Phase 3: tab modules register their own Store keys at module load (tabs → security is an allowed import direction). */
+export function registerRows(rows) { for (const r of rows) if (!REGISTRY.some(x => x.id === r.id)) REGISTRY.push(r); }
 export { REGISTRY, inventory, purgeExpired, destroy, destroyAll, exportBackup, parseBackup, restoreBackup, BACKUP_FORMAT, BACKUP_VERSION };
