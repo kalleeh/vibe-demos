@@ -67,13 +67,18 @@ self.addEventListener("fetch", e => {
     );
     return;
   }
+  // Same-origin assets (js/css/json/vendor): NETWORK-FIRST with cache fallback.
+  // Cache-first here caused a first-load mismatch after every deploy: the old
+  // SW served stale dictionaries/modules while the fresh index.html referenced
+  // new i18n keys -> raw `nav.*` labels until a reload. Network-first keeps the
+  // shell coherent; offline still works from the precached copy.
   e.respondWith(
-    caches.match(req).then(m => m || fetch(req).then(r => {
-      if (r.ok && new URL(req.url).origin === location.origin) {
+    fetch(req).then(r => {
+      if (r.ok) {
         const copy = r.clone();
         caches.open(CACHE).then(c => c.put(req, copy));
       }
       return r;
-    }).catch(() => m))
+    }).catch(() => caches.match(req).then(m => m || Response.error()))
   );
 });

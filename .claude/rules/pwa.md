@@ -61,3 +61,7 @@ if (path.includes("/") && !path.startsWith("thumbs/") && !LANDING_CROSSDEMO.has(
 ## Cache invalidation
 
 When a demo ships a meaningful change, bump its cache name (`vibe-<slug>-v1` → `v2`). The activate handler already deletes caches that don't match the current name. Same rule for the root: thumbs are cache-first, so bump root `sw.js` `CACHE` (`vibe-root-vN`) whenever a thumb is added, renamed, or regenerated, and keep its `SHELL` list in sync with the works index.
+
+## First-load mismatch after deploys (cache-first assets)
+
+If HTML is network-first but JS/CSS/JSON are cache-first, the FIRST load after a deploy runs fresh HTML against the previous cache's scripts (the old SW still controls the page until the new one activates). Symptoms: raw i18n keys (`nav.*`), missing handlers, layout glitches that vanish on reload. For any demo whose HTML and JS change together (all i18n'd or module-split demos), serve same-origin assets network-first with cache fallback (see `clinic-admin/sw.js`), or version asset URLs. Bumping `CACHE` alone does not prevent this.
