@@ -3,7 +3,7 @@
 import { $, $$, esc } from "./dom.js";
 import { t, tOr } from "./i18n.js";
 import { EventBus } from "./store.js";
-import { TAB_BY_ID, activateTab } from "./nav.js";
+import { isNavTarget, activateTab } from "./nav.js";
 
 export * from "./dom.js";
 // Activity tag → short pill label (KCD · 자보 · … / KCD · Auto-ins · …).
@@ -65,8 +65,8 @@ const Toast = (() => {
     if (!entry) return;
     if (entry.tag === "system" && entry.text === "전체 초기화") return;
     if (entry.meta?.silent) return; // the caller shows its own (undo) toast
-    const meta = TAB_BY_ID[`tab-${entry.tag}`];
-    const link = meta ? meta.id : null;
+    // panels AND the two utilities (tab-search · tab-ai) are valid toast links — activateTab() opens either
+    const link = isNavTarget(`tab-${entry.tag}`) ? `tab-${entry.tag}` : null;
     // entry.action is scrubbed + entry.subject is pseudonymised (store.js) — a toast never carries a name.
     const html = esc(entry.action || entry.text || "") + (entry.subject ? ` <span class="toast-subject">${esc(entry.subject)}</span>` : "");
     show({ tag: entry.tag, html, link });

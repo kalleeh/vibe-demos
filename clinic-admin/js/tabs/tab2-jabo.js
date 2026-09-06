@@ -243,7 +243,7 @@ export function init(ctx) {
       reconStatus(null, () => t("common.statusReading", { name: esc(file.name) }));
       const rows = await readSpreadsheet(file);
       if (!rows.length) { reconStatus("warn", () => t("common.statusEmptyFile")); return; }
-      const rv = createReviewBatch({ rows, source: file.name, claimsBatchId: c.id });
+      const rv = createReviewBatch({ rows, source: file.name, claimsBatchId: c.id, origin: "jabo" });
       if (!rv) { reconStatus("warn", () => t("common.statusEmptyFile")); return; }
       ActivityLog.push("jabo", t("jabo.logReview", { src: file.name, n: rv.rows.length }), { review: rv.rows.length });
       restore({ silent: false, meta: { review: rv.rows.length } });
@@ -251,7 +251,7 @@ export function init(ctx) {
   };
   bindDrop("drop-jabo-claims", ingestClaims);
   bindDrop("drop-jabo-review", ingestReview);
-  const strip = () => renderBatchStrip($("#jabo-batch-strip"), { onFile: ingestClaims });
+  const strip = () => renderBatchStrip($("#jabo-batch-strip"), { onFile: ingestClaims, compact: true }); // one line → 청구 › 청구 배치
   strip();
 
   $('[data-action="sample-jabo-claims"]').addEventListener("click", async (e) => {
@@ -615,8 +615,13 @@ export function init(ctx) {
     strip();
     const c = currentClaimsBatch();
     if (!c) { clearRecon(); return; }
-    if (ev?.kind === "review") return; // the uploading tab re-runs itself (non-silent) right after
-    // a batch created elsewhere (01) or here, a switch from the strip, or a removal → re-derive silently
+    if (ev?.kind === "review") {
+      // our own upload re-runs itself (non-silent) right after; the sample seed's review is run by seed(); a review
+      // uploaded on the 청구 배치 landing (origin "landing") must be reconciled HERE — non-silent so the KPI history lands.
+      if (ev.origin === "landing" && ev.claimsBatchId === c.id) restore({ silent: false, meta: { review: true } });
+      return;
+    }
+    // a batch created elsewhere (상병 정비 · 청구 배치) or here, a switch from the strip, or a removal → re-derive silently
     if (c.id !== lastClaimsId || ev?.kind === "remove") restore();
   });
   EventBus.on("store:ui.claimsBatch", () => { const c = currentClaimsBatch(); if (c && c.id !== lastClaimsId) { strip(); restore(); } });
@@ -624,6 +629,7 @@ export function init(ctx) {
     const c = p?.id === "tab-jabo" ? p.ctx : null;
     if (!c) return;
     if (c.dx || (Array.isArray(c.items) && c.items.length) || c.pid) applyCase(c);
+    else if (c.focus === "manual") setTimeout(() => $("#jabo-items")?.closest(".card")?.scrollIntoView({ block: "start", behavior: "smooth" }), 60); // 홈 todo → the unfinished 수기 case
   });
   restore();
   EventBus.on("session:unlocked", () => { strip(); if (!lastRecon) restore(); });

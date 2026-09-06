@@ -34,7 +34,7 @@ export function init(ctx) {
   // ── institution (read-only) + cadence from Org.kind (core/calendar.js bigeupWindows — same list as 00's deadlines) ──
   const org = () => orgView(Org.get());
   const windows = bigeupWindows;
-  const renderOrg = () => renderOrgReadOnly($("#bg-org"), Org.get(), { onEdit: () => activateTab("tab-today", { openOrg: true }) });
+  const renderOrg = () => renderOrgReadOnly($("#bg-org"), Org.get(), { onEdit: () => activateTab("tab-org") }); // 조직 › 기관 프로필
 
   // ── 참고월 select — defaults to the upcoming window; the deadline click from 00 preselects it ──
   const refSel = $("#bg-refmonth");

@@ -3,7 +3,7 @@
 export default {
   /* ── shared claim-batch strip (rendered in 01 and 02) ── */
   "jabo.batch.title": "Claim batch",
-  "jabo.batch.empty": "No claim batch yet — upload a statement export (diagnosis + procedure columns) and 01 Diagnosis codes and 02 Auto-insurance share the same batch.",
+  "jabo.batch.empty": "No claim batch yet — upload a statement export (diagnosis + procedure columns) and Diagnosis codes and Review reconciliation share the same batch.",
   "jabo.batch.stmts": "{n} statements",
   "jabo.batch.patients": "{n} patients",
   "jabo.batch.partialKcd": "diagnoses only",
@@ -16,13 +16,13 @@ export default {
   "jabo.batch.reviewLinked": "review linked",
 
   /* ── 01 Diagnosis codes ── */
-  "kcd.demoLabel": "First time? Preview the cleanup on <strong>Hansol KM Hospital's 12 statements for 2026-08</strong> (cervical/lumbar sprains, low back pain, U codes, EDI-form and 5-digit entries) — the same claim batch as 02 Auto-insurance.",
-  "kcd.dropLegacy": "This tab's file only (diagnosis columns) — if procedure columns are present too, it becomes the claim batch shared with 02",
+  "kcd.demoLabel": "First time? Preview the cleanup on <strong>Hansol KM Hospital's 12 statements for 2026-08</strong> (cervical/lumbar sprains, low back pain, U codes, EDI-form and 5-digit entries) — the same claim batch as Review reconciliation.",
+  "kcd.dropLegacy": "This screen's file only (diagnosis columns) — if procedure columns are present too, it becomes the claim batch shared with Review reconciliation",
   "kcd.thStmt": "Statement",
   "kcd.thActions": "Next",
   "kcd.col.stmt": "Statement no.",
   "kcd.actAsk": "Ask AI",
-  "kcd.actAskTitle": "Opens 07 AI coding assist prefilled with 'diagnosis · entered code — correct KCD?'",
+  "kcd.actAskTitle": "Opens the AI coding assist prefilled with 'diagnosis · entered code — correct KCD?'",
   "kcd.actSearch": "Search",
   "kcd.focusChip": "Statement {stmt} · showing {n} rows",
   "kcd.focusAll": "Show all",
@@ -34,18 +34,18 @@ export default {
   "kcd.askPrefill": "Diagnosis {dx}, entered code {code} — correct KCD? (statement {stmt} · patient {who})",
 
   /* ── 02 Auto-insurance review reconciliation ── */
-  "jabo.demoLabel": "<strong>Hansol KM Hospital 2026-08 · 12 statements · 41 procedure lines</strong> sample — real adjustment patterns (diagnosis–treatment site mismatch, same-site duplicates, Chuna frequency limit, herbal-decoction days, 4-week certificate) in one reconciliation table. Same claim batch as 01 Diagnosis codes.",
+  "jabo.demoLabel": "<strong>Hansol KM Hospital 2026-08 · 12 statements · 41 procedure lines</strong> sample — real adjustment patterns (diagnosis–treatment site mismatch, same-site duplicates, Chuna frequency limit, herbal-decoction days, 4-week certificate) in one reconciliation table. Same claim batch as Diagnosis codes.",
   "jabo.dropClaimsHint": "Statement no. · Patient no. · Visit date · Procedure code · Count · Claimed amount (+ Diagnosis code · Diagnosis · Primary/secondary)",
-  "jabo.dropClaimsLegacy": "This tab's file only (procedure columns) also becomes a claim batch — same as “New file” in the batch strip above",
-  "jabo.dropReviewLegacy": "This tab's file only — linked to the current claim batch",
+  "jabo.dropClaimsLegacy": "This screen's file only (procedure columns) also becomes a claim batch — same as the upload on the Claim batch page",
+  "jabo.dropReviewLegacy": "This screen's file only — linked to the current claim batch",
   "jabo.reconInsurer": "Insurer / mutual-aid (per batch)",
   "jabo.reconInsurerHint": "Defaults to the last insurer used — stored with each reconciliation record",
   "jabo.thActions": "Next",
-  "jabo.actKcd": "01 Dx",
+  "jabo.actKcd": "Dx codes",
   "jabo.actKcdTitle": "View in Diagnosis codes — filters to this statement's diagnosis rows",
-  "jabo.actSearch": "06 Search",
+  "jabo.actSearch": "Search",
   "jabo.actSearchTitle": "Procedure search — look this code up in the unified search",
-  "jabo.actAsk": "07 AI",
+  "jabo.actAsk": "AI",
   "jabo.actAskTitle": "Ask AI — suggest a diagnosis–procedure combination whose sites match",
   "jabo.askPrefill": "Statement {stmt} ({who}) — diagnoses {dx} / procedure {code} {name}, review adjustment reason '{reason}'. Suggest diagnosis and procedure codes whose treatment sites match.",
   "jabo.logAsk": "Ask AI — {code}",
@@ -62,7 +62,7 @@ export default {
   "jabo.newFresh": "Completely new",
   "jabo.newFreshSub": "Clears patient/claim details and the procedure list",
   "jabo.newSameStatus": "Next visit, same accident — kept {who}'s details, cleared the procedure list.",
-  "jabo.caseFilled": "Case filled — primary diagnosis {dx} · {n} procedures (handed over from 07 AI / 06 Search). Check approved amounts and reasons.",
+  "jabo.caseFilled": "Case filled — primary diagnosis {dx} · {n} procedures (handed over from AI assist / Search). Check approved amounts and reasons.",
   "jabo.caseSkipped": " · skipped codes not in the fee table: {codes}",
   "jabo.statusManualSample": "Manual sample — Hansol KM Hospital P-2026-0142 · Samsung Fire & Marine · statement M2608-0001 (includes a pharmacopuncture site-mismatch adjustment). Change an approved unit price to watch the rate move.",
 
@@ -78,15 +78,15 @@ export default {
   "search.insertAi": "Add to AI note",
   "search.insertClip": "Clipboard {code}",
   "search.logInsert": "{code} → inserted into {where}",
-  "search.gotoMastersTitle": "Go to the master upload in 06 Search",
+  "search.gotoMastersTitle": "Go to Organisation › Master upload",
 
   /* ── 07 AI coding assist ── */
   "ai.ctxPatient": "Patient {who}",
   "ai.ctxStmt": "Statement {stmt}",
   "ai.ctxClear": "Clear note source",
   "ai.checkSearch": "Check in search",
-  "ai.checkSearchTitle": "Look this code up in 06 Search",
+  "ai.checkSearchTitle": "Look this code up in Search",
   "ai.fillJabo": "Fill an auto-insurance case with these codes",
-  "ai.fillJaboHint": "Puts primary diagnosis {dx} (EDI) + {n} procedures into 02 Manual case",
+  "ai.fillJaboHint": "Puts primary diagnosis {dx} (EDI) + {n} procedures into the manual case in Review reconciliation",
   "ai.logFillJabo": "Auto-insurance case filled from AI — {dx} · {n} procedures"
 };

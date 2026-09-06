@@ -22,7 +22,7 @@ export default {
 
   /* ── 00 Today ── */
   "today.nudge.aria": "Setup hints",
-  "today.nudge.org": "Institution profile incomplete — name, institution code, business reg. no. and type fill the headers of the 03/04 sheets.",
+  "today.nudge.org": "Institution profile incomplete — name, institution code, business reg. no. and type fill the headers of the non-covered and year-end sheets.",
   "today.nudge.orgBtn": "Enter institution",
   "today.nudge.staff": "Staff register is empty — licence-report deadlines and the accreditation HR item cannot be computed.",
   "today.nudge.staffBtn": "Add staff",
@@ -87,7 +87,7 @@ export default {
   "accred.autoLabel": "auto-judged",
   "accred.autoTitle": "Judged by the app from the staff register, the non-covered price list and the latest checks",
   "accred.autoLegend": "<span class=\"accred-auto ok\"><span class=\"glyph\">✓</span> auto-judged</span> items are judged by the app from the staff register, the non-covered price list and the latest check runs — they show a status and reason instead of a checkbox; the rest you tick yourself.",
-  "accred.auto.noAudit": "No retention check yet — run the record ledger in tab 05",
+  "accred.auto.noAudit": "No retention check yet — run the record ledger in Reports & records › Retention audit",
   "accred.auto.hr1.none": "No staff with a licence-report duty (KM doctors, nurses…) in the register",
   "accred.auto.hr1.unreported": "Report history unverified for {n}/{total} staff",
   "accred.auto.hr1.imminent": "{n} staff due within 90 days",
@@ -96,11 +96,11 @@ export default {
   "accred.auto.mr1.ok": "0 past retention (checked {t})",
   "accred.auto.mr3.bad": "{n} misclassified records — fix before disposal review",
   "accred.auto.mr3.ok": "Check on file · {n} records ({t})",
-  "accred.auto.mr4.none": "No KCD clean-up yet — check diagnosis codes in tab 01",
+  "accred.auto.mr4.none": "No KCD clean-up yet — check diagnosis codes in Claims › Diagnosis codes",
   "accred.auto.mr4.stale": "Last clean-up {t} — quarterly cycle overdue",
   "accred.auto.mr4.open": "{m} unlisted · {r} to review",
   "accred.auto.mr4.ok": "Last clean-up {t} · nothing open",
-  "accred.auto.pr2.none": "No non-covered price list — enter prices in tab 04",
+  "accred.auto.pr2.none": "No non-covered price list — enter prices in Reports & records › Non-covered report",
   "accred.auto.pr2.noDate": "{n} priced items · no effective date",
   "accred.auto.pr2.ok": "{n} priced items · effective {d}"
 };

@@ -48,7 +48,7 @@ export function init() {
   const worstOf = (issues) => issues.some(i => i.level === "error") ? "error" : issues.some(i => i.level === "warn") ? "warn" : "ok";
 
   // ── institution (read-only) ──
-  const renderOrg = () => renderOrgReadOnly($("#ye-org"), Org.get(), { onEdit: () => activateTab("tab-today", { openOrg: true }) });
+  const renderOrg = () => renderOrgReadOnly($("#ye-org"), Org.get(), { onEdit: () => activateTab("tab-org") }); // 조직 › 기관 프로필
   renderOrg();
   Org.onChange(renderOrg);
 

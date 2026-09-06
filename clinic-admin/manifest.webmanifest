@@ -1,7 +1,7 @@
 {
   "name": "한방병원 행정 도구함 — Clinic Admin Toolkit (PoC)",
   "short_name": "행정 도구함",
-  "description": "한방병원 행정원장을 위한 10개 탭 도구함 (PoC · 데모 데이터만). 사용자별 PIN 잠금, 브라우저 내 AES-GCM 암호화 저장, 가명 기준 감사 로그. 상병코드 정비(EDI 표준형 + 개정판 대조)·자보 심사결과 대조·연말정산/비급여/보존 점검표·면허 OCR — 내장 표는 예시, KOICD·심평원 마스터(xlsx)를 올리면 그 표 기준. 파일 변환·검증·다운로드는 브라우저 안에서 완료되고 모든 출력물에 PoC 표시. 예외: AI 탭 메모는 마스킹·미리보기 후 사용자 동의 하에 외부 AI 서버(ai.pb.gurum.se)로 전송(저장 안 됨), 접수 현황판은 종단간 암호화된 공유 PocketBase 데모 보드.",
+  "description": "한방병원 행정원장을 위한 행정 워크스페이스 (PoC · 데모 데이터만). 홈(지금 할 일)·환자(접수 보드)·청구(청구 배치 → 상병 정비 → 심사결과 대조)·보고·기록(연말정산·비급여·보존 점검표)·조직(기관 프로필·직원 명부·인증·데이터 처리 현황·마스터 업로드) 다섯 영역과 검색(⌘K)·AI 어시스트 두 유틸리티. 사용자별 PIN 잠금, 브라우저 내 AES-GCM 암호화 저장, 가명 기준 감사 로그. 내장 표는 예시, KOICD·심평원 마스터(xlsx)를 올리면 그 표 기준. 파일 변환·검증·다운로드는 브라우저 안에서 완료되고 모든 출력물에 PoC 표시. 예외: AI 어시스트 메모는 마스킹·미리보기 후 사용자 동의 하에 외부 AI 서버(ai.pb.gurum.se)로 전송(저장 안 됨), 접수 보드는 종단간 암호화된 공유 PocketBase 데모 보드.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -9,8 +9,17 @@
   "background_color": "#f3eee2",
   "theme_color": "#f3eee2",
   "lang": "ko",
-  "categories": ["medical", "productivity", "business"],
+  "categories": [
+    "medical",
+    "productivity",
+    "business"
+  ],
   "icons": [
-    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
   ]
 }

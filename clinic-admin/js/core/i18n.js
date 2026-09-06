@@ -21,12 +21,15 @@ import koClaims from "../i18n/ko.claims.js";
 import enClaims from "../i18n/en.claims.js";
 import koReporting from "../i18n/ko.reporting.js";
 import enReporting from "../i18n/en.reporting.js";
+import koIa from "../i18n/ko.ia.js";
+import enIa from "../i18n/en.ia.js";
 
 /* Dictionaries are split by owner: ko.js/en.js (shell · security · core), *.entities.js (shared entities · org ·
-   roster · board), *.claims.js (tabs 01 02 06 07), *.reporting.js (tabs 00 03 04 05 09). Merged flat here;
-   tools/i18n-extract.mjs checks every referenced key against the merged set and flags duplicate keys. */
-const ko = { ...koBase, ...koEntities, ...koClaims, ...koReporting };
-const en = { ...enBase, ...enEntities, ...enClaims, ...enReporting };
+   roster · board), *.claims.js (claims tools · code search · AI), *.reporting.js (홈 · reporting · accred), *.ia.js
+   (Phase-2 information architecture: areas · sub-nav · overlay · drawer · home sections · claims landing · new panels).
+   Merged flat here; tools/i18n-extract.mjs checks every referenced key against the merged set and flags duplicate keys. */
+const ko = { ...koBase, ...koEntities, ...koClaims, ...koReporting, ...koIa };
+const en = { ...enBase, ...enEntities, ...enClaims, ...enReporting, ...enIa };
 
 const KEY = "vibe.clinic-admin.ui.lang";
 const DICT = { ko, en };

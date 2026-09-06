@@ -13,6 +13,7 @@ import { t } from "../core/i18n.js";
 import { Store, EventBus } from "../core/store.js";
 import { readSpreadsheet, loadJSON } from "../core/files.js";
 import { toEdi, toDotted } from "../core/masters.js";
+import { activateTab } from "../core/nav.js";
 import { Batches, Patients, Tariff } from "../core/entities.js";
 
 const CURRENT_KEY = "ui.claimsBatch";   // plaintext ui.* setting — a batch id, nothing personal
@@ -115,11 +116,13 @@ export function createClaimsBatch({ rows, source, sample = null }) {
   EventBus.emitLocal(EV, { id, kind: "claims" });
   return Batches.get(id);
 }
-export function createReviewBatch({ rows, source, claimsBatchId, sample = null }) {
+/* `origin` names the uploading surface ("jabo" · "landing" · undefined for the sample seed) so tab2-jabo can tell its own
+   upload (it re-runs itself) from one made on the 청구 배치 landing (it must re-derive). */
+export function createReviewBatch({ rows, source, claimsBatchId, sample = null, origin = null }) {
   const lines = parseReview(rows);
   if (!lines.length) return null;
   const id = Batches.create({ kind: "review", source, rows: lines, meta: { claimsBatchId, lines: lines.length, sample, createdOn: todayISO() } });
-  EventBus.emitLocal(EV, { id, kind: "review" });
+  EventBus.emitLocal(EV, { id, kind: "review", claimsBatchId, origin });
   return Batches.get(id);
 }
 export async function ingestClaimsFile(file) {
@@ -174,8 +177,9 @@ export function tariffRows(nameOf = () => "") {
   return Object.entries(Tariff.all()).map(([code, e]) => ({ code, name: nameOf(code) || "", price: priceOf(e) })).filter(r => r.price);
 }
 
-/* ── 청구 배치 strip (rendered in #kcd-batch-strip and #jabo-batch-strip) ── */
-export function renderBatchStrip(host, { onFile } = {}) {
+/* ── 청구 배치 strip — FULL on the 청구 배치 landing (#claims-batch-strip: picker · 새 파일); COMPACT inside 상병 정비 /
+   심사결과 대조 (#kcd-batch-strip · #jabo-batch-strip): one line naming the current batch + a link back to the landing. ── */
+export function renderBatchStrip(host, { onFile, compact = false } = {}) {
   if (!host) return;
   const cur = currentClaimsBatch();
   const list = Batches.list("claims");
@@ -187,6 +191,17 @@ export function renderBatchStrip(host, { onFile } = {}) {
       <span class="batch-main"><strong>${esc(cur.source || "—")}</strong> · ${esc(t("jabo.batch.stmts", { n: cur.meta?.stmts ?? cur.rows.length }))} · ${esc(t("jabo.batch.patients", { n: cur.meta?.patients ?? 0 }))}${cur.meta?.month ? ` · <span class="code">${esc(cur.meta.month)}</span>` : ""}</span>
       ${partialPill(cur)}${cur.meta?.sample ? `<span class="pill">${esc(t("jabo.batch.sample"))}</span>` : ""}`
     : `<span class="pill info">${esc(t("jabo.batch.title"))}</span><span class="batch-main batch-empty">${esc(t("jabo.batch.empty"))}</span>`;
+  if (compact) {
+    host.innerHTML = `
+    <div class="batch-strip compact">
+      ${main}
+      <div class="batch-actions">
+        <button type="button" class="ghost" data-batch-open>${esc(t("jabo.batch.open"))}</button>
+      </div>
+    </div>`;
+    host.querySelector("[data-batch-open]").addEventListener("click", () => activateTab("tab-claims"));
+    return;
+  }
   host.innerHTML = `
     <div class="batch-strip">
       ${main}

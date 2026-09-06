@@ -2,22 +2,25 @@
 /* clinic-admin — integrated end-to-end run (headless Chrome via Playwright).
    Serves the repo root on :8501, blocks every external host (PocketBase, jsdelivr, Google Fonts),
    mocks the Claude proxy with a forced tool_use answer, then drives the whole app once:
-   first-run workspace → 기관 정보 step → sample seed (shared entities + every tab) → the CONNECTED STORY across the
-   one fictional clinic (02 reconciliation cuts on ****0142 → 01 focused on a 명세서 → 07 prefilled from a 01 row / a
-   02 row → 07 fills a 02 case → 06 checks a code, shows 우리 단가, inserts an item → 03 cross-check against the shared
-   claims batch → 04 org read-only + cadence + 고지문 → 05 aliases → 09 derived badges → 00 KPIs / deadline ctx / accred
-   deep link) → 2nd user → master upload → AI canned + live (consent → redaction preview → mocked tool_use) →
-   license add/OCR/.ics → accred toggle → board pid picker → 데이터 처리 현황 (zero 미등록) → no plaintext names in
-   localStorage/IndexedDB → lock/unlock as a SEEDED login (정수아 · PIN 0000) → audit log shape → encrypted backup v2 →
-   전체 파기 → restore → reload persistence → legacy-key migration + activateTab ctx + Batches cap + v1 backup restore.
+   first-run workspace → 기관 정보 step → welcome deck (five areas + two utilities) → sample seed (shared entities + every
+   tool; lands on 홈 with the todo list populated) → the CONNECTED STORY across the one fictional clinic (심사결과 대조 cuts
+   on ****0142 → 상병 정비 focused on a 명세서 → AI DRAWER prefilled from a 상병 row / a 대조 row → drawer fills a 자보 case →
+   SEARCH OVERLAY checks a code, shows 우리 단가, inserts an item → 청구 배치 landing: batch card + 3 steps → 연말정산
+   cross-check → 비급여 org read-only + cadence + 고지문 → 보존 aliases → 인증 derived badges → 홈 todo/KPIs/deadline ctx/
+   accred deep link) → IA chrome: area switching + breadcrumb, `[` `]` + digit keys, bottom bar / sub-nav on the phone,
+   tab-search {query} / {section:"masters"} routing → 2nd user → master upload (조직 › 마스터) → AI canned + live
+   (consent → redaction preview → mocked tool_use) → roster add/OCR/.ics → accred toggle → 환자 › 접수 보드 pid picker →
+   조직 › 데이터 처리 현황 panel (zero 미등록) → no plaintext names in localStorage/IndexedDB → lock/unlock as a SEEDED
+   login (정수아 · PIN 0000) → audit log shape → encrypted backup v2 → 전체 파기 → restore → reload persistence →
+   legacy-key migration + activateTab ctx + Batches cap + v1 backup restore.
    Then an ENGLISH pass on a fresh profile: i18n coverage gate (tools/i18n-extract.mjs → 0 missing keys), toggle EN on
-   the lock screen before setup, every tab's headings/buttons/table headers/labels/pills/caveats free of Hangul (glosses
-   in parentheses and sample values excepted), KO round-trip keeps the result tables, EN export headers + watermark,
-   reload persists EN, `?lang=en` boots a fresh profile in English.
+   the lock screen before setup, every panel + the overlay + the drawer free of Hangul in headings/buttons/table headers/
+   labels/pills/caveats (glosses in parentheses and sample values excepted), KO round-trip keeps the result tables, EN
+   export headers + watermark, reload persists EN, `?lang=en` boots a fresh profile in English.
    Zero page errors + zero console errors (blocked-host resource failures excepted) is asserted.
 
    Run:  node clinic-admin/tools/e2e.mjs            (desktop 1280×900)
-         node clinic-admin/tools/e2e.mjs --mobile   (390×844 smoke: same flow + no horizontal overflow)
+         node clinic-admin/tools/e2e.mjs --mobile   (390×844 smoke: same flow via bottom bar / sub-nav / ⋯ sheet + no horizontal overflow)
    Needs a Playwright install: set PLAYWRIGHT_DIR, or it looks for one under ~/.npm/_npx. */
 import { createServer } from "node:http";
 import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
@@ -149,27 +152,55 @@ const ent = (p, fn) => p.evaluate(async (src) => {
   const { activateTab } = await import("./js/core/nav.js"); const C = await import("./js/security/crypto.js"); const cal = await import("./js/core/calendar.js");
   return (new Function("E", "Session", "Store", "EventBus", "activateTab", "C", "cal", "ActivityLog", `return (${src})(E, Session, Store, EventBus, activateTab, C, cal, ActivityLog)`))(E, Session, Store, EventBus, activateTab, C, cal, ActivityLog);
 }, fn.toString());
-async function railClick(id) {
-  if (MOBILE) { await $("#hamburger").click(); await wait(350); } // drawer slides in over .25s — click only once it has settled
-  await $(id).click();
-  if (MOBILE) await page.evaluate(() => document.body.classList.remove("rail-open"));
+// Area of every panel — mirrors js/core/nav.js TABS (the chrome the user actually clicks: area → panel).
+const AREA_OF = { "tab-today": "home", "tab-board": "patients", "tab-claims": "claims", "tab-kcd": "claims", "tab-jabo": "claims", "tab-yearend": "records", "tab-bigeup": "records", "tab-retention": "records", "tab-org": "org", "tab-license": "org", "tab-accred": "org", "tab-privacy": "org", "tab-masters": "org" };
+/* Rail-foot buttons (lock · users · privacy · info · wipe · language). Phone: they live in the ⋯ sheet opened from the bottom bar. */
+async function railClick(id, p = page) {
+  if (MOBILE) { await p.locator("#bottombar-more").click(); await p.waitForTimeout(350); } // sheet slides up over .25s
+  await p.locator(id).click();
+  if (MOBILE) await p.evaluate(() => document.body.classList.remove("more-open"));
 }
-async function goTab(panel) {
-  await railClick(`.rail-btn[data-panel="${panel}"]`);
-  await page.waitForSelector(`#${panel}.active`);
+/* Panel navigation through the real chrome: desktop = rail area button → panel button inside the expanded area;
+   phone = bottom-bar area → sub-nav segment. Any open utility (drawer / overlay) is closed first, as a user would. */
+async function goTab(panel, p = page) {
+  if (await p.locator("#search-scrim.open").count()) { await p.keyboard.press("Escape"); await p.waitForFunction(() => !document.querySelector("#search-scrim")?.classList.contains("open")); }
+  if (await p.locator("#ai-drawer.open").count()) { await p.locator("#ai-drawer-close").click(); await p.waitForFunction(() => !document.querySelector("#ai-drawer")?.classList.contains("open")); }
+  const area = AREA_OF[panel];
+  if (MOBILE) {
+    await p.locator(`#bottombar .area-btn[data-area="${area}"]`).click();
+    const seg = p.locator(`#subnav [data-panel="${panel}"]`);
+    if (await seg.count()) await seg.click();
+  } else {
+    await p.locator(`#rail-areas .area-btn[data-area="${area}"]`).click();
+    const btn = p.locator(`#rail-areas .area-panels[data-area="${area}"] [data-panel="${panel}"]`);
+    if (await btn.count()) await btn.click();
+  }
+  await p.waitForSelector(`#${panel}.active`);
+}
+/* The two utilities. */
+async function openAi(p = page) {
+  if (!(await p.locator("#ai-drawer.open").count())) await p.locator("#topbar-ai").click();
+  await p.waitForSelector("#ai-drawer.open");
+}
+async function openSearch(query, p = page) {
+  if (!(await p.locator("#search-scrim.open").count())) await p.keyboard.press(process.platform === "darwin" ? "Meta+K" : "Control+K");
+  await p.waitForSelector("#search-scrim.open");
+  if (query != null) { await p.locator("#search-input").fill(query); await p.waitForTimeout(200); }
 }
 async function download(action) {
   const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 15000 }), action()]);
   const path = await dl.path();
   return { name: dl.suggestedFilename(), text: path ? readFileSync(path, "utf8") : "", buf: path ? readFileSync(path) : null };
 }
-async function noOverflow(label) {
-  const r = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, iw: window.innerWidth,
+async function noOverflow(label, p = page) {
+  const r = await p.evaluate(() => ({ sw: document.documentElement.scrollWidth, iw: window.innerWidth,
     shell: (() => { const s = document.querySelector(".frame.shell"); return s ? s.scrollWidth : 0; })(),
-    lock: (() => { const l = document.querySelector("#lock-scrim"); return l ? l.scrollWidth : 0; })() }));
-  ok(r.sw <= r.iw + 1 && r.shell <= r.iw + 1 && r.lock <= r.iw + 1, `${label}: no horizontal overflow (doc ${r.sw} / shell ${r.shell} / lock ${r.lock} ≤ ${r.iw})`);
+    work: (() => { const w = document.querySelector("#work-scroll"); return w ? w.scrollWidth : 0; })(),
+    lock: (() => { const l = document.querySelector("#lock-scrim"); return l ? l.scrollWidth : 0; })(),
+    sheet: (() => { const g = document.querySelector("#search-scrim.open .gsearch, #ai-drawer.open"); return g ? g.scrollWidth : 0; })() }));
+  ok(r.sw <= r.iw + 1 && r.shell <= r.iw + 1 && r.work <= r.iw + 1 && r.lock <= r.iw + 1 && r.sheet <= r.iw + 1, `${label}: no horizontal overflow (doc ${r.sw} / shell ${r.shell} / work ${r.work} / lock ${r.lock} / sheet ${r.sheet} ≤ ${r.iw})`);
 }
-const expandLater = async () => { const m = $("#dday-more"); if (await m.count() && (await m.getAttribute("aria-expanded")) === "false") { await m.click(); await wait(100); } };
+const expandLater = async () => { await page.evaluate(() => { const d = document.querySelector("#home-deadlines"); if (d) d.open = true; }); const m = $("#dday-more"); if (await m.count() && (await m.getAttribute("aria-expanded")) === "false") { await m.click(); await wait(100); } };
 const storeSnapshot = () => page.evaluate(async () => {
   const ls = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); ls[k] = localStorage.getItem(k); }
   const idb = {};
@@ -216,7 +247,10 @@ try {
   const orgNow = await ent(page, (E) => E.Org.get());
   ok(orgNow.name === ORG.name && orgNow.ykiho === ORG.ykiho && orgNow.biz === ORG.biz && orgNow.rep === ORG.rep && orgNow.kind === "병원", `Org.get() = ${JSON.stringify(orgNow)} (biz auto-hyphenated)`);
   ok((await $("#topbar-org-text").innerText()) === ORG.name, "topbar org chip shows the institution name");
-  ok((await $("#welcome-scrim").innerText()).includes("마스터"), "welcome deck mentions 마스터 업로드");
+  const welcomeKo = await $("#welcome-scrim").innerText();
+  ok(welcomeKo.includes("마스터"), "welcome deck mentions 마스터 업로드");
+  ok(/다섯 영역/.test(welcomeKo) && ["홈", "환자", "청구", "보고·기록", "조직", "검색", "AI 어시스트"].every(w => welcomeKo.includes(w)) && !/10개 탭|\b0\d\b/.test(welcomeKo), "first-run deck describes the five areas + two utilities, no tab numbers");
+  ok((await $("#rail-areas .area-btn").count()) === 5 && (await $("#rail-areas [data-panel]").count()) === 13 && (await $("#rail-areas .num").count()) === 0, "rail: 5 areas · 13 panels · no numbers");
 
   /* 2 · seed */
   at("샘플 데이터로 둘러보기 (seed-all → shared entities + every tab, awaited in order)");
@@ -227,6 +261,10 @@ try {
   await page.waitForFunction((k) => JSON.parse(localStorage.getItem(k) || "{}").users?.length === 4, WS_KEY, { timeout: 20000 }); // 3 seeded logins (PBKDF2 each)
   await wait(900); // debounced persists (tariff burst, drafts)
   ok((await $("#lic-list .lic").count()) === 8, "seed → 7 clinic staff + the workspace creator = 8 roster rows");
+  ok(await page.evaluate(() => document.querySelector("#tab-today")?.classList.contains("active") && document.body.dataset.area === "home"), "seed lands on 홈 (area home)");
+  const todo0 = await page.evaluate(() => Array.from(document.querySelectorAll("#todo-list .todo")).map(el => ({ key: el.dataset.key, link: el.dataset.link, ctx: el.dataset.ctx })));
+  ok(todo0.length >= 1 && todo0.every(x => x.key && x.link && x.ctx !== undefined) && todo0.some(x => x.key.startsWith("dl:lic-")), `홈 todo list populated by the seed (${todo0.length} rows: ${todo0.map(x => x.key).slice(0, 4).join(", ")}…)`);
+  ok(!(await $("#tab-today .intake-board").count()) && (await $("#tab-board .intake-board").count()) === 1, "접수 보드 moved out of 홈 into 환자 › 접수 보드");
   const seeded = await ent(page, (E) => ({ staff: E.Staff.list().map(s => [s.name, s.job, !!s.userId]), patients: E.Patients.list().map(p => p.pid), tags: E.Patients.get("P-2026-0142")?.tags, insurer: E.Insurers.lastUsed(), alias: E.Patients.alias("P-2026-0142"), batches: E.Batches.list().map(b => [b.kind, b.source, b.count]) }));
   ok(seeded.staff.filter(([, , login]) => login).length === 4 && seeded.staff.some(([n, j, l]) => n === "윤지훈" && j === "한의사" && l) && seeded.staff.some(([n, j]) => n === "정수아" && j === "행정"), `roster: ${seeded.staff.map(([n, j, l]) => `${j} ${n}${l ? "🔑" : ""}`).join(", ")}`);
   ok(seeded.patients.length === 5 && PIDS.every(p => seeded.patients.includes(p)) && seeded.tags?.includes("자보") && seeded.alias === "환자 ****0142", `patients: ${seeded.patients.join(", ")} · alias "${seeded.alias}"`);
@@ -237,7 +275,7 @@ try {
   ok(!ALL_NAMES.some(n => chip.includes(n)), `topbar due chip carries no name (“${chip}”)`);
 
   /* 2b · the connected story, part 1 — 00 오늘 right after the seed */
-  at("00 오늘 — KPIs from the seeded reconciliation, no nudges, resume cards, deadlines carry ctx");
+  at("홈 — KPIs from the seeded reconciliation, no nudges, resume cards, deadlines carry ctx, todo rows deep-link");
   ok(await page.evaluate(() => document.querySelector("#today-nudges")?.style.display === "none"), "no nudges (org complete · roster filled)");
   ok(await page.evaluate(() => document.querySelector("#kpi-empty")?.style.display === "none"), "KPI empty-state hidden");
   const kpi = { n: await $("#ins-jabo").innerText(), sub: await $("#ins-jabo-sub").innerText(), cut: await $("#ins-cut").innerText(), cutSub: await $("#ins-cut-sub").innerText(), reason: await $("#ins-reason").innerText(), ins: await $("#ins-insurer").innerText(), insSub: await $("#ins-insurer-sub").innerText() };
@@ -251,6 +289,12 @@ try {
   const ddays = await page.evaluate(() => Array.from(document.querySelectorAll("#dday-list .dday")).map(el => ({ key: el.dataset.key, ctx: el.dataset.ctx ? JSON.parse(el.dataset.ctx) : null })));
   ok(ddays.some(d => d.key.startsWith("bigeup") && /^\d{4}-\d{2}$/.test(d.ctx?.refMonth)) && ddays.some(d => d.key === "yearend" && Number.isInteger(d.ctx?.taxYear)) && ddays.some(d => d.key.startsWith("lic-") && d.ctx?.staffId), `dashboard deadlines carry ctx (${ddays.length} rows: refMonth / taxYear / staffId)`);
   ok(/자동 판정 미충족/.test(await $("#ins-accred-sub").innerText()), "accred tile names failing auto-judged items");
+  ok(await page.evaluate(() => { const b = document.querySelector("#todo-list .todo[data-key^=\"batch:\"]"); return !b; }), "both claim steps done after the seed → no batch todo row");
+  const licTodo = await page.evaluate(() => { const el = document.querySelector("#todo-list .todo[data-key^=\"dl:lic-\"]"); if (!el) return null; const ctx = JSON.parse(el.dataset.ctx); el.querySelector("[data-todo-go]").click(); return { link: el.dataset.link, ctx }; });
+  ok(licTodo && licTodo.link === "tab-license" && licTodo.ctx.staffId, `todo row carries link + ctx (${JSON.stringify(licTodo)})`);
+  await page.waitForSelector("#tab-license.active");
+  ok((await $(`#lic-list .lic.highlight[data-id="${licTodo.ctx.staffId}"]`).count()) === 1 && (await $("#crumb-section").innerText()) === "조직" && (await $("#crumb-tab").innerText()) === "직원 명부", "todo → 조직 › 직원 명부 with the row highlighted; crumb = area › panel");
+  await goTab("tab-today");
 
   /* 3 · second user — the 사용자 panel is a view over roster logins */
   at("add 2nd user (행정) via the users panel → linked roster row");
@@ -268,9 +312,10 @@ try {
   /* 4 · the connected story, part 2 — claims tabs on the ONE shared batch */
   at("02 자보 — reconciliation of the shared 2026-08 batch: cuts on ****0142, insurer on the history entry");
   await goTab("tab-jabo");
-  ok((await $("#crumb-tab").innerText()) === "자보 정산", "crumb shows the nav label");
+  ok((await $("#crumb-section").innerText()) === "청구" && (await $("#crumb-tab").innerText()) === "심사결과 대조", "crumb shows area › panel labels");
   const strip02 = (await $("#jabo-batch-strip").innerText()).replace(/\s+/g, " ");
-  ok(/청구 배치/.test(strip02) && /명세서 12건/.test(strip02) && /환자 5명/.test(strip02) && /2026-08/.test(strip02) && /샘플/.test(strip02), `batch strip: 12 명세서 · 5 환자 · 2026-08 · 샘플 (${strip02.slice(0, 100)})`);
+  ok(/청구 배치/.test(strip02) && /명세서 12건/.test(strip02) && /환자 5명/.test(strip02) && /2026-08/.test(strip02) && /샘플/.test(strip02), `compact batch strip: 12 명세서 · 5 환자 · 2026-08 · 샘플 (${strip02.slice(0, 100)})`);
+  ok((await $("#jabo-batch-strip .batch-strip.compact [data-batch-open]").count()) === 1 && (await $("#jabo-batch-strip [data-batch-new]").count()) === 0, "strip collapsed to one line linking back to 청구 배치 (no 새 파일 here)");
   ok(/12건/.test(await $("#jabo-recon-summary").innerText()), "summary: 12 명세서");
   const reconRows = await $("#jabo-recon-result tbody tr").count();
   ok(reconRows === 42 && (await $("#jabo-recon-result tr.orphan").count()) === 1, `41 lines + 1 orphan review line (${reconRows})`);
@@ -312,17 +357,19 @@ try {
     return r;
   });
   ok(missingRow && /^P-2026-/.test(missingRow.pid), `clicked AI에게 묻기 on a 미수록 row (${missingRow?.stmt} · ${missingRow?.input})`);
-  await page.waitForSelector("#tab-ai.active");
+  await page.waitForSelector("#ai-drawer.open");
+  ok((await $("#tab-kcd.active").count()) === 1 && await page.evaluate(() => document.body.classList.contains("ai-open") && document.querySelector("#topbar-ai")?.getAttribute("aria-expanded") === "true"), "AI opens as a DRAWER over 상병 정비 (panel stays active, topbar ✦ expanded)");
   const note1 = await $("#ai-input").inputValue();
   ok(note1.includes(missingRow.input) && note1.includes(missingRow.stmt) && !note1.includes(missingRow.pid), "07 note carries code + 명세서, alias instead of the raw pid");
   const ctx1 = await $("#ai-ctx").innerText();
   ok(!(await page.evaluate(() => document.querySelector("#ai-ctx").hidden)) && ctx1.includes("****" + missingRow.pid.slice(-4)) && ctx1.includes(missingRow.stmt), `07 ctx chip: ${ctx1.replace(/\s+/g, " ")}`);
 
-  at("02 row (site_mismatch) → 07 prefilled → canned run → 이 코드로 자보 케이스 채우기 → 02 manual case");
+  at("대조 row (site_mismatch) → AI drawer prefilled with ctx → canned run → 이 코드로 자보 케이스 채우기 → manual case");
   await goTab("tab-jabo");
+  ok(!(await $("#ai-drawer.open").count()), "navigating through the chrome closed the drawer");
   ok((await $('#jabo-recon-result button[data-act="ask"]').count()) === 2, "AI에게 묻기 only on site_mismatch / dup_same_site rows (2)");
   await clickRowBtn("#jabo-recon-result", "M2608-0001", 'button[data-act="ask"]');
-  await page.waitForSelector("#tab-ai.active");
+  await page.waitForSelector("#ai-drawer.open");
   const note2 = await $("#ai-input").inputValue();
   ok(/M2608-0001/.test(note2) && /예시-13/.test(note2) && /S13\.4/.test(note2) && /부위 불일치/.test(note2) && !/P-2026-0142/.test(note2), `prefill carries 명세서 · dx · code · reason (${note2.slice(0, 70)}…)`);
   ok(/\*\*\*\*0142/.test(await $("#ai-ctx").innerText()) && /M2608-0001/.test(await $("#ai-ctx").innerText()), "ctx chip: ****0142 · M2608-0001");
@@ -339,12 +386,15 @@ try {
   ok((await $("#jabo-pid").inputValue()) === "P-2026-0142" && (await $("#jabo-insurer").inputValue()) === "삼성", "pid from the note ctx, insurer defaulted to Insurers.lastUsed");
   ok(/케이스 채움/.test(await $("#jabo-status").innerText()), "manual status confirms the hand-off");
 
-  at("07 row → 06 검색에서 확인 · 06 shows 우리 단가 from the seeded Tariff · insert → 02 item");
-  await goTab("tab-ai");
+  at("AI row → 검색에서 확인 opens the ⌘K overlay prefilled · 우리 단가 from the seeded Tariff · insert → 자보 item");
+  await openAi();
+  ok((await $("#ai-input").inputValue()).length > 0 && /\*\*\*\*0142/.test(await $("#ai-ctx").innerText()), "reopening the drawer from the topbar keeps the note + ctx (workbench, not a dialog)");
   await page.evaluate(() => document.querySelector("#ai-output button[data-check]").click());
-  await page.waitForSelector("#tab-search.active");
+  await page.waitForSelector("#search-scrim.open");
   await page.waitForSelector("#search-result table");
-  ok((await $("#search-input").inputValue()) === "S13.4" && /경추의 염좌/.test(await $("#search-result").innerText()), "06 searched the code");
+  ok((await $("#search-input").inputValue()) === "S13.4" && /경추의 염좌/.test(await $("#search-result").innerText()), "overlay searched the code");
+  ok((await $("#search-nav-results .palette-item, #search-nav-results .palette-empty").count()) >= 1 && /코드/.test(await $(".gsearch-codes-head .palette-section-label").innerText()), "overlay groups: 이동·명령 list (empty for a bare code) + 코드 table");
+  if (MOBILE) await noOverflow("search overlay (phone sheet)");
   await $("#search-input").fill("약침"); await wait(250);
   await page.waitForSelector("#search-result table");
   const tariffCells = await page.evaluate(() => Array.from(document.querySelectorAll("#search-result td.tariff strong")).map(e => e.textContent));
@@ -361,7 +411,7 @@ try {
   await page.evaluate(() => document.querySelector('#search-result tr.insert-row button[data-ins="jabo-item"]').click());
   await page.waitForSelector("#tab-jabo.active");
   await page.waitForFunction((n) => document.querySelectorAll("#jabo-items .item-row").length === n + 1, before);
-  ok(true, `06 insert added 예시-04 to the 02 case (${before} → ${before + 1})`);
+  ok(!(await $("#search-scrim.open").count()), `overlay insert added 예시-04 to the 자보 case and closed itself (${before} → ${before + 1})`);
   const sa = await page.evaluate(async () => { const { searchAll } = await import("./js/tabs/tab6-search.js"); const r = searchAll("요통"); return { n: r.length, keys: Object.keys(r[0] || {}), kcd: r.some(x => x.source === "kcd" && x.edi === "M545") }; });
   ok(sa.n > 0 && sa.kcd && ["source", "origin", "code", "edi", "name", "flags", "tariff"].every(k => sa.keys.includes(k)), `searchAll("요통") → ${sa.n} rows, shape ok`);
 
@@ -381,6 +431,20 @@ try {
   await $("#jabo-new-same").click();
   await page.waitForFunction(() => document.querySelectorAll("#jabo-items .item-row").length === 0);
   ok((await $("#jabo-pid").inputValue()) === "P-2026-0142" && (await $("#jabo-dx").inputValue()) === "S134", "same-accident: pid + dx kept, items cleared");
+
+  at("청구 › 청구 배치 — landing: full strip, batch card, 3 steps derived from kcd.lastSummary / recon history");
+  await goTab("tab-kcd");
+  await $("#kcd-batch-strip [data-batch-open]").click();
+  await page.waitForSelector("#tab-claims.active");
+  ok((await $("#claims-batch-strip [data-batch-new]").count()) === 1, "compact strip → landing; the landing's strip is the full one (새 파일)");
+  const steps = await page.evaluate(() => Array.from(document.querySelectorAll("#claims-steps .claims-step")).map(li => ({ key: li.dataset.step, state: [...li.classList].find(c => ["idle", "todo", "need", "done", "soon"].includes(c)), disabled: li.querySelector("button").disabled })));
+  ok(steps.length === 3 && steps[0].key === "kcd" && steps[0].state === "done" && steps[1].key === "recon" && steps[1].state === "done" && steps[2].key === "appeal" && steps[2].state === "soon" && steps[2].disabled, `steps: ${steps.map(s => `${s.key}=${s.state}`).join(" · ")}`);
+  const card = (await $("#claims-batch-card").innerText()).replace(/\s+/g, " ");
+  ok(/12/.test(card) && /2026-08/.test(card) && /심사결과 연결/.test(card), `batch card: 12 명세서 · 2026-08 · review linked (${card.slice(0, 80)})`);
+  await page.evaluate(() => document.querySelector('#claims-steps [data-step-go="recon"]').click());
+  await page.waitForSelector("#tab-jabo.active");
+  ok(true, "step button → 심사결과 대조");
+  if (MOBILE) { await goTab("tab-claims"); await noOverflow("청구 배치 landing"); }
 
   /* 5 · the connected story, part 3 — reporting tabs on the same entities */
   at("03 연말정산 — org read-only, cross-check against the shared claims batch, 3 issues, batch without names");
@@ -405,10 +469,15 @@ try {
   const yeDl = await download(() => $("#ye-download").click());
   ok(/_PoC\.csv$/.test(yeDl.name) && yeDl.text.includes("PoC — 실제 제출 불가") && yeDl.text.includes(ORG.ykiho), "CSV watermark row + filename + org header columns");
   await page.evaluate(() => document.querySelector("#ye-org [data-org-edit]").click());
-  await page.waitForSelector("#tab-today.active");
+  await page.waitForSelector("#tab-org.active");
+  ok((await $("#orgpanel-name").inputValue()) === ORG.name, "「기관 정보 수정」 → 조직 › 기관 프로필 panel with the profile loaded");
+  await ent(page, (E, S, St, EventBus) => EventBus.emitLocal("shell:openInfo", { section: "org" }));
+  ok((await $("#tab-org.active").count()) === 1, "shell:openInfo (legacy event) still routes to the org panel");
+  await railClick("#rail-info");
   await page.waitForSelector("#info-scrim.open");
-  ok((await $("#orginfo-name").inputValue()) === ORG.name, "「기관 정보 수정」 → 00 → shell:openInfo → ⓘ editor with the profile");
+  ok(/한솔한방병원/.test(await $("#info-org").innerText()) && (await $("#info-org input").count()) === 0 && (await $("#info-org [data-org-edit]").count()) === 1, "ⓘ modal keeps a READ-ONLY org summary + link (no editor)");
   await $("#info-close").click(); await closed("#info-scrim");
+  await goTab("tab-yearend");
 
   at("04 비급여 — org read-only, cadence from Org.kind, 28 rows filled by the seed, 가격 고지문");
   await goTab("tab-bigeup");
@@ -439,14 +508,27 @@ try {
   const retB = await ent(page, (E, S, Store) => { const b = E.Batches.latest("retention"); const a = Store.get("retention.lastAudit"); return { n: b?.rows.length, pid: b?.rows[0]?.pid, over: a?.over, bad: a?.bad }; });
   ok(retB.n === 9 && retB.pid === "P-2026-0142" && retB.over > 0 && retB.bad === 1, `retention batch stored with pids · audit over=${retB.over} bad=${retB.bad}`);
 
-  at("06 검색 — '요통' with source badge");
-  await goTab("tab-search");
+  at("검색 overlay — demo CTA '요통' with source badge · ⌘K toggles · Esc closes");
   await runDemo("run-search");
+  await page.waitForSelector("#search-scrim.open");
   await page.waitForSelector("#search-result table");
   ok((await $("#search-result tbody tr").count()) > 0 && (await $("#search-result .src-pill.demo").count()) > 0, "results with 데모 발췌 badge");
-  ok((await $("#search-source-badge .src-pill.demo").count()) === 2, "source badge: 상병 + 행위 both 데모");
+  ok((await $("#search-source-badge .src-pill.demo").count()) === 2, "masters panel source badge: 상병 + 행위 both 데모");
+  await page.keyboard.press("Escape"); await closed("#search-scrim");
+  await openSearch();
+  ok((await $("#search-input").inputValue()) === "" && (await $("#search-nav-results .palette-item").count()) >= 13, "⌘K opens an empty overlay listing every panel + commands");
+  await page.keyboard.press(process.platform === "darwin" ? "Meta+K" : "Control+K"); await closed("#search-scrim");
+  ok(true, "⌘K again closes it");
+  const routed = await ent(page, (E, S, St, Ev, activateTab) => { activateTab("tab-search", { query: "추나" }); return document.querySelector("#search-scrim").classList.contains("open") && document.querySelector("#search-input").value; });
+  ok(routed === "추나", `activateTab("tab-search", { query }) opens the overlay prefilled (${routed})`);
+  await page.waitForSelector("#search-result table");
+  await page.keyboard.press("Escape"); await closed("#search-scrim");
+  await ent(page, (E, S, St, Ev, activateTab) => activateTab("tab-search", { section: "masters" }));
+  await page.waitForSelector("#tab-masters.active");
+  await page.waitForSelector("#tab-masters .master-upload.flash");
+  ok((await $("#crumb-section").innerText()) === "조직" && (await $("#crumb-tab").innerText()) === "마스터 업로드", "activateTab('tab-search', { section: 'masters' }) is routed to 조직 › 마스터 업로드");
 
-  at("06 master upload — tiny KOICD-shaped xlsx → badge flips in tabs 1/6");
+  at("조직 › 마스터 업로드 — tiny KOICD-shaped xlsx → badge flips in 상병 정비 + masters panel");
   const xlsxBytes = await page.evaluate(() => {
     const rows = [{ 상병기호: "M545", 한글명: "요통", 영문명: "Low back pain", 완전코드구분: "Y" }, { 상병기호: "M542", 한글명: "경부통", 영문명: "Cervicalgia", 완전코드구분: "Y" }, { 상병기호: "S134", 한글명: "경추의 염좌 및 긴장", 영문명: "", 완전코드구분: "Y" }, { 상병기호: "M75", 한글명: "어깨병변", 영문명: "", 완전코드구분: "N" }];
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), "KOICD");
@@ -464,18 +546,19 @@ try {
   await page.waitForFunction(() => (document.querySelector("#kcd-result")?.textContent || "").includes("업로드 마스터 미수록"));
   ok(true, "re-run compares against the uploaded master (미수록 wording)");
   await page.evaluate(() => document.querySelector("#kcd-master-badge [data-masters]").click());
-  await page.waitForSelector("#tab-search.active");
-  await page.waitForSelector("#tab-search .master-upload.flash");
-  ok(true, "01 source badge → 06 masters section");
+  await page.waitForSelector("#tab-masters.active");
+  await page.waitForSelector("#tab-masters .master-upload.flash");
+  ok(true, "상병 정비 source badge → 조직 › 마스터 업로드 (flashed)");
 
-  at("07 AI — canned run → 예시 모드 pill, seed ctx ****0142 · M2608-0001");
-  await goTab("tab-ai");
+  at("AI drawer — canned run → 예시 모드 pill, seed ctx ****0142 · M2608-0001");
+  await openAi();
+  if (MOBILE) await noOverflow("AI drawer (phone sheet)");
   ok(await page.evaluate(() => document.querySelector('#ai-source button[data-source="canned"]').classList.contains("active")), "default source is 예시");
   await runDemo("run-ai");
   await page.waitForFunction(() => { const p = document.querySelector("#ai-mode-pill"); return p && !p.hidden && p.textContent.includes("예시 모드"); }, null, { timeout: 8000 });
   ok(/\*\*\*\*0142/.test(await $("#ai-ctx").innerText()) && /M2608-0001/.test(await $("#ai-ctx").innerText()), "07 sample note is ****0142's (M2608-0001)");
 
-  at("07 AI — live: consent → redaction preview → mocked tool_use → 라이브 pill · system prompt carries Org + tariff");
+  at("AI drawer — live: consent → redaction preview → mocked tool_use → 라이브 pill · system prompt carries Org + tariff");
   await $('#ai-source button[data-source="live"]').click();
   await $("#ai-input").fill(LIVE_NOTE);
   await $("#ai-run").click();
@@ -498,8 +581,9 @@ try {
   ok(sys.includes(ORG.name) && sys.includes("한방병원 (병원급)") && sys.includes("<clinic_tariff") && sys.includes("예시-01"), "system prompt carries the Org (종별 병원급) and the clinic tariff");
   ok((await $("#ai-output").innerText()).includes("S13.4"), "mocked tool_use parsed + rendered");
 
-  at("08 명부 — add staff, login issue/revoke round trip, OCR unit, .ics with _PoC");
+  at("조직 › 직원 명부 — add staff, login issue/revoke round trip, OCR unit, .ics with _PoC");
   await goTab("tab-license");
+  ok(!(await $("#ai-drawer.open").count()), "opening a panel from the chrome closes the drawer");
   await $("#lic-role").selectOption("간호사"); await $("#lic-name").fill("오하늬"); await $("#lic-acquired").fill("2020-01-01");
   await $("#lic-add-btn").click();
   await page.waitForFunction(() => document.querySelectorAll("#lic-list .lic").length === 10);
@@ -528,7 +612,7 @@ try {
   const staffCtx = await ent(page, (E, S, St, Ev, activateTab) => { const s = E.Staff.list().find(x => x.name === "김도현"); activateTab("tab-today"); activateTab("tab-license", { staffId: s.id }); return s.id; });
   ok((await $(`#lic-list .lic.highlight[data-id="${staffCtx}"]`).count()) === 1, "activateTab('tab-license', { staffId }) highlights that row");
 
-  at("09 인증 — derived badges judge the seeded roster / tariff / audits; toggle one manual item");
+  at("조직 › 인증 자체점검 — derived badges judge the seeded roster / tariff / audits; toggle one manual item");
   await goTab("tab-accred");
   ok((await $(".accred-item.derived").count()) === 5, "5 derived items");
   const auto = await page.evaluate(() => Object.fromEntries(Array.from(document.querySelectorAll(".accred-item.derived")).map(el => [el.dataset.id, { cls: el.querySelector(".accred-auto").className, txt: el.querySelector(".accred-auto").textContent.replace(/\s+/g, " ").trim() }])));
@@ -542,7 +626,7 @@ try {
   await page.waitForFunction((b) => document.querySelector("#accred-summary strong")?.textContent !== b, before9);
   ok(true, `accred count changed (${before9} → ${await $("#accred-summary strong").innerText()})`);
 
-  at("00 오늘 — deadline rows open 04/03 with ctx, accred tile deep-links, .ics with _PoC, feed carries no names");
+  at("홈 — deadline rows open 비급여/연말정산 with ctx, accred tile deep-links, .ics with _PoC, feed carries no names");
   await goTab("tab-today");
   await expandLater();
   const bg = ddays.find(d => d.key.startsWith("bigeup"));
@@ -564,11 +648,48 @@ try {
   const dd = await download(() => $("#dday-ics").click());
   ok(/_PoC\.ics$/.test(dd.name) && dd.text.includes("X-POC-NOTICE:PoC"), `deadline .ics watermarked (${dd.name})`);
   await expandLater();
+  await page.evaluate(() => { const d = document.querySelector("#home-activity"); if (d) d.open = true; });
   const dashText = await $("#dday-list").innerText() + await $("#act-feed").innerText();
   ok(!ALL_NAMES.some(n => dashText.includes(n)), "dashboard deadlines + activity feed contain no full names");
   ok(/한의사 윤○○|간호사 김○○|물리치료사 이○○/.test(dashText), "dashboard uses job + initial for staff (calendar.staffDeadlines over Staff)");
 
-  at("접수 보드 — pid picker over Patients, alias labels, no names");
+  at("IA chrome — area switching remembers the last panel, breadcrumb, `[` `]` cycle, digit keys jump areas");
+  await goTab("tab-license"); await goTab("tab-jabo");
+  await (MOBILE ? $('#bottombar .area-btn[data-area="org"]') : $('#rail-areas .area-btn[data-area="org"]')).click();
+  await page.waitForSelector("#tab-license.active");
+  ok((await $("#crumb-section").innerText()) === "조직" && (await $("#crumb-tab").innerText()) === "직원 명부", "area 조직 → returns to its last-visited panel (직원 명부)");
+  await (MOBILE ? $('#bottombar .area-btn[data-area="claims"]') : $('#rail-areas .area-btn[data-area="claims"]')).click();
+  await page.waitForSelector("#tab-jabo.active");
+  ok(await page.evaluate(() => document.body.dataset.area === "claims" && document.querySelector('#rail-areas .area-panels[data-area="claims"]').classList.contains("active") && !document.querySelector('#rail-areas .area-panels[data-area="org"]').classList.contains("active")), "area 청구 → last panel (심사결과 대조); only the active area's panel list is expanded");
+  await (MOBILE ? $('#bottombar .area-btn[data-area="patients"]') : $('#rail-areas .area-btn[data-area="patients"]')).click();
+  await page.waitForSelector("#tab-board.active");
+  ok((await $("#crumb-tab").innerText()) === "접수 보드", "a never-visited area opens its first panel");
+  await page.evaluate(() => document.activeElement?.blur());
+  await page.keyboard.press("3"); await page.waitForSelector("#tab-jabo.active");
+  await page.keyboard.press("]"); await page.waitForSelector("#tab-claims.active");
+  await page.keyboard.press("]"); await page.waitForSelector("#tab-kcd.active");
+  await page.keyboard.press("["); await page.waitForSelector("#tab-claims.active");
+  await page.keyboard.press("1"); await page.waitForSelector("#tab-today.active");
+  ok(true, "keys: 3 → 청구 (last panel), ] ] [ cycle within the area (wraps), 1 → 홈");
+  await goTab("tab-jabo"); await $("#jabo-pid").fill("P-2026-0142"); await $("#jabo-pid").press("]"); await $("#jabo-pid").press("5");
+  ok((await $("#tab-jabo.active").count()) === 1 && (await $("#jabo-pid").inputValue()) === "P-2026-0142]5", "shortcuts are inert while typing in an input");
+  await $("#jabo-pid").fill("P-2026-0142");
+  if (MOBILE) {
+    ok(await page.evaluate(() => { const b = document.querySelector("#bottombar"); return b && getComputedStyle(b).display !== "none" && b.querySelectorAll(".area-btn").length === 5 && getComputedStyle(document.querySelector("#rail")).transform !== "none"; }), "phone: bottom bar with 5 areas + ⋯; the rail is off-screen (⋯ sheet)");
+    ok(await page.evaluate(() => { const s = document.querySelector("#subnav"); return s && !s.hidden && s.querySelectorAll(".subnav-btn").length === 3 && s.querySelector(".subnav-btn.active")?.dataset.panel === "tab-jabo"; }), "phone: sub-nav segmented control lists the 3 청구 panels with the active one marked");
+    await goTab("tab-today");
+    ok(await page.evaluate(() => document.querySelector("#subnav").hidden), "phone: sub-nav hidden for a single-panel area (홈)");
+    await $("#bottombar-more").click(); await wait(350);
+    ok(await page.evaluate(() => document.body.classList.contains("more-open") && document.querySelector("#rail-lock").offsetHeight > 0 && document.querySelector(".rail-foot .lang-toggle").offsetHeight > 0), "phone: ⋯ sheet shows lock/users/privacy/language");
+    await noOverflow("⋯ sheet");
+    await $("#more-scrim").click({ position: { x: 20, y: 20 } }); await page.waitForFunction(() => !document.body.classList.contains("more-open")); // tap above the sheet
+  } else {
+    ok(await page.evaluate(() => getComputedStyle(document.querySelector("#bottombar")).display === "none" && getComputedStyle(document.querySelector("#subnav")).display === "none"), "desktop: no bottom bar / sub-nav");
+  }
+
+  at("환자 › 접수 보드 — pid picker over Patients, alias labels, no names");
+  await goTab("tab-board");
+  ok((await $("#crumb-section").innerText()) === "환자" && (await $("#tab-board .panel-num").innerText()).includes("환자"), "board panel sits under 환자");
   const opts = await page.evaluate(() => Array.from(document.querySelectorAll("#intake-name option")).map(o => [o.value, o.textContent]));
   ok(opts.length === 6 && opts.some(([v, l]) => v === "P-2026-0142" && l.includes("****0142") && l.includes("자보")) && opts.at(-1)[0] === "__new", `picker: ${opts.length} options (5 patients + 새 가명 환자)`);
   await $("#intake-name").selectOption("P-2026-0418"); await $("#intake-summary").fill("경추 통증 · 자보 접수");
@@ -579,12 +700,16 @@ try {
   await $("#intake-name").selectOption("__new"); await $("#intake-add-btn").click();
   await page.waitForFunction(() => document.querySelectorAll("#intake-name option").length === 7);
   ok(true, "새 가명 환자 → a fresh P-YYYY-NNNN registered (picker now 7 options)");
-  if (MOBILE) await noOverflow("shell (today)");
+  if (MOBILE) { await noOverflow("shell (board)"); await goTab("tab-today"); await noOverflow("shell (home)"); }
 
   /* 6 · privacy panel */
-  at("데이터 처리 현황 — zero 미등록 after using every tab");
+  at("조직 › 데이터 처리 현황 — a panel now; zero 미등록 after using every tool");
   await railClick("#rail-privacy");
-  await page.waitForSelector("#privacy-scrim.open");
+  await page.waitForSelector("#tab-privacy.active");
+  ok((await $("#crumb-tab").innerText()) === "데이터 처리 현황" && !(await $("#privacy-scrim").count()), "privacy register opened as the 조직 › 데이터 처리 현황 panel (modal retired)");
+  await page.evaluate(() => document.querySelector("#poc-banner-link").click());
+  ok(await page.evaluate(() => document.querySelector('#tab-privacy [data-privacy-pane="legal"]').classList.contains("active")), "PoC banner link → legal pane of the panel");
+  await page.evaluate(() => document.querySelector('#tab-privacy [data-privacy-tab="status"]').click());
   await page.waitForFunction(() => document.querySelectorAll("#privacy-table tr").length > 5);
   const unreg = await $("#privacy-table tr.unregistered").count();
   ok(unreg === 0, `0 미등록 rows (got ${unreg}: ${(await $("#privacy-table tr.unregistered").allInnerTexts()).join(" | ")})`);
@@ -595,7 +720,7 @@ try {
   const bkJ = JSON.parse(bk.text);
   ok(bkJ.v === 2 && bkJ.keyring.users.every(u => u.staffId) && Object.keys(bkJ.sensitive).includes("staff.list") && Object.keys(bkJ.sensitive).includes("patients.register") && Object.keys(bkJ.sensitive).some(k => k.startsWith("claims.batch.")), "backup is v2: keyring users carry staffId, staff.list + patients.register + claims.batch.* envelopes included");
   ok(!ALL_NAMES.some(n => JSON.stringify({ ...bkJ, keyring: null }).includes(n)), "backup file has no plaintext names outside the keyring (org.profile travels inside the encrypted `plain` bundle)");
-  await $("#privacy-close").click(); await closed("#privacy-scrim");
+  if (MOBILE) await noOverflow("privacy panel");
 
   /* 7 · storage has no plaintext */
   at("localStorage / IndexedDB contain no plaintext names, no legacy keys");
@@ -718,7 +843,7 @@ try {
     localStorage.setItem(NS + "bigeup.profile.bg-date", JSON.stringify("2026-03-01"));
     localStorage.setItem(NS + "bigeup.tariff", JSON.stringify({ "예시-01": { min: "10000", max: "20000", med: "15000", freq: "12" } }));
   }, [LEGACY_STAFF]);
-  await $L("#rail-lock").click().catch(async () => { if (MOBILE) { await $L("#hamburger").click(); await pL.waitForTimeout(350); await $L("#rail-lock").click(); } });
+  await railClick("#rail-lock", pL);
   await pL.waitForSelector("body.locked");
   await pL.locator(".lock-user", { hasText: "홍 원장" }).click();
   await $L("#lock-pin").fill("1234"); await $L("#lock-submit").click();
@@ -741,6 +866,9 @@ try {
   ok(payload.length === 1 && payload[0].ctx?.taxYear === 2025, `one payload ${JSON.stringify(payload)}`);
   const payload2 = await ent(pL, (E, Session, Store, EventBus, activateTab) => new Promise(res => { EventBus.on("tab:activated", p => { if (p?.id === "tab-kcd") res(p); }); activateTab("tab-kcd"); }));
   ok(payload2.id === "tab-kcd" && payload2.ctx === null, "no ctx → ctx: null");
+  const util = await ent(pL, (E, Session, Store, EventBus, activateTab) => new Promise(res => { EventBus.on("tab:activated", p => { if (p?.id === "tab-ai") res({ p, open: document.querySelector("#ai-drawer").classList.contains("open"), panel: document.querySelector(".panel.active")?.id, note: document.querySelector("#ai-input").value }); }); activateTab("tab-ai", { prefill: "M54.5 요통", append: true }); }));
+  ok(util.p.ctx?.prefill === "M54.5 요통" && util.open && util.panel === "tab-kcd" && util.note.includes("M54.5"), `activateTab("tab-ai", ctx) opens the drawer, emits tab:activated { id: "tab-ai", ctx }, leaves the panel (${util.panel}), fills the note`);
+  await $L("#ai-drawer-close").click();
 
   at("Batches: create / list / latest / cap 20 / remove — encrypted claims.batch.* keys");
   const bt = await ent(pL, (E) => {
@@ -768,7 +896,7 @@ try {
     });
   });
   await pL.evaluate(() => { const b = document.querySelector("#rail-privacy"); b && b.click(); });
-  await pL.waitForSelector("#privacy-scrim.open");
+  await pL.waitForSelector("#tab-privacy.active");
   await $L("#privacy-restore").click();
   await pL.waitForSelector("#lock-restore:not([hidden])");
   await $L("#restore-file").setInputFiles({ name: "clinic-admin_backup_v1.json", mimeType: "application/json", buffer: Buffer.from(v1) });
@@ -794,17 +922,16 @@ try {
   watch(p2, "[EN] ");
   await blockAll(p2);
   const $2 = (sel) => p2.locator(sel);
-  const railClick2 = async (id) => { if (MOBILE) { await $2("#hamburger").click(); await p2.waitForTimeout(350); } await $2(id).click(); if (MOBILE) await p2.evaluate(() => document.body.classList.remove("rail-open")); };
-  const goTab2 = async (panel) => { await railClick2(`.rail-btn[data-panel="${panel}"]`); await p2.waitForSelector(`#${panel}.active`); };
-  // Desktop: topbar toggle. Phone: the topbar toggle is hidden, the drawer foot carries it.
+  const goTab2 = (panel) => goTab(panel, p2);
+  // Desktop: topbar toggle. Phone: the topbar toggle is hidden, the ⋯ sheet (rail foot) carries it.
   const setLang2 = async (lang) => {
-    if (MOBILE) { await $2("#hamburger").click(); await p2.waitForTimeout(350); await $2(`.rail-foot .lang-toggle button[data-lang="${lang}"]`).click(); await p2.evaluate(() => document.body.classList.remove("rail-open")); }
+    if (MOBILE) { await $2("#bottombar-more").click(); await p2.waitForTimeout(350); await $2(`.rail-foot .lang-toggle button[data-lang="${lang}"]`).click(); await p2.evaluate(() => document.body.classList.remove("more-open")); }
     else await $2(`.topbar .lang-toggle button[data-lang="${lang}"]`).click();
     await p2.waitForFunction((l) => document.documentElement.lang === l, lang);
   };
   const download2 = async (action) => { const [dl] = await Promise.all([p2.waitForEvent("download", { timeout: 15000 }), action()]); const path = await dl.path(); return { name: dl.suggestedFilename(), text: path ? readFileSync(path, "utf8") : "" }; };
   const panelTexts = (panel) => p2.evaluate((sel) => Array.from(document.querySelectorAll(sel)).map(e => e.textContent), EN_SELECTOR(panel));
-  const noOverflow2 = async (label) => { const r = await p2.evaluate(() => ({ sw: document.documentElement.scrollWidth, iw: window.innerWidth, shell: document.querySelector(".frame.shell")?.scrollWidth || 0, lock: document.querySelector("#lock-scrim")?.scrollWidth || 0 })); ok(r.sw <= r.iw + 1 && r.shell <= r.iw + 1 && r.lock <= r.iw + 1, `[EN] ${label}: no horizontal overflow (doc ${r.sw} / shell ${r.shell} / lock ${r.lock} ≤ ${r.iw})`); };
+  const noOverflow2 = (label) => noOverflow(`[EN] ${label}`, p2);
 
   await p2.goto(BASE, { waitUntil: "domcontentloaded" });
   await p2.waitForSelector("#lock-scrim.open");
@@ -828,6 +955,7 @@ try {
   await p2.waitForSelector("#welcome-scrim.open", { timeout: 15000 });
   const welcomeTxt = await $2("#welcome-scrim .welcome").innerText();
   ok(leftoverHangul([welcomeTxt]).length === 0 && /Tour with sample data/.test(welcomeTxt), `welcome overlay is English (${leftoverHangul([welcomeTxt]).join(" | ") || "no Hangul"})`);
+  ok(/five areas/i.test(welcomeTxt) && /Home · Patients · Claims/.test(welcomeTxt) && /Search/.test(welcomeTxt) && /AI assist/.test(welcomeTxt), "EN deck names the five areas + two utilities");
 
   at("EN: seed → every tab free of Hangul in headings/buttons/headers/labels/pills/caveats");
   await $2("#welcome-seed").click();
@@ -838,25 +966,40 @@ try {
   await p2.waitForTimeout(900);
   ok((await $2("#topbar-org-text").innerText()) === ORG.name, "EN: seed filled the skipped org profile (chip = 한솔한방병원)");
   const crumb2 = await p2.evaluate(() => [document.querySelector("#crumb-section")?.textContent, document.querySelector("#crumb-tab")?.textContent]);
-  ok(crumb2[0] === "Start" && crumb2[1] === "Today", `crumb in English (${crumb2.join(" · ")})`);
+  ok(crumb2[0] === "Home" && crumb2[1] === "Today", `crumb in English (${crumb2.join(" › ")})`);
+  const chromeEn = await p2.evaluate(() => [...document.querySelectorAll("#rail-areas .area-label, #rail-areas [data-panel], #bottombar span, #topbar-search, #topbar-ai, #rail-foot .rail-btn, .rail-foot .rail-btn")].map(e => e.textContent));
+  ok(leftoverHangul(chromeEn).length === 0, `EN: navigation chrome (areas · panels · bottom bar · topbar buttons · ⋯ sheet) free of Hangul (${leftoverHangul(chromeEn).slice(0, 4).join(" | ") || "none"})`);
   ok((await $2("#topbar-user-text").innerText()) === "KW · Director", `topbar user chip role in English (${await $2("#topbar-user-text").innerText()})`);
-  const PANELS = ["tab-today", "tab-kcd", "tab-jabo", "tab-yearend", "tab-bigeup", "tab-retention", "tab-search", "tab-ai", "tab-license", "tab-accred"];
+  const PANELS = ["tab-today", "tab-board", "tab-claims", "tab-kcd", "tab-jabo", "tab-yearend", "tab-bigeup", "tab-retention", "tab-org", "tab-license", "tab-accred", "tab-privacy", "tab-masters"];
   for (const panel of PANELS) {
     await goTab2(panel);
-    if (panel === "tab-today" && await $2("#dday-more").count()) await $2("#dday-more").click();
-    if (panel === "tab-search") { await $2("#search-input").fill("약침"); await p2.waitForTimeout(250); }
+    if (panel === "tab-today") { await p2.evaluate(() => document.querySelectorAll("#tab-today details").forEach(d => { d.open = true; })); if (await $2("#dday-more").count()) await $2("#dday-more").click(); }
+    if (panel === "tab-privacy") await p2.waitForFunction(() => document.querySelectorAll("#privacy-table tr").length > 5);
     const left = leftoverHangul(await panelTexts(panel));
     ok(left.length === 0, `${panel}: English only (leftovers: ${left.slice(0, 5).join(" | ") || "none"})`);
     if (MOBILE) await noOverflow2(panel);
   }
+  // the two utilities
+  await openSearch("약침", p2);
+  await p2.waitForSelector("#search-result table");
+  const leftSearch = leftoverHangul(await panelTexts("search-scrim"));
+  ok(leftSearch.length === 0, `search overlay: English only (leftovers: ${leftSearch.slice(0, 5).join(" | ") || "none"})`);
+  ok(/Low back pain/.test(await $2("#search-result").innerText()) || /Pharmacopuncture/.test(await $2("#search-result").innerText()), "EN: search results show bundled English names");
+  if (MOBILE) await noOverflow2("search overlay");
+  await p2.keyboard.press("Escape");
+  await openAi(p2);
+  const leftAi = leftoverHangul(await panelTexts("ai-drawer"));
+  ok(leftAi.length === 0, `AI drawer: English only (leftovers: ${leftAi.slice(0, 5).join(" | ") || "none"})`);
+  ok(/Sprain and strain of cervical spine \(경추의 염좌 및 긴장\)/.test(await $2("#ai-output").innerText()), "EN: AI result shows English name with the Korean standard name in parentheses");
+  if (MOBILE) await noOverflow2("AI drawer");
+  await $2("#ai-drawer-close").click();
   ok((await $2("#kcd-result tbody tr").count()) === 21 && (await $2("#kcd-result .pill").first().innerText()).length > 0, "EN: KCD result table rendered (21 rows)");
   ok(/rows.*reviewed/.test(await $2("#kcd-summary").innerText()), `EN: KCD summary in English (${await $2("#kcd-summary").innerText()})`);
   ok(/Claim batch/.test(await $2("#jabo-batch-strip").innerText()) && /12 statements/.test(await $2("#jabo-batch-strip").innerText()), "EN: batch strip");
   ok((await $2("#bg-tbody .pill").first().innerText()) === "Pharmacopuncture", "EN: non-covered category pill translated");
   ok(/Institution code/.test(await $2("#bg-org").innerText()) && /Hospital level/.test(await $2("#bg-rule").innerText()), "EN: 04 org block + cadence rule");
-  ok(/Low back pain/.test(await $2("#search-result").innerText()) || /Pharmacopuncture/.test(await $2("#search-result").innerText()), "EN: search results show bundled English names");
   ok(/KM doctor|Nurse/.test(await $2("#lic-list").innerText()) && !/한의사 /.test(await $2("#lic-list .lic-role").first().innerText()), "EN: staff roles in English, names untouched");
-  ok(/Sprain and strain of cervical spine \(경추의 염좌 및 긴장\)/.test(await $2("#ai-output").innerText()), "EN: AI result shows English name with the Korean standard name in parentheses");
+  ok(/done|to do/.test(await $2("#claims-steps").innerText()) && !HANGUL.test(stripParens(await $2("#claims-steps .cs-state").first().innerText())), "EN: claims landing step states translated");
   ok(/auto-judged/.test(await $2('.accred-item[data-id="pr2"] .accred-auto').innerText()), "EN: 09 derived badge");
   await goTab2("tab-today");
   const kpiEn = { label: await $2("#ins-cut-card .label").innerText(), ins: await $2("#ins-insurer").innerText(), sub: await $2("#ins-jabo-sub").innerText() };
@@ -866,7 +1009,7 @@ try {
   await goTab2("tab-kcd");
   const kcdRows = await $2("#kcd-result tbody tr").count();
   await setLang2("ko");
-  ok((await $2("#kcd-result tbody tr").count()) === kcdRows && /건/.test(await $2("#kcd-summary").innerText()) && (await p2.evaluate(() => document.querySelector("#crumb-tab")?.textContent)) === "상병코드 정비", "toggle → KO: table kept, summary + crumb Korean");
+  ok((await $2("#kcd-result tbody tr").count()) === kcdRows && /건/.test(await $2("#kcd-summary").innerText()) && (await p2.evaluate(() => document.querySelector("#crumb-tab")?.textContent)) === "상병 정비", "toggle → KO: table kept, summary + crumb Korean");
   ok((await $2("#tab-kcd h3").innerText()).includes("EDI 표준형"), "toggle → KO: static heading restored");
   await goTab2("tab-jabo");
   ok((await $2("#jabo-recon-result tbody tr").count()) === 42 && /명세서/.test(await $2("#jabo-recon-summary").innerText()), "toggle → KO: reconciliation table kept");
@@ -874,7 +1017,7 @@ try {
   ok((await $2("#jabo-recon-result tbody tr").count()) === 42 && /statements/.test(await $2("#jabo-recon-summary").innerText()), "toggle → EN again: reconciliation table kept, summary English");
   ok((await $2(MOBILE ? '.rail-foot .lang-toggle button[data-lang="en"]' : '.topbar .lang-toggle button[data-lang="en"]').getAttribute("aria-pressed")) === "true", "toggle aria-pressed = EN");
 
-  at("EN: exports carry English headers + watermark; palette offers the language switch");
+  at("EN: exports carry English headers + watermark; ⌘K overlay offers the language switch");
   await goTab2("tab-kcd");
   const kcdEn = await download2(() => $2("#kcd-download").click());
   ok(/^diagnosis_codes_.*_PoC\.xlsx$/.test(kcdEn.name), `EN xlsx filename (${kcdEn.name})`);
@@ -883,9 +1026,8 @@ try {
   const [yeHead, yeMark] = yeEn.text.split("\n");
   ok(/Patient name/.test(yeHead) && /RRN \(masked\)/.test(yeHead) && !HANGUL.test(yeHead), `EN CSV headers (${yeHead.slice(0, 80)}…)`);
   ok(/PoC — not for real submission/.test(yeMark), "EN CSV watermark row in English");
-  await p2.keyboard.press(process.platform === "darwin" ? "Meta+K" : "Control+K");
-  await p2.waitForSelector("#palette-scrim.open");
-  ok(/Switch to Korean/.test(await $2("#palette-results").innerText()), "palette lists the language command");
+  await openSearch(null, p2);
+  ok(/Switch to Korean/.test(await $2("#search-nav-results").innerText()) && /Open AI coding assist/.test(await $2("#search-nav-results").innerText()), "overlay lists the language command + the AI utility");
   await p2.keyboard.press("Escape");
 
   at("EN: reload persists the choice (lock screen in English)");

@@ -5,7 +5,7 @@ export default {
   /* ── Institution profile (core/entities.js Org · core/org-form.js) ── */
   "org.eyebrow": "Institution · one-time setup",
   "org.stepTitle": "Which <em>institution</em> is this admin office for?",
-  "org.stepNote": "Name, HIRA institution code (요양기관기호), business registration number, type and representative go into the header of the non-covered report, the year-end tax data and the auto-insurance settlement sheets. You can skip this now — the institution chip in the top bar and ⓘ Info let you fill it in any time. For a demo, “Tour with sample data” fills in 한솔한방병원.",
+  "org.stepNote": "Name, HIRA institution code (요양기관기호), business registration number, type and representative go into the header of the non-covered report, the year-end tax data and the auto-insurance settlement sheets. You can skip this now — the institution chip in the top bar and Organisation › Institution profile let you fill it in any time. For a demo, “Tour with sample data” fills in 한솔한방병원.",
   "org.f.name": "Institution name", "org.f.ykiho": "HIRA institution code (8 digits)", "org.f.biz": "Business registration no.", "org.f.kind": "Type", "org.f.rep": "Representative",
   "org.phName": "e.g. 한솔한방병원", "org.phYkiho": "11000123", "org.phBiz": "123-45-67890", "org.phRep": "e.g. 윤지훈",
   "org.kind.병원": "Hospital (한방병원)", "org.kind.의원": "Clinic (한의원)",
@@ -36,7 +36,7 @@ export default {
   "users.addNoteOwner": "A name already in the roster is linked to that row; otherwise a new row is added (job by role: KM doctor · admin · front desk).",
   "users.confirmRevokeLogin": "Revoke the login of {name} ({role})? That PIN will no longer open the workspace. The roster row stays.",
   "users.logRevokeLogin": "Login revoked ({role})", "users.msgLoginRevoked": "Login revoked",
-  "users.rosterNote": "A login is linked to one row of the staff roster (08) — job and licence live there, the PIN here.", "users.openRoster": "Open roster →",
+  "users.rosterNote": "A login is linked to one row of the staff roster (Organisation › Staff roster) — job and licence live there, the PIN here.", "users.openRoster": "Open roster →",
 
   /* ── seed · lifecycle ── */
   "shell.logSeedEntities": "Sample institution data — {n} staff · {l} logins · {p} pseudonymous patients",

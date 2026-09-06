@@ -4,7 +4,7 @@
 export default {
   /* ── shared 청구 배치 strip (rendered in 01 and 02) ── */
   "jabo.batch.title": "청구 배치",
-  "jabo.batch.empty": "청구 배치가 없습니다 — 명세서 파일(상병 + 행위 컬럼)을 올리면 01 상병 정비와 02 자보 정산이 같은 배치를 씁니다.",
+  "jabo.batch.empty": "청구 배치가 없습니다 — 명세서 파일(상병 + 행위 컬럼)을 올리면 상병 정비와 심사결과 대조가 같은 배치를 씁니다.",
   "jabo.batch.stmts": "명세서 {n}건",
   "jabo.batch.patients": "환자 {n}명",
   "jabo.batch.partialKcd": "상병만",
@@ -17,13 +17,13 @@ export default {
   "jabo.batch.reviewLinked": "심사결과 연결",
 
   /* ── 01 상병코드 정비 ── */
-  "kcd.demoLabel": "처음이신가요? <strong>한솔한방병원 2026-08 명세서 12건</strong>(경추·요추 염좌·요통·U코드·EDI형 입력·5자리 입력 등)으로 정비 결과를 미리 보실 수 있습니다 — 02 자보 정산과 같은 청구 배치입니다.",
-  "kcd.dropLegacy": "이 탭용 파일만(상병 컬럼) — 행위 컬럼이 함께 있으면 02 자보 정산과 같은 청구 배치로 묶입니다",
+  "kcd.demoLabel": "처음이신가요? <strong>한솔한방병원 2026-08 명세서 12건</strong>(경추·요추 염좌·요통·U코드·EDI형 입력·5자리 입력 등)으로 정비 결과를 미리 보실 수 있습니다 — 심사결과 대조와 같은 청구 배치입니다.",
+  "kcd.dropLegacy": "이 화면용 파일만(상병 컬럼) — 행위 컬럼이 함께 있으면 심사결과 대조와 같은 청구 배치로 묶입니다",
   "kcd.thStmt": "명세서",
   "kcd.thActions": "다음 작업",
   "kcd.col.stmt": "명세서번호",
   "kcd.actAsk": "AI에게 묻기",
-  "kcd.actAskTitle": "07 AI 코딩 어시스트에 '진단명 · 입력코드 — 올바른 KCD?'로 미리 채워 묻습니다",
+  "kcd.actAskTitle": "AI 코딩 어시스트에 '진단명 · 입력코드 — 올바른 KCD?'로 미리 채워 묻습니다",
   "kcd.actSearch": "검색",
   "kcd.focusChip": "명세서 {stmt} · {n}건만 표시",
   "kcd.focusAll": "전체 보기",
@@ -35,18 +35,18 @@ export default {
   "kcd.askPrefill": "진단명 {dx}, 입력코드 {code} — 올바른 KCD? (명세서 {stmt} · 환자 {who})",
 
   /* ── 02 자보 심사결과 정산 ── */
-  "jabo.demoLabel": "<strong>한솔한방병원 2026-08 · 명세서 12건 · 행위 41줄</strong> 샘플(예시) — 상병-처치 부위 불일치·동일부위 중복·추나 횟수 한도·첩약 처방일수·경상환자 4주 진단서 등 실제 조정 패턴을 대조표로 보여드립니다. 01 상병 정비와 같은 청구 배치입니다.",
+  "jabo.demoLabel": "<strong>한솔한방병원 2026-08 · 명세서 12건 · 행위 41줄</strong> 샘플(예시) — 상병-처치 부위 불일치·동일부위 중복·추나 횟수 한도·첩약 처방일수·경상환자 4주 진단서 등 실제 조정 패턴을 대조표로 보여드립니다. 상병 정비와 같은 청구 배치입니다.",
   "jabo.dropClaimsHint": "명세서번호 · 환자번호 · 진료일자 · 행위코드 · 횟수 · 청구금액 (+ 상병코드 · 진단명 · 주/부상병)",
-  "jabo.dropClaimsLegacy": "이 탭용 파일만(행위 컬럼)도 청구 배치가 됩니다 — 위 배치 줄의 「새 파일」과 같은 동작",
-  "jabo.dropReviewLegacy": "이 탭용 파일만 — 현재 청구 배치에 연결됩니다",
+  "jabo.dropClaimsLegacy": "이 화면용 파일만(행위 컬럼)도 청구 배치가 됩니다 — 청구 배치 화면의 업로드와 같은 동작",
+  "jabo.dropReviewLegacy": "이 화면용 파일만 — 현재 청구 배치에 연결됩니다",
   "jabo.reconInsurer": "보험사 / 공제조합 (배치 기준)",
   "jabo.reconInsurerHint": "마지막 사용 보험사가 기본값 — 정산 기록에 함께 저장됩니다",
   "jabo.thActions": "다음 작업",
-  "jabo.actKcd": "01 상병",
+  "jabo.actKcd": "상병 정비",
   "jabo.actKcdTitle": "상병 정비에서 보기 — 이 명세서의 상병 줄만 필터해 표시",
-  "jabo.actSearch": "06 검색",
+  "jabo.actSearch": "검색",
   "jabo.actSearchTitle": "행위 검색 — 이 행위코드를 통합 검색에서 확인",
-  "jabo.actAsk": "07 AI",
+  "jabo.actAsk": "AI",
   "jabo.actAskTitle": "AI에게 묻기 — 상병-처치 부위가 일치하는 코드 조합 제안",
   "jabo.askPrefill": "명세서 {stmt} ({who}) — 상병 {dx} / 행위 {code} {name}, 심사 조정사유 '{reason}'. 상병-처치 부위가 일치하는 상병·행위 코드 조합을 제안해주세요.",
   "jabo.logAsk": "AI에게 묻기 — {code}",
@@ -63,7 +63,7 @@ export default {
   "jabo.newFresh": "완전히 새로",
   "jabo.newFreshSub": "환자·청구 정보와 행위 목록을 모두 비움",
   "jabo.newSameStatus": "같은 사고 다음 진료 — {who} 정보 유지, 행위 목록을 비웠습니다.",
-  "jabo.caseFilled": "케이스 채움 — 주상병 {dx} · 행위 {n}개 (07 AI / 06 검색에서 넘어옴). 인정금액·조정사유를 확인하세요.",
+  "jabo.caseFilled": "케이스 채움 — 주상병 {dx} · 행위 {n}개 (AI 어시스트 / 검색에서 넘어옴). 인정금액·조정사유를 확인하세요.",
   "jabo.caseSkipped": " · 행위표에 없는 코드 건너뜀: {codes}",
   "jabo.statusManualSample": "수기 샘플 — 한솔한방병원 P-2026-0142 · 삼성화재 · 명세서 M2608-0001 (약침 부위 불일치 조정 포함). 인정단가를 바꿔 조정률이 움직이는지 확인해보세요.",
 
@@ -79,15 +79,15 @@ export default {
   "search.insertAi": "AI 메모에 추가",
   "search.insertClip": "클립보드 {code}",
   "search.logInsert": "{code} → {where} 삽입",
-  "search.gotoMastersTitle": "06 통합 검색의 마스터 업로드로 이동",
+  "search.gotoMastersTitle": "조직 › 마스터 업로드로 이동",
 
   /* ── 07 AI 코딩 어시스트 ── */
   "ai.ctxPatient": "환자 {who}",
   "ai.ctxStmt": "명세서 {stmt}",
   "ai.ctxClear": "메모 출처 지우기",
   "ai.checkSearch": "검색에서 확인",
-  "ai.checkSearchTitle": "06 통합 검색에서 이 코드를 확인",
+  "ai.checkSearchTitle": "검색에서 이 코드를 확인",
   "ai.fillJabo": "이 코드로 자보 케이스 채우기",
-  "ai.fillJaboHint": "02 수기 단건 정산에 주상병 {dx}(EDI) + 행위 {n}개를 넣습니다",
+  "ai.fillJaboHint": "심사결과 대조의 수기 단건 정산에 주상병 {dx}(EDI) + 행위 {n}개를 넣습니다",
   "ai.logFillJabo": "AI 추천으로 자보 케이스 채움 — {dx} · 행위 {n}개"
 };

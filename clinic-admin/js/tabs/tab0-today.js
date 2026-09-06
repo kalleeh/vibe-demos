@@ -7,17 +7,22 @@ import { allDeadlines } from "../core/calendar.js";
 import { activateTab } from "../core/nav.js";
 import { Org, Staff, Batches, Tariff, Insurers } from "../core/entities.js";
 import { accredProgress } from "./tab9-accred.js";
+import { claimsSteps } from "./claims-landing.js";
+import { onClaimsChange } from "./claims-shared.js";
 
 /* ─────────────────────────────────────────────────────────
-   Tab 0 — 오늘 / Today dashboard
-   Backend-free orchestrator: it reads the Store / entities every other tab writes and computes
-   deadlines + KPIs + resume cards live, re-rendering on any store change.
+   홈 › 오늘 — task-first home
+   Backend-free orchestrator: it reads the Store / entities every other tool writes and computes the todo list,
+   deadlines, KPIs and resume cards live, re-rendering on any store change.
+   · 지금 할 일 (#todo-list .todo[data-key][data-ctx]): deadlines within 30 days (allDeadlines), the current claim
+     batch's open step (claims-landing.claimsSteps), an unfinished 자보 수기 case — one deep-linking button per row.
+     The setup nudges (#today-nudges: 기관 정보 · 직원 명부) sit in the same section.
    · Deadlines come from core/calendar.js allDeadlines() (statutory + per-person from the Staff roster — the same
      list the topbar chip uses); rows carry a ctx ({ refMonth } · { taxYear } · { staffId }) and open the target
      tab with it. Per-person items are windowed to −30 … +365 days here.
    · Nudges: 기관 정보 미완료 (Org.isComplete() false) and 직원 명부 비어 있음 (Staff.list() empty).
-   · { openOrg: true } on tab:activated → EventBus "shell:openInfo" { section: "org" } — the shell owns the
-     info modal (F1's org editor lives there); this tab only asks for it.
+   · { openOrg: true } on tab:activated → EventBus "shell:openInfo" { section: "org" } — the shell routes it to
+     조직 › 기관 프로필; this tab only asks for it.
    · KPI tiles (first cut): this month's 청구 vs 인정 · 조정률 · top 조정사유 · 보험사별 조정 from jabo.history
      reconciliation entries + Batches.list("review"). Skeleton shimmer until the first render.
    ───────────────────────────────────────────────────────── */
@@ -88,6 +93,46 @@ export function init(ctx) {
       el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
     });
     $("#dday-more")?.addEventListener("click", () => { showLater = !showLater; renderDeadlines(); });
+  }
+
+  // ── 지금 할 일 ──
+  const ddayLabel = (days) => days == null ? "—" : days < 0 ? t("today.overdue", { n: -days }) : days === 0 ? t("today.todayLabel") : t("today.daysLeft", { n: days });
+  const ddayCls = (days) => days == null ? "" : days < 0 ? "over" : days <= 7 ? "urgent" : "warn";
+  function todoItems() {
+    const items = [];
+    // Anything due within 30 days — and anything overdue in the past year: an expired 면허신고 is still a to-do.
+    for (const d of allDeadlines(NOW)) {
+      if (d.daysLeft == null || d.daysLeft > 30 || d.daysLeft < -365) continue;
+      items.push({ key: `dl:${d.key}`, cls: ddayCls(d.daysLeft), when: ddayLabel(d.daysLeft), title: d.title, meta: `${d.date} · ${d.source}`, link: d.link, ctx: d.ctx || null, btn: t("home.todo.open"), order: d.daysLeft < 0 ? -1000 + d.daysLeft : d.daysLeft });
+    }
+    for (const s of claimsSteps()) {
+      if (s.state !== "todo" && s.state !== "need") continue;
+      items.push({ key: `batch:${s.key}`, cls: "step", when: t("home.todo.step"), title: s.title, meta: s.detail, link: s.link, ctx: s.ctx, btn: s.btn, order: 100 });
+    }
+    const draft = Store.get("jabo.draft.items");
+    if (Array.isArray(draft) && draft.length) {
+      const pid = Store.get("jabo.draft.jabo-pid");
+      items.push({ key: "jabo-manual", cls: "step", when: t("home.todo.resume"), title: t("home.todo.manualCase", { who: pid ? redactSubject({ pid }) : t("today.resume.noPatient") }), meta: t("today.resume.nProcs", { n: draft.length }), link: "tab-jabo", ctx: { focus: "manual" }, btn: t("home.todo.resumeBtn"), order: 200 });
+    }
+    return items.sort((a, b) => a.order - b.order);
+  }
+  function renderTodo() {
+    const el = $("#todo-list"); if (!el) return;
+    const items = todoItems();
+    const count = $("#todo-count");
+    if (count) { count.hidden = !items.length; count.textContent = items.length ? t("home.todo.count", { n: items.length }) : ""; }
+    if (!items.length) { el.innerHTML = `<div class="todo-empty">${esc(t("home.todo.empty"))}</div>`; return; }
+    el.innerHTML = items.map(it => `
+      <div class="todo ${it.cls}" role="listitem" data-key="${esc(it.key)}" data-link="${esc(it.link || "")}" data-ctx='${esc(JSON.stringify(it.ctx || {}))}'>
+        <span class="todo-when">${it.when}</span>
+        <div class="todo-body"><div class="todo-title">${esc(it.title)}</div><div class="todo-meta">${esc(it.meta)}</div></div>
+        <button type="button" class="btn secondary sm" data-todo-go>${esc(it.btn)} <span class="arrow">→</span></button>
+      </div>`).join("");
+    $$("#todo-list .todo").forEach(row => {
+      const go = () => { let c; try { c = JSON.parse(row.dataset.ctx || "{}"); } catch { c = {}; } if (row.dataset.link) activateTab(row.dataset.link, Object.keys(c).length ? c : undefined); };
+      row.querySelector("[data-todo-go]").addEventListener("click", (e) => { e.stopPropagation(); go(); });
+      row.addEventListener("click", go);
+    });
   }
 
   // ── nudges (기관 정보 · 직원 명부) ──
@@ -264,6 +309,7 @@ export function init(ctx) {
     const wk = date.toLocaleDateString(getLang() === "en" ? "en-GB" : "ko-KR", { weekday: "short" });
     $("#today-date").textContent = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")} (${wk})`;
     renderNudges();
+    renderTodo();
     renderDeadlines();
     renderKpis();
     renderResume();
@@ -326,6 +372,9 @@ export function init(ctx) {
   ["activity", "jabo.history", "retention.lastAudit", "kcd.lastSummary", "accred.checked", "jabo.draft.items"]
     .forEach(k => EventBus.on(`store:${k}`, renderSoon));
   for (const E of [Org, Staff, Batches, Tariff]) E.onChange(renderSoon);
+  onClaimsChange(renderSoon);
+  EventBus.on("store:ui.claimsBatch", renderSoon);
+  EventBus.on("store:jabo.draft.jabo-pid", renderSoon);
   EventBus.on("tab:activated", (p) => {
     if (p?.id !== "tab-today") return;
     renderAll();

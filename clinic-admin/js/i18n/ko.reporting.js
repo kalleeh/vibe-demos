@@ -23,7 +23,7 @@ export default {
 
   /* ── 00 오늘 ── */
   "today.nudge.aria": "설정 안내",
-  "today.nudge.org": "기관 정보 미완료 — 기관명·요양기관기호·사업자등록번호·종별이 있어야 03·04 준비표 헤더가 채워집니다.",
+  "today.nudge.org": "기관 정보 미완료 — 기관명·요양기관기호·사업자등록번호·종별이 있어야 비급여·연말정산 준비표 헤더가 채워집니다.",
   "today.nudge.orgBtn": "기관 정보 입력",
   "today.nudge.staff": "직원 명부 비어 있음 — 면허신고 기한과 인증 자체점검(면허 관리)이 계산되지 않습니다.",
   "today.nudge.staffBtn": "직원 등록",
@@ -88,7 +88,7 @@ export default {
   "accred.autoLabel": "자동 판정",
   "accred.autoTitle": "직원 명부·비급여 단가표·최근 점검 결과로 앱이 판정한 항목",
   "accred.autoLegend": "<span class=\"accred-auto ok\"><span class=\"glyph\">✓</span> 자동 판정</span> 항목은 직원 명부·비급여 단가표·최근 점검 결과로 앱이 판정합니다 — 체크박스 대신 상태와 사유가 표시되고, 나머지는 직접 체크합니다.",
-  "accred.auto.noAudit": "보존기간 점검 미실시 — 05 탭에서 기록 대장을 점검하세요",
+  "accred.auto.noAudit": "보존기간 점검 미실시 — 보고·기록 › 보존 감사에서 기록 대장을 점검하세요",
   "accred.auto.hr1.none": "직원 명부에 신고 대상(한의사·간호사 등)이 없음",
   "accred.auto.hr1.unreported": "신고 이력 미확인 {n}/{total}명",
   "accred.auto.hr1.imminent": "신고 기한 90일 이내 {n}명",
@@ -97,11 +97,11 @@ export default {
   "accred.auto.mr1.ok": "경과 0건 (점검 {t})",
   "accred.auto.mr3.bad": "분류 오류 {n}건 — 폐기 심의 전 정정",
   "accred.auto.mr3.ok": "점검 이력 있음 · {n}건 ({t})",
-  "accred.auto.mr4.none": "KCD 정비 미실시 — 01 탭에서 상병코드를 점검하세요",
+  "accred.auto.mr4.none": "KCD 정비 미실시 — 청구 › 상병 정비에서 상병코드를 점검하세요",
   "accred.auto.mr4.stale": "마지막 정비 {t} — 분기 점검 주기 경과",
   "accred.auto.mr4.open": "미수록 {m}건 · 검토 {r}건 남음",
   "accred.auto.mr4.ok": "최근 정비 {t} · 미해결 없음",
-  "accred.auto.pr2.none": "비급여 단가표 없음 — 04 탭에서 단가를 입력하세요",
+  "accred.auto.pr2.none": "비급여 단가표 없음 — 보고·기록 › 비급여 보고에서 단가를 입력하세요",
   "accred.auto.pr2.noDate": "단가 {n}개 항목 · 적용일 미입력",
   "accred.auto.pr2.ok": "단가 {n}개 항목 · 적용일 {d}"
 };

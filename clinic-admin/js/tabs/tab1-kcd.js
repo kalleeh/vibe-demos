@@ -225,7 +225,7 @@ export function init(ctx) {
     }
   };
   bindDrop("drop-kcd", ingest);
-  const strip = () => renderBatchStrip($("#kcd-batch-strip"), { onFile: ingest });
+  const strip = () => renderBatchStrip($("#kcd-batch-strip"), { onFile: ingest, compact: true }); // one line → 청구 › 청구 배치
   strip();
 
   $("#kcd-download").addEventListener("click", () => {
@@ -259,7 +259,7 @@ export function init(ctx) {
   };
   $('[data-action="run-kcd"]').addEventListener("click", () => { seedFn(); });
 
-  // 기준일 + master source banner (badge → 06 마스터 업로드 section)
+  // 기준일 + master source banner (badge → 조직 › 마스터 업로드; nav.js routes the legacy tab-search {section} there)
   const renderBanner = () => {
     const src = Masters.kcd();
     const rev = DATA.kcd?.revision || {};

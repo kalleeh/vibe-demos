@@ -31,8 +31,9 @@ const Lock = (() => {
   let created = false; // this page load created the workspace → shell shows the 기관 정보 first-run step
 
   function closeAllDialogs() {
-    $$(".welcome-scrim.open, .palette-scrim.open, .lightbox.open").forEach(s => Dialog.close(s));
-    document.body.classList.remove("rail-open");
+    $$(".welcome-scrim.open, .search-scrim.open, .lightbox.open").forEach(s => Dialog.close(s));
+    document.body.classList.remove("more-open");
+    EventBus.emitLocal("shell:closeAll", true); // shell: ⋯ sheet + AI drawer
   }
   function showPane(name) {
     pane = name;
@@ -310,7 +311,7 @@ const UsersPanel = (() => {
   function open() { if (!Session.isUnlocked()) return; msg(""); render(); Dialog.open(scrim(), "#users-close"); }
   function close() { Dialog.close(scrim()); }
   function wire() {
-    $("#rail-users")?.addEventListener("click", () => { document.body.classList.remove("rail-open"); open(); });
+    $("#rail-users")?.addEventListener("click", () => { document.body.classList.remove("more-open"); open(); });
     $("#topbar-user")?.addEventListener("click", open);
     $("#users-close")?.addEventListener("click", close);
     scrim()?.addEventListener("click", e => { if (e.target.id === "users-scrim") close(); });
@@ -342,13 +343,16 @@ const UsersPanel = (() => {
   return { open, close, wire, render };
 })();
 
-/* ─────────────────────── 데이터 처리 현황 panel ─────────────────────── */
+/* ─────────────────────── 데이터 처리 현황 — 조직 › 데이터 처리 현황 (#tab-privacy) ───────────────────────
+   Promoted from a modal to a panel. Every old opener (rail/⋯ button, PoC banner link, ⓘ modal link, ⌘K command) calls
+   open(tab) which routes to activateTab("tab-privacy"); the register renders on every activation. */
 const PrivacyPanel = (() => {
-  const scrim = () => $("#privacy-scrim");
+  const panel = () => $("#tab-privacy");
+  const isActive = () => !!panel()?.classList.contains("active");
   const msg = (text, kind = "") => { const el = $("#privacy-msg"); if (!el) return; el.textContent = text || ""; el.className = "sec-msg " + kind; el.hidden = !text; };
   function selectTab(name) {
-    $$("#privacy-scrim [data-privacy-tab]").forEach(b => b.classList.toggle("active", b.dataset.privacyTab === name));
-    $$("#privacy-scrim [data-privacy-pane]").forEach(p => p.classList.toggle("active", p.dataset.privacyPane === name));
+    $$("#tab-privacy [data-privacy-tab]").forEach(b => b.classList.toggle("active", b.dataset.privacyTab === name));
+    $$("#tab-privacy [data-privacy-pane]").forEach(p => p.classList.toggle("active", p.dataset.privacyPane === name));
   }
   async function render() {
     const owner = Session.isOwner();
@@ -370,16 +374,16 @@ const PrivacyPanel = (() => {
     const wsid = Session.workspaceId();
     const ws = $("#privacy-wsid"); if (ws) ws.textContent = wsid ? wsid.slice(0, 8) + "…" : "—";
   }
-  function open(tab = "status") { if (!Session.isUnlocked()) return; msg(""); selectTab(tab); render(); Dialog.open(scrim(), "#privacy-close"); }
-  function close() { Dialog.close(scrim()); }
+  function open(tab = "status") { if (!Session.isUnlocked()) return; msg(""); selectTab(tab); activateTab("tab-privacy", { section: tab }); }
+  function close() { /* a panel has nothing to close — kept for callers */ }
   function wire() {
-    $("#rail-privacy")?.addEventListener("click", () => { document.body.classList.remove("rail-open"); open("status"); });
+    $("#rail-privacy")?.addEventListener("click", () => { document.body.classList.remove("more-open"); open("status"); });
     // The info-modal link is inside a data-i18n-html block and is re-created on every language swap → delegate.
     $("#info-scrim")?.addEventListener("click", (e) => { if (e.target.closest?.("#info-privacy-link")) { e.preventDefault(); Dialog.close($("#info-scrim")); open("legal"); } });
     $("#poc-banner-link")?.addEventListener("click", (e) => { e.preventDefault(); open("legal"); });
-    $("#privacy-close")?.addEventListener("click", close);
-    scrim()?.addEventListener("click", e => { if (e.target.id === "privacy-scrim") close(); });
-    $$("#privacy-scrim [data-privacy-tab]").forEach(b => b.addEventListener("click", () => selectTab(b.dataset.privacyTab)));
+    EventBus.on("tab:activated", (p) => { if (p?.id !== "tab-privacy") return; if (p.ctx?.section) selectTab(p.ctx.section); render(); });
+    EventBus.on("lifecycle:purged", () => { if (isActive()) render(); });
+    $$("#tab-privacy [data-privacy-tab]").forEach(b => b.addEventListener("click", () => selectTab(b.dataset.privacyTab)));
     $("#privacy-destroy-selected")?.addEventListener("click", async () => {
       const ids = $$("#privacy-table input[data-destroy]:checked").map(i => i.dataset.destroy);
       if (!ids.length) { msg(t("privacy.msgPickItems"), "err"); return; }
@@ -398,7 +402,7 @@ const PrivacyPanel = (() => {
       try { const bk = await exportBackup(); msg(t("privacy.msgBackup", { n: Object.keys(bk.sensitive).length, a: bk.attachments.length }), "ok"); }
       catch (err) { msg(err.message || String(err), "err"); }
     });
-    $("#privacy-restore")?.addEventListener("click", () => { close(); Lock.openRestore(); });
+    $("#privacy-restore")?.addEventListener("click", () => { Lock.openRestore(); });
     $("#privacy-audit-export")?.addEventListener("click", () => {
       try {
         const rows = ActivityLog.exportRows();
@@ -413,9 +417,9 @@ const PrivacyPanel = (() => {
       try { ActivityLog.clear(); ActivityLog.add({ tag: "system", action: t("privacy.logAuditClear") }); msg(t("privacy.msgAuditCleared"), "ok"); render(); }
       catch (err) { msg(err.message, "err"); }
     });
-    onLangChange(() => { if (Dialog.isOpen(scrim())) { msg(""); render(); } });
+    onLangChange(() => { if (isActive()) { msg(""); render(); } });
   }
-  return { open, close, wire, render };
+  return { open, close, wire, render, isActive };
 })();
 
 /* PoC banner — dismissible per browser session only (it comes back on the next visit on purpose). */

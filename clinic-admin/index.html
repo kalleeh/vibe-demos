@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>한방병원 행정 도구함 — Clinic Admin Toolkit</title>
-  <meta name="description" content="한방병원 행정원장을 위한 10개 탭 도구함 (PoC · 데모 데이터만). PIN으로 잠기는 워크스페이스, 브라우저 내 암호화 저장, 예시 마스터 + KOICD·심평원 마스터 업로드, 자보 심사결과 대조. 파일 변환·검증·다운로드는 브라우저 안에서 끝나고, AI 탭 메모만 마스킹·미리보기 후 동의 하에 전송됩니다.">
+  <meta name="description" content="한방병원 행정원장을 위한 행정 워크스페이스 (PoC · 데모 데이터만). 홈·환자·청구·보고기록·조직 다섯 영역과 검색(⌘K)·AI 어시스트 두 유틸리티. PIN으로 잠기는 워크스페이스, 브라우저 내 암호화 저장, 예시 마스터 + KOICD·심평원 마스터 업로드, 자보 심사결과 대조. 파일 변환·검증·다운로드는 브라우저 안에서 끝나고, AI 어시스트 메모만 마스킹·미리보기 후 동의 하에 전송됩니다.">
 
   <link rel="icon" type="image/svg+xml" href="icon.svg">
   <link rel="apple-touch-icon" href="icon.svg">
@@ -26,6 +26,7 @@
   <link rel="stylesheet" href="./styles-security.css">
   <link rel="stylesheet" href="./styles-claims.css">
   <link rel="stylesheet" href="./styles-reporting.css">
+  <link rel="stylesheet" href="./styles-ia.css">
 </head>
 <body class="shell-v2">
 
@@ -103,15 +104,15 @@
       <div class="eyebrow">Vibe Studio · Demo</div>
       <h2 id="welcome-title" data-i18n-html="shell.welcomeTitle">엑셀과 포스트잇으로 하던 일,<br>여기서 <em>한 번에</em> 끝냅니다.</h2>
       <p class="deck" data-i18n-html="shell.welcomeDeck">
-        매달 반복되는 <strong>자보 청구·삭감 추적</strong>, 반기마다 닥치는 <strong>비급여 보고</strong>, 늘 잊을 뻔하는 <strong>면허신고 기한</strong>. 행정원장의 하루를 잡아먹는 그 일들을 <strong>한 페이지</strong>에 묶었습니다. 파일 변환·검증·양식은 이 브라우저 안에서 끝나고, 이름·번호가 담기는 항목은 <strong>PIN으로 보호되는 키로 암호화</strong>되어 보관됩니다 — 예외는 두 곳뿐입니다. <strong>AI 탭</strong>의 메모는 동의·마스킹·미리보기를 거쳐 외부 AI 서버(ai.pb.gurum.se)로 전송되고(저장되지 않음), <strong>접수 보드</strong>는 종단간 암호화된 공유 PocketBase 데모입니다. 이 앱은 PoC입니다 — 실제 환자 정보는 어디에도 입력하지 마세요.
+        매달 반복되는 <strong>자보 청구·삭감 추적</strong>, 반기마다 닥치는 <strong>비급여 보고</strong>, 늘 잊을 뻔하는 <strong>면허신고 기한</strong>. 행정원장의 하루를 <strong>홈 · 환자 · 청구 · 보고·기록 · 조직</strong> 다섯 영역으로 정리했고, <strong>검색</strong>과 <strong>AI 어시스트</strong> 두 유틸리티가 어느 화면에서든 따라옵니다. 파일 변환·검증·양식은 이 브라우저 안에서 끝나고, 이름·번호가 담기는 항목은 <strong>PIN으로 보호되는 키로 암호화</strong>되어 보관됩니다 — 예외는 두 곳뿐입니다. <strong>AI 어시스트</strong>의 메모는 동의·마스킹·미리보기를 거쳐 외부 AI 서버(ai.pb.gurum.se)로 전송되고(저장되지 않음), <strong>접수 보드</strong>는 종단간 암호화된 공유 PocketBase 데모입니다. 이 앱은 PoC입니다 — 실제 환자 정보는 어디에도 입력하지 마세요.
       </p>
       <ul class="demo-list">
-        <li data-i18n-html="shell.welcomeLi1"><strong>상병코드</strong>는 입력형을 <em>EDI 표준형</em>으로 정리하고 최신 개정판 마스터와 대조합니다 — 내장 발췌 대신 <em>KOICD·심평원 마스터를 올리면</em> 그 표 기준</li>
-        <li data-i18n-html="shell.welcomeLi2"><strong>자보</strong>는 청구 명세서와 심평원 심사결과 파일을 <em>명세서·행위 단위로 대조</em>해 조정사유별·월별로 묶어줍니다</li>
-        <li data-i18n-html="shell.welcomeLi3"><strong>AI</strong>가 진료 메모를 읽고 <em>코드 초안을 골라줍니다</em> — 전송 전 자동 마스킹 → 미리보기 → 사용자별 동의</li>
-        <li data-i18n-html="shell.welcomeLi4"><strong>카메라</strong>로 면허증을 찍으면 <em>면허번호·취득일이 자동입력</em>되고 신고 기한이 계산됩니다</li>
-        <li data-i18n-html="shell.welcomeLi5"><strong>마감일</strong>이 한 화면에 모이고, 일정앱(.ics)으로 바로 내려받습니다</li>
-        <li data-i18n-html="shell.welcomeLi6">비급여·연말정산·보존기간 <em>점검표</em>를 만들고, 인증 자체점검은 <em>평소에 조금씩</em></li>
+        <li data-i18n-html="shell.welcomeLi1"><strong>홈</strong>은 <em>지금 할 일</em>부터 — 30일 안의 마감, 아직 안 끝난 청구 단계, 하다 만 자보 케이스가 한 줄씩, 버튼 하나로 바로 이동</li>
+        <li data-i18n-html="shell.welcomeLi2"><strong>환자</strong>에는 종단간 암호화된 <em>접수 보드</em> — 가명 환자만, 실명 입력 불가</li>
+        <li data-i18n-html="shell.welcomeLi3"><strong>청구</strong>는 <em>청구 배치</em>를 한 번 올리면 상병 정비 → 심사결과 대조 → 이의신청 세 단계로 이어집니다</li>
+        <li data-i18n-html="shell.welcomeLi4"><strong>보고·기록</strong>은 연말정산·비급여·보존기간 <em>점검표</em> — 마감은 홈과 캘린더(.ics)로</li>
+        <li data-i18n-html="shell.welcomeLi5"><strong>조직</strong>은 기관 프로필·직원 명부(면허 OCR·로그인)·인증 자체점검·데이터 처리 현황 — 그리고 <em>KOICD·심평원 마스터 업로드</em></li>
+        <li data-i18n-html="shell.welcomeLi6">두 유틸리티 — <strong>검색</strong>(⌘K)은 이동·명령·코드를 한 입력창에서, <strong>AI 어시스트</strong>는 어느 화면에서든 오른쪽 드로어로: 전송 전 마스킹 → 미리보기 → 동의</li>
       </ul>
       <div class="actions">
         <button type="button" class="btn" id="welcome-seed" data-i18n="shell.welcomeSeed">▶ 샘플 데이터로 둘러보기</button>
@@ -121,23 +122,46 @@
         <label class="dont-show">
           <input type="checkbox" id="welcome-dontshow"> <span data-i18n="shell.dontShow">다시 보지 않기</span>
         </label>
-        <span data-i18n-html="shell.welcomeFoot">언제든지 왼쪽 메뉴 <strong style="color:var(--ink)">▶ 둘러보기 다시 열기</strong>로 다시 볼 수 있습니다 · <strong style="color:var(--ink)">⌕ 검색</strong> <kbd class="cmdk-key" style="font-family:'JetBrains Mono',monospace;font-size:9.5px;padding:1px 5px;background:rgba(255,255,255,0.6);border:1px solid var(--line);border-radius:3px;color:var(--ink)">⌘K</kbd> 으로 어디든 바로 이동</span>
+        <span data-i18n-html="shell.welcomeFoot">언제든지 메뉴의 <strong style="color:var(--ink)">▶ 둘러보기 다시 열기</strong>로 다시 볼 수 있습니다 · <strong style="color:var(--ink)">⌕ 검색</strong> <kbd class="cmdk-key" style="font-family:'JetBrains Mono',monospace;font-size:9.5px;padding:1px 5px;background:rgba(255,255,255,0.6);border:1px solid var(--line);border-radius:3px;color:var(--ink)">⌘K</kbd> 으로 어디든 바로 이동</span>
       </div>
     </div>
   </div>
 
-  <!-- ── Cmd+K palette ── -->
-  <div class="palette-scrim" id="palette-scrim" role="dialog" aria-modal="true">
-    <div class="palette" id="palette">
-      <div class="palette-input-row">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" id="palette-input" placeholder="이동 · 검색 · 시연 — 무엇이든 입력하세요" data-i18n-attr="placeholder:shell.palettePlaceholder" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="palette-results" aria-autocomplete="list">
+
+  <!-- ── Global search · ⌘K / Ctrl+K — ONE input: 이동·명령 (the former palette) + 코드 (searchAll over the masters). Phone: full-screen sheet. ── -->
+  <div class="search-scrim" id="search-scrim" role="dialog" aria-modal="true" aria-label="검색 · 이동 · 명령" data-i18n-attr="aria-label:search.overlayAria">
+    <div class="gsearch" id="gsearch">
+      <div class="gsearch-input-row">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="search-input" placeholder="이동 · 명령 · 코드 — 요통, S13.4, ㅇㅈ, 잠금…" data-i18n-attr="placeholder:search.overlayPlaceholder" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="search-nav-results" aria-autocomplete="list">
+        <button type="button" class="close-x" id="search-close" aria-label="닫기" data-i18n-attr="aria-label:common.close">×</button>
       </div>
-      <div class="palette-results" id="palette-results" role="listbox" aria-label="명령 팔레트 결과" data-i18n-attr="aria-label:shell.paletteResultsAria"></div>
+      <div class="gsearch-body">
+        <section class="gsearch-nav" aria-label="이동 · 명령" data-i18n-attr="aria-label:search.navH">
+          <div class="palette-results" id="search-nav-results" role="listbox" aria-label="이동 · 명령" data-i18n-attr="aria-label:search.navH"></div>
+        </section>
+        <section class="gsearch-codes" aria-label="코드" data-i18n-attr="aria-label:search.codesH">
+          <div class="gsearch-codes-head">
+            <span class="palette-section-label" data-i18n="search.codesH">코드 — 상병 · 행위·수가 · 비급여</span>
+            <div class="search-filters">
+              <button type="button" class="filter-chip active" data-source="all" data-i18n="search.filterAll">전체</button>
+              <button type="button" class="filter-chip" data-source="kcd" data-i18n="search.filterKcd">KCD 상병</button>
+              <button type="button" class="filter-chip" data-source="jabo" data-i18n="search.filterFee">행위·수가</button>
+              <button type="button" class="filter-chip" data-source="bigeup" data-i18n="common.bigeup">비급여</button>
+            </div>
+            <span class="summary" id="search-summary" data-i18n="search.summaryIdle">검색어를 입력하세요.</span>
+            <button type="button" class="btn secondary sm" id="search-download" disabled data-i18n-html="search.downloadBtn">결과 XLSX <span class="arrow">↓</span></button>
+          </div>
+          <div class="result" id="search-result">
+            <div class="empty-state" data-i18n="search.empty">예) "요통", "추나", "S13.4", "ㅇㅈ"</div>
+          </div>
+        </section>
+      </div>
       <div class="palette-foot">
         <span><kbd>↑</kbd> <kbd>↓</kbd> <span data-i18n="shell.paletteMove">이동</span></span>
         <span><kbd>⏎</kbd> <span data-i18n="shell.paletteSelect">선택</span></span>
         <span><kbd>esc</kbd> <span data-i18n="common.close">닫기</span></span>
+        <button type="button" class="link" data-action="run-search" data-i18n="search.demoBtn">예시 검색어: "요통"</button>
       </div>
     </div>
   </div>
@@ -153,11 +177,11 @@
 
   <div class="frame shell">
 
-    <!-- ── Mobile drawer scrim (covers content when rail-open) ── -->
-    <div class="rail-scrim" id="rail-scrim" aria-hidden="true"></div>
+    <!-- ── Phone: scrim behind the ⋯ sheet (the rail foot, opened from the bottom bar) ── -->
+    <div class="more-scrim" id="more-scrim" aria-hidden="true"></div>
 
-    <!-- ── Left rail · grouped nav ── -->
-    <aside class="rail" id="rail" aria-label="섹션 선택" data-i18n-attr="aria-label:shell.railAria">
+    <!-- ── Left rail · five areas, the active one expanded into its panels (phone: only .rail-foot survives, as the ⋯ sheet) ── -->
+    <aside class="rail" id="rail" aria-label="영역 선택" data-i18n-attr="aria-label:shell.railAria">
       <a class="mark" href="../">
         <span class="stamp" aria-hidden="true"></span>
         <span class="name"><span data-i18n-html="shell.markName">한방병원 <em>행정</em></span>
@@ -165,28 +189,61 @@
         </span>
       </a>
 
-      <div class="rail-group">
-        <span class="group-label" data-i18n="nav.sec.start">시작</span>
-        <button class="rail-btn active" data-panel="tab-today"><span class="num">00</span><span data-i18n="nav.today">오늘</span><span class="badge-dot"></span></button>
-      </div>
-      <div class="rail-group">
-        <span class="group-label" data-i18n="nav.sec.claims">청구·코드</span>
-        <button class="rail-btn" data-panel="tab-kcd"><span class="num">01</span><span data-i18n="nav.kcd">상병코드 정비</span><span class="badge-dot"></span></button>
-        <button class="rail-btn" data-panel="tab-jabo"><span class="num">02</span><span data-i18n="nav.jabo">자보 정산</span><span class="badge-dot"></span></button>
-        <button class="rail-btn" data-panel="tab-search"><span class="num">06</span><span data-i18n="nav.search">코드 검색</span><span class="badge-dot"></span></button>
-        <button class="rail-btn" data-panel="tab-ai"><span class="num">07</span><span data-i18n="nav.ai">AI 코딩 어시스트</span><span class="badge-dot"></span></button>
-      </div>
-      <div class="rail-group">
-        <span class="group-label" data-i18n="nav.sec.reporting">보고·감사</span>
-        <button class="rail-btn" data-panel="tab-yearend"><span class="num">03</span><span data-i18n="nav.yearend">연말정산 검증</span><span class="badge-dot"></span></button>
-        <button class="rail-btn" data-panel="tab-bigeup"><span class="num">04</span><span data-i18n="nav.bigeup">비급여 반기보고</span><span class="badge-dot"></span></button>
-        <button class="rail-btn" data-panel="tab-retention"><span class="num">05</span><span data-i18n="nav.retention">보존 감사</span><span class="badge-dot"></span></button>
-      </div>
-      <div class="rail-group">
-        <span class="group-label" data-i18n="nav.sec.org">조직·인증</span>
-        <button class="rail-btn" data-panel="tab-license"><span class="num">08</span><span data-i18n="nav.license">면허·자격 갱신</span><span class="badge-dot"></span></button>
-        <button class="rail-btn" data-panel="tab-accred"><span class="num">09</span><span data-i18n="nav.accred">인증평가</span><span class="badge-dot"></span></button>
-      </div>
+      <nav class="rail-areas" id="rail-areas" aria-label="영역" data-i18n-attr="aria-label:shell.areasAria">
+        <div class="area active" data-area="home">
+          <button type="button" class="area-btn active" data-area="home" aria-expanded="true">
+            <svg class="ai" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/></svg>
+            <span class="area-label" data-i18n="nav.area.home">홈</span>
+          </button>
+          <div class="area-panels active" data-area="home" role="group">
+            <button type="button" class="rail-btn active" data-panel="tab-today" data-i18n="nav.today">오늘</button>
+          </div>
+        </div>
+        <div class="area" data-area="patients">
+          <button type="button" class="area-btn" data-area="patients" aria-expanded="false">
+            <svg class="ai" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>
+            <span class="area-label" data-i18n="nav.area.patients">환자</span>
+          </button>
+          <div class="area-panels" data-area="patients" role="group">
+            <button type="button" class="rail-btn" data-panel="tab-board" data-i18n="nav.board">접수 보드</button>
+          </div>
+        </div>
+        <div class="area" data-area="claims">
+          <button type="button" class="area-btn" data-area="claims" aria-expanded="false">
+            <svg class="ai" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="3" width="15" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+            <span class="area-label" data-i18n="nav.area.claims">청구</span>
+          </button>
+          <div class="area-panels" data-area="claims" role="group">
+            <button type="button" class="rail-btn" data-panel="tab-claims" data-i18n="nav.claims">청구 배치</button>
+            <button type="button" class="rail-btn" data-panel="tab-kcd" data-i18n="nav.kcd">상병 정비</button>
+            <button type="button" class="rail-btn" data-panel="tab-jabo" data-i18n="nav.jabo">심사결과 대조</button>
+          </div>
+        </div>
+        <div class="area" data-area="records">
+          <button type="button" class="area-btn" data-area="records" aria-expanded="false">
+            <svg class="ai" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="1.5"/><path d="M3.5 10h17M9.5 10v9.5"/></svg>
+            <span class="area-label" data-i18n="nav.area.records">보고·기록</span>
+          </button>
+          <div class="area-panels" data-area="records" role="group">
+            <button type="button" class="rail-btn" data-panel="tab-yearend" data-i18n="nav.yearend">연말정산 검증</button>
+            <button type="button" class="rail-btn" data-panel="tab-bigeup" data-i18n="nav.bigeup">비급여 보고</button>
+            <button type="button" class="rail-btn" data-panel="tab-retention" data-i18n="nav.retention">보존 감사</button>
+          </div>
+        </div>
+        <div class="area" data-area="org">
+          <button type="button" class="area-btn" data-area="org" aria-expanded="false">
+            <svg class="ai" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="1.5"/><path d="M8 9V5h8v4M3 14h18"/></svg>
+            <span class="area-label" data-i18n="nav.area.org">조직</span>
+          </button>
+          <div class="area-panels" data-area="org" role="group">
+            <button type="button" class="rail-btn" data-panel="tab-org" data-i18n="nav.org">기관 프로필</button>
+            <button type="button" class="rail-btn" data-panel="tab-license" data-i18n="nav.license">직원 명부</button>
+            <button type="button" class="rail-btn" data-panel="tab-accred" data-i18n="nav.accred">인증 자체점검</button>
+            <button type="button" class="rail-btn" data-panel="tab-privacy" data-i18n="nav.privacy">데이터 처리 현황</button>
+            <button type="button" class="rail-btn" data-panel="tab-masters" data-i18n="nav.masters">마스터 업로드</button>
+          </div>
+        </div>
+      </nav>
 
       <div class="rail-foot">
         <div class="lang-toggle rail-lang" role="group" aria-label="Language"><button type="button" data-lang="ko" aria-pressed="true">KO</button><button type="button" data-lang="en" aria-pressed="false">EN</button></div>
@@ -196,7 +253,8 @@
         <button class="rail-btn" id="rail-privacy" title="저장 항목별 목적·근거·암호화·보존기간, 파기, 암호화 백업" data-i18n="shell.railPrivacy" data-i18n-attr="title:shell.railPrivacyTitle">▤ 데이터 처리 현황</button>
         <button class="rail-btn" id="rail-info" data-i18n="shell.railInfo">ⓘ 정보 · 출처</button>
         <button class="rail-btn" id="rail-demo" data-i18n="shell.railDemo">▶ 둘러보기 다시 열기</button>
-        <button class="rail-btn" id="rail-cmdk"><span data-i18n="shell.railCmdk">⌕ 검색 · 명령 팔레트</span> <span class="cmdk-key">⌘K</span></button>
+        <button class="rail-btn" id="rail-cmdk"><span data-i18n="shell.railCmdk">⌕ 검색 · 이동 · 명령</span> <span class="cmdk-key">⌘K</span></button>
+        <button class="rail-btn" id="rail-ai" data-i18n="shell.railAi">✦ AI 코딩 어시스트</button>
         <button class="rail-btn" id="wipe-all" title="이 브라우저에서 모든 입력·기록·첨부 사진과 사용자·암호화 키를 파기합니다 (「파기」 입력 필요)" data-i18n="shell.railWipe" data-i18n-attr="title:shell.railWipeTitle">⌫ 전체 파기</button>
       </div>
     </aside>
@@ -205,18 +263,22 @@
 
       <!-- ── Top bar — sticks to top of workspace, doesn't scroll with content ── -->
       <div class="topbar" id="topbar">
-        <button class="hamburger" id="hamburger" aria-label="메뉴 열기" data-i18n-attr="aria-label:shell.menuOpen">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-        </button>
-        <span class="crumb"><strong id="crumb-section">시작</strong> · <span id="crumb-tab">오늘</span></span>
+        <span class="crumb"><strong id="crumb-section">홈</strong><span class="crumb-sep" aria-hidden="true">›</span><span id="crumb-tab">오늘</span></span>
         <span class="spacer"></span>
         <span class="chip action" id="topbar-org" role="button" style="display:none"><span class="led"></span><span id="topbar-org-text">—</span></span>
         <span class="chip" id="topbar-due" style="display:none"><span class="led warn"></span><span id="topbar-due-text">—</span></span>
         <span class="chip action" id="topbar-user" role="button" title="사용자 · PIN · 자동 잠금" data-i18n-attr="title:shell.userChipTitle" style="display:none"><span class="led"></span><span id="topbar-user-text">—</span></span>
         <span class="chip" id="topbar-sync"><span class="led idle" id="sync-led"></span><span id="sync-msg" data-i18n="shell.syncIdle">로컬 저장 · 암호화</span></span>
         <span class="lang-toggle topbar-lang" role="group" aria-label="Language"><button type="button" data-lang="ko" aria-pressed="true">KO</button><button type="button" data-lang="en" aria-pressed="false">EN</button></span>
-        <span class="chip action" id="topbar-cmdk" role="button" title="검색 · 명령 팔레트 (⌘K · Ctrl+K)" data-i18n-attr="title:shell.cmdkChipTitle"><span style="font-size:11px">⌕</span> <span class="cmdk-word" data-i18n="shell.cmdkWord">검색</span><kbd class="cmdk-key">⌘K</kbd></span>
+        <button type="button" class="topbar-btn" id="topbar-search" title="검색 · 이동 · 명령 (⌘K · Ctrl+K)" data-i18n-attr="title:shell.cmdkChipTitle;aria-label:shell.cmdkChipTitle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg><span class="tb-word" data-i18n="shell.cmdkWord">검색</span><kbd class="cmdk-key">⌘K</kbd>
+        </button>
+        <button type="button" class="topbar-btn accent" id="topbar-ai" title="AI 코딩 어시스트 — 어느 화면에서든 오른쪽 드로어로 (⌘K 안에서도 열 수 있습니다)" data-i18n-attr="title:shell.aiBtnTitle;aria-label:nav.ai" aria-expanded="false" aria-controls="ai-drawer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg><span class="tb-word" data-i18n="shell.aiWord">AI</span>
+        </button>
       </div>
+      <!-- Phone: the active area's panels as a horizontally scrolling segmented control (rendered by shell.js from nav TABS) -->
+      <nav class="subnav" id="subnav" aria-label="하위 메뉴" data-i18n-attr="aria-label:shell.subnavAria"></nav>
 
       <!-- Legacy outer shell removed — replaced by left rail + topbar above.
            Hidden DOM nodes kept so SyncStatus keeps working. -->
@@ -228,23 +290,20 @@
       <div class="work-scroll" id="work-scroll">
 
     <!-- ─────────────────────────────────────────── -->
-    <!-- Tab 0 — 오늘 / Today dashboard -->
+    <!-- 홈 › 오늘 — task-first home: 지금 할 일 → 이번 달 숫자 → 최근 작업 → 다가오는 마감 (전체) → 활동 (접힘) -->
     <!-- ─────────────────────────────────────────── -->
     <section class="panel active" id="tab-today" role="tabpanel">
       <div class="panel-head">
-        <span class="panel-num" data-i18n="today.num">00 · 오늘</span>
+        <span class="panel-num" data-i18n="today.num">홈 · 오늘</span>
         <h3 data-i18n-html="today.h3">오늘의 <em>행정실</em></h3>
         <div class="badges">
           <span class="badge live" id="today-date">—</span>
-          <span class="badge" data-i18n="today.badge">다가오는 마감 · 이어할 작업</span>
+          <span class="badge" data-i18n="today.badge">지금 할 일 · 이번 달 숫자 · 최근 작업</span>
         </div>
       </div>
       <p class="panel-blurb" data-i18n-html="today.blurb">
-        면허신고 기한, 반기보고 마감, 인증평가 — <em>잊은 순간</em>이 곧 사고입니다. 어제 하다 만 정산표도 다시 찾기 어렵죠. 출근하면 이 화면을 먼저 봐주세요. <em>오늘 챙길 마감</em>과 <em>이어할 작업</em>이 항상 위에 떠 있습니다.
+        면허신고 기한, 반기보고 마감, 아직 안 끝난 청구 단계 — <em>잊은 순간</em>이 곧 사고입니다. 출근하면 이 화면을 먼저 봐주세요. <em>지금 할 일</em>이 한 줄씩 위에 떠 있고, 줄마다 버튼 하나로 그 자리로 갑니다.
       </p>
-
-      <!-- Setup nudges — 기관 정보 미완료 · 직원 명부 비어 있음 (rendered by tab0-today.js) -->
-      <div class="today-nudges" id="today-nudges" role="region" aria-label="설정 안내" data-i18n-attr="aria-label:today.nudge.aria" style="display:none"></div>
 
       <div class="install-nudge" id="install-nudge" role="region" aria-label="앱 설치 안내" data-i18n-attr="aria-label:today.installAria">
         <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -262,37 +321,18 @@
         </div>
       </div>
 
-      <!-- ── Live shared intake board — PocketBase realtime showcase ── -->
-      <div class="intake-board" id="intake-board" role="region" aria-label="실시간 접수 현황판" data-i18n-attr="aria-label:board.aria">
-        <div class="board-head">
-          <h4><span class="step">★</span> <span data-i18n="board.title">실시간 접수 현황판</span></h4>
-          <span class="intake-pill" title="이 현황판은 공유 PocketBase(clinic-admin.pb.gurum.se)에 기록되는 공개 데모 보드입니다. 환자명은 고정된 가상 이름만 선택할 수 있으며, 실제 진료기록이 아닙니다." data-i18n="board.pill" data-i18n-attr="title:board.pillTitle">공유 보드 — 실명 입력 불가</span>
-          <span class="intake-sync" id="intake-sync"><span class="dot">○</span><span id="intake-sync-text" data-i18n="board.syncLocal">로컬 — 이 기기에서만</span></span>
-        </div>
-        <div class="intake-cols">
-          <div class="intake-col" data-status="대기">
-            <div class="col-label"><span data-i18n="board.status.대기">대기</span><span class="col-count" data-count="대기">0</span></div>
-            <div class="col-cards" id="intake-col-대기"></div>
-          </div>
-          <div class="intake-col" data-status="진료중">
-            <div class="col-label"><span data-i18n="board.status.진료중">진료중</span><span class="col-count" data-count="진료중">0</span></div>
-            <div class="col-cards" id="intake-col-진료중"></div>
-          </div>
-          <div class="intake-col" data-status="완료">
-            <div class="col-label"><span data-i18n="board.status.완료">완료</span><span class="col-count" data-count="완료">0</span></div>
-            <div class="col-cards" id="intake-col-완료"></div>
-          </div>
-        </div>
-        <div class="intake-add">
-          <select id="intake-name" aria-label="가명 환자 선택 (환자번호 뒷 4자리 — 이름 입력 불가)" data-i18n-attr="aria-label:board.nameAria"></select>
-          <input type="text" id="intake-summary" maxlength="120" placeholder="간단 메모 (예: 요통 초진)" autocomplete="off" aria-label="접수 메모" data-i18n-attr="placeholder:board.summaryPlaceholder;aria-label:board.summaryAria">
-          <button type="button" class="pc-btn advance" id="intake-add-btn" data-i18n="board.addBtn">+ 접수 추가</button>
-          <p class="add-note" id="intake-add-note" data-i18n="board.addNote">공개 공유 보드입니다 — 다른 기기·탭에서 열어두면 추가·상태변경이 즉시 동기화됩니다. 환자명은 가상 이름만 선택할 수 있고, 메모에도 실제 환자 정보를 쓰지 마세요.</p>
-        </div>
-      </div>
 
-      <!-- KPI tiles — this month's 자보 claims from jabo.history + review batches (tab0-today.js). The .kpi-loading
-           skeleton is the first paint; the numbers fade in once the store has been read. -->
+      <!-- 지금 할 일 — setup nudges (기관 정보 · 직원 명부) + derived todo rows (deadlines ≤ 30 days · open claim-batch step ·
+           unfinished 자보 수기 케이스), each with one deep-linking action button. Rendered by tab0-today.js. -->
+      <section class="home-sec" id="home-todo" aria-labelledby="home-todo-h">
+        <h4 class="home-h" id="home-todo-h"><span data-i18n="home.todoH">지금 할 일</span> <span class="home-count" id="todo-count" hidden></span></h4>
+        <div class="today-nudges" id="today-nudges" role="region" aria-label="설정 안내" data-i18n-attr="aria-label:today.nudge.aria" style="display:none"></div>
+        <div class="todo-list" id="todo-list" role="list"></div>
+      </section>
+
+      <!-- 이번 달 숫자 — KPI tiles from jabo.history + review batches (tab0-today.js). The .kpi-loading skeleton is the first paint. -->
+      <section class="home-sec" id="home-numbers" aria-labelledby="home-numbers-h">
+      <h4 class="home-h" id="home-numbers-h" data-i18n="home.numbersH">이번 달 숫자</h4>
       <div class="insights" id="today-insights">
         <div class="insight kpi kpi-loading" id="ins-jabo-card">
           <div class="label" data-i18n="today.insJabo">이번 달 자보 청구</div>
@@ -326,32 +366,36 @@
         </div>
       </div>
       <p class="kpi-empty" id="kpi-empty" data-i18n="today.kpi.empty" style="display:none">청구 배치를 올리면 여기에 숫자가 채워져요</p>
+      </section>
 
-      <div class="dash-grid">
-        <div class="card">
-          <h4><span class="step">01</span> <span data-i18n="today.h4Deadlines">다가오는 마감</span></h4>
-          <div class="dday-list" id="dday-list"></div>
-          <div class="result-toolbar" style="margin-top:18px; margin-bottom:0">
-            <div class="summary" data-i18n="today.icsSummary">캘린더로 내려받아 일정 앱에 넣어두세요 — .ics에는 접힌 항목까지 모두 들어갑니다. 법정 기한은 연도별 공지로 확인 필요.</div>
-            <div class="actions">
-              <button class="btn secondary" id="dday-ics" data-i18n-html="today.icsBtn">.ics 캘린더 <span class="arrow">↓</span></button>
-              <button class="btn secondary" id="dday-share" data-i18n-html="common.shareBtn">공유 <span class="arrow">↗</span></button>
-            </div>
+      <!-- 최근 작업 — resume cards -->
+      <section class="home-sec" id="home-recent" aria-labelledby="home-recent-h">
+        <h4 class="home-h" id="home-recent-h" data-i18n="home.recentH">최근 작업</h4>
+        <div class="resume-list" id="resume-list">
+          <div class="resume"><span class="empty" data-i18n="today.resumeEmpty">아직 진행 중인 작업이 없습니다.</span></div>
+        </div>
+      </section>
+
+      <!-- 다가오는 마감 — the full 12-month list behind the todo rows (.ics / 공유 live here) -->
+      <details class="home-fold" id="home-deadlines" open>
+        <summary><span class="home-h" data-i18n="home.deadlinesH">다가오는 마감 · 전체</span></summary>
+        <div class="dday-list" id="dday-list"></div>
+        <div class="result-toolbar" style="margin-top:18px; margin-bottom:0">
+          <div class="summary" data-i18n="today.icsSummary">캘린더로 내려받아 일정 앱에 넣어두세요 — .ics에는 접힌 항목까지 모두 들어갑니다. 법정 기한은 연도별 공지로 확인 필요.</div>
+          <div class="actions">
+            <button class="btn secondary" id="dday-ics" data-i18n-html="today.icsBtn">.ics 캘린더 <span class="arrow">↓</span></button>
+            <button class="btn secondary" id="dday-share" data-i18n-html="common.shareBtn">공유 <span class="arrow">↗</span></button>
           </div>
         </div>
+      </details>
 
-        <div class="card">
-          <h4><span class="step">02</span> <span data-i18n="today.h4Resume">작업 이어하기</span></h4>
-          <div class="resume-list" id="resume-list">
-            <div class="resume"><span class="empty" data-i18n="today.resumeEmpty">아직 진행 중인 작업이 없습니다.</span></div>
-          </div>
-
-          <h4 style="margin-top:24px"><span class="step">03</span> <span data-i18n="today.h4Activity">최근 활동</span></h4>
-          <div class="act-feed" id="act-feed">
-            <div class="act-empty" data-i18n="today.activityEmpty">최근 활동이 없습니다.</div>
-          </div>
+      <!-- 활동 — the audit-style feed, collapsed by default -->
+      <details class="home-fold" id="home-activity">
+        <summary><span class="home-h" data-i18n="home.activityH">활동</span></summary>
+        <div class="act-feed" id="act-feed">
+          <div class="act-empty" data-i18n="today.activityEmpty">최근 활동이 없습니다.</div>
         </div>
-      </div>
+      </details>
 
       <p class="caveat" style="margin-top:24px" data-i18n-html="today.caveat">
         ※ 모든 데이터는 <em>이 브라우저</em>에만 저장됩니다. 다른 브라우저·기기에서는 보이지 않으며, 로그아웃·시크릿창 종료시 사라질 수 있습니다. 같은 브라우저에서 여러 탭을 열어두면 자동으로 동기화됩니다.
@@ -359,11 +403,111 @@
     </section>
 
     <!-- ─────────────────────────────────────────── -->
-    <!-- Tab 1 — 상병코드 정비 (입력형 → EDI 표준형 + 최신 개정판 마스터 대조) -->
+    <!-- 환자 › 접수 보드 — the E2E-encrypted shared board (js/board.js unchanged; only its mount moved here from 홈).
+         PHASE 3 SLOT: 지불보증 · 발급 대장 · 비급여 동의 become sibling panels of this area (nav.js TABS area "patients"). -->
+    <!-- ─────────────────────────────────────────── -->
+    <section class="panel" id="tab-board" role="tabpanel">
+      <div class="panel-head">
+        <span class="panel-num" data-i18n="board.num">환자 · 접수 보드</span>
+        <h3 data-i18n-html="board.h3">오늘 <em>대기 · 진료중 · 완료</em>, 한 판에</h3>
+        <div class="badges">
+          <span class="badge live" data-i18n="board.badgeLive">PocketBase 실시간 · E2E 암호화</span>
+          <span class="badge" data-i18n="board.badge">가명 환자만 · 실명 입력 불가</span>
+        </div>
+      </div>
+      <p class="panel-blurb" data-i18n-html="board.blurb">
+        접수 창구의 화이트보드를 그대로 옮겼습니다 — 가명 환자를 고르고 메모 한 줄이면 카드가 생기고, 다른 기기·탭에서도 <em>즉시 같은 판</em>을 봅니다. 카드 내용은 이 워크스페이스 키로 <em>종단간 암호화</em>되어 서버는 암호문만 봅니다. 지불보증·발급 대장·비급여 동의는 다음 단계에서 이 영역에 붙습니다.
+      </p>
+      <!-- ── Live shared intake board — PocketBase realtime showcase ── -->
+      <div class="intake-board" id="intake-board" role="region" aria-label="실시간 접수 현황판" data-i18n-attr="aria-label:board.aria">
+        <div class="board-head">
+          <h4><span class="step">★</span> <span data-i18n="board.title">실시간 접수 현황판</span></h4>
+          <span class="intake-pill" title="이 현황판은 공유 PocketBase(clinic-admin.pb.gurum.se)에 기록되는 공개 데모 보드입니다. 환자명은 고정된 가상 이름만 선택할 수 있으며, 실제 진료기록이 아닙니다." data-i18n="board.pill" data-i18n-attr="title:board.pillTitle">공유 보드 — 실명 입력 불가</span>
+          <span class="intake-sync" id="intake-sync"><span class="dot">○</span><span id="intake-sync-text" data-i18n="board.syncLocal">로컬 — 이 기기에서만</span></span>
+        </div>
+        <div class="intake-cols">
+          <div class="intake-col" data-status="대기">
+            <div class="col-label"><span data-i18n="board.status.대기">대기</span><span class="col-count" data-count="대기">0</span></div>
+            <div class="col-cards" id="intake-col-대기"></div>
+          </div>
+          <div class="intake-col" data-status="진료중">
+            <div class="col-label"><span data-i18n="board.status.진료중">진료중</span><span class="col-count" data-count="진료중">0</span></div>
+            <div class="col-cards" id="intake-col-진료중"></div>
+          </div>
+          <div class="intake-col" data-status="완료">
+            <div class="col-label"><span data-i18n="board.status.완료">완료</span><span class="col-count" data-count="완료">0</span></div>
+            <div class="col-cards" id="intake-col-완료"></div>
+          </div>
+        </div>
+        <div class="intake-add">
+          <select id="intake-name" aria-label="가명 환자 선택 (환자번호 뒷 4자리 — 이름 입력 불가)" data-i18n-attr="aria-label:board.nameAria"></select>
+          <input type="text" id="intake-summary" maxlength="120" placeholder="간단 메모 (예: 요통 초진)" autocomplete="off" aria-label="접수 메모" data-i18n-attr="placeholder:board.summaryPlaceholder;aria-label:board.summaryAria">
+          <button type="button" class="pc-btn advance" id="intake-add-btn" data-i18n="board.addBtn">+ 접수 추가</button>
+          <p class="add-note" id="intake-add-note" data-i18n="board.addNote">공개 공유 보드입니다 — 다른 기기·탭에서 열어두면 추가·상태변경이 즉시 동기화됩니다. 환자명은 가상 이름만 선택할 수 있고, 메모에도 실제 환자 정보를 쓰지 마세요.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────── -->
+    <!-- 청구 › 청구 배치 — the shared claim batch promoted to a landing page: current batch, both uploads, 3-step progress
+         (상병 정비 → 심사결과 대조 → 이의신청). Steps + card rendered by js/tabs/claims-landing.js. -->
+    <!-- ─────────────────────────────────────────── -->
+    <section class="panel" id="tab-claims" role="tabpanel">
+      <div class="panel-head">
+        <span class="panel-num" data-i18n="claims.num">청구 · 청구 배치</span>
+        <h3 data-i18n-html="claims.h3">명세서 한 번 올리고, <em>세 단계</em>로 끝까지</h3>
+        <div class="badges">
+          <span class="badge law" data-i18n="claims.badgeLaw">자동차보험진료수가 기준 · 심평원 자보 심사</span>
+          <span class="badge live" data-i18n="claims.badgeLive">상병 정비 → 심사결과 대조 → 이의신청</span>
+        </div>
+      </div>
+      <p class="panel-blurb" data-i18n-html="claims.blurb">
+        <em>청구 배치</em>가 단위입니다 — EMR에서 뽑은 청구 명세서 export 한 장이 상병 정비와 심사결과 대조가 함께 쓰는 배치가 되고, 심평원 심사결과 파일은 그 배치에 연결됩니다. 여기서 두 파일을 올리고, 아래 세 단계의 <em>어디까지 왔는지</em>만 보세요. 이의신청은 다음 단계에서 붙습니다.
+      </p>
+
+      <div class="batch-strip-host" id="claims-batch-strip"></div>
+
+      <div class="work">
+        <div class="card">
+          <h4><span class="step">①</span> <span data-i18n="claims.uploadH">파일 업로드 — 청구 명세서 · 심사결과통보</span></h4>
+          <div class="recon-drops">
+            <div>
+              <label class="drop" id="drop-claims-claims">
+                <input type="file" accept=".xlsx,.xls,.csv">
+                <p data-i18n="claims.dropClaims">청구 명세서 export</p>
+                <span class="hint" data-i18n="claims.dropClaimsHint">명세서번호 · 환자번호 · 진료일자 · 상병코드 · 행위코드 · 청구금액 — 새 청구 배치가 됩니다</span>
+              </label>
+              <div class="recon-file" id="claims-file-claims"></div>
+            </div>
+            <div>
+              <label class="drop" id="drop-claims-review">
+                <input type="file" accept=".xlsx,.xls,.csv">
+                <p data-i18n="claims.dropReview">심평원 심사결과 파일</p>
+                <span class="hint" data-i18n="claims.dropReviewHint">명세서번호 · 행위코드 · 인정금액 · 조정사유 — 현재 배치에 연결됩니다</span>
+              </label>
+              <div class="recon-file" id="claims-file-review"></div>
+            </div>
+          </div>
+          <div id="claims-status" class="status-line" style="display:none"></div>
+          <p class="caveat" data-i18n-html="claims.caveat">
+            ※ 같은 파일을 <strong>상병 정비</strong>나 <strong>심사결과 대조</strong>에서 올려도 같은 배치가 됩니다. 배치는 브라우저 안에서 암호화되어 90일 · 최대 20건까지 보관됩니다 (조직 › 데이터 처리 현황).
+          </p>
+        </div>
+
+        <div class="card">
+          <h4><span class="step">②</span> <span data-i18n="claims.stepsH">진행 단계 — 현재 배치</span></h4>
+          <div class="claims-batch-card" id="claims-batch-card"></div>
+          <ol class="claims-steps" id="claims-steps"></ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────── -->
+    <!-- 청구 › 상병 정비 (입력형 → EDI 표준형 + 최신 개정판 마스터 대조) -->
     <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-kcd" role="tabpanel">
       <div class="panel-head">
-        <span class="panel-num" data-i18n="kcd.num">01 · 상병코드 정비</span>
+        <span class="panel-num" data-i18n="kcd.num">청구 · 상병 정비</span>
         <h3 data-i18n-html="kcd.h3">입력한 상병코드, <em>EDI 표준형</em>으로 한 번 더</h3>
         <div class="badges">
           <span class="badge law" data-i18n="kcd.badgeLaw">KOICD 상병마스터 · KCD-9 (2026-01-01 시행 — 확인 필요)</span>
@@ -374,7 +518,7 @@
         EMR에서 뽑은 상병 대장을 올려두기만 하면 — <em>마침표·공백 섞인 입력형은 EDI 표준형(M545)으로</em>, <em>같은 명세서 안의 중복은 정리</em>, <em>비U 주상병 없이 홀로 선 한의 병증 U코드는 표시</em>, 그리고 최신 개정판 마스터에 없는 코드는 <em>미수록</em>으로. 청구 누르기 전 5분의 점검입니다.
       </p>
       <div class="demo-strip">
-        <span class="demo-label" data-i18n-html="kcd.demoLabel">처음이신가요? <strong>한솔한방병원 2026-08 명세서 12건</strong>(경추·요추 염좌·요통·U코드·EDI형 입력·5자리 입력 등)으로 정비 결과를 미리 보실 수 있습니다 — 02 자보 정산과 같은 청구 배치입니다.</span>
+        <span class="demo-label" data-i18n-html="kcd.demoLabel">처음이신가요? <strong>한솔한방병원 2026-08 명세서 12건</strong>(경추·요추 염좌·요통·U코드·EDI형 입력·5자리 입력 등)으로 정비 결과를 미리 보실 수 있습니다 — 심사결과 대조와 같은 청구 배치입니다.</span>
         <button type="button" class="demo-cta" data-action="run-kcd"><span class="play">▶</span> <span data-i18n="common.demoSample">샘플로 시연</span></button>
       </div>
 
@@ -393,7 +537,7 @@
             </div>
             <p data-i18n="kcd.dropP">엑셀 또는 CSV 파일을 끌어다 놓으세요</p>
             <span class="hint">.xlsx · .xls · .csv</span>
-            <span class="hint legacy" data-i18n="kcd.dropLegacy">이 탭용 파일만(상병 컬럼) — 행위 컬럼이 함께 있으면 02 자보 정산과 같은 청구 배치로 묶입니다</span>
+            <span class="hint legacy" data-i18n="kcd.dropLegacy">이 화면용 파일만(상병 컬럼) — 행위 컬럼이 함께 있으면 심사결과 대조와 같은 청구 배치로 묶입니다</span>
             <div class="drop-actions">
               <button type="button" class="ghost" data-action="sample-kcd" data-i18n="common.sampleFileExample">샘플 파일 받기 (예시)</button>
             </div>
@@ -405,7 +549,7 @@
           </div>
           <div class="master-badge" id="kcd-master-badge"></div>
           <p class="caveat" data-i18n-html="kcd.caveat">
-            ※ 내장 표는 한방 다빈도 약 60개 상병의 <strong>발췌본(예시)</strong>이며 완전한 마스터가 아닙니다. 발췌본에 없는 코드는 <a class="small-link" href="https://www.koicd.kr" target="_blank" rel="noopener noreferrer">KOICD</a>에서 확인하거나, <strong>코드 검색 탭</strong>에서 KOICD 상병마스터(xlsx)를 업로드하면 실제 마스터로 대조합니다. 한의 병증 U코드(U20–U33, U50–U79)는 같은 명세서(환자번호+진료일자)에 비U 주상병이 있어야 청구가 통과합니다. U80–U89는 WHO 항생제 내성 코드입니다.
+            ※ 내장 표는 한방 다빈도 약 60개 상병의 <strong>발췌본(예시)</strong>이며 완전한 마스터가 아닙니다. 발췌본에 없는 코드는 <a class="small-link" href="https://www.koicd.kr" target="_blank" rel="noopener noreferrer">KOICD</a>에서 확인하거나, <strong>조직 › 마스터 업로드</strong>에서 KOICD 상병마스터(xlsx)를 업로드하면 실제 마스터로 대조합니다. 한의 병증 U코드(U20–U33, U50–U79)는 같은 명세서(환자번호+진료일자)에 비U 주상병이 있어야 청구가 통과합니다. U80–U89는 WHO 항생제 내성 코드입니다.
           </p>
         </div>
 
@@ -429,11 +573,11 @@
     </section>
 
     <!-- ─────────────────────────────────────────── -->
-    <!-- Tab 2 — 자보 EDI 청구·지급 정산 -->
+    <!-- 청구 › 심사결과 대조 — 자보 EDI 청구 ⨝ 심평원 심사결과 -->
     <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-jabo" role="tabpanel">
       <div class="panel-head">
-        <span class="panel-num" data-i18n="jabo.num">02 · 자보 심사결과 정산</span>
+        <span class="panel-num" data-i18n="jabo.num">청구 · 심사결과 대조</span>
         <h3 data-i18n-html="jabo.h3">심평원이 <em>무엇을 조정했는지</em>, 명세서 단위로 대조</h3>
         <div class="badges">
           <span class="badge law" data-i18n="jabo.badgeLaw">자동차보험진료수가 기준 (국토교통부 고시)</span>
@@ -444,7 +588,7 @@
         2013년 7월부터 자보 진료수가는 병원이 <em>심평원(HIRA)에 명세서를 청구</em>하고 심평원이 <em>심사결과통보서</em>를 보내는 구조입니다. 조정에 대한 <em>이의제기도 보험사가 아닌 심평원</em>에 합니다. 청구 명세서 export와 심사결과 파일을 올리면 — 명세서번호+행위코드로 줄마다 <em>청구 vs 인정</em>을 대조하고, <em>조정사유별·월별</em>로 묶어 드립니다. 같은 사유가 반복되면 다음 달에는 미리 피할 수 있습니다.
       </p>
       <div class="demo-strip">
-        <span class="demo-label" data-i18n-html="jabo.demoLabel"><strong>한솔한방병원 2026-08 · 명세서 12건 · 행위 41줄</strong> 샘플(예시) — 상병-처치 부위 불일치·동일부위 중복·추나 횟수 한도·첩약 처방일수·경상환자 4주 진단서 등 실제 조정 패턴을 대조표로 보여드립니다. 01 상병 정비와 같은 청구 배치입니다.</span>
+        <span class="demo-label" data-i18n-html="jabo.demoLabel"><strong>한솔한방병원 2026-08 · 명세서 12건 · 행위 41줄</strong> 샘플(예시) — 상병-처치 부위 불일치·동일부위 중복·추나 횟수 한도·첩약 처방일수·경상환자 4주 진단서 등 실제 조정 패턴을 대조표로 보여드립니다. 상병 정비와 같은 청구 배치입니다.</span>
         <button type="button" class="demo-cta" data-action="run-jabo"><span class="play">▶</span> <span data-i18n="jabo.demoCta">샘플 파일로 시연</span></button>
       </div>
 
@@ -462,7 +606,7 @@
                 <input type="file" accept=".xlsx,.xls,.csv">
                 <p data-i18n="jabo.dropClaims">① 청구 명세서 export</p>
                 <span class="hint" data-i18n="jabo.dropClaimsHint">명세서번호 · 환자번호 · 진료일자 · 행위코드 · 횟수 · 청구금액 (+ 상병코드 · 진단명 · 주/부상병)</span>
-                <span class="hint legacy" data-i18n="jabo.dropClaimsLegacy">이 탭용 파일만(행위 컬럼)도 청구 배치가 됩니다 — 위 배치 줄의 「새 파일」과 같은 동작</span>
+                <span class="hint legacy" data-i18n="jabo.dropClaimsLegacy">이 화면용 파일만(행위 컬럼)도 청구 배치가 됩니다 — 청구 배치 화면의 업로드와 같은 동작</span>
                 <div class="drop-actions"><button type="button" class="ghost" data-action="sample-jabo-claims" data-i18n="common.sampleExample">샘플 받기 (예시)</button></div>
               </label>
               <div class="recon-file" id="jabo-file-claims"></div>
@@ -472,7 +616,7 @@
                 <input type="file" accept=".xlsx,.xls,.csv">
                 <p data-i18n="jabo.dropReview">② 심평원 심사결과 파일</p>
                 <span class="hint" data-i18n="jabo.dropReviewHint">명세서번호 · 행위코드 · 인정횟수 · 인정금액 · 조정사유코드 · 조정사유</span>
-                <span class="hint legacy" data-i18n="jabo.dropReviewLegacy">이 탭용 파일만 — 현재 청구 배치에 연결됩니다</span>
+                <span class="hint legacy" data-i18n="jabo.dropReviewLegacy">이 화면용 파일만 — 현재 청구 배치에 연결됩니다</span>
                 <div class="drop-actions"><button type="button" class="ghost" data-action="sample-jabo-review" data-i18n="common.sampleExample">샘플 받기 (예시)</button></div>
               </label>
               <div class="recon-file" id="jabo-file-review"></div>
@@ -565,18 +709,18 @@
             <div class="empty-state" data-i18n="jabo.manualEmpty">행위와 인정금액을 입력하면 정산표가 표시됩니다.</div>
           </div>
           <p class="caveat" data-i18n-html="jabo.manualCaveat">
-            ※ 내장 행위표는 <strong>예시 수가표</strong>입니다 — 코드는 '예시-NN' 자리표시자, 단가는 임의값. <strong>코드 검색 탭</strong>에서 심평원 행위·수가 마스터(xlsx)를 업로드하면 실제 코드·단가로 대체됩니다. 자보는 건강보험 행위 급여목록의 코드를 그대로 씁니다.
+            ※ 내장 행위표는 <strong>예시 수가표</strong>입니다 — 코드는 '예시-NN' 자리표시자, 단가는 임의값. <strong>조직 › 마스터 업로드</strong>에서 심평원 행위·수가 마스터(xlsx)를 업로드하면 실제 코드·단가로 대체됩니다. 자보는 건강보험 행위 급여목록의 코드를 그대로 씁니다.
           </p>
         </div>
       </div>
     </section>
 
     <!-- ─────────────────────────────────────────── -->
-    <!-- Tab 3 — 연말정산 의료비 사전검증 / 누락보정 -->
+    <!-- 보고·기록 › 연말정산 의료비 사전검증 / 누락보정 -->
     <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-yearend" role="tabpanel">
       <div class="panel-head">
-        <span class="panel-num" data-i18n="yearend.num">03 · 연말정산 의료비 사전점검</span>
+        <span class="panel-num" data-i18n="yearend.num">보고·기록 · 연말정산 의료비 사전점검</span>
         <h3 data-i18n-html="yearend.h3">1월 환자 전화 — "<em>영수증 빠졌어요</em>"</h3>
         <div class="badges">
           <span class="badge law" data-i18n="yearend.badgeLaw">소득세법 시행령 §216조의3 · 간소화 자료</span>
@@ -594,7 +738,7 @@
       <div class="work">
         <div class="card">
           <h4><span class="step">01</span> <span data-i18n="common.clinicInfo">의료기관 정보</span></h4>
-          <!-- Institution fields are read from the shared Org profile (edited in the info modal) — rendered by tab3-yearend.js -->
+          <!-- Institution fields are read from the shared Org profile (edited in 조직 › 기관 프로필) — rendered by tab3-yearend.js -->
           <div id="ye-org"></div>
           <div class="form-grid" style="margin-top:12px">
             <div class="field">
@@ -650,11 +794,11 @@
     </section>
 
     <!-- ─────────────────────────────────────────── -->
-    <!-- Tab 4 — HIRA 비급여 반기보고 -->
+    <!-- 보고·기록 › HIRA 비급여 반기보고 -->
     <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-bigeup" role="tabpanel">
       <div class="panel-head">
-        <span class="panel-num" data-i18n="bigeup.num">04 · 비급여 보고 준비</span>
+        <span class="panel-num" data-i18n="bigeup.num">보고·기록 · 비급여 보고 준비</span>
         <h3 data-i18n-html="bigeup.h3">3월·9월 진료분, <em>단가와 빈도</em>만 적으면 준비표가 됩니다</h3>
         <div class="badges">
           <span class="badge law" data-i18n="bigeup.badgeLaw">의료법 §45조의2 · 비급여 보고 고시</span>
@@ -672,7 +816,7 @@
       <div class="work">
         <div class="card">
           <h4><span class="step">01</span> <span data-i18n="common.clinicInfo">의료기관 정보</span></h4>
-          <!-- Institution fields are read from the shared Org profile (edited in the info modal) — rendered by tab4-bigeup.js -->
+          <!-- Institution fields are read from the shared Org profile (edited in 조직 › 기관 프로필) — rendered by tab4-bigeup.js -->
           <div id="bg-org"></div>
           <div class="profile-strip" style="margin-top:12px">
             <div class="field">
@@ -751,11 +895,11 @@
     </section>
 
     <!-- ─────────────────────────────────────────── -->
-    <!-- Tab 5 — 의무기록 보존 감사 -->
+    <!-- 보고·기록 › 의무기록 보존 감사 -->
     <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-retention" role="tabpanel">
       <div class="panel-head">
-        <span class="panel-num" data-i18n="retention.num">05 · 의무기록 보존기간 점검</span>
+        <span class="panel-num" data-i18n="retention.num">보고·기록 · 의무기록 보존기간 점검</span>
         <h3 data-i18n-html="retention.h3">10년·5년·3년·2년 — <em>혼동하기 쉬운</em> 보존기간</h3>
         <div class="badges">
           <span class="badge law" data-i18n="retention.badgeLaw">의료법 시행규칙 §15</span>
@@ -844,137 +988,35 @@
     </section>
 
     <!-- ─────────────────────────────────────────── -->
-    <!-- Tab 6 — 통합 코드 검색 -->
+    <!-- 조직 › 기관 프로필 — the Org editor promoted from the ⓘ modal (which keeps a read-only summary + link). Mounted by shell.js. -->
     <!-- ─────────────────────────────────────────── -->
-    <section class="panel" id="tab-search" role="tabpanel">
+    <section class="panel" id="tab-org" role="tabpanel">
       <div class="panel-head">
-        <span class="panel-num" data-i18n="search.num">06 · 통합 코드 검색 · 마스터</span>
-        <h3 data-i18n-html="search.h3">"요통" 한 단어로 — <em>상병·행위·비급여</em> 한 화면</h3>
+        <span class="panel-num" data-i18n="org.num">조직 · 기관 프로필</span>
+        <h3 data-i18n-html="org.h3">어느 <em>기관</em>의 행정실인가요?</h3>
         <div class="badges">
-          <span class="badge live" data-i18n="search.badgeLive">KCD · 행위·수가 · 비급여</span>
-          <span class="badge law" data-i18n="search.badgeLaw">KOICD · 심평원 마스터 업로드</span>
+          <span class="badge law" data-i18n="org.badgeLaw">의료법 §45조의2 · 소득세법 §165 자료 머리글</span>
+          <span class="badge" data-i18n="org.badge">이 브라우저에만 저장 · 개인정보 아님</span>
         </div>
       </div>
-      <p class="panel-blurb" data-i18n-html="search.blurb">
-        상병·행위·비급여를 매번 따로 찾아 헤매지 않아도 됩니다. <em>한글</em>·<em>코드</em>·<em>ㅇㅌ</em> 같은 초성까지 인식해서 한 화면에 모아드립니다. 내장 표는 <em>데모 발췌·예시</em>이므로, 아래에서 <em>KOICD 상병마스터</em>와 <em>심평원 행위·수가 마스터</em>를 올리면 정비·정산·검색·AI 탭이 모두 실제 마스터를 기준으로 동작합니다. 결과는 엑셀로 바로 내려받습니다.
+      <p class="panel-blurb" data-i18n-html="org.blurb">
+        기관명·요양기관기호·사업자등록번호·종별·대표자는 <em>비급여 보고 준비표</em>, <em>연말정산 자료</em>, <em>자보 정산표</em>의 머리글에 그대로 들어가고, 종별(병원·의원)은 비급여 보고 주기와 마감 캘린더를 정합니다. 한 번만 입력해두면 모든 화면이 같은 프로필을 읽습니다.
       </p>
-      <div class="demo-strip">
-        <span class="demo-label" data-i18n-html="search.demoLabel">예시 검색어 — <strong>"요통"</strong> 하나로 KCD 상병·행위 수가·비급여가 어떻게 묶이는지 보여드립니다.</span>
-        <button type="button" class="demo-cta" data-action="run-search"><span class="play">▶</span> <span data-i18n="search.demoCta">예시 검색어로 시연</span></button>
-      </div>
-
-      <div class="search-hero">
-        <input id="search-input" type="search" placeholder="요통 · 추나 · S13.4 · ㅇㅈㅍ…" data-i18n-attr="placeholder:search.placeholder" autocomplete="off">
-        <div class="search-filters">
-          <button class="filter-chip active" data-source="all" data-i18n="search.filterAll">전체</button>
-          <button class="filter-chip" data-source="kcd" data-i18n="search.filterKcd">KCD 상병</button>
-          <button class="filter-chip" data-source="jabo" data-i18n="search.filterFee">행위·수가</button>
-          <button class="filter-chip" data-source="bigeup" data-i18n="common.bigeup">비급여</button>
-        </div>
-      </div>
-      <div class="source-badge" id="search-source-badge"></div>
-
-      <div class="result-toolbar">
-        <div class="summary" id="search-summary" data-i18n="search.summaryIdle">검색어를 입력하세요.</div>
-        <div class="actions">
-          <button class="btn secondary" id="search-download" disabled data-i18n-html="search.downloadBtn">
-            결과 XLSX <span class="arrow">↓</span>
-          </button>
-        </div>
-      </div>
-      <div class="result" id="search-result">
-        <div class="empty-state" data-i18n="search.empty">예) "요통", "추나", "S13.4", "ㅇㅈ"</div>
-      </div>
-
-      <div class="master-upload">
-        <div class="master-card">
-          <h5 data-i18n="search.masterKcdH">상병 마스터 업로드 — KOICD</h5>
-          <p class="desc" data-i18n-html="search.masterKcdDesc">KOICD에서 내려받은 상병마스터(xlsx). 컬럼 예: <code>상병기호</code> · <code>한글명</code> · <code>영문명</code> · <code>완전코드구분</code>. 올린 뒤 헤더를 매핑하면 정비·검색·AI 탭이 이 표를 기준으로 동작합니다. 공개 참조표이므로 이 브라우저(IndexedDB)에만 보관됩니다.</p>
-          <div class="master-status" id="master-status-kcd"></div>
-          <div class="master-actions">
-            <label class="btn secondary" for="master-file-kcd" data-i18n="search.pickXlsx">xlsx 선택</label>
-            <input type="file" id="master-file-kcd" accept=".xlsx,.xls,.csv">
-            <button type="button" class="btn secondary" id="master-clear-kcd" disabled data-i18n="search.clearUpload">업로드본 지우기</button>
-          </div>
-          <div class="master-map" id="master-map-kcd" hidden></div>
-        </div>
-        <div class="master-card">
-          <h5 data-i18n="search.masterFeeH">행위·수가 마스터 업로드 — 심평원</h5>
-          <p class="desc" data-i18n-html="search.masterFeeDesc">심평원 행위 급여·비급여 목록 및 수가 마스터(xlsx). 컬럼 예: <code>수가코드</code> · <code>한글명</code> · <code>단가</code> · <code>분류</code> · <code>급여구분</code> · <code>자보구분</code>. 올리면 자보 정산의 예시 수가표와 검색 결과가 실제 코드로 바뀌고, 급여/비급여/자보 표시가 함께 나옵니다.</p>
-          <div class="master-status" id="master-status-fee"></div>
-          <div class="master-actions">
-            <label class="btn secondary" for="master-file-fee" data-i18n="search.pickXlsx">xlsx 선택</label>
-            <input type="file" id="master-file-fee" accept=".xlsx,.xls,.csv">
-            <button type="button" class="btn secondary" id="master-clear-fee" disabled data-i18n="search.clearUpload">업로드본 지우기</button>
-          </div>
-          <div class="master-map" id="master-map-fee" hidden></div>
-        </div>
+      <div class="card">
+        <h4><span class="step">①</span> <span data-i18n="org.panelH">기관 프로필</span></h4>
+        <div id="org-panel-form"></div>
+        <p class="caveat" data-i18n-html="org.caveat">
+          ※ 기관 정보는 사업자등록·요양기관 공개 정보로 <strong>개인정보가 아니어서</strong> 평문(plain tier)으로 저장됩니다 — 조직 › 데이터 처리 현황의 「기관 프로필」 행을 참고하세요. 데모라면 「샘플 데이터로 둘러보기」가 한솔한방병원으로 채웁니다.
+        </p>
       </div>
     </section>
 
     <!-- ─────────────────────────────────────────── -->
-    <!-- Tab 7 — AI 코딩 어시스트 -->
-    <!-- ─────────────────────────────────────────── -->
-    <section class="panel" id="tab-ai" role="tabpanel">
-      <div class="panel-head">
-        <span class="panel-num" data-i18n="ai.num">07 · AI 코딩 어시스트</span>
-        <h3 data-i18n-html="ai.h3">코드 찾는 시간 30분 → <em>3분</em></h3>
-        <div class="badges">
-          <span class="badge" data-i18n="ai.badge">Claude AI · 한국어 그대로</span>
-          <span class="badge law" data-i18n="ai.badgeLaw">예시 목록 기준 — 마스터 업로드 시 마스터 기준</span>
-        </div>
-      </div>
-      <p class="panel-blurb" data-i18n-html="ai.blurb">
-        한의사·간호사가 적은 <em>진료 메모</em>를 그대로 붙여넣거나 <em>음성으로 받아쓰면</em> — AI가 상병(KCD)·한의 병증 U코드·행위 코드 초안을 한꺼번에 골라드립니다. 추천마다 <em>왜 이 코드인지 근거</em>와 <em>조정 주의점</em>(상병-처치 부위 일치, 추나 횟수 한도, 경상환자 4주 진단서, 첩약 처방일수, 초·재진 진찰료)이 함께 나오니, 원무팀은 <em>맞는지 확인만</em> 하면 됩니다. 결정은 사람이, 검색은 AI가.
-      </p>
-      <div class="demo-strip">
-        <span class="demo-label" data-i18n-html="ai.demoLabel">처음이신가요? <strong>"교통사고 후 경추·요추 통증"</strong> 메모로 — 메모 한 줄에서 청구 가능한 코드들이 어떻게 한 번에 나오는지 보여드립니다.</span>
-        <button type="button" class="demo-cta" data-action="run-ai"><span class="play">▶</span> <span data-i18n="ai.demoCta">샘플 메모로 시연</span></button>
-      </div>
-
-      <div class="ai-shell">
-        <div class="card">
-          <h4><span class="step">01</span> <span data-i18n="ai.step1">진료 메모 입력</span></h4>
-          <div class="ai-input">
-            <div id="ai-ctx" class="ai-ctx" hidden></div>
-            <div class="ai-textarea-wrap">
-              <textarea id="ai-input" placeholder="예) 60세 남자, 3주 전 추돌사고 후 경부·요부 통증. 회전시 우측 어깨 방사통. SLR 양성. 침술·부항·추나 시술 예정." data-i18n-attr="placeholder:ai.placeholder"></textarea>
-              <button type="button" class="icon-btn mic" id="ai-mic" aria-label="음성 입력 시작" title="음성 입력 (한국어)" data-i18n-attr="aria-label:ai.micStart;title:ai.micTitle">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-              </button>
-            </div>
-            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;">
-              <button class="btn" id="ai-run" data-i18n-html="ai.runBtn">코드 추천 <span class="arrow">→</span></button>
-              <div class="model-toggle" id="ai-source" role="group" aria-label="추천 방식" data-i18n-attr="aria-label:ai.sourceAria" style="margin-top:0">
-                <button type="button" data-source="live" title="마스킹 → 미리보기 → 동의 후 메모를 외부 AI 서버로 보내 실제 추천을 받습니다" data-i18n="ai.live" data-i18n-attr="title:ai.liveTitle">라이브</button>
-                <button type="button" data-source="canned" class="active" title="브라우저 안에서만 동작하는 규칙 기반 예시 결과 (기본)" data-i18n="ai.canned" data-i18n-attr="title:ai.cannedTitle">예시</button>
-              </div>
-            </div>
-            <p class="caveat" id="ai-privacy" style="margin-top:10px">
-              <strong>예시 모드:</strong> 아무것도 전송하지 않습니다 — 브라우저 안의 규칙 기반 예시 결과입니다. 라이브로 바꾸면 전송 전에 마스킹 미리보기와 사용자별 동의를 거칩니다.
-            </p>
-          </div>
-        </div>
-
-        <div class="card">
-          <h4><span class="step">02</span> <span data-i18n="ai.step2">추천 결과</span> <span id="ai-mode-pill" class="ai-mode-pill" role="status" hidden>예시 모드</span></h4>
-          <div class="ai-output" id="ai-output">
-            <div class="placeholder" data-i18n-html="ai.placeholderOut">메모를 입력하고 <em>코드 추천</em>을 누르면 결과가 여기에 표시됩니다.</div>
-          </div>
-          <div id="ai-actions" class="ai-actions" hidden></div>
-          <p class="caveat" data-i18n-html="ai.caveat">
-            ※ AI는 <em>찾아드리는 일</em>까지만 합니다. 추천 코드는 <strong>예시 목록</strong>(내장 발췌·예시표) 기준이며, 코드 검색 탭에서 마스터를 업로드하면 마스터에 있는 코드만 제안합니다. 자보는 건강보험 행위 코드를 그대로 쓰고, 교통사고 환자에게는 비급여를 제안하지 않습니다. 청구 결정은 원무팀의 몫 — 실제 청구 전에 <em>상병코드 정비</em>·<em>자보 정산</em> 탭에서 한 번 더 확인해주세요.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ─────────────────────────────────────────── -->
-    <!-- Tab 8 — 면허·자격 갱신 트래커 -->
+    <!-- 조직 › 직원 명부 — roster + logins + 면허 -->
     <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-license" role="tabpanel">
       <div class="panel-head">
-        <span class="panel-num" data-i18n="license.num">08 · 면허·자격 갱신</span>
+        <span class="panel-num" data-i18n="license.num">조직 · 직원 명부</span>
         <h3 data-i18n-html="license.h3">"<em>다음달이 신고 기한</em>이에요" — 그 전화, 이제 안 옵니다</h3>
         <div class="badges">
           <span class="badge law" data-i18n="license.badgeLaw">의료법 §25 · 의료기사법 §11</span>
@@ -1058,11 +1100,11 @@
     </section>
 
     <!-- ─────────────────────────────────────────── -->
-    <!-- Tab 9 — 인증평가 체크리스트 -->
+    <!-- 조직 › 인증 자체점검 -->
     <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-accred" role="tabpanel">
       <div class="panel-head">
-        <span class="panel-num" data-i18n="accred.num">09 · 인증 자체점검</span>
+        <span class="panel-num" data-i18n="accred.num">조직 · 인증 자체점검</span>
         <h3 data-i18n-html="accred.h3">인증조사 한 달 전 — 그때 시작하면 <em>늦습니다</em></h3>
         <div class="badges">
           <span class="badge law" data-i18n="accred.badgeLaw">의료법 §58 · 의료기관평가인증원</span>
@@ -1070,7 +1112,7 @@
         </div>
       </div>
       <p class="panel-blurb" data-i18n-html="accred.blurb">
-        의료기관 인증은 <em>한방병원에는 자율</em>입니다 — 의무 인증 대상은 요양병원·정신병원 등(의료법 §58조의4, 확인 필요)이고, 인증 유효기간은 4년입니다. 그래도 신청을 결정한 뒤 막판에 몰아서 준비하면 결국 <em>지적사항</em>이 됩니다. 아래는 <em>자체점검 예시 (<span data-accred-count>—</span>항목)</em> — 실제 기준은 의료기관평가인증원 한방병원 인증기준을 따르세요. 평소에 한 줄씩 체크해두면 <em>오늘</em> 탭에 진행률이 표시되고, 조사 직전엔 PDF 한 장으로 정리됩니다.
+        의료기관 인증은 <em>한방병원에는 자율</em>입니다 — 의무 인증 대상은 요양병원·정신병원 등(의료법 §58조의4, 확인 필요)이고, 인증 유효기간은 4년입니다. 그래도 신청을 결정한 뒤 막판에 몰아서 준비하면 결국 <em>지적사항</em>이 됩니다. 아래는 <em>자체점검 예시 (<span data-accred-count>—</span>항목)</em> — 실제 기준은 의료기관평가인증원 한방병원 인증기준을 따르세요. 평소에 한 줄씩 체크해두면 <em>홈</em>에 진행률이 표시되고, 조사 직전엔 PDF 한 장으로 정리됩니다.
       </p>
 
       <div class="card">
@@ -1094,8 +1136,190 @@
       </div>
     </section>
 
+    <!-- ─────────────────────────────────────────── -->
+    <!-- 조직 › 데이터 처리 현황 (PoC) — register + retention + erasure + backup, and the PIPA mapping (promoted from a modal;
+         js/security/lockscreen.js PrivacyPanel routes every old opener here). -->
+    <!-- ─────────────────────────────────────────── -->
+    <section class="panel" id="tab-privacy" role="tabpanel">
+      <div class="panel-head">
+        <span class="panel-num" data-i18n="privacy.eyebrow">개인정보 처리 현황 · PoC</span>
+        <h3 id="privacy-title" data-i18n-html="privacy.title">무엇을, 왜, <em>얼마나</em> 보관하는가</h3>
+        <div class="badges">
+          <span class="badge law" data-i18n="privacy.badgeLaw">개인정보보호법 §29 · 의료법 §21</span>
+          <span class="badge" data-i18n="privacy.badge">AES-GCM · 보존기간 자동 파기 · 암호화 백업</span>
+        </div>
+      </div>
+      <div class="card privacy-card">
+      <div class="sec-tabs" role="tablist">
+        <button type="button" class="active" data-privacy-tab="status" role="tab" data-i18n="privacy.tabStatus">처리 현황 · 파기 · 백업</button>
+        <button type="button" data-privacy-tab="legal" role="tab" data-i18n="privacy.tabLegal">법적 매핑 (PIPA · 의료법)</button>
+      </div>
+
+      <div class="sec-pane active" data-privacy-pane="status">
+        <p class="sec-note" style="margin-bottom:10px" data-i18n-html="privacy.statusNote">이 브라우저의 워크스페이스 <code id="privacy-wsid">—</code>. 「암호화 예」인 항목은 워크스페이스 키(AES-GCM)로 암호문만 저장됩니다. 보존기간이 지난 항목은 잠금 해제 때마다 자동 파기됩니다.</p>
+        <div class="sec-table-wrap">
+          <table class="sec-table">
+            <thead><tr><th></th><th data-i18n="privacy.thItem">항목 · 저장 위치</th><th data-i18n="privacy.thPurpose">목적 · 근거 (PoC 문안)</th><th data-i18n="privacy.thEnc">암호화</th><th data-i18n="privacy.thRetention">보존</th><th data-i18n="privacy.thCount">건수</th><th data-i18n="privacy.thModified">최근 수정</th></tr></thead>
+            <tbody id="privacy-table"></tbody>
+          </table>
+        </div>
+        <div class="sec-toolbar">
+          <button type="button" class="btn secondary sm" id="privacy-destroy-selected" data-i18n="privacy.destroySelected">선택 항목 파기</button>
+          <button type="button" class="btn secondary sm" id="privacy-destroy-all" title="원장 권한" data-i18n="privacy.destroyAll" data-i18n-attr="title:common.ownerOnly">전체 파기 (사용자·키 포함)</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn sm" id="privacy-backup" data-i18n="privacy.backupBtn">암호화 백업 내려받기</button>
+          <button type="button" class="btn secondary sm" id="privacy-restore" data-i18n="privacy.restoreBtn">백업 복원…</button>
+        </div>
+        <div class="sec-section">
+          <h5 data-i18n="privacy.auditH">활동 기록 (감사 로그) — 추가만 가능 · 암호화 · 1년</h5>
+          <div class="sec-toolbar" style="margin-top:4px;align-items:center">
+            <span class="sec-note" id="privacy-audit-count">—</span>
+            <span class="spacer"></span>
+            <button type="button" class="btn secondary sm" id="privacy-audit-export" title="원장 권한" data-i18n="privacy.auditExport" data-i18n-attr="title:common.ownerOnly">CSV 내려받기</button>
+            <button type="button" class="btn secondary sm" id="privacy-audit-clear" title="원장 권한" data-i18n="privacy.auditClear" data-i18n-attr="title:common.ownerOnly">기록 삭제</button>
+          </div>
+        </div>
+        <p class="sec-msg" id="privacy-msg" hidden></p>
+      </div>
+
+      <div class="sec-pane sec-legal" data-privacy-pane="legal">
+        <p data-i18n-html="privacy.legalIntro">이 PoC는 실제 환자 정보를 다루지 않고 병원에 도입되지도 않습니다. 아래는 <strong>같은 설계를 실제로 쓰려면</strong> 각 흐름이 어떤 조항에 걸리는지, 여기서 <span class="yes">이미 한 것</span>과 <span class="no">아직 남은 것</span>을 정직하게 적은 표입니다. 법률 검토를 대신하지 않습니다.</p>
+        <table>
+          <thead><tr data-i18n-html="privacy.legalHead"><th>흐름</th><th>관련 조항</th><th>이 PoC에서</th><th>실제 사용 시 추가로 필요</th></tr></thead>
+          <tbody>
+            <tr data-i18n-html="privacy.legal1"><td>자보 정산 · 면허 명부 (이름·번호·날짜 저장)</td><td>개인정보보호법 §23 민감정보(건강) · §29 안전성 확보조치 · 의료법 §21 기록 열람 제한</td><td><span class="yes">함</span> — PIN 잠금(사용자별), AES-GCM 암호화 저장, 10분 무활동·60초 이탈 시 자동 잠금, 원장 권한 분리</td><td>병원 내부 서버 또는 인증받은 EMR 연동, 접근권한 부여·변경 기록, 정기 점검</td></tr>
+            <tr data-i18n-html="privacy.legal2"><td>주민등록번호 (연말정산 탭 업로드)</td><td>§24 고유식별정보 · §24의2 주민등록번호 처리 제한</td><td><span class="yes">함</span> — 브라우저 안에서만 처리, 저장하지 않음(No persistence of RRN), 자동 마스킹, AI 전송 시 [주민번호]로 치환</td><td>법령상 근거(소득세법 §165) 범위 확인, 제출 파일 암호화·전송 경로 검토</td></tr>
+            <tr data-i18n-html="privacy.legal3"><td>AI 코드 추천 (메모를 ai.pb.gurum.se → Amazon Bedrock, eu-north-1 스톡홀름으로 전송)</td><td>§26 업무위탁 · §28의8 국외 이전 · §23</td><td><span class="yes">함</span> — 기본은 예시 모드, 사용자별 동의 대화상자(목적지·보존·위탁계약 없음 고지), 자동 마스킹 + 전송 내용 미리보기, 서버 미저장</td><td><span class="no">남음</span> — LLM 벤더와의 <strong>위탁계약</strong> 또는 온프레미스 모델, 국외 이전 고지·동의 절차, 위탁자 관리·감독</td></tr>
+            <tr data-i18n-html="privacy.legal4"><td>음성 받아쓰기 (브라우저 제조사 클라우드 STT)</td><td>§26 · §28의8</td><td><span class="yes">함</span> — 기본 OFF, 인라인 고지(No cloud STT by default)</td><td><span class="no">남음</span> — 온디바이스 STT 또는 위탁계약이 있는 서비스</td></tr>
+            <tr data-i18n-html="privacy.legal5"><td>실시간 접수 현황판 (공유 PocketBase)</td><td>§29 · 의료법 §21</td><td><span class="yes">함</span> — 카드 내용 종단간 암호화(E2E), 서버에는 워크스페이스 해시·암호문·상태만, 실명 입력 불가</td><td><span class="no">남음</span> — 로그인 기반 접근 규칙(Tier 3), 가용성·무결성 보호 (현재 누구나 암호문 삽입·삭제 가능)</td></tr>
+            <tr data-i18n-html="privacy.legal6"><td>활동 기록 (감사 로그)</td><td>§29 · 안전성 확보조치 기준 §8 접속기록</td><td><span class="yes">함</span> — 사용자·역할·작업·가명 대상(****1234) 기록, 이름 미기록, 추가만 가능, 암호화, 1년 보존, 원장만 내보내기·삭제</td><td><span class="no">남음</span> — 접속기록의 <strong>서버 측 1년 이상 보관</strong>(기준에 따라 2년)·위변조 방지·월 1회 점검. 브라우저 안의 기록은 사용자가 지울 수 있음</td></tr>
+            <tr data-i18n-html="privacy.legal7"><td>다운로드 · 인쇄물</td><td>§29 · 의료법 §21</td><td><span class="yes">함</span> — 모든 파일·인쇄에 「PoC — 실제 제출 불가 · 데모 데이터」 워터마크, 파일명 _PoC</td><td>반출 승인 절차, 출력물 관리대장</td></tr>
+            <tr data-i18n-html="privacy.legal8"><td>보존 · 파기</td><td>§21 파기 · 의료법 시행규칙 §15 보존기간</td><td><span class="yes">함</span> — 항목별 보존기간(자보 기록 90일·활동 1년·AI 메모 0일), 잠금 해제 시 자동 파기, 선택/전체 파기, 암호화 백업·복원</td><td>파기 기록·증적, 백업 매체 관리 규정</td></tr>
+            <tr data-i18n-html="privacy.legal9"><td>공급망 · 배포</td><td>§29 (안전한 배포)</td><td><span class="yes">일부</span> — SheetJS 자체 호스팅, PocketBase SDK 해시 검증(sha384) 후 로드, 버전·SW 캐시 표시</td><td><span class="no">남음</span> — <strong>자체 호스팅·고정 빌드</strong>(GitHub Pages·CDN 폰트·Tesseract CDN 제거), 코드 서명, 변경 관리, DPO(개인정보 보호책임자) 검토</td></tr>
+          </tbody>
+        </table>
+        <h6 data-i18n="privacy.summaryH">한 문장 요약</h6>
+        <p data-i18n-html="privacy.summary">정적 사이트가 할 수 있는 만큼은 했습니다 — 암호화, PIN, 감사, 마스킹, E2E 보드, 주민번호 미저장, 클라우드 STT 기본 OFF. 그러나 위탁계약, 서버 측 접속기록 보관, 자체 호스팅 고정 빌드, DPO 검토 없이는 <strong>실제 환자 정보에 사용할 수 없습니다.</strong></p>
+      </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────── -->
+    <!-- 조직 › 마스터 업로드 — KOICD 상병 / 심평원 행위·수가 masters (moved out of the retired 검색 panel; js/tabs/tab6-search.js) -->
+    <!-- ─────────────────────────────────────────── -->
+    <section class="panel" id="tab-masters" role="tabpanel">
+      <div class="panel-head">
+        <span class="panel-num" data-i18n="masters.num">조직 · 마스터 업로드</span>
+        <h3 data-i18n-html="masters.h3">내장 표는 <em>예시</em> — 실제 마스터를 올리면 그 표 기준</h3>
+        <div class="badges">
+          <span class="badge law" data-i18n="search.badgeLaw">KOICD · 심평원 마스터 업로드</span>
+          <span class="badge live" data-i18n="search.badgeLive">KCD · 행위·수가 · 비급여</span>
+        </div>
+      </div>
+      <p class="panel-blurb" data-i18n-html="masters.blurb">
+        내장 상병·행위 표는 <em>데모 발췌·예시</em>입니다. 여기서 <em>KOICD 상병마스터</em>와 <em>심평원 행위·수가 마스터</em>(xlsx)를 올리고 헤더를 매핑하면 상병 정비·심사결과 대조·검색·AI 어시스트가 모두 실제 마스터를 기준으로 동작합니다. 공개 참조표이므로 이 브라우저(IndexedDB)에만 보관됩니다.
+      </p>
+      <div class="source-badge" id="search-source-badge"></div>
+      <div class="master-upload">
+        <div class="master-card">
+          <h5 data-i18n="search.masterKcdH">상병 마스터 업로드 — KOICD</h5>
+          <p class="desc" data-i18n-html="search.masterKcdDesc">KOICD에서 내려받은 상병마스터(xlsx). 컬럼 예: <code>상병기호</code> · <code>한글명</code> · <code>영문명</code> · <code>완전코드구분</code>. 올린 뒤 헤더를 매핑하면 정비·검색·AI 탭이 이 표를 기준으로 동작합니다. 공개 참조표이므로 이 브라우저(IndexedDB)에만 보관됩니다.</p>
+          <div class="master-status" id="master-status-kcd"></div>
+          <div class="master-actions">
+            <label class="btn secondary" for="master-file-kcd" data-i18n="search.pickXlsx">xlsx 선택</label>
+            <input type="file" id="master-file-kcd" accept=".xlsx,.xls,.csv">
+            <button type="button" class="btn secondary" id="master-clear-kcd" disabled data-i18n="search.clearUpload">업로드본 지우기</button>
+          </div>
+          <div class="master-map" id="master-map-kcd" hidden></div>
+        </div>
+        <div class="master-card">
+          <h5 data-i18n="search.masterFeeH">행위·수가 마스터 업로드 — 심평원</h5>
+          <p class="desc" data-i18n-html="search.masterFeeDesc">심평원 행위 급여·비급여 목록 및 수가 마스터(xlsx). 컬럼 예: <code>수가코드</code> · <code>한글명</code> · <code>단가</code> · <code>분류</code> · <code>급여구분</code> · <code>자보구분</code>. 올리면 자보 정산의 예시 수가표와 검색 결과가 실제 코드로 바뀌고, 급여/비급여/자보 표시가 함께 나옵니다.</p>
+          <div class="master-status" id="master-status-fee"></div>
+          <div class="master-actions">
+            <label class="btn secondary" for="master-file-fee" data-i18n="search.pickXlsx">xlsx 선택</label>
+            <input type="file" id="master-file-fee" accept=".xlsx,.xls,.csv">
+            <button type="button" class="btn secondary" id="master-clear-fee" disabled data-i18n="search.clearUpload">업로드본 지우기</button>
+          </div>
+          <div class="master-map" id="master-map-fee" hidden></div>
+        </div>
+      </div>
+    </section>
+
       </div><!-- /.work-scroll -->
     </div><!-- /.work-col -->
+
+    <!-- ── Phone: bottom tab bar — the five areas + ⋯ (lock · users · privacy · language · info live in the rail foot sheet) ── -->
+    <nav class="bottombar" id="bottombar" aria-label="영역" data-i18n-attr="aria-label:shell.areasAria">
+      <button type="button" class="area-btn active" data-area="home"><svg class="ai" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/></svg><span data-i18n="nav.area.home">홈</span></button>
+      <button type="button" class="area-btn" data-area="patients"><svg class="ai" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg><span data-i18n="nav.area.patients">환자</span></button>
+      <button type="button" class="area-btn" data-area="claims"><svg class="ai" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="3" width="15" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span data-i18n="nav.area.claims">청구</span></button>
+      <button type="button" class="area-btn" data-area="records"><svg class="ai" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="1.5"/><path d="M3.5 10h17M9.5 10v9.5"/></svg><span data-i18n="nav.area.records">보고·기록</span></button>
+      <button type="button" class="area-btn" data-area="org"><svg class="ai" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="1.5"/><path d="M8 9V5h8v4M3 14h18"/></svg><span data-i18n="nav.area.org">조직</span></button>
+      <button type="button" class="bb-more" id="bottombar-more" aria-label="더보기" data-i18n-attr="aria-label:shell.moreBtn" aria-expanded="false" aria-controls="rail">
+        <svg class="ai" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg><span data-i18n="shell.moreBtn">더보기</span>
+      </button>
+    </nav>
+
+    <!-- ── AI 코딩 어시스트 — a right-side drawer available on every panel (phone: full-screen sheet). Same inner ids as the
+         former panel so js/tabs/tab7-ai.js is untouched; activateTab("tab-ai", ctx) opens it (nav.js utility). ── -->
+    <aside class="ai-drawer" id="ai-drawer" role="complementary" aria-label="AI 코딩 어시스트" data-i18n-attr="aria-label:nav.ai" aria-hidden="true" inert>
+      <div class="ai-drawer-head">
+        <div class="ai-drawer-title">
+          <span class="panel-num" data-i18n="ai.num">유틸리티 · AI 코딩 어시스트</span>
+          <h3 data-i18n-html="ai.h3">코드 찾는 시간 30분 → <em>3분</em></h3>
+        </div>
+        <button type="button" class="close-x" id="ai-drawer-close" aria-label="닫기" data-i18n-attr="aria-label:common.close">×</button>
+      </div>
+      <div class="ai-drawer-body">
+        <div class="badges">
+          <span class="badge" data-i18n="ai.badge">Claude AI · 한국어 그대로</span>
+          <span class="badge law" data-i18n="ai.badgeLaw">예시 목록 기준 — 마스터 업로드 시 마스터 기준</span>
+        </div>
+      <p class="panel-blurb" data-i18n-html="ai.blurb">
+        한의사·간호사가 적은 <em>진료 메모</em>를 그대로 붙여넣거나 <em>음성으로 받아쓰면</em> — AI가 상병(KCD)·한의 병증 U코드·행위 코드 초안을 한꺼번에 골라드립니다. 추천마다 <em>왜 이 코드인지 근거</em>와 <em>조정 주의점</em>(상병-처치 부위 일치, 추나 횟수 한도, 경상환자 4주 진단서, 첩약 처방일수, 초·재진 진찰료)이 함께 나오니, 원무팀은 <em>맞는지 확인만</em> 하면 됩니다. 결정은 사람이, 검색은 AI가.
+      </p>
+      <div class="demo-strip">
+        <span class="demo-label" data-i18n-html="ai.demoLabel">처음이신가요? <strong>"교통사고 후 경추·요추 통증"</strong> 메모로 — 메모 한 줄에서 청구 가능한 코드들이 어떻게 한 번에 나오는지 보여드립니다.</span>
+        <button type="button" class="demo-cta" data-action="run-ai"><span class="play">▶</span> <span data-i18n="ai.demoCta">샘플 메모로 시연</span></button>
+      </div>
+
+      <div class="ai-shell">
+        <div class="card">
+          <h4><span class="step">01</span> <span data-i18n="ai.step1">진료 메모 입력</span></h4>
+          <div class="ai-input">
+            <div id="ai-ctx" class="ai-ctx" hidden></div>
+            <div class="ai-textarea-wrap">
+              <textarea id="ai-input" placeholder="예) 60세 남자, 3주 전 추돌사고 후 경부·요부 통증. 회전시 우측 어깨 방사통. SLR 양성. 침술·부항·추나 시술 예정." data-i18n-attr="placeholder:ai.placeholder"></textarea>
+              <button type="button" class="icon-btn mic" id="ai-mic" aria-label="음성 입력 시작" title="음성 입력 (한국어)" data-i18n-attr="aria-label:ai.micStart;title:ai.micTitle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              </button>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;">
+              <button class="btn" id="ai-run" data-i18n-html="ai.runBtn">코드 추천 <span class="arrow">→</span></button>
+              <div class="model-toggle" id="ai-source" role="group" aria-label="추천 방식" data-i18n-attr="aria-label:ai.sourceAria" style="margin-top:0">
+                <button type="button" data-source="live" title="마스킹 → 미리보기 → 동의 후 메모를 외부 AI 서버로 보내 실제 추천을 받습니다" data-i18n="ai.live" data-i18n-attr="title:ai.liveTitle">라이브</button>
+                <button type="button" data-source="canned" class="active" title="브라우저 안에서만 동작하는 규칙 기반 예시 결과 (기본)" data-i18n="ai.canned" data-i18n-attr="title:ai.cannedTitle">예시</button>
+              </div>
+            </div>
+            <p class="caveat" id="ai-privacy" style="margin-top:10px">
+              <strong>예시 모드:</strong> 아무것도 전송하지 않습니다 — 브라우저 안의 규칙 기반 예시 결과입니다. 라이브로 바꾸면 전송 전에 마스킹 미리보기와 사용자별 동의를 거칩니다.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4><span class="step">02</span> <span data-i18n="ai.step2">추천 결과</span> <span id="ai-mode-pill" class="ai-mode-pill" role="status" hidden>예시 모드</span></h4>
+          <div class="ai-output" id="ai-output">
+            <div class="placeholder" data-i18n-html="ai.placeholderOut">메모를 입력하고 <em>코드 추천</em>을 누르면 결과가 여기에 표시됩니다.</div>
+          </div>
+          <div id="ai-actions" class="ai-actions" hidden></div>
+          <p class="caveat" data-i18n-html="ai.caveat">
+            ※ AI는 <em>찾아드리는 일</em>까지만 합니다. 추천 코드는 <strong>예시 목록</strong>(내장 발췌·예시표) 기준이며, 조직 › 마스터 업로드에서 마스터를 올리면 마스터에 있는 코드만 제안합니다. 자보는 건강보험 행위 코드를 그대로 쓰고, 교통사고 환자에게는 비급여를 제안하지 않습니다. 청구 결정은 원무팀의 몫 — 실제 청구 전에 청구 › <em>상병 정비</em>·<em>심사결과 대조</em>에서 한 번 더 확인해주세요.
+          </p>
+        </div>
+      </div>
+    </aside>
   </div>
 
   <!-- ── Info modal — replaces the page footer ── -->
@@ -1105,7 +1329,7 @@
       <button type="button" class="close-x" id="org-step-close" aria-label="닫기" data-i18n-attr="aria-label:common.close">×</button>
       <div class="eyebrow" data-i18n="org.eyebrow">기관 정보 · 1회 입력</div>
       <h2 id="org-step-title" data-i18n-html="org.stepTitle">어느 <em>기관</em>의 행정실인가요?</h2>
-      <p class="sec-note" data-i18n="org.stepNote">기관명·요양기관기호·사업자등록번호·종별·대표자는 비급여 보고·연말정산 자료·자보 정산표의 머리글에 쓰입니다. 지금 건너뛰어도 됩니다 — 상단 기관 칩이나 ⓘ 정보에서 언제든 입력할 수 있어요. 데모라면 「샘플 데이터로 둘러보기」가 한솔한방병원으로 채워줍니다.</p>
+      <p class="sec-note" data-i18n="org.stepNote">기관명·요양기관기호·사업자등록번호·종별·대표자는 비급여 보고·연말정산 자료·자보 정산표의 머리글에 쓰입니다. 지금 건너뛰어도 됩니다 — 상단 기관 칩이나 조직 › 기관 프로필에서 언제든 입력할 수 있어요. 데모라면 「샘플 데이터로 둘러보기」가 한솔한방병원으로 채워줍니다.</p>
       <div id="org-step-form"></div>
     </div>
   </div>
@@ -1127,13 +1351,13 @@
         <h5 style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px" data-i18n="shell.infoNoticeH">안내</h5>
         <p style="font-size:13px;line-height:1.6;color:var(--ink-2);margin-bottom:18px" data-i18n-html="shell.infoNotice">
           본 도구는 <strong>PoC</strong>(개념 검증)이며 행정 보조용입니다 — 실제 환자 정보를 입력하지 마시고, 최종 청구·제출 전 원본 고시·매뉴얼을 반드시 확인하십시오. 모든 다운로드·인쇄물(.xlsx · .csv · .ics · PDF)에는 「PoC — 실제 제출 불가 · 데모 데이터」 표시와 <code>_PoC</code> 파일명이 붙습니다.<br>
-          내장 상병·행위 표는 <strong>예시·발췌</strong>입니다 — 코드 검색 탭에서 KOICD 상병마스터와 심평원 행위·수가 마스터(xlsx)를 올리면 정비·정산·검색·AI 탭이 그 표를 기준으로 동작합니다 (공개 참조표, 이 브라우저에만 보관).<br>
+          내장 상병·행위 표는 <strong>예시·발췌</strong>입니다 — 조직 › 마스터 업로드에서 KOICD 상병마스터와 심평원 행위·수가 마스터(xlsx)를 올리면 상병 정비·심사결과 대조·검색·AI 어시스트가 그 표를 기준으로 동작합니다 (공개 참조표, 이 브라우저에만 보관).<br>
           파일 변환·검증·양식 처리는 브라우저 안에서만 이루어지며, 업로드한 엑셀·주민등록번호는 외부로 전송되지 않습니다. 워크스페이스는 사용자별 <strong>PIN</strong>으로 잠기고, 이름·번호를 담는 저장 항목은 PIN으로 보호되는 워크스페이스 키로 <strong>AES-GCM 암호화</strong>되어 이 브라우저에만 보관됩니다. 누가 무엇을 처리했는지는 가명(****1234) 기준의 활동 기록에 남습니다.<br>
-          예외 두 곳 — <strong>AI 코딩 어시스트</strong> 탭의 메모는 사용자별 동의 후, 자동 마스킹과 전송 내용 미리보기를 거쳐 외부 AI 서버(ai.pb.gurum.se → Amazon Bedrock, 스톡홀름)로 전송됩니다 (서버에 저장되지 않고, 이 브라우저에도 남기지 않습니다). <strong>실시간 접수 현황판</strong>은 공유 PocketBase(clinic-admin.pb.gurum.se)에 기록되는 공개 데모 보드이며, 카드 내용은 워크스페이스 키로 종단간 암호화됩니다.
+          예외 두 곳 — <strong>AI 코딩 어시스트</strong> 드로어의 메모는 사용자별 동의 후, 자동 마스킹과 전송 내용 미리보기를 거쳐 외부 AI 서버(ai.pb.gurum.se → Amazon Bedrock, 스톡홀름)로 전송됩니다 (서버에 저장되지 않고, 이 브라우저에도 남기지 않습니다). <strong>실시간 접수 현황판</strong>은 공유 PocketBase(clinic-admin.pb.gurum.se)에 기록되는 공개 데모 보드이며, 카드 내용은 워크스페이스 키로 종단간 암호화됩니다.
           자세한 내용은 <a class="small-link" href="#" id="info-privacy-link">개인정보 처리 현황 (PoC)</a>.
         </p>
         <h5 style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px" data-i18n="shell.infoOrgH">기관 정보</h5>
-        <p class="sec-note" style="margin-bottom:8px" data-i18n="shell.infoOrgNote">모든 보고·제출 파일의 머리글에 들어가는 기관 정보입니다 (이 브라우저에만 저장 · 개인정보 아님).</p>
+        <p class="sec-note" style="margin-bottom:8px" data-i18n="shell.infoOrgNote">모든 보고·제출 파일의 머리글에 들어가는 기관 정보입니다 (이 브라우저에만 저장 · 개인정보 아님) — 수정은 조직 › 기관 프로필에서.</p>
         <div id="info-org" style="margin-bottom:18px"></div>
         <h5 style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px" data-i18n="shell.infoVersionH">버전</h5>
         <p id="info-version" style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-2);margin-bottom:18px">—</p>
@@ -1360,7 +1584,7 @@
         <label class="dont-show" style="display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.6px;color:var(--muted)">
           <input type="checkbox" id="install-dontshow"> <span data-i18n="install.dontNudge">다시 권유하지 않기</span>
         </label>
-        <span style="font-size:11px;color:var(--muted)" data-i18n-html="install.foot">언제든 좌측 메뉴 <strong style="color:var(--ink)">↓ 홈에 추가</strong>에서 다시 열 수 있습니다.</span>
+        <span style="font-size:11px;color:var(--muted)" data-i18n-html="install.foot">언제든 메뉴의 <strong style="color:var(--ink)">↓ 홈 화면에 추가</strong>에서 다시 열 수 있습니다.</span>
       </div>
     </div>
   </div>
@@ -1376,7 +1600,7 @@
       <div class="sec-section">
         <h5 data-i18n="users.listH">로그인 있는 직원</h5>
         <div id="users-list"></div>
-        <p class="sec-note" style="margin-top:8px"><span data-i18n="users.rosterNote">로그인은 직원 명부(08)의 한 행에 연결됩니다 — 직종·면허는 명부에서, PIN은 여기서.</span> <button type="button" class="link" id="users-open-roster" data-i18n="users.openRoster">명부 열기 →</button></p>
+        <p class="sec-note" style="margin-top:8px"><span data-i18n="users.rosterNote">로그인은 조직 › 직원 명부의 한 행에 연결됩니다 — 직종·면허는 명부에서, PIN은 여기서.</span> <button type="button" class="link" id="users-open-roster" data-i18n="users.openRoster">명부 열기 →</button></p>
       </div>
 
       <div class="sec-section">
@@ -1409,66 +1633,6 @@
         </div>
       </div>
       <p class="sec-msg" id="users-msg" hidden></p>
-    </div>
-  </div>
-
-  <!-- ── 데이터 처리 현황 (PoC) panel — register + retention + erasure + backup, and the PIPA mapping ── -->
-  <div class="welcome-scrim" id="privacy-scrim" role="dialog" aria-modal="true" aria-labelledby="privacy-title">
-    <div class="welcome wide">
-      <button type="button" class="close-x" id="privacy-close" aria-label="닫기" data-i18n-attr="aria-label:common.close">×</button>
-      <div class="eyebrow" data-i18n="privacy.eyebrow">개인정보 처리 현황 · PoC</div>
-      <h2 id="privacy-title" data-i18n-html="privacy.title">무엇을, 왜, <em>얼마나</em> 보관하는가</h2>
-      <div class="sec-tabs" role="tablist">
-        <button type="button" class="active" data-privacy-tab="status" role="tab" data-i18n="privacy.tabStatus">처리 현황 · 파기 · 백업</button>
-        <button type="button" data-privacy-tab="legal" role="tab" data-i18n="privacy.tabLegal">법적 매핑 (PIPA · 의료법)</button>
-      </div>
-
-      <div class="sec-pane active" data-privacy-pane="status">
-        <p class="sec-note" style="margin-bottom:10px" data-i18n-html="privacy.statusNote">이 브라우저의 워크스페이스 <code id="privacy-wsid">—</code>. 「암호화 예」인 항목은 워크스페이스 키(AES-GCM)로 암호문만 저장됩니다. 보존기간이 지난 항목은 잠금 해제 때마다 자동 파기됩니다.</p>
-        <div class="sec-table-wrap">
-          <table class="sec-table">
-            <thead><tr><th></th><th data-i18n="privacy.thItem">항목 · 저장 위치</th><th data-i18n="privacy.thPurpose">목적 · 근거 (PoC 문안)</th><th data-i18n="privacy.thEnc">암호화</th><th data-i18n="privacy.thRetention">보존</th><th data-i18n="privacy.thCount">건수</th><th data-i18n="privacy.thModified">최근 수정</th></tr></thead>
-            <tbody id="privacy-table"></tbody>
-          </table>
-        </div>
-        <div class="sec-toolbar">
-          <button type="button" class="btn secondary sm" id="privacy-destroy-selected" data-i18n="privacy.destroySelected">선택 항목 파기</button>
-          <button type="button" class="btn secondary sm" id="privacy-destroy-all" title="원장 권한" data-i18n="privacy.destroyAll" data-i18n-attr="title:common.ownerOnly">전체 파기 (사용자·키 포함)</button>
-          <span class="spacer"></span>
-          <button type="button" class="btn sm" id="privacy-backup" data-i18n="privacy.backupBtn">암호화 백업 내려받기</button>
-          <button type="button" class="btn secondary sm" id="privacy-restore" data-i18n="privacy.restoreBtn">백업 복원…</button>
-        </div>
-        <div class="sec-section">
-          <h5 data-i18n="privacy.auditH">활동 기록 (감사 로그) — 추가만 가능 · 암호화 · 1년</h5>
-          <div class="sec-toolbar" style="margin-top:4px;align-items:center">
-            <span class="sec-note" id="privacy-audit-count">—</span>
-            <span class="spacer"></span>
-            <button type="button" class="btn secondary sm" id="privacy-audit-export" title="원장 권한" data-i18n="privacy.auditExport" data-i18n-attr="title:common.ownerOnly">CSV 내려받기</button>
-            <button type="button" class="btn secondary sm" id="privacy-audit-clear" title="원장 권한" data-i18n="privacy.auditClear" data-i18n-attr="title:common.ownerOnly">기록 삭제</button>
-          </div>
-        </div>
-        <p class="sec-msg" id="privacy-msg" hidden></p>
-      </div>
-
-      <div class="sec-pane sec-legal" data-privacy-pane="legal">
-        <p data-i18n-html="privacy.legalIntro">이 PoC는 실제 환자 정보를 다루지 않고 병원에 도입되지도 않습니다. 아래는 <strong>같은 설계를 실제로 쓰려면</strong> 각 흐름이 어떤 조항에 걸리는지, 여기서 <span class="yes">이미 한 것</span>과 <span class="no">아직 남은 것</span>을 정직하게 적은 표입니다. 법률 검토를 대신하지 않습니다.</p>
-        <table>
-          <thead><tr data-i18n-html="privacy.legalHead"><th>흐름</th><th>관련 조항</th><th>이 PoC에서</th><th>실제 사용 시 추가로 필요</th></tr></thead>
-          <tbody>
-            <tr data-i18n-html="privacy.legal1"><td>자보 정산 · 면허 명부 (이름·번호·날짜 저장)</td><td>개인정보보호법 §23 민감정보(건강) · §29 안전성 확보조치 · 의료법 §21 기록 열람 제한</td><td><span class="yes">함</span> — PIN 잠금(사용자별), AES-GCM 암호화 저장, 10분 무활동·60초 이탈 시 자동 잠금, 원장 권한 분리</td><td>병원 내부 서버 또는 인증받은 EMR 연동, 접근권한 부여·변경 기록, 정기 점검</td></tr>
-            <tr data-i18n-html="privacy.legal2"><td>주민등록번호 (연말정산 탭 업로드)</td><td>§24 고유식별정보 · §24의2 주민등록번호 처리 제한</td><td><span class="yes">함</span> — 브라우저 안에서만 처리, 저장하지 않음(No persistence of RRN), 자동 마스킹, AI 전송 시 [주민번호]로 치환</td><td>법령상 근거(소득세법 §165) 범위 확인, 제출 파일 암호화·전송 경로 검토</td></tr>
-            <tr data-i18n-html="privacy.legal3"><td>AI 코드 추천 (메모를 ai.pb.gurum.se → Amazon Bedrock, eu-north-1 스톡홀름으로 전송)</td><td>§26 업무위탁 · §28의8 국외 이전 · §23</td><td><span class="yes">함</span> — 기본은 예시 모드, 사용자별 동의 대화상자(목적지·보존·위탁계약 없음 고지), 자동 마스킹 + 전송 내용 미리보기, 서버 미저장</td><td><span class="no">남음</span> — LLM 벤더와의 <strong>위탁계약</strong> 또는 온프레미스 모델, 국외 이전 고지·동의 절차, 위탁자 관리·감독</td></tr>
-            <tr data-i18n-html="privacy.legal4"><td>음성 받아쓰기 (브라우저 제조사 클라우드 STT)</td><td>§26 · §28의8</td><td><span class="yes">함</span> — 기본 OFF, 인라인 고지(No cloud STT by default)</td><td><span class="no">남음</span> — 온디바이스 STT 또는 위탁계약이 있는 서비스</td></tr>
-            <tr data-i18n-html="privacy.legal5"><td>실시간 접수 현황판 (공유 PocketBase)</td><td>§29 · 의료법 §21</td><td><span class="yes">함</span> — 카드 내용 종단간 암호화(E2E), 서버에는 워크스페이스 해시·암호문·상태만, 실명 입력 불가</td><td><span class="no">남음</span> — 로그인 기반 접근 규칙(Tier 3), 가용성·무결성 보호 (현재 누구나 암호문 삽입·삭제 가능)</td></tr>
-            <tr data-i18n-html="privacy.legal6"><td>활동 기록 (감사 로그)</td><td>§29 · 안전성 확보조치 기준 §8 접속기록</td><td><span class="yes">함</span> — 사용자·역할·작업·가명 대상(****1234) 기록, 이름 미기록, 추가만 가능, 암호화, 1년 보존, 원장만 내보내기·삭제</td><td><span class="no">남음</span> — 접속기록의 <strong>서버 측 1년 이상 보관</strong>(기준에 따라 2년)·위변조 방지·월 1회 점검. 브라우저 안의 기록은 사용자가 지울 수 있음</td></tr>
-            <tr data-i18n-html="privacy.legal7"><td>다운로드 · 인쇄물</td><td>§29 · 의료법 §21</td><td><span class="yes">함</span> — 모든 파일·인쇄에 「PoC — 실제 제출 불가 · 데모 데이터」 워터마크, 파일명 _PoC</td><td>반출 승인 절차, 출력물 관리대장</td></tr>
-            <tr data-i18n-html="privacy.legal8"><td>보존 · 파기</td><td>§21 파기 · 의료법 시행규칙 §15 보존기간</td><td><span class="yes">함</span> — 항목별 보존기간(자보 기록 90일·활동 1년·AI 메모 0일), 잠금 해제 시 자동 파기, 선택/전체 파기, 암호화 백업·복원</td><td>파기 기록·증적, 백업 매체 관리 규정</td></tr>
-            <tr data-i18n-html="privacy.legal9"><td>공급망 · 배포</td><td>§29 (안전한 배포)</td><td><span class="yes">일부</span> — SheetJS 자체 호스팅, PocketBase SDK 해시 검증(sha384) 후 로드, 버전·SW 캐시 표시</td><td><span class="no">남음</span> — <strong>자체 호스팅·고정 빌드</strong>(GitHub Pages·CDN 폰트·Tesseract CDN 제거), 코드 서명, 변경 관리, DPO(개인정보 보호책임자) 검토</td></tr>
-          </tbody>
-        </table>
-        <h6 data-i18n="privacy.summaryH">한 문장 요약</h6>
-        <p data-i18n-html="privacy.summary">정적 사이트가 할 수 있는 만큼은 했습니다 — 암호화, PIN, 감사, 마스킹, E2E 보드, 주민번호 미저장, 클라우드 STT 기본 OFF. 그러나 위탁계약, 서버 측 접속기록 보관, 자체 호스팅 고정 빌드, DPO 검토 없이는 <strong>실제 환자 정보에 사용할 수 없습니다.</strong></p>
-      </div>
     </div>
   </div>
 

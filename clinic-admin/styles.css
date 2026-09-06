@@ -1,4 +1,7 @@
-/* clinic-admin — extracted byte-for-byte from the former inline <style> in index.html (original indentation kept on purpose) */
+/* clinic-admin — base styles (extracted from the former inline <style>; original indentation kept on purpose).
+   Phase-2 IA pruned the dead single-page chrome (header/hero/tab strip/footer/sync strip), the numbered rail groups,
+   the phone drawer, the hamburger and the palette container — the area rail, bottom bar, sub-nav, ⋯ sheet, AI drawer and
+   search overlay live in styles-ia.css. */
     :root {
       --paper:    #f3eee2;
       --paper-2:  #ede6d3;
@@ -52,171 +55,11 @@
       padding: 0 28px;
     }
 
-    /* ── Header ── */
-    header.app {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 26px 0 22px;
-      border-bottom: 1px solid var(--line);
-      gap: 24px;
-      flex-wrap: wrap;
-    }
-    header.app .mark {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      text-decoration: none;
-      color: var(--ink);
-    }
-    header.app .stamp {
-      width: 38px; height: 38px;
-      border-radius: 50%;
-      background: var(--paper-2);
-      border: 1px solid var(--line);
-      position: relative;
-      flex-shrink: 0;
-    }
-    header.app .stamp::before, header.app .stamp::after {
-      content: "";
-      position: absolute;
-      background: var(--accent);
-    }
-    header.app .stamp::before {
-      left: 50%; top: 8px; bottom: 8px;
-      width: 2px; transform: translateX(-50%);
-    }
-    header.app .stamp::after {
-      top: 50%; left: 8px; right: 8px;
-      height: 2px; transform: translateY(-50%);
-    }
-    header.app h1 {
-      font-family: "Fraunces", "Noto Serif KR", serif;
-      font-weight: 300;
-      font-size: 22px;
-      letter-spacing: -0.01em;
-      line-height: 1.15;
-    }
-    header.app h1 em { font-style: italic; color: var(--accent); font-weight: 400; }
-    header.app h1 .sub {
-      display: block;
-      font-family: "JetBrains Mono", monospace;
-      font-size: 10px;
-      letter-spacing: 1.5px;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-top: 4px;
-    }
-    .privacy-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 13px 7px 11px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      font-family: "JetBrains Mono", monospace;
-      font-size: 10px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--ink-2);
-      background: rgba(255,255,255,0.35);
-    }
-    .privacy-pill .dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--celadon-2);
-      box-shadow: 0 0 0 0 rgba(123,168,154,0.55);
-      animation: pulse 2.4s ease-out infinite;
-    }
     @keyframes pulse {
       0%   { box-shadow: 0 0 0 0 rgba(123,168,154,0.55); }
       70%  { box-shadow: 0 0 0 9px rgba(123,168,154,0); }
       100% { box-shadow: 0 0 0 0 rgba(123,168,154,0); }
     }
-
-    /* ── Hero ── */
-    .hero {
-      padding: 46px 0 22px;
-    }
-    .hero .eyebrow {
-      font-family: "JetBrains Mono", monospace;
-      font-size: 10px;
-      letter-spacing: 1.6px;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 16px;
-      display: flex; align-items: center; gap: 12px;
-    }
-    .hero .eyebrow::before {
-      content: "";
-      width: 28px; height: 1px;
-      background: var(--ink);
-    }
-    .hero h2 {
-      font-family: "Fraunces", "Noto Serif KR", serif;
-      font-weight: 300;
-      font-size: clamp(34px, 5.5vw, 60px);
-      line-height: 1.02;
-      letter-spacing: -0.025em;
-      margin-bottom: 18px;
-      max-width: 880px;
-    }
-    .hero h2 em { font-style: italic; color: var(--accent); font-weight: 400; }
-    .hero .deck {
-      max-width: 620px;
-      font-size: 16px;
-      line-height: 1.55;
-      color: var(--ink-2);
-    }
-    .hero .deck strong { color: var(--ink); font-weight: 600; }
-
-    /* ── Tab nav ── */
-    .tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 18px 0 22px;
-      margin-top: 26px;
-      border-top: 1px solid var(--line);
-      border-bottom: 1px solid var(--line);
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      background:
-        linear-gradient(rgba(243,238,226,0.92), rgba(243,238,226,0.92)),
-        var(--paper);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-    }
-    .tab-btn {
-      display: inline-flex;
-      align-items: baseline;
-      gap: 10px;
-      padding: 10px 16px 10px 12px;
-      border: 1px solid var(--line);
-      background: transparent;
-      color: var(--ink-2);
-      cursor: pointer;
-      border-radius: 6px;
-      font-family: "Inter", sans-serif;
-      font-size: 13px;
-      font-weight: 500;
-      letter-spacing: -0.005em;
-      transition: background .2s, border-color .2s, color .2s, transform .2s;
-    }
-    .tab-btn .num {
-      font-family: "JetBrains Mono", monospace;
-      font-size: 10px;
-      color: var(--faint);
-      letter-spacing: 1px;
-    }
-    .tab-btn:hover { border-color: var(--ink-2); color: var(--ink); }
-    .tab-btn.active {
-      background: var(--ink);
-      border-color: var(--ink);
-      color: var(--paper);
-    }
-    .tab-btn.active .num { color: var(--paper-3); }
 
     /* ── Panels ── */
     .panel {
@@ -955,32 +798,6 @@
       font-weight: 300;
     }
 
-    /* ── Search bar (Tab 6) ── */
-    .search-hero {
-      position: relative;
-      max-width: 760px;
-      margin: 0 auto 24px;
-    }
-    .search-hero input {
-      width: 100%;
-      padding: 22px 28px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: rgba(255,255,255,0.7);
-      font-family: "Fraunces", "Noto Serif KR", serif;
-      font-size: 22px;
-      color: var(--ink);
-      letter-spacing: -0.01em;
-    }
-    .search-hero input::placeholder {
-      font-style: italic;
-      color: var(--faint);
-    }
-    .search-hero input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(176,74,47,0.1);
-    }
     .search-filters {
       display: flex;
       gap: 8px;
@@ -1050,53 +867,7 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* ── Footer / sources ── */
-    footer.app {
-      padding: 60px 0 56px;
-      border-top: 1px solid var(--line);
-      margin-top: 40px;
-      font-family: "JetBrains Mono", monospace;
-      font-size: 11px;
-      color: var(--muted);
-      line-height: 1.7;
-    }
-    footer.app .row {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 36px;
-      margin-bottom: 28px;
-    }
-    footer.app h5 {
-      font-size: 10px;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--ink);
-      margin-bottom: 10px;
-    }
-    footer.app a { color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 2px; }
-    footer.app a:hover { color: var(--accent); text-decoration-color: var(--accent); }
-    footer.app .colophon {
-      padding-top: 18px;
-      border-top: 1px solid var(--line);
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    @media (max-width: 720px) {
-      footer.app .row { grid-template-columns: 1fr; }
-    }
-
     /* ── Misc ── */
-    .row-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-    @media (max-width: 600px) {
-      .row-2 { grid-template-columns: 1fr; }
-    }
-
     .small-link {
       font-family: "JetBrains Mono", monospace;
       font-size: 10px;
@@ -1121,62 +892,7 @@
       border-left: 2px solid var(--line);
     }
 
-    /* ── Sync-status strip (under tabs) ── */
-    .sync-strip {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      flex-wrap: wrap;
-      padding: 8px 14px;
-      margin-top: 0;
-      font-family: "JetBrains Mono", monospace;
-      font-size: 10px;
-      letter-spacing: 0.8px;
-      color: var(--muted);
-      border-bottom: 1px solid var(--line-2);
-      background: rgba(255,255,255,0.25);
-    }
-    .sync-strip .group {
-      display: inline-flex; align-items: center; gap: 7px;
-    }
-    .sync-strip .led {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--celadon-2);
-      box-shadow: 0 0 0 0 rgba(123,168,154,0.45);
-    }
-    .sync-strip .led.live { animation: pulse 2.4s ease-out infinite; }
-    .sync-strip .led.warn { background: var(--warn); }
-    .sync-strip .led.idle { background: var(--faint); box-shadow: none; }
-    .sync-strip strong { color: var(--ink); font-weight: 600; }
-    .sync-strip .spacer { flex: 1; }
-    .sync-strip .wipe-btn {
-      background: transparent;
-      border: 1px solid var(--line);
-      border-radius: 4px;
-      padding: 4px 9px;
-      font-family: "JetBrains Mono", monospace;
-      font-size: 9px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--ink-2);
-      cursor: pointer;
-    }
-    .sync-strip .wipe-btn:hover {
-      background: var(--accent);
-      color: var(--paper);
-      border-color: var(--accent);
-    }
-
-    /* ── Dashboard (Tab 00) ── */
-    .dash-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 28px;
-      align-items: start;
-    }
-    @media (max-width: 880px) {
-      .dash-grid { grid-template-columns: 1fr; gap: 20px; }
-    }
+    /* ── 홈 — deadline rows · activity feed · resume cards · KPI tiles ── */
     .dday-list {
       display: flex; flex-direction: column; gap: 10px;
     }
@@ -1343,16 +1059,7 @@
       letter-spacing: 0.5px;
     }
 
-    /* AI assist panel (Tab 07) */
-    .ai-shell {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 22px;
-      align-items: start;
-    }
-    @media (max-width: 880px) {
-      .ai-shell { grid-template-columns: 1fr; }
-    }
+    /* AI assist — lives in the #ai-drawer (layout in styles-ia.css) */
     .ai-input textarea {
       width: 100%;
       min-height: 240px;
@@ -1508,28 +1215,6 @@
       0%   { background-position: 200% 0; }
       100% { background-position: -200% 0; }
     }
-    .key-prompt {
-      padding: 14px 16px;
-      background: rgba(176,74,47,0.06);
-      border: 1px dashed rgba(176,74,47,0.3);
-      border-radius: 6px;
-      margin-top: 12px;
-      font-size: 12px;
-      color: var(--ink-2);
-    }
-    .key-prompt .key-row {
-      display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;
-    }
-    .key-prompt input[type="password"] {
-      flex: 1 1 200px;
-      padding: 8px 10px;
-      border: 1px solid var(--line);
-      border-radius: 4px;
-      font-family: "JetBrains Mono", monospace;
-      font-size: 11px;
-      background: rgba(255,255,255,0.7);
-    }
-
     /* License tracker (Tab 08) */
     .lic-list { display: flex; flex-direction: column; gap: 10px; }
     .lic {
@@ -1723,7 +1408,7 @@
       body::before { display: none !important; }
       .frame.shell { display: block !important; height: auto !important; max-width: none; padding: 12px; }
       .work-col, .work-scroll { display: block !important; height: auto !important; overflow: visible !important; max-width: none; padding: 0; }
-      .rail, .rail-scrim, .topbar, .toast-tray, .palette-scrim, .welcome-scrim, .lightbox,
+      .rail, .more-scrim, .topbar, .subnav, .bottombar, .ai-drawer, .toast-tray, .search-scrim, .welcome-scrim, .lightbox,
       .install-nudge, .intake-board, .demo-strip, .drop, .drop-actions, .item-search,
       .btn, .ghost, .filter-chip, .ai-input .model-toggle, .result-toolbar .actions,
       .lic-actions, .lic-add, .accred-link { display: none !important; }
@@ -1744,7 +1429,7 @@
 
     /* ─────────────────────────────────────────────────────────
        App shell · v3 — locked viewport, rail+work-col scroll
-       independently, mobile rail = off-canvas drawer with hamburger
+       independently (phone chrome — bottom bar, sub-nav, ⋯ sheet — in styles-ia.css)
        ───────────────────────────────────────────────────────── */
     body.shell-v2 {
       overflow: hidden;
@@ -1786,35 +1471,6 @@
         linear-gradient(180deg, rgba(255,255,255,0.4), rgba(255,255,255,0.15));
       z-index: 30;
     }
-    /* Mobile: rail becomes off-canvas drawer, sliding in from the left */
-    @media (max-width: 880px) {
-      .rail {
-        position: fixed;
-        top: 0; left: 0; bottom: 0;
-        width: min(82vw, 320px);
-        max-width: 320px;
-        background: var(--paper);
-        border-right: 1px solid var(--line);
-        box-shadow: 0 0 80px rgba(20,17,13,0.18);
-        transform: translateX(-100%);
-        transition: transform .25s cubic-bezier(.2,.8,.2,1);
-        padding: 18px 16px 18px 18px;
-        z-index: 60;
-      }
-      body.rail-open .rail { transform: translateX(0); }
-    }
-    .rail-scrim {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(20,17,13,0.5);
-      backdrop-filter: blur(2px);
-      -webkit-backdrop-filter: blur(2px);
-      z-index: 55;
-    }
-    @media (max-width: 880px) {
-      body.rail-open .rail-scrim { display: block; animation: fadeIn .2s ease-out; }
-    }
     .rail .mark {
       display: flex; align-items: center; gap: 11px;
       text-decoration: none; color: var(--ink);
@@ -1855,29 +1511,6 @@
       text-transform: uppercase;
       margin-top: 2px;
     }
-    @media (max-width: 880px) {
-      .rail .mark { padding: 0 6px 0 0; border-right: 1px solid var(--line); }
-    }
-
-    .rail-group {
-      display: flex; flex-direction: column;
-      gap: 1px;
-      padding: 8px 0;
-    }
-    .rail-group + .rail-group { border-top: 1px solid var(--line-2); }
-    .rail-group .group-label {
-      font-family: "JetBrains Mono", monospace;
-      font-size: 9px;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--faint);
-      padding: 6px 12px 8px;
-    }
-    /* Mobile drawer keeps the vertical layout — it's a real menu, not a strip */
-    @media (max-width: 880px) {
-      .rail-group { padding: 6px 0; }
-      .rail-group .group-label { padding: 4px 12px 6px; }
-    }
     .rail-foot {
       margin-top: auto;
       padding-top: 14px;
@@ -1912,30 +1545,11 @@
       transition: background .2s, color .2s;
       white-space: nowrap;
     }
-    .rail-btn .num {
-      font-family: "JetBrains Mono", monospace;
-      font-size: 9px;
-      color: var(--faint);
-      letter-spacing: 1px;
-      flex-shrink: 0;
-      min-width: 18px;
-    }
     .rail-btn:hover { background: rgba(255,255,255,0.45); color: var(--ink); }
     .rail-btn.active {
       background: var(--ink);
       color: var(--paper);
     }
-    .rail-btn.active .num { color: var(--paper-3); }
-    .rail-btn .badge-dot {
-      margin-left: auto;
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
-      flex-shrink: 0;
-      align-self: center;
-      display: none;
-    }
-    .rail-btn.has-attention .badge-dot { display: block; }
 
     /* Workspace column — independently scrollable, fills viewport height */
     .work-col {
@@ -1978,23 +1592,7 @@
       overflow-x: auto;
     }
     .topbar::-webkit-scrollbar { display: none; }
-    .topbar .hamburger {
-      display: none;
-      width: 32px; height: 32px;
-      border: 1px solid var(--line);
-      background: transparent;
-      border-radius: 5px;
-      cursor: pointer;
-      flex-shrink: 0;
-      align-items: center;
-      justify-content: center;
-      color: var(--ink);
-      transition: background .15s;
-    }
-    .topbar .hamburger:hover { background: var(--ink); color: var(--paper); }
-    .topbar .hamburger svg { width: 16px; height: 16px; }
     @media (max-width: 880px) {
-      .topbar .hamburger { display: inline-flex; }
       .topbar { padding: 10px 14px; }
     }
     .topbar .crumb {
@@ -2042,11 +1640,9 @@
       border-radius: 3px;
       color: var(--ink);
     }
-    /* ⌘K means nothing on a phone: the palette trigger reads "검색" there, "⌘K" on desktop */
-    .cmdk-word { display: none; }
     .topbar .chip { white-space: nowrap; }
+    /* ⌘K means nothing on a phone */
     @media (max-width: 880px) {
-      .cmdk-word { display: inline; }
       .cmdk-key { display: none !important; }
     }
     @media (max-width: 600px) {
@@ -2173,50 +1769,7 @@
     }
     .welcome .close-x:hover { background: var(--ink); color: var(--paper); }
 
-    /* Cmd+K palette */
-    .palette-scrim {
-      position: fixed;
-      inset: 0;
-      z-index: 95;
-      display: none;
-      align-items: flex-start;
-      justify-content: center;
-      background: rgba(20,17,13,0.4);
-      backdrop-filter: blur(3px);
-      -webkit-backdrop-filter: blur(3px);
-      padding: 12vh 24px 24px;
-    }
-    .palette-scrim.open { display: flex; animation: fadeIn .15s ease-out; }
-    .palette {
-      width: 100%;
-      max-width: 580px;
-      background: var(--paper);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      box-shadow: 0 24px 80px rgba(20,17,13,0.3);
-      overflow: hidden;
-      display: flex; flex-direction: column;
-      max-height: 70vh;
-    }
-    .palette-input-row {
-      display: flex; align-items: center; gap: 10px;
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--line);
-    }
-    .palette-input-row .icon {
-      width: 14px; height: 14px;
-      color: var(--muted);
-    }
-    .palette input {
-      flex: 1;
-      border: none;
-      background: transparent;
-      font-family: "Inter", sans-serif;
-      font-size: 16px;
-      color: var(--ink);
-      outline: none;
-    }
-    .palette input::placeholder { color: var(--faint); font-style: italic; }
+    /* ⌘K search overlay — list items (the container lives in styles-ia.css) */
     .palette-results {
       flex: 1;
       overflow-y: auto;
@@ -2361,15 +1914,7 @@
     }
     .toast .go:hover { background: rgba(243,238,226,0.15); }
 
-    /* Hide the legacy outer shell when shell-v2 is on. Per-panel
-       headings, blurbs, and badges stay — they're the working
-       context inside the workspace column. Demo strips are hidden
-       (still in DOM so seedAll() can click them programmatically). */
-    body.shell-v2 > div.frame:not(.shell),
-    body.shell-v2 header.app,
-    body.shell-v2 .hero,
-    body.shell-v2 nav.tabs,
-    body.shell-v2 .sync-strip,
+    /* Demo strips are hidden (still in DOM so seedAll() / the e2e can click their CTAs programmatically). */
     body.shell-v2 .demo-strip {
       display: none !important;
     }
@@ -2386,9 +1931,7 @@
       font-size: 16px;
       margin-bottom: 24px;
     }
-    /* Mobile rail collapses to scrollable horizontal strip with chips */
     @media (max-width: 880px) {
-      body.shell-v2 .rail-btn { padding: 7px 10px; font-size: 12px; }
       body.shell-v2 .topbar { padding: 10px 16px; gap: 8px; }
       body.shell-v2 .topbar .crumb { font-size: 9px; }
     }
@@ -2541,13 +2084,6 @@
       z-index: 2;
     }
     .ai-textarea-wrap textarea { padding-right: 56px; }
-
-    /* Share button row */
-    .share-row {
-      display: inline-flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
 
     /* ─────────────────────────────────────────────────────────
        PWA install help — sketched-phone walkthrough

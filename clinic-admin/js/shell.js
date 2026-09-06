@@ -1,14 +1,18 @@
-/* clinic-admin — app chrome — rail/drawer, tab restore, 전체 파기, welcome/info/install modals, seed-all, ⌘K palette, topbar due chip, data boot
+/* clinic-admin — app chrome — five-area rail / phone bottom bar + sub-nav / ⋯ sheet, tab restore, keyboard shortcuts,
+   AI drawer (utility), global search (utility · js/global-search.js), 전체 파기, welcome/info/install modals, seed-all,
+   topbar due chip, data boot.
    Security pass: the lock screen (js/security/lockscreen.js) is initialised here and boot() waits for the
    first unlock before loading data / initialising tabs, so tabs never see a locked Store at init.
-   i18n: the KO|EN toggles (lock card, topbar, drawer, palette) all route through setLang(); the shell's
-   onLangChange listener is registered at import time — before any tab's — so it runs first: it re-paints the
-   crumb, palette and topbar chips, then emits `lang:changed` on the EventBus for anything else. Tabs subscribe
-   with their own onLangChange and re-render from the state they already hold (nothing is lost on toggle). */
-import { $, $$, esc, redactSubject, Toast, Dialog, Lightbox } from "./core/ui.js";
+   i18n: the KO|EN toggles (lock card, topbar, ⋯ sheet) all route through setLang(); the shell's onLangChange
+   listener is registered at import time — before any tab's — so it runs first: it re-paints the crumb, sub-nav,
+   search overlay and topbar chips, then emits `lang:changed` on the EventBus for anything else.
+   IA (Phase 2): panels live in AREAS (core/nav.js). Clicking an area lands on its last-visited panel; `[` `]` cycle
+   panels inside the area, `1`–`5` jump areas (never while typing). 검색 and AI are utilities: the overlay opens on
+   ⌘K / the topbar 🔍, the drawer on the topbar ✦ and every "AI에게 묻기" action (activateTab("tab-ai", ctx)). */
+import { $, $$, esc, Toast, Dialog, Lightbox } from "./core/ui.js";
 import { t, getLang, setLang, onLangChange, isEn } from "./core/i18n.js";
 import { Store, EventBus, ActivityLog, SyncStatus } from "./core/store.js";
-import { TABS, TAB_BY_ID, activateTab, refreshCrumb, activeTabId } from "./core/nav.js";
+import { AREAS, TAB_BY_ID, panelsOf, activateTab, activateArea, cyclePanel, refreshCrumb, activeTabId, registerUtility } from "./core/nav.js";
 import { loadJSON } from "./core/files.js";
 import { allDeadlines } from "./core/calendar.js";
 import { Org, Staff, Patients, Insurers } from "./core/entities.js";
@@ -16,9 +20,12 @@ import { renderOrgForm } from "./core/org-form.js";
 import { Session } from "./security/session.js";
 import { destroyAll } from "./security/lifecycle.js";
 import { initSecurityUI, Lock, UsersPanel, PrivacyPanel, isDestroyWord } from "./security/lockscreen.js";
-import { ACCRED_ITEMS, accredText } from "./tabs/tab9-accred.js";
+import { renderOrgReadOnly } from "./tabs/reporting-shared.js";
+import { initGlobalSearch } from "./global-search.js";
 
-/* Language toggle — one delegated handler for every .lang-toggle (lock card, topbar, drawer). The lock card
+const PHONE = () => window.innerWidth <= 880;
+
+/* Language toggle — one delegated handler for every .lang-toggle (lock card, topbar, ⋯ sheet). The lock card
    sits outside the inert shell, so it stays clickable while locked. */
 document.addEventListener("click", (e) => {
   const b = e.target.closest?.(".lang-toggle button[data-lang]");
@@ -26,6 +33,7 @@ document.addEventListener("click", (e) => {
 });
 onLangChange(() => {
   const id = activeTabId(); if (id) refreshCrumb(id);
+  renderSubnav();
   SyncStatus.refresh();
   EventBus.emitLocal("lang:changed", getLang());
 });
@@ -33,16 +41,46 @@ onLangChange(() => {
 /* Lock screen first — it covers the shell until a PIN unlocks the workspace (or one is created). */
 const sessionReady = initSecurityUI();
 
-/* Rail buttons, last-tab restore, wipe-all, sync-status ticker */
-$$(".rail-btn[data-panel]").forEach(btn => {
-  btn.addEventListener("click", () => activateTab(btn.dataset.panel));
+/* ─────────────────────────────────────────────────────────
+   Navigation chrome — areas (rail + bottom bar), panels (rail sub-list + phone sub-nav), last-tab restore
+   ───────────────────────────────────────────────────────── */
+document.addEventListener("click", (e) => {
+  const a = e.target.closest?.(".area-btn[data-area]");
+  if (a) { activateArea(a.dataset.area); return; }
+  const p = e.target.closest?.("#rail-areas [data-panel], #subnav [data-panel]");
+  if (p) activateTab(p.dataset.panel);
 });
-/* Restore last-viewed tab on load */
-{
-  const saved = Store.get("ui.activeTab");
-  if (saved && TAB_BY_ID[saved]) activateTab(saved);
-  else activateTab("tab-today");
+/* Phone sub-nav: the active area's panels as a segmented control (hidden when the area has a single panel). */
+function renderSubnav() {
+  const nav = $("#subnav"); if (!nav) return;
+  const cur = activeTabId(); const meta = cur && TAB_BY_ID[cur];
+  const list = meta ? panelsOf(meta.area) : [];
+  nav.hidden = list.length < 2;
+  nav.innerHTML = list.length < 2 ? "" : list.map(x => `<button type="button" class="subnav-btn${x.id === cur ? " active" : ""}" data-panel="${x.id}" aria-current="${x.id === cur ? "page" : "false"}">${esc(x.label)}</button>`).join("");
+  nav.querySelector(".subnav-btn.active")?.scrollIntoView({ inline: "center", block: "nearest" });
 }
+$$(".area-btn[data-area]").forEach(b => b.setAttribute("aria-expanded", b.classList.contains("active") ? "true" : "false"));
+EventBus.on("tab:activated", (p) => {
+  if (!p || !TAB_BY_ID[p.id]) return;
+  $$("#rail-areas .area-btn[data-area]").forEach(b => b.setAttribute("aria-expanded", b.classList.contains("active") ? "true" : "false"));
+  renderSubnav();
+  if (PHONE()) closeMore();
+  // The drawer overlays the work column below 1500px (it pushes content only on very wide screens): a panel the user just
+  // navigated to must not open half-hidden, so the drawer closes — its note + result survive for the next ✦.
+  if (window.innerWidth < 1500) AiDrawer.close();
+});
+/* Keyboard: `[` / `]` cycle panels within the area, `1`–`5` jump areas — never while typing or while a layer is up. */
+document.addEventListener("keydown", (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (document.body.classList.contains("locked")) return;
+  const tgt = e.target;
+  if (tgt && (/^(INPUT|TEXTAREA|SELECT)$/.test(tgt.tagName) || tgt.isContentEditable)) return;
+  if ($$(".welcome-scrim.open, .search-scrim.open, .lightbox.open").length) return;
+  if (e.key === "[") { e.preventDefault(); cyclePanel(-1); }
+  else if (e.key === "]") { e.preventDefault(); cyclePanel(1); }
+  else if (/^[1-5]$/.test(e.key)) { e.preventDefault(); activateArea(AREAS[+e.key - 1].id); }
+});
+
 /* 전체 파기 — data, attachments, users AND the wrapped keys. Typed confirmation, no undo. */
 $("#wipe-all")?.addEventListener("click", async () => {
   const typed = prompt(t("shell.wipePrompt"));
@@ -56,10 +94,10 @@ setInterval(() => SyncStatus.refresh(), 30000);
 SyncStatus.refresh();
 
 /* ─────────────────────────────────────────────────────────
-   Welcome overlay — first-run + reopenable via 시연 chip.
-   Includes "샘플 데이터로 둘러보기" which seeds every tab
-   at once so the dashboard, charts, license tracker, accred
-   all come alive in one click.
+   Welcome overlay — first-run + reopenable via 둘러보기.
+   Includes "샘플 데이터로 둘러보기" which seeds every tool
+   at once so 홈's todo list, KPIs, roster, accred all come
+   alive in one click.
    ───────────────────────────────────────────────────────── */
 const WELCOMED_KEY = "ui.welcomed";
 function openWelcome() {
@@ -80,49 +118,42 @@ $("#welcome-blank")?.addEventListener("click", () => closeWelcome(true));
 $("#welcome-scrim")?.addEventListener("click", e => {
   if (e.target.id === "welcome-scrim") closeWelcome(false);
 });
-$("#rail-demo")?.addEventListener("click", () => { closeRail(); openWelcome(); });
-/* Info modal — hosts the compact 기관 프로필 editor (mounted on first open). */
-let infoOrgMounted = false;
-function openInfo() {
-  if (!infoOrgMounted && $("#info-org")) { renderOrgForm($("#info-org"), { prefix: "orginfo" }); infoOrgMounted = true; }
-  Dialog.open($("#info-scrim"));
+$("#rail-demo")?.addEventListener("click", () => { closeMore(); openWelcome(); });
+/* Info modal — sources + a READ-ONLY org summary; the editor itself is the 조직 › 기관 프로필 panel. */
+function renderInfoOrg() {
+  const el = $("#info-org"); if (!el) return;
+  renderOrgReadOnly(el, Org.get(), { onEdit: () => { closeInfo(); openOrgEditor(); } });
 }
+function openInfo() { renderInfoOrg(); Dialog.open($("#info-scrim")); }
 function closeInfo() { Dialog.close($("#info-scrim")); }
-$("#rail-info")?.addEventListener("click", () => { closeRail(); openInfo(); });
+$("#rail-info")?.addEventListener("click", () => { closeMore(); openInfo(); });
 $("#info-close")?.addEventListener("click", closeInfo);
 $("#info-scrim")?.addEventListener("click", e => { if (e.target.id === "info-scrim") closeInfo(); });
-/* Hamburger / off-canvas drawer */
-function openRail()  { document.body.classList.add("rail-open"); }
-function closeRail() { document.body.classList.remove("rail-open"); }
-$("#hamburger")?.addEventListener("click", () => {
-  document.body.classList.contains("rail-open") ? closeRail() : openRail();
+Org.onChange(() => { if (Dialog.isOpen($("#info-scrim"))) renderInfoOrg(); });
+/* Phone ⋯ sheet — the rail foot (lock · users · privacy · info · tour · search · AI · language · wipe) as a bottom sheet. */
+function openMore()  { document.body.classList.add("more-open"); $("#bottombar-more")?.setAttribute("aria-expanded", "true"); }
+function closeMore() { document.body.classList.remove("more-open"); $("#bottombar-more")?.setAttribute("aria-expanded", "false"); }
+$("#bottombar-more")?.addEventListener("click", () => {
+  document.body.classList.contains("more-open") ? closeMore() : openMore();
 });
-$("#rail-scrim")?.addEventListener("click", closeRail);
-/* Auto-close drawer when a section is picked on mobile */
-EventBus.on("tab:activated", () => {
-  if (window.innerWidth <= 880) closeRail();
-});
-/* Esc closes the top-most layer: palette → lightbox → any modal scrim (install/info/welcome/users/privacy/AI) → drawer.
-   The lock screen is deliberately NOT closable with Esc. */
+$("#more-scrim")?.addEventListener("click", closeMore);
+EventBus.on("shell:closeAll", () => { closeMore(); AiDrawer.close(); });
+/* Esc closes the top-most layer: search overlay → lightbox → any modal scrim (install/info/welcome/users/consent/preview)
+   → AI drawer → ⋯ sheet. The lock screen is deliberately NOT closable with Esc. */
 document.addEventListener("keydown", e => {
   if (e.key !== "Escape") return;
   if (document.body.classList.contains("locked")) return;
-  if (Dialog.isOpen($("#palette-scrim"))) Palette.close();
+  if (Dialog.isOpen($("#search-scrim"))) GlobalSearch.close();
   else if (Dialog.isOpen($("#lightbox"))) Lightbox.close();
   else if ($$(".welcome-scrim.open").length) {
     const top = $$(".welcome-scrim.open").pop();
     if (top.id === "welcome-scrim") closeWelcome(false); else if (top.id === "org-scrim") OrgStep.close(); else Dialog.close(top);
   }
-  else if (document.body.classList.contains("rail-open")) closeRail();
-});
-/* Rail-foot Cmd+K trigger */
-$("#rail-cmdk")?.addEventListener("click", () => {
-  closeRail();
-  // Palette opens itself on next tick
-  setTimeout(() => Palette.open(), 50);
+  else if (AiDrawer.isOpen()) AiDrawer.close();
+  else if (document.body.classList.contains("more-open")) closeMore();
 });
 /* First-run 기관 정보 step — shown once, right after the workspace was created on THIS page load, before the
-   welcome tour. Skippable ("나중에 입력"): the topbar org chip + the ⓘ 정보 modal keep the editor reachable. */
+   welcome tour. Skippable ("나중에 입력"): the topbar org chip + 조직 › 기관 프로필 keep the editor reachable. */
 const OrgStep = (() => {
   const scrim = () => $("#org-scrim");
   let mounted = false;
@@ -148,7 +179,17 @@ EventBus.on("app:ready", () => {
   if (!Store.get(WELCOMED_KEY)) setTimeout(openWelcome, 350);
 });
 
-/* Topbar 기관 chip — the org name (or a nudge while the profile is incomplete); click → ⓘ 정보 editor. */
+/* 조직 › 기관 프로필 — the promoted Org editor (mounted once the Store is unlocked). */
+let orgPanelMounted = false;
+function mountOrgPanel() {
+  if (orgPanelMounted || !$("#org-panel-form")) return;
+  renderOrgForm($("#org-panel-form"), { prefix: "orgpanel" });
+  orgPanelMounted = true;
+}
+EventBus.on("app:ready", mountOrgPanel);
+EventBus.on("session:unlocked", mountOrgPanel);
+
+/* Topbar 기관 chip — the org name (or a nudge while the profile is incomplete); click → 조직 › 기관 프로필. */
 function refreshOrgChip() {
   const chip = $("#topbar-org"), txt = $("#topbar-org-text"); if (!chip || !txt) return;
   const o = Org.get(), complete = Org.isComplete();
@@ -157,9 +198,9 @@ function refreshOrgChip() {
   chip.classList.toggle("warn", !complete);
   chip.title = complete ? t("org.chipTitle", { kind: t("org.kind." + o.kind), rep: o.rep }) : t("org.chipTitleIncomplete");
 }
-const openOrgEditor = () => { openInfo(); setTimeout(() => $("#orginfo-name")?.focus({ preventScroll: true }), 80); };
+const openOrgEditor = () => { mountOrgPanel(); activateTab("tab-org"); setTimeout(() => $("#orgpanel-name")?.focus({ preventScroll: true }), 80); };
 $("#topbar-org")?.addEventListener("click", openOrgEditor);
-// Tabs never import shell.js — 00 오늘 (nudge, 03/04 "기관 정보 수정") ask for the editor through this event.
+// Tabs never import shell.js — 홈 (nudge) and the reporting panels' "기관 정보 수정" ask for the editor through this event.
 EventBus.on("shell:openInfo", openOrgEditor);
 Org.onChange(refreshOrgChip);
 EventBus.on("session:unlocked", refreshOrgChip);
@@ -168,7 +209,48 @@ EventBus.on("app:ready", refreshOrgChip);
 onLangChange(refreshOrgChip);
 
 /* ─────────────────────────────────────────────────────────
-   Install — detect standalone, show rail-foot button +
+   AI 코딩 어시스트 — right-side drawer (phone: full-screen sheet). Utility, not an area: activateTab("tab-ai", ctx)
+   opens it, then nav.js emits tab:activated { id: "tab-ai", ctx } so tabs/tab7-ai.js fills the note exactly as before.
+   ───────────────────────────────────────────────────────── */
+const AiDrawer = (() => {
+  const el = () => $("#ai-drawer");
+  const isOpen = () => !!el()?.classList.contains("open");
+  function open() {
+    const d = el(); if (!d || isOpen()) return;
+    d.inert = false; d.removeAttribute("aria-hidden");
+    d.classList.add("open");
+    document.body.classList.add("ai-open");
+    $("#topbar-ai")?.setAttribute("aria-expanded", "true");
+    closeMore();
+    setTimeout(() => { if (!$("#ai-input")?.value) $("#ai-input")?.focus({ preventScroll: true }); }, 60);
+    EventBus.emitLocal("ai:drawer", true);
+  }
+  function close() {
+    const d = el(); if (!d || !isOpen()) return;
+    d.classList.remove("open");
+    document.body.classList.remove("ai-open");
+    $("#topbar-ai")?.setAttribute("aria-expanded", "false");
+    // Keep the note + result: the drawer is a workbench, not a dialog. inert so Tab never lands inside a closed sheet.
+    if (d.contains(document.activeElement)) $("#topbar-ai")?.focus({ preventScroll: true });
+    d.inert = true; d.setAttribute("aria-hidden", "true");
+    EventBus.emitLocal("ai:drawer", false);
+  }
+  registerUtility("tab-ai", () => open());
+  $("#topbar-ai")?.addEventListener("click", () => isOpen() ? close() : activateTab("tab-ai"));
+  $("#rail-ai")?.addEventListener("click", () => { closeMore(); activateTab("tab-ai"); });
+  $("#ai-drawer-close")?.addEventListener("click", close);
+  return { open, close, isOpen };
+})();
+
+/* Restore last-viewed panel on load — after the drawer exists (a phone activation closes it). A retired id from an
+   older build (tab-search / tab-ai) falls back to 홈. */
+{
+  const saved = Store.get("ui.activeTab");
+  activateTab(saved && TAB_BY_ID[saved] ? saved : "tab-today");
+}
+
+/* ─────────────────────────────────────────────────────────
+   Install — detect standalone, show ⋯-sheet/rail button +
    first-visit nudge, hand-walk the user through it.
    ───────────────────────────────────────────────────────── */
 const Install = (() => {
@@ -233,7 +315,7 @@ const Install = (() => {
 
   // ── Wire up DOM ──
   $("#rail-install")?.addEventListener("click", () => {
-    closeRail();
+    closeMore();
     open(detectTab());
   });
   $("#install-close")?.addEventListener("click", close);
@@ -270,7 +352,7 @@ const Install = (() => {
   $("#install-native-btn")?.addEventListener("click", triggerNative);
   $("#install-native-btn-desktop")?.addEventListener("click", triggerNative);
 
-  // Reveal rail button only when not already installed
+  // Reveal the install button only when not already installed
   if (!isStandalone()) {
     $("#rail-install").style.display = "";
   }
@@ -339,14 +421,16 @@ async function seedEntities() {
   ActivityLog.add({ tag: "system", action: t("shell.logSeedEntities", { n: out.staff, l: out.logins, p: out.patients }), meta: { silent: true } });
   return out;
 }
-/* Seed-all — shared entities first, then every tab's seed() in module order (awaited one by one: 01/02 load the
-   shared sample batch asynchronously and 03's cross-check + 00's KPIs read it), then land on the dashboard. */
+/* Seed-all — shared entities first, then every tab's seed() in module order (awaited one by one: the claims tools load
+   the shared sample batch asynchronously and the year-end cross-check + 홈's KPIs read it), then land on 홈 whose
+   todo list is now populated. */
 async function seedAll() {
   let ent = null;
   try { ent = await seedEntities(); } catch (e) { console.warn("seedEntities", e); }
   for (const mod of tabModules) {
     try { await mod.seed({ DATA }); } catch (e) { console.warn("seed", mod.name, e); }
   }
+  AiDrawer.close();
   activateTab("tab-today");
   Toast.show({ tag: "system", html: t("shell.seededToast") + (ent?.logins ? ` ${t("shell.seededLogins", { pin: SEED_PIN })}` : "") });
 }
@@ -356,151 +440,30 @@ $("#welcome-seed")?.addEventListener("click", () => {
 });
 
 /* ─────────────────────────────────────────────────────────
-   Cmd+K command palette — fuzzy search across tabs,
-   saved 자보 cases, licenses, accred items, KCD codes,
-   and demo commands. Net new "verb layer" of the app.
+   Global search (⌘K) — the former palette merged with code search. The shell only contributes the demo
+   commands; entity + code results live in js/global-search.js.
    ───────────────────────────────────────────────────────── */
-const Palette = (() => {
-  const scrim = $("#palette-scrim");
-  const input = $("#palette-input");
-  const results = $("#palette-results");
-  let items = [];
-  let sel = 0;
-  const KINDS = ["go", "cmd", "kcd", "jabo", "license", "accred"];
-  const kindLabel = (k) => t("shell.pal.kind." + k);
-  function buildItems(query) {
-    const q = (query || "").trim().toLowerCase();
-    const out = [];
-    // Tabs
-    for (const tb of TABS) {
-      if (!q || tb.label.toLowerCase().includes(q) || tb.section.toLowerCase().includes(q) || tb.num.includes(q)) {
-        out.push({ kind: "go", glyph: tb.glyph, label: tb.label, meta: `${tb.section} · ${tb.num}`, run: () => activateTab(tb.id) });
-      }
-    }
-    // Demo commands
-    const cmds = [
-      { label: t("shell.pal.seed"), meta: t("shell.pal.seedMeta"), run: seedAll, glyph: "▶" },
-      { label: t("shell.pal.tour"), meta: t("shell.pal.tourMeta"), run: openWelcome, glyph: "?" },
-      { label: t("shell.pal.ics"), meta: t("shell.pal.icsMeta"), run: () => { activateTab("tab-today"); setTimeout(() => $("#dday-ics")?.click(), 300); }, glyph: "↓" },
-      { label: t("shell.pal.lang"), meta: t("shell.pal.langMeta"), run: () => setLang(isEn() ? "ko" : "en"), glyph: "文" },
-      { label: t("shell.pal.lock"), meta: t("shell.pal.lockMeta"), run: () => Lock.lock("manual"), glyph: "🔒" },
-      { label: t("shell.pal.users"), meta: t("shell.pal.usersMeta"), run: () => UsersPanel.open(), glyph: "👤" },
-      { label: t("shell.pal.privacy"), meta: t("shell.pal.privacyMeta"), run: () => PrivacyPanel.open("status"), glyph: "▤" },
-      { label: t("shell.pal.wipe"), meta: t("shell.pal.wipeMeta"), run: () => $("#wipe-all")?.click(), glyph: "⌫" }
-    ];
-    for (const c of cmds) {
-      if (!q || c.label.toLowerCase().includes(q) || (c.meta || "").toLowerCase().includes(q)) {
-        out.push({ kind: "cmd", ...c });
-      }
-    }
-    // KCD codes (search ko/en/code) — only when query present. data/kcd9.json holds `codes`.
-    if (q && q.length >= 2 && Array.isArray(DATA.kcd?.codes)) {
-      const matches = DATA.kcd.codes.filter(c =>
-        c.code?.toLowerCase().includes(q) || c.edi?.toLowerCase().includes(q) || c.name?.toLowerCase().includes(q) || c.name_en?.toLowerCase().includes(q)
-      ).slice(0, 6);
-      for (const c of matches) {
-        const name = isEn() && c.name_en ? `${c.name_en} (${c.name})` : c.name;
-        out.push({ kind: "kcd", glyph: "K", label: name, meta: c.code + (c.edi && c.edi !== c.code ? ` · EDI ${c.edi}` : ""), run: () => { activateTab("tab-search"); setTimeout(() => EventBus.emit("search:query", c.code), 200); } });
-      }
-    }
-    // Saved 자보 cases — file reconciliations by 명세서 count, manual cases pseudonymised (****1234); never a name
-    const jhist = Store.get("jabo.history", []) || [];
-    for (const j of jhist.slice(0, 8)) {
-      const cap = j.kind === "recon" ? t("shell.pal.reconCap", { n: j.stmts || 0 }) : `${redactSubject({ name: j.name, pid: j.pid })} · ${j.insurer || "—"}`;
-      if (!q || cap.toLowerCase().includes(q)) {
-        out.push({ kind: "jabo", glyph: "J", label: cap, meta: t("shell.pal.jaboMeta", { date: j.date || "", n: j.itemCount || 0 }), run: () => activateTab("tab-jabo") });
-      }
-    }
-    // Staff roster — pseudonymised (한의사 윤○○); 원무·행정·기타 carry no 신고 duty, so no deadline. Lands on the row.
-    for (const s of Staff.list()) {
-      const cap = Staff.ref(s);
-      if (!q || cap.toLowerCase().includes(q)) {
-        out.push({ kind: "license", glyph: "L", label: cap, meta: Staff.hasDuty(s.job) ? t("license.dueMeta", { d: s.expiry || "—" }) : t("license.noDuty"), run: () => activateTab("tab-license", { staffId: s.id }) });
-      }
-    }
-    // Accreditation items
-    if (q && q.length >= 2) {
-      for (const cat of ACCRED_ITEMS) {
-        for (const it of cat.items) {
-          const label = accredText(it, "label");
-          if (label.toLowerCase().includes(q) || it.label.toLowerCase().includes(q)) {
-            out.push({ kind: "accred", glyph: "C", label, meta: accredText(cat, "title"), run: () => activateTab("tab-accred") });
-          }
-        }
-      }
-    }
-    return out.slice(0, 40);
-  }
-  function render() {
-    if (!items.length) {
-      results.innerHTML = `<div class="palette-empty">${esc(t("shell.pal.empty"))}</div>`;
-      input.removeAttribute("aria-activedescendant");
-      return;
-    }
-    // Group by kind
-    const groups = {};
-    items.forEach((it, i) => { (groups[it.kind] = groups[it.kind] || []).push({ it, i }); });
-    let html = "";
-    for (const k of KINDS) {
-      if (!groups[k]) continue;
-      html += `<div class="palette-section-label">${esc(kindLabel(k))}</div>`;
-      for (const { it, i } of groups[k]) {
-        html += `<div class="palette-item ${i === sel ? "sel" : ""}" data-i="${i}" id="palette-opt-${i}" role="option" aria-selected="${i === sel}">
-          <span class="glyph">${it.glyph || "·"}</span>
-          <span class="label">${esc(it.label)}${it.meta ? `<span class="meta">${esc(it.meta)}</span>` : ""}</span>
-          <span class="kind">${esc(kindLabel(it.kind))}</span>
-        </div>`;
-      }
-    }
-    results.innerHTML = html;
-    results.querySelectorAll(".palette-item").forEach(el => {
-      el.addEventListener("click", () => { run(parseInt(el.dataset.i, 10)); });
-    });
-    const selEl = results.querySelector(".palette-item.sel");
-    if (selEl) { selEl.scrollIntoView({ block: "nearest" }); input.setAttribute("aria-activedescendant", selEl.id); }
-  }
-  function refresh(q) {
-    items = buildItems(q);
-    if (sel >= items.length) sel = 0;
-    render();
-  }
-  function open() {
-    Dialog.open(scrim, input);
-    input.value = "";
-    sel = 0;
-    refresh("");
-  }
-  function close() { Dialog.close(scrim); }
-  function run(i) {
-    const it = items[i];
-    if (!it) return;
-    close();
-    try { it.run(); } catch (e) { console.error(e); }
-  }
-  input?.addEventListener("input", e => { sel = 0; refresh(e.target.value); });
-  input?.addEventListener("keydown", e => {
-    if (e.key === "ArrowDown") { e.preventDefault(); sel = Math.min(items.length - 1, sel + 1); render(); }
-    else if (e.key === "ArrowUp") { e.preventDefault(); sel = Math.max(0, sel - 1); render(); }
-    else if (e.key === "Enter") { e.preventDefault(); run(sel); }
-    else if (e.key === "Escape") { e.preventDefault(); close(); }
-  });
-  scrim?.addEventListener("click", e => { if (e.target.id === "palette-scrim") close(); });
-  document.addEventListener("keydown", e => {
-    const isK = (e.key === "k" || e.key === "K");
-    if (isK && (e.metaKey || e.ctrlKey)) {
-      e.preventDefault();
-      if (scrim.classList.contains("open")) close(); else open();
-    }
-  });
-  $("#topbar-cmdk")?.addEventListener("click", open);
-  onLangChange(() => { if (Dialog.isOpen(scrim)) refresh(input.value); });
-  return { open, close, refresh };
-})();
+const GlobalSearch = initGlobalSearch({
+  commands: () => [
+    { label: t("shell.pal.ai"), meta: t("shell.pal.aiMeta"), run: () => activateTab("tab-ai"), glyph: "✦" },
+    { label: t("shell.pal.seed"), meta: t("shell.pal.seedMeta"), run: seedAll, glyph: "▶" },
+    { label: t("shell.pal.tour"), meta: t("shell.pal.tourMeta"), run: openWelcome, glyph: "?" },
+    { label: t("shell.pal.ics"), meta: t("shell.pal.icsMeta"), run: () => { activateTab("tab-today"); setTimeout(() => $("#dday-ics")?.click(), 300); }, glyph: "↓" },
+    { label: t("shell.pal.lang"), meta: t("shell.pal.langMeta"), run: () => setLang(isEn() ? "ko" : "en"), glyph: "文" },
+    { label: t("shell.pal.lock"), meta: t("shell.pal.lockMeta"), run: () => Lock.lock("manual"), glyph: "🔒" },
+    { label: t("shell.pal.users"), meta: t("shell.pal.usersMeta"), run: () => UsersPanel.open(), glyph: "👤" },
+    { label: t("shell.pal.privacy"), meta: t("shell.pal.privacyMeta"), run: () => PrivacyPanel.open("status"), glyph: "▤" },
+    { label: t("shell.pal.info"), meta: t("shell.pal.infoMeta"), run: openInfo, glyph: "ⓘ" },
+    { label: t("shell.pal.wipe"), meta: t("shell.pal.wipeMeta"), run: () => $("#wipe-all")?.click(), glyph: "⌫" }
+  ]
+});
+$("#rail-cmdk")?.addEventListener("click", () => { closeMore(); setTimeout(() => GlobalSearch.open(), 50); });
+$("#topbar-search")?.addEventListener("click", () => GlobalSearch.open());
 
 /* Topbar · today date + due-this-week chip */
 (function topbarLive() {
   function refreshDue() {
-    // Same calendar as 00 오늘 (core/calendar.js allDeadlines: statutory + per-person from the Staff roster).
+    // Same calendar as 홈 (core/calendar.js allDeadlines: statutory + per-person from the Staff roster).
     const upcoming = allDeadlines().filter(d => d.daysLeft != null && d.daysLeft >= 0 && d.daysLeft <= 14);
     const chip = $("#topbar-due");
     const text = $("#topbar-due-text");
@@ -526,13 +489,14 @@ const Palette = (() => {
    ───────────────────────────────────────────────────────── */
 const DATA = { kcd: null, jabo: null, bigeup: null, retention: null };
 
-/* TAB MODULE CONVENTION — every js/tabs/tabN-*.js exports exactly
+/* TAB MODULE CONVENTION — every js/tabs/*.js module exports exactly
      init(ctx)   wire the panel once (ctx = { DATA })
      seed(ctx)   fill the panel with ITS sample state for the shared fictional clinic (called by seedAll() after the
                  entities are seeded; must reference Staff / Patients / Org from core/entities.js, never invent
-                 names). May return a promise — seedAll() awaits it. Tabs with nothing of their own (00, 08) export a no-op.
-   main.js passes the module namespaces (import * as T1 …) in the order 1‥9 then 0 — exactly the former inline
-   order. boot() waits for the first unlock (Lock.ready) so tabs initialise against a decrypted Store. */
+                 names). May return a promise — seedAll() awaits it. Modules with nothing of their own export a no-op.
+   main.js passes the module namespaces (import * as T …) in seed order: claims tools first (they create the shared
+   batch), reporting next, utilities, roster/accred, the claims landing, 홈 last (it derives everything).
+   boot() waits for the first unlock (Lock.ready) so tabs initialise against a decrypted Store. */
 let tabModules = [];
 function boot(mods, { version = "dev" } = {}) {
   const ver = $("#info-version"); if (ver) ver.dataset.version = version;
@@ -570,11 +534,11 @@ async function showVersion(version) {
   el.textContent = t("shell.versionLine", { v: version, c: cache, ws: ws ? ws.slice(0, 8) + "…" : t("shell.none") });
 }
 EventBus.on("session:unlocked", () => { const el = $("#info-version"); if (el?.dataset.version) showVersion(el.dataset.version); });
-onLangChange(() => { const el = $("#info-version"); if (el?.dataset.version) showVersion(el.dataset.version); });
+onLangChange(() => { const el = $("#info-version"); if (el?.dataset.version) showVersion(el.dataset.version); if (Dialog.isOpen($("#info-scrim"))) renderInfoOrg(); });
 // Vendored SheetJS failed to load (onerror flag set in <head>) — say so once everything has settled.
 window.addEventListener("load", () => {
   if (document.documentElement.dataset.xlsxFailed) {
     Toast.show({ tag: "system", ttl: 0, html: t("shell.xlsxFailToast"), action: { label: t("common.reload"), fn: () => location.reload() } });
   }
 });
-export { DATA, boot, seedAll, seedEntities, SEED, SEED_PIN, openWelcome, closeWelcome, openInfo, closeInfo, openRail, closeRail, Install, Palette, OrgStep };
+export { DATA, boot, seedAll, seedEntities, SEED, SEED_PIN, openWelcome, closeWelcome, openInfo, closeInfo, openMore, closeMore, Install, GlobalSearch, AiDrawer, OrgStep };
