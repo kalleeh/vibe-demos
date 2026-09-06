@@ -1,3 +1,102 @@
-/* clinic-admin — KO strings for the Phase 3 patients builder. Merged after *.ia.js (later wins). */
+/* clinic-admin — Korean strings for the Phase-3 환자 trackers (P3b): 자보 지불보증 (guarantee.*) · 서류 발급 대장 (docs.*) ·
+   비급여 설명·동의 (consent.*), the helpers they share (patients.*), the board's ⋯ hand-off menu (board.menu.*) and the
+   activity tags of the three panels (common.tag.*). Merged by core/i18n.js after *.ia.js; keys are NEW here. Korean is
+   the source of truth; en.patients.js mirrors every key (lifecycle.reg.* rows are EN-only by design — the Korean text
+   lives on the registerRows() rows in the tab modules). Status / type / method VALUES stay Korean in the Store; only
+   their labels live here. */
 export default {
+  /* ── shared (patients-shared.js) ── */
+  "patients.col.patient": "환자", "patients.all": "전체", "patients.allPatients": "모든 환자", "patients.filterPatient": "환자 필터",
+  "patients.pickPatient": "환자 선택 (가명)", "patients.pickStaff": "직원 선택", "patients.pickInsurer": "보험사 선택",
+  "patients.nRows": "{n}건", "patients.locked": "잠겨 있습니다 — PIN으로 열면 기록이 표시됩니다.", "patients.errPid": "환자를 선택하세요 (가명 환자번호).",
+  "patients.strip.seen": "첫 진료 {first} · 마지막 {last}", "patients.strip.unregistered": "가명 대장에 없는 환자번호",
+  "patients.strip.guarantees": "지불보증 {n}", "patients.strip.docs": "발급 {n}", "patients.strip.consents": "동의 {n}",
+  "common.tag.guarantee": "지불보증", "common.tag.docs": "발급", "common.tag.consent": "동의",
+
+  /* ── 접수 보드 ⋯ hand-off menu (board.js) ── */
+  "board.more": "더보기 — 지불보증 · 서류 발급 · 비급여 동의 · AI 메모",
+  "board.menu.guarantee": "자보 지불보증 기록", "board.menu.docs": "서류 발급 대장에 기록", "board.menu.consent": "비급여 설명·동의 기록", "board.menu.ai": "AI 메모로 보내기",
+
+  /* ── 환자 › 자보 지불보증 ── */
+  "guarantee.badgeLaw": "자동차손해배상 보장법 §12 · 자동차보험진료수가 기준", "guarantee.badge": "가명 환자 · 브라우저 내 암호화 · 보증 종료 후 1년 보존",
+  "guarantee.blurb": "자보 환자는 <em>사고접수번호와 보험사</em>만 들고 옵니다 — 원무가 보험사에 전화·팩스로 <em>지불보증</em>(보증번호·범위·기간·담당자)을 받아야 진료비가 보험사로 갑니다. 한방은 입원 일수와 약침·첩약 빈도에서 보증 범위 실랑이가 잦고, 보증은 진료 중에 만료되어 <em>연장 요청</em>이 또 한 통의 전화가 됩니다. 여기서 케이스별 보증 상태와 통화 기록을 한 줄씩 남기고, 만료 7일 전에 미리 봅니다.",
+  "guarantee.listH": "지불보증 대장", "guarantee.newBtn": "+ 새 지불보증", "guarantee.exportBtn": "지불보증 대장 XLSX",
+  "guarantee.searchPh": "접수번호 · 보증번호 · 보험사 검색", "guarantee.chipSoon": "만료 임박",
+  "guarantee.summary": "{n}건 표시 · 만료 임박 {soon} · 만료 {expired}",
+  "guarantee.empty": "지불보증 기록이 없습니다 — 「+ 새 지불보증」으로 보험사 통화를 기록하세요. 접수 보드 카드의 ⋯ 메뉴에서도 열립니다.",
+  "guarantee.caveat": "※ 지불보증은 보험사 보상담당자와의 <strong>전화·팩스로 확정</strong>되며, 보증 범위(외래·입원·한약·약침)와 기간은 보험사마다 다르게 적습니다. 보증 기간이 끝나기 <em>7일 전</em>부터 「만료 임박」, 지나면 「만료」로 표시되고 홈의 할 일에도 올라갑니다. 연장이 승인되면 편집에서 종료일을 바꾸고 상태를 「보증」으로 돌려놓으세요. 근거 조문은 확인 필요 · PoC.",
+  "guarantee.col.insurer": "보험사 · 담당자", "guarantee.col.claim": "사고접수번호", "guarantee.col.scope": "보증 범위", "guarantee.col.period": "보증 기간", "guarantee.col.status": "상태", "guarantee.col.log": "통화 기록", "guarantee.col.state": "만료 여부",
+  "guarantee.noShort": "보증번호 {no}", "guarantee.logCount": "기록 {n}건",
+  "guarantee.status.요청중": "요청중", "guarantee.status.보증": "보증", "guarantee.status.연장요청": "연장 요청", "guarantee.status.만료": "만료", "guarantee.status.거절": "거절",
+  "guarantee.kind.전화": "전화", "guarantee.kind.팩스": "팩스", "guarantee.kind.메모": "메모",
+  "guarantee.scope.out": "외래", "guarantee.scope.inp": "입원", "guarantee.scope.herb": "한약·약침 포함",
+  "guarantee.badgeExpired": "만료", "guarantee.badgeExpiring": "만료 임박 {d}",
+  "guarantee.extendBtn": "연장 요청", "guarantee.openCase": "자보 케이스 열기", "guarantee.openRecon": "대조에서 보기",
+  "guarantee.editH": "지불보증 편집", "guarantee.newH": "새 지불보증",
+  "guarantee.f.accident": "사고일", "guarantee.f.claimNo": "사고접수번호", "guarantee.f.guaranteeNo": "지불보증서 · 승인번호", "guarantee.f.guaranteeNoPh": "SG-26-08-0142",
+  "guarantee.f.from": "보증 시작", "guarantee.f.to": "보증 종료",
+  "guarantee.f.contactName": "보험사 담당자", "guarantee.f.contactNamePh": "보상팀 담당자", "guarantee.f.contactPhone": "담당자 전화", "guarantee.f.contactFax": "팩스",
+  "guarantee.f.notePh": "예: 약침 주 2회까지 · 첩약 10일분 한도",
+  "guarantee.logH": "통화·팩스 기록", "guarantee.logEmpty": "아직 기록이 없습니다 — 아래에서 첫 통화를 남기세요.", "guarantee.logPh": "예: 보증서 팩스 수신 · 입원 5일 보증", "guarantee.logAddBtn": "기록 추가",
+  "guarantee.editorHint": "환자는 가명 환자번호로만 저장됩니다. 담당자는 보험사 직원(업무 연락처)입니다.",
+  "guarantee.errPeriod": "보증 종료일이 시작일보다 앞섭니다.", "guarantee.errLocked": "잠겨 있습니다 — PIN으로 열어야 저장할 수 있습니다.",
+  "guarantee.logExtendText": "연장 요청 — 현재 종료 {to}", "guarantee.logExtend": "지불보증 연장 요청 ({insurer})",
+  "guarantee.logAdd": "지불보증 등록 — {insurer} · {status}", "guarantee.logEdit": "지불보증 수정 — {insurer} · {status}",
+  "guarantee.logDelete": "지불보증 삭제", "guarantee.logUndo": "지불보증 삭제 취소", "guarantee.removedToast": "지불보증 삭제 — {who}",
+  "guarantee.logExport": "지불보증 대장 내려받기 ({n}건)", "guarantee.fileName": "지불보증대장_{date}.xlsx", "guarantee.sheetName": "지불보증",
+  "guarantee.dl.expiring": "자보 지불보증 만료 임박 — {who} · {insurer}", "guarantee.dl.expired": "자보 지불보증 만료 — {who} · {insurer}",
+
+  /* ── 환자 › 서류 발급 대장 ── */
+  "docs.badgeLaw": "의료법 §17 · 시행규칙 §15 (부본 3년)", "docs.badge": "발급번호 연번 · 대리인 확인 · 수수료 비급여 고지",
+  "docs.blurb": "진단서·진료확인서·입퇴원확인서·소견서·진료비 세부내역서 — 창구에서 매일 나가는 서류마다 <em>누가 누구에게 몇 부를 얼마에</em> 발급했는지 남기는 <em>진단서 등 발급 대장</em>은 법정 기록입니다 (의료법 시행규칙 — 세부 서식은 확인 필요). 진단서·소견서는 <em>한의사</em>만 발급할 수 있고, 대리인 수령은 위임장·신분증 확인이 필요합니다. 제증명 수수료는 비급여이므로 접수 창구에 게시해야 합니다.",
+  "docs.listH": "발급 대장", "docs.newBtn": "+ 발급 기록", "docs.exportBtn": "발급 대장 XLSX", "docs.printBtn": "월별 대장 인쇄", "docs.printMonth": "인쇄할 월",
+  "docs.searchPh": "발급번호 · 용도 · 비고 검색",
+  "docs.summary": "{n}건 표시 · 이번 달 {m}건 · 수수료 {fee}",
+  "docs.empty": "발급 기록이 없습니다 — 「+ 발급 기록」으로 첫 서류를 남기세요. 접수 보드 카드의 ⋯ 메뉴에서도 열립니다.",
+  "docs.caveat": "※ <strong>진단서·소견서</strong>는 의료법 §17에 따라 한의사만 발급할 수 있어 발급자 직종을 확인합니다. <strong>대리인 수령</strong>은 위임장과 대리인 신분증 확인이 있어야 저장됩니다 (의료법 §21 열람 요건 준용 · 확인 필요). 수수료는 조직 › 비급여 단가표에 제증명 항목이 있으면 그 가격을, 없으면 수기 입력합니다 — 제증명 수수료는 <em>비급여</em>라 창구 게시 대상입니다. 발급번호는 연도별 연번(2026-0001)이며 부본은 3년 보존됩니다 (시행규칙 §15). PoC — 실제 대장 서식은 병원 양식 기준.",
+  "docs.col.no": "발급번호", "docs.col.issuedAt": "발급일", "docs.col.type": "서류", "docs.col.purpose": "용도", "docs.col.issuedBy": "발급자", "docs.col.copies": "부수", "docs.col.fee": "수수료", "docs.col.recipient": "수령",
+  "docs.type.진단서": "진단서", "docs.type.진료확인서": "진료확인서", "docs.type.입퇴원확인서": "입퇴원확인서", "docs.type.소견서": "소견서", "docs.type.진료비 세부내역서": "진료비 세부내역서", "docs.type.영수증 재발급": "영수증 재발급",
+  "docs.purpose.보험 제출": "보험 제출", "docs.purpose.직장": "직장", "docs.purpose.학교": "학교", "docs.purpose.법원": "법원", "docs.purpose.기타": "기타",
+  "docs.recipient.본인": "본인", "docs.recipient.대리인": "대리인",
+  "docs.doctorOnlyPill": "한의사 발급", "docs.proxyPoa": "위임장", "docs.proxyId": "신분증",
+  "docs.yearendHint": "연말정산 자료 안내", "docs.yearendHintTitle": "1월 영수증 재발급 — 연말정산 간소화 자료 제출 점검으로 이동",
+  "docs.editH": "발급 기록 편집 — {no}", "docs.newH": "새 발급 기록 — 발급번호 {no} (저장 시 확정)",
+  "docs.issuerDoctorHint": "진단서·소견서 — 한의사만 발급", "docs.proxyChecksH": "대리인 수령 확인",
+  "docs.proxyPoaLong": "위임장 확인 (원본 보관)", "docs.proxyIdLong": "대리인 신분증 확인",
+  "docs.notePh": "예: 자보 삼성화재 제출용 · 경추 염좌 2주", "docs.editorHint": "환자는 가명 환자번호로만 저장되고, 발급자는 직원 명부의 행에 연결됩니다.",
+  "docs.feeFromTariff": "단가표 기준 — {name} {price}", "docs.feeManualHint": "단가표에 해당 제증명 항목이 없어 수기 입력합니다 (조직 › 비급여 단가표에 추가하면 자동으로 채워집니다).",
+  "docs.errIssuerMissing": "발급자를 선택하세요.", "docs.errIssuer": "{type}은(는) 한의사만 발급할 수 있습니다 — 발급자를 한의사로 바꾸세요.",
+  "docs.errProxy": "대리인 수령은 위임장·신분증 확인이 모두 있어야 저장됩니다.",
+  "docs.logAdd": "서류 발급 {no} — {type}", "docs.logEdit": "발급 기록 수정 {no} — {type}", "docs.logDelete": "발급 기록 삭제 {no}", "docs.logUndo": "발급 기록 삭제 취소 {no}",
+  "docs.removedToast": "발급 기록 삭제 — {no} · {who}",
+  "docs.logExport": "발급 대장 내려받기 ({n}건)", "docs.fileName": "발급대장_{date}.xlsx", "docs.sheetName": "발급대장",
+  "docs.printEmpty": "{m}에 발급된 서류가 없습니다.", "docs.printTitle": "진단서 등 발급 대장 — {m}", "docs.printCount": "발급 {n}건", "docs.logPrint": "월별 발급 대장 인쇄 ({m})",
+  "docs.printFoot": "PoC — 실제 대장 서식은 병원 양식(의료법 시행규칙) 기준. 환자는 가명 환자번호로만 표시됩니다.",
+
+  /* ── 환자 › 비급여 설명·동의 ── */
+  "consent.badgeLaw": "의료법 §45 · 시행규칙 §42조의2 (사전 설명 의무)", "consent.badge": "우리 단가표 기준 · 동의서 초안 인쇄",
+  "consent.blurb": "첩약·약침·추나 초과분처럼 <em>비급여 항목은 시행 전에 항목과 가격을 설명</em>해야 하고 (의료법 §45 · 시행규칙 §42조의2 — 확인 필요), 대부분 병원은 서명받은 <em>동의서</em>를 종이나 스캔으로 보관합니다. 여기서는 조직 › 비급여 단가표의 <em>우리 가격</em>으로 항목을 고르고, 누가 어떤 방식으로 설명했는지와 서명 여부를 기록한 뒤 동의서 초안을 인쇄합니다. 자보 환자는 그 항목을 자보 케이스로 바로 넘길 수 있습니다.",
+  "consent.listH": "설명·동의 기록", "consent.newBtn": "+ 설명·동의 기록", "consent.exportBtn": "동의 기록 XLSX", "consent.printBtn": "동의서 초안",
+  "consent.searchPh": "항목 코드 · 명칭 · 비고 검색", "consent.chipSigned": "서명 완료", "consent.chipUnsigned": "서명 대기",
+  "consent.summary": "{n}건 표시 · 서명 대기 {unsigned} · 합계 {sum}",
+  "consent.empty": "설명·동의 기록이 없습니다 — 「+ 설명·동의 기록」으로 첫 비급여 설명을 남기세요.",
+  "consent.tariffEmpty": "비급여 단가표가 비어 있습니다 — 조직 › 비급여 단가표에서 가격을 먼저 입력하세요.", "consent.tariffEmptyGo": "비급여 단가표 열기", "consent.tariffEmptyShort": "단가표에 항목이 없습니다",
+  "consent.caveat": "※ 비급여 항목은 <strong>시행 전에 항목·가격을 설명</strong>해야 합니다 (의료법 §45 · 시행규칙 §42조의2 — 조문 확인 필요). 가격은 조직 › 비급여 단가표의 <em>우리 가격</em>(중간값, 없으면 최저·최고 중간)이며 저장 시점의 명칭·단가가 기록에 고정됩니다. 「동의서 초안」은 PoC 서식입니다 — 실제 동의서는 병원 양식을 쓰고, 서명 원본은 종이·스캔으로 보관하세요. 보존기간 5년은 확인 필요.",
+  "consent.col.at": "설명일", "consent.col.items": "항목", "consent.col.total": "합계", "consent.col.explainedBy": "설명자", "consent.col.method": "방식", "consent.col.signed": "서명",
+  "consent.col.code": "코드", "consent.col.item": "항목명", "consent.col.price": "단가", "consent.col.qty": "수량", "consent.col.amount": "금액",
+  "consent.method.구두+서면": "구두 + 서면", "consent.method.서면": "서면", "consent.method.전자": "전자",
+  "consent.signedYes": "서명 완료", "consent.signedNo": "서명 대기", "consent.signedLabel": "동의서에 서명받음",
+  "consent.toJabo": "자보 케이스에 항목 추가",
+  "consent.editH": "설명·동의 편집", "consent.newH": "새 설명·동의 기록",
+  "consent.itemsH": "비급여 항목 — 합계", "consent.itemsEmpty": "항목이 없습니다 — 아래에서 단가표 항목을 추가하세요.", "consent.pickItem": "단가표 항목 선택", "consent.addItemBtn": "항목 추가",
+  "consent.notePh": "예: 추나 한도 초과분 비급여 전환 · 서명 대기", "consent.editorHint": "명칭·단가는 저장 시점의 단가표 값으로 고정됩니다. 환자는 가명 환자번호로만 저장됩니다.",
+  "consent.errItems": "항목을 하나 이상 추가하세요.", "consent.errExplainer": "설명한 직원을 선택하세요.",
+  "consent.logAdd": "비급여 설명·동의 기록 — {n}항목 · {sum} · {signed}", "consent.logEdit": "비급여 설명·동의 수정 — {n}항목 · {sum} · {signed}",
+  "consent.logDelete": "설명·동의 기록 삭제", "consent.logUndo": "설명·동의 기록 삭제 취소", "consent.removedToast": "설명·동의 기록 삭제 — {who}",
+  "consent.logExport": "동의 기록 내려받기 ({n}건)", "consent.fileName": "비급여동의기록_{date}.xlsx", "consent.sheetName": "비급여동의",
+  "consent.printTitle": "비급여 진료 사전 설명·동의서 (초안)", "consent.printAliasNote": "— 가명 환자번호 · 실제 서식에는 성명 기재",
+  "consent.printIntro": "아래 비급여 항목의 내용과 비용을 시행 전에 설명받았고, 이에 동의합니다.",
+  "consent.printExplained": "설명: {who} · 방식: {method}", "consent.printSignPatient": "환자 (또는 대리인) 서명", "consent.printSignStaff": "설명자 서명",
+  "consent.printFoot": "PoC — 실제 서식은 병원 양식 기준 (의료법 §45 · 시행규칙 §42조의2 확인 필요). 가격은 조직 › 비급여 단가표 기준.",
+  "consent.logPrint": "동의서 초안 인쇄"
 };
