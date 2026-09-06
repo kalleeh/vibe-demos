@@ -1,10 +1,14 @@
 /* clinic-admin — pure DOM / formatting helpers (no app state). Re-exported by ./ui.js
-   Extracted verbatim from the former single-file index.html; behaviour unchanged. */
+   Extracted verbatim from the former single-file index.html; behaviour unchanged.
+   i18n: relTime / redactSubject / redactStaff / won read the active language (core/i18n.js is a leaf). */
+import { t, tOr, isEn } from "./i18n.js";
 
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
 
 const fmtKRW = (n) => new Intl.NumberFormat("ko-KR").format(Math.round(n || 0));
+// Money with its unit: "12,000원" in Korean, "₩12,000" in English. Numbers themselves never change.
+const won = (n) => isEn() ? `₩${fmtKRW(n)}` : `${fmtKRW(n)}원`;
 const todayISO = () => new Date().toISOString().slice(0, 10);
 // Escape untrusted strings before they go through innerHTML (model output, file cells).
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -47,11 +51,11 @@ function fuzzyMatch(haystack, needle) {
 function relTime(ts) {
   if (!ts) return "—";
   const diff = Math.floor((Date.now() - ts) / 1000);
-  if (diff < 5) return "방금";
-  if (diff < 60) return `${diff}초 전`;
-  if (diff < 3600) return `${Math.floor(diff/60)}분 전`;
-  if (diff < 86400) return `${Math.floor(diff/3600)}시간 전`;
-  return `${Math.floor(diff/86400)}일 전`;
+  if (diff < 5) return t("common.time.now");
+  if (diff < 60) return t("common.time.secAgo", { n: diff });
+  if (diff < 3600) return t("common.time.minAgo", { n: Math.floor(diff/60) });
+  if (diff < 86400) return t("common.time.hourAgo", { n: Math.floor(diff/3600) });
+  return t("common.time.dayAgo", { n: Math.floor(diff/86400) });
 }
 
 function daysUntil(dateISO) {
@@ -67,6 +71,9 @@ function debounce(fn, ms = 250) {
   return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
 }
 
+// Role values are stored in Korean (원장 · 행정 · 원무 · 한의사 …); this is the short display label.
+const roleLabel = (role) => { const r = String(role ?? "").trim(); return r ? tOr("common.roleShort." + r, r) : ""; };
+
 /* Pseudonymised subject reference for every user-visible surface that is NOT the record
    itself — toasts, the ⌘K palette, the dashboard feed, the activity log.
      redactSubject({ name, pid }) → string
@@ -78,7 +85,7 @@ function debounce(fn, ms = 250) {
 function redactSubject({ name, pid } = {}) {
   const p = String(pid ?? "").replace(/\s+/g, "");
   if (p) return "****" + p.slice(-4);
-  if (name && String(name).trim()) return "[환자]";
+  if (name && String(name).trim()) return t("common.patientRedacted");
   return "—";
 }
 /* Staff (면허 명부) reference for the same surfaces — role + surname initial: "한의사 윤○○".
@@ -87,6 +94,6 @@ function redactSubject({ name, pid } = {}) {
 function redactStaff({ role, name } = {}) {
   const n = String(name ?? "").trim();
   const initial = n ? n[0] + "○".repeat(Math.min(Math.max(n.length - 1, 1), 3)) : "—";
-  return [String(role ?? "").trim(), initial].filter(Boolean).join(" ");
+  return [roleLabel(role), initial].filter(Boolean).join(" ");
 }
-export { $, $$, fmtKRW, todayISO, esc, setStatus, CHO, extractCho, fuzzyMatch, relTime, daysUntil, debounce, redactSubject, redactStaff };
+export { $, $$, fmtKRW, won, todayISO, esc, setStatus, CHO, extractCho, fuzzyMatch, relTime, daysUntil, debounce, roleLabel, redactSubject, redactStaff };

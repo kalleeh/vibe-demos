@@ -6,6 +6,7 @@
    the two never fight over schema versions. Sits at the files/ai-client layer of the
    import graph: dom → store → (masters) → tabs. Never imports shell.js. */
 import { todayISO } from "./dom.js";
+import { t } from "./i18n.js";
 import { EventBus } from "./store.js";
 
 const DB = "vibe-clinic-admin-masters";
@@ -13,28 +14,30 @@ const STORE = "masters";
 const EV = "masters:changed";
 
 // Header aliases per master kind. `required` fields must be mapped before save.
+// `label` getters resolve through the search.master.* / search.field.* keys so the mapping UI follows the language.
+const F = (labelKey, aliases) => ({ get label() { return t(labelKey); }, aliases });
 const FIELDS = {
   kcd: {
-    label: "상병 마스터 (KOICD)",
+    get label() { return t("search.master.kcd"); },
     required: ["code", "name"],
     fields: {
-      code:     { label: "상병기호",   aliases: ["상병기호", "상병코드", "코드", "kcd", "kcd코드", "질병코드", "code", "진단코드"] },
-      name:     { label: "한글명",     aliases: ["한글명", "한글명칭", "상병명", "상병명(한글)", "질병명", "name", "명칭", "한글 명칭"] },
-      name_en:  { label: "영문명",     aliases: ["영문명", "영문명칭", "english", "name_en", "영문 명칭"] },
-      complete: { label: "완전코드구분", aliases: ["완전코드구분", "완전코드", "완전코드여부", "complete", "최하위코드"] }
+      code:     F("search.field.kcdCode",  ["상병기호", "상병코드", "코드", "kcd", "kcd코드", "질병코드", "code", "진단코드"]),
+      name:     F("search.field.nameKo",   ["한글명", "한글명칭", "상병명", "상병명(한글)", "질병명", "name", "명칭", "한글 명칭"]),
+      name_en:  F("search.field.nameEn",   ["영문명", "영문명칭", "english", "name_en", "영문 명칭"]),
+      complete: F("search.field.complete", ["완전코드구분", "완전코드", "완전코드여부", "complete", "최하위코드"])
     }
   },
   fee: {
-    label: "행위·수가 마스터 (심평원)",
+    get label() { return t("search.master.fee"); },
     required: ["code", "name"],
     fields: {
-      code:     { label: "수가코드",   aliases: ["수가코드", "행위코드", "코드", "code", "청구코드", "edi코드", "edi 코드", "항목코드"] },
-      name:     { label: "한글명",     aliases: ["한글명", "한글명칭", "행위명", "항목명", "명칭", "name", "수가명"] },
-      price:    { label: "단가(금액)", aliases: ["단가", "금액", "수가", "가격", "price", "상대가치금액", "병원급 단가", "의원급 단가", "한방병원", "한의원"] },
-      category: { label: "분류",       aliases: ["분류", "분류번호", "장", "대분류", "category", "산정명칭", "분류명"] },
-      coverage: { label: "급여구분",   aliases: ["급여구분", "급여여부", "급여/비급여", "coverage", "보험구분", "급여"] },
-      jabo:     { label: "자보구분",   aliases: ["자보구분", "자보", "자동차보험", "자보적용", "jabo", "자보여부"] },
-      unit:     { label: "단위",       aliases: ["단위", "unit"] }
+      code:     F("search.field.feeCode",  ["수가코드", "행위코드", "코드", "code", "청구코드", "edi코드", "edi 코드", "항목코드"]),
+      name:     F("search.field.nameKo",   ["한글명", "한글명칭", "행위명", "항목명", "명칭", "name", "수가명"]),
+      price:    F("search.field.price",    ["단가", "금액", "수가", "가격", "price", "상대가치금액", "병원급 단가", "의원급 단가", "한방병원", "한의원"]),
+      category: F("search.field.category", ["분류", "분류번호", "장", "대분류", "category", "산정명칭", "분류명"]),
+      coverage: F("search.field.coverage", ["급여구분", "급여여부", "급여/비급여", "coverage", "보험구분", "급여"]),
+      jabo:     F("search.field.jabo",     ["자보구분", "자보", "자동차보험", "자보적용", "jabo", "자보여부"]),
+      unit:     F("search.field.unit",     ["단위", "unit"])
     }
   }
 };
@@ -167,15 +170,15 @@ async function destroy() {
 // ── Unified accessors — uploaded master if present, else the bundled 발췌/예시 ──
 function kcd() {
   const m = cache.kcd;
-  if (m) return { source: "master", rows: m.rows, count: m.count, date: m.uploadedAt, label: `마스터: 업로드본 (${m.count.toLocaleString("ko-KR")}행, ${m.uploadedAt})` };
+  if (m) return { source: "master", rows: m.rows, count: m.count, date: m.uploadedAt, label: t("search.src.uploaded", { n: m.count.toLocaleString("ko-KR"), date: m.uploadedAt }) };
   const rows = bundled.kcd?.codes || [];
-  return { source: "bundled", rows, count: rows.length, date: bundled.kcd?.basis_date || "", label: `마스터: 데모 발췌본 ${rows.length}행` };
+  return { source: "bundled", rows, count: rows.length, date: bundled.kcd?.basis_date || "", label: t("search.src.bundledKcd", { n: rows.length }) };
 }
 function fee() {
   const m = cache.fee;
-  if (m) return { source: "master", rows: m.rows, count: m.count, date: m.uploadedAt, label: `마스터: 업로드본 (${m.count.toLocaleString("ko-KR")}행, ${m.uploadedAt})` };
+  if (m) return { source: "master", rows: m.rows, count: m.count, date: m.uploadedAt, label: t("search.src.uploaded", { n: m.count.toLocaleString("ko-KR"), date: m.uploadedAt }) };
   const rows = (bundled.jabo?.items || []).map(it => ({ ...it, coverage: "", jabo: true }));
-  return { source: "bundled", rows, count: rows.length, date: bundled.jabo?.basis_date || "", label: `마스터: 데모 예시표 ${rows.length}행` };
+  return { source: "bundled", rows, count: rows.length, date: bundled.jabo?.basis_date || "", label: t("search.src.bundledFee", { n: rows.length }) };
 }
 // EDI-keyed lookup map for the current KCD source (rebuilt lazily per source change).
 let kcdIdx = null, kcdIdxSrc = null;

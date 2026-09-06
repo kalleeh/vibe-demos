@@ -1,16 +1,33 @@
 /* clinic-admin — app chrome — rail/drawer, tab restore, 전체 파기, welcome/info/install modals, seed-all, ⌘K palette, topbar due chip, data boot
    Security pass: the lock screen (js/security/lockscreen.js) is initialised here and boot() waits for the
-   first unlock before loading data / initialising tabs, so tabs never see a locked Store at init. */
+   first unlock before loading data / initialising tabs, so tabs never see a locked Store at init.
+   i18n: the KO|EN toggles (lock card, topbar, drawer, palette) all route through setLang(); the shell's
+   onLangChange listener is registered at import time — before any tab's — so it runs first: it re-paints the
+   crumb, palette and topbar chips, then emits `lang:changed` on the EventBus for anything else. Tabs subscribe
+   with their own onLangChange and re-render from the state they already hold (nothing is lost on toggle). */
 import { $, $$, esc, redactSubject, redactStaff, Toast, Dialog, Lightbox } from "./core/ui.js";
+import { t, getLang, setLang, onLangChange, isEn } from "./core/i18n.js";
 import { Store, EventBus, ActivityLog, SyncStatus } from "./core/store.js";
-import { TABS, TAB_BY_ID, activateTab } from "./core/nav.js";
+import { TABS, TAB_BY_ID, activateTab, refreshCrumb, activeTabId } from "./core/nav.js";
 import { loadJSON } from "./core/files.js";
 import { statutoryDeadlines } from "./core/calendar.js";
 import { Session } from "./security/session.js";
 import { destroyAll } from "./security/lifecycle.js";
-import { initSecurityUI, Lock, UsersPanel, PrivacyPanel } from "./security/lockscreen.js";
-import { ACCRED_ITEMS } from "./tabs/tab9-accred.js";
+import { initSecurityUI, Lock, UsersPanel, PrivacyPanel, isDestroyWord } from "./security/lockscreen.js";
+import { ACCRED_ITEMS, accredText } from "./tabs/tab9-accred.js";
 import { hasDuty } from "./tabs/tab8-license.js";
+
+/* Language toggle — one delegated handler for every .lang-toggle (lock card, topbar, drawer). The lock card
+   sits outside the inert shell, so it stays clickable while locked. */
+document.addEventListener("click", (e) => {
+  const b = e.target.closest?.(".lang-toggle button[data-lang]");
+  if (b) setLang(b.dataset.lang);
+});
+onLangChange(() => {
+  const id = activeTabId(); if (id) refreshCrumb(id);
+  SyncStatus.refresh();
+  EventBus.emitLocal("lang:changed", getLang());
+});
 
 /* Lock screen first — it covers the shell until a PIN unlocks the workspace (or one is created). */
 const sessionReady = initSecurityUI();
@@ -27,9 +44,9 @@ $$(".rail-btn[data-panel]").forEach(btn => {
 }
 /* 전체 파기 — data, attachments, users AND the wrapped keys. Typed confirmation, no undo. */
 $("#wipe-all")?.addEventListener("click", async () => {
-  const typed = prompt("이 브라우저의 모든 입력·기록·첨부 사진과 사용자·암호화 키를 파기합니다 — 되돌릴 수 없고, 암호화 백업 없이는 복구도 불가능합니다.\n\n계속하려면 「파기」라고 입력하세요.");
+  const typed = prompt(t("shell.wipePrompt"));
   if (typed == null) return;
-  if (typed.trim() !== "파기") { Toast.show({ tag: "system", html: "「파기」를 정확히 입력해야 합니다." }); return; }
+  if (!isDestroyWord(typed)) { Toast.show({ tag: "system", html: esc(t("shell.wipeTypeWord")) }); return; }
   await destroyAll();
   location.reload();
 });
@@ -129,7 +146,7 @@ const Install = (() => {
     $("#rail-install").style.display = "none";
     closeNudge();
     close();
-    Toast.show({ tag: "system", html: "<strong>설치 완료.</strong> 이제 홈 화면 아이콘에서 한 번에 열 수 있습니다." });
+    Toast.show({ tag: "system", html: t("shell.installedToast") });
   });
 
   function open(initialTab) {
@@ -197,7 +214,7 @@ const Install = (() => {
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === "accepted") {
-      ActivityLog.push("system", "앱 설치 완료", {});
+      ActivityLog.push("system", t("shell.logInstalled"), {});
     }
     deferredPrompt = null;
     $("#install-native-row").style.display = "none";
@@ -257,7 +274,7 @@ function seedAll() {
   } catch {}
   // Land on dashboard so the user sees the result
   activateTab("tab-today");
-  Toast.show({ tag: "system", html: "<strong>모든 탭에 샘플 데이터가 채워졌습니다.</strong> 좌측 메뉴에서 둘러보세요." });
+  Toast.show({ tag: "system", html: t("shell.seededToast") });
 }
 $("#welcome-seed")?.addEventListener("click", () => {
   seedAll();
@@ -275,46 +292,49 @@ const Palette = (() => {
   const results = $("#palette-results");
   let items = [];
   let sel = 0;
+  const KINDS = ["go", "cmd", "kcd", "jabo", "license", "accred"];
+  const kindLabel = (k) => t("shell.pal.kind." + k);
   function buildItems(query) {
     const q = (query || "").trim().toLowerCase();
     const out = [];
     // Tabs
-    for (const t of TABS) {
-      if (!q || t.label.toLowerCase().includes(q) || t.section.toLowerCase().includes(q) || t.num.includes(q)) {
-        out.push({ kind: "이동", glyph: t.glyph, label: t.label, meta: `${t.section} · ${t.num}`, run: () => activateTab(t.id) });
+    for (const tb of TABS) {
+      if (!q || tb.label.toLowerCase().includes(q) || tb.section.toLowerCase().includes(q) || tb.num.includes(q)) {
+        out.push({ kind: "go", glyph: tb.glyph, label: tb.label, meta: `${tb.section} · ${tb.num}`, run: () => activateTab(tb.id) });
       }
     }
     // Demo commands
     const cmds = [
-      { label: "샘플 데이터로 둘러보기", meta: "모든 탭을 한 번에 채우기", run: seedAll, glyph: "▶" },
-      { label: "둘러보기 안내 다시 보기", meta: "환영 화면 열기", run: openWelcome, glyph: "?" },
-      { label: ".ics 캘린더 내려받기", meta: "오늘 탭의 마감을 캘린더로", run: () => { activateTab("tab-today"); setTimeout(() => $("#dday-ics")?.click(), 300); }, glyph: "↓" },
-      { label: "지금 잠금", meta: "PIN을 다시 입력해야 열립니다", run: () => Lock.lock("manual"), glyph: "🔒" },
-      { label: "사용자 · PIN", meta: "사용자 추가, PIN 변경, 자동 잠금", run: () => UsersPanel.open(), glyph: "👤" },
-      { label: "데이터 처리 현황", meta: "보존·파기·암호화 백업", run: () => PrivacyPanel.open("status"), glyph: "▤" },
-      { label: "전체 파기", meta: "데이터·첨부·사용자·키 삭제 (「파기」 입력)", run: () => $("#wipe-all")?.click(), glyph: "⌫" }
+      { label: t("shell.pal.seed"), meta: t("shell.pal.seedMeta"), run: seedAll, glyph: "▶" },
+      { label: t("shell.pal.tour"), meta: t("shell.pal.tourMeta"), run: openWelcome, glyph: "?" },
+      { label: t("shell.pal.ics"), meta: t("shell.pal.icsMeta"), run: () => { activateTab("tab-today"); setTimeout(() => $("#dday-ics")?.click(), 300); }, glyph: "↓" },
+      { label: t("shell.pal.lang"), meta: t("shell.pal.langMeta"), run: () => setLang(isEn() ? "ko" : "en"), glyph: "文" },
+      { label: t("shell.pal.lock"), meta: t("shell.pal.lockMeta"), run: () => Lock.lock("manual"), glyph: "🔒" },
+      { label: t("shell.pal.users"), meta: t("shell.pal.usersMeta"), run: () => UsersPanel.open(), glyph: "👤" },
+      { label: t("shell.pal.privacy"), meta: t("shell.pal.privacyMeta"), run: () => PrivacyPanel.open("status"), glyph: "▤" },
+      { label: t("shell.pal.wipe"), meta: t("shell.pal.wipeMeta"), run: () => $("#wipe-all")?.click(), glyph: "⌫" }
     ];
     for (const c of cmds) {
       if (!q || c.label.toLowerCase().includes(q) || (c.meta || "").toLowerCase().includes(q)) {
-        out.push({ kind: "명령", ...c });
+        out.push({ kind: "cmd", ...c });
       }
     }
-    // KCD codes (search ko/code) — only when query present. data/kcd9.json holds `mappings`
-    // ({ kcd8, kcd9, name, … }), not `codes` — the old check silently matched nothing.
-    if (q && q.length >= 2 && Array.isArray(DATA.kcd?.mappings)) {
-      const matches = DATA.kcd.mappings.filter(c =>
-        c.kcd9?.toLowerCase().includes(q) || c.kcd8?.toLowerCase().includes(q) || c.name?.toLowerCase().includes(q)
+    // KCD codes (search ko/en/code) — only when query present. data/kcd9.json holds `codes`.
+    if (q && q.length >= 2 && Array.isArray(DATA.kcd?.codes)) {
+      const matches = DATA.kcd.codes.filter(c =>
+        c.code?.toLowerCase().includes(q) || c.edi?.toLowerCase().includes(q) || c.name?.toLowerCase().includes(q) || c.name_en?.toLowerCase().includes(q)
       ).slice(0, 6);
       for (const c of matches) {
-        out.push({ kind: "KCD", glyph: "K", label: c.name, meta: c.kcd9 + (c.kcd8 && c.kcd8 !== c.kcd9 ? ` (← ${c.kcd8})` : ""), run: () => { activateTab("tab-search"); setTimeout(() => EventBus.emit("search:query", c.kcd9), 200); } });
+        const name = isEn() && c.name_en ? `${c.name_en} (${c.name})` : c.name;
+        out.push({ kind: "kcd", glyph: "K", label: name, meta: c.code + (c.edi && c.edi !== c.code ? ` · EDI ${c.edi}` : ""), run: () => { activateTab("tab-search"); setTimeout(() => EventBus.emit("search:query", c.code), 200); } });
       }
     }
     // Saved 자보 cases — file reconciliations by 명세서 count, manual cases pseudonymised (****1234); never a name
     const jhist = Store.get("jabo.history", []) || [];
     for (const j of jhist.slice(0, 8)) {
-      const cap = j.kind === "recon" ? `심사결과 대조 · 명세서 ${j.stmts || 0}건` : `${redactSubject({ name: j.name, pid: j.pid })} · ${j.insurer || "—"}`;
+      const cap = j.kind === "recon" ? t("shell.pal.reconCap", { n: j.stmts || 0 }) : `${redactSubject({ name: j.name, pid: j.pid })} · ${j.insurer || "—"}`;
       if (!q || cap.toLowerCase().includes(q)) {
-        out.push({ kind: "자보", glyph: "J", label: cap, meta: `${j.date || ""} · ${j.itemCount || 0}건`, run: () => activateTab("tab-jabo") });
+        out.push({ kind: "jabo", glyph: "J", label: cap, meta: t("shell.pal.jaboMeta", { date: j.date || "", n: j.itemCount || 0 }), run: () => activateTab("tab-jabo") });
       }
     }
     // Licenses — pseudonymised (한의사 윤○○); 원무·기타 carry no 신고 duty, so no deadline.
@@ -322,15 +342,16 @@ const Palette = (() => {
     for (const l of lics) {
       const cap = redactStaff(l);
       if (!q || cap.toLowerCase().includes(q)) {
-        out.push({ kind: "면허", glyph: "L", label: cap, meta: hasDuty(l.role) ? `신고기한 ${l.expiry || "—"}` : "면허신고 해당 없음", run: () => activateTab("tab-license") });
+        out.push({ kind: "license", glyph: "L", label: cap, meta: hasDuty(l.role) ? t("license.dueMeta", { d: l.expiry || "—" }) : t("license.noDuty"), run: () => activateTab("tab-license") });
       }
     }
     // Accreditation items
     if (q && q.length >= 2) {
       for (const cat of ACCRED_ITEMS) {
         for (const it of cat.items) {
-          if (it.label.toLowerCase().includes(q)) {
-            out.push({ kind: "인증", glyph: "C", label: it.label, meta: cat.title, run: () => activateTab("tab-accred") });
+          const label = accredText(it, "label");
+          if (label.toLowerCase().includes(q) || it.label.toLowerCase().includes(q)) {
+            out.push({ kind: "accred", glyph: "C", label, meta: accredText(cat, "title"), run: () => activateTab("tab-accred") });
           }
         }
       }
@@ -339,7 +360,7 @@ const Palette = (() => {
   }
   function render() {
     if (!items.length) {
-      results.innerHTML = `<div class="palette-empty">검색 결과가 없습니다.</div>`;
+      results.innerHTML = `<div class="palette-empty">${esc(t("shell.pal.empty"))}</div>`;
       input.removeAttribute("aria-activedescendant");
       return;
     }
@@ -347,15 +368,14 @@ const Palette = (() => {
     const groups = {};
     items.forEach((it, i) => { (groups[it.kind] = groups[it.kind] || []).push({ it, i }); });
     let html = "";
-    const order = ["이동", "명령", "KCD", "자보", "면허", "인증"];
-    for (const k of order) {
+    for (const k of KINDS) {
       if (!groups[k]) continue;
-      html += `<div class="palette-section-label">${k}</div>`;
+      html += `<div class="palette-section-label">${esc(kindLabel(k))}</div>`;
       for (const { it, i } of groups[k]) {
         html += `<div class="palette-item ${i === sel ? "sel" : ""}" data-i="${i}" id="palette-opt-${i}" role="option" aria-selected="${i === sel}">
           <span class="glyph">${it.glyph || "·"}</span>
           <span class="label">${esc(it.label)}${it.meta ? `<span class="meta">${esc(it.meta)}</span>` : ""}</span>
-          <span class="kind">${it.kind}</span>
+          <span class="kind">${esc(kindLabel(it.kind))}</span>
         </div>`;
       }
     }
@@ -400,6 +420,7 @@ const Palette = (() => {
     }
   });
   $("#topbar-cmdk")?.addEventListener("click", open);
+  onLangChange(() => { if (Dialog.isOpen(scrim)) refresh(input.value); });
   return { open, close, refresh };
 })();
 
@@ -407,15 +428,15 @@ const Palette = (() => {
 (function topbarLive() {
   function refreshDue() {
     const days = (iso) => {
-      const t = new Date(iso + "T09:00:00").getTime();
-      return Math.ceil((t - Date.now()) / 86400000);
+      const t0 = new Date(iso + "T09:00:00").getTime();
+      return Math.ceil((t0 - Date.now()) / 86400000);
     };
     // Same calendar as 00 오늘 (core/calendar.js) — never a second copy of the statutory dates.
     const fixed = statutoryDeadlines().map(d => ({ title: d.title, date: d.date }));
     const lics = Store.get("license.list", []) || [];
     for (const l of lics) {
-      if (l.expiry && hasDuty(l.role)) fixed.push({ title: `${redactStaff(l)} 면허신고 기한`, date: l.expiry });
-      if (l.cme) fixed.push({ title: `${redactStaff(l)} 보수교육 마감`, date: l.cme });
+      if (l.expiry && hasDuty(l.role)) fixed.push({ title: t("license.dlReport", { who: redactStaff(l) }), date: l.expiry });
+      if (l.cme) fixed.push({ title: t("license.dlCme", { who: redactStaff(l) }), date: l.cme });
     }
     const upcoming = fixed
       .map(d => ({ ...d, d: days(d.date) }))
@@ -435,6 +456,7 @@ const Palette = (() => {
   }
   EventBus.on("store:license.list", refreshDue);
   EventBus.on("app:ready", refreshDue);
+  onLangChange(refreshDue);
   setInterval(refreshDue, 60000);
 })();
 
@@ -462,28 +484,29 @@ function boot(initTabs, { version = "dev" } = {}) {
     EventBus.emitLocal("app:ready", true);
   }).catch(err => {
     console.error("Data load failed:", err);
-    const msg = $("#sync-msg"); if (msg) msg.textContent = "데이터 로드 실패";
+    const msg = $("#sync-msg"); if (msg) msg.textContent = t("shell.dataLoadFail");
     const led = $("#sync-led"); if (led) { led.classList.remove("idle", "live"); led.classList.add("warn"); }
     Toast.show({
       tag: "system", ttl: 0,
-      html: "<strong>데이터를 불러오지 못했습니다.</strong> 기준 데이터(KCD·자보·비급여·보존)가 없어 도구가 동작하지 않습니다 — 네트워크를 확인해주세요.",
-      action: { label: "다시 시도", fn: () => location.reload() }
+      html: t("shell.dataLoadToast"),
+      action: { label: t("common.retry"), fn: () => location.reload() }
     });
   });
 }
 /* Info modal "버전" line — app version + the service-worker cache actually installed in this browser. */
 async function showVersion(version) {
   const el = $("#info-version"); if (!el) return;
-  let cache = "미설치";
-  try { const keys = await caches.keys(); cache = keys.filter(k => k.startsWith("vibe-clinic-admin-")).sort().pop() || "미설치"; } catch {}
+  let cache = t("shell.notInstalled");
+  try { const keys = await caches.keys(); cache = keys.filter(k => k.startsWith("vibe-clinic-admin-")).sort().pop() || t("shell.notInstalled"); } catch {}
   const ws = Session.workspaceId();
-  el.textContent = `앱 v${version} · SW 캐시 ${cache} · 워크스페이스 ${ws ? ws.slice(0, 8) + "…" : "없음"}`;
+  el.textContent = t("shell.versionLine", { v: version, c: cache, ws: ws ? ws.slice(0, 8) + "…" : t("shell.none") });
 }
 EventBus.on("session:unlocked", () => { const el = $("#info-version"); if (el?.dataset.version) showVersion(el.dataset.version); });
+onLangChange(() => { const el = $("#info-version"); if (el?.dataset.version) showVersion(el.dataset.version); });
 // Vendored SheetJS failed to load (onerror flag set in <head>) — say so once everything has settled.
 window.addEventListener("load", () => {
   if (document.documentElement.dataset.xlsxFailed) {
-    Toast.show({ tag: "system", ttl: 0, html: "<strong>엑셀 라이브러리를 불러오지 못했습니다.</strong> 파일 업로드·XLSX 다운로드가 동작하지 않습니다.", action: { label: "새로 고침", fn: () => location.reload() } });
+    Toast.show({ tag: "system", ttl: 0, html: t("shell.xlsxFailToast"), action: { label: t("common.reload"), fn: () => location.reload() } });
   }
 });
 export { DATA, boot, seedAll, openWelcome, closeWelcome, openInfo, closeInfo, openRail, closeRail, Install, Palette };

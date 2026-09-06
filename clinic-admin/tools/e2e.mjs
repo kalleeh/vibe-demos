@@ -6,6 +6,10 @@
    + live (consent → redaction preview → mocked tool_use) → license add/OCR/.ics → accred toggle →
    데이터 처리 현황 (zero 미등록) → no plaintext names in localStorage/IndexedDB → lock/unlock as 행정 →
    audit log shape → encrypted backup → 전체 파기 → restore → reload persistence.
+   Then an ENGLISH pass on a fresh profile: i18n coverage gate (tools/i18n-extract.mjs → 0 missing keys), toggle EN on
+   the lock screen before setup, every tab's headings/buttons/table headers/labels/pills/caveats free of Hangul (glosses
+   in parentheses and sample values excepted), KO round-trip keeps the result tables, EN export headers + watermark,
+   reload persists EN, `?lang=en` boots a fresh profile in English.
    Zero page errors + zero console errors (blocked-host resource failures excepted) is asserted.
 
    Run:  node clinic-admin/tools/e2e.mjs            (desktop 1280×900)
@@ -16,6 +20,7 @@ import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { join, resolve, dirname, extname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { homedir } from "node:os";
+import { spawnSync } from "node:child_process";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, "..", "..");
@@ -64,6 +69,13 @@ const STAFF = ["윤지훈", "박서영", "이민하", "김도현", "최유진", 
 const BOARD = ["김민서", "이준호", "박서연", "정우진"];                             // 접수 보드 seed
 const ALL_NAMES = [...PATIENTS, ...STAFF, ...BOARD];
 const RRN = "880314-2123458", PHONE = "010-1234-5678", PNAME = "김민지";
+// EN pass: anything Korean left in a heading/button/header/label/pill/caveat must be a parenthesised gloss or one of
+// these sample values (fictional names, sample codes, the demo search terms, the typed 파기 confirmation word).
+const HANGUL = /[ㄱ-ㆎ가-힣]/;
+const SAMPLE_TOKENS = [...ALL_NAMES, "예시-NN", "요통", "추나", "ㅇㅈㅍ", "ㅇㅈ", "ㅇㅌ", "파기"];
+const stripParens = (s) => { let prev; do { prev = s; s = s.replace(/\([^()]*\)/g, ""); } while (s !== prev); return s; };
+const leftoverHangul = (texts) => texts.map(x => { let s = stripParens(String(x || "")); for (const tok of SAMPLE_TOKENS) s = s.split(tok).join(""); s = s.replace(/예시-\d+/g, ""); return s.replace(/\s+/g, " ").trim(); }).filter(s => HANGUL.test(s));
+const EN_SELECTOR = (panel) => ["h1", "h2", "h3", "button", "th", "label", ".pill", ".caveat"].map(s => `#${panel} ${s}`).join(", ");
 const LIVE_NOTE = `환자명: ${PNAME} (${RRN}, ${PHONE}) 3주 전 추돌사고 후 경부·요부 통증. 침·부항·추나 예정.`;
 const TOOL_ANSWER = {
   id: "msg_mock", type: "message", role: "assistant", model: "mock", stop_reason: "tool_use",
@@ -82,6 +94,7 @@ const context = await browser.newContext({
   isMobile: MOBILE, hasTouch: MOBILE, acceptDownloads: true, locale: "ko-KR"
 });
 const page = await context.newPage();
+let shotPage = page; // the page the failure screenshot is taken from (switches to the EN-pass context later)
 
 const BLOCKED = /(^|\.)pb\.gurum\.se$|cdn\.jsdelivr\.net$|fonts\.g(oogleapis|static)\.com$/;
 const pageErrors = [], consoleErrors = [];
@@ -146,6 +159,12 @@ const storeSnapshot = () => page.evaluate(async () => {
 
 try {
   console.log(`clinic-admin e2e — ${MOBILE ? "mobile 390×844" : "desktop 1280×900"}`);
+  /* 0 · i18n coverage gate */
+  at("i18n: every referenced key exists in ko.js and en.js");
+  const cov = spawnSync(process.execPath, [join(here, "i18n-extract.mjs"), "--json"], { encoding: "utf8" });
+  const covJ = (() => { try { return JSON.parse(cov.stdout.trim().split("\n").pop()); } catch { return null; } })();
+  ok(covJ && covJ.missingKo.length === 0 && covJ.missingEn.length === 0, `0 missing keys (referenced ${covJ?.total}, ko ${covJ?.koEntries}, en ${covJ?.enEntries}; missing ko: ${covJ?.missingKo.join(",") || "none"} · en: ${covJ?.missingEn.join(",") || "none"})`);
+
   /* 1 · first run → workspace */
   at("first run: lock screen shows setup, create workspace (원장)");
   await page.goto(BASE, { waitUntil: "domcontentloaded" });
@@ -414,6 +433,118 @@ try {
   ok(!(await $("#welcome-scrim").evaluate(el => el.classList.contains("open"))), "welcome does not reopen (ui.welcomed restored)");
   if (MOBILE) await noOverflow("shell (after reload)");
 
+  /* 10b · ENGLISH pass — fresh profile */
+  at("EN: fresh profile → EN toggle on the lock screen → setup pane is English");
+  const ctx2 = await browser.newContext({ viewport: MOBILE ? { width: 390, height: 844 } : { width: 1280, height: 900 }, isMobile: MOBILE, hasTouch: MOBILE, acceptDownloads: true, locale: "en-GB" });
+  const p2 = await ctx2.newPage();
+  shotPage = p2;
+  p2.on("pageerror", e => pageErrors.push("[EN] " + String(e && e.stack || e)));
+  p2.on("console", m => { if (m.type() !== "error") return; const loc = m.location()?.url || ""; if (BLOCKED.test(safeHost(loc))) return; consoleErrors.push(`[EN] ${m.text()} @ ${loc}`); });
+  await p2.route(/.*/, (route) => { const url = new URL(route.request().url()); if (url.hostname === "ai.pb.gurum.se" || BLOCKED.test(url.hostname)) return route.abort("failed"); return route.continue(); });
+  const $2 = (sel) => p2.locator(sel);
+  const railClick2 = async (id) => { if (MOBILE) { await $2("#hamburger").click(); await p2.waitForTimeout(350); } await $2(id).click(); if (MOBILE) await p2.evaluate(() => document.body.classList.remove("rail-open")); };
+  const goTab2 = async (panel) => { await railClick2(`.rail-btn[data-panel="${panel}"]`); await p2.waitForSelector(`#${panel}.active`); };
+  // Desktop: topbar toggle. Phone: the topbar toggle is hidden, the drawer foot carries it.
+  const setLang2 = async (lang) => {
+    if (MOBILE) { await $2("#hamburger").click(); await p2.waitForTimeout(350); await $2(`.rail-foot .lang-toggle button[data-lang="${lang}"]`).click(); await p2.evaluate(() => document.body.classList.remove("rail-open")); }
+    else await $2(`.topbar .lang-toggle button[data-lang="${lang}"]`).click();
+    await p2.waitForFunction((l) => document.documentElement.lang === l, lang);
+  };
+  const download2 = async (action) => { const [dl] = await Promise.all([p2.waitForEvent("download", { timeout: 15000 }), action()]); const path = await dl.path(); return { name: dl.suggestedFilename(), text: path ? readFileSync(path, "utf8") : "" }; };
+  const panelTexts = (panel) => p2.evaluate((sel) => Array.from(document.querySelectorAll(sel)).map(e => e.textContent), EN_SELECTOR(panel));
+  const noOverflow2 = async (label) => { const r = await p2.evaluate(() => ({ sw: document.documentElement.scrollWidth, iw: window.innerWidth, shell: document.querySelector(".frame.shell")?.scrollWidth || 0, lock: document.querySelector("#lock-scrim")?.scrollWidth || 0 })); ok(r.sw <= r.iw + 1 && r.shell <= r.iw + 1 && r.lock <= r.iw + 1, `[EN] ${label}: no horizontal overflow (doc ${r.sw} / shell ${r.shell} / lock ${r.lock} ≤ ${r.iw})`); };
+
+  await p2.goto(BASE, { waitUntil: "domcontentloaded" });
+  await p2.waitForSelector("#lock-scrim.open");
+  ok((await p2.evaluate(() => document.documentElement.lang)) === "ko", "fresh profile boots in Korean");
+  await $2('#lock-scrim .lang-toggle button[data-lang="en"]').click();
+  await p2.waitForFunction(() => document.documentElement.lang === "en");
+  ok((await $2('#lock-scrim .lang-toggle button[data-lang="en"]').getAttribute("aria-pressed")) === "true" && (await $2('#lock-scrim .lang-toggle button[data-lang="ko"]').getAttribute("aria-pressed")) === "false", "lock-screen toggle aria-pressed reflects EN");
+  const setupTxt = await $2("#lock-setup").innerText();
+  ok(/Create workspace/.test(setupTxt) && leftoverHangul([setupTxt]).length === 0, `setup pane is English (${leftoverHangul([setupTxt]).join(" | ") || "no Hangul"})`);
+  ok((await p2.title()).startsWith("Clinic Admin Toolkit"), `document.title in English (${await p2.title()})`);
+  if (MOBILE) await noOverflow2("lock screen (setup)");
+  await $2("#setup-name").fill("KW"); await $2("#setup-role").selectOption("원장");
+  await $2("#setup-pin").fill("1234"); await $2("#setup-pin2").fill("1234");
+  await $2("#setup-submit").click();
+  await p2.waitForSelector("body:not(.locked)", { timeout: 20000 });
+  await p2.waitForSelector("#welcome-scrim.open", { timeout: 15000 });
+  const welcomeTxt = await $2("#welcome-scrim .welcome").innerText();
+  ok(leftoverHangul([welcomeTxt]).length === 0 && /Tour with sample data/.test(welcomeTxt), `welcome overlay is English (${leftoverHangul([welcomeTxt]).join(" | ") || "no Hangul"})`);
+
+  at("EN: seed → every tab free of Hangul in headings/buttons/headers/labels/pills/caveats");
+  await $2("#welcome-seed").click();
+  await p2.waitForFunction(() => !document.querySelector("#welcome-scrim")?.classList.contains("open"));
+  await p2.waitForFunction(() => document.querySelector("#jabo-recon-toolbar")?.style.display === "flex", null, { timeout: 15000 });
+  await p2.waitForTimeout(900);
+  const crumb2 = await p2.evaluate(() => [document.querySelector("#crumb-section")?.textContent, document.querySelector("#crumb-tab")?.textContent]);
+  ok(crumb2[0] === "Start" && crumb2[1] === "Today", `crumb in English (${crumb2.join(" · ")})`);
+  ok((await $2("#topbar-user-text").innerText()) === "KW · Director", `topbar user chip role in English (${await $2("#topbar-user-text").innerText()})`);
+  const PANELS = ["tab-today", "tab-kcd", "tab-jabo", "tab-yearend", "tab-bigeup", "tab-retention", "tab-search", "tab-ai", "tab-license", "tab-accred"];
+  for (const panel of PANELS) {
+    await goTab2(panel);
+    if (panel === "tab-today" && await $2("#dday-more").count()) await $2("#dday-more").click();
+    const left = leftoverHangul(await panelTexts(panel));
+    ok(left.length === 0, `${panel}: English only (leftovers: ${left.slice(0, 5).join(" | ") || "none"})`);
+    if (MOBILE) await noOverflow2(panel);
+  }
+  ok((await $2("#kcd-result tbody tr").count()) === 10 && (await $2("#kcd-result .pill").first().innerText()).length > 0, "EN: KCD result table rendered (10 rows)");
+  ok(/rows.*reviewed/.test(await $2("#kcd-summary").innerText()), `EN: KCD summary in English (${await $2("#kcd-summary").innerText()})`);
+  ok((await $2("#bg-tbody .pill").first().innerText()) === "Pharmacopuncture", "EN: non-covered category pill translated");
+  ok(/Low back pain/.test(await $2("#search-result").innerText()), "EN: search results show bundled English names");
+  ok(/KM doctor|Nurse/.test(await $2("#lic-list").innerText()) && !/한의사 /.test(await $2("#lic-list .lic-role").first().innerText()), "EN: staff roles in English, names untouched");
+  ok(/Sprain and strain of cervical spine \(경추의 염좌 및 긴장\)/.test(await $2("#ai-output").innerText()), "EN: AI result shows English name with the Korean standard name in parentheses");
+
+  at("EN: KO round-trip keeps the result tables, then back to EN");
+  await goTab2("tab-kcd");
+  const kcdRows = await $2("#kcd-result tbody tr").count();
+  await setLang2("ko");
+  ok((await $2("#kcd-result tbody tr").count()) === kcdRows && /건/.test(await $2("#kcd-summary").innerText()) && (await p2.evaluate(() => document.querySelector("#crumb-tab")?.textContent)) === "상병코드 정비", "toggle → KO: table kept, summary + crumb Korean");
+  ok((await $2("#tab-kcd h3").innerText()).includes("EDI 표준형"), "toggle → KO: static heading restored");
+  await goTab2("tab-jabo");
+  ok((await $2("#jabo-recon-result tbody tr").count()) >= 18 && /명세서/.test(await $2("#jabo-recon-summary").innerText()), "toggle → KO: reconciliation table kept");
+  await setLang2("en");
+  ok((await $2("#jabo-recon-result tbody tr").count()) >= 18 && /statements/.test(await $2("#jabo-recon-summary").innerText()), "toggle → EN again: reconciliation table kept, summary English");
+  ok((await $2(MOBILE ? '.rail-foot .lang-toggle button[data-lang="en"]' : '.topbar .lang-toggle button[data-lang="en"]').getAttribute("aria-pressed")) === "true", "toggle aria-pressed = EN");
+
+  at("EN: exports carry English headers + watermark; palette offers the language switch");
+  await goTab2("tab-kcd");
+  const kcdEn = await download2(() => $2("#kcd-download").click());
+  ok(/^diagnosis_codes_.*_PoC\.xlsx$/.test(kcdEn.name), `EN xlsx filename (${kcdEn.name})`);
+  await goTab2("tab-yearend");
+  const yeEn = await download2(() => $2("#ye-download").click());
+  const [yeHead, yeMark] = yeEn.text.split("\n");
+  ok(/Patient name/.test(yeHead) && /RRN \(masked\)/.test(yeHead) && !HANGUL.test(yeHead), `EN CSV headers (${yeHead.slice(0, 80)}…)`);
+  ok(/PoC — not for real submission/.test(yeMark), "EN CSV watermark row in English");
+  await p2.keyboard.press(process.platform === "darwin" ? "Meta+K" : "Control+K");
+  await p2.waitForSelector("#palette-scrim.open");
+  ok(/Switch to Korean/.test(await $2("#palette-results").innerText()), "palette lists the language command");
+  await p2.keyboard.press("Escape");
+
+  at("EN: reload persists the choice (lock screen in English)");
+  await p2.reload({ waitUntil: "domcontentloaded" });
+  await p2.waitForSelector("#lock-scrim.open");
+  ok((await p2.evaluate(() => document.documentElement.lang)) === "en", "<html lang> = en after reload");
+  const unlockTxt = await $2("#lock-unlock").innerText();
+  ok(/Unlock/.test(unlockTxt) && /Director/.test(unlockTxt) && leftoverHangul([unlockTxt]).length === 0, `unlock pane in English (${leftoverHangul([unlockTxt]).join(" | ") || "no Hangul"})`);
+  ok((await p2.evaluate(() => localStorage.getItem("vibe.clinic-admin.ui.lang"))) === "en", "persisted under vibe.clinic-admin.ui.lang (plain, works while locked)");
+  if (MOBILE) await noOverflow2("lock screen (unlock)");
+  await ctx2.close();
+
+  at("EN: ?lang=en boots a fresh profile in English");
+  const ctx3 = await browser.newContext({ viewport: MOBILE ? { width: 390, height: 844 } : { width: 1280, height: 900 }, isMobile: MOBILE, hasTouch: MOBILE, locale: "ko-KR" });
+  const p3 = await ctx3.newPage();
+  shotPage = p3;
+  p3.on("pageerror", e => pageErrors.push("[EN?lang] " + String(e && e.stack || e)));
+  await p3.route(/.*/, (route) => { const url = new URL(route.request().url()); if (url.hostname === "ai.pb.gurum.se" || BLOCKED.test(url.hostname)) return route.abort("failed"); return route.continue(); });
+  await p3.goto(BASE + "?lang=en", { waitUntil: "domcontentloaded" });
+  await p3.waitForSelector("#lock-scrim.open");
+  ok((await p3.evaluate(() => document.documentElement.lang)) === "en", "?lang=en → <html lang> = en");
+  const setup3 = await p3.locator("#lock-setup").innerText();
+  ok(/Create workspace/.test(setup3) && leftoverHangul([setup3]).length === 0, "?lang=en → setup pane English on a fresh profile");
+  ok((await p3.evaluate(() => localStorage.getItem("vibe.clinic-admin.ui.lang"))) === "en", "?lang=en persisted");
+  await ctx3.close();
+
   /* 11 · errors */
   at("zero page errors / console errors");
   ok(pageErrors.length === 0, `page errors: ${pageErrors.length}${pageErrors.length ? "\n" + pageErrors.join("\n") : ""}`);
@@ -424,7 +555,7 @@ try {
   console.error("\nFAIL:", err.message);
   if (pageErrors.length) console.error("page errors:\n" + pageErrors.join("\n"));
   if (consoleErrors.length) console.error("console errors:\n" + consoleErrors.join("\n"));
-  try { await page.screenshot({ path: `/tmp/clinic-admin-e2e-fail-${MOBILE ? "mobile" : "desktop"}.png`, fullPage: true }); console.error("screenshot: /tmp/clinic-admin-e2e-fail-*.png"); } catch {}
+  try { await shotPage.screenshot({ path: `/tmp/clinic-admin-e2e-fail-${MOBILE ? "mobile" : "desktop"}.png`, fullPage: false }); console.error("screenshot: /tmp/clinic-admin-e2e-fail-*.png"); } catch {}
   process.exitCode = 1;
 } finally {
   await browser.close();

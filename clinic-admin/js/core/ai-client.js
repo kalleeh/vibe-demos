@@ -2,6 +2,7 @@
    validation, canned rule engine, source-mode state. NOT the tab UI (that is tabs/tab7-ai.js). */
 import { Store } from "./store.js";
 import { Masters } from "./masters.js";
+import { t } from "./i18n.js";
 
 const CLAUDE_PROXY = "https://ai.pb.gurum.se";
 async function solveProxyPoW(signal) {
@@ -133,10 +134,10 @@ async function requestRecommendation({ system, note, signal }) {
   });
   if (!res.ok) { const e = new Error("proxy " + res.status); e.status = res.status; throw e; }
   const data = await res.json();
-  if (data.stop_reason === "max_tokens") { const e = new Error("truncated"); e.code = "응답 잘림"; throw e; }
+  if (data.stop_reason === "max_tokens") { const e = new Error("truncated"); e.code = t("ai.errTruncated"); throw e; }
   const tu = (data.content || []).find(b => b.type === "tool_use" && b.name === RECOMMEND_TOOL.name);
   const rec = validateRec(tu?.input);
-  if (!rec) { const e = new Error("unparseable"); e.code = "응답 형식"; throw e; }
+  if (!rec) { const e = new Error("unparseable"); e.code = t("ai.errShape"); throw e; }
   return rec;
 }
 export { CLAUDE_PROXY, solveProxyPoW, RECOMMEND_TOOL, getAiSource, setAiSource, cannedFor, normItem, validateRec, requestRecommendation };

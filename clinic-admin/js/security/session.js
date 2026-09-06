@@ -12,6 +12,7 @@
    Wrong-PIN backoff: 1 s → 2 s → 4 s → 8 s, the 5th failure locks the user for 60 s. Persisted so
    a reload does not reset it. */
 import { generateMasterKey, wrapMaster, unwrapMaster, randomBytes, b64 } from "./crypto.js";
+import { t } from "../core/i18n.js"; // leaf module — keeps session.js below store.js in the DAG
 
 const META_KEY = "vibe.clinic-admin.__ws";
 const ROLES = ["원장", "행정", "원무"];
@@ -32,9 +33,9 @@ const hex = (n) => Array.from(randomBytes(n)).map(b => b.toString(16).padStart(2
 const publicUser = (u) => ({ id: u.id, name: u.name, role: u.role, created: u.created, aiConsent: u.aiConsent || null, lockedUntil: u.lockedUntil || 0, fails: u.fails || 0 });
 
 function assertUnlocked() { if (!masterKey || !currentUser) throw Object.assign(new Error("locked"), { code: "locked" }); }
-function assertPin(pin) { if (!PIN_RE.test(String(pin))) throw Object.assign(new Error("PIN은 4~8자리 숫자여야 합니다"), { code: "pin-format" }); }
-function assertName(name) { if (!name || String(name).trim().length < 1 || String(name).length > 20) throw Object.assign(new Error("이름(또는 이니셜)을 1~20자로 입력하세요"), { code: "name-format" }); }
-function assertRole(role) { if (!ROLES.includes(role)) throw Object.assign(new Error("역할을 선택하세요"), { code: "role" }); }
+function assertPin(pin) { if (!PIN_RE.test(String(pin))) throw Object.assign(new Error(t("lock.errPinFormat")), { code: "pin-format" }); }
+function assertName(name) { if (!name || String(name).trim().length < 1 || String(name).length > 20) throw Object.assign(new Error(t("lock.errName")), { code: "name-format" }); }
+function assertRole(role) { if (!ROLES.includes(role)) throw Object.assign(new Error(t("lock.errRole")), { code: "role" }); }
 
 async function makeUser({ name, role, pin }, key) {
   assertName(name); assertRole(role); assertPin(pin);
@@ -99,7 +100,7 @@ const Session = {
   async addUser({ name, role, pin }) {
     assertUnlocked();
     const meta = readMeta();
-    if (meta.users.length >= 12) throw new Error("사용자는 최대 12명까지입니다");
+    if (meta.users.length >= 12) throw new Error(t("users.errMax"));
     const user = await makeUser({ name, role, pin }, masterKey);
     meta.users.push(user); writeMeta(meta); notify("users");
     return publicUser(user);
@@ -108,9 +109,9 @@ const Session = {
   removeUser(userId) {
     assertUnlocked();
     const meta = readMeta();
-    if (meta.users.length <= 1) throw new Error("마지막 사용자는 삭제할 수 없습니다");
-    if (userId === currentUser.id) throw new Error("현재 로그인한 사용자는 삭제할 수 없습니다");
-    if (!this.isOwner()) throw new Error("원장 권한이 필요합니다");
+    if (meta.users.length <= 1) throw new Error(t("users.errLast"));
+    if (userId === currentUser.id) throw new Error(t("users.errSelf"));
+    if (!this.isOwner()) throw new Error(t("common.ownerRequired"));
     meta.users = meta.users.filter(u => u.id !== userId); writeMeta(meta); notify("users");
   },
 
@@ -118,7 +119,7 @@ const Session = {
     assertUnlocked(); assertPin(newPin);
     const meta = readMeta();
     const u = meta.users.find(x => x.id === currentUser.id);
-    try { await unwrapMaster(u, oldPin); } catch { throw Object.assign(new Error("현재 PIN이 틀렸습니다"), { code: "wrong-pin" }); }
+    try { await unwrapMaster(u, oldPin); } catch { throw Object.assign(new Error(t("users.errOldPin")), { code: "wrong-pin" }); }
     Object.assign(u, await wrapMaster(masterKey, newPin));
     writeMeta(meta); notify("users");
   },
@@ -126,7 +127,7 @@ const Session = {
   /* 원장 re-wraps the (already unlocked) master key under a new PIN for another user. */
   async resetPin(userId, newPin) {
     assertUnlocked(); assertPin(newPin);
-    if (!this.isOwner()) throw new Error("원장 권한이 필요합니다");
+    if (!this.isOwner()) throw new Error(t("common.ownerRequired"));
     const meta = readMeta();
     const u = meta.users.find(x => x.id === userId);
     if (!u) throw new Error("no-user");

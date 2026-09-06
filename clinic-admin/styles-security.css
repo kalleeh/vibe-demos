@@ -3,7 +3,9 @@
 
 /* ── PoC banner ── */
 .poc-banner {
-  position: relative; z-index: 3;
+  /* z 2 = same layer as .frame (which follows in DOM order): above the grain overlay, but the phone drawer + its
+     scrim — fixed children of .frame's stacking context — paint OVER the banner instead of under it. */
+  position: relative; z-index: 2;
   display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
   padding: 7px 14px;
   background: var(--ink); color: var(--paper);
@@ -145,7 +147,26 @@ mark.redact { background: rgba(176,74,47,0.14); color: var(--accent); border-bot
 }
 
 /* ── Print watermark: every printout carries the PoC mark ── */
+/* ── KO | EN language toggle — lock card (top-right), topbar (desktop), drawer foot (phone) ── */
+.lang-toggle { display: inline-flex; align-items: stretch; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: rgba(255,255,255,0.45); flex: 0 0 auto; }
+.lang-toggle button {
+  font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.8px; line-height: 1;
+  padding: 6px 9px; min-width: 34px; background: transparent; border: none; border-right: 1px solid var(--line);
+  color: var(--muted); cursor: pointer; transition: background .2s, color .2s;
+}
+.lang-toggle button:last-child { border-right: none; }
+.lang-toggle button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.lang-toggle button:hover:not([aria-pressed="true"]) { color: var(--ink); background: rgba(255,255,255,0.7); }
+.lock-card .lock-lang { position: absolute; top: 16px; right: 16px; }
+.rail-foot .rail-lang { display: none; align-self: flex-start; margin: 0 12px 8px; }
+@media (max-width: 880px) {
+  .topbar .topbar-lang { display: none; }
+  .rail-foot .rail-lang { display: inline-flex; }
+  .lock-card .lock-lang { top: 12px; right: 12px; }
+}
+
 @media print {
+  html[lang="en"] body::after { content: "PoC — not for real submission · demo data"; }
   body::after {
     content: "PoC — 실제 제출 불가 · 데모 데이터";
     position: fixed; left: 0; right: 0; bottom: 0;

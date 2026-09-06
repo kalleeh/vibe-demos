@@ -1,14 +1,19 @@
 /* clinic-admin — spreadsheet read (SheetJS, vendored global XLSX), XLSX/CSV download, JSON fetch
 
    PoC WATERMARK (security pass): every file this app produces must carry
-     "PoC — 실제 제출 불가 · 데모 데이터"
+     "PoC — 실제 제출 불가 · 데모 데이터"   (English UI: "PoC — not for real submission · demo data")
    downloadXLSX / downloadCSV apply pocWatermark() themselves, so existing callers are covered.
    Anything that builds its own Blob (e.g. an .ics) should call
      const { rows, filename } = pocWatermark(rows, filename)   // rows may be [] / null
-   or at least use POC_MARK + pocFilename(). The @media print footer lives in styles-security.css. */
-import { Toast } from "./ui.js";
+   or at least use pocMark() + pocFilename(). The @media print footer lives in styles-security.css.
+   POC_MARK (the Korean constant) stays exported for file-format fields that must not vary by UI language
+   (the encrypted backup's `poc` field); every user-facing surface uses pocMark(). */
+import { Toast, esc } from "./ui.js";
+import { t } from "./i18n.js";
 
 const POC_MARK = "PoC — 실제 제출 불가 · 데모 데이터";
+const pocMark = () => t("common.pocMark");
+const isPocMark = (v) => v === POC_MARK || v === pocMark();
 
 // "자보정산_0142_2026-09-06.xlsx" → "자보정산_0142_2026-09-06_PoC.xlsx"
 function pocFilename(filename) {
@@ -20,9 +25,9 @@ function pocFilename(filename) {
 // Prefix a watermark row (first column carries the text, other columns empty) + suffix the filename.
 function pocWatermark(rows, filename) {
   const list = Array.isArray(rows) ? rows : [];
-  const headers = list.length ? Object.keys(list[0]) : ["비고"];
-  if (list.length && list[0][headers[0]] === POC_MARK) return { rows: list, filename: pocFilename(filename) };
-  const mark = Object.fromEntries(headers.map((h, i) => [h, i === 0 ? POC_MARK : ""]));
+  const headers = list.length ? Object.keys(list[0]) : [t("common.thNote")];
+  if (list.length && isPocMark(list[0][headers[0]])) return { rows: list, filename: pocFilename(filename) };
+  const mark = Object.fromEntries(headers.map((h, i) => [h, i === 0 ? pocMark() : ""]));
   return { rows: [mark, ...list], filename: pocFilename(filename) };
 }
 
@@ -38,7 +43,7 @@ function readSpreadsheet(file) {
     reader.onload = (e) => {
       try {
         if (typeof XLSX === "undefined") {
-          Toast.show({ tag: "system", html: "엑셀 라이브러리를 불러오지 못했습니다 — 페이지를 새로 고쳐주세요." });
+          Toast.show({ tag: "system", html: esc(t("common.xlsxMissing")) });
           throw new Error("xlsx-missing");
         }
         const data = new Uint8Array(e.target.result);
@@ -100,4 +105,11 @@ function downloadCSV(rows, filename) {
 function downloadText(text, filename, type = "application/json") {
   downloadBlob(new Blob([text], { type }), pocFilename(filename));
 }
-export { POC_MARK, pocFilename, pocWatermark, loadJSON, readSpreadsheet, downloadXLSX, downloadCSV, downloadText };
+// Build an export row from a header-key map: keys(kFn) → { [t(headerKey)]: value }. Lets every tab keep
+// neutral internal field names while the sheet headers follow the UI language.
+function headerRow(pairs) {
+  const out = {};
+  for (const [headerKey, value] of pairs) out[t(headerKey)] = value;
+  return out;
+}
+export { POC_MARK, pocMark, pocFilename, pocWatermark, loadJSON, readSpreadsheet, downloadXLSX, downloadCSV, downloadText, headerRow };

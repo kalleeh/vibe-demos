@@ -1,10 +1,13 @@
 /* clinic-admin — Toast (+withUndo), Dialog focus management, Lightbox, Haptic, Camera, Voice, Share, drop-zone + camera-button wiring
    Extracted verbatim from the former single-file index.html; behaviour unchanged. */
 import { $, $$, esc } from "./dom.js";
+import { t, tOr } from "./i18n.js";
 import { EventBus } from "./store.js";
 import { TAB_BY_ID, activateTab } from "./nav.js";
 
 export * from "./dom.js";
+// Activity tag → short pill label (KCD · 자보 · … / KCD · Auto-ins · …).
+const tagLabel = (tag) => tOr("common.tag." + tag, tag || "·");
 
 /* drop-zone wiring */
 function bindDrop(zoneId, onFile) {
@@ -35,23 +38,18 @@ function bindDrop(zoneId, onFile) {
    ───────────────────────────────────────────────────────── */
 const Toast = (() => {
   const tray = $("#toast-tray");
-  const TAG_LABEL = {
-    kcd: "KCD", jabo: "자보", yearend: "연말", bigeup: "비급여",
-    retention: "보존", search: "검색", ai: "AI",
-    license: "면허", accred: "인증", system: "시스템"
-  };
   function show({ tag, html, link, ttl = 4500, action }) {
     if (!tray) return;
     const el = document.createElement("div");
     el.className = "toast";
-    const goBtn = link ? `<button class="go" data-link="${link}">보기 →</button>`
+    const goBtn = link ? `<button class="go" data-link="${link}">${esc(t("common.view"))} →</button>`
                 : action ? `<button class="go">${esc(action.label)}</button>` : "";
-    el.innerHTML = `<span class="tag">${TAG_LABEL[tag] || tag || "·"}</span><span class="text">${html}</span>${goBtn}`;
+    el.innerHTML = `<span class="tag">${esc(tagLabel(tag))}</span><span class="text">${html}</span>${goBtn}`;
     tray.appendChild(el);
     const remove = () => { el.style.transition = "opacity .25s, transform .25s"; el.style.opacity = "0"; el.style.transform = "translateY(8px)"; setTimeout(() => el.remove(), 250); };
-    const t = ttl > 0 ? setTimeout(remove, ttl) : null; // ttl 0 → stays until acted on
-    if (link) el.querySelector(".go").addEventListener("click", () => { clearTimeout(t); remove(); activateTab(link); });
-    else if (action) el.querySelector(".go").addEventListener("click", () => { clearTimeout(t); remove(); action.fn(); });
+    const timer = ttl > 0 ? setTimeout(remove, ttl) : null; // ttl 0 → stays until acted on
+    if (link) el.querySelector(".go").addEventListener("click", () => { clearTimeout(timer); remove(); activateTab(link); });
+    else if (action) el.querySelector(".go").addEventListener("click", () => { clearTimeout(timer); remove(); action.fn(); });
   }
   // Undo for destructive actions — a 6 s toast whose only button runs
   // restoreFn, which must put the exact record back (same id, same position).
@@ -59,7 +57,7 @@ const Toast = (() => {
   function withUndo(label, restoreFn, tag = "system") {
     show({
       tag, html: esc(label), ttl: 6000,
-      action: { label: "되돌리기", fn: () => { Promise.resolve().then(restoreFn).then(() => Haptic.tap()).catch(e => console.error(e)); } }
+      action: { label: t("common.undo"), fn: () => { Promise.resolve().then(restoreFn).then(() => Haptic.tap()).catch(e => console.error(e)); } }
     });
   }
   // Subscribe to ActivityLog events (skip noisy ones)
@@ -146,7 +144,7 @@ const Voice = (() => {
   function supported() { return !!SR; }
   function toggle(textarea, btn) {
     if (!SR) {
-      alert("이 브라우저는 음성 입력을 지원하지 않습니다 (Chrome/Edge 권장).");
+      alert(t("ai.voiceUnsupported"));
       return;
     }
     if (active) { active.stop(); return; }
@@ -171,26 +169,20 @@ const Voice = (() => {
     };
     r.onerror = (e) => {
       console.warn("Voice err", e.error);
-      const MSG = {
-        "not-allowed":         "마이크 권한이 거부되었습니다 — 브라우저 주소창의 자물쇠/설정에서 마이크를 허용해주세요.",
-        "service-not-allowed": "이 브라우저에서 음성 인식 서비스가 허용되지 않았습니다.",
-        "audio-capture":       "마이크를 찾을 수 없습니다 — 연결 상태를 확인해주세요.",
-        "network":             "음성 인식 서버에 연결할 수 없습니다 — 네트워크를 확인해주세요.",
-        "no-speech":           "음성이 감지되지 않았습니다 — 다시 눌러 말해주세요."
-      };
-      if (e.error !== "aborted") Toast.show({ tag: "ai", html: MSG[e.error] || `음성 입력 오류 — ${esc(e.error || "unknown")}` });
+      const KNOWN = ["not-allowed", "service-not-allowed", "audio-capture", "network", "no-speech"];
+      if (e.error !== "aborted") Toast.show({ tag: "ai", html: KNOWN.includes(e.error) ? esc(t("ai.voiceErr." + e.error)) : esc(t("ai.voiceErrGeneric", { err: e.error || "unknown" })) });
       stop();
     };
     r.onend = () => stop();
     function stop() {
       active = null;
       btn?.classList.remove("recording");
-      btn?.setAttribute("aria-label", "음성 입력 시작");
+      btn?.setAttribute("aria-label", t("ai.micStart"));
       Haptic.tap();
     }
     active = r;
     btn?.classList.add("recording");
-    btn?.setAttribute("aria-label", "음성 입력 중지");
+    btn?.setAttribute("aria-label", t("ai.micStop"));
     Haptic.tap();
     try { r.start(); } catch {}
   }
@@ -218,11 +210,11 @@ const Share = (() => {
     const composed = [title, text, url].filter(Boolean).join("\n");
     try {
       await navigator.clipboard.writeText(composed);
-      Toast.show({ tag: "system", html: "클립보드에 복사되었습니다." });
+      Toast.show({ tag: "system", html: esc(t("common.copied")) });
       Haptic.tap();
       return { ok: true, via: "clipboard" };
     } catch {
-      Toast.show({ tag: "system", html: "공유에 실패했습니다." });
+      Toast.show({ tag: "system", html: esc(t("common.shareFailed")) });
       return { ok: false, via: "none" };
     }
   }
@@ -241,7 +233,7 @@ function bindCameraButton(btn, onCaptured) {
       await onCaptured(dataUrl, f);
     } catch (err) {
       console.error(err);
-      Toast.show({ tag: "system", html: `사진 처리 실패 — ${err.message}` });
+      Toast.show({ tag: "system", html: esc(t("common.photoFailed", { err: err.message })) });
     }
     input.value = "";
   });
@@ -291,4 +283,4 @@ const Dialog = (() => {
   });
   return { open, close, isOpen };
 })();
-export { bindDrop, Toast, Haptic, Camera, Lightbox, Voice, Share, bindCameraButton, Dialog };
+export { bindDrop, Toast, Haptic, Camera, Lightbox, Voice, Share, bindCameraButton, Dialog, tagLabel };

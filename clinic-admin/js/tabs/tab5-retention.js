@@ -1,19 +1,27 @@
 /* clinic-admin — Tab 05 · 의무기록 보존기간 점검 */
 import { $, esc, todayISO, setStatus, bindDrop } from "../core/ui.js";
+import { t, pick, onLangChange } from "../core/i18n.js";
 import { Store, ActivityLog } from "../core/store.js";
-import { readSpreadsheet, downloadXLSX } from "../core/files.js";
+import { readSpreadsheet, downloadXLSX, headerRow } from "../core/files.js";
 
 /* ─────────────────────────────────────────────────────────
    Tab 5 — 의무기록 보존기간 점검 (의료법 시행규칙 §15)
+   i18n: rows keep neutral fields, a verdict kind and [key, vars] note parts, so table, status and XLSX
+   headers re-render from `lastResult` in either language. Record-type VALUES from the ledger stay as typed.
    ───────────────────────────────────────────────────────── */
 export function initTab5(ctx) {
   const { DATA } = ctx;
+  const catName = (c) => pick(c, "name") || c.key;
   // render legal table
-  $("#ret-table").innerHTML = DATA.retention.categories.map(c =>
-    `<tr><td>${esc(c.key)}</td><td class="code">${esc(c.years)}년</td><td class="code" style="color:var(--muted)">의료법 시행규칙 §15①</td></tr>`
-  ).join("");
+  const renderLegal = () => {
+    $("#ret-table").innerHTML = DATA.retention.categories.map(c =>
+      `<tr><td>${esc(catName(c))}</td><td class="code">${esc(t("retention.years", { n: c.years }))}</td><td class="code" style="color:var(--muted)">${esc(t("retention.basisCell"))}</td></tr>`
+    ).join("");
+  };
+  renderLegal();
 
-  let lastRows = null;
+  let lastResult = null, lastStatus = null;
+  const status = (kind, fn) => { lastStatus = { kind, fn }; setStatus($("#ret-status"), kind, fn()); };
   const today = new Date(todayISO());
 
   const normalize = (typeStr) => {
@@ -43,29 +51,20 @@ export function initTab5(ctx) {
       const basisDate = basisCol ? String(row[basisCol]).trim() : "";
       const fallback = basisCol === "작성일자";
       if (fallback) stats.fallback++;
-      const basisNote = fallback ? "작성일자 기준 (진료완료일 없음)" : basisCol || "기준일 없음";
+      // basis: [key] for the two special cases, else the ledger's own column name (file data)
+      const basis = fallback ? ["retention.basisFallback"] : basisCol ? basisCol : ["retention.basisNone"];
       const cat = normalize(rawType);
 
       if (!cat) {
         stats.bad++;
-        out.push({
-          기록ID: id, 기록종류: rawType, 기준일: basisDate, 기준: basisNote,
-          법정보존기간_년: "?", 만료예정일: "—", 잔여일수: "—",
-          점검결과: "분류 오류", 권고조치: "기록종류를 §15 9개 카테고리 중 하나로 정정",
-          _kind: "bad", _fallback: fallback
-        });
+        out.push({ id, type: rawType, cat: null, basisDate, basis, years: "?", expiry: "—", remaining: "—", kind: "bad", notes: [["retention.noteFixType"]], fallback });
         continue;
       }
 
       const dt = new Date(basisDate);
       if (!basisDate || isNaN(dt.getTime())) {
         stats.bad++;
-        out.push({
-          기록ID: id, 기록종류: cat.key, 기준일: basisDate, 기준: basisNote,
-          법정보존기간_년: cat.years, 만료예정일: "—", 잔여일수: "—",
-          점검결과: "분류 오류", 권고조치: "진료완료일(또는 작성일자) 형식 확인 (YYYY-MM-DD)",
-          _kind: "bad", _fallback: fallback
-        });
+        out.push({ id, type: cat.key, cat, basisDate, basis, years: cat.years, expiry: "—", remaining: "—", kind: "bad", notes: [["retention.noteFixDate"]], fallback });
         continue;
       }
 
@@ -73,33 +72,20 @@ export function initTab5(ctx) {
       expiry.setFullYear(expiry.getFullYear() + cat.years);
       const remainingDays = Math.round((expiry - today) / 86400000);
 
-      let verdict, note, kind;
-      if (remainingDays < 0) {
-        verdict = "보존기간 경과 (폐기 검토)"; kind = "over";
-        note = `${-remainingDays}일 경과 — 내부 폐기 절차 검토 (진료 계속 중이면 §15② 연장 검토)`;
-        stats.over++;
-      } else if (remainingDays <= 180) {
-        verdict = "만료 임박"; kind = "soon";
-        note = `${remainingDays}일 후 만료 — 디지털 아카이브 권고`;
-        stats.soon++;
-      } else {
-        verdict = "정상 보존"; kind = "ok";
-        note = "—";
-        stats.ok++;
-      }
-      if (fallback) note = (note === "—" ? "" : note + " · ") + "진료완료일 확인 후 재계산 권고";
+      let kind, notes = [];
+      if (remainingDays < 0) { kind = "over"; notes.push(["retention.noteOver", { n: -remainingDays }]); stats.over++; }
+      else if (remainingDays <= 180) { kind = "soon"; notes.push(["retention.noteSoon", { n: remainingDays }]); stats.soon++; }
+      else { kind = "ok"; stats.ok++; }
+      if (fallback) notes.push(["retention.noteRecalc"]);
 
-      out.push({
-        기록ID: id, 기록종류: cat.key, 기준일: basisDate, 기준: basisNote,
-        법정보존기간_년: cat.years,
-        만료예정일: expiry.toISOString().slice(0, 10),
-        잔여일수: remainingDays,
-        점검결과: verdict, 권고조치: note,
-        _kind: kind, _fallback: fallback
-      });
+      out.push({ id, type: cat.key, cat, basisDate, basis, years: cat.years, expiry: expiry.toISOString().slice(0, 10), remaining: remainingDays, kind, notes, fallback });
     }
     return { rows: out, stats };
   };
+  const verdictText = (k) => t("retention.v." + k);
+  const notesText = (r) => r.notes.length ? r.notes.map(([k, v]) => t(k, v)).join(" · ") : "—";
+  const basisText = (r) => Array.isArray(r.basis) ? t(r.basis[0]) : r.basis;
+  const typeText = (r) => r.cat ? catName(r.cat) : r.type;
 
   const render = (result) => {
     const { rows, stats } = result;
@@ -109,38 +95,34 @@ export function initTab5(ctx) {
     $("#ret-over").textContent = stats.over;
     $("#ret-bad").textContent = stats.bad;
     $("#ret-toolbar").style.display = "flex";
-    $("#ret-summary").innerHTML = `<strong>${rows.length}건</strong> 점검 완료 · 즉시 조치 <strong>${stats.over + stats.bad}건</strong>${stats.fallback ? ` · 작성일자 기준 <strong>${stats.fallback}건</strong>` : ""}`;
+    $("#ret-summary").innerHTML = t("retention.summary", { n: rows.length, u: stats.over + stats.bad }) + (stats.fallback ? t("retention.summaryFallback", { n: stats.fallback }) : "");
     $("#ret-download").disabled = false;
 
     // Sort: over → soon → bad → ok
     const sorted = [...rows].sort((a, b) => {
       const order = { over: 0, soon: 1, bad: 2, ok: 3 };
-      return (order[a._kind] ?? 3) - (order[b._kind] ?? 3);
+      return (order[a.kind] ?? 3) - (order[b.kind] ?? 3);
     });
 
     $("#ret-result").innerHTML = `
       <table>
         <thead><tr>
-          <th>기록ID</th><th>기록종류</th><th class="code">기준일</th>
-          <th class="code">보존(년)</th><th class="code">만료일</th>
-          <th class="code">잔여일</th><th>결과</th>
+          <th>${esc(t("retention.thId"))}</th><th>${esc(t("retention.thType2"))}</th><th class="code">${esc(t("retention.thBasisDate"))}</th>
+          <th class="code">${esc(t("retention.thYearsShort"))}</th><th class="code">${esc(t("retention.thExpiry"))}</th>
+          <th class="code">${esc(t("retention.thRemaining"))}</th><th>${esc(t("common.thResult"))}</th>
         </tr></thead>
         <tbody>
           ${sorted.map(r => {
-            const cls = r._kind === "over" ? "err"
-                      : r._kind === "soon" ? "warn"
-                      : r._kind === "bad"  ? "err"
-                      : "ok";
-            const remaining = r.잔여일수 === "—" ? "—"
-              : (r.잔여일수 < 0 ? "+" + (-r.잔여일수) : r.잔여일수);
+            const cls = r.kind === "over" ? "err" : r.kind === "soon" ? "warn" : r.kind === "bad" ? "err" : "ok";
+            const remaining = r.remaining === "—" ? "—" : (r.remaining < 0 ? "+" + (-r.remaining) : r.remaining);
             return `<tr>
-              <td class="code">${esc(r.기록ID)}</td>
-              <td>${esc(r.기록종류)}</td>
-              <td class="code">${esc(r.기준일)}${r._fallback ? `<span class="basis-warn" title="작성일자 기준 (진료완료일 없음)">작성일자 기준</span>` : ""}</td>
-              <td class="code">${esc(r.법정보존기간_년)}</td>
-              <td class="code">${esc(r.만료예정일)}</td>
+              <td class="code">${esc(r.id)}</td>
+              <td>${esc(typeText(r))}</td>
+              <td class="code">${esc(r.basisDate)}${r.fallback ? `<span class="basis-warn" title="${esc(t("retention.basisFallback"))}">${esc(t("retention.basisWarn"))}</span>` : ""}</td>
+              <td class="code">${esc(r.years)}</td>
+              <td class="code">${esc(r.expiry)}</td>
               <td class="code" style="text-align:right">${esc(remaining)}</td>
-              <td><span class="pill ${cls}">${esc(r.점검결과)}</span></td>
+              <td><span class="pill ${cls}">${esc(verdictText(r.kind))}</span></td>
             </tr>`;
           }).join("")}
         </tbody>
@@ -158,41 +140,45 @@ export function initTab5(ctx) {
     });
   };
 
-  const stripPrivate = (rows) => rows.map(({ _kind, _fallback, ...rest }) => rest);
+  const exportRows = (result) => result.rows.map(r => headerRow([
+    ["retention.col.id", r.id], ["retention.col.type", typeText(r)], ["retention.col.basisDate", r.basisDate], ["retention.col.basis", basisText(r)],
+    ["retention.col.years", r.years], ["retention.col.expiry", r.expiry], ["retention.col.remaining", r.remaining],
+    ["retention.col.verdict", verdictText(r.kind)], ["retention.col.action", notesText(r)]
+  ]));
 
   bindDrop("drop-ret", async (file) => {
     try {
-      setStatus($("#ret-status"), null, `파일을 읽는 중 — ${esc(file.name)}`);
+      status(null, () => t("common.statusReading", { name: esc(file.name) }));
       const rows = await readSpreadsheet(file);
       if (!rows.length) {
-        setStatus($("#ret-status"), "warn", "빈 파일입니다.");
+        status("warn", () => t("common.statusEmptyFileShort"));
         return;
       }
       const result = transform(rows);
-      lastRows = stripPrivate(result.rows);
+      lastResult = result;
       render(result);
       persistRet(result);
-      ActivityLog.push("retention", `보존기간 점검 — ${result.rows.length}건 (경과 ${result.stats.over}, 임박 ${result.stats.soon})`, { file: file.name });
+      ActivityLog.push("retention", t("retention.logRun", { n: result.rows.length, o: result.stats.over, s: result.stats.soon }), { file: file.name });
       const urgent = result.stats.over + result.stats.bad;
       if (urgent > 0) {
-        setStatus($("#ret-status"), "warn",
-          `${urgent}건의 즉시 조치 항목이 있습니다.${result.stats.fallback ? ` 작성일자 기준 ${result.stats.fallback}건은 진료완료일 확인 필요.` : ""}`);
+        status("warn", () => t("retention.statusUrgent", { u: urgent }) + (result.stats.fallback ? t("retention.statusFallbackNote", { n: result.stats.fallback }) : ""));
       } else {
-        setStatus($("#ret-status"), null,
-          `${result.rows.length}건 모두 정상 보존 또는 단순 모니터링 단계입니다.`);
+        status(null, () => t("retention.statusAllOk", { n: result.rows.length }));
       }
     } catch (err) {
-      setStatus($("#ret-status"), "err", "파일을 읽지 못했습니다.");
+      status("err", () => t("common.statusReadFailShort"));
     }
   });
 
   $("#ret-download").addEventListener("click", () => {
-    if (!lastRows) return;
-    downloadXLSX(lastRows, `의무기록_보존기간_점검표_${todayISO()}.xlsx`, "보존기간 점검표"); // watermark + _PoC applied inside
-    ActivityLog.push("retention", `보존기간 점검표 내려받음 (${lastRows.length}건)`, {});
+    if (!lastResult) return;
+    const rows = exportRows(lastResult);
+    downloadXLSX(rows, t("retention.file", { date: todayISO() }), t("retention.sheet")); // watermark + _PoC applied inside
+    ActivityLog.push("retention", t("retention.logDl", { n: rows.length }), {});
   });
 
   // Two rows carry only 작성일자 (no 진료완료일) so the per-row fallback warning is visible.
+  // Column headers are the Korean ledger names the checker expects (data, not UI copy).
   const sampleRetData = [
     { 기록ID: "REC-2014-0001", 기록종류: "진료기록부", 환자번호: "P-2014-0042", 작성일자: "2014-01-06", 진료완료일: "2014-03-14", 상태: "active" },
     { 기록ID: "REC-2014-0002", 기록종류: "처방전",     환자번호: "P-2014-0042", 작성일자: "2014-03-14", 진료완료일: "2014-03-14", 상태: "active" },
@@ -207,19 +193,24 @@ export function initTab5(ctx) {
 
   $('[data-action="sample-ret"]').addEventListener("click", (e) => {
     e.stopPropagation();
-    downloadXLSX(sampleRetData, "샘플_의무기록_대장.xlsx", "샘플");
+    downloadXLSX(sampleRetData, t("retention.sampleFile"), t("common.sampleSheetShort"));
   });
 
   $('[data-action="run-ret"]').addEventListener("click", () => {
     const result = transform(sampleRetData);
-    lastRows = stripPrivate(result.rows);
+    lastResult = result;
     render(result);
     persistRet(result);
-    ActivityLog.push("retention", `보존기간 점검 시연 — ${result.rows.length}건`, { sample: true });
+    ActivityLog.push("retention", t("retention.logSample", { n: result.rows.length }), { sample: true });
     const urgent = result.stats.over + result.stats.bad;
-    setStatus($("#ret-status"), urgent > 0 ? "warn" : null,
-      urgent > 0
-        ? `샘플 ${result.rows.length}건 — ${urgent}건의 즉시 조치 항목 (보존기간 경과·분류 오류) · 작성일자 기준 ${result.stats.fallback}건은 진료완료일 확인 필요.`
-        : `샘플 ${result.rows.length}건 모두 정상 보존 또는 모니터링 단계입니다.`);
+    status(urgent > 0 ? "warn" : null, () => urgent > 0
+      ? t("retention.statusSampleUrgent", { n: result.rows.length, u: urgent, f: result.stats.fallback })
+      : t("retention.statusSampleOk", { n: result.rows.length }));
+  });
+
+  onLangChange(() => {
+    renderLegal();
+    if (lastResult) render(lastResult);
+    if (lastStatus) setStatus($("#ret-status"), lastStatus.kind, lastStatus.fn());
   });
 }

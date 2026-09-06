@@ -11,8 +11,18 @@ import { Session } from "./session.js";
 import { encryptJSON, decryptJSON, isEnvelope } from "./crypto.js";
 import { downloadText, POC_MARK } from "../core/files.js";
 import { Masters } from "../core/masters.js";
+import { t, tOr } from "../core/i18n.js";
 
 const DAY = 86400000;
+// Registry rows keep their Korean text as the source of truth; loc() swaps the five user-facing fields for the
+// lifecycle.reg.<id>.* keys of the active language (falls back to the Korean field when a key is absent).
+const loc = (r) => ({
+  ...r,
+  label: tOr(`lifecycle.reg.${r.id}.label`, r.label), detail: tOr(`lifecycle.reg.${r.id}.detail`, r.detail),
+  purpose: tOr(`lifecycle.reg.${r.id}.purpose`, r.purpose), basis: tOr(`lifecycle.reg.${r.id}.basis`, r.basis),
+  retention: tOr(`lifecycle.reg.${r.id}.retention`, r.retention),
+  encrypted: typeof r.encrypted === "string" ? tOr(`lifecycle.reg.${r.id}.encrypted`, r.encrypted) : r.encrypted
+});
 const len = (v) => Array.isArray(v) ? v.length : (v && typeof v === "object") ? Object.keys(v).length : (v == null || v === "" ? 0 : 1);
 const prefix = (p) => (k) => k.startsWith(p);
 const exact = (x) => (k) => k === x;
@@ -53,7 +63,7 @@ const REGISTRY = [
     purpose: "대시보드 이어하기", basis: "—", encrypted: false, retention: "다음 실행 시 대체", days: null },
   { id: "retention.lastAudit", match: exact("retention.lastAudit"), label: "보존 감사 최근 요약", detail: "건수만",
     purpose: "대시보드 이어하기", basis: "—", encrypted: false, retention: "다음 실행 시 대체", days: null },
-  { id: "ui", match: prefix("ui."), label: "화면 설정", detail: "마지막 탭·안내 표시 여부",
+  { id: "ui", match: prefix("ui."), label: "화면 설정", detail: "마지막 탭·안내 표시 여부·언어",
     purpose: "UX", basis: "—", encrypted: false, retention: "설정", days: null },
   { id: "__ws", match: exact("__ws"), label: "워크스페이스 키링", detail: "사용자 이름·역할 (평문) · PIN으로 래핑된 마스터키 · salt · AI 동의",
     purpose: "접근 통제 (PIN 잠금)", basis: "개인정보보호법 §29 · 안전성 확보조치 기준 §5 접근권한", encrypted: "부분 (키는 래핑)", retention: "전체 파기 시까지", days: null },
@@ -65,7 +75,8 @@ async function inventory() {
   const keys = Store.keys();
   const rows = [];
   const seen = new Set();
-  for (const r of REGISTRY) {
+  for (const r0 of REGISTRY) {
+    const r = loc(r0);
     if (r.id === "masters") {
       const recs = ["kcd", "fee"].map(k => Masters.get(k)).filter(Boolean);
       rows.push({ ...r, keys: recs.map(m => m.id), count: recs.reduce((n, m) => n + (m.count || 0), 0), lastModified: null, present: recs.length > 0 });
@@ -87,7 +98,7 @@ async function inventory() {
     }
     rows.push({ ...r, keys: mine, count, lastModified: last, present: mine.length > 0 });
   }
-  for (const k of keys) if (!seen.has(k)) rows.push({ id: k, label: `미등록 키 ${k}`, detail: "레지스트리에 없는 키", purpose: "?", basis: "?", encrypted: Store.isSensitive(k), retention: "?", keys: [k], count: len(Store.get(k)), lastModified: Store.mtime(k), present: true, unregistered: true });
+  for (const k of keys) if (!seen.has(k)) rows.push({ id: k, label: t("lifecycle.unregistered", { key: k }), detail: t("lifecycle.unregisteredDetail"), purpose: "?", basis: "?", encrypted: Store.isSensitive(k), retention: "?", keys: [k], count: len(Store.get(k)), lastModified: Store.mtime(k), present: true, unregistered: true });
   return rows;
 }
 
@@ -117,8 +128,8 @@ async function purgeExpired() {
   } catch {}
   const total = Object.values(out).reduce((a, b) => a + b, 0);
   if (total) {
-    const parts = Object.entries(out).map(([id, n]) => `${REGISTRY.find(r => r.id === id)?.label || id} ${n}건`).join(" · ");
-    ActivityLog.add({ tag: "system", action: `보존기간 만료 자동 파기 — ${parts}`, meta: { silent: true } });
+    const parts = Object.entries(out).map(([id, n]) => t("lifecycle.purgedPart", { label: loc(REGISTRY.find(r => r.id === id) || { id, label: id }).label, n })).join(" · ");
+    ActivityLog.add({ tag: "system", action: t("lifecycle.purgedAction", { parts }), meta: { silent: true } });
   }
   EventBus.emitLocal("lifecycle:purged", out);
   return out;
@@ -136,14 +147,14 @@ async function destroy(ids) {
     if (r.id === "__ws" || r.id === "__internal") continue; // only via 전체 파기
     for (const k of Store.keys().filter(r.match)) { Store.remove(k); n++; }
   }
-  if (n) ActivityLog.add({ tag: "system", action: `선택 항목 파기 — ${ids.join(", ")}`, meta: { silent: true } });
+  if (n) ActivityLog.add({ tag: "system", action: t("lifecycle.destroyedAction", { ids: ids.join(", ") }), meta: { silent: true } });
   return n;
 }
 
 /* 전체 파기 — data + attachments + uploaded masters + users + wrapped keys. Caller has already
    collected the typed "파기". Masters are public reference tables, but a wipe is total. */
 async function destroyAll() {
-  try { ActivityLog.add({ tag: "system", action: "전체 파기", meta: { silent: true } }); } catch {}
+  try { ActivityLog.add({ tag: "system", action: t("lifecycle.destroyAllAction"), meta: { silent: true } }); } catch {}
   await Store.wipeAll({ keepWorkspace: false });
   try { await Masters.destroy(); } catch (e) { console.warn("masters wipe", e); }
   Session.destroy();
@@ -175,14 +186,14 @@ async function exportBackup() {
   };
   const json = JSON.stringify(bk);
   downloadText(json, `clinic-admin_backup_${new Date().toISOString().slice(0, 10)}.json`);
-  ActivityLog.add({ tag: "system", action: `암호화 백업 내려받음 — 항목 ${Object.keys(sensitive).length + Object.keys(plain).length}, 첨부 ${bk.attachments.length}` });
+  ActivityLog.add({ tag: "system", action: t("lifecycle.backupAction", { n: Object.keys(sensitive).length + Object.keys(plain).length, a: bk.attachments.length }) });
   return bk;
 }
 
 function parseBackup(text) {
   let bk;
-  try { bk = JSON.parse(text); } catch { throw new Error("JSON 파일이 아닙니다"); }
-  if (!bk || bk.format !== BACKUP_FORMAT || bk.v !== 1 || !bk.keyring?.users?.length || !isEnvelope(bk.plain)) throw new Error("clinic-admin 백업 파일이 아닙니다");
+  try { bk = JSON.parse(text); } catch { throw new Error(t("lock.errNotJson")); }
+  if (!bk || bk.format !== BACKUP_FORMAT || bk.v !== 1 || !bk.keyring?.users?.length || !isEnvelope(bk.plain)) throw new Error(t("lock.errNotBackup"));
   return bk;
 }
 
@@ -199,7 +210,7 @@ async function restoreBackup(bk, userId, pin) {
   const user = bk.keyring.users.find(u => u.id === userId);
   Session.adopt(key, user);
   await Store.whenUnlocked();
-  ActivityLog.add({ tag: "system", action: `백업 복원 — ${bk.exportedAt}` });
+  ActivityLog.add({ tag: "system", action: t("lifecycle.restoreAction", { at: bk.exportedAt }) });
   return { keys: Object.keys(bk.sensitive || {}).length + Object.keys(plain || {}).length, attachments: (bk.attachments || []).length };
 }
 

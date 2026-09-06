@@ -32,8 +32,12 @@
    the pinned hash (dynamic import() cannot carry an integrity
    attribute), and only then imported from a blob URL. A mismatch keeps
    the board in local mode.
+
+   i18n: status VALUES stay Korean (server column + Store), only the labels/buttons go through t();
+   the fictional seed summaries are sample data and stay Korean on purpose.
    ============================================================ */
 import { Toast } from "./core/ui.js";
+import { t, onLangChange } from "./core/i18n.js";
 import { Store, EventBus } from "./core/store.js";
 import { Session } from "./security/session.js";
 import { encryptJSON, decryptJSON, sha256hex, sha384b64, isEnvelope } from "./security/crypto.js";
@@ -44,6 +48,7 @@ const PB_ESM = "https://cdn.jsdelivr.net/npm/pocketbase@0.25.0/dist/pocketbase.e
 const PB_ESM_SRI = "sha384-a/4W5e0T7WVUFpuqUhUJju6S/V52zZ0hZpIFQKf4bqCQLKF7ogeoVtWmOpT9U6Fd";
 const STATUSES = ["대기", "진료중", "완료"];
 const LS_LOCAL = "intake-cards"; // Store key (sensitive → encrypted)
+const statusLabel = (st) => t("board.status." + st);
 
 let pb = null, online = false, _pbPromise = null, _sub = null, wsHash = null;
 
@@ -115,11 +120,13 @@ function seedCards() {
 let cards = new Map();
 let records = new Map(); // online: raw server rows by id
 let foreign = 0;
+let syncKey = "board.syncLocal", syncOn = false; // last sync state, re-painted on language toggle
 
-function setSync(connected, text) {
-  const s = $id("intake-sync"), t = $id("intake-sync-text");
+function setSync(connected, key) {
+  syncOn = connected; syncKey = key;
+  const s = $id("intake-sync"), tt = $id("intake-sync-text");
   if (s) { s.classList.toggle("on", connected); const d = s.querySelector(".dot"); if (d) d.textContent = connected ? "●" : "○"; }
-  if (t) t.textContent = text;
+  if (tt) tt.textContent = t(key);
 }
 function setForeign(n) {
   foreign = n;
@@ -129,11 +136,11 @@ function setForeign(n) {
     if (!anchor) return;
     el = document.createElement("span");
     el.className = "intake-foreign"; el.id = "intake-foreign";
-    el.title = "이 브라우저의 워크스페이스 키로 열 수 없는 카드 — 다른 워크스페이스에서 올린 암호문입니다.";
     anchor.insertAdjacentElement("afterend", el);
   }
+  el.title = t("board.foreignTitle");
   el.hidden = !n;
-  el.textContent = n ? `다른 워크스페이스 카드 ${n}` : "";
+  el.textContent = n ? t("board.foreign", { n }) : "";
 }
 
 function nextStatus(st) {
@@ -150,14 +157,14 @@ function makeCardEl(rec, flash) {
   const name = document.createElement("div");
   name.className = "pc-name";
   const nameText = document.createElement("span");
-  nameText.textContent = rec.name || "환자"; // textContent → no XSS
+  nameText.textContent = rec.name || t("board.patientFallback"); // textContent → no XSS
   name.appendChild(nameText);
   const lockTag = document.createElement("span");
-  lockTag.className = "e2e-tag"; lockTag.textContent = "E2E"; lockTag.title = "이 카드는 워크스페이스 키로 암호화되어 저장됩니다";
+  lockTag.className = "e2e-tag"; lockTag.textContent = "E2E"; lockTag.title = t("board.e2eTitle");
   name.appendChild(lockTag);
   if (rec.player_id && rec.player_id === me) {
     const tag = document.createElement("span");
-    tag.className = "mine-tag"; tag.textContent = "내가 추가";
+    tag.className = "mine-tag"; tag.textContent = t("board.mine");
     name.appendChild(tag);
   }
   el.appendChild(name);
@@ -175,13 +182,13 @@ function makeCardEl(rec, flash) {
   if (nx) {
     const adv = document.createElement("button");
     adv.type = "button"; adv.className = "pc-btn advance";
-    adv.textContent = nx === "진료중" ? "진료 시작 →" : "완료 →";
+    adv.textContent = nx === "진료중" ? t("board.startTreatment") : t("board.complete");
     adv.addEventListener("click", () => advanceCard(rec.id));
     actions.appendChild(adv);
   }
   const del = document.createElement("button");
   del.type = "button"; del.className = "pc-btn";
-  del.textContent = "지우기";
+  del.textContent = t("board.remove");
   del.addEventListener("click", () => deleteCard(rec.id));
   actions.appendChild(del);
   el.appendChild(actions);
@@ -205,7 +212,7 @@ function render(flashId) {
     if (list.length === 0) {
       const empty = document.createElement("div");
       empty.className = "col-empty";
-      empty.textContent = st === "대기" ? "접수 대기 없음" : (st === "진료중" ? "진료 중 없음" : "완료 없음");
+      empty.textContent = st === "대기" ? t("board.emptyWaiting") : (st === "진료중" ? t("board.emptyTreating") : t("board.emptyDone"));
       col.appendChild(empty);
       continue;
     }
@@ -247,7 +254,7 @@ async function advanceCard(id) {
 
 function undoToast(rec, restore) {
   // Fixed fictional name — still shown redacted-style in the toast to keep the PoC rule visible.
-  Toast.withUndo(`지움 · 접수 카드 (${rec.status})`, restore, "system");
+  Toast.withUndo(t("board.removedToast", { status: statusLabel(rec.status) }), restore, "system");
 }
 
 async function deleteCard(id) {
@@ -285,7 +292,7 @@ async function deleteCard(id) {
 async function addCard() {
   const nameEl = $id("intake-name"), sumEl = $id("intake-summary"), btn = $id("intake-add-btn");
   if (!nameEl) return;
-  if (!Session.isUnlocked()) { Toast.show({ tag: "system", html: "잠금 상태에서는 카드를 추가할 수 없습니다." }); return; }
+  if (!Session.isUnlocked()) { Toast.show({ tag: "system", html: t("board.lockedToast") }); return; }
   let name = (nameEl.value || "").trim().slice(0, 20); // <select> — fixed fictional names only
   if (!name) name = "예시 환자";
   const summary = (sumEl ? sumEl.value : "").trim().slice(0, 120);
@@ -309,7 +316,7 @@ async function addCard() {
 }
 
 function goLocal() {
-  online = false; setSync(false, "로컬 — 이 기기에서만 · 암호화");
+  online = false; setSync(false, "board.syncLocalEnc");
   try { _sub?.(); } catch {} _sub = null;
   setForeign(0);
 }
@@ -323,6 +330,8 @@ async function boot() {
   if (sumEl) sumEl.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addCard(); } });
   // After a re-unlock the key is back: re-decrypt whatever we hold.
   EventBus.on("session:unlocked", () => { if (online) rebuildFromRecords(); else bootLocal(); });
+  // Language toggle: same cards, new labels (applyStatic already reset the static sync text → repaint it).
+  onLangChange(() => { setSync(syncOn, syncKey); setForeign(foreign); render(); });
 
   const wsId = Session.workspaceId();
   wsHash = wsId ? await sha256hex(wsId) : null;
@@ -331,7 +340,7 @@ async function boot() {
   try { c = await getPB(); if (c) { await c.health.check(); online = true; } } catch (e) { online = false; }
 
   if (online && c && wsHash) {
-    setSync(true, "실시간 동기화 중 · E2E 암호화");
+    setSync(true, "board.syncLive");
     try {
       const filter = c.filter("ws = {:ws}", { ws: wsHash });
       const rows = await c.collection("intake_card").getFullList({ sort: "created", filter });
@@ -360,7 +369,7 @@ async function boot() {
 
 function bootLocal() {
   // Local-first path (no backend / offline / CDN down / integrity mismatch / no workspace).
-  setSync(false, "로컬 — 이 기기에서만 · 암호화");
+  setSync(false, "board.syncLocalEnc");
   const stored = loadLocal();
   const list = (stored && stored.length) ? stored : seedCards();
   cards = new Map(list.map((r) => [r.id, r]));

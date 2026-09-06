@@ -1,7 +1,8 @@
 /* clinic-admin — Tab 04 · 비급여 보고 준비표 */
 import { $, $$, esc, fmtKRW, todayISO, setStatus, debounce } from "../core/ui.js";
+import { t, tOr, pick, onLangChange } from "../core/i18n.js";
 import { Store, ActivityLog, bindPersist } from "../core/store.js";
-import { downloadXLSX } from "../core/files.js";
+import { downloadXLSX, headerRow } from "../core/files.js";
 import { BIGEUP_WINDOWS, nextOccurrence } from "../core/calendar.js";
 
 /* ─────────────────────────────────────────────────────────
@@ -17,16 +18,22 @@ export function initTab4(ctx) {
   const tbody = $("#bg-tbody");
   const items = DATA.bigeup.items;
   const N = items.length;
-  // Row count is computed, never hard-coded in copy.
-  $$("[data-bg-count]").forEach(el => el.textContent = String(N));
+  const catLabel = (c) => tOr("bigeup.cat." + c, c);
+  const unitLabel = (u) => tOr("common.unit." + u, u);
+  // Row count is computed, never hard-coded in copy (re-filled after every language swap).
+  const fillCounts = () => $$("[data-bg-count]").forEach(el => el.textContent = String(N));
+  fillCounts();
 
   // Deadline copy — next submission window from the shared calendar.
   const now = new Date();
   const nextWin = BIGEUP_WINDOWS
     .map(w => ({ ...w, date: nextOccurrence(w.month, null, now) }))
     .sort((a, b) => a.date < b.date ? -1 : 1)[0];
-  const winEl = $("#bg-window");
-  if (winEl) winEl.textContent = `다음 보고: ${nextWin.refMonth}월 진료분 → ${nextWin.date.slice(0, 7).replace("-", "년 ")}월 보고 기간 (확인 필요)`;
+  const renderWindow = () => {
+    const winEl = $("#bg-window");
+    if (winEl) winEl.textContent = t("bigeup.window", { m: nextWin.refMonth, y: nextWin.date.slice(0, 4), mm: +nextWin.date.slice(5, 7) });
+  };
+  renderWindow();
 
   // Restore last-saved entries if any (keyed by 예시 code)
   const savedTariff = Store.get("bigeup.tariff", {});
@@ -48,14 +55,14 @@ export function initTab4(ctx) {
   }, 400);
 
   const numInput = (cls, i, val, ph) =>
-    `<input type="number" min="0" class="bg-num ${cls}" value="${esc(val)}" placeholder="${esc(ph)}" data-i="${i}" aria-label="${cls === "bg-freq" ? "실시빈도" : "단가"}">`;
+    `<input type="number" min="0" class="bg-num ${cls}" value="${esc(val)}" placeholder="${esc(ph)}" data-i="${i}" aria-label="${esc(t(cls === "bg-freq" ? "bigeup.ariaFreq" : "bigeup.ariaPrice"))}">`;
 
   const render = () => {
     tbody.innerHTML = state.map((it, i) => `
       <tr data-i="${i}">
         <td class="code">${esc(it.code)}</td>
-        <td>${esc(it.name)} <span class="bg-unit">/ ${esc(it.unit)}</span></td>
-        <td><span class="pill info">${esc(it.category)}</span></td>
+        <td>${esc(pick(it, "name"))} <span class="bg-unit">/ ${esc(unitLabel(it.unit))}</span></td>
+        <td><span class="pill info">${esc(catLabel(it.category))}</span></td>
         <td>${numInput("bg-min", i, it.min_input, fmtKRW(it.min))}</td>
         <td>${numInput("bg-max", i, it.max_input, fmtKRW(it.max))}</td>
         <td>${numInput("bg-med", i, it.med_input, fmtKRW(Math.round((it.min + it.max) / 2)))}</td>
@@ -76,6 +83,7 @@ export function initTab4(ctx) {
     });
   };
 
+  let lastStatus = null; // null → hidden; { kind, fn } otherwise (the summary strip is recomputed instead)
   const updateSummary = () => {
     let done = 0, empty = 0, errs = 0, noFreq = 0;
     for (const it of state) {
@@ -96,15 +104,14 @@ export function initTab4(ctx) {
     $("#bg-download").disabled = done === 0 || errs > 0 || !$("#bg-ykiho").value.trim();
 
     if (errs > 0) {
-      setStatus($("#bg-status"), "err",
-        `검증 오류 ${errs}건 — 최저 ≤ 중간 ≤ 최고 규칙을 확인하세요.`);
+      lastStatus = { kind: "err", fn: () => t("bigeup.statusErr", { n: errs }) };
     } else if (done > 0) {
-      setStatus($("#bg-status"), noFreq ? "warn" : null,
-        `${done}개 항목 단가 입력 완료${noFreq ? ` · 실시빈도 미입력 ${noFreq}개` : ""} — 비급여 보고 준비표를 내려받을 수 있습니다.`);
+      lastStatus = { kind: noFreq ? "warn" : null, fn: () => t("bigeup.statusDone", { n: done, nf: noFreq ? t("bigeup.statusNoFreq", { n: noFreq }) : "" }) };
     } else {
-      $("#bg-status").style.display = "none";
+      lastStatus = null;
     }
-    $("#bg-summary").innerHTML = `완료 <strong>${done}</strong> · 미입력 <strong>${empty}</strong> · 오류 <strong>${errs}</strong>${noFreq ? ` · 빈도 미입력 <strong>${noFreq}</strong>` : ""}`;
+    if (lastStatus) setStatus($("#bg-status"), lastStatus.kind, lastStatus.fn()); else $("#bg-status").style.display = "none";
+    $("#bg-summary").innerHTML = t("bigeup.summary", { d: done, e: empty, x: errs }) + (noFreq ? t("bigeup.summaryNoFreq", { n: noFreq }) : "");
   };
 
   const fillPrefill = () => {
@@ -121,7 +128,7 @@ export function initTab4(ctx) {
   $("#bg-prefill").addEventListener("click", () => {
     fillPrefill();
     persistTariff();
-    ActivityLog.push("bigeup", "비급여 표본 단가·빈도 자동 채움", {});
+    ActivityLog.push("bigeup", t("bigeup.logPrefill"), {});
   });
 
   $('[data-action="run-bigeup"]').addEventListener("click", () => {
@@ -129,8 +136,8 @@ export function initTab4(ctx) {
     if (!$("#bg-clinic").value.trim()) $("#bg-clinic").value = "한솔 한방병원";
     if (!$("#bg-date").value) $("#bg-date").value = todayISO();
     fillPrefill();
-    setStatus($("#bg-status"), null,
-      `${N}개 한방 비급여 예시 항목에 표본 단가·실시빈도가 채워졌습니다 — 검증 결과와 비급여 보고 준비표(XLSX)를 내려받아 확인해보세요.`);
+    lastStatus = { kind: null, fn: () => t("bigeup.statusSample", { n: N }) };
+    setStatus($("#bg-status"), null, lastStatus.fn());
   });
 
   $("#bg-ykiho").addEventListener("input", updateSummary);
@@ -142,24 +149,15 @@ export function initTab4(ctx) {
     const rows = state.filter(it => it.min_input && it.max_input).map(it => {
       const a = +it.min_input, b = +it.max_input;
       const mid = +it.med_input || Math.round((a + b) / 2);
-      return {
-        "요양기관기호":       ykiho,
-        "의료기관명":         clinic,
-        "예시코드":           it.code,
-        "항목명(예시)":        it.name,
-        "분류":               it.category,
-        "단위":               it.unit,
-        "최저금액":           a,
-        "최고금액":           b,
-        "중간금액":           mid,
-        "실시빈도(참고월 건수)": it.freq_input === "" ? "" : +it.freq_input,
-        "참고월":             `${nextWin.refMonth}월`,
-        "기준일":             date,
-        "비고":               "예시 항목 — 실제 항목코드는 심평원 표준코드 목록으로 대체"
-      };
+      return headerRow([
+        ["bigeup.col.ykiho", ykiho], ["bigeup.col.clinic", clinic], ["bigeup.col.code", it.code], ["bigeup.col.name", pick(it, "name")],
+        ["bigeup.col.cat", catLabel(it.category)], ["bigeup.col.unit", unitLabel(it.unit)], ["bigeup.col.min", a], ["bigeup.col.max", b], ["bigeup.col.mid", mid],
+        ["bigeup.col.freq", it.freq_input === "" ? "" : +it.freq_input], ["bigeup.col.refMonth", t("bigeup.refMonthVal", { m: nextWin.refMonth })],
+        ["bigeup.col.date", date], ["bigeup.col.note", t("bigeup.noteVal")]
+      ]);
     });
-    downloadXLSX(rows, `비급여_보고_준비표_${ykiho}_${date}.xlsx`, "비급여 보고 준비표"); // watermark + _PoC applied inside
-    ActivityLog.push("bigeup", `비급여 보고 준비표 내려받음 (${rows.length}개 항목)`, {});
+    downloadXLSX(rows, t("bigeup.file", { ykiho, date }), t("bigeup.sheet")); // watermark + _PoC applied inside
+    ActivityLog.push("bigeup", t("bigeup.logDl", { n: rows.length }), {});
   });
 
   // init — restore date + hospital fields, then render
@@ -167,4 +165,8 @@ export function initTab4(ctx) {
   ["bg-ykiho", "bg-clinic", "bg-date"].forEach(id => bindPersist("#" + id, "bigeup.profile." + id));
   render();
   updateSummary();
+
+  onLangChange(() => {
+    fillCounts(); renderWindow(); render(); updateSummary();
+  });
 }

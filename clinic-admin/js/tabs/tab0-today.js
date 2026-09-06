@@ -1,8 +1,9 @@
 /* clinic-admin — Tab 00 · 오늘 dashboard */
-import { $, $$, esc, fmtKRW, todayISO, relTime, daysUntil, Share, redactSubject, redactStaff } from "../core/ui.js";
+import { $, $$, esc, won, todayISO, relTime, daysUntil, Share, redactSubject, redactStaff, tagLabel } from "../core/ui.js";
+import { t, getLang, onLangChange } from "../core/i18n.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { activateTab } from "../core/nav.js";
-import { downloadText, POC_MARK } from "../core/files.js";
+import { downloadText, pocMark } from "../core/files.js";
 import { statutoryDeadlines } from "../core/calendar.js";
 import { ACCRED_ITEMS } from "./tab9-accred.js";
 import { hasDuty } from "./tab8-license.js";
@@ -33,9 +34,9 @@ export function initTab0(ctx) {
         const d = daysUntil(lic.expiry);
         if (d != null && d <= 365 && d >= -30) {
           list.push({
-            key: `lic-${lic.id}-exp`, title: `${who} — 면허신고 기한${lic.basis === "acquired" ? " (신고 이력 미확인)" : ""}`,
+            key: `lic-${lic.id}-exp`, title: t(lic.basis === "acquired" ? "today.dl.licReportUnverified" : "today.dl.licReport", { who }),
             date: lic.expiry, link: "tab-license",
-            source: lic.basis === "acquired" ? "의료법 §25 (취득일 + 3년 · 협회 포털 확인)" : "의료법 §25 (신고일 + 3년)"
+            source: t(lic.basis === "acquired" ? "today.dl.licSourceAcquired" : "today.dl.licSourceReported")
           });
         }
       }
@@ -43,8 +44,8 @@ export function initTab0(ctx) {
         const d = daysUntil(lic.cme);
         if (d != null && d <= 365 && d >= -30) {
           list.push({
-            key: `lic-${lic.id}-cme`, title: `${who} — 보수교육 마감`,
-            date: lic.cme, link: "tab-license", source: "보수교육 의무"
+            key: `lic-${lic.id}-cme`, title: t("today.dl.cme", { who }),
+            date: lic.cme, link: "tab-license", source: t("today.dl.cmeSource")
           });
         }
       }
@@ -67,7 +68,7 @@ export function initTab0(ctx) {
     const m = (dt.getFullYear() - Y) * 12 + dt.getMonth() - NOW.getMonth();
     return m <= 0 ? "this" : m === 1 ? "next" : "later";
   };
-  const GROUP_LABEL = { over: "기한 초과", this: "이번 달", next: "다음 달", later: "이후" };
+  const groupLabel = (g) => t("today.group." + g);
   let showLater = false;
 
   function renderDeadlines() {
@@ -78,11 +79,11 @@ export function initTab0(ctx) {
       const days = d.daysLeft;
       let cls = "", label = "";
       if (days == null) { cls = ""; label = "—"; }
-      else if (days < 0) { cls = "over"; label = `<em>+${-days}일 초과</em>`; }
-      else if (days === 0) { cls = "urgent"; label = "<em>오늘</em>"; }
-      else if (days <= 14) { cls = "urgent"; label = `${days}<em>일</em>`; }
-      else if (days <= 60) { cls = "warn"; label = `${days}<em>일</em>`; }
-      else { cls = ""; label = `${days}<em>일</em>`; }
+      else if (days < 0) { cls = "over"; label = t("today.overdue", { n: -days }); }
+      else if (days === 0) { cls = "urgent"; label = t("today.todayLabel"); }
+      else if (days <= 14) { cls = "urgent"; label = t("today.daysLeft", { n: days }); }
+      else if (days <= 60) { cls = "warn"; label = t("today.daysLeft", { n: days }); }
+      else { cls = ""; label = t("today.daysLeft", { n: days }); }
       return `
         <div class="dday ${cls}" data-link="${esc(d.link)}">
           <div class="dnum">${label}</div>
@@ -96,15 +97,15 @@ export function initTab0(ctx) {
     let html = "";
     for (const g of ["over", "this", "next"]) {
       if (!groups[g].length) continue;
-      html += `<div class="dday-group"><div class="dday-group-label">${GROUP_LABEL[g]} · ${groups[g].length}</div>${groups[g].map(item).join("")}</div>`;
+      html += `<div class="dday-group"><div class="dday-group-label">${esc(groupLabel(g))} · ${groups[g].length}</div>${groups[g].map(item).join("")}</div>`;
     }
     if (groups.later.length) {
       html += `<div class="dday-group">
-        <button type="button" class="dday-more" id="dday-more" aria-expanded="${showLater}">${showLater ? "접기" : "더 보기"} — ${GROUP_LABEL.later} ${groups.later.length}건 ${showLater ? "↑" : "↓"}</button>
+        <button type="button" class="dday-more" id="dday-more" aria-expanded="${showLater}">${esc(showLater ? t("today.less") : t("today.more"))} — ${esc(groupLabel("later"))} ${esc(t("common.nItems", { n: groups.later.length }))} ${showLater ? "↑" : "↓"}</button>
         ${showLater ? groups.later.map(item).join("") : ""}
       </div>`;
     }
-    $("#dday-list").innerHTML = html || `<div class="empty-state">다가오는 마감이 없습니다.</div>`;
+    $("#dday-list").innerHTML = html || `<div class="empty-state">${esc(t("today.noDeadlines"))}</div>`;
     $$("#dday-list .dday").forEach(el => {
       el.addEventListener("click", () => activateTab(el.dataset.link));
     });
@@ -116,24 +117,24 @@ export function initTab0(ctx) {
     const jabo = Store.get("jabo.draft.items");
     if (Array.isArray(jabo) && jabo.length) {
       const name = Store.get("jabo.draft.jabo-name"), pid = Store.get("jabo.draft.jabo-pid");
-      const who = (name || pid) ? redactSubject({ name, pid }) : "환자 미입력";
-      cards.push({ tab: "tab-jabo", label: "자보 정산", who: who + ` · ${jabo.length}개 행위`, when: "" });
+      const who = (name || pid) ? redactSubject({ name, pid }) : t("today.resume.noPatient");
+      cards.push({ tab: "tab-jabo", label: t("nav.jabo"), who: who + ` · ${t("today.resume.nProcs", { n: jabo.length })}`, when: "" });
     }
     const tariff = Store.get("bigeup.tariff", {});
     const tariffCount = Object.keys(tariff).length;
     if (tariffCount > 0 && tariffCount < (DATA?.bigeup?.items?.length || Infinity)) {
-      cards.push({ tab: "tab-bigeup", label: "비급여 반기보고", who: `${tariffCount}개 항목 단가 입력 중`, when: "" });
+      cards.push({ tab: "tab-bigeup", label: t("nav.bigeup"), who: t("today.resume.tariff", { n: tariffCount }), when: "" });
     }
     const lastKcd = Store.get("kcd.lastSummary");
     if (lastKcd && (lastKcd.missing > 0 || lastKcd.review > 0)) {
-      cards.push({ tab: "tab-kcd", label: "KCD 정비", who: `미수록 ${lastKcd.missing}건 · 검토 ${lastKcd.review}건 남음`, when: relTime(lastKcd.at) });
+      cards.push({ tab: "tab-kcd", label: t("today.resume.kcd"), who: t("today.resume.kcdLeft", { m: lastKcd.missing, r: lastKcd.review }), when: relTime(lastKcd.at) });
     }
     const lastRet = Store.get("retention.lastAudit");
     if (lastRet && (lastRet.over > 0 || lastRet.bad > 0)) {
-      cards.push({ tab: "tab-retention", label: "보존 감사", who: `만료 초과 ${lastRet.over}건 · 분류 오류 ${lastRet.bad}건`, when: relTime(lastRet.at) });
+      cards.push({ tab: "tab-retention", label: t("nav.retention"), who: t("today.resume.retLeft", { o: lastRet.over, b: lastRet.bad }), when: relTime(lastRet.at) });
     }
     if (!cards.length) {
-      $("#resume-list").innerHTML = `<div class="resume"><span class="empty">아직 진행 중인 작업이 없습니다.</span></div>`;
+      $("#resume-list").innerHTML = `<div class="resume"><span class="empty">${esc(t("today.resumeEmpty"))}</span></div>`;
       return;
     }
     $("#resume-list").innerHTML = cards.map(c => `
@@ -147,15 +148,10 @@ export function initTab0(ctx) {
     });
   }
 
-  const TAG_LABELS = {
-    kcd: "KCD", jabo: "자보", yearend: "연말정산", bigeup: "비급여",
-    retention: "보존", search: "검색", ai: "AI", license: "면허", accred: "인증", system: "시스템"
-  };
-
   function renderActivity() {
     const items = ActivityLog.recent(15);
     if (!items.length) {
-      $("#act-feed").innerHTML = `<div class="act-empty">최근 활동이 없습니다.</div>`;
+      $("#act-feed").innerHTML = `<div class="act-empty">${esc(t("today.activityEmpty"))}</div>`;
       return;
     }
     // entry.subject is already pseudonymised by ActivityLog (store.js) — never a raw name.
@@ -164,7 +160,7 @@ export function initTab0(ctx) {
       <div class="act-row">
         <span class="act-when">${relTime(it.at)}</span>
         <span class="act-text">${feedText(it)}</span>
-        <span class="act-tag">${esc(TAG_LABELS[it.tag] || it.tag)}</span>
+        <span class="act-tag">${esc(tagLabel(it.tag))}</span>
       </div>`).join("");
   }
 
@@ -174,13 +170,13 @@ export function initTab0(ctx) {
     const qStart = new Date(Y, Math.floor(NOW.getMonth()/3)*3, 1).getTime();
     const thisQ = history.filter(h => h.at >= qStart);
     if (thisQ.length) {
-      $("#ins-jabo").innerHTML = `${thisQ.length} <em>건</em>`;
+      $("#ins-jabo").innerHTML = t("today.insCount", { n: thisQ.length });
       const totalClaim = thisQ.reduce((s,h) => s + (h.claimed||0), 0);
       const totalCut = thisQ.reduce((s,h) => s + (h.cut||0), 0);
       const cutPct = totalClaim ? Math.round((totalCut / totalClaim) * 1000) / 10 : 0;
-      $("#ins-jabo-sub").textContent = `청구 ${fmtKRW(totalClaim)}원`;
+      $("#ins-jabo-sub").textContent = t("today.insClaimed", { amt: won(totalClaim) });
       $("#ins-cut").innerHTML = `${cutPct} <em>%</em>`;
-      $("#ins-cut-sub").textContent = `삭감 ${fmtKRW(totalCut)}원`;
+      $("#ins-cut-sub").textContent = t("today.insCutAmt", { amt: won(totalCut) });
       if (cutPct > 15) $("#ins-cut-card").classList.add("err");
       else if (cutPct > 8) $("#ins-cut-card").classList.add("warn");
     }
@@ -189,7 +185,7 @@ export function initTab0(ctx) {
     const lastRet = Store.get("retention.lastAudit");
     if (lastRet) {
       $("#ins-ret").textContent = lastRet.over;
-      $("#ins-ret-sub").textContent = `${relTime(lastRet.at)} 기준 · 임박 ${lastRet.soon}`;
+      $("#ins-ret-sub").textContent = t("today.insRetSub2", { t: relTime(lastRet.at), n: lastRet.soon });
       if (lastRet.over > 0) $("#ins-ret-card").classList.add("err");
       else if (lastRet.soon > 0) $("#ins-ret-card").classList.add("warn");
     }
@@ -208,7 +204,7 @@ export function initTab0(ctx) {
 
   function renderAll() {
     const date = new Date();
-    const wk = ["일","월","화","수","목","금","토"][date.getDay()];
+    const wk = date.toLocaleDateString(getLang() === "en" ? "en-GB" : "ko-KR", { weekday: "short" });
     $("#today-date").textContent = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")} (${wk})`;
     renderDeadlines();
     renderResume();
@@ -228,10 +224,11 @@ export function initTab0(ctx) {
       return `${dt.getFullYear()}${pad(dt.getMonth()+1)}${pad(dt.getDate())}T090000`;
     };
     const icsText = (s) => String(s).replace(/\\/g, "\\\\").replace(/[,;]/g, m => "\\" + m).replace(/\n/g, "\\n");
-    // PoC watermark: a calendar-level notice line + every DESCRIPTION opens with the mark.
+    // PoC watermark: a calendar-level notice line + every DESCRIPTION opens with the mark (UI language).
+    const mark = pocMark();
     const ics = [
-      "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Vibe Studio//Clinic Admin//KO",
-      "CALSCALE:GREGORIAN", "METHOD:PUBLISH", `X-POC-NOTICE:${icsText(POC_MARK)}`
+      "BEGIN:VCALENDAR", "VERSION:2.0", `PRODID:-//Vibe Studio//Clinic Admin//${getLang().toUpperCase()}`,
+      "CALSCALE:GREGORIAN", "METHOD:PUBLISH", `X-POC-NOTICE:${icsText(mark)}`
     ];
     // Every deadline in the window — not just the ones expanded on screen.
     for (const d of list) {
@@ -242,14 +239,14 @@ export function initTab0(ctx) {
         `DTSTART:${fmt(d.date)}`,
         `DTEND:${fmt(d.date).slice(0,11)}5959`,
         `SUMMARY:${icsText(d.title)}`,
-        `DESCRIPTION:${icsText(POC_MARK + " · " + d.source)}`,
+        `DESCRIPTION:${icsText(mark + " · " + d.source)}`,
         "BEGIN:VALARM", "TRIGGER:-P14D", "ACTION:DISPLAY", `DESCRIPTION:${icsText(d.title)}`, "END:VALARM",
         "END:VEVENT"
       );
     }
     ics.push("END:VCALENDAR");
     downloadText(ics.join("\r\n"), `clinic_admin_deadlines_${todayISO()}.ics`, "text/calendar;charset=utf-8"); // filename → _PoC
-    ActivityLog.push("system", "마감 캘린더 .ics 내려받음", {});
+    ActivityLog.push("system", t("today.icsLog"), {});
   });
 
   // Share dashboard summary — text snapshot of upcoming deadlines
@@ -260,9 +257,9 @@ export function initTab0(ctx) {
       const tag = ds < 0 ? `D+${-ds}` : `D-${ds}`;
       return `• ${tag} · ${d.date} · ${d.title}`;
     });
-    const text = `[한방병원 행정] 다가오는 마감\n${lines.join("\n")}\n\n— ${todayISO()} 기준`;
-    await Share.send({ title: "행정 마감 — 다가오는 일정", text });
-    ActivityLog.push("system", "다가오는 마감 공유", {});
+    const text = t("today.shareText", { lines: lines.join("\n"), date: todayISO() });
+    await Share.send({ title: t("today.shareTitle"), text });
+    ActivityLog.push("system", t("today.shareLog"), {});
   });
 
   // Live re-render when any tab updates state
@@ -270,6 +267,7 @@ export function initTab0(ctx) {
    "license.list", "accred.checked", "bigeup.tariff", "jabo.draft.items"
   ].forEach(k => EventBus.on(`store:${k}`, renderAll));
   EventBus.on("tab:activated", (id) => { if (id === "tab-today") renderAll(); });
+  onLangChange(renderAll);
 
   // Refresh relative times every 30s
   setInterval(renderAll, 30000);

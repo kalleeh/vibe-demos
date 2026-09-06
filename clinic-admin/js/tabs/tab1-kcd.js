@@ -1,15 +1,19 @@
 /* clinic-admin — Tab 01 · 상병코드 정비
    입력형 → EDI 표준형 정규화 + 최신 개정판(마스터) 대조. Works against the uploaded
-   KOICD 상병마스터 when present (core/masters.js), else the bundled 발췌. */
+   KOICD 상병마스터 when present (core/masters.js), else the bundled 발췌.
+   i18n: result rows carry neutral field names + a `note` [key, vars] so the table, the status line and the
+   XLSX headers can be re-rendered in either language from the same `lastResult`. */
 import { $, esc, setStatus, todayISO, relTime, bindDrop } from "../core/ui.js";
+import { t, onLangChange } from "../core/i18n.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
-import { readSpreadsheet, downloadXLSX } from "../core/files.js";
+import { readSpreadsheet, downloadXLSX, headerRow } from "../core/files.js";
 import { Masters, toEdi, toDotted } from "../core/masters.js";
 
 export function initTab1(ctx) {
   const { DATA } = ctx;
   Masters.init(DATA);
-  let lastResult = null;
+  let lastResult = null, lastStatus = null;
+  const status = (kind, fn) => { lastStatus = { kind, fn }; setStatus($("#kcd-status"), kind, fn()); };
 
   // 한의 병증 U코드 블록: U20–U33 (사상체질병증), U50–U79 (한의 병증). U80–U89 = WHO AMR, not 한의.
   const isHanuiU = (edi) => /^U(2\d|3[0-3]|[5-7]\d)/.test(edi);
@@ -38,7 +42,7 @@ export function initTab1(ctx) {
     const counters = { clean: 0, normalized: 0, ucode_solo: 0, deduped: 0, missing: 0, invalid: 0 };
     const warnings = [];
     const rankColPresent = hasCol(rows, COL.rank);
-    if (!rankColPresent) warnings.push("주/부상병 컬럼이 없어 진료일자별 첫 비U 코드를 주상병으로 간주했습니다 — EMR export에 상병구분 컬럼을 포함하세요.");
+    if (!rankColPresent) warnings.push("kcd.warnNoRank");
 
     // 명세서 = 환자번호 + 진료일자. Collect the codes on each so the U-code rule can be
     // checked against the SAME 명세서, not the patient's whole history.
@@ -60,19 +64,19 @@ export function initTab1(ctx) {
       const rank = rankColPresent ? pickCol(row, COL.rank) : "";
       const edi = toEdi(codeRaw);
       const stmt = stmts.get(`${pid}|${date}`);
-      const push = (action, note, kind, std = edi) => out.push({
-        "환자번호": pid, "진료일자": date, "주/부": rank || (stmt?.firstNonU === edi ? "주(추정)" : "") , "진단명": dx,
-        "입력코드": codeRaw, "표준코드": std, "정비결과": action,
-        "비고": (memo ? memo + " · " : "") + note, "_kind": kind
+      // note: [key, vars] → resolved at render/export time
+      const push = (verdict, note, kind, std = edi) => out.push({
+        pid, date, rank: rank || (stmt?.firstNonU === edi ? t("kcd.rankMainGuess") : ""), rankGuess: !rank && stmt?.firstNonU === edi, dx,
+        input: codeRaw, std, verdict, memo, note, kind
       });
 
-      if (!edi || !isCodeShape(edi)) { counters.invalid++; push("invalid", "코드 형식 오류 — 영문 1자 + 숫자 2자 (+ 세분류) 형태여야 합니다", "err", codeRaw); continue; }
+      if (!edi || !isCodeShape(edi)) { counters.invalid++; push("invalid", ["kcd.noteInvalidShape"], "err", codeRaw); continue; }
 
       const dedupKey = `${pid}|${date}|${edi}`;
-      if (seen.has(dedupKey)) { counters.deduped++; push("deduped", "동일 명세서(환자·일자) 내 동일 상병 중복 — 1건으로 통합", "warn"); continue; }
+      if (seen.has(dedupKey)) { counters.deduped++; push("deduped", ["kcd.noteDedup"], "warn"); continue; }
       seen.add(dedupKey);
 
-      if (isAmrU(edi)) { counters.invalid++; push("invalid", "U80–U89는 WHO 항생제 내성 코드 — 한의 병증 코드가 아닙니다", "err"); continue; }
+      if (isAmrU(edi)) { counters.invalid++; push("invalid", ["kcd.noteAmr"], "err"); continue; }
 
       const hit = idx.get(edi);
       if (isHanuiU(edi)) {
@@ -81,67 +85,66 @@ export function initTab1(ctx) {
         const mainOk = main && !/^U/.test(main);
         if (!mainOk) {
           counters.ucode_solo++;
-          push("ucode_solo", rankColPresent && stmt.main && /^U/.test(stmt.main)
-            ? "U코드가 주상병으로 지정됨 — 동일 명세서에 비U 주상병(M/G/S…) 필요"
-            : "한의 병증 U코드 단독 — 동일 명세서(환자·일자)에 비U 주상병 필요", "warn");
+          push("ucode_solo", [rankColPresent && stmt.main && /^U/.test(stmt.main) ? "kcd.noteUSoloMain" : "kcd.noteUSolo"], "warn");
           continue;
         }
-        const note = hit ? `한의 병증 · 주상병 ${toDotted(main)} 동반 — 정상` : `한의 병증 · 주상병 ${toDotted(main)} 동반 · 마스터 미수록(U블록 구조 확인만)`;
-        if (codeRaw !== edi) { counters.normalized++; push("normalized", "표기 정리(마침표·공백 제거 → EDI형) · " + note, "ok"); }
+        const note = [hit ? "kcd.noteUOk" : "kcd.noteUNoMaster", { main: toDotted(main) }];
+        if (codeRaw !== edi) { counters.normalized++; push("normalized", ["kcd.noteNormalized", { note }], "ok"); }
         else { counters.clean++; push("clean", note, "ok"); }
         continue;
       }
 
       if (!hit) {
         counters.missing++;
-        push("missing", src.source === "master" ? "업로드 마스터 미수록 — 개정판(KCD-9) 삭제·변경 여부 확인" : "발췌본 미수록 — KOICD 또는 업로드 마스터에서 현행 여부 확인", "err");
+        push("missing", [src.source === "master" ? "kcd.noteMissingMaster" : "kcd.noteMissingBundled"], "err");
         continue;
       }
-      if (hit.complete === false) { counters.missing++; push("missing", "불완전 코드(상위 분류) — 완전코드(세분류)로 청구해야 합니다", "err"); continue; }
-      if (codeRaw !== edi) { counters.normalized++; push("normalized", "표기 정리(마침표·공백 제거 → EDI형) — 현행 마스터 수록", "ok"); }
-      else { counters.clean++; push("clean", "현행 표준형 — EDI 청구 가능", "ok"); }
+      if (hit.complete === false) { counters.missing++; push("missing", ["kcd.noteIncomplete"], "err"); continue; }
+      if (codeRaw !== edi) { counters.normalized++; push("normalized", ["kcd.noteNormalizedCurrent"], "ok"); }
+      else { counters.clean++; push("clean", ["kcd.noteClean"], "ok"); }
     }
     return { rows: out, counters, warnings, source: src };
   };
-
-  const LABEL = {
-    clean:      ["정상",        "ok"],
-    normalized: ["형식정리",    "ok"],
-    ucode_solo: ["U코드 단독",  "warn"],
-    deduped:    ["중복",        "warn"],
-    missing:    ["미수록",      "err"],
-    invalid:    ["형식오류",    "err"]
+  // Resolve a [key, vars] note (vars may themselves hold a nested note under `note`).
+  const noteText = (n) => {
+    if (!n) return "";
+    const [key, vars] = n;
+    const v = vars && vars.note ? { ...vars, note: noteText(vars.note) } : vars;
+    return t(key, v);
   };
+  const rowNote = (r) => (r.memo ? r.memo + " · " : "") + noteText(r.note);
+  const rankText = (r) => r.rankGuess ? t("kcd.rankMainGuess") : r.rank;
+  const verdictLabel = (v) => t("kcd.verdict." + v);
+  const CLS = { clean: "ok", normalized: "ok", ucode_solo: "warn", deduped: "warn", missing: "err", invalid: "err" };
 
   const renderResult = (result) => {
     const { rows, counters, warnings } = result;
     const okCount = counters.clean + counters.normalized;
     const reviewCount = counters.ucode_solo + counters.deduped;
     const errCount = counters.missing + counters.invalid;
-    $("#kcd-summary").innerHTML =
-      `<strong>${rows.length}건</strong> 검토 · 정상 <strong>${okCount}건</strong> · 검토필요 <strong>${reviewCount}건</strong> · 미수록/오류 <strong>${errCount}건</strong>`;
+    $("#kcd-summary").innerHTML = t("kcd.summary", { n: rows.length, ok: okCount, rv: reviewCount, err: errCount });
     $("#kcd-toolbar").style.display = "flex";
     $("#kcd-download").disabled = false;
 
-    const warnHtml = warnings.length ? `<div class="kcd-warnings">${warnings.map(w => `<div>⚠ ${esc(w)}</div>`).join("")}</div>` : "";
+    const warnHtml = warnings.length ? `<div class="kcd-warnings">${warnings.map(w => `<div>⚠ ${esc(t(w))}</div>`).join("")}</div>` : "";
     $("#kcd-result").innerHTML = warnHtml + `
       <table>
         <thead><tr>
-          <th>환자번호</th><th>진료일자</th><th>주/부</th><th>진단명</th>
-          <th class="code">입력</th><th class="code">EDI 표준형</th><th>결과</th><th>비고</th>
+          <th>${esc(t("kcd.thPid"))}</th><th>${esc(t("kcd.thDate"))}</th><th>${esc(t("kcd.thRank"))}</th><th>${esc(t("kcd.thDx"))}</th>
+          <th class="code">${esc(t("kcd.thInput"))}</th><th class="code">${esc(t("kcd.thEdi"))}</th><th>${esc(t("common.thResult"))}</th><th>${esc(t("common.thNote"))}</th>
         </tr></thead>
         <tbody>
           ${rows.map(r => {
-            const [label, cls] = LABEL[r.정비결과] || ["—", "ok"];
-            const searchable = r.정비결과 === "missing";
+            const label = verdictLabel(r.verdict), cls = CLS[r.verdict] || "ok";
+            const searchable = r.verdict === "missing";
             const labelCell = searchable
-              ? `<td><button type="button" class="pill ${cls}" data-search="${esc(r.입력코드 || r.진단명)}" title="통합검색에서 확인">${label} →</button></td>`
-              : `<td><span class="pill ${cls}">${label}</span></td>`;
+              ? `<td><button type="button" class="pill ${cls}" data-search="${esc(r.input || r.dx)}" title="${esc(t("kcd.searchTitle"))}">${esc(label)} →</button></td>`
+              : `<td><span class="pill ${cls}">${esc(label)}</span></td>`;
             return `<tr>
-              <td>${esc(r.환자번호)}</td><td class="code">${esc(r.진료일자)}</td><td>${esc(r["주/부"]) || "—"}</td>
-              <td>${esc(r.진단명) || "—"}</td>
-              <td class="code">${esc(r.입력코드) || "—"}</td><td class="code">${esc(r.표준코드) || "—"}</td>
-              ${labelCell}<td>${esc(r.비고)}</td>
+              <td>${esc(r.pid)}</td><td class="code">${esc(r.date)}</td><td>${esc(rankText(r)) || "—"}</td>
+              <td>${esc(r.dx) || "—"}</td>
+              <td class="code">${esc(r.input) || "—"}</td><td class="code">${esc(r.std) || "—"}</td>
+              ${labelCell}<td>${esc(rowNote(r))}</td>
             </tr>`;
           }).join("")}
         </tbody>
@@ -151,7 +154,7 @@ export function initTab1(ctx) {
       btn.addEventListener("click", () => {
         const q = btn.getAttribute("data-search");
         EventBus.emit("search:query", q);
-        ActivityLog.push("kcd", `미수록 코드 통합검색 — "${q}"`, {});
+        ActivityLog.push("kcd", t("kcd.logSearch", { q }), {});
       });
     });
   };
@@ -162,40 +165,45 @@ export function initTab1(ctx) {
       ok: result.counters.clean + result.counters.normalized,
       review: result.counters.ucode_solo + result.counters.deduped,
       missing: result.counters.missing + result.counters.invalid,
-      missingCodes: result.rows.filter(r => r.정비결과 === "missing").map(r => r.입력코드).slice(0, 50),
+      missingCodes: result.rows.filter(r => r.verdict === "missing").map(r => r.input).slice(0, 50),
       at: Date.now()
     });
   };
 
-  const run = (rows, statusText, meta) => {
+  const run = (rows, statusFn, meta) => {
     const result = transform(rows);
     lastResult = result;
     renderResult(result);
     persistKcd(result);
-    ActivityLog.push("kcd", `상병코드 정비 — ${result.rows.length}건 검토`, meta);
-    setStatus($("#kcd-status"), null, statusText(result));
+    ActivityLog.push("kcd", t("kcd.logRun", { n: result.rows.length }), meta);
+    status(null, () => statusFn(result));
   };
 
   bindDrop("drop-kcd", async (file) => {
     try {
-      setStatus($("#kcd-status"), null, `파일을 읽는 중 — ${esc(file.name)}`);
+      status(null, () => t("common.statusReading", { name: esc(file.name) }));
       const rows = await readSpreadsheet(file);
-      if (!rows.length) { setStatus($("#kcd-status"), "warn", "빈 파일이거나 데이터를 찾지 못했습니다."); return; }
-      run(rows, r => `${r.rows.length}건 정비 완료 — EDI 청구 전 검토필요·미수록 항목을 우선 확인하세요.`, { rows: rows.length });
+      if (!rows.length) { status("warn", () => t("common.statusEmptyFile")); return; }
+      run(rows, r => t("kcd.statusDone", { n: r.rows.length }), { rows: rows.length });
     } catch (err) {
       console.error(err);
-      setStatus($("#kcd-status"), "err", "파일을 읽지 못했습니다 — 형식 확인 필요.");
+      status("err", () => t("common.statusReadFail"));
     }
   });
 
   $("#kcd-download").addEventListener("click", () => {
     if (!lastResult) return;
-    // downloadXLSX stamps the PoC watermark row + _PoC filename itself.
-    downloadXLSX(lastResult.rows.map(({ _kind, ...rest }) => rest), `상병코드_정리표_${todayISO()}.xlsx`, "상병코드 정리표");
-    ActivityLog.push("kcd", `상병코드 정리표 내려받음 (${lastResult.rows.length}건)`, {});
+    // downloadXLSX stamps the PoC watermark row + _PoC filename itself. Headers follow the UI language.
+    const rows = lastResult.rows.map(r => headerRow([
+      ["kcd.col.pid", r.pid], ["kcd.col.date", r.date], ["kcd.col.rank", rankText(r)], ["kcd.col.dx", r.dx],
+      ["kcd.col.input", r.input], ["kcd.col.std", r.std], ["kcd.col.verdict", verdictLabel(r.verdict)], ["kcd.col.note", rowNote(r)]
+    ]));
+    downloadXLSX(rows, t("kcd.fileSheet", { date: todayISO() }), t("kcd.sheetName"));
+    ActivityLog.push("kcd", t("kcd.logDownload", { n: lastResult.rows.length }), {});
   });
 
   // Sample rows carry a 주/부상병 column so the per-명세서 U-code rule is exercised.
+  // Column headers are the Korean EMR-export names the parser expects (data, not UI copy).
   const sampleKcdData = [
     { 환자번호: "P-2025-0042", 진료일자: "2025-12-10", "주/부상병": "주", 진단명: "요통",             KCD코드: "M54.5",  비고: "" },
     { 환자번호: "P-2025-0042", 진료일자: "2025-12-10", "주/부상병": "부", 진단명: "요통",             KCD코드: "M54.5",  비고: "이중 입력" },
@@ -211,12 +219,12 @@ export function initTab1(ctx) {
 
   $('[data-action="sample-kcd"]').addEventListener("click", (e) => {
     e.stopPropagation();
-    downloadXLSX(sampleKcdData, "샘플_상병대장_예시.xlsx", "샘플(예시)");
+    downloadXLSX(sampleKcdData, t("kcd.sampleFile"), t("common.sampleSheet"));
   });
 
   $('[data-action="run-kcd"]').addEventListener("click", () => {
-    setStatus($("#kcd-status"), null, `샘플 데이터 ${sampleKcdData.length}건 정비 중…`);
-    run(sampleKcdData, r => `샘플 ${r.rows.length}건 정비 완료 — 중복·형식정리·U코드 단독·미수록 등 EDI 청구 전 검토 케이스를 한 번에 보실 수 있습니다.`, { sample: true });
+    status(null, () => t("kcd.statusSampleRunning", { n: sampleKcdData.length }));
+    run(sampleKcdData, r => t("kcd.statusSampleDone", { n: r.rows.length }), { sample: true });
   });
 
   // 기준일 + master source banner
@@ -226,14 +234,17 @@ export function initTab1(ctx) {
     const el = $("#kcd-master-badge");
     if (!el) return;
     el.innerHTML = `<span class="src-pill ${src.source === "master" ? "master" : "demo"}">${esc(src.label)}</span>
-      <span class="basis">기준일 ${esc(src.source === "master" ? src.date : DATA.kcd?.basis_date || "—")} · ${esc(rev.current || "KCD")} ${esc(rev.effective_date || "")} 시행 — <em>확인 필요</em></span>`;
+      <span class="basis">${t("kcd.banner", { date: esc(src.source === "master" ? src.date : DATA.kcd?.basis_date || "—"), rev: esc(rev.current || "KCD"), eff: esc(rev.effective_date || "") })}</span>`;
   };
   renderBanner();
   Masters.onChange(renderBanner);
 
   const lastKcd = Store.get("kcd.lastSummary");
-  if (lastKcd) {
-    setStatus($("#kcd-status"), null,
-      `최근 정비 — ${relTime(lastKcd.at)} · ${lastKcd.total}건 · 미수록 ${lastKcd.missing}건. 새 파일을 올리면 갱신됩니다.`);
-  }
+  if (lastKcd) status(null, () => t("kcd.statusLast", { t: relTime(lastKcd.at), n: lastKcd.total, m: lastKcd.missing }));
+
+  onLangChange(() => {
+    renderBanner();
+    if (lastResult) renderResult(lastResult);
+    if (lastStatus) setStatus($("#kcd-status"), lastStatus.kind, lastStatus.fn());
+  });
 }

@@ -1,9 +1,10 @@
 /* clinic-admin — Tab 08 · 면허·자격 트래커 */
-import { $, $$, esc, todayISO, daysUntil, Haptic, Toast, Lightbox, Share, bindCameraButton, redactStaff } from "../core/ui.js";
+import { $, $$, esc, todayISO, daysUntil, Haptic, Toast, Lightbox, Share, bindCameraButton, redactStaff, roleLabel } from "../core/ui.js";
+import { t, getLang, onLangChange } from "../core/i18n.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { Attachments } from "../core/attachments.js";
 import { OCR } from "../core/ocr.js";
-import { downloadText, POC_MARK } from "../core/files.js";
+import { downloadText, pocMark } from "../core/files.js";
 
 /* ─────────────────────────────────────────────────────────
    Tab 8 — 면허·자격 트래커
@@ -13,6 +14,8 @@ import { downloadText, POC_MARK } from "../core/files.js";
      = acquired + 3y flagged basis:"acquired" ("신고 이력 미확인") otherwise,
      = "" for roles with no 신고 duty (원무 · 기타).
    · 면허증 OCR reads 면허번호 + 취득일 — a card never shows a 신고일.
+   i18n: role VALUES stay Korean (stored); labels, laws and association names resolve through
+   common.roleShort.* / license.law.* / license.org.* so the register, .ics and share text follow the language.
    ───────────────────────────────────────────────────────── */
 
 // Which roles carry a periodic 신고 duty, and where it is filed.
@@ -20,11 +23,13 @@ import { downloadText, POC_MARK } from "../core/files.js";
 // 간호조무사 — 의료법 §80 준용 (3년, 대한간호조무사협회). 물리치료사 — 의료기사 등에 관한 법률 §11 (3년, 대한물리치료사협회).
 // Confidence: high on the duty + 3-year cycle; portal URLs are "확인 필요".
 const ROLE_DUTY = {
-  "한의사":     { years: 3, law: "의료법 §25",           org: "대한한의사협회",     url: "https://www.akom.org" },
-  "간호사":     { years: 3, law: "의료법 §25",           org: "대한간호협회",       url: "https://www.koreanurse.or.kr" },
-  "간호조무사": { years: 3, law: "의료법 §80",           org: "대한간호조무사협회", url: "https://www.klpna.or.kr" },
-  "물리치료사": { years: 3, law: "의료기사 등에 관한 법률 §11", org: "대한물리치료사협회", url: "https://www.kpta.co.kr" }
+  "한의사":     { years: 3, url: "https://www.akom.org" },
+  "간호사":     { years: 3, url: "https://www.koreanurse.or.kr" },
+  "간호조무사": { years: 3, url: "https://www.klpna.or.kr" },
+  "물리치료사": { years: 3, url: "https://www.kpta.co.kr" }
 };
+const lawOf = (role) => t("license.law." + role);
+const orgOf = (role) => t("license.org." + role);
 export const hasDuty = (role) => !!ROLE_DUTY[role];
 
 export function initTab8() {
@@ -51,7 +56,7 @@ export function initTab8() {
 
   let editingId = null;
   const setEditing = (on) => {
-    $("#lic-add-btn").textContent = on ? "저장" : "추가";
+    $("#lic-add-btn").textContent = t(on ? "common.save" : "common.add");
     $("#lic-cancel").style.display = on ? "" : "none";
   };
   const resetForm = () => {
@@ -67,15 +72,15 @@ export function initTab8() {
   const syncRoleFields = () => {
     const duty = hasDuty($("#lic-role").value);
     ["lic-acquired", "lic-reported", "lic-no"].forEach(id => { $("#" + id).disabled = !duty; });
-    $("#lic-role-note").textContent = duty ? "" : "이 역할은 면허·자격 신고 대상이 아닙니다 (해당 없음).";
+    $("#lic-role-note").textContent = duty ? "" : t("license.noDutyNote");
   };
   $("#lic-role").addEventListener("change", syncRoleFields);
 
   const renderList = () => {
     const list = Store.get("license.list", []);
     if (!list.length) {
-      $("#lic-list").innerHTML = `<div class="empty-state">등록된 직원이 없습니다 — 아래 양식에서 추가하거나 샘플 5명 채우기를 눌러보세요.</div>`;
-      $("#lic-summary").textContent = "총 0명 · 기한 임박 0명";
+      $("#lic-list").innerHTML = `<div class="empty-state">${esc(t("license.emptyList"))}</div>`;
+      $("#lic-summary").textContent = t("license.summary", { n: 0, i: 0 });
       return;
     }
     let imminent = 0;
@@ -85,37 +90,37 @@ export function initTab8() {
       const cmeDays = daysUntil(lic.cme);
       const minDays = Math.min(expDays ?? 99999, cmeDays ?? 99999);
       let cls = "", note = "";
-      if (minDays < 0) { cls = "urgent"; note = `<em>${-minDays}일 초과</em>`; imminent++; }
-      else if (minDays <= 90) { cls = "urgent"; note = `<em>${minDays}일 남음</em>`; imminent++; }
-      else if (minDays <= 180) { cls = "warn"; note = `<em>${minDays}일 남음</em>`; }
-      else if (minDays !== 99999) { note = `<em>${minDays}일 남음</em>`; }
-      else if (!duty) { note = `<em>해당 없음</em>`; }
-      const dueText = !duty ? "면허신고 해당 없음"
-        : !lic.expiry ? "면허신고 기한 — 신고일 또는 취득일 입력 필요"
+      if (minDays < 0) { cls = "urgent"; note = t("license.overdue", { n: -minDays }); imminent++; }
+      else if (minDays <= 90) { cls = "urgent"; note = t("license.daysLeft", { n: minDays }); imminent++; }
+      else if (minDays <= 180) { cls = "warn"; note = t("license.daysLeft", { n: minDays }); }
+      else if (minDays !== 99999) { note = t("license.daysLeft", { n: minDays }); }
+      else if (!duty) { note = t("license.na"); }
+      const dueText = !duty ? esc(t("license.noDuty"))
+        : !lic.expiry ? esc(t("license.needDate"))
         : lic.basis === "acquired"
-          ? `면허신고 기한 ${esc(lic.expiry)} <span class="lic-flag" title="신고 이력 미확인 — 협회 포털에서 확인">신고 이력 미확인 — 협회 포털에서 확인</span> (취득 ${esc(lic.acquired)})`
-          : `면허신고 기한 ${esc(lic.expiry)} (신고 ${esc(lic.reported)})`;
-      const noText = lic.licenseNo ? ` · 면허번호 ${esc(lic.licenseNo)}` : "";
+          ? t("license.dueAcquired", { d: esc(lic.expiry), flag: esc(t("license.unverifiedFlag")), acq: esc(lic.acquired) })
+          : esc(t("license.dueReported", { d: lic.expiry, r: lic.reported }));
+      const noText = lic.licenseNo ? esc(t("license.noText", { no: lic.licenseNo })) : "";
       return `
         <div class="lic ${cls}" data-id="${esc(lic.id)}">
-          <span class="lic-role">${esc(lic.role)}</span>
+          <span class="lic-role">${esc(roleLabel(lic.role))}</span>
           <span class="lic-name">${esc(lic.name)}
-            <span class="lic-meta">${dueText}${noText} · 보수교육 ${esc(lic.cme || "—")}</span>
+            <span class="lic-meta">${dueText}${noText}${esc(t("license.cmeMeta", { cme: lic.cme || "—" }))}</span>
             <span class="attach-row" data-attach-row data-owner="${esc(lic.id)}"></span>
           </span>
           <span class="lic-due">${note}</span>
           <span class="lic-actions">
-            ${duty ? `<label class="icon-btn" data-act="cam" data-id="${esc(lic.id)}" title="면허증에서 면허번호·취득일 읽기" aria-label="면허증 촬영 — 면허번호·취득일 읽기">
+            ${duty ? `<label class="icon-btn" data-act="cam" data-id="${esc(lic.id)}" title="${esc(t("license.camTitle"))}" aria-label="${esc(t("license.camAria"))}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
               <input type="file" accept="image/*" capture="environment">
             </label>` : ""}
-            <button data-id="${esc(lic.id)}" data-act="edit" title="수정">✎</button>
-            <button data-id="${esc(lic.id)}" data-act="del" title="삭제">×</button>
+            <button data-id="${esc(lic.id)}" data-act="edit" title="${esc(t("common.edit"))}">✎</button>
+            <button data-id="${esc(lic.id)}" data-act="del" title="${esc(t("common.delete"))}">×</button>
           </span>
         </div>`;
     }).join("");
     $("#lic-list").innerHTML = html;
-    $("#lic-summary").textContent = `총 ${list.length}명 · 기한 임박 ${imminent}명`;
+    $("#lic-summary").textContent = t("license.summary", { n: list.length, i: imminent });
 
     $$("#lic-list .lic-actions > button").forEach(b => {
       b.addEventListener("click", () => {
@@ -128,15 +133,15 @@ export function initTab8() {
           if (!removed) return;
           if (editingId === id) resetForm();
           Store.set("license.list", list.filter(x => x.id !== id));
-          ActivityLog.push("license", "면허 직원 삭제", { silent: true, ...subj(removed) });
+          ActivityLog.push("license", t("license.logDelete"), { silent: true, ...subj(removed) });
           Haptic.del();
           renderList();
-          Toast.withUndo(`삭제됨 · ${redactStaff(removed)}`, () => {
+          Toast.withUndo(t("license.removedToast", { who: redactStaff(removed) }), () => {
             const cur = Store.get("license.list", []);
             if (cur.some(x => x.id === id)) return;
             cur.splice(Math.min(idx, cur.length), 0, removed);
             Store.set("license.list", cur);
-            ActivityLog.push("license", "삭제 취소", { silent: true, ...subj(removed) });
+            ActivityLog.push("license", t("license.logUndo"), { silent: true, ...subj(removed) });
             renderList();
           }, "license");
         } else if (b.dataset.act === "edit") {
@@ -175,7 +180,7 @@ export function initTab8() {
         const dueEl = row.querySelector(".lic-due");
         const shim = document.createElement("span");
         shim.className = "ocr-shimmer";
-        shim.innerHTML = `<span class="dot"></span>OCR 분석 중…`;
+        shim.innerHTML = `<span class="dot"></span>${esc(t("license.ocrRunning"))}`;
         dueEl.appendChild(shim);
         try {
           const { issued, licenseNo } = await OCR.run(dataUrl, m => {
@@ -192,21 +197,21 @@ export function initTab8() {
               if (licenseNo) target.licenseNo = licenseNo;
               Object.assign(target, computeDue(target));
               Store.set("license.list", list2);
-              ActivityLog.push("license", `OCR — 면허증 ${[issued && "취득일", licenseNo && "면허번호"].filter(Boolean).join("·")} 읽음`, subj(target));
+              ActivityLog.push("license", t("license.ocrLog", { what: [issued && t("license.acquiredWord"), licenseNo && t("license.licNoWord")].filter(Boolean).join("·") }), subj(target));
             }
             shim.classList.add("success");
-            shim.innerHTML = `✓ ${[issued && `취득일 ${esc(issued)}`, licenseNo && `면허번호 ${esc(licenseNo)}`].filter(Boolean).join(" · ")} 입력`;
+            shim.innerHTML = esc(t("license.ocrDone", { parts: [issued && t("license.ocrAcq", { d: issued }), licenseNo && t("license.ocrNo", { n: licenseNo })].filter(Boolean).join(" · ") }));
             setTimeout(() => shim.remove(), 2500);
           } else {
             shim.classList.add("fail");
-            shim.innerHTML = `× 면허번호·취득일 인식 실패`;
+            shim.innerHTML = esc(t("license.ocrFail"));
             setTimeout(() => shim.remove(), 2500);
           }
         } catch (err) {
           console.error(err);
           shim.classList.add("fail");
-          shim.textContent = `× ${err.message || "OCR 실패"}`;
-          Toast.show({ tag: "license", html: esc(err.message || "OCR 실패") });
+          shim.textContent = `× ${err.message || t("license.ocrErr")}`;
+          Toast.show({ tag: "license", html: esc(err.message || t("license.ocrErr")) });
           setTimeout(() => shim.remove(), 4000);
         }
         // Re-render attachments thumbs for this row
@@ -227,8 +232,8 @@ export function initTab8() {
     if (!atts.length) { row.innerHTML = ""; return; }
     row.innerHTML = atts.map(a => `
       <span class="attach-thumb" data-att="${a.id}">
-        <img src="${a.data}" alt="첨부 사진">
-        <span class="x" data-att="${a.id}" title="삭제">×</span>
+        <img src="${a.data}" alt="${esc(t("license.attachAlt"))}">
+        <span class="x" data-att="${a.id}" title="${esc(t("common.delete"))}">×</span>
       </span>
     `).join("");
     row.querySelectorAll(".attach-thumb img").forEach((img, i) => {
@@ -241,7 +246,7 @@ export function initTab8() {
         await Attachments.del(x.dataset.att);
         Haptic.del();
         renderAttachments(ownerId);
-        if (att) Toast.withUndo("삭제됨 · 첨부 사진", async () => {
+        if (att) Toast.withUndo(t("license.attachRemoved"), async () => {
           await Attachments.put(att); // same id + timestamp → same slot
           renderAttachments(ownerId);
         }, "license");
@@ -257,7 +262,7 @@ export function initTab8() {
     const acquired = duty ? $("#lic-acquired").value : "";
     const reported = duty ? $("#lic-reported").value : "";
     const cme = $("#lic-cme").value;
-    if (!name) { Haptic.warn(); alert("이름을 입력해주세요."); return; }
+    if (!name) { Haptic.warn(); alert(t("license.alertName")); return; }
     const rec = { role, name, licenseNo, acquired, reported, cme };
     Object.assign(rec, computeDue(rec));
     const list = Store.get("license.list", []);
@@ -265,10 +270,10 @@ export function initTab8() {
       const target = list.find(x => x.id === editingId);
       if (target) Object.assign(target, rec);
       else list.push({ id: editingId, ...rec });
-      ActivityLog.push("license", "직원 수정", subj(rec));
+      ActivityLog.push("license", t("license.logEdit"), subj(rec));
     } else {
       list.push({ id: "lic-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6), ...rec });
-      ActivityLog.push("license", "직원 추가", subj(rec));
+      ActivityLog.push("license", t("license.logAdd"), subj(rec));
     }
     Store.set("license.list", list);
     Haptic.save();
@@ -296,68 +301,77 @@ export function initTab8() {
       { role: "원무",       name: "한지원", licenseNo: "", acquired: "", reported: "", cme: "" }
     ].map((x, i) => ({ ...x, id: `lic-sample-${String(i + 1).padStart(2, "0")}`, ...computeDue(x) }));
     Store.set("license.list", sample);
-    ActivityLog.push("license", `샘플 직원 ${sample.length}명 등록`, {});
+    ActivityLog.push("license", t("license.logSample", { n: sample.length }), {});
     renderList();
   });
 
   $("#lic-ics").addEventListener("click", () => {
     const list = Store.get("license.list", []);
-    if (!list.length) { alert("등록된 직원이 없습니다."); return; }
+    if (!list.length) { alert(t("license.alertNoStaff")); return; }
     const pad = n => String(n).padStart(2, "0");
     const fmt = d => {
       const dt = new Date(d + "T09:00:00");
       return `${dt.getFullYear()}${pad(dt.getMonth()+1)}${pad(dt.getDate())}T090000`;
     };
     const icsText = (s) => String(s).replace(/\\/g, "\\\\").replace(/[,;]/g, m => "\\" + m).replace(/\n/g, "\\n");
-    // PoC watermark: calendar-level notice + every event DESCRIPTION opens with the mark.
-    const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Vibe Studio//Clinic Admin//KO", `X-POC-NOTICE:${icsText(POC_MARK)}`];
+    // PoC watermark: calendar-level notice + every event DESCRIPTION opens with the mark (UI language).
+    const mark = pocMark();
+    const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", `PRODID:-//Vibe Studio//Clinic Admin//${getLang().toUpperCase()}`, `X-POC-NOTICE:${icsText(mark)}`];
     for (const lic of list) {
       const duty = ROLE_DUTY[lic.role];
+      const role = roleLabel(lic.role);
       if (duty && lic.expiry) ics.push("BEGIN:VEVENT",
         `UID:${lic.id}-exp@vibe-clinic-admin`,
         `DTSTAMP:${fmt(todayISO())}Z`, `DTSTART:${fmt(lic.expiry)}`,
         `DTEND:${fmt(lic.expiry).slice(0,11)}5959`,
-        `SUMMARY:${icsText(`${lic.role} ${lic.name} — 면허신고 기한${lic.basis === "acquired" ? " (신고 이력 미확인)" : ""}`)}`,
-        `DESCRIPTION:${icsText(`${POC_MARK} · 면허신고 기한 (${duty.law} · ${lic.basis === "acquired" ? "취득일" : "신고일"} + ${duty.years}년)`)}`,
+        `SUMMARY:${icsText(t("license.icsReport", { role, name: lic.name, flag: lic.basis === "acquired" ? t("license.icsUnverified") : "" }))}`,
+        `DESCRIPTION:${icsText(t("license.icsReportDesc", { mark, law: lawOf(lic.role), basis: t(lic.basis === "acquired" ? "license.basisAcquired" : "license.basisReported"), y: duty.years }))}`,
         "BEGIN:VALARM","TRIGGER:-P30D","ACTION:DISPLAY",
-        `DESCRIPTION:${icsText(`면허신고 기한 (${duty.law})`)}`,"END:VALARM",
+        `DESCRIPTION:${icsText(t("license.icsAlarm", { law: lawOf(lic.role) }))}`,"END:VALARM",
         "END:VEVENT");
       if (lic.cme) ics.push("BEGIN:VEVENT",
         `UID:${lic.id}-cme@vibe-clinic-admin`,
         `DTSTAMP:${fmt(todayISO())}Z`, `DTSTART:${fmt(lic.cme)}`,
         `DTEND:${fmt(lic.cme).slice(0,11)}5959`,
-        `SUMMARY:${icsText(`${lic.role} ${lic.name} — 보수교육 마감`)}`,
-        `DESCRIPTION:${icsText(`${POC_MARK} · 보수교육 마감 예정`)}`,
+        `SUMMARY:${icsText(t("license.icsCme", { role, name: lic.name }))}`,
+        `DESCRIPTION:${icsText(t("license.icsCmeDesc", { mark }))}`,
         "BEGIN:VALARM","TRIGGER:-P30D","ACTION:DISPLAY",
-        "DESCRIPTION:보수교육 마감 예정","END:VALARM",
+        `DESCRIPTION:${icsText(t("license.icsCmeAlarm"))}`,"END:VALARM",
         "END:VEVENT");
     }
     ics.push("END:VCALENDAR");
     downloadText(ics.join("\r\n"), `licenses_${todayISO()}.ics`, "text/calendar;charset=utf-8"); // filename → _PoC
-    ActivityLog.push("license", "면허신고 기한 캘린더 .ics 내려받음", {});
+    ActivityLog.push("license", t("license.logIcs"), {});
   });
 
   $("#lic-share")?.addEventListener("click", async () => {
     const list = Store.get("license.list", []);
-    if (!list.length) { alert("등록된 직원이 없습니다."); return; }
+    if (!list.length) { alert(t("license.alertNoStaff")); return; }
     const lines = list.map(l => {
-      if (!hasDuty(l.role)) return `• ${l.role} ${l.name} · 면허신고 해당 없음 · 보수교육 ${l.cme || "—"}`;
+      const role = roleLabel(l.role);
+      if (!hasDuty(l.role)) return t("license.shareNoDuty", { role, name: l.name, cme: l.cme || "—" });
       const expDays = daysUntil(l.expiry);
       const tag = expDays == null ? "—" : (expDays < 0 ? `D+${-expDays}` : `D-${expDays}`);
-      return `• ${l.role} ${l.name} · 면허신고 기한 ${l.expiry || "—"} (${tag})${l.basis === "acquired" ? " · 신고 이력 미확인" : ""} · 보수교육 ${l.cme || "—"}`;
+      return t("license.shareLine", { role, name: l.name, d: l.expiry || "—", tag, flag: l.basis === "acquired" ? t("license.shareFlag") : "", cme: l.cme || "—" });
     });
-    const text = `[한방병원 면허·자격 명부]\n${lines.join("\n")}\n\n— ${todayISO()} 기준`;
-    await Share.send({ title: "면허·자격 명부", text });
-    ActivityLog.push("license", "면허 명부 공유", {});
+    const text = t("license.shareText", { lines: lines.join("\n"), date: todayISO() });
+    await Share.send({ title: t("license.shareTitle"), text });
+    ActivityLog.push("license", t("license.logShare"), {});
   });
 
-  // Per-role 협회 links for the caveat (URLs marked 확인 필요 in the HTML).
-  const orgEl = $("#lic-orgs");
-  if (orgEl) orgEl.innerHTML = Object.entries(ROLE_DUTY).map(([role, d]) =>
-    `${esc(role)} → <a class="small-link" href="${esc(d.url)}" target="_blank" rel="noopener noreferrer">${esc(d.org)}</a> (${esc(d.law)})`
-  ).join(" · ");
+  // Per-role 협회 links for the caveat (URLs marked 확인 필요 in the HTML). Re-filled after a language swap
+  // (the caveat is a data-i18n-html block, so the #lic-orgs span is re-created).
+  const renderOrgs = () => {
+    const orgEl = $("#lic-orgs");
+    if (orgEl) orgEl.innerHTML = Object.entries(ROLE_DUTY).map(([role, d]) =>
+      `${esc(roleLabel(role))} → <a class="small-link" href="${esc(d.url)}" target="_blank" rel="noopener noreferrer">${esc(orgOf(role))}</a> (${esc(lawOf(role))})`
+    ).join(" · ");
+  };
+  renderOrgs();
 
   EventBus.on("store:license.list", renderList);
   syncRoleFields();
   renderList();
+
+  onLangChange(() => { renderOrgs(); setEditing(!!editingId); syncRoleFields(); renderList(); });
 }

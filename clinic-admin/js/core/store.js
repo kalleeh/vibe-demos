@@ -13,6 +13,7 @@
      first unlock (Store.unlockedInit), together with IndexedDB attachments.
    Events: `session:unlocked` (after the cache is populated) and `session:locked` (local only). */
 import { $, relTime, debounce, redactSubject, redactStaff } from "./dom.js";
+import { t } from "./i18n.js";
 import { Attachments } from "./attachments.js";
 import { Session } from "../security/session.js";
 import { encryptJSON, decryptJSON, isEnvelope } from "../security/crypto.js";
@@ -268,14 +269,16 @@ const ActivityLog = {
   recent(n = 10) { return (Store.get("activity", []) || []).slice(0, n); },
   all() { return Store.get("activity", []) || []; },
   // CSV text (BOM + header). The caller adds the PoC watermark row via files.js/pocWatermark.
+  // Column headers follow the UI language (lifecycle.audit.col.*); values are the stored records.
   exportRows() {
+    const H = ["at", "actor", "role", "tag", "action", "subject"].map(k => t("lifecycle.audit.col." + k));
     return this.all().map(e => ({
-      "일시": new Date(e.at).toISOString(), "사용자": e.actor || "", "역할": e.role || "",
-      "영역": e.tag || "", "작업": e.action || e.text || "", "대상(가명)": e.subject || ""
+      [H[0]]: new Date(e.at).toISOString(), [H[1]]: e.actor || "", [H[2]]: e.role || "",
+      [H[3]]: e.tag || "", [H[4]]: e.action || e.text || "", [H[5]]: e.subject || ""
     }));
   },
   clear() {
-    if (!Session.isOwner()) throw new Error("원장 권한이 필요합니다");
+    if (!Session.isOwner()) throw new Error(t("common.ownerRequired"));
     Store.remove("activity");
   }
 };
@@ -296,7 +299,7 @@ const SyncStatus = (() => {
       led.classList.remove("idle");
       led.classList.add("live");
     }
-    if (msg) msg.textContent = "로컬 저장 · 암호화 — 자동으로 이 브라우저에 보관됩니다.";
+    if (msg) msg.textContent = t("shell.syncSaved");
   };
   return {
     touch() {

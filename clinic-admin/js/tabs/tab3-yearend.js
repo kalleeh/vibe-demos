@@ -1,7 +1,8 @@
 /* clinic-admin — Tab 03 · 연말정산 의료비 자료 사전점검 */
-import { $, esc, fmtKRW, todayISO, setStatus, bindDrop } from "../core/ui.js";
+import { $, esc, fmtKRW, won, todayISO, setStatus, bindDrop } from "../core/ui.js";
+import { t, onLangChange } from "../core/i18n.js";
 import { ActivityLog, bindPersist } from "../core/store.js";
-import { readSpreadsheet, downloadXLSX, downloadCSV } from "../core/files.js";
+import { readSpreadsheet, downloadXLSX, downloadCSV, headerRow } from "../core/files.js";
 import { checkRRN, maskRRN } from "./reporting-shared.js";
 
 /* ─────────────────────────────────────────────────────────
@@ -10,9 +11,12 @@ import { checkRRN, maskRRN } from "./reporting-shared.js";
    간소화 자료 (홈택스 or the EMR's 국세청 module). Nothing here is a
    submission format; the output is a 사전점검 정리표.
    주민등록번호 is parsed in memory only — never persisted, always masked.
+   i18n: rows keep neutral fields + [key, vars] issue messages so the tables, the status line and the CSV
+   headers re-render from `lastResult` in either language.
    ───────────────────────────────────────────────────────── */
 export function initTab3() {
-  let lastRows = null;
+  let lastResult = null, lastStatus = null;
+  const status = (kind, fn) => { lastStatus = { kind, fn }; setStatus($("#ye-status"), kind, fn()); };
 
   const pick = (row, keys) => { for (const k of keys) if (row[k] != null && row[k] !== "") return row[k]; return ""; };
   const parseAmount = (v) => {
@@ -29,6 +33,10 @@ export function initTab3() {
     const d = new Date(iso + "T00:00:00");
     return isNaN(d) ? null : iso;
   };
+  // field / message resolvers — issues store { level, field: fieldKey, msg: [key, vars] | string }
+  const fieldText = (f) => t("yearend.f." + f);
+  const msgText = (m) => Array.isArray(m) ? t(m[0], m[1]) : String(m ?? "");
+  const verdictText = (lvl) => t("yearend.v." + lvl);
 
   // Returns { rows, issues, patients, taxYear }.
   const validate = (rows) => {
@@ -48,78 +56,67 @@ export function initTab3() {
       const rowIssues = [];
       const add = (level, field, msg) => { rowIssues.push({ level, field, msg }); issues.push({ row: n, name, masked, level, field, msg }); };
 
-      if (rrn.level !== "ok") add(rrn.level, "주민등록번호", rrn.msg);
-      if (!date) add("error", "진료일자", "날짜 형식 인식 불가 (YYYY-MM-DD)");
-      else if (+date.slice(0, 4) !== taxYear) add("error", "진료일자", `과세연도(${taxYear}) 외 진료일`);
-      for (const [label, a] of [["본인부담금", own], ["비급여금액", non], ["의료비총액", tot]]) {
+      if (rrn.level !== "ok") add(rrn.level, "rrn", rrn.msgKey ? [rrn.msgKey, rrn.vars] : rrn.msg);
+      if (!date) add("error", "date", ["yearend.msgDateFormat"]);
+      else if (+date.slice(0, 4) !== taxYear) add("error", "date", ["yearend.msgOutOfYear", { y: taxYear }]);
+      for (const [field, a] of [["own", own], ["non", non], ["total", tot]]) {
         if (a.missing) continue;
-        if (isNaN(a.value)) add("error", label, "숫자가 아닌 금액");
-        else if (a.value < 0) add("error", label, `음수 금액 (${fmtKRW(a.value)})`);
+        if (isNaN(a.value)) add("error", field, ["yearend.msgNotNumber"]);
+        else if (a.value < 0) add("error", field, ["yearend.msgNegative", { amt: fmtKRW(a.value) }]);
       }
       const ownV = isNaN(own.value) ? 0 : Math.max(0, own.value);
       const nonV = isNaN(non.value) ? 0 : Math.max(0, non.value);
-      if (own.missing && non.missing) add("warn", "금액", "본인부담금·비급여금액 모두 비어 있음");
+      if (own.missing && non.missing) add("warn", "amount", ["yearend.msgBothEmpty"]);
       let totalV = ownV + nonV;
       if (!tot.missing && !isNaN(tot.value) && tot.value >= 0) {
         totalV = tot.value;
-        if (ownV + nonV > tot.value) add("error", "의료비총액", `본인부담금 + 비급여 (${fmtKRW(ownV + nonV)}) > 총액 (${fmtKRW(tot.value)})`);
+        if (ownV + nonV > tot.value) add("error", "total", ["yearend.msgSumGtTotal", { s: fmtKRW(ownV + nonV), tot: fmtKRW(tot.value) }]);
       }
       if (rrn.digits.length === 13 && date) {
         const key = `${rrn.digits}|${date}|${ownV}|${nonV}`;
-        if (seen.has(key)) add("warn", "중복", `${seen.get(key)}행과 동일 (주민번호·진료일·금액)`);
+        if (seen.has(key)) add("warn", "dup", ["yearend.msgDup", { row: seen.get(key) }]);
         else seen.set(key, n);
       }
 
-      const worst = rowIssues.some(i => i.level === "error") ? "오류" : rowIssues.some(i => i.level === "warn") ? "주의" : "정상";
-      out.push({
-        "사업자등록번호": biz,
-        "행": n,
-        "환자성명": name,
-        "주민등록번호(마스크)": masked,
-        "진료일자": date || String(pick(row, ["진료일자", "진료일", "일자"])),
-        "의료비총액": totalV,
-        "본인부담금": ownV,
-        "비급여금액": nonV,
-        "점검결과": worst,
-        "점검내용": rowIssues.map(i => `${i.field}: ${i.msg}`).join(" / ")
-      });
+      const worst = rowIssues.some(i => i.level === "error") ? "error" : rowIssues.some(i => i.level === "warn") ? "warn" : "ok";
+      out.push({ biz, row: n, name, masked, date: date || String(pick(row, ["진료일자", "진료일", "일자"])), total: totalV, own: ownV, non: nonV, verdict: worst, issues: rowIssues });
 
       // Per-patient totals (keyed by RRN digits when usable, else by name)
       const pk = rrn.digits.length === 13 ? rrn.digits : `name:${name}`;
       const p = patients.get(pk) || { name, masked, count: 0, total: 0, own: 0, non: 0, errors: 0 };
       p.count++; p.total += totalV; p.own += ownV; p.non += nonV;
-      if (worst === "오류") p.errors++;
+      if (worst === "error") p.errors++;
       patients.set(pk, p);
     });
     return { rows: out, issues, patients: [...patients.values()], taxYear };
   };
+  const rowNotes = (r) => r.issues.map(i => `${fieldText(i.field)}: ${msgText(i.msg)}`).join(" / ");
 
   const render = ({ rows, issues, patients, taxYear }) => {
-    const total = rows.reduce((s, r) => s + (r["의료비총액"] || 0), 0);
+    const total = rows.reduce((s, r) => s + (r.total || 0), 0);
     const errs = issues.filter(i => i.level === "error").length;
     const warns = issues.filter(i => i.level === "warn").length;
-    $("#ye-summary").innerHTML =
-      `<strong>${rows.length}건</strong> · 총 의료비 <strong>${fmtKRW(total)}원</strong> · 오류 <strong>${errs}</strong> · 주의 <strong>${warns}</strong> · 과세연도 ${taxYear}`;
+    $("#ye-summary").innerHTML = t("yearend.summary", { n: rows.length, total: won(total), e: errs, w: warns, y: taxYear });
     $("#ye-toolbar").style.display = "flex";
     $("#ye-download").disabled = false;
 
-    const pill = (lvl) => lvl === "error" ? `<span class="pill err">오류</span>` : `<span class="pill warn">주의</span>`;
+    const pill = (lvl) => lvl === "error" ? `<span class="pill err">${esc(verdictText("error"))}</span>` : `<span class="pill warn">${esc(verdictText("warn"))}</span>`;
     const issueTable = issues.length ? `
-      <h5 class="ye-subhead">점검 결과 — ${errs}개 오류 · ${warns}개 주의</h5>
+      <h5 class="ye-subhead">${esc(t("yearend.issuesH", { e: errs, w: warns }))}</h5>
       <table class="ye-issues">
-        <thead><tr><th class="code">행</th><th>환자</th><th class="code">주민번호</th><th>항목</th><th>내용</th><th>구분</th></tr></thead>
+        <thead><tr><th class="code">${esc(t("yearend.thRow"))}</th><th>${esc(t("yearend.thPatient"))}</th><th class="code">${esc(t("yearend.thRrn"))}</th><th>${esc(t("yearend.thField"))}</th><th>${esc(t("yearend.thDetail"))}</th><th>${esc(t("yearend.thLevel"))}</th></tr></thead>
         <tbody>${issues.map(i => `<tr class="${i.level === "error" ? "row-err" : "row-warn"}">
           <td class="code">${i.row}</td><td>${esc(i.name)}</td><td class="code">${esc(i.masked)}</td>
-          <td>${esc(i.field)}</td><td>${esc(i.msg)}</td><td>${pill(i.level)}</td></tr>`).join("")}
+          <td>${esc(fieldText(i.field))}</td><td>${esc(msgText(i.msg))}</td><td>${pill(i.level)}</td></tr>`).join("")}
         </tbody>
-      </table>` : `<div class="status-line" style="display:flex"><span class="dot"></span><span>행 단위 점검에서 오류·주의 항목이 없습니다.</span></div>`;
+      </table>` : `<div class="status-line" style="display:flex"><span class="dot"></span><span>${esc(t("yearend.noIssues"))}</span></div>`;
 
     const patientTable = `
-      <h5 class="ye-subhead">환자별 합계 — ${patients.length}명</h5>
+      <h5 class="ye-subhead">${esc(t("yearend.patientsH", { n: patients.length }))}</h5>
       <table>
-        <thead><tr><th>환자</th><th class="code">주민번호</th><th class="code">건수</th><th class="code">본인부담</th><th class="code">비급여</th><th class="code">합계</th></tr></thead>
+        <thead><tr><th>${esc(t("yearend.thPatient"))}</th><th class="code">${esc(t("yearend.thRrn"))}</th><th class="code">${esc(t("yearend.thCount"))}</th><th class="code">${esc(t("yearend.thOwn"))}</th><th class="code">${esc(t("yearend.thNon"))}</th><th class="code">${esc(t("yearend.thSum"))}</th></tr></thead>
         <tbody>${patients.map(p => `<tr>
-          <td>${esc(p.name)}${p.errors ? ` <span class="pill err">오류 ${p.errors}</span>` : ""}</td>
+          <td>${esc(p.name)}${p.errors ? ` <span class="pill err">${esc(t("yearend.errBadge", { n: p.errors }))}</span>` : ""}</td>
           <td class="code">${esc(p.masked)}</td>
           <td class="code" style="text-align:right">${p.count}</td>
           <td class="code" style="text-align:right">${fmtKRW(p.own)}</td>
@@ -129,22 +126,22 @@ export function initTab3() {
       </table>`;
 
     const rowTable = `
-      <h5 class="ye-subhead">정리표 — ${rows.length}행</h5>
+      <h5 class="ye-subhead">${esc(t("yearend.sheetH", { n: rows.length }))}</h5>
       <table>
         <thead><tr>
-          <th class="code">행</th><th>환자성명</th><th class="code">주민번호</th><th class="code">진료일자</th>
-          <th class="code">총액</th><th class="code">본인부담</th><th class="code">비급여</th><th>점검</th>
+          <th class="code">${esc(t("yearend.thRow"))}</th><th>${esc(t("yearend.thName"))}</th><th class="code">${esc(t("yearend.thRrn"))}</th><th class="code">${esc(t("jabo.fDate"))}</th>
+          <th class="code">${esc(t("yearend.thTotal"))}</th><th class="code">${esc(t("yearend.thOwn"))}</th><th class="code">${esc(t("yearend.thNon"))}</th><th>${esc(t("yearend.thCheck"))}</th>
         </tr></thead>
         <tbody>
           ${rows.map(r => `<tr>
-            <td class="code">${r["행"]}</td>
-            <td>${esc(r["환자성명"])}</td>
-            <td class="code">${esc(r["주민등록번호(마스크)"])}</td>
-            <td class="code">${esc(r["진료일자"])}</td>
-            <td class="code" style="text-align:right">${fmtKRW(r["의료비총액"])}</td>
-            <td class="code" style="text-align:right">${fmtKRW(r["본인부담금"])}</td>
-            <td class="code" style="text-align:right">${fmtKRW(r["비급여금액"])}</td>
-            <td><span class="pill ${r["점검결과"] === "오류" ? "err" : r["점검결과"] === "주의" ? "warn" : "ok"}">${esc(r["점검결과"])}</span></td>
+            <td class="code">${r.row}</td>
+            <td>${esc(r.name)}</td>
+            <td class="code">${esc(r.masked)}</td>
+            <td class="code">${esc(r.date)}</td>
+            <td class="code" style="text-align:right">${fmtKRW(r.total)}</td>
+            <td class="code" style="text-align:right">${fmtKRW(r.own)}</td>
+            <td class="code" style="text-align:right">${fmtKRW(r.non)}</td>
+            <td><span class="pill ${r.verdict === "error" ? "err" : r.verdict === "warn" ? "warn" : "ok"}">${esc(verdictText(r.verdict))}</span></td>
           </tr>`).join("")}
         </tbody>
       </table>`;
@@ -152,40 +149,45 @@ export function initTab3() {
     $("#ye-result").innerHTML = issueTable + patientTable + rowTable;
   };
 
-  const finish = (result, statusMsg) => {
-    lastRows = result.rows;
+  const finish = (result, statusFn) => {
+    lastResult = result;
     render(result);
     const errs = result.issues.filter(i => i.level === "error").length;
-    setStatus($("#ye-status"), errs ? "err" : null, statusMsg(errs));
+    status(errs ? "err" : null, () => statusFn(errs));
   };
 
   bindDrop("drop-ye", async (file) => {
     try {
-      setStatus($("#ye-status"), null, `파일을 읽는 중 — ${esc(file.name)}`);
+      status(null, () => t("common.statusReading", { name: esc(file.name) }));
       const rows = await readSpreadsheet(file);
       if (!rows.length) {
-        setStatus($("#ye-status"), "warn", "빈 파일입니다.");
+        status("warn", () => t("common.statusEmptyFileShort"));
         return;
       }
       const result = validate(rows);
-      ActivityLog.push("yearend", `의료비 사전점검 — ${result.rows.length}건 (오류 ${result.issues.filter(i => i.level === "error").length})`, { file: file.name });
+      ActivityLog.push("yearend", t("yearend.logRun", { n: result.rows.length, e: result.issues.filter(i => i.level === "error").length }), { file: file.name });
       finish(result, (errs) => errs
-        ? `${result.rows.length}건 점검 — 오류 ${errs}건. 정정 후 EMR·홈택스에서 자료를 제출하세요. 주민등록번호는 마스킹만 표시되고 저장되지 않습니다.`
-        : `${result.rows.length}건 점검 완료 — 행 단위 오류 없음. 사전점검 정리표를 내려받을 수 있습니다.`);
+        ? t("yearend.statusErrs", { n: result.rows.length, e: errs })
+        : t("yearend.statusOk", { n: result.rows.length }));
     } catch (err) {
-      setStatus($("#ye-status"), "err", "파일을 읽지 못했습니다.");
+      status("err", () => t("common.statusReadFailShort"));
     }
   });
 
   $("#ye-download").addEventListener("click", () => {
-    if (!lastRows) return;
+    if (!lastResult) return;
     const biz = ($("#ye-biz").value || "biz").replace(/-/g, "");
-    downloadCSV(lastRows, `의료비_사전점검_정리표_${biz}_${todayISO().replace(/-/g, "")}.csv`); // watermark + _PoC applied inside
-    ActivityLog.push("yearend", `의료비 사전점검 정리표 내려받음 (${lastRows.length}행)`, {});
+    const rows = lastResult.rows.map(r => headerRow([
+      ["yearend.col.biz", r.biz], ["yearend.col.row", r.row], ["yearend.col.name", r.name], ["yearend.col.rrn", r.masked], ["yearend.col.date", r.date],
+      ["yearend.col.total", r.total], ["yearend.col.own", r.own], ["yearend.col.non", r.non], ["yearend.col.verdict", verdictText(r.verdict)], ["yearend.col.notes", rowNotes(r)]
+    ]));
+    downloadCSV(rows, t("yearend.file", { biz, date: todayISO().replace(/-/g, "") })); // watermark + _PoC applied inside
+    ActivityLog.push("yearend", t("yearend.logDl", { n: rows.length }), {});
   });
 
   // Sample: dates follow the selected tax year; the checksum-valid numbers pass, and the
   // set deliberately contains one bad RRN, one negative amount and one duplicate row.
+  // Column headers are the Korean EMR-export names the validator expects (data, not UI copy).
   const sampleYeData = () => {
     const y = +$("#ye-year").value || new Date().getFullYear() - 1;
     return [
@@ -200,19 +202,23 @@ export function initTab3() {
 
   $('[data-action="sample-ye"]').addEventListener("click", (e) => {
     e.stopPropagation();
-    downloadXLSX(sampleYeData(), `샘플_진료기록_${$("#ye-year").value || ""}.xlsx`, "샘플");
+    downloadXLSX(sampleYeData(), t("yearend.sampleFile", { y: $("#ye-year").value || "" }), t("common.sampleSheetShort"));
   });
 
   $('[data-action="run-ye"]').addEventListener("click", () => {
     if (!$("#ye-biz").value.trim()) $("#ye-biz").value = "123-45-67890";
     if (!$("#ye-clinic").value.trim()) $("#ye-clinic").value = "한솔 한방병원";
     const result = validate(sampleYeData());
-    ActivityLog.push("yearend", `의료비 사전점검 시연 — ${result.rows.length}건`, { sample: true });
-    finish(result, (errs) =>
-      `샘플 환자 4명 · 6건 — 주민번호 자릿수 오류, 음수 금액, 중복 행이 섞인 데이터로 사전점검 흐름을 보여드립니다 (오류 ${errs}건). 주민등록번호는 자동 마스킹.`);
+    ActivityLog.push("yearend", t("yearend.logSample", { n: result.rows.length }), { sample: true });
+    finish(result, (errs) => t("yearend.statusSample", { e: errs }));
   });
 
   // Persist hospital info fields (never the uploaded rows)
   if (!$("#ye-year").value) $("#ye-year").value = String(new Date().getFullYear() - 1);
   ["ye-biz", "ye-clinic", "ye-year"].forEach(id => bindPersist("#" + id, "yearend." + id));
+
+  onLangChange(() => {
+    if (lastResult) render(lastResult);
+    if (lastStatus) setStatus($("#ye-status"), lastStatus.kind, lastStatus.fn());
+  });
 }
