@@ -213,4 +213,5 @@ Items the review/fix pass surfaced but deliberately left for a later session (ea
 - **intake-companion** — canned cases 삼령백출산 and 천마구등음 show no herb section because the atlas lacks images for their herbs (산약·의이인·천마·구등…). Add herb images, not map entries.
 - **korean-words** — Räkneord icon is 🧮 (Siffror already uses 🔢); confirm with the kids.
 - **kids-bookshelf** — the share hash includes the free-text note (`n=`) so links reproduce exactly; drop it if that feels like a privacy leak.
-- **clinic-admin** — dead `.tab-btn` CSS rules remain (~lines 215–243 of `index.html`).
+- **clinic-admin** — `.demo-strip` "샘플로 시연" CTAs are `display:none !important` under `body.shell-v2` (`styles.css`), so samples only run via the welcome seed or palette; decide whether to restore or remove them. Tab 8 `.ics` SUMMARY still carries staff names (record export, like the XLSX); pseudonymise if wanted. OCR against real Tesseract is untested headless. Dead `.tab-btn` CSS rules remain in `styles.css`.
+- **clinic-admin (real-use path, out of PoC scope)** — self-hosted pinned build, LLM 위탁계약 or on-prem model, server-side 접속기록 retention, PocketBase Tier-3 auth for the intake board. Listed honestly in the app's 개인정보 처리 현황 modal.
