@@ -42,6 +42,7 @@ import { Toast, esc, todayISO } from "./core/ui.js";
 import { t, onLangChange } from "./core/i18n.js";
 import { Store, EventBus } from "./core/store.js";
 import { Patients } from "./core/entities.js";
+import { activateTab } from "./core/nav.js";
 import { Session } from "./security/session.js";
 import { encryptJSON, decryptJSON, sha256hex, sha384b64, isEnvelope } from "./security/crypto.js";
 
@@ -213,9 +214,48 @@ function makeCardEl(rec, flash) {
   del.textContent = t("board.remove");
   del.addEventListener("click", () => deleteCard(rec.id));
   actions.appendChild(del);
+  if (rec.pid) actions.appendChild(makeMoreMenu(rec));
   el.appendChild(actions);
 
   return el;
+}
+
+/* ⋯ hand-off menu — the card is where a 자보 patient, a certificate request or a 비급여 explanation first shows up, so the
+   three 환자 trackers and the AI drawer open from here with the pid as ctx ({ pid, create: true } → editor prefilled).
+   지불보증 only for a pid tagged 자보 in the register; the AI note is prefilled with the card summary (no name — the
+   summary is sample text, the pid becomes the drawer's alias chip). One menu open at a time; click-away closes. */
+const MENU_ITEMS = [
+  { key: "guarantee", tab: "tab-guarantee", when: (p) => (p?.tags || []).includes("자보") },
+  { key: "docs", tab: "tab-docs" },
+  { key: "consent", tab: "tab-consent" },
+  { key: "ai", tab: "tab-ai" }
+];
+function closeMenus(except) { document.querySelectorAll(".pc-menu:not([hidden])").forEach(m => { if (m !== except) { m.hidden = true; m.previousElementSibling?.setAttribute("aria-expanded", "false"); } }); }
+document.addEventListener("click", (e) => { if (!e.target.closest?.(".pc-more, .pc-menu")) closeMenus(); });
+function makeMoreMenu(rec) {
+  const wrap = document.createElement("span");
+  wrap.className = "pc-more-wrap";
+  const btn = document.createElement("button");
+  btn.type = "button"; btn.className = "pc-btn pc-more"; btn.textContent = "⋯";
+  btn.setAttribute("aria-haspopup", "menu"); btn.setAttribute("aria-expanded", "false"); btn.setAttribute("aria-label", t("board.more"));
+  const menu = document.createElement("div");
+  menu.className = "pc-menu"; menu.hidden = true; menu.setAttribute("role", "menu");
+  const p = Patients.get(rec.pid);
+  for (const it of MENU_ITEMS) {
+    if (it.when && !it.when(p)) continue;
+    const b = document.createElement("button");
+    b.type = "button"; b.setAttribute("role", "menuitem"); b.dataset.menu = it.key;
+    b.textContent = t("board.menu." + it.key);
+    b.addEventListener("click", () => {
+      closeMenus();
+      if (it.tab === "tab-ai") activateTab("tab-ai", { prefill: rec.summary || "", pid: rec.pid });
+      else activateTab(it.tab, { pid: rec.pid, create: true });
+    });
+    menu.appendChild(b);
+  }
+  btn.addEventListener("click", (e) => { e.stopPropagation(); const open = menu.hidden; closeMenus(menu); menu.hidden = !open; btn.setAttribute("aria-expanded", String(open)); });
+  wrap.appendChild(btn); wrap.appendChild(menu);
+  return wrap;
 }
 
 function render(flashId) {
