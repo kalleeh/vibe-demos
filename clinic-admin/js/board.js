@@ -47,9 +47,9 @@ import { Session } from "./security/session.js";
 import { encryptJSON, decryptJSON, sha256hex, sha384b64, isEnvelope } from "./security/crypto.js";
 
 const PB_URL = "https://clinic-admin.pb.gurum.se";
-const PB_ESM = "https://cdn.jsdelivr.net/npm/pocketbase@0.25.0/dist/pocketbase.es.mjs";
+const PB_ESM = "https://cdn.jsdelivr.net/npm/pocketbase@0.28.1/dist/pocketbase.es.mjs";
 // sha384 of the pinned file above (curl + openssl dgst -sha384 -binary | base64, 2026-09-06)
-const PB_ESM_SRI = "sha384-a/4W5e0T7WVUFpuqUhUJju6S/V52zZ0hZpIFQKf4bqCQLKF7ogeoVtWmOpT9U6Fd";
+const PB_ESM_SRI = "sha384-+CEHLdvG3y8opDX+t0ebtelkKG4Gbt730x7qJtt7zgO5jC8MXhUwgSoR9cPhFFJc";
 const STATUSES = ["대기", "진료중", "완료"];
 const LS_LOCAL = "intake-cards"; // Store key (sensitive → encrypted)
 const statusLabel = (st) => t("board.status." + st);

@@ -206,3 +206,5 @@ migrate((app) => {
 - Do NOT add `pocketbase` to a package.json — CDN import only.
 - Do NOT rely on API keys in the frontend — collection rules are the access control.
 - Do NOT implement reconnection polling — check health on user actions only.
+
+> Versions (2026-09-06): server PocketBase 0.40.2 on the shared box (backup tarball `/opt/pocketbase/pb_data-all-pre-0.40.2-*.tgz`, previous binary `pocketbase.0.25.8.bak`); every frontend pins the JS SDK at `pocketbase@0.28.1` (no breaking SDK changes since 0.22).
