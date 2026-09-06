@@ -1,52 +1,71 @@
 /* clinic-admin — Tab 00 · 오늘 dashboard */
-import { $, $$, esc, won, todayISO, relTime, daysUntil, Share, redactSubject, redactStaff, tagLabel } from "../core/ui.js";
-import { t, getLang, onLangChange } from "../core/i18n.js";
+import { $, $$, esc, won, todayISO, relTime, daysUntil, debounce, Share, redactSubject, redactStaff, tagLabel } from "../core/ui.js";
+import { t, pick, getLang, onLangChange } from "../core/i18n.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
-import { activateTab } from "../core/nav.js";
 import { downloadText, pocMark } from "../core/files.js";
 import { statutoryDeadlines } from "../core/calendar.js";
-import { ACCRED_ITEMS } from "./tab9-accred.js";
-import { hasDuty } from "./tab8-license.js";
+import { accredProgress } from "./tab9-accred.js";
+import { normTabEvent, orgView } from "./reporting-shared.js";
+import { Org, Staff, Batches, activateTab } from "./_entities-shim.js"; // TODO(integrator): → "../core/entities.js" + "../core/nav.js"
 
 /* ─────────────────────────────────────────────────────────
    Tab 0 — 오늘 / Today dashboard
-   Backend-free orchestrator: it reads localStorage from
-   every other tab and computes deadlines + resume cards
-   + insights live, and re-renders on any store change.
+   Backend-free orchestrator: it reads the Store / entities every other tab writes and computes
+   deadlines + KPIs + resume cards live, re-rendering on any store change.
+   · Deadline rows carry a ctx ({ refMonth } · { taxYear } · { staffId }) and open the target tab with it.
+   · Nudges: 기관 정보 미완료 (Org.isComplete() false) and 직원 명부 비어 있음 (Staff.list() empty).
+   · { openOrg: true } on tab:activated → EventBus "shell:openInfo" { section: "org" } — the shell owns the
+     info modal (F1's org editor lives there); this tab only asks for it.
+   · KPI tiles (first cut): this month's 청구 vs 인정 · 조정률 · top 조정사유 · 보험사별 조정 from jabo.history
+     reconciliation entries + Batches.list("review"). Skeleton shimmer until the first render.
    ───────────────────────────────────────────────────────── */
+export function seed() { /* 00 derives everything from the other tabs' state — nothing to seed */ }
+
 export function initTab0(ctx) {
   const { DATA } = ctx;
-  // Compliance deadlines — Korean Traditional Hospital admin calendar.
-  // Recurring statutory dates are computed as the NEXT occurrence (today inclusive), so
-  // e.g. the January 연말정산 deadline is visible during January instead of a year away.
-  // Per-person 면허신고 deadlines come from the license tracker (의료법 §25 · 3-year cycle).
   const NOW = new Date();
   const Y = NOW.getFullYear();
+  const REASONS = DATA?.jabo?.adjustment_reasons || [];
+  const INSURERS = DATA?.jabo?.insurers || [];
+  const reasonLabel = (k) => { const r = REASONS.find(x => x.key === k); return r ? pick(r, "label") : String(k ?? ""); };
+  const insurerLabel = (v) => { const i = INSURERS.find(x => x.value === v); return i ? pick(i, "label") : String(v ?? ""); };
+  const openOrg = () => EventBus.emitLocal("shell:openInfo", { section: "org" });
+  const addYears = (iso, n) => { if (!iso) return ""; const d = new Date(iso + "T00:00:00"); if (isNaN(d)) return ""; d.setFullYear(d.getFullYear() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
 
+  // ── deadlines ──
+  // ctx fallback for calendar items that do not carry one yet (the calendar is F1's; the keys are stable).
+  const ctxFor = (d) => {
+    if (d.ctx) return d.ctx;
+    if (d.key === "bigeup-h1") return { refMonth: 3 };
+    if (d.key === "bigeup-h2") return { refMonth: 9 };
+    if (d.key === "yearend") return { taxYear: +String(d.date).slice(0, 4) - 1 };
+    return null;
+  };
   // All deadlines in the window (recurring: next 12 months; per-person: −30 … +365 days).
   function loadDeadlines() {
-    const list = statutoryDeadlines(NOW);
-    const licenses = Store.get("license.list", []);
-    for (const lic of licenses) {
-      const who = redactStaff(lic);
+    const clinicLevel = orgView(Org.get()).clinicLevel;
+    const list = statutoryDeadlines(NOW)
+      .filter(d => !(clinicLevel && d.key === "bigeup-h2")) // 의원급: March data only
+      .map(d => ({ ...d, ctx: ctxFor(d) }));
+    for (const s of Staff.list()) {
+      const who = redactStaff({ role: s.job, name: s.name });
       // 원무·기타 carry no 신고 duty — never a D-day, even for legacy records with an expiry.
-      if (lic.expiry && hasDuty(lic.role)) {
-        const d = daysUntil(lic.expiry);
-        if (d != null && d <= 365 && d >= -30) {
+      if (Staff.hasDuty(s.job)) {
+        const expiry = s.expiry || addYears(s.reported || s.acquired, 3);
+        const basis = s.basis || (s.reported ? "reported" : "acquired");
+        const d = daysUntil(expiry);
+        if (expiry && d != null && d <= 365 && d >= -30) {
           list.push({
-            key: `lic-${lic.id}-exp`, title: t(lic.basis === "acquired" ? "today.dl.licReportUnverified" : "today.dl.licReport", { who }),
-            date: lic.expiry, link: "tab-license",
-            source: t(lic.basis === "acquired" ? "today.dl.licSourceAcquired" : "today.dl.licSourceReported")
+            key: `lic-${s.id}-exp`, title: t(basis === "acquired" ? "today.dl.licReportUnverified" : "today.dl.licReport", { who }),
+            date: expiry, link: "tab-license", ctx: { staffId: s.id },
+            source: t(basis === "acquired" ? "today.dl.licSourceAcquired" : "today.dl.licSourceReported")
           });
         }
       }
-      if (lic.cme) {
-        const d = daysUntil(lic.cme);
+      if (s.cme) {
+        const d = daysUntil(s.cme);
         if (d != null && d <= 365 && d >= -30) {
-          list.push({
-            key: `lic-${lic.id}-cme`, title: t("today.dl.cme", { who }),
-            date: lic.cme, link: "tab-license", source: t("today.dl.cmeSource")
-          });
+          list.push({ key: `lic-${s.id}-cme`, title: t("today.dl.cme", { who }), date: s.cme, link: "tab-license", ctx: { staffId: s.id }, source: t("today.dl.cmeSource") });
         }
       }
     }
@@ -85,7 +104,7 @@ export function initTab0(ctx) {
       else if (days <= 60) { cls = "warn"; label = t("today.daysLeft", { n: days }); }
       else { cls = ""; label = t("today.daysLeft", { n: days }); }
       return `
-        <div class="dday ${cls}" data-link="${esc(d.link)}">
+        <div class="dday ${cls}" data-key="${esc(d.key)}" data-link="${esc(d.link)}"${d.ctx ? ` data-ctx='${esc(JSON.stringify(d.ctx))}'` : ""} role="button" tabindex="0">
           <div class="dnum">${label}</div>
           <div class="dbody">
             <div class="dtitle">${esc(d.title)}</div>
@@ -107,9 +126,96 @@ export function initTab0(ctx) {
     }
     $("#dday-list").innerHTML = html || `<div class="empty-state">${esc(t("today.noDeadlines"))}</div>`;
     $$("#dday-list .dday").forEach(el => {
-      el.addEventListener("click", () => activateTab(el.dataset.link));
+      const go = () => { let c; try { c = el.dataset.ctx ? JSON.parse(el.dataset.ctx) : undefined; } catch {} activateTab(el.dataset.link, c); };
+      el.addEventListener("click", go);
+      el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
     });
     $("#dday-more")?.addEventListener("click", () => { showLater = !showLater; renderDeadlines(); });
+  }
+
+  // ── nudges (기관 정보 · 직원 명부) ──
+  function renderNudges() {
+    const el = $("#today-nudges"); if (!el) return;
+    const items = [];
+    if (!Org.isComplete()) items.push({ id: "org", text: t("today.nudge.org"), btn: t("today.nudge.orgBtn"), run: openOrg });
+    if (!Staff.list().length) items.push({ id: "staff", text: t("today.nudge.staff"), btn: t("today.nudge.staffBtn"), run: () => activateTab("tab-license") });
+    el.innerHTML = items.map(n => `<div class="nudge" data-nudge="${n.id}"><span class="nudge-dot"></span><span class="nudge-text">${esc(n.text)}</span><button type="button" class="btn secondary" data-nudge-go="${n.id}">${esc(n.btn)}</button></div>`).join("");
+    el.style.display = items.length ? "" : "none";
+    for (const n of items) el.querySelector(`[data-nudge-go="${n.id}"]`)?.addEventListener("click", n.run);
+  }
+
+  // ── KPI tiles ──
+  const monthKey = (ms) => { const d = new Date(ms); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; };
+  function kpiData() {
+    const history = (Store.get("jabo.history", []) || []).filter(h => h && typeof h.at === "number" && (h.claimed != null));
+    const reviews = Batches.list("review") || [];
+    if (!history.length && !reviews.length) return null;
+    const thisM = monthKey(Date.now());
+    let month = thisM;
+    let entries = history.filter(h => monthKey(h.at) === thisM);
+    if (!entries.length && history.length) { month = monthKey(history[0].at); entries = history.filter(h => monthKey(h.at) === month); }
+    const claimed = entries.reduce((s, h) => s + (+h.claimed || 0), 0);
+    const cut = entries.reduce((s, h) => s + (+h.cut || 0), 0);
+    const approved = entries.reduce((s, h) => s + (h.paid != null ? +h.paid : h.approved != null ? +h.approved : (+h.claimed || 0) - (+h.cut || 0)), 0);
+    const rate = claimed ? Math.round((cut / claimed) * 1000) / 10 : 0;
+    // top 조정사유 — recon entries may carry byReason [{ reason|key, cut, lines }]; else count review-batch rows with a reason.
+    const byReason = new Map();
+    for (const h of entries) for (const g of h.byReason || []) {
+      const k = g.key || g.reason || ""; if (!k) continue;
+      const cur = byReason.get(k) || { cut: 0, lines: 0 }; cur.cut += +g.cut || 0; cur.lines += +g.lines || 0; byReason.set(k, cur);
+    }
+    if (!byReason.size) {
+      for (const b of reviews.filter(b => monthKey(b.at) === month || month === thisM)) for (const r of b.rows || []) {
+        const k = r.reasonKey || r.reason || r.reasonText || ""; if (!k) continue;
+        const cur = byReason.get(k) || { cut: 0, lines: 0 }; cur.lines++; cur.cut += Math.max(0, (+r.claimed || 0) - (+r.approved || 0)); byReason.set(k, cur);
+      }
+    }
+    const topReason = [...byReason.entries()].sort((a, b) => (b[1].cut - a[1].cut) || (b[1].lines - a[1].lines))[0] || null;
+    // 보험사별 — entries carrying `insurer` (F2 stores it on recon history).
+    const byIns = new Map();
+    for (const h of entries) { if (!h.insurer) continue; const cur = byIns.get(h.insurer) || { cut: 0, claimed: 0, n: 0 }; cur.cut += +h.cut || 0; cur.claimed += +h.claimed || 0; cur.n++; byIns.set(h.insurer, cur); }
+    const insurers = [...byIns.entries()].sort((a, b) => b[1].cut - a[1].cut);
+    return { month, n: entries.length, claimed, approved, cut, rate, topReason, insurers, reviews: reviews.length };
+  }
+  function renderKpis() {
+    const tiles = $$("#today-insights .insight.kpi");
+    const k = kpiData();
+    const empty = $("#kpi-empty");
+    tiles.forEach(el => el.classList.remove("kpi-loading"));
+    if (!k) {
+      $("#ins-jabo").innerHTML = t("today.insJaboEmpty");
+      $("#ins-jabo-sub").textContent = t("today.insJaboSub");
+      $("#ins-cut").innerHTML = "— <em>%</em>"; $("#ins-cut-sub").textContent = t("today.insCutSub");
+      $("#ins-reason").textContent = "—"; $("#ins-reason-sub").textContent = t("today.kpi.reasonSub");
+      $("#ins-insurer").textContent = "—"; $("#ins-insurer-sub").textContent = t("today.kpi.insurerSub");
+      ["#ins-cut-card", "#ins-reason-card", "#ins-insurer-card"].forEach(s => $(s)?.classList.remove("warn", "err"));
+      if (empty) { empty.style.display = ""; empty.textContent = t("today.kpi.empty"); }
+      return;
+    }
+    if (empty) empty.style.display = "none";
+    $("#ins-jabo").innerHTML = t("today.insCount", { n: k.n });
+    $("#ins-jabo-sub").textContent = t("today.kpi.claimVsApproved", { c: won(k.claimed), a: won(k.approved), m: k.month });
+    $("#ins-cut").innerHTML = `${k.rate} <em>%</em>`;
+    $("#ins-cut-sub").textContent = t("today.insCutAmt", { amt: won(k.cut) });
+    const cutCard = $("#ins-cut-card"); cutCard.classList.remove("warn", "err");
+    if (k.rate > 15) cutCard.classList.add("err"); else if (k.rate > 8) cutCard.classList.add("warn");
+    const rEl = $("#ins-reason"), rSub = $("#ins-reason-sub"), rCard = $("#ins-reason-card");
+    rCard.classList.remove("warn", "err");
+    if (k.topReason) {
+      const [key, g] = k.topReason;
+      rEl.textContent = reasonLabel(key);
+      rSub.textContent = g.cut ? t("today.kpi.reasonCut", { amt: won(g.cut), n: g.lines }) : t("today.kpi.reasonLines", { n: g.lines });
+      rCard.classList.add("warn");
+    } else { rEl.textContent = "—"; rSub.textContent = t("today.kpi.reasonNone"); }
+    const iEl = $("#ins-insurer"), iSub = $("#ins-insurer-sub"), iCard = $("#ins-insurer-card");
+    iCard.classList.remove("warn", "err");
+    if (k.insurers.length) {
+      const [ins, g] = k.insurers[0];
+      iEl.textContent = insurerLabel(ins);
+      iSub.textContent = t("today.kpi.insurerTop", { amt: won(g.cut), k: k.insurers.length });
+      if (g.claimed && g.cut / g.claimed > 0.15) iCard.classList.add("err"); else if (g.cut > 0) iCard.classList.add("warn");
+    } else { iEl.textContent = "—"; iSub.textContent = t("today.kpi.insurerNone"); }
+    tiles.forEach(el => { el.classList.remove("kpi-in"); void el.offsetWidth; el.classList.add("kpi-in"); });
   }
 
   function renderResume() {
@@ -120,8 +226,7 @@ export function initTab0(ctx) {
       const who = (name || pid) ? redactSubject({ name, pid }) : t("today.resume.noPatient");
       cards.push({ tab: "tab-jabo", label: t("nav.jabo"), who: who + ` · ${t("today.resume.nProcs", { n: jabo.length })}`, when: "" });
     }
-    const tariff = Store.get("bigeup.tariff", {});
-    const tariffCount = Object.keys(tariff).length;
+    const tariffCount = Object.keys(Store.get("bigeup.tariff", {}) || {}).length;
     if (tariffCount > 0 && tariffCount < (DATA?.bigeup?.items?.length || Infinity)) {
       cards.push({ tab: "tab-bigeup", label: t("nav.bigeup"), who: t("today.resume.tariff", { n: tariffCount }), when: "" });
     }
@@ -132,6 +237,10 @@ export function initTab0(ctx) {
     const lastRet = Store.get("retention.lastAudit");
     if (lastRet && (lastRet.over > 0 || lastRet.bad > 0)) {
       cards.push({ tab: "tab-retention", label: t("nav.retention"), who: t("today.resume.retLeft", { o: lastRet.over, b: lastRet.bad }), when: relTime(lastRet.at) });
+    }
+    const ye = Batches.latest("yearend");
+    if (ye && (ye.meta?.errors || 0) > 0) {
+      cards.push({ tab: "tab-yearend", label: t("nav.yearend"), who: t("today.resume.yeLeft", { e: ye.meta.errors, y: ye.meta.taxYear || "" }), when: relTime(ye.at) });
     }
     if (!cards.length) {
       $("#resume-list").innerHTML = `<div class="resume"><span class="empty">${esc(t("today.resumeEmpty"))}</span></div>`;
@@ -165,48 +274,41 @@ export function initTab0(ctx) {
   }
 
   function renderInsights() {
-    // Jabo insights: this quarter's reconciliation
-    const history = Store.get("jabo.history", []);
-    const qStart = new Date(Y, Math.floor(NOW.getMonth()/3)*3, 1).getTime();
-    const thisQ = history.filter(h => h.at >= qStart);
-    if (thisQ.length) {
-      $("#ins-jabo").innerHTML = t("today.insCount", { n: thisQ.length });
-      const totalClaim = thisQ.reduce((s,h) => s + (h.claimed||0), 0);
-      const totalCut = thisQ.reduce((s,h) => s + (h.cut||0), 0);
-      const cutPct = totalClaim ? Math.round((totalCut / totalClaim) * 1000) / 10 : 0;
-      $("#ins-jabo-sub").textContent = t("today.insClaimed", { amt: won(totalClaim) });
-      $("#ins-cut").innerHTML = `${cutPct} <em>%</em>`;
-      $("#ins-cut-sub").textContent = t("today.insCutAmt", { amt: won(totalCut) });
-      if (cutPct > 15) $("#ins-cut-card").classList.add("err");
-      else if (cutPct > 8) $("#ins-cut-card").classList.add("warn");
-    }
-
-    // Retention insights
+    // Retention
+    const retCard = $("#ins-ret-card"); retCard.classList.remove("warn", "err");
     const lastRet = Store.get("retention.lastAudit");
     if (lastRet) {
       $("#ins-ret").textContent = lastRet.over;
       $("#ins-ret-sub").textContent = t("today.insRetSub2", { t: relTime(lastRet.at), n: lastRet.soon });
-      if (lastRet.over > 0) $("#ins-ret-card").classList.add("err");
-      else if (lastRet.soon > 0) $("#ins-ret-card").classList.add("warn");
-    }
+      if (lastRet.over > 0) retCard.classList.add("err");
+      else if (lastRet.soon > 0) retCard.classList.add("warn");
+    } else { $("#ins-ret").textContent = "—"; $("#ins-ret-sub").textContent = t("today.insRetSub"); }
 
-    // Accreditation progress
-    const accred = Store.get("accred.checked", {});
-    const all = ACCRED_ITEMS.map(c => c.items).flat();
-    if (all.length) {
-      const done = all.filter(it => accred[it.id]).length;
-      const pct = Math.round((done / all.length) * 100);
+    // Accreditation progress — manual checks + derived (자동 판정) items that pass
+    const prog = accredProgress();
+    const accCard = $("#ins-accred-card"); accCard.classList.remove("warn", "err");
+    if (prog.total) {
+      const pct = Math.round((prog.done / prog.total) * 100);
       $("#ins-accred").innerHTML = `${pct} <em>%</em>`;
-      if (pct < 50) $("#ins-accred-card").classList.add("warn");
-      if (pct < 25) $("#ins-accred-card").classList.add("err");
+      const sub = $("#ins-accred-sub");
+      if (prog.failing.length) { sub.textContent = t("today.insAccredAuto", { n: prog.failing.length }); accCard.dataset.itemId = prog.failing[0].id; }
+      else { sub.textContent = t("today.insAccredSub"); delete accCard.dataset.itemId; }
+      if (pct < 50) accCard.classList.add("warn");
+      if (pct < 25) accCard.classList.add("err");
     }
   }
+  $("#ins-accred-card")?.addEventListener("click", () => {
+    const id = $("#ins-accred-card").dataset.itemId;
+    activateTab("tab-accred", id ? { itemId: id } : undefined);
+  });
 
   function renderAll() {
     const date = new Date();
     const wk = date.toLocaleDateString(getLang() === "en" ? "en-GB" : "ko-KR", { weekday: "short" });
     $("#today-date").textContent = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")} (${wk})`;
+    renderNudges();
     renderDeadlines();
+    renderKpis();
     renderResume();
     renderActivity();
     renderInsights();
@@ -262,11 +364,20 @@ export function initTab0(ctx) {
     ActivityLog.push("system", t("today.shareLog"), {});
   });
 
-  // Live re-render when any tab updates state
+  // Live re-render when any tab updates state (debounced — a prefill writes 28 tariff rows in one burst)
+  const renderSoon = debounce(renderAll, 60);
   ["activity", "jabo.history", "retention.lastAudit", "kcd.lastSummary",
-   "license.list", "accred.checked", "bigeup.tariff", "jabo.draft.items"
-  ].forEach(k => EventBus.on(`store:${k}`, renderAll));
-  EventBus.on("tab:activated", (id) => { if (id === "tab-today") renderAll(); });
+   "license.list", "accred.checked", "bigeup.tariff", "bigeup.tariffMeta", "jabo.draft.items", "org.profile",
+   "batches.review", "batches.yearend", "batches.claims"
+  ].forEach(k => EventBus.on(`store:${k}`, renderSoon));
+  ["org:changed", "tariff:changed", "batches:changed", "staff:changed"].forEach(ev => EventBus.on(ev, renderSoon));
+  Org.onChange(renderSoon);
+  EventBus.on("tab:activated", (p) => {
+    const { id, ctx: c } = normTabEvent(p);
+    if (id !== "tab-today") return;
+    renderAll();
+    if (c?.openOrg) openOrg();
+  });
   onLangChange(renderAll);
 
   // Refresh relative times every 30s

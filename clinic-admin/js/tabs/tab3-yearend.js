@@ -1,24 +1,32 @@
 /* clinic-admin — Tab 03 · 연말정산 의료비 자료 사전점검 */
-import { $, esc, fmtKRW, won, todayISO, setStatus, bindDrop } from "../core/ui.js";
+import { $, esc, fmtKRW, won, todayISO, relTime, setStatus, bindDrop } from "../core/ui.js";
 import { t, onLangChange } from "../core/i18n.js";
-import { ActivityLog, bindPersist } from "../core/store.js";
+import { EventBus, ActivityLog, bindPersist } from "../core/store.js";
 import { readSpreadsheet, downloadXLSX, downloadCSV, headerRow } from "../core/files.js";
-import { checkRRN, maskRRN } from "./reporting-shared.js";
+import { checkRRN, maskRRN, renderOrgReadOnly, ensureDemoOrg, normTabEvent, orgHeaderPairs } from "./reporting-shared.js";
+import { Org, Batches, Patients, activateTab } from "./_entities-shim.js"; // TODO(integrator): → "../core/entities.js" + "../core/nav.js"
 
 /* ─────────────────────────────────────────────────────────
    Tab 3 — 연말정산 의료비 자료 사전점검
-   Validates an EMR export row by row BEFORE the hospital submits
-   간소화 자료 (홈택스 or the EMR's 국세청 module). Nothing here is a
-   submission format; the output is a 사전점검 정리표.
-   주민등록번호 is parsed in memory only — never persisted, always masked.
-   i18n: rows keep neutral fields + [key, vars] issue messages so the tables, the status line and the CSV
-   headers re-render from `lastResult` in either language.
-   ───────────────────────────────────────────────────────── */
+   Validates an EMR export row by row BEFORE the hospital submits 간소화 자료 (홈택스 or the EMR's
+   국세청 module). Nothing here is a submission format; the output is a 사전점검 정리표.
+   · 주민등록번호 is parsed in memory only — never persisted, always masked.
+   · Institution fields come from Org (read-only here; edited in the shell's info modal).
+   · The run is stored as a `yearend` batch WITHOUT names or RRNs (pid · date · amounts · verdict) so the
+     정리표 and the claims cross-check can be re-opened without re-uploading.
+   · Cross-check: when a `claims` batch exists, pid+date pairs in the tax year are compared both ways.
+   i18n: rows keep neutral fields + [key, vars] issue messages so tables, status and CSV headers re-render. */
+let api = null;
+export function seed() { api?.seed(); }
+
 export function initTab3() {
-  let lastResult = null, lastStatus = null;
+  let lastResult = null, lastStatus = null, fromBatch = false;
   const status = (kind, fn) => { lastStatus = { kind, fn }; setStatus($("#ye-status"), kind, fn()); };
+  const taxYear = () => +$("#ye-year").value || new Date().getFullYear() - 1;
 
   const pick = (row, keys) => { for (const k of keys) if (row[k] != null && row[k] !== "") return row[k]; return ""; };
+  const PID_COLS = ["환자번호", "등록번호"];
+  const DATE_COLS = ["진료일자", "진료일", "일자"];
   const parseAmount = (v) => {
     if (v == null || v === "") return { value: 0, missing: true };
     const s = String(v).replace(/[^0-9.\-]/g, "");
@@ -33,32 +41,39 @@ export function initTab3() {
     const d = new Date(iso + "T00:00:00");
     return isNaN(d) ? null : iso;
   };
-  // field / message resolvers — issues store { level, field: fieldKey, msg: [key, vars] | string }
   const fieldText = (f) => t("yearend.f." + f);
   const msgText = (m) => Array.isArray(m) ? t(m[0], m[1]) : String(m ?? "");
   const verdictText = (lvl) => t("yearend.v." + lvl);
+  const worstOf = (issues) => issues.some(i => i.level === "error") ? "error" : issues.some(i => i.level === "warn") ? "warn" : "ok";
 
-  // Returns { rows, issues, patients, taxYear }.
+  // ── institution (read-only) ──
+  const renderOrg = () => renderOrgReadOnly($("#ye-org"), Org.get(), { onEdit: () => activateTab("tab-today", { openOrg: true }) });
+  renderOrg();
+  Org.onChange(renderOrg);
+
+  // Returns { rows, issues, patients, taxYear, hasPid }.
   const validate = (rows) => {
-    const biz = $("#ye-biz").value.trim();
-    const taxYear = +$("#ye-year").value || new Date().getFullYear() - 1;
+    const y = taxYear();
     const out = [], issues = [], seen = new Map(), patients = new Map();
+    let hasPid = false;
     rows.forEach((row, idx) => {
       const n = idx + 2; // spreadsheet row number (header = 1)
       const name = String(pick(row, ["환자성명", "성명", "환자명"])).trim();
+      const pid = String(pick(row, PID_COLS)).trim();
+      if (pid) hasPid = true;
       const rrnRaw = pick(row, ["주민등록번호", "주민번호"]);
       const rrn = checkRRN(rrnRaw);
       const masked = maskRRN(rrnRaw);
-      const date = parseDate(pick(row, ["진료일자", "진료일", "일자"]));
+      const date = parseDate(pick(row, DATE_COLS));
       const own = parseAmount(pick(row, ["본인부담금", "본인부담"]));
       const non = parseAmount(pick(row, ["비급여금액", "비급여"]));
       const tot = parseAmount(pick(row, ["의료비총액", "총진료비", "총액"]));
       const rowIssues = [];
-      const add = (level, field, msg) => { rowIssues.push({ level, field, msg }); issues.push({ row: n, name, masked, level, field, msg }); };
+      const add = (level, field, msg) => { rowIssues.push({ level, field, msg }); issues.push({ row: n, name, pid, masked, level, field, msg }); };
 
       if (rrn.level !== "ok") add(rrn.level, "rrn", rrn.msgKey ? [rrn.msgKey, rrn.vars] : rrn.msg);
       if (!date) add("error", "date", ["yearend.msgDateFormat"]);
-      else if (+date.slice(0, 4) !== taxYear) add("error", "date", ["yearend.msgOutOfYear", { y: taxYear }]);
+      else if (+date.slice(0, 4) !== y) add("error", "date", ["yearend.msgOutOfYear", { y }]);
       for (const [field, a] of [["own", own], ["non", non], ["total", tot]]) {
         if (a.missing) continue;
         if (isNaN(a.value)) add("error", field, ["yearend.msgNotNumber"]);
@@ -78,35 +93,83 @@ export function initTab3() {
         else seen.set(key, n);
       }
 
-      const worst = rowIssues.some(i => i.level === "error") ? "error" : rowIssues.some(i => i.level === "warn") ? "warn" : "ok";
-      out.push({ biz, row: n, name, masked, date: date || String(pick(row, ["진료일자", "진료일", "일자"])), total: totalV, own: ownV, non: nonV, verdict: worst, issues: rowIssues });
+      const worst = worstOf(rowIssues);
+      out.push({ row: n, name, pid, masked, date: date || String(pick(row, DATE_COLS)), total: totalV, own: ownV, non: nonV, verdict: worst, issues: rowIssues });
 
-      // Per-patient totals (keyed by RRN digits when usable, else by name)
-      const pk = rrn.digits.length === 13 ? rrn.digits : `name:${name}`;
-      const p = patients.get(pk) || { name, masked, count: 0, total: 0, own: 0, non: 0, errors: 0 };
+      // Per-patient totals — keyed by 환자번호 when present, else RRN digits, else name.
+      const pk = pid ? `pid:${pid}` : rrn.digits.length === 13 ? rrn.digits : `name:${name}`;
+      const p = patients.get(pk) || { name, pid, masked, count: 0, total: 0, own: 0, non: 0, errors: 0 };
       p.count++; p.total += totalV; p.own += ownV; p.non += nonV;
       if (worst === "error") p.errors++;
       patients.set(pk, p);
     });
-    return { rows: out, issues, patients: [...patients.values()], taxYear };
+    return { rows: out, issues, patients: [...patients.values()], taxYear: y, hasPid };
   };
   const rowNotes = (r) => r.issues.map(i => `${fieldText(i.field)}: ${msgText(i.msg)}`).join(" / ");
 
-  const render = ({ rows, issues, patients, taxYear }) => {
+  // ── claims cross-check (pid ⨝ date, tax year only) ──
+  const xcheck = (result) => {
+    const claims = Batches.latest("claims");
+    if (!claims) return null;
+    if (!result.hasPid) return { claims, noPid: true };
+    const y = String(result.taxYear);
+    const key = (pid, date) => `${String(pid).trim()}|${date}`;
+    const fileKeys = new Map();
+    for (const r of result.rows) if (r.pid && /^\d{4}-\d{2}-\d{2}$/.test(r.date) && r.date.startsWith(y)) fileKeys.set(key(r.pid, r.date), r);
+    const claimKeys = new Map();
+    for (const c of claims.rows || []) {
+      const d = parseDate(c.date); const pid = String(c.pid ?? "").trim();
+      if (!pid || !d || !d.startsWith(y)) continue;
+      const k = key(pid, d);
+      if (!claimKeys.has(k)) claimKeys.set(k, { pid, date: d, stmts: new Set() });
+      if (c.stmt) claimKeys.get(k).stmts.add(String(c.stmt));
+    }
+    const onlyClaims = [...claimKeys.values()].filter(c => !fileKeys.has(key(c.pid, c.date)));
+    const onlyFile = [...fileKeys.values()].filter(r => !claimKeys.has(key(r.pid, r.date)));
+    return { claims, onlyClaims, onlyFile, matched: [...fileKeys.keys()].filter(k => claimKeys.has(k)).length, claimVisits: claimKeys.size };
+  };
+  const renderXCheck = (result) => {
+    const x = xcheck(result);
+    if (!x) return "";
+    if (x.noPid) return `<div class="xcheck"><h5 class="ye-subhead">${esc(t("yearend.xc.h"))}</h5><div class="status-line warn" style="display:flex"><span class="dot"></span><span>${esc(t("yearend.xc.noPid"))}</span></div></div>`;
+    const list = (rows, fmt) => rows.length ? `<ul class="xcheck-list">${rows.slice(0, 12).map(fmt).join("")}${rows.length > 12 ? `<li class="more">${esc(t("yearend.xc.more", { n: rows.length - 12 }))}</li>` : ""}</ul>` : `<div class="xcheck-none">${esc(t("yearend.xc.none"))}</div>`;
+    return `
+      <div class="xcheck" id="ye-xcheck">
+        <h5 class="ye-subhead">${esc(t("yearend.xc.h"))}</h5>
+        <p class="xcheck-meta">${esc(t("yearend.xc.meta", { y: result.taxYear, n: x.claimVisits, m: x.matched, when: relTime(x.claims.at) }))}</p>
+        <div class="xcheck-cols">
+          <div class="xcheck-col ${x.onlyClaims.length ? "warn" : ""}">
+            <h6>${esc(t("yearend.xc.onlyClaims"))} <strong>${x.onlyClaims.length}</strong></h6>
+            ${list(x.onlyClaims, c => `<li><span class="code">${esc(Patients.alias(c.pid))}</span> · <span class="code">${esc(c.date)}</span>${c.stmts.size ? ` · ${esc(t("yearend.xc.stmt", { s: [...c.stmts].join(", ") }))}` : ""}</li>`)}
+          </div>
+          <div class="xcheck-col ${x.onlyFile.length ? "warn" : ""}">
+            <h6>${esc(t("yearend.xc.onlyFile"))} <strong>${x.onlyFile.length}</strong></h6>
+            ${list(x.onlyFile, r => `<li><span class="code">${esc(Patients.alias(r.pid))}</span> · <span class="code">${esc(r.date)}</span> · ${esc(won(r.total))}</li>`)}
+          </div>
+        </div>
+        <p class="caveat" style="margin-top:8px">${esc(t("yearend.xc.caveat"))}</p>
+      </div>`;
+  };
+
+  const render = (result) => {
+    const { rows, issues, patients, taxYear: y } = result;
     const total = rows.reduce((s, r) => s + (r.total || 0), 0);
     const errs = issues.filter(i => i.level === "error").length;
     const warns = issues.filter(i => i.level === "warn").length;
-    $("#ye-summary").innerHTML = t("yearend.summary", { n: rows.length, total: won(total), e: errs, w: warns, y: taxYear });
+    $("#ye-summary").innerHTML = t("yearend.summary", { n: rows.length, total: won(total), e: errs, w: warns, y });
     $("#ye-toolbar").style.display = "flex";
     $("#ye-download").disabled = false;
+    // From a stored batch: names/RRNs were never kept → alias + "—".
+    const who = (r) => fromBatch ? Patients.alias(r.pid) : (r.name || (r.pid ? Patients.alias(r.pid) : ""));
+    const rrnCell = (r) => fromBatch ? "—" : r.masked;
 
     const pill = (lvl) => lvl === "error" ? `<span class="pill err">${esc(verdictText("error"))}</span>` : `<span class="pill warn">${esc(verdictText("warn"))}</span>`;
     const issueTable = issues.length ? `
       <h5 class="ye-subhead">${esc(t("yearend.issuesH", { e: errs, w: warns }))}</h5>
       <table class="ye-issues">
-        <thead><tr><th class="code">${esc(t("yearend.thRow"))}</th><th>${esc(t("yearend.thPatient"))}</th><th class="code">${esc(t("yearend.thRrn"))}</th><th>${esc(t("yearend.thField"))}</th><th>${esc(t("yearend.thDetail"))}</th><th>${esc(t("yearend.thLevel"))}</th></tr></thead>
+        <thead><tr><th class="code">${esc(t("yearend.thRow"))}</th><th>${esc(t("yearend.thPatient"))}</th><th class="code">${esc(t("yearend.thPid"))}</th><th class="code">${esc(t("yearend.thRrn"))}</th><th>${esc(t("yearend.thField"))}</th><th>${esc(t("yearend.thDetail"))}</th><th>${esc(t("yearend.thLevel"))}</th></tr></thead>
         <tbody>${issues.map(i => `<tr class="${i.level === "error" ? "row-err" : "row-warn"}">
-          <td class="code">${i.row}</td><td>${esc(i.name)}</td><td class="code">${esc(i.masked)}</td>
+          <td class="code">${i.row}</td><td>${esc(who(i))}</td><td class="code">${esc(i.pid || "—")}</td><td class="code">${esc(rrnCell(i))}</td>
           <td>${esc(fieldText(i.field))}</td><td>${esc(msgText(i.msg))}</td><td>${pill(i.level)}</td></tr>`).join("")}
         </tbody>
       </table>` : `<div class="status-line" style="display:flex"><span class="dot"></span><span>${esc(t("yearend.noIssues"))}</span></div>`;
@@ -114,10 +177,11 @@ export function initTab3() {
     const patientTable = `
       <h5 class="ye-subhead">${esc(t("yearend.patientsH", { n: patients.length }))}</h5>
       <table>
-        <thead><tr><th>${esc(t("yearend.thPatient"))}</th><th class="code">${esc(t("yearend.thRrn"))}</th><th class="code">${esc(t("yearend.thCount"))}</th><th class="code">${esc(t("yearend.thOwn"))}</th><th class="code">${esc(t("yearend.thNon"))}</th><th class="code">${esc(t("yearend.thSum"))}</th></tr></thead>
+        <thead><tr><th>${esc(t("yearend.thPatient"))}</th><th class="code">${esc(t("yearend.thPid"))}</th><th class="code">${esc(t("yearend.thRrn"))}</th><th class="code">${esc(t("yearend.thCount"))}</th><th class="code">${esc(t("yearend.thOwn"))}</th><th class="code">${esc(t("yearend.thNon"))}</th><th class="code">${esc(t("yearend.thSum"))}</th></tr></thead>
         <tbody>${patients.map(p => `<tr>
-          <td>${esc(p.name)}${p.errors ? ` <span class="pill err">${esc(t("yearend.errBadge", { n: p.errors }))}</span>` : ""}</td>
-          <td class="code">${esc(p.masked)}</td>
+          <td>${esc(who(p))}${p.errors ? ` <span class="pill err">${esc(t("yearend.errBadge", { n: p.errors }))}</span>` : ""}</td>
+          <td class="code">${esc(p.pid || "—")}</td>
+          <td class="code">${esc(rrnCell(p))}</td>
           <td class="code" style="text-align:right">${p.count}</td>
           <td class="code" style="text-align:right">${fmtKRW(p.own)}</td>
           <td class="code" style="text-align:right">${fmtKRW(p.non)}</td>
@@ -129,14 +193,15 @@ export function initTab3() {
       <h5 class="ye-subhead">${esc(t("yearend.sheetH", { n: rows.length }))}</h5>
       <table>
         <thead><tr>
-          <th class="code">${esc(t("yearend.thRow"))}</th><th>${esc(t("yearend.thName"))}</th><th class="code">${esc(t("yearend.thRrn"))}</th><th class="code">${esc(t("jabo.fDate"))}</th>
+          <th class="code">${esc(t("yearend.thRow"))}</th><th>${esc(t("yearend.thName"))}</th><th class="code">${esc(t("yearend.thPid"))}</th><th class="code">${esc(t("yearend.thRrn"))}</th><th class="code">${esc(t("jabo.fDate"))}</th>
           <th class="code">${esc(t("yearend.thTotal"))}</th><th class="code">${esc(t("yearend.thOwn"))}</th><th class="code">${esc(t("yearend.thNon"))}</th><th>${esc(t("yearend.thCheck"))}</th>
         </tr></thead>
         <tbody>
           ${rows.map(r => `<tr>
             <td class="code">${r.row}</td>
-            <td>${esc(r.name)}</td>
-            <td class="code">${esc(r.masked)}</td>
+            <td>${esc(who(r))}</td>
+            <td class="code">${esc(r.pid || "—")}</td>
+            <td class="code">${esc(rrnCell(r))}</td>
             <td class="code">${esc(r.date)}</td>
             <td class="code" style="text-align:right">${fmtKRW(r.total)}</td>
             <td class="code" style="text-align:right">${fmtKRW(r.own)}</td>
@@ -146,10 +211,53 @@ export function initTab3() {
         </tbody>
       </table>`;
 
-    $("#ye-result").innerHTML = issueTable + patientTable + rowTable;
+    $("#ye-result").innerHTML = renderXCheck(result) + issueTable + patientTable + rowTable;
   };
 
+  // ── batch: store the run without names / RRNs ──
+  const storeBatch = (result, meta) => {
+    const rows = result.rows.map(r => ({ row: r.row, pid: r.pid, date: r.date, own: r.own, non: r.non, total: r.total, verdict: r.verdict, issues: r.issues.map(i => ({ level: i.level, field: i.field, msg: i.msg })) }));
+    const errs = result.issues.filter(i => i.level === "error").length, warns = result.issues.length - errs;
+    for (const r of result.rows) if (r.pid) Patients.touch(r.pid);
+    return Batches.add("yearend", { rows, meta: { taxYear: result.taxYear, n: rows.length, errors: errs, warns, hasPid: result.hasPid, ...meta } });
+  };
+  // Rebuild a render-able result from a stored batch (no names/RRNs — aliases + "—").
+  const resultFromBatch = (b) => {
+    const rows = (b.rows || []).map(r => ({ ...r, name: "", masked: "—", issues: r.issues || [] }));
+    const issues = [];
+    const patients = new Map();
+    for (const r of rows) {
+      for (const i of r.issues) issues.push({ row: r.row, name: "", pid: r.pid, masked: "—", level: i.level, field: i.field, msg: i.msg });
+      const pk = r.pid ? `pid:${r.pid}` : `row:${r.row}`;
+      const p = patients.get(pk) || { name: "", pid: r.pid, masked: "—", count: 0, total: 0, own: 0, non: 0, errors: 0 };
+      p.count++; p.total += r.total || 0; p.own += r.own || 0; p.non += r.non || 0;
+      if (r.verdict === "error") p.errors++;
+      patients.set(pk, p);
+    }
+    return { rows, issues, patients: [...patients.values()], taxYear: b.meta?.taxYear || taxYear(), hasPid: !!b.meta?.hasPid };
+  };
+  const renderRecent = () => {
+    const el = $("#ye-recent"); if (!el) return;
+    const b = Batches.latest("yearend");
+    if (!b) { el.innerHTML = ""; el.style.display = "none"; return; }
+    el.style.display = "flex";
+    el.innerHTML = `<span class="dot"></span><span>${esc(t("yearend.recent", { n: b.meta?.n ?? (b.rows || []).length, y: b.meta?.taxYear || "—", when: relTime(b.at), e: b.meta?.errors ?? 0 }))}</span>
+      <button type="button" class="small-link" id="ye-recent-open">${esc(t("yearend.recentOpen"))}</button>`;
+    $("#ye-recent-open")?.addEventListener("click", () => {
+      fromBatch = true;
+      lastResult = resultFromBatch(b);
+      $("#ye-year").value = String(lastResult.taxYear);
+      render(lastResult);
+      status(null, () => t("yearend.statusFromBatch", { n: lastResult.rows.length, when: relTime(b.at) }));
+    });
+  };
+  renderRecent();
+  EventBus.on("batches:changed", (e) => { if (!e || e.kind === "yearend") renderRecent(); if (!e || e.kind === "claims") { if (lastResult) render(lastResult); } });
+  EventBus.on("store:batches.yearend", renderRecent);
+  EventBus.on("store:batches.claims", () => { if (lastResult) render(lastResult); });
+
   const finish = (result, statusFn) => {
+    fromBatch = false;
     lastResult = result;
     render(result);
     const errs = result.issues.filter(i => i.level === "error").length;
@@ -165,6 +273,7 @@ export function initTab3() {
         return;
       }
       const result = validate(rows);
+      storeBatch(result, { fileName: file.name });
       ActivityLog.push("yearend", t("yearend.logRun", { n: result.rows.length, e: result.issues.filter(i => i.level === "error").length }), { file: file.name });
       finish(result, (errs) => errs
         ? t("yearend.statusErrs", { n: result.rows.length, e: errs })
@@ -176,27 +285,31 @@ export function initTab3() {
 
   $("#ye-download").addEventListener("click", () => {
     if (!lastResult) return;
-    const biz = ($("#ye-biz").value || "biz").replace(/-/g, "");
+    const org = Org.get();
+    const biz = String(org.bizNo || "biz").replace(/-/g, "");
     const rows = lastResult.rows.map(r => headerRow([
-      ["yearend.col.biz", r.biz], ["yearend.col.row", r.row], ["yearend.col.name", r.name], ["yearend.col.rrn", r.masked], ["yearend.col.date", r.date],
+      ...orgHeaderPairs(org), ["yearend.col.row", r.row], ["yearend.col.name", fromBatch ? Patients.alias(r.pid) : r.name], ["yearend.col.pid", r.pid || ""],
+      ["yearend.col.rrn", fromBatch ? "—" : r.masked], ["yearend.col.date", r.date],
       ["yearend.col.total", r.total], ["yearend.col.own", r.own], ["yearend.col.non", r.non], ["yearend.col.verdict", verdictText(r.verdict)], ["yearend.col.notes", rowNotes(r)]
     ]));
     downloadCSV(rows, t("yearend.file", { biz, date: todayISO().replace(/-/g, "") })); // watermark + _PoC applied inside
     ActivityLog.push("yearend", t("yearend.logDl", { n: rows.length }), {});
   });
 
-  // Sample: dates follow the selected tax year; the checksum-valid numbers pass, and the
-  // set deliberately contains one bad RRN, one negative amount and one duplicate row.
-  // Column headers are the Korean EMR-export names the validator expects (data, not UI copy).
+  // Sample: the five shared demo patients (fictional names/RRNs live ONLY in this file); dates follow the
+  // selected tax year (default = last year → 2025). The set deliberately keeps one bad RRN (12 digits),
+  // one negative amount and one duplicate row. Column headers are the Korean EMR-export names the validator
+  // expects (data, not UI copy); 환자번호 is the optional column the claims cross-check joins on.
   const sampleYeData = () => {
-    const y = +$("#ye-year").value || new Date().getFullYear() - 1;
+    const y = taxYear();
     return [
-      { 환자성명: "김민지", 주민등록번호: "880314-2123458", 진료일자: `${y}-04-08`, 본인부담금: 12000, 비급여금액: 38000 },
-      { 환자성명: "김민지", 주민등록번호: "880314-2123458", 진료일자: `${y}-04-15`, 본인부담금: 12000, 비급여금액: 0     },
-      { 환자성명: "박지훈", 주민등록번호: "750822-1234569", 진료일자: `${y}-06-02`, 본인부담금: 18000, 비급여금액: 80000 },
-      { 환자성명: "박지훈", 주민등록번호: "750822-1234569", 진료일자: `${y}-06-02`, 본인부담금: 18000, 비급여금액: 80000 },
-      { 환자성명: "이서윤", 주민등록번호: "920506-265432",  진료일자: `${y}-08-21`, 본인부담금: 15000, 비급여금액: 120000 },
-      { 환자성명: "최다은", 주민등록번호: "010912-4123452", 진료일자: `${y}-09-03`, 본인부담금: -9000, 비급여금액: 45000 }
+      { 환자번호: "P-2026-0142", 환자성명: "김민지", 주민등록번호: "880314-2123458", 진료일자: `${y}-04-08`, 본인부담금: 12000, 비급여금액: 38000 },
+      { 환자번호: "P-2026-0142", 환자성명: "김민지", 주민등록번호: "880314-2123458", 진료일자: `${y}-04-15`, 본인부담금: 12000, 비급여금액: 0 },
+      { 환자번호: "P-2026-0233", 환자성명: "박지훈", 주민등록번호: "750822-1234569", 진료일자: `${y}-06-02`, 본인부담금: 18000, 비급여금액: 80000 },
+      { 환자번호: "P-2026-0233", 환자성명: "박지훈", 주민등록번호: "750822-1234569", 진료일자: `${y}-06-02`, 본인부담금: 18000, 비급여금액: 80000 },
+      { 환자번호: "P-2026-0301", 환자성명: "이서윤", 주민등록번호: "920506-265432",  진료일자: `${y}-08-21`, 본인부담금: 15000, 비급여금액: 120000 },
+      { 환자번호: "P-2026-0418", 환자성명: "최다은", 주민등록번호: "010912-4123452", 진료일자: `${y}-09-03`, 본인부담금: -9000, 비급여금액: 45000 },
+      { 환자번호: "P-2026-0509", 환자성명: "정하늘", 주민등록번호: "830127-1234562", 진료일자: `${y}-11-19`, 본인부담금: 9000,  비급여금액: 20000 }
     ];
   };
 
@@ -205,20 +318,35 @@ export function initTab3() {
     downloadXLSX(sampleYeData(), t("yearend.sampleFile", { y: $("#ye-year").value || "" }), t("common.sampleSheetShort"));
   });
 
-  $('[data-action="run-ye"]').addEventListener("click", () => {
-    if (!$("#ye-biz").value.trim()) $("#ye-biz").value = "123-45-67890";
-    if (!$("#ye-clinic").value.trim()) $("#ye-clinic").value = "한솔 한방병원";
+  const runSample = () => {
+    ensureDemoOrg(Org);
     const result = validate(sampleYeData());
+    storeBatch(result, { sample: true });
     ActivityLog.push("yearend", t("yearend.logSample", { n: result.rows.length }), { sample: true });
     finish(result, (errs) => t("yearend.statusSample", { e: errs }));
+  };
+  $('[data-action="run-ye"]').addEventListener("click", runSample);
+
+  // Persist the tax year only (institution fields live in Org; uploaded rows are never persisted as such)
+  if (!$("#ye-year").value) $("#ye-year").value = String(new Date().getFullYear() - 1);
+  bindPersist("#ye-year", "yearend.ye-year");
+
+  // Deadline click from 00 → { taxYear }
+  EventBus.on("tab:activated", (p) => {
+    const { id, ctx } = normTabEvent(p);
+    if (id !== "tab-yearend") return;
+    if (ctx?.taxYear) {
+      $("#ye-year").value = String(ctx.taxYear);
+      $("#ye-year").dispatchEvent(new Event("change", { bubbles: true }));
+      if (lastResult && lastResult.taxYear !== +ctx.taxYear) status("warn", () => t("yearend.statusYearChanged", { y: ctx.taxYear }));
+    }
   });
 
-  // Persist hospital info fields (never the uploaded rows)
-  if (!$("#ye-year").value) $("#ye-year").value = String(new Date().getFullYear() - 1);
-  ["ye-biz", "ye-clinic", "ye-year"].forEach(id => bindPersist("#" + id, "yearend." + id));
-
   onLangChange(() => {
+    renderOrg(); renderRecent();
     if (lastResult) render(lastResult);
     if (lastStatus) setStatus($("#ye-status"), lastStatus.kind, lastStatus.fn());
   });
+
+  api = { seed: runSample };
 }
