@@ -31,9 +31,17 @@ const NS = "vibe.clinic-admin";
    NOT sensitive (plaintext): accred.checked, bigeup.tariff (price list), kcd.lastSummary and
    retention.lastAudit (counts only), ui.* (screen settings), __* (internal: key ring, mtimes). */
 const SENSITIVE_KEYS = {
-  exact: ["jabo.history", "license.list", "activity", "intake-cards"],
-  prefixes: ["jabo.draft.", "ai.", "yearend.", "bigeup.profile."]
+  exact: ["jabo.history", "license.list", "activity", "intake-cards", "staff.list", "patients.register"],
+  prefixes: ["jabo.draft.", "ai.", "yearend.", "bigeup.profile.", "claims.batch."]
 };
+/* Legacy-key ALIASES (compat shims, registered by core/entities.js). A read of an aliased key is served by a
+   getter over the shared entity, a write is routed to its setter; the key itself never touches localStorage.
+   Lets tab code that still says Store.get("license.list") / bindPersist("yearend.ye-biz") keep working while the
+   canonical data lives in org.profile / staff.list / tariff.*. Delete the alias once no caller remains. */
+const aliases = new Map(); // key → { get(): value|null, set(value) }
+/* Unlock hooks (entities.js registers its legacy → entity migration): awaited inside unlockedInit() AFTER the
+   cache is populated and BEFORE the `store:<key>` re-emits, so tabs never initialise against un-migrated data. */
+const unlockHooks = [];
 const isSensitive = (key) => SENSITIVE_KEYS.exact.includes(key) || SENSITIVE_KEYS.prefixes.some(p => key.startsWith(p));
 const isInternal = (key) => key.startsWith("__");
 
@@ -60,7 +68,16 @@ function touchMtime(key) {
 
 const Store = {
   isSensitive,
+  alias(key, handlers) { aliases.set(key, handlers); },
+  isAlias: (key) => aliases.has(key),
+  onUnlock(fn) { unlockHooks.push(fn); },
   get(key, fallback = null) {
+    const a = aliases.get(key);
+    if (a) { const v = a.get(); return v == null ? fallback : v; }
+    return this.getStored(key, fallback);
+  },
+  // The stored value itself, ignoring aliases (the legacy → entity migration reads the old keys through this).
+  getStored(key, fallback = null) {
     if (isSensitive(key)) {
       if (!Session.isUnlocked()) return fallback;
       return cache.has(key) ? cache.get(key) : fallback;
@@ -69,6 +86,8 @@ const Store = {
     return v === undefined ? fallback : v;
   },
   set(key, value) {
+    const a = aliases.get(key);
+    if (a) { a.set(value); return; }
     if (isSensitive(key)) {
       if (!Session.isUnlocked()) { console.warn("Store.set ignored while locked:", key); return; }
       cache.set(key, value);
@@ -98,14 +117,17 @@ const Store = {
     if (isSensitive(key)) { EventBus.emitLocal(`store:${key}`, null); EventBus.notify(`store:${key}`); }
     else EventBus.emit(`store:${key}`, null);
   },
+  // Every key under the namespace — what is on disk PLUS sensitive keys set this session whose encrypted write is
+  // still in flight (a batch created a moment ago must be listable at once; backup awaits flush() before reading).
   keys() {
-    const out = [];
+    const out = new Set();
     const prefix = `${NS}.`;
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
-      if (k && k.startsWith(prefix)) out.push(k.slice(prefix.length));
+      if (k && k.startsWith(prefix)) out.add(k.slice(prefix.length));
     }
-    return out;
+    if (Session.isUnlocked()) for (const k of cache.keys()) out.add(k);
+    return [...out];
   },
   mtime(key) { return (readRaw("__mtime") || {})[key] || null; },
   // Raw envelope (or plaintext for non-sensitive keys) — used by the encrypted backup.
@@ -138,8 +160,10 @@ const Store = {
       }
     }
     try { migrated += await Attachments.migratePlaintext(); } catch (e) { console.warn("attachment migration", e); }
-    for (const k of restored) EventBus.emitLocal(`store:${k}`, cache.get(k));
-    return { restored: restored.length, migrated };
+    const hooks = {};
+    for (const fn of unlockHooks) { try { Object.assign(hooks, await fn()); } catch (e) { console.warn("Store unlock hook", e); } }
+    for (const k of restored) if (cache.has(k)) EventBus.emitLocal(`store:${k}`, cache.get(k));
+    return { restored: restored.length, migrated, hooks };
   },
   lockedTeardown() { cache.clear(); },
   // Cross-tab: a peer changed a sensitive key → re-read + decrypt with OUR key.
@@ -235,8 +259,9 @@ Session.onChange((what, reason) => {
 
 /* ─────────────────────────────────────────────────────────
    ActivityLog — append-only, pseudonymised, encrypted (key `activity`).
-   Entry: { at, actor, role, tag, action, subject, text, meta }
-     actor/role  — the unlocked user (never a patient)
+   Entry: { at, actor, staffId, role, tag, action, subject, text, meta }
+     actor/role  — the unlocked user (never a patient); `actor` is the name snapshot at the time,
+                   `staffId` the roster row (core/entities.js Staff) the login belongs to
      action      — what happened; RRN/phone digits scrubbed defensively
      subject     — pseudonymised reference: redactSubject() for a patient ("****0142"),
                    redactStaff() for a staff row ("한의사 윤○○"); NEVER a full name
@@ -254,7 +279,7 @@ const ActivityLog = {
     const keep = {};
     for (const k of ["silent", "sample", "len", "id"]) if (k in meta) keep[k] = meta[k];
     const act = scrubIdentifiers(String(action ?? ""));
-    const entry = { at: Date.now(), actor: u.name, role: u.role, tag, action: act, subject: subject || null, text: act, meta: keep };
+    const entry = { at: Date.now(), actor: u.name, staffId: u.staffId || null, role: u.role, tag, action: act, subject: subject || null, text: act, meta: keep };
     const items = Store.get("activity", []) || [];
     items.unshift(entry);
     Store.set("activity", items.slice(0, this.MAX));

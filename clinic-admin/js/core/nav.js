@@ -37,7 +37,11 @@ function refreshCrumb(panelId) {
 }
 function activeTabId() { return $(".panel.active")?.id || null; }
 
-function activateTab(panelId) {
+/* activateTab(id, ctx?) — ctx is an optional plain object handed to the tab so it can land on the right thing:
+     { refMonth: "2026-09" } (04 비급여 window) · { taxYear: 2025 } (03 연말정산) · { staffId } (08 roster row)
+     · { pid, date } (a patient's visit) · { stmt } (a 명세서) · { query } (06 검색).
+   Emitted LOCALLY as `tab:activated` { id, ctx } — ctx may carry a pid, so it never crosses the BroadcastChannel. */
+function activateTab(panelId, ctx) {
   const panel = $("#" + panelId);
   if (!panel) return;
   $$(".rail-btn[data-panel]").forEach(b => b.classList.remove("active"));
@@ -48,6 +52,6 @@ function activateTab(panelId) {
   refreshCrumb(panelId);
   // The body is a locked viewport; the work column is what actually scrolls.
   $("#work-scroll")?.scrollTo({ top: 0 });
-  EventBus.emit("tab:activated", panelId);
+  EventBus.emitLocal("tab:activated", { id: panelId, ctx: ctx && typeof ctx === "object" ? { ...ctx } : null });
 }
 export { TABS, TAB_BY_ID, activateTab, refreshCrumb, activeTabId };

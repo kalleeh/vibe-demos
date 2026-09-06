@@ -10,12 +10,13 @@ import { t, getLang, setLang, onLangChange, isEn } from "./core/i18n.js";
 import { Store, EventBus, ActivityLog, SyncStatus } from "./core/store.js";
 import { TABS, TAB_BY_ID, activateTab, refreshCrumb, activeTabId } from "./core/nav.js";
 import { loadJSON } from "./core/files.js";
-import { statutoryDeadlines } from "./core/calendar.js";
+import { allDeadlines } from "./core/calendar.js";
+import { Org, Staff, Patients, Insurers } from "./core/entities.js";
+import { renderOrgForm } from "./core/org-form.js";
 import { Session } from "./security/session.js";
 import { destroyAll } from "./security/lifecycle.js";
 import { initSecurityUI, Lock, UsersPanel, PrivacyPanel, isDestroyWord } from "./security/lockscreen.js";
 import { ACCRED_ITEMS, accredText } from "./tabs/tab9-accred.js";
-import { hasDuty } from "./tabs/tab8-license.js";
 
 /* Language toggle — one delegated handler for every .lang-toggle (lock card, topbar, drawer). The lock card
    sits outside the inert shell, so it stays clickable while locked. */
@@ -80,8 +81,12 @@ $("#welcome-scrim")?.addEventListener("click", e => {
   if (e.target.id === "welcome-scrim") closeWelcome(false);
 });
 $("#rail-demo")?.addEventListener("click", () => { closeRail(); openWelcome(); });
-/* Info modal */
-function openInfo() { Dialog.open($("#info-scrim")); }
+/* Info modal — hosts the compact 기관 프로필 editor (mounted on first open). */
+let infoOrgMounted = false;
+function openInfo() {
+  if (!infoOrgMounted && $("#info-org")) { renderOrgForm($("#info-org"), { prefix: "orginfo" }); infoOrgMounted = true; }
+  Dialog.open($("#info-scrim"));
+}
 function closeInfo() { Dialog.close($("#info-scrim")); }
 $("#rail-info")?.addEventListener("click", () => { closeRail(); openInfo(); });
 $("#info-close")?.addEventListener("click", closeInfo);
@@ -106,7 +111,7 @@ document.addEventListener("keydown", e => {
   else if (Dialog.isOpen($("#lightbox"))) Lightbox.close();
   else if ($$(".welcome-scrim.open").length) {
     const top = $$(".welcome-scrim.open").pop();
-    if (top.id === "welcome-scrim") closeWelcome(false); else Dialog.close(top);
+    if (top.id === "welcome-scrim") closeWelcome(false); else if (top.id === "org-scrim") OrgStep.close(); else Dialog.close(top);
   }
   else if (document.body.classList.contains("rail-open")) closeRail();
 });
@@ -116,9 +121,48 @@ $("#rail-cmdk")?.addEventListener("click", () => {
   // Palette opens itself on next tick
   setTimeout(() => Palette.open(), 50);
 });
+/* First-run 기관 정보 step — shown once, right after the workspace was created on THIS page load, before the
+   welcome tour. Skippable ("나중에 입력"): the topbar org chip + the ⓘ 정보 modal keep the editor reachable. */
+const OrgStep = (() => {
+  const scrim = () => $("#org-scrim");
+  let mounted = false;
+  function open() {
+    if (!scrim()) return;
+    if (!mounted) { renderOrgForm($("#org-step-form"), { prefix: "orgstep", skippable: true, onSaved: close, onSkip: close }); mounted = true; }
+    Dialog.open(scrim(), "#orgstep-name");
+  }
+  function close() {
+    if (!Dialog.isOpen(scrim())) return;
+    Dialog.close(scrim());
+    EventBus.emitLocal("orgstep:closed", Org.isComplete());
+    if (!Store.get(WELCOMED_KEY)) setTimeout(openWelcome, 250);
+  }
+  $("#org-step-close")?.addEventListener("click", close);
+  scrim()?.addEventListener("click", e => { if (e.target.id === "org-scrim") close(); });
+  return { open, close };
+})();
 /* Open welcome on first visit. The flag is read at app:ready, not at import time: a backup restore
    on a fresh page writes ui.welcomed back between the two, and must not re-open the tour. */
-EventBus.on("app:ready", () => { if (!Store.get(WELCOMED_KEY)) setTimeout(openWelcome, 350); });
+EventBus.on("app:ready", () => {
+  if (Lock.justCreated() && !Org.isComplete()) { setTimeout(() => OrgStep.open(), 350); return; }
+  if (!Store.get(WELCOMED_KEY)) setTimeout(openWelcome, 350);
+});
+
+/* Topbar 기관 chip — the org name (or a nudge while the profile is incomplete); click → ⓘ 정보 editor. */
+function refreshOrgChip() {
+  const chip = $("#topbar-org"), txt = $("#topbar-org-text"); if (!chip || !txt) return;
+  const o = Org.get(), complete = Org.isComplete();
+  chip.style.display = Session.isUnlocked() ? "inline-flex" : "none";
+  txt.textContent = o.name || t("org.unsetChip");
+  chip.classList.toggle("warn", !complete);
+  chip.title = complete ? t("org.chipTitle", { kind: t("org.kind." + o.kind), rep: o.rep }) : t("org.chipTitleIncomplete");
+}
+$("#topbar-org")?.addEventListener("click", () => { openInfo(); setTimeout(() => $("#orginfo-name")?.focus({ preventScroll: true }), 80); });
+Org.onChange(refreshOrgChip);
+EventBus.on("session:unlocked", refreshOrgChip);
+EventBus.on("session:locked", refreshOrgChip);
+EventBus.on("app:ready", refreshOrgChip);
+onLangChange(refreshOrgChip);
 
 /* ─────────────────────────────────────────────────────────
    Install — detect standalone, show rail-foot button +
@@ -246,35 +290,73 @@ const Install = (() => {
   return { open, close, isStandalone };
 })();
 
-/* Seed-all — fills every tool tab with sample state in one shot. */
-function seedAll() {
-  // Tab 1 — trigger sample-kcd's run-kcd action
-  try { $('[data-action="run-kcd"]')?.click(); } catch {}
-  // Tab 2 — sample jabo case
-  try { $('[data-action="run-jabo"]')?.click(); } catch {}
-  // Tab 3 — yearend
-  try { $('[data-action="run-ye"]')?.click(); } catch {}
-  // Tab 4 — bigeup
-  try { $('[data-action="run-bigeup"]')?.click(); } catch {}
-  // Tab 5 — retention
-  try { $('[data-action="run-ret"]')?.click(); } catch {}
-  // Tab 6 — search
-  try { $('[data-action="run-search"]')?.click(); } catch {}
-  // Tab 7 — AI canned demo
-  try { $('[data-action="run-ai"]')?.click(); } catch {}
-  // Tab 8 — sample 5 staff
-  try { $("#lic-sample")?.click(); } catch {}
-  // Tab 9 — pre-check ~40% of accred items
-  try {
+/* ─────────────────────────────────────────────────────────
+   ONE fictional clinic — 한솔한방병원. seedAll() seeds ONLY the shared entities (core/entities.js) here, then
+   asks every tab module for its own sample via the `seed(ctx)` export (see boot() for the module convention).
+   Every tab's sample data must reference these people / patients, never invent its own names.
+   Demo logins issued by the seed (원장 only; PIN is the same for all three so a reviewer can switch users):
+     윤지훈 · 원장  /  정수아 · 행정  /  한지우 · 원무   — PIN 0000
+   ───────────────────────────────────────────────────────── */
+const SEED_PIN = "0000";
+const SEED = {
+  org: { name: "한솔한방병원", ykiho: "11000123", biz: "123-45-67890", kind: "병원", rep: "윤지훈" },
+  // reportedM / cmeM = months relative to today (one row has only a 취득일 → flagged; 행정·원무 carry no duty).
+  staff: [
+    { name: "윤지훈", job: "한의사",     licenseNo: "12345",  acquired: "2009-02-27", reportedM: 2 - 36,  cmeM: 8,  login: "원장" },
+    { name: "박서연", job: "한의사",     licenseNo: "23456",  acquired: "1998-02-27", reportedM: null,    cmeM: -1 },
+    { name: "김도현", job: "간호사",     licenseNo: "345678", acquired: "2014-02-25", reportedM: 5 - 36,  cmeM: 11 },
+    { name: "이하은", job: "물리치료사", licenseNo: "45678",  acquired: "2016-03-01", reportedM: 22 - 36, cmeM: 4 },
+    { name: "최민준", job: "간호조무사", licenseNo: "567890", acquired: "2018-01-20", reportedM: -2 - 36, cmeM: 7 },
+    { name: "정수아", job: "행정", login: "행정" },
+    { name: "한지우", job: "원무", login: "원무" }
+  ],
+  patients: [["P-2026-0142", ["자보", "교통사고"]], ["P-2026-0233", []], ["P-2026-0301", []], ["P-2026-0418", ["자보"]], ["P-2026-0509", []]],
+  insurer: "삼성화재"
+};
+const monthsFromNow = (m) => { const d = new Date(); d.setMonth(d.getMonth() + m); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+async function seedEntities() {
+  const out = { staff: 0, logins: 0, patients: 0 };
+  // Org — only fields still empty (whatever the user typed in the first-run step wins).
+  const o = Org.get(), patch = {};
+  for (const k of Object.keys(SEED.org)) if (!o[k] || (k === "kind" && Org.isEmpty())) patch[k] = SEED.org[k];
+  if (Object.keys(patch).length) Org.set(patch);
+  // Staff — idempotent by name + job; logins sequentially (each wraps the master key under a PIN).
+  for (const s of SEED.staff) {
+    let row = Staff.list().find(x => x.name === s.name && x.job === s.job);
+    if (!row) {
+      const id = Staff.add({ name: s.name, job: s.job, licenseNo: s.licenseNo || "", acquired: s.acquired || "", reported: s.reportedM == null ? "" : monthsFromNow(s.reportedM), cme: s.cmeM == null ? "" : monthsFromNow(s.cmeM) });
+      row = Staff.get(id); out.staff++;
+    }
+    if (s.login && !row.userId && Session.isOwner()) {
+      try { await Staff.issueLogin(row.id, { sysRole: s.login, pin: SEED_PIN }); out.logins++; } catch (e) { console.warn("seed login", s.name, e.message); }
+    }
+  }
+  for (const [pid, tags] of SEED.patients) { if (!Patients.get(pid)) out.patients++; Patients.ensure(pid, { tags }); }
+  if (!Insurers.lastUsed()) Insurers.setLastUsed(SEED.insurer);
+  ActivityLog.add({ tag: "system", action: t("shell.logSeedEntities", { n: out.staff, l: out.logins, p: out.patients }), meta: { silent: true } });
+  return out;
+}
+// Legacy fallback for tab modules that do not export seed() yet — the old demo-CTA clicks, keyed by init name.
+const LEGACY_SEED_ACTION = { initTab1: "run-kcd", initTab2: "run-jabo", initTab3: "run-ye", initTab4: "run-bigeup", initTab5: "run-ret", initTab6: "run-search", initTab7: "run-ai" };
+function legacySeed(mod) {
+  const action = LEGACY_SEED_ACTION[mod.init?.name];
+  if (action) { $(`[data-action="${action}"]`)?.click(); return; }
+  if (mod.init?.name === "initTab9") { // pre-check ~40% of accred items
     const accred = Store.get("accred.checked", {});
     const all = ACCRED_ITEMS.flatMap(c => c.items);
-    const n = Math.floor(all.length * 0.4);
-    for (let i = 0; i < n; i++) accred[all[i].id] = true;
+    for (let i = 0; i < Math.floor(all.length * 0.4); i++) accred[all[i].id] = true;
     Store.set("accred.checked", accred);
-  } catch {}
-  // Land on dashboard so the user sees the result
+  }
+}
+/* Seed-all — shared entities first, then every tab (its own seed() or the legacy CTA), then land on the dashboard. */
+async function seedAll() {
+  let ent = null;
+  try { ent = await seedEntities(); } catch (e) { console.warn("seedEntities", e); }
+  for (const mod of tabModules) {
+    try { if (typeof mod.seed === "function") mod.seed({ DATA }); else legacySeed(mod); } catch (e) { console.warn("seed", mod.init?.name, e); }
+  }
   activateTab("tab-today");
-  Toast.show({ tag: "system", html: t("shell.seededToast") });
+  Toast.show({ tag: "system", html: t("shell.seededToast") + (ent?.logins ? ` ${t("shell.seededLogins", { pin: SEED_PIN })}` : "") });
 }
 $("#welcome-seed")?.addEventListener("click", () => {
   seedAll();
@@ -337,12 +419,11 @@ const Palette = (() => {
         out.push({ kind: "jabo", glyph: "J", label: cap, meta: t("shell.pal.jaboMeta", { date: j.date || "", n: j.itemCount || 0 }), run: () => activateTab("tab-jabo") });
       }
     }
-    // Licenses — pseudonymised (한의사 윤○○); 원무·기타 carry no 신고 duty, so no deadline.
-    const lics = Store.get("license.list", []) || [];
-    for (const l of lics) {
-      const cap = redactStaff(l);
+    // Staff roster — pseudonymised (한의사 윤○○); 원무·행정·기타 carry no 신고 duty, so no deadline. Lands on the row.
+    for (const s of Staff.list()) {
+      const cap = Staff.ref(s);
       if (!q || cap.toLowerCase().includes(q)) {
-        out.push({ kind: "license", glyph: "L", label: cap, meta: hasDuty(l.role) ? t("license.dueMeta", { d: l.expiry || "—" }) : t("license.noDuty"), run: () => activateTab("tab-license") });
+        out.push({ kind: "license", glyph: "L", label: cap, meta: Staff.hasDuty(s.job) ? t("license.dueMeta", { d: s.expiry || "—" }) : t("license.noDuty"), run: () => activateTab("tab-license", { staffId: s.id }) });
       }
     }
     // Accreditation items
@@ -427,34 +508,21 @@ const Palette = (() => {
 /* Topbar · today date + due-this-week chip */
 (function topbarLive() {
   function refreshDue() {
-    const days = (iso) => {
-      const t0 = new Date(iso + "T09:00:00").getTime();
-      return Math.ceil((t0 - Date.now()) / 86400000);
-    };
-    // Same calendar as 00 오늘 (core/calendar.js) — never a second copy of the statutory dates.
-    const fixed = statutoryDeadlines().map(d => ({ title: d.title, date: d.date }));
-    const lics = Store.get("license.list", []) || [];
-    for (const l of lics) {
-      if (l.expiry && hasDuty(l.role)) fixed.push({ title: t("license.dlReport", { who: redactStaff(l) }), date: l.expiry });
-      if (l.cme) fixed.push({ title: t("license.dlCme", { who: redactStaff(l) }), date: l.cme });
-    }
-    const upcoming = fixed
-      .map(d => ({ ...d, d: days(d.date) }))
-      .filter(d => d.d >= 0 && d.d <= 14)
-      .sort((a, b) => a.d - b.d);
+    // Same calendar as 00 오늘 (core/calendar.js allDeadlines: statutory + per-person from the Staff roster).
+    const upcoming = allDeadlines().filter(d => d.daysLeft != null && d.daysLeft >= 0 && d.daysLeft <= 14);
     const chip = $("#topbar-due");
     const text = $("#topbar-due-text");
     if (!chip) return;
     if (!upcoming.length) { chip.style.display = "none"; return; }
     const next = upcoming[0];
-    text.textContent = `D-${next.d} · ${next.title}`;
+    text.textContent = `D-${next.daysLeft} · ${next.title}`;
     chip.style.display = "inline-flex";
-    chip.classList.toggle("urgent", next.d <= 3);
-    chip.classList.toggle("warn", next.d > 3);
+    chip.classList.toggle("urgent", next.daysLeft <= 3);
+    chip.classList.toggle("warn", next.daysLeft > 3);
     chip.style.cursor = "pointer";
-    chip.onclick = () => activateTab("tab-today");
+    chip.onclick = () => activateTab(next.link || "tab-today", next.ctx || undefined);
   }
-  EventBus.on("store:license.list", refreshDue);
+  Staff.onChange(refreshDue);
   EventBus.on("app:ready", refreshDue);
   onLangChange(refreshDue);
   setInterval(refreshDue, 60000);
@@ -465,12 +533,19 @@ const Palette = (() => {
    ───────────────────────────────────────────────────────── */
 const DATA = { kcd: null, jabo: null, bigeup: null, retention: null };
 
-// `initTabs` is the ordered list of initTabN functions (main.js passes 1‥9 then 0,
-// exactly the former inline order). Each receives ctx = { DATA }.
-// Waits for the first unlock (Lock.ready) so tabs initialise against a decrypted Store.
-function boot(initTabs, { version = "dev" } = {}) {
+/* TAB MODULE CONVENTION — every js/tabs/tabN-*.js exports
+     initTabN(ctx)   wire the panel once (ctx = { DATA })
+     seed(ctx)       fill the panel with ITS sample state for the shared fictional clinic (called by seedAll()
+                     after the entities are seeded; must reference Staff / Patients / Org from core/entities.js,
+                     never invent names). Modules without seed() fall back to legacySeed() for now.
+   main.js passes the module namespaces (import * as T1 …) in the order 1‥9 then 0 — exactly the former inline
+   order. boot() waits for the first unlock (Lock.ready) so tabs initialise against a decrypted Store. */
+let tabModules = [];
+const asModule = (m) => typeof m === "function" ? { init: m } : { init: m.init || Object.values(m).find(v => typeof v === "function" && /^initTab\d$/.test(v.name)), seed: typeof m.seed === "function" ? m.seed : null };
+function boot(mods, { version = "dev" } = {}) {
   const ver = $("#info-version"); if (ver) ver.dataset.version = version;
   showVersion(version);
+  tabModules = mods.map(asModule);
   return Promise.all([
     sessionReady,
     loadJSON("./data/kcd9.json"),
@@ -479,7 +554,8 @@ function boot(initTabs, { version = "dev" } = {}) {
     loadJSON("./data/retention.json")
   ]).then(([, kcd, jabo, bigeup, ret]) => {
     DATA.kcd = kcd; DATA.jabo = jabo; DATA.bigeup = bigeup; DATA.retention = ret;
-    for (const init of initTabs) init({ DATA });
+    Insurers.load(DATA); // shared insurer list (data/jabo.json) before any tab reads it
+    for (const mod of tabModules) mod.init?.({ DATA });
     // Local only: broadcasting this made a second tab's boot re-open the first tab's welcome overlay.
     EventBus.emitLocal("app:ready", true);
   }).catch(err => {
@@ -509,4 +585,4 @@ window.addEventListener("load", () => {
     Toast.show({ tag: "system", ttl: 0, html: t("shell.xlsxFailToast"), action: { label: t("common.reload"), fn: () => location.reload() } });
   }
 });
-export { DATA, boot, seedAll, openWelcome, closeWelcome, openInfo, closeInfo, openRail, closeRail, Install, Palette };
+export { DATA, boot, seedAll, seedEntities, SEED, SEED_PIN, openWelcome, closeWelcome, openInfo, closeInfo, openRail, closeRail, Install, Palette, OrgStep };

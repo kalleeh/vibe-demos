@@ -5,16 +5,18 @@
    Isolated module. The rest of clinic-admin works fully without
    it (local-first); this layer is purely additive.
 
-   ⚠ PURE DEMO DATA. Every card is a fictional sample patient
-   (#intake-name is a <select> of fixed fictional names). Since the
-   security pass the card body is nevertheless ENCRYPTED CLIENT-SIDE
-   with the workspace master key before it is uploaded, to prove the
-   pattern: the server never sees a name or a summary.
+   ⚠ PURE DEMO DATA. Every card references a PSEUDONYMOUS patient from
+   the shared register (core/entities.js Patients): #intake-name is a
+   <select> over Patients.list() (P-2026-0142 → "환자 ****0142") plus
+   "새 가명 환자". No name is ever typed or stored. Since the security
+   pass the card body is nevertheless ENCRYPTED CLIENT-SIDE with the
+   workspace master key before it is uploaded, to prove the pattern:
+   the server never sees a pid or a summary.
 
    Collection: intake_card (base) — https://clinic-admin.pb.gurum.se/_/
      ws        (text, required, max 64)  — sha256(workspaceId): routes cards to a workspace,
                                             reveals nothing about it
-     payload   (json, max 4096)           — { v:1, iv, ct } AES-GCM over { name, summary }
+     payload   (json, max 4096)           — { v:1, iv, ct } AES-GCM over { pid, summary } (older cards: { name, summary })
      status    (text, required, max 12)   — 대기 | 진료중 | 완료 (plaintext: column placement only)
      player_id (text, max 64)             — anonymous UUID, "added by you" marker, NOT auth
      Rules: list="" view="" create="" update="" delete=""   (see pb_migrations/004_intake_e2e.js
@@ -36,9 +38,10 @@
    i18n: status VALUES stay Korean (server column + Store), only the labels/buttons go through t();
    the fictional seed summaries are sample data and stay Korean on purpose.
    ============================================================ */
-import { Toast } from "./core/ui.js";
+import { Toast, esc, todayISO } from "./core/ui.js";
 import { t, onLangChange } from "./core/i18n.js";
 import { Store, EventBus } from "./core/store.js";
+import { Patients } from "./core/entities.js";
 import { Session } from "./security/session.js";
 import { encryptJSON, decryptJSON, sha256hex, sha384b64, isEnvelope } from "./security/crypto.js";
 
@@ -87,10 +90,12 @@ function playerId() {
 const $id = (id) => document.getElementById(id);
 
 /* ── crypto helpers ── */
-async function sealCard({ name, summary }) {
+async function sealCard({ pid, name, summary }) {
   const key = Session.key();
   if (!key) throw Object.assign(new Error("locked"), { code: "locked" });
-  return encryptJSON(key, { name: String(name || "").slice(0, 20), summary: String(summary || "").slice(0, 120) });
+  const body = { summary: String(summary || "").slice(0, 120) };
+  if (pid) body.pid = String(pid).slice(0, 20); else if (name) body.name = String(name).slice(0, 20); // legacy cards only
+  return encryptJSON(key, body);
 }
 // server record → view card | null (cannot decrypt)
 async function openRecord(rec) {
@@ -98,22 +103,39 @@ async function openRecord(rec) {
   if (!key || !isEnvelope(rec.payload)) return null;
   try {
     const body = await decryptJSON(key, rec.payload);
-    return { id: rec.id, name: body.name, summary: body.summary, status: rec.status, player_id: rec.player_id, created: rec.created };
+    return { id: rec.id, pid: body.pid || "", name: body.name || "", summary: body.summary, status: rec.status, player_id: rec.player_id, created: rec.created };
   } catch { return null; }
 }
+// Card label: the register alias for a pid ("환자 ****0142"); a pre-entities card still carries its fixed sample name.
+const cardLabel = (rec) => rec.pid ? Patients.alias(rec.pid) : (rec.name || t("board.patientFallback"));
 
 // ── Local-first store (used when offline / no backend) — encrypted by Store ──
 function loadLocal() { const v = Store.get(LS_LOCAL); return Array.isArray(v) ? v : null; }
 function saveLocal(list) { Store.set(LS_LOCAL, list); }
-// Fictional seed patients — only ever sample data.
+// Seed cards — the shared fictional clinic's pseudonymous patients (same pids as every other tab's sample).
+const SEED_PIDS = { "P-2026-0142": ["자보", "교통사고"], "P-2026-0233": [], "P-2026-0301": [] };
 function seedCards() {
-  const me = playerId();
   return [
-    { id: "seed-1", name: "김민서", status: "대기",   summary: "요통 초진 · 접수 대기", player_id: "" },
-    { id: "seed-2", name: "이준호", status: "대기",   summary: "교통사고 후 경추 통증", player_id: "" },
-    { id: "seed-3", name: "박서연", status: "진료중", summary: "오십견 추나 진행 중", player_id: "" },
-    { id: "seed-4", name: "정우진", status: "완료",   summary: "발목 염좌 · 침 치료 완료", player_id: me },
+    { id: "seed-1", pid: "P-2026-0142", status: "대기",   summary: "교통사고 후 경추 통증 · 자보", player_id: "" },
+    { id: "seed-2", pid: "P-2026-0233", status: "대기",   summary: "요통 초진 · 접수 대기", player_id: "" },
+    { id: "seed-3", pid: "P-2026-0301", status: "진료중", summary: "오십견 추나 진행 중", player_id: "" }
   ];
+}
+function ensureSeedPatients() {
+  if (!Session.isUnlocked()) return;
+  try { for (const [pid, tags] of Object.entries(SEED_PIDS)) Patients.ensure(pid, { tags }); } catch {}
+}
+
+/* ── pid picker (#intake-name): every registered pseudonymous patient + "새 가명 환자" ── */
+const NEW_PID = "__new";
+function renderPicker() {
+  const sel = $id("intake-name");
+  if (!sel) return;
+  const cur = sel.value;
+  const list = Session.isUnlocked() ? Patients.list() : [];
+  sel.innerHTML = list.map(p => `<option value="${esc(p.pid)}">${esc(p.alias)}${p.tags.length ? ` · ${esc(p.tags.join(", "))}` : ""}</option>`).join("")
+    + `<option value="${NEW_PID}">${esc(t("board.newPatient"))}</option>`;
+  if (cur && Array.from(sel.options).some(o => o.value === cur)) sel.value = cur; else sel.selectedIndex = 0;
 }
 
 // In-memory view model: id -> card (decrypted). `foreign` = rows we could not decrypt.
@@ -157,7 +179,7 @@ function makeCardEl(rec, flash) {
   const name = document.createElement("div");
   name.className = "pc-name";
   const nameText = document.createElement("span");
-  nameText.textContent = rec.name || t("board.patientFallback"); // textContent → no XSS
+  nameText.textContent = cardLabel(rec); // textContent → no XSS
   name.appendChild(nameText);
   const lockTag = document.createElement("span");
   lockTag.className = "e2e-tag"; lockTag.textContent = "E2E"; lockTag.title = t("board.e2eTitle");
@@ -293,10 +315,12 @@ async function addCard() {
   const nameEl = $id("intake-name"), sumEl = $id("intake-summary"), btn = $id("intake-add-btn");
   if (!nameEl) return;
   if (!Session.isUnlocked()) { Toast.show({ tag: "system", html: t("board.lockedToast") }); return; }
-  let name = (nameEl.value || "").trim().slice(0, 20); // <select> — fixed fictional names only
-  if (!name) name = "예시 환자";
+  // <select> over the pseudonymous register — a pid, never a name. "새 가명 환자" mints a fresh P-YYYY-NNNN.
+  let pid = (nameEl.value || "").trim();
+  if (!pid || pid === NEW_PID) pid = Patients.newPid();
+  Patients.ensure(pid); Patients.touch(pid, todayISO());
   const summary = (sumEl ? sumEl.value : "").trim().slice(0, 120);
-  const card = { name, status: "대기", summary, player_id: playerId() };
+  const card = { pid, status: "대기", summary, player_id: playerId() };
   if (btn) btn.disabled = true;
   if (online) {
     try {
@@ -329,9 +353,12 @@ async function boot() {
   const sumEl = $id("intake-summary");
   if (sumEl) sumEl.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addCard(); } });
   // After a re-unlock the key is back: re-decrypt whatever we hold.
-  EventBus.on("session:unlocked", () => { if (online) rebuildFromRecords(); else bootLocal(); });
+  EventBus.on("session:unlocked", () => { renderPicker(); if (online) rebuildFromRecords(); else bootLocal(); });
+  // Register changes (any tab) → picker + card labels follow.
+  Patients.onChange(() => { renderPicker(); render(); });
+  renderPicker();
   // Language toggle: same cards, new labels (applyStatic already reset the static sync text → repaint it).
-  onLangChange(() => { setSync(syncOn, syncKey); setForeign(foreign); render(); });
+  onLangChange(() => { setSync(syncOn, syncKey); setForeign(foreign); renderPicker(); render(); });
 
   const wsId = Session.workspaceId();
   wsHash = wsId ? await sha256hex(wsId) : null;
@@ -347,6 +374,7 @@ async function boot() {
       records = new Map(rows.map((r) => [r.id, r]));
       // First-run seed for THIS workspace: plant the fictional samples (encrypted).
       if (records.size === 0) {
+        ensureSeedPatients();
         for (const s of seedCards()) {
           try { await c.collection("intake_card").create(await toServerBody(s)); } catch (e) {}
         }
@@ -373,7 +401,7 @@ function bootLocal() {
   const stored = loadLocal();
   const list = (stored && stored.length) ? stored : seedCards();
   cards = new Map(list.map((r) => [r.id, r]));
-  if (!stored && Session.isUnlocked()) saveLocal(Array.from(cards.values()));
+  if (!stored && Session.isUnlocked()) { ensureSeedPatients(); saveLocal(Array.from(cards.values())); }
   render();
 }
 

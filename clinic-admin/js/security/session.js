@@ -4,8 +4,12 @@
 
    Persisted (localStorage `vibe.clinic-admin.__ws`, plaintext by necessity — it IS the key ring):
      { v:1, id, created, autolockMin,
-       users: [{ id, name, role, created, salt, iterations, wrapped:{v,iv,ct},
+       users: [{ id, name, role, staffId, created, salt, iterations, wrapped:{v,iv,ct},
                  aiConsent: {at, version} | null, fails, lockedUntil }] }
+   `staffId` (since the entities pass) links the login to its roster row in core/entities.js Staff — the roster
+   is the source of truth for who a person is; the keyring keeps only what the lock screen needs while LOCKED
+   (name + system role, plaintext) plus the wrapped key. `role` here is the SYSTEM role (원장 · 행정 · 원무),
+   not the job (한의사 · 간호사 …), which lives on the staff row.
    The master key exists only in this module's closure while unlocked. Nothing here writes it
    anywhere. If every user PIN is lost the workspace is unrecoverable by design (see lockscreen copy).
 
@@ -30,17 +34,18 @@ function readMeta() {
 function writeMeta(meta) { localStorage.setItem(META_KEY, JSON.stringify(meta)); }
 function notify(what, extra) { for (const fn of listeners) { try { fn(what, extra); } catch (e) { console.error(e); } } }
 const hex = (n) => Array.from(randomBytes(n)).map(b => b.toString(16).padStart(2, "0")).join("");
-const publicUser = (u) => ({ id: u.id, name: u.name, role: u.role, created: u.created, aiConsent: u.aiConsent || null, lockedUntil: u.lockedUntil || 0, fails: u.fails || 0 });
+const publicUser = (u) => ({ id: u.id, name: u.name, role: u.role, staffId: u.staffId || null, created: u.created, aiConsent: u.aiConsent || null, lockedUntil: u.lockedUntil || 0, fails: u.fails || 0 });
+const asCurrent = (u) => ({ id: u.id, name: u.name, role: u.role, staffId: u.staffId || null });
 
 function assertUnlocked() { if (!masterKey || !currentUser) throw Object.assign(new Error("locked"), { code: "locked" }); }
 function assertPin(pin) { if (!PIN_RE.test(String(pin))) throw Object.assign(new Error(t("lock.errPinFormat")), { code: "pin-format" }); }
 function assertName(name) { if (!name || String(name).trim().length < 1 || String(name).length > 20) throw Object.assign(new Error(t("lock.errName")), { code: "name-format" }); }
 function assertRole(role) { if (!ROLES.includes(role)) throw Object.assign(new Error(t("lock.errRole")), { code: "role" }); }
 
-async function makeUser({ name, role, pin }, key) {
+async function makeUser({ name, role, pin, staffId = null }, key) {
   assertName(name); assertRole(role); assertPin(pin);
   const w = await wrapMaster(key, pin);
-  return { id: "u-" + hex(6), name: String(name).trim(), role, created: Date.now(), ...w, aiConsent: null, fails: 0, lockedUntil: 0 };
+  return { id: "u-" + hex(6), name: String(name).trim(), role, staffId: staffId || null, created: Date.now(), ...w, aiConsent: null, fails: 0, lockedUntil: 0 };
 }
 
 const Session = {
@@ -62,7 +67,7 @@ const Session = {
     const key = await generateMasterKey();
     const user = await makeUser({ name, role, pin }, key);
     writeMeta({ v: 1, id: hex(16), created: Date.now(), autolockMin: 10, users: [user] });
-    masterKey = key; currentUser = { id: user.id, name: user.name, role: user.role };
+    masterKey = key; currentUser = asCurrent(user);
     notify("unlocked");
     return this.user();
   },
@@ -77,7 +82,7 @@ const Session = {
     try {
       const key = await unwrapMaster(u, pin);
       u.fails = 0; u.lockedUntil = 0; writeMeta(meta);
-      masterKey = key; currentUser = { id: u.id, name: u.name, role: u.role };
+      masterKey = key; currentUser = asCurrent(u);
       notify("unlocked");
       return this.user();
     } catch (e) {
@@ -97,11 +102,11 @@ const Session = {
     notify("locked", reason);
   },
 
-  async addUser({ name, role, pin }) {
+  async addUser({ name, role, pin, staffId = null }) {
     assertUnlocked();
     const meta = readMeta();
     if (meta.users.length >= 12) throw new Error(t("users.errMax"));
-    const user = await makeUser({ name, role, pin }, masterKey);
+    const user = await makeUser({ name, role, pin, staffId }, masterKey);
     meta.users.push(user); writeMeta(meta); notify("users");
     return publicUser(user);
   },
@@ -143,9 +148,19 @@ const Session = {
     if (patch.name != null) { assertName(patch.name); u.name = String(patch.name).trim(); }
     if (patch.role != null) { assertRole(patch.role); u.role = patch.role; }
     writeMeta(meta);
-    if (currentUser && currentUser.id === userId) currentUser = { id: u.id, name: u.name, role: u.role };
+    if (currentUser && currentUser.id === userId) currentUser = asCurrent(u);
     notify("users");
     return publicUser(u);
+  },
+  /* Roster link (core/entities.js Staff). Plain keyring write — the id is opaque, never a name. */
+  linkStaff(userId, staffId) {
+    const meta = readMeta();
+    const u = meta?.users.find(x => x.id === userId);
+    if (!u) throw new Error("no-user");
+    u.staffId = staffId || null;
+    writeMeta(meta);
+    if (currentUser && currentUser.id === userId) currentUser = asCurrent(u);
+    notify("users");
   },
 
   setAutolock(min) {
@@ -167,7 +182,7 @@ const Session = {
     return unwrapMaster(u, pin);
   },
   // Restore path: adopt an unwrapped key without going through unlock().
-  adopt(key, user) { masterKey = key; currentUser = { id: user.id, name: user.name, role: user.role }; notify("unlocked"); },
+  adopt(key, user) { masterKey = key; currentUser = asCurrent(user); notify("unlocked"); },
   destroy() { masterKey = null; currentUser = null; try { localStorage.removeItem(META_KEY); } catch {} notify("locked", "destroyed"); }
 };
 

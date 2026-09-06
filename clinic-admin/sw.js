@@ -1,5 +1,5 @@
 /* clinic-admin — minimal offline shell SW */
-const CACHE = "vibe-clinic-admin-v22";
+const CACHE = "vibe-clinic-admin-v23";
 // Every same-origin file the page loads. Verified against the tree by tools/check-sw-shell.mjs.
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
@@ -11,7 +11,11 @@ const SHELL = [
   "./js/core/dom.js", "./js/core/attachments.js", "./js/core/store.js", "./js/core/nav.js",
   "./js/core/ui.js", "./js/core/files.js", "./js/core/ocr.js", "./js/core/ai-client.js",
   "./js/core/masters.js", "./js/core/calendar.js", "./js/core/i18n.js",
+  "./js/core/entities.js", "./js/core/org-form.js",
   "./js/i18n/ko.js", "./js/i18n/en.js",
+  "./js/i18n/ko.entities.js", "./js/i18n/en.entities.js",
+  "./js/i18n/ko.claims.js", "./js/i18n/en.claims.js",
+  "./js/i18n/ko.reporting.js", "./js/i18n/en.reporting.js",
   "./js/security/crypto.js", "./js/security/session.js", "./js/security/redact.js",
   "./js/security/lifecycle.js", "./js/security/lockscreen.js",
   "./js/tabs/reporting-shared.js",

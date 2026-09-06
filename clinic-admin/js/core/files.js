@@ -10,6 +10,7 @@
    (the encrypted backup's `poc` field); every user-facing surface uses pocMark(). */
 import { Toast, esc } from "./ui.js";
 import { t } from "./i18n.js";
+import { Org } from "./entities.js";
 
 const POC_MARK = "PoC — 실제 제출 불가 · 데모 데이터";
 const pocMark = () => t("common.pocMark");
@@ -112,4 +113,11 @@ function headerRow(pairs) {
   for (const [headerKey, value] of pairs) out[t(headerKey)] = value;
   return out;
 }
-export { POC_MARK, pocMark, pocFilename, pocWatermark, loadJSON, readSpreadsheet, downloadXLSX, downloadCSV, downloadText, headerRow };
+// Institution columns for an export's header row, from the shared Org profile (core/entities.js):
+//   headerRow([...orgHeader(), ["jabo.col.stmt", r.stmt], …])  →  { 기관명: "한솔한방병원", 요양기관기호: "11000123", … }
+// `fields` picks a subset in order (default: name · ykiho · biz); values are "" while the profile is incomplete.
+function orgHeader(fields = ["name", "ykiho", "biz"]) {
+  const o = Org.get();
+  return fields.filter(f => f in o).map(f => [`org.col.${f}`, o[f]]);
+}
+export { POC_MARK, pocMark, pocFilename, pocWatermark, loadJSON, readSpreadsheet, downloadXLSX, downloadCSV, downloadText, headerRow, orgHeader };
