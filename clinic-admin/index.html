@@ -383,9 +383,11 @@
         EMR에서 뽑은 상병 대장을 올려두기만 하면 — <em>마침표·공백 섞인 입력형은 EDI 표준형(M545)으로</em>, <em>같은 명세서 안의 중복은 정리</em>, <em>비U 주상병 없이 홀로 선 한의 병증 U코드는 표시</em>, 그리고 최신 개정판 마스터에 없는 코드는 <em>미수록</em>으로. 청구 누르기 전 5분의 점검입니다.
       </p>
       <div class="demo-strip">
-        <span class="demo-label" data-i18n-html="kcd.demoLabel">처음이신가요? <strong>한방 다빈도 10건</strong>(요통·오십견·염좌·U코드 등)으로 정비 결과를 미리 보실 수 있습니다.</span>
+        <span class="demo-label" data-i18n-html="kcd.demoLabel">처음이신가요? <strong>한솔한방병원 2026-08 명세서 12건</strong>(경추·요추 염좌·요통·U코드·EDI형 입력·5자리 입력 등)으로 정비 결과를 미리 보실 수 있습니다 — 02 자보 정산과 같은 청구 배치입니다.</span>
         <button type="button" class="demo-cta" data-action="run-kcd"><span class="play">▶</span> <span data-i18n="common.demoSample">샘플로 시연</span></button>
       </div>
+
+      <div class="batch-strip-host" id="kcd-batch-strip"></div>
 
       <div class="work">
         <div class="card">
@@ -400,6 +402,7 @@
             </div>
             <p data-i18n="kcd.dropP">엑셀 또는 CSV 파일을 끌어다 놓으세요</p>
             <span class="hint">.xlsx · .xls · .csv</span>
+            <span class="hint legacy" data-i18n="kcd.dropLegacy">이 탭용 파일만(상병 컬럼) — 행위 컬럼이 함께 있으면 02 자보 정산과 같은 청구 배치로 묶입니다</span>
             <div class="drop-actions">
               <button type="button" class="ghost" data-action="sample-kcd" data-i18n="common.sampleFileExample">샘플 파일 받기 (예시)</button>
             </div>
@@ -418,6 +421,7 @@
         <div class="card">
           <h4><span class="step">02</span> <span data-i18n="kcd.step2">정비 결과</span></h4>
           <div id="kcd-status" class="status-line" style="display:none"></div>
+          <div id="kcd-filter" class="focus-chip" hidden></div>
           <div class="result-toolbar" id="kcd-toolbar" style="display:none">
             <div class="summary" id="kcd-summary"></div>
             <div class="actions">
@@ -449,9 +453,11 @@
         2013년 7월부터 자보 진료수가는 병원이 <em>심평원(HIRA)에 명세서를 청구</em>하고 심평원이 <em>심사결과통보서</em>를 보내는 구조입니다. 조정에 대한 <em>이의제기도 보험사가 아닌 심평원</em>에 합니다. 청구 명세서 export와 심사결과 파일을 올리면 — 명세서번호+행위코드로 줄마다 <em>청구 vs 인정</em>을 대조하고, <em>조정사유별·월별</em>로 묶어 드립니다. 같은 사유가 반복되면 다음 달에는 미리 피할 수 있습니다.
       </p>
       <div class="demo-strip">
-        <span class="demo-label" data-i18n-html="jabo.demoLabel"><strong>명세서 5건 · 행위 18줄</strong> 샘플(예시) — 동일부위 중복·추나 횟수 한도·첩약 처방일수·경상환자 4주 진단서 등 실제 조정 패턴을 대조표로 보여드립니다.</span>
+        <span class="demo-label" data-i18n-html="jabo.demoLabel"><strong>한솔한방병원 2026-08 · 명세서 12건 · 행위 41줄</strong> 샘플(예시) — 상병-처치 부위 불일치·동일부위 중복·추나 횟수 한도·첩약 처방일수·경상환자 4주 진단서 등 실제 조정 패턴을 대조표로 보여드립니다. 01 상병 정비와 같은 청구 배치입니다.</span>
         <button type="button" class="demo-cta" data-action="run-jabo"><span class="play">▶</span> <span data-i18n="jabo.demoCta">샘플 파일로 시연</span></button>
       </div>
+
+      <div class="batch-strip-host" id="jabo-batch-strip"></div>
 
       <div class="work">
         <div class="card">
@@ -464,7 +470,8 @@
               <label class="drop" id="drop-jabo-claims">
                 <input type="file" accept=".xlsx,.xls,.csv">
                 <p data-i18n="jabo.dropClaims">① 청구 명세서 export</p>
-                <span class="hint" data-i18n="jabo.dropClaimsHint">명세서번호 · 환자번호 · 진료일자 · 행위코드 · 횟수 · 청구금액</span>
+                <span class="hint" data-i18n="jabo.dropClaimsHint">명세서번호 · 환자번호 · 진료일자 · 행위코드 · 횟수 · 청구금액 (+ 상병코드 · 진단명 · 주/부상병)</span>
+                <span class="hint legacy" data-i18n="jabo.dropClaimsLegacy">이 탭용 파일만(행위 컬럼)도 청구 배치가 됩니다 — 위 배치 줄의 「새 파일」과 같은 동작</span>
                 <div class="drop-actions"><button type="button" class="ghost" data-action="sample-jabo-claims" data-i18n="common.sampleExample">샘플 받기 (예시)</button></div>
               </label>
               <div class="recon-file" id="jabo-file-claims"></div>
@@ -474,10 +481,18 @@
                 <input type="file" accept=".xlsx,.xls,.csv">
                 <p data-i18n="jabo.dropReview">② 심평원 심사결과 파일</p>
                 <span class="hint" data-i18n="jabo.dropReviewHint">명세서번호 · 행위코드 · 인정횟수 · 인정금액 · 조정사유코드 · 조정사유</span>
+                <span class="hint legacy" data-i18n="jabo.dropReviewLegacy">이 탭용 파일만 — 현재 청구 배치에 연결됩니다</span>
                 <div class="drop-actions"><button type="button" class="ghost" data-action="sample-jabo-review" data-i18n="common.sampleExample">샘플 받기 (예시)</button></div>
               </label>
               <div class="recon-file" id="jabo-file-review"></div>
             </div>
+          </div>
+          <div class="recon-insurer">
+            <label for="jabo-recon-insurer" data-i18n="jabo.reconInsurer">보험사 / 공제조합 (배치 기준)</label>
+            <select id="jabo-recon-insurer">
+              <option value="" data-i18n="common.selectPlaceholder">— 선택 —</option>
+            </select>
+            <span class="hint" data-i18n="jabo.reconInsurerHint">마지막 사용 보험사가 기본값 — 정산 기록에 함께 저장됩니다</span>
           </div>
           <div id="jabo-recon-status" class="status-line" style="display:none"></div>
           <div class="result-toolbar" id="jabo-recon-toolbar" style="display:none">
@@ -545,7 +560,13 @@
             </div>
             <div class="actions">
               <button type="button" class="btn secondary" data-action="run-jabo-manual" title="예시 행위로 수기 케이스를 채웁니다" data-i18n="jabo.manualSample" data-i18n-attr="title:jabo.manualSampleTitle">수기 샘플</button>
-              <button class="btn secondary" id="jabo-new" title="환자·청구 정보와 행위 목록을 비우고 새 케이스를 시작합니다" data-i18n="jabo.newCase" data-i18n-attr="title:jabo.newCaseTitle">새 케이스</button>
+              <span class="new-menu-wrap">
+                <button class="btn secondary" id="jabo-new" title="같은 사고의 다음 진료 또는 완전히 새 케이스를 시작합니다" data-i18n="jabo.newCase" data-i18n-attr="title:jabo.newCaseTitle" aria-haspopup="menu">새 케이스 ▾</button>
+                <div class="new-menu" id="jabo-new-menu" role="menu" hidden>
+                  <button type="button" role="menuitem" id="jabo-new-same"><strong data-i18n="jabo.newSame">같은 사고 다음 진료</strong><span data-i18n="jabo.newSameSub">환자번호·보험사·사고일·접수번호·주상병 유지 · 진료일은 오늘 · 행위 비움</span></button>
+                  <button type="button" role="menuitem" id="jabo-new-fresh"><strong data-i18n="jabo.newFresh">완전히 새로</strong><span data-i18n="jabo.newFreshSub">환자·청구 정보와 행위 목록을 모두 비움</span></button>
+                </div>
+              </span>
               <button class="btn" id="jabo-download" disabled data-i18n-html="jabo.manualDownload">정산표 XLSX <span class="arrow">↓</span></button>
             </div>
           </div>
@@ -924,6 +945,7 @@
         <div class="card">
           <h4><span class="step">01</span> <span data-i18n="ai.step1">진료 메모 입력</span></h4>
           <div class="ai-input">
+            <div id="ai-ctx" class="ai-ctx" hidden></div>
             <div class="ai-textarea-wrap">
               <textarea id="ai-input" placeholder="예) 60세 남자, 3주 전 추돌사고 후 경부·요부 통증. 회전시 우측 어깨 방사통. SLR 양성. 침술·부항·추나 시술 예정." data-i18n-attr="placeholder:ai.placeholder"></textarea>
               <button type="button" class="icon-btn mic" id="ai-mic" aria-label="음성 입력 시작" title="음성 입력 (한국어)" data-i18n-attr="aria-label:ai.micStart;title:ai.micTitle">
@@ -948,6 +970,7 @@
           <div class="ai-output" id="ai-output">
             <div class="placeholder" data-i18n-html="ai.placeholderOut">메모를 입력하고 <em>코드 추천</em>을 누르면 결과가 여기에 표시됩니다.</div>
           </div>
+          <div id="ai-actions" class="ai-actions" hidden></div>
           <p class="caveat" data-i18n-html="ai.caveat">
             ※ AI는 <em>찾아드리는 일</em>까지만 합니다. 추천 코드는 <strong>예시 목록</strong>(내장 발췌·예시표) 기준이며, 코드 검색 탭에서 마스터를 업로드하면 마스터에 있는 코드만 제안합니다. 자보는 건강보험 행위 코드를 그대로 쓰고, 교통사고 환자에게는 비급여를 제안하지 않습니다. 청구 결정은 원무팀의 몫 — 실제 청구 전에 <em>상병코드 정비</em>·<em>자보 정산</em> 탭에서 한 번 더 확인해주세요.
           </p>

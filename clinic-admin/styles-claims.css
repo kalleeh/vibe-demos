@@ -45,3 +45,88 @@ tr.orphan td { background: rgba(184,122,28,0.06); }
 .map-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
 .map-msg { font-size: 12px; color: var(--err); }
 @media (max-width: 760px) { .master-upload { grid-template-columns: 1fr; } }
+
+/* ── Claims flows (tabs 01 · 02 · 06 · 07) — batch strip, cross-tab row actions, focus, insert popover ── */
+.batch-strip-host { margin: 0 0 14px; }
+.batch-strip { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; padding: 10px 14px; border: 1px solid var(--line); border-radius: 6px; background: rgba(255,255,255,0.55); font-size: 12px; color: var(--ink-2); }
+.batch-strip .pill { display: inline-block; padding: 2px 8px; border-radius: 3px; font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; background: rgba(20,17,13,0.06); color: var(--muted); }
+.batch-strip .pill.info { background: rgba(123,168,154,0.16); color: var(--celadon-2); }
+.batch-strip .pill.warn { background: rgba(184,122,28,0.15); color: var(--warn); }
+.batch-strip .batch-main strong { color: var(--ink); font-weight: 600; }
+.batch-strip .batch-main .code { font-family: "JetBrains Mono", monospace; font-size: 11px; }
+.batch-strip .batch-empty { font-family: "Fraunces", "Noto Serif KR", serif; font-style: italic; color: var(--muted); font-size: 13px; }
+.batch-strip .batch-actions { margin-left: auto; display: flex; gap: 6px; }
+.batch-strip .ghost, .batch-picker .ghost, .focus-chip .ghost, .ai-ctx .ghost {
+  padding: 4px 10px; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: var(--ink-2);
+  font-family: "Inter", sans-serif; font-size: 11px; cursor: pointer; transition: background .15s, border-color .15s;
+}
+.batch-strip .ghost:hover, .batch-picker .ghost:hover, .focus-chip .ghost:hover, .ai-ctx .ghost:hover { border-color: var(--ink); background: rgba(255,255,255,0.6); }
+.batch-picker { margin-top: 6px; border: 1px dashed var(--line); border-radius: 6px; background: var(--paper); padding: 4px 8px; }
+.batch-picker[hidden] { display: none; }
+.batch-row { display: grid; grid-template-columns: 70px 1fr auto auto auto; gap: 10px; align-items: center; padding: 6px 4px; border-bottom: 1px solid var(--line-2); font-size: 12px; color: var(--ink-2); }
+.batch-row:last-child { border-bottom: none; }
+.batch-row.current { background: rgba(123,168,154,0.08); }
+.batch-row .code { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--muted); }
+.batch-row .batch-row-date { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--faint); }
+.batch-row .pill { display: inline-block; padding: 2px 8px; border-radius: 3px; font-family: "JetBrains Mono", monospace; font-size: 10px; text-transform: uppercase; background: rgba(20,17,13,0.06); color: var(--muted); }
+.batch-row .pill.info { background: rgba(123,168,154,0.16); color: var(--celadon-2); }
+.batch-row .pill.ok { background: rgba(74,122,79,0.13); color: var(--ok); }
+.batch-row .ghost.danger:hover { border-color: var(--accent); color: var(--accent); }
+.drop .hint.legacy { display: block; margin-top: 6px; font-size: 10px; color: var(--faint); font-style: italic; }
+
+/* per-row cross-tab actions (01 결과표 · 02 대조표 · 06 결과표 · 07 추천 줄) */
+td.actions { white-space: nowrap; }
+.row-act {
+  display: inline-block; padding: 2px 7px; margin: 1px 0; border: 1px solid var(--line); border-radius: 3px; background: rgba(255,255,255,0.6);
+  color: var(--ink-2); font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.3px; cursor: pointer; transition: background .15s, border-color .15s, color .15s;
+}
+.row-act:hover { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+.row-act.accent { color: var(--accent); border-color: rgba(176,74,47,0.4); }
+.row-act.accent:hover { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+.row-act.mini { padding: 0 6px; font-size: 9px; margin-left: 6px; vertical-align: middle; }
+.src-pill.clickable { cursor: pointer; }
+.src-pill.clickable:hover { border-color: var(--ink); color: var(--ink); }
+button.src-pill { font: inherit; font-family: "JetBrains Mono", monospace; font-size: 10px; }
+
+/* 01 — 명세서 focus (ctx { stmt } from 02) */
+.focus-chip { display: flex; gap: 8px; align-items: center; margin: 0 0 10px; }
+.focus-chip[hidden] { display: none; }
+.focus-chip .pill { display: inline-block; padding: 3px 9px; border-radius: 3px; font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.5px; background: rgba(123,168,154,0.16); color: var(--celadon-2); }
+tr.focus td { background: rgba(123,168,154,0.10); }
+
+/* 02 — batch insurer + 새 케이스 menu */
+.recon-insurer { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; margin: 12px 0 8px; font-size: 12px; color: var(--muted); }
+.recon-insurer label { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
+.recon-insurer select { padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper); font-size: 12px; color: var(--ink-2); max-width: 260px; }
+.recon-insurer .hint { font-size: 11px; color: var(--faint); }
+.new-menu-wrap { position: relative; display: inline-block; }
+.new-menu { position: absolute; right: 0; bottom: calc(100% + 6px); z-index: 20; min-width: 300px; padding: 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); box-shadow: 0 8px 24px rgba(20,17,13,0.14); }
+.new-menu[hidden] { display: none; }
+.new-menu button { display: flex; flex-direction: column; gap: 2px; width: 100%; text-align: left; padding: 8px 10px; border: none; border-radius: 4px; background: transparent; cursor: pointer; font-family: "Inter", sans-serif; }
+.new-menu button:hover { background: var(--paper-2); }
+.new-menu button strong { font-size: 13px; color: var(--ink); font-weight: 600; }
+.new-menu button span { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+/* 06 — 우리 단가 + insert popover */
+td.tariff strong { color: var(--celadon-2); }
+td.tariff .faint { color: var(--faint); font-size: 10px; }
+tr.insert-open td { background: rgba(123,168,154,0.08); }
+tr.insert-row td { background: rgba(123,168,154,0.08); padding: 6px 12px 10px; border-top: none; }
+tr.insert-row .insert-label { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--muted); margin-right: 8px; }
+.master-upload.flash { animation: claims-flash 1.2s ease-out 1; }
+@keyframes claims-flash { 0% { box-shadow: 0 0 0 0 rgba(123,168,154,0.6); } 100% { box-shadow: 0 0 0 14px rgba(123,168,154,0); } }
+
+/* 07 — note source chip + result actions */
+.ai-ctx { display: flex; gap: 8px; align-items: center; margin: 0 0 8px; }
+.ai-ctx[hidden] { display: none; }
+.ai-ctx .pill { display: inline-block; padding: 3px 9px; border-radius: 3px; font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.5px; background: rgba(123,168,154,0.16); color: var(--celadon-2); }
+.ai-actions { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-top: 10px; }
+.ai-actions[hidden] { display: none; }
+.ai-actions .ai-actions-hint { font-size: 11px; color: var(--muted); }
+@media (max-width: 760px) {
+  .batch-strip .batch-actions { margin-left: 0; width: 100%; }
+  .batch-row { grid-template-columns: 1fr auto auto; }
+  .batch-row .code, .batch-row .batch-row-date { display: none; }
+  .new-menu { min-width: 240px; }
+}
+@media (prefers-reduced-motion: reduce) { .master-upload.flash { animation: none; } }

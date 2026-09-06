@@ -193,9 +193,13 @@ function kcdIndex() {
 }
 
 // System-prompt context for the AI tab: the top-N master rows whose names share a
-// token with the note. Only emitted when a real master is uploaded — otherwise the
-// prompt's own "예시 목록" blocks stand.
-function contextFor(note, n = 12) {
+// token with the note. The <master_context> block is only emitted when a real master is
+// uploaded — otherwise the prompt's own "예시 목록" blocks stand. `opts.tariff` ({code, name, price}[] —
+// the clinic's own 비급여 단가표 from tab 04) is appended as <clinic_tariff> whenever it has rows, so a 비급여
+// recommendation can cite 우리 단가.
+function contextFor(note, opts = {}) {
+  const n = typeof opts === "number" ? opts : (opts.n ?? 12);
+  const tariff = Array.isArray(opts.tariff) ? opts.tariff : [];
   const parts = [];
   const words = String(note || "").split(/[\s,.·;:/()\[\]]+/).map(w => w.trim()).filter(w => w.length >= 2);
   const score = (name) => words.reduce((s, w) => s + (name.includes(w) ? 1 : 0), 0);
@@ -208,8 +212,13 @@ function contextFor(note, n = 12) {
     const hits = top(cache.fee.rows, r => `${r.code}(${r.name}${r.coverage ? "," + r.coverage : ""})`);
     parts.push(`<master_fee source="업로드 행위·수가 마스터 ${cache.fee.uploadedAt}" rows="${cache.fee.count}">\n${hits.length ? hits.join(" · ") : "(메모와 겹치는 행위명 없음)"}\n</master_fee>`);
   }
-  if (!parts.length) return "";
-  return `\n\n<master_context>\n업로드된 실제 마스터가 있습니다. 아래 행에 있는 코드만 추천하고, 위 예시 목록의 코드는 마스터에 없으면 사용하지 마십시오.\n${parts.join("\n")}\n</master_context>`;
+  let out = "";
+  if (parts.length) out += `\n\n<master_context>\n업로드된 실제 마스터가 있습니다. 아래 행에 있는 코드만 추천하고, 위 예시 목록의 코드는 마스터에 없으면 사용하지 마십시오.\n${parts.join("\n")}\n</master_context>`;
+  if (tariff.length) {
+    const rows = tariff.slice(0, 40).map(r => `${r.code}(${r.name || "—"}) ${Number(r.price).toLocaleString("ko-KR")}원`);
+    out += `\n\n<clinic_tariff source="우리 병원 비급여 단가표 (04 탭)" rows="${tariff.length}">\n비급여(bigeup)를 추천할 때는 아래 우리 단가를 ref에 함께 적는다. 단가표에 없는 비급여는 "단가 미등록"으로 표기.\n${rows.join(" · ")}\n</clinic_tariff>`;
+  }
+  return out;
 }
 
 const Masters = { FIELDS, init, ready, get, put, clear, destroy, onChange, suggestMapping, normalizeRows, kcd, fee, kcdIndex, contextFor, toEdi, toDotted };
