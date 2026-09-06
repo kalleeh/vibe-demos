@@ -12,8 +12,8 @@ import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { downloadXLSX, headerRow } from "../core/files.js";
 import { Masters, toEdi, toDotted } from "../core/masters.js";
 import { activateTab } from "../core/nav.js";
-import { Patients } from "../core/entities.js";
-import { currentClaimsBatch, ingestClaimsFile, kcdRowsOf, renderBatchStrip, onClaimsChange, ensureSampleBatch, loadSampleRows } from "./claims-shared.js";
+import { Patients, Batches } from "../core/entities.js";
+import { currentClaimsBatch, selectBatch, ingestClaimsFile, kcdRowsOf, renderBatchStrip, onClaimsChange, ensureSampleBatch, loadSampleRows } from "./claims-shared.js";
 
 let seedFn = null;
 export function seed() { return seedFn ? seedFn() : Promise.resolve(); }
@@ -294,10 +294,12 @@ export function init(ctx) {
   });
   EventBus.on("store:ui.claimsBatch", () => { const b = currentClaimsBatch(); if (b && b.id !== lastBatchId) { strip(); focusStmt = null; run(b, { silent: true }); } });
 
-  // ctx from 02 (and the palette): { stmt } → filter + highlight that 명세서.
+  // ctx from the 대조 panels / 이의신청 / the landing: { batchId } → make that batch current first (the 건보 batch is not the
+  // global current after a seed); { stmt } → filter + highlight that 명세서.
   EventBus.on("tab:activated", (p) => {
     const c = p?.id === "tab-kcd" ? p.ctx : null;
     if (!c) return;
+    if (c.batchId && currentClaimsBatch()?.id !== c.batchId && Batches.get(c.batchId)) selectBatch(c.batchId); // → claims:batch select → run()
     if (c.stmt) {
       if (!lastResult) { const b = currentClaimsBatch(); if (b) run(b, { silent: true }); }
       if (lastResult) { focusStmt = c.stmt; renderResult(lastResult); }
