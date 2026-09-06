@@ -8,19 +8,32 @@
      the browser vendor's cloud speech service.
    The pill/busy/error convention (라이브 · Claude / 예시 결과 · 실시간 연결 실패 / 예시 모드) is unchanged.
    Live transport + canned rule engine live in core/ai-client.js (not this file).
+   Cross-tab: ctx { prefill, pid?, stmt?, append? } fills the note (01/02/06 hand-offs; the pid/명세서 show as a chip
+   and travel on to 02); every result offers "이 코드로 자보 케이스 채우기" → activateTab("tab-jabo", { dx (EDI),
+   items, pid }) and a per-row "검색에서 확인" → 06. The system prompt carries the Org (기관명·종별 → 병원급 rules) and
+   the clinic's 비급여 단가표 as <clinic_tariff>.
    i18n: code NAMES are domain data (KOICD standard Korean names, Korean model output). In the English view a
    bundled English name is shown first with the Korean in parentheses when the code is in the bundled tables
    (data/*.json name_en); unknown codes keep the name as returned. Everything else re-renders from state. */
 import { $, $$, esc, Voice, Dialog, Toast, roleLabel } from "../core/ui.js";
 import { t, tOr, isEn, onLangChange } from "../core/i18n.js";
-import { Store, ActivityLog } from "../core/store.js";
+import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { getAiSource, setAiSource, cannedFor, requestRecommendation } from "../core/ai-client.js";
 import { Masters, toEdi } from "../core/masters.js";
 import { Session } from "../security/session.js";
 import { redactNote } from "../security/redact.js";
-import { SYSTEM_PROMPT } from "./tab7-prompt.js";
+import { buildSystemPrompt } from "./tab7-prompt.js";
+import { activateTab, Org, Patients } from "./_entities-shim.js"; // TODO(integrator): ../core/nav.js + ../core/entities.js
+import { tariffRows } from "./claims-shared.js";
 
 const CONSENT_VERSION = 1;
+// The sample note is P-2026-0142's (한솔한방병원 · 교통사고 2026-08-03) — Korean clinical text on purpose: it is what
+// the canned rule engine (and Claude) read.
+const SAMPLE_NOTE = "60세 남자, 3주 전 추돌사고 후 경부·요부 통증 호소. 회전 시 우측 어깨로 방사통. SLR 양성. 침술·부항·추나·약침 시술 예정.";
+const SAMPLE_CTX = { pid: "P-2026-0142", stmt: "M2608-0001" };
+
+let seedFn = null;
+export function seed() { return seedFn ? seedFn() : Promise.resolve(); }
 
 /* ─────────────────────────────────────────────────────────
    Tab 7 — AI 코딩 어시스트
@@ -63,6 +76,34 @@ export function initTab7(ctx = {}) {
   // draft an earlier build left in localStorage.
   Store.remove("ai.draft");
 
+  /* ── note context (where the note came from: a 환자번호 / 명세서 handed over by 01·02·06 or the board) ── */
+  let noteCtx = null; // { pid, stmt }
+  const renderCtx = () => {
+    const el = $("#ai-ctx"); if (!el) return;
+    if (!noteCtx || (!noteCtx.pid && !noteCtx.stmt)) { el.hidden = true; el.innerHTML = ""; return; }
+    el.hidden = false;
+    const parts = [];
+    if (noteCtx.pid) parts.push(t("ai.ctxPatient", { who: Patients.alias(noteCtx.pid) }));
+    if (noteCtx.stmt) parts.push(t("ai.ctxStmt", { stmt: noteCtx.stmt }));
+    el.innerHTML = `<span class="pill info">${esc(parts.join(" · "))}</span><button type="button" class="ghost" id="ai-ctx-clear" aria-label="${esc(t("ai.ctxClear"))}" title="${esc(t("ai.ctxClear"))}">×</button>`;
+    $("#ai-ctx-clear").addEventListener("click", () => { noteCtx = null; renderCtx(); });
+  };
+  const applyCtx = (c) => {
+    const ta = $("#ai-input");
+    if (c.prefill) {
+      const cur = ta.value.trim();
+      ta.value = c.append && cur ? `${cur}\n${c.prefill}` : c.prefill;
+      ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+    }
+    if (c.pid || c.stmt) { noteCtx = { pid: c.pid || noteCtx?.pid || "", stmt: c.stmt || "" }; renderCtx(); }
+    if (c.pid) Patients.ensure(c.pid, { tags: ["ai"] });
+  };
+  EventBus.on("tab:activated", (p) => {
+    const id = typeof p === "string" ? p : p?.id; const c = typeof p === "string" ? null : p?.ctx;
+    if (id !== "tab-ai" || !c) return;
+    if (c.prefill || c.pid || c.stmt) applyCtx(c);
+  });
+
   // English view: prefer a bundled English name when the code is one of ours; the Korean standard name stays visible.
   const displayName = (k, group) => {
     if (!isEn()) return k.name;
@@ -75,12 +116,24 @@ export function initTab7(ctx = {}) {
   const rowHTML = (group) => (k) => `
       <div class="row">
         <code>${esc(k.code)}</code>
-        <div>${esc(displayName(k, group))}<div class="citation">${esc(k.ref)}</div></div>
+        <div>${esc(displayName(k, group))}<div class="citation">${esc(k.ref)} <button type="button" class="row-act mini" data-check="${esc(k.code)}" title="${esc(t("ai.checkSearchTitle"))}">${esc(t("ai.checkSearch"))}</button></div></div>
         <span class="conf">${Math.round((Number(k.conf) || 0) * 100)}%</span>
       </div>`;
   const emptyRow = () => `<div class="row"><code>—</code><div>${esc(t("ai.noRec"))}</div><span class="conf"></span></div>`;
 
   let lastRec = null, lastSource = null, lastError = null; // what the output area currently shows
+  const renderActions = (rec) => {
+    const el = $("#ai-actions"); if (!el) return;
+    if (!rec) { el.hidden = true; el.innerHTML = ""; return; }
+    el.hidden = false;
+    el.innerHTML = `<button type="button" class="btn secondary" id="ai-fill-jabo">${esc(t("ai.fillJabo"))} <span class="arrow">→</span></button>
+      <span class="ai-actions-hint">${esc(t("ai.fillJaboHint", { dx: toEdi(rec.kcd[0]?.code || ""), n: rec.jabo.length }))}</span>`;
+    $("#ai-fill-jabo").addEventListener("click", () => {
+      const payload = { dx: toEdi(rec.kcd[0]?.code || ""), items: rec.jabo.map(k => k.code), pid: noteCtx?.pid || "" };
+      ActivityLog.push("ai", t("ai.logFillJabo", { dx: payload.dx, n: payload.items.length }), noteCtx?.pid ? { pid: noteCtx.pid } : {});
+      activateTab("tab-jabo", payload);
+    });
+  };
   const renderRecommendation = (rec, opts = {}) => {
     const lines = [];
     // Every result is labelled with its source — canned output must never read as live.
@@ -98,6 +151,8 @@ export function initTab7(ctx = {}) {
     lines.push(`<h5>${esc(t("ai.hBigeup"))}</h5>`);
     lines.push(`<div class="code-list">${rec.bigeup.map(rowHTML("bigeup")).join("") || emptyRow()}</div>`);
     $("#ai-output").innerHTML = lines.join("");
+    $("#ai-output").querySelectorAll("button[data-check]").forEach(b => b.addEventListener("click", () => activateTab("tab-search", { query: b.dataset.check })));
+    renderActions(rec);
     setPill(src);
   };
 
@@ -113,22 +168,23 @@ export function initTab7(ctx = {}) {
 
   // source: "canned" (user chose 예시) | "fallback" (live failed, user asked for the example)
   const runCanned = (note, source = "canned") => {
-    if (aiBusy) return;
+    if (aiBusy) return Promise.resolve();
     setBusy(true);
-    setPill(null);
+    setPill(null); renderActions(null);
     $("#ai-output").innerHTML = SHIMMER;
-    setTimeout(() => {
+    return new Promise((res) => setTimeout(() => {
       const rec = cannedFor(note);
       renderRecommendation(rec, { source });
       ActivityLog.push("ai", t(source === "fallback" ? "ai.logCannedFallback" : "ai.logCanned"), { len: note.length });
       setBusy(false);
-    }, 700);
+      res();
+    }, 700));
   };
 
   // Live failure: hide the pill, say what happened, and offer retry or the
   // canned result as explicit buttons — never silently swap the example in.
   const showLiveError = (code, note) => {
-    setPill(null);
+    setPill(null); renderActions(null);
     lastRec = null; lastError = { code, note };
     $("#ai-output").innerHTML = `<div class="placeholder ai-error">${esc(t("ai.errLine", { code }))}
       <div class="ai-error-actions">
@@ -139,18 +195,21 @@ export function initTab7(ctx = {}) {
     $("#ai-fallback")?.addEventListener("click", () => runCanned(note, "fallback"));
   };
 
+  // Our 비급여 단가표 (tab 04) with names from the bundled 비급여 items → <clinic_tariff> in the system prompt.
+  const bigeupName = (code) => (DATA?.bigeup?.items || []).find(r => r.code === code)?.name || "";
+
   // `note` here is ALWAYS the redacted text confirmed in the preview.
   const runLive = async (note) => {
     if (aiBusy) return;
     if (!Session.isUnlocked()) { showLiveError(t("ai.errLocked"), note); return; }
     setBusy(true);
-    setPill(null); // "라이브 · Claude" only once a live answer is actually rendered
+    setPill(null); renderActions(null); // "라이브 · Claude" only once a live answer is actually rendered
     $("#ai-output").innerHTML = SHIMMER;
     aiAbort = new AbortController();
     const { signal } = aiAbort;
     const timeout = setTimeout(() => aiAbort?.abort(), 60000);
     try {
-      const rec = await requestRecommendation({ system: SYSTEM_PROMPT, note, signal });
+      const rec = await requestRecommendation({ system: buildSystemPrompt(Org.get()), note, signal, tariff: tariffRows(bigeupName) });
       renderRecommendation(rec, { source: "live" });
       ActivityLog.push("ai", t("ai.logLive"), { len: note.length });
     } catch (err) {
@@ -231,12 +290,12 @@ export function initTab7(ctx = {}) {
     runLive(redacted);
   });
 
-  $('[data-action="run-ai"]').addEventListener("click", () => {
-    // The sample note is Korean clinical text on purpose — it is what the canned rule engine (and Claude) read.
-    const sample = "60세 남자, 3주 전 추돌사고 후 경부·요부 통증 호소. 회전 시 우측 어깨로 방사통. SLR 양성. 침술·부항·추나·약침 시술 예정.";
-    $("#ai-input").value = sample;
-    runCanned(sample);
-  });
+  seedFn = () => {
+    $("#ai-input").value = SAMPLE_NOTE;
+    noteCtx = { ...SAMPLE_CTX }; renderCtx();
+    return runCanned(SAMPLE_NOTE);
+  };
+  $('[data-action="run-ai"]').addEventListener("click", () => { seedFn(); });
 
   /* ── Voice dictation — OFF by default, behind a toggle with an inline disclosure ── */
   const micBtn = $("#ai-mic");
@@ -266,7 +325,7 @@ export function initTab7(ctx = {}) {
   }
 
   onLangChange(() => {
-    syncSourceUI(); paintBusy(); paintVoice();
+    syncSourceUI(); paintBusy(); paintVoice(); renderCtx();
     if (aiBusy) return; // shimmer stays; the result paints in the new language when it lands
     if (lastRec) renderRecommendation(lastRec, { source: lastSource });
     else if (lastError) showLiveError(lastError.code, lastError.note);
