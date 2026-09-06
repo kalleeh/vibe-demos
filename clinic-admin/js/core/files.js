@@ -8,6 +8,7 @@
    or at least use pocMark() + pocFilename(). The @media print footer lives in styles-security.css.
    POC_MARK (the Korean constant) stays exported for file-format fields that must not vary by UI language
    (the encrypted backup's `poc` field); every user-facing surface uses pocMark(). */
+/* global XLSX */
 import { Toast, esc } from "./ui.js";
 import { t } from "./i18n.js";
 import { Org } from "./entities.js";

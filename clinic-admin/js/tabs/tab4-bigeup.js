@@ -3,9 +3,10 @@ import { $, $$, esc, fmtKRW, todayISO, setStatus, debounce } from "../core/ui.js
 import { t, tOr, pick, getLang, onLangChange } from "../core/i18n.js";
 import { EventBus, ActivityLog } from "../core/store.js";
 import { downloadXLSX, headerRow, pocMark } from "../core/files.js";
-import { BIGEUP_WINDOWS, nextOccurrence } from "../core/calendar.js";
-import { renderOrgReadOnly, ensureDemoOrg, normTabEvent, orgView, orgHeaderPairs } from "./reporting-shared.js";
-import { Org, Tariff, activateTab } from "./_entities-shim.js"; // TODO(integrator): → "../core/entities.js" + "../core/nav.js"
+import { bigeupWindows, nextOccurrence } from "../core/calendar.js";
+import { activateTab } from "../core/nav.js";
+import { Org, Tariff } from "../core/entities.js";
+import { renderOrgReadOnly, orgView, orgHeaderPairs } from "./reporting-shared.js";
 
 /* ─────────────────────────────────────────────────────────
    Tab 4 — 비급여 진료비용 보고 준비 (의료법 §45조의2)
@@ -20,7 +21,7 @@ import { Org, Tariff, activateTab } from "./_entities-shim.js"; // TODO(integrat
 let api = null;
 export function seed() { api?.seed(); }
 
-export function initTab4(ctx) {
+export function init(ctx) {
   const { DATA } = ctx;
   const tbody = $("#bg-tbody");
   const items = DATA.bigeup.items;
@@ -30,9 +31,9 @@ export function initTab4(ctx) {
   const fillCounts = () => $$("[data-bg-count]").forEach(el => el.textContent = String(N));
   fillCounts();
 
-  // ── institution (read-only) + cadence from Org.kind ──
+  // ── institution (read-only) + cadence from Org.kind (core/calendar.js bigeupWindows — same list as 00's deadlines) ──
   const org = () => orgView(Org.get());
-  const windows = () => org().clinicLevel ? BIGEUP_WINDOWS.filter(w => w.refMonth === 3) : BIGEUP_WINDOWS;
+  const windows = bigeupWindows;
   const renderOrg = () => renderOrgReadOnly($("#bg-org"), Org.get(), { onEdit: () => activateTab("tab-today", { openOrg: true }) });
 
   // ── 참고월 select — defaults to the upcoming window; the deadline click from 00 preselects it ──
@@ -205,7 +206,6 @@ export function initTab4(ctx) {
   dateEl.addEventListener("change", () => { Tariff.setEffectiveDate(dateEl.value); renderNotice(); });
 
   const runSample = () => {
-    ensureDemoOrg(Org);
     if (!dateEl.value) { dateEl.value = todayISO(); Tariff.setEffectiveDate(dateEl.value); }
     fillPrefill();
     writeAll();
@@ -232,21 +232,18 @@ export function initTab4(ctx) {
   });
 
   // ── live wiring ──
-  const onOrg = () => { renderOrg(); fillRefMonths(); renderWindow(); updateSummary(); };
-  Org.onChange(onOrg);
-  EventBus.on("org:changed", onOrg);
-  // Tariff changed elsewhere (another tab / the entity) — re-sync unless the user is typing in this table.
-  const onTariff = () => {
+  Org.onChange(() => { renderOrg(); fillRefMonths(); renderWindow(); updateSummary(); });
+  // Tariff changed elsewhere (another tab / a peer window) — re-sync unless the user is typing in this table.
+  Tariff.onChange(() => {
     if (tbody.contains(document.activeElement) || dirty.size) return;
     reloadState(); render(); updateSummary();
     if (document.activeElement !== dateEl) dateEl.value = Tariff.effectiveDate() || "";
-  };
-  EventBus.on("tariff:changed", onTariff);
-  EventBus.on("store:bigeup.tariff", onTariff);
+  });
+  // ctx from 00 (deadline row) — { refMonth: "yyyy-mm" | 3 | 9 } preselects the 참고월.
   EventBus.on("tab:activated", (p) => {
-    const { id, ctx: c } = normTabEvent(p);
-    if (id !== "tab-bigeup" || !c?.refMonth) return;
-    fillRefMonths(+c.refMonth);
+    const c = p?.id === "tab-bigeup" ? p.ctx : null;
+    if (!c?.refMonth) return;
+    fillRefMonths(+String(c.refMonth).slice(-2));
     renderWindow(); updateSummary();
     refSel.focus({ preventScroll: true });
   });

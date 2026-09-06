@@ -13,7 +13,8 @@ import { t, tOr, pick, onLangChange } from "../core/i18n.js";
 import { EventBus, ActivityLog } from "../core/store.js";
 import { readSpreadsheet, downloadXLSX, headerRow } from "../core/files.js";
 import { Masters, toEdi } from "../core/masters.js";
-import { activateTab } from "./_entities-shim-claims.js"; // TODO(integrator): ../core/nav.js
+import { activateTab } from "../core/nav.js";
+import { Tariff } from "../core/entities.js";
 import { tariffPrice } from "./claims-shared.js";
 
 /* ── module-level index (shared by the tab UI and searchAll) ── */
@@ -66,7 +67,7 @@ export function searchAll(query, { source = "all", limit = 200 } = {}) {
 let seedFn = null;
 export function seed() { return seedFn ? seedFn() : Promise.resolve(); }
 
-export function initTab6(ctx) {
+export function init(ctx) {
   const { DATA } = ctx;
   DATA_REF = DATA;
   Masters.init(DATA);
@@ -172,8 +173,8 @@ export function initTab6(ctx) {
   $('[data-action="run-search"]').addEventListener("click", () => { seedFn(); });
   EventBus.on("search:query", (q) => { if (!q) return; activateTab("tab-search"); goSearch(q); });
   EventBus.on("tab:activated", (p) => {
-    const id = typeof p === "string" ? p : p?.id; const c = typeof p === "string" ? null : p?.ctx;
-    if (id !== "tab-search" || !c) return;
+    const c = p?.id === "tab-search" ? p.ctx : null;
+    if (!c) return;
     if (c.query) goSearch(String(c.query));
     if (c.section === "masters") setTimeout(gotoMasters, 60);
   });
@@ -263,8 +264,8 @@ export function initTab6(ctx) {
 
   Masters.onChange(() => { buildIndex(); renderMasterStatus(); if (input.value.trim()) render(input.value); });
   Masters.ready().then(() => { buildIndex(); renderMasterStatus(); });
-  // 우리 단가 follows tab 04's 비급여 단가표.
-  EventBus.on("store:bigeup.tariff", () => { buildIndex(); if (input.value.trim()) render(input.value); });
+  // 우리 단가 follows the shared Tariff entity (tab 04's 비급여 단가표).
+  Tariff.onChange(() => { buildIndex(); if (input.value.trim()) render(input.value); });
   renderMasterStatus();
 
   onLangChange(() => {

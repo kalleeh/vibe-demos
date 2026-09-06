@@ -5,7 +5,7 @@
    onLangChange listener is registered at import time — before any tab's — so it runs first: it re-paints the
    crumb, palette and topbar chips, then emits `lang:changed` on the EventBus for anything else. Tabs subscribe
    with their own onLangChange and re-render from the state they already hold (nothing is lost on toggle). */
-import { $, $$, esc, redactSubject, redactStaff, Toast, Dialog, Lightbox } from "./core/ui.js";
+import { $, $$, esc, redactSubject, Toast, Dialog, Lightbox } from "./core/ui.js";
 import { t, getLang, setLang, onLangChange, isEn } from "./core/i18n.js";
 import { Store, EventBus, ActivityLog, SyncStatus } from "./core/store.js";
 import { TABS, TAB_BY_ID, activateTab, refreshCrumb, activeTabId } from "./core/nav.js";
@@ -157,7 +157,10 @@ function refreshOrgChip() {
   chip.classList.toggle("warn", !complete);
   chip.title = complete ? t("org.chipTitle", { kind: t("org.kind." + o.kind), rep: o.rep }) : t("org.chipTitleIncomplete");
 }
-$("#topbar-org")?.addEventListener("click", () => { openInfo(); setTimeout(() => $("#orginfo-name")?.focus({ preventScroll: true }), 80); });
+const openOrgEditor = () => { openInfo(); setTimeout(() => $("#orginfo-name")?.focus({ preventScroll: true }), 80); };
+$("#topbar-org")?.addEventListener("click", openOrgEditor);
+// Tabs never import shell.js — 00 오늘 (nudge, 03/04 "기관 정보 수정") ask for the editor through this event.
+EventBus.on("shell:openInfo", openOrgEditor);
 Org.onChange(refreshOrgChip);
 EventBus.on("session:unlocked", refreshOrgChip);
 EventBus.on("session:locked", refreshOrgChip);
@@ -311,7 +314,7 @@ const SEED = {
     { name: "한지우", job: "원무", login: "원무" }
   ],
   patients: [["P-2026-0142", ["자보", "교통사고"]], ["P-2026-0233", []], ["P-2026-0301", []], ["P-2026-0418", ["자보"]], ["P-2026-0509", []]],
-  insurer: "삼성화재"
+  insurer: "삼성" // an insurer `value` from data/jabo.json (label 삼성화재)
 };
 const monthsFromNow = (m) => { const d = new Date(); d.setMonth(d.getMonth() + m); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
 async function seedEntities() {
@@ -336,24 +339,13 @@ async function seedEntities() {
   ActivityLog.add({ tag: "system", action: t("shell.logSeedEntities", { n: out.staff, l: out.logins, p: out.patients }), meta: { silent: true } });
   return out;
 }
-// Legacy fallback for tab modules that do not export seed() yet — the old demo-CTA clicks, keyed by init name.
-const LEGACY_SEED_ACTION = { initTab1: "run-kcd", initTab2: "run-jabo", initTab3: "run-ye", initTab4: "run-bigeup", initTab5: "run-ret", initTab6: "run-search", initTab7: "run-ai" };
-function legacySeed(mod) {
-  const action = LEGACY_SEED_ACTION[mod.init?.name];
-  if (action) { $(`[data-action="${action}"]`)?.click(); return; }
-  if (mod.init?.name === "initTab9") { // pre-check ~40% of accred items
-    const accred = Store.get("accred.checked", {});
-    const all = ACCRED_ITEMS.flatMap(c => c.items);
-    for (let i = 0; i < Math.floor(all.length * 0.4); i++) accred[all[i].id] = true;
-    Store.set("accred.checked", accred);
-  }
-}
-/* Seed-all — shared entities first, then every tab (its own seed() or the legacy CTA), then land on the dashboard. */
+/* Seed-all — shared entities first, then every tab's seed() in module order (awaited one by one: 01/02 load the
+   shared sample batch asynchronously and 03's cross-check + 00's KPIs read it), then land on the dashboard. */
 async function seedAll() {
   let ent = null;
   try { ent = await seedEntities(); } catch (e) { console.warn("seedEntities", e); }
   for (const mod of tabModules) {
-    try { if (typeof mod.seed === "function") mod.seed({ DATA }); else legacySeed(mod); } catch (e) { console.warn("seed", mod.init?.name, e); }
+    try { await mod.seed({ DATA }); } catch (e) { console.warn("seed", mod.name, e); }
   }
   activateTab("tab-today");
   Toast.show({ tag: "system", html: t("shell.seededToast") + (ent?.logins ? ` ${t("shell.seededLogins", { pin: SEED_PIN })}` : "") });
@@ -523,6 +515,7 @@ const Palette = (() => {
     chip.onclick = () => activateTab(next.link || "tab-today", next.ctx || undefined);
   }
   Staff.onChange(refreshDue);
+  Org.onChange(refreshDue); // 의원급 drops the September 비급여 window
   EventBus.on("app:ready", refreshDue);
   onLangChange(refreshDue);
   setInterval(refreshDue, 60000);
@@ -533,19 +526,18 @@ const Palette = (() => {
    ───────────────────────────────────────────────────────── */
 const DATA = { kcd: null, jabo: null, bigeup: null, retention: null };
 
-/* TAB MODULE CONVENTION — every js/tabs/tabN-*.js exports
-     initTabN(ctx)   wire the panel once (ctx = { DATA })
-     seed(ctx)       fill the panel with ITS sample state for the shared fictional clinic (called by seedAll()
-                     after the entities are seeded; must reference Staff / Patients / Org from core/entities.js,
-                     never invent names). Modules without seed() fall back to legacySeed() for now.
+/* TAB MODULE CONVENTION — every js/tabs/tabN-*.js exports exactly
+     init(ctx)   wire the panel once (ctx = { DATA })
+     seed(ctx)   fill the panel with ITS sample state for the shared fictional clinic (called by seedAll() after the
+                 entities are seeded; must reference Staff / Patients / Org from core/entities.js, never invent
+                 names). May return a promise — seedAll() awaits it. Tabs with nothing of their own (00, 08) export a no-op.
    main.js passes the module namespaces (import * as T1 …) in the order 1‥9 then 0 — exactly the former inline
    order. boot() waits for the first unlock (Lock.ready) so tabs initialise against a decrypted Store. */
 let tabModules = [];
-const asModule = (m) => typeof m === "function" ? { init: m } : { init: m.init || Object.values(m).find(v => typeof v === "function" && /^initTab\d$/.test(v.name)), seed: typeof m.seed === "function" ? m.seed : null };
 function boot(mods, { version = "dev" } = {}) {
   const ver = $("#info-version"); if (ver) ver.dataset.version = version;
   showVersion(version);
-  tabModules = mods.map(asModule);
+  tabModules = mods;
   return Promise.all([
     sessionReady,
     loadJSON("./data/kcd9.json"),
@@ -555,7 +547,7 @@ function boot(mods, { version = "dev" } = {}) {
   ]).then(([, kcd, jabo, bigeup, ret]) => {
     DATA.kcd = kcd; DATA.jabo = jabo; DATA.bigeup = bigeup; DATA.retention = ret;
     Insurers.load(DATA); // shared insurer list (data/jabo.json) before any tab reads it
-    for (const mod of tabModules) mod.init?.({ DATA });
+    for (const mod of tabModules) mod.init({ DATA });
     // Local only: broadcasting this made a second tab's boot re-open the first tab's welcome overlay.
     EventBus.emitLocal("app:ready", true);
   }).catch(err => {

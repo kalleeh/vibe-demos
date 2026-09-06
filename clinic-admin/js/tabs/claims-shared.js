@@ -5,13 +5,15 @@
    only one side is accepted and marked `meta.partial = "kcd" | "items"`. The 심평원 심사결과 file becomes a
    `review` batch linked through meta.claimsBatchId. Tab 01 cleans the 상병 side, tab 02 reconciles the 행위 side,
    both against the same batch, and both render the same 청구 배치 strip (renderBatchStrip).
-   Entities come from the F1 contract (Batches · Patients · Tariff) — see _entities-shim.js for the local stand-in. */
+   Entities: core/entities.js (Batches · Patients · Tariff). Events: `claims:batch` { id, kind: "claims" | "review" |
+   "select" | "remove" } is emitted LOCALLY here after every batch mutation — the tabs' strips and re-derivations key
+   off `kind`, which the generic `entities:batches` list event does not carry. */
 import { esc, todayISO } from "../core/ui.js";
 import { t } from "../core/i18n.js";
 import { Store, EventBus } from "../core/store.js";
 import { readSpreadsheet, loadJSON } from "../core/files.js";
 import { toEdi, toDotted } from "../core/masters.js";
-import { Batches, Patients, Tariff } from "./_entities-shim-claims.js"; // TODO(integrator): ../core/entities.js
+import { Batches, Patients, Tariff } from "../core/entities.js";
 
 const CURRENT_KEY = "ui.claimsBatch";   // plaintext ui.* setting — a batch id, nothing personal
 const EV = "claims:batch";              // { id, kind: "claims" | "review" | "select" | "remove" }
@@ -159,16 +161,17 @@ export const itemLinesOf = (batch) => (batch?.rows || []).flatMap(s => s.items.m
 export const stmtCodes = (batch, stmt) => (batch?.rows || []).find(s => s.stmt === stmt)?.kcdCodes.map(k => k.code) || [];
 export const stmtOf = (batch, stmt) => (batch?.rows || []).find(s => s.stmt === stmt) || null;
 
-/* ── tariff (our 비급여 prices — Tariff.get may return a number or an object) ── */
-export function tariffPrice(code) {
-  const v = Tariff.get(code);
-  const p = typeof v === "number" ? v : v && typeof v === "object" ? (v.price ?? v.amount ?? null) : v != null && v !== "" ? Number(v) : null;
-  return Number.isFinite(p) && p > 0 ? p : null;
+/* ── tariff (our 비급여 단가표, tab 04) — one representative price per code: 중간 when entered, else the midpoint of
+   최저·최고, else 최저. Tariff.get(code) → { min, max, med, freq } | null (strings from the inputs). ── */
+const posNum = (v) => { const n = Number(v); return Number.isFinite(n) && n > 0 ? n : null; };
+function priceOf(e) {
+  if (!e) return null;
+  const med = posNum(e.med), min = posNum(e.min), max = posNum(e.max);
+  return med ?? (min && max ? Math.round((min + max) / 2) : min ?? max);
 }
+export const tariffPrice = (code) => priceOf(Tariff.get(code));
 export function tariffRows(nameOf = () => "") {
-  const all = Tariff.all();
-  const list = Array.isArray(all) ? all : Object.entries(all || {}).map(([code, v]) => ({ code, price: typeof v === "object" ? v?.price : v }));
-  return list.map(r => ({ code: r.code, name: r.name || nameOf(r.code) || "", price: Number(r.price) })).filter(r => r.code && Number.isFinite(r.price) && r.price > 0);
+  return Object.entries(Tariff.all()).map(([code, e]) => ({ code, name: nameOf(code) || "", price: priceOf(e) })).filter(r => r.price);
 }
 
 /* ── 청구 배치 strip (rendered in #kcd-batch-strip and #jabo-batch-strip) ── */

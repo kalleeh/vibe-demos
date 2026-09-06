@@ -5,7 +5,7 @@
    { staffId } for the per-person licence items produced from the shared Staff roster (core/entities.js). */
 import { t } from "./i18n.js";
 import { daysUntil } from "./dom.js";
-import { Staff } from "./entities.js";
+import { Org, Staff } from "./entities.js";
 
 /* 비급여 보고 (의료법 §45조의2 · 고시 「비급여 진료비용 등의 보고 및 공개에 관한 기준」):
    reference months March / September, submission windows April / October.
@@ -35,9 +35,14 @@ export function nextOccurrence(month, day, now = new Date()) {
   return iso(y) >= todayISO ? iso(y) : iso(y + 1);
 }
 
+// The 비급여 windows this institution reports in: 병원급 both (March + September data), 의원급 March only.
+export function bigeupWindows() {
+  return Org.get().kind === "의원" ? BIGEUP_WINDOWS.filter(w => w.refMonth === 3) : BIGEUP_WINDOWS;
+}
+
 // The recurring statutory deadlines as { key, title, date, link, source, ctx } for the next 12 months.
 export function statutoryDeadlines(now = new Date()) {
-  const bigeup = BIGEUP_WINDOWS.map(w => {
+  const bigeup = bigeupWindows().map(w => {
     const date = nextOccurrence(w.month, null, now);
     return {
       key: w.key, title: w.label, date, link: "tab-bigeup", source: t("today.dl.bigeupSource", { m: w.refMonth }),

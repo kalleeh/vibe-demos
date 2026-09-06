@@ -3,8 +3,9 @@ import { $, esc, fmtKRW, won, todayISO, relTime, setStatus, bindDrop } from "../
 import { t, onLangChange } from "../core/i18n.js";
 import { EventBus, ActivityLog, bindPersist } from "../core/store.js";
 import { readSpreadsheet, downloadXLSX, downloadCSV, headerRow } from "../core/files.js";
-import { checkRRN, maskRRN, renderOrgReadOnly, ensureDemoOrg, normTabEvent, orgHeaderPairs } from "./reporting-shared.js";
-import { Org, Batches, Patients, activateTab } from "./_entities-shim.js"; // TODO(integrator): → "../core/entities.js" + "../core/nav.js"
+import { activateTab } from "../core/nav.js";
+import { Org, Batches, Patients } from "../core/entities.js";
+import { checkRRN, maskRRN, renderOrgReadOnly, orgHeaderPairs } from "./reporting-shared.js";
 
 /* ─────────────────────────────────────────────────────────
    Tab 3 — 연말정산 의료비 자료 사전점검
@@ -19,7 +20,7 @@ import { Org, Batches, Patients, activateTab } from "./_entities-shim.js"; // TO
 let api = null;
 export function seed() { api?.seed(); }
 
-export function initTab3() {
+export function init() {
   let lastResult = null, lastStatus = null, fromBatch = false;
   const status = (kind, fn) => { lastStatus = { kind, fn }; setStatus($("#ye-status"), kind, fn()); };
   const taxYear = () => +$("#ye-year").value || new Date().getFullYear() - 1;
@@ -136,7 +137,7 @@ export function initTab3() {
     return `
       <div class="xcheck" id="ye-xcheck">
         <h5 class="ye-subhead">${esc(t("yearend.xc.h"))}</h5>
-        <p class="xcheck-meta">${esc(t("yearend.xc.meta", { y: result.taxYear, n: x.claimVisits, m: x.matched, when: relTime(x.claims.at) }))}</p>
+        <p class="xcheck-meta">${esc(t("yearend.xc.meta", { y: result.taxYear, n: x.claimVisits, m: x.matched, when: relTime(x.claims.createdAt) }))}</p>
         <div class="xcheck-cols">
           <div class="xcheck-col ${x.onlyClaims.length ? "warn" : ""}">
             <h6>${esc(t("yearend.xc.onlyClaims"))} <strong>${x.onlyClaims.length}</strong></h6>
@@ -218,8 +219,8 @@ export function initTab3() {
   const storeBatch = (result, meta) => {
     const rows = result.rows.map(r => ({ row: r.row, pid: r.pid, date: r.date, own: r.own, non: r.non, total: r.total, verdict: r.verdict, issues: r.issues.map(i => ({ level: i.level, field: i.field, msg: i.msg })) }));
     const errs = result.issues.filter(i => i.level === "error").length, warns = result.issues.length - errs;
-    for (const r of result.rows) if (r.pid) Patients.touch(r.pid);
-    return Batches.add("yearend", { rows, meta: { taxYear: result.taxYear, n: rows.length, errors: errs, warns, hasPid: result.hasPid, ...meta } });
+    for (const r of result.rows) if (r.pid) Patients.touch(r.pid, /^\d{4}-\d{2}-\d{2}$/.test(r.date) ? r.date : undefined);
+    return Batches.create({ kind: "yearend", source: meta.fileName || "sample", rows, meta: { taxYear: result.taxYear, n: rows.length, errors: errs, warns, hasPid: result.hasPid, ...meta } });
   };
   // Rebuild a render-able result from a stored batch (no names/RRNs — aliases + "—").
   const resultFromBatch = (b) => {
@@ -241,20 +242,19 @@ export function initTab3() {
     const b = Batches.latest("yearend");
     if (!b) { el.innerHTML = ""; el.style.display = "none"; return; }
     el.style.display = "flex";
-    el.innerHTML = `<span class="dot"></span><span>${esc(t("yearend.recent", { n: b.meta?.n ?? (b.rows || []).length, y: b.meta?.taxYear || "—", when: relTime(b.at), e: b.meta?.errors ?? 0 }))}</span>
+    el.innerHTML = `<span class="dot"></span><span>${esc(t("yearend.recent", { n: b.meta?.n ?? (b.rows || []).length, y: b.meta?.taxYear || "—", when: relTime(b.createdAt), e: b.meta?.errors ?? 0 }))}</span>
       <button type="button" class="small-link" id="ye-recent-open">${esc(t("yearend.recentOpen"))}</button>`;
     $("#ye-recent-open")?.addEventListener("click", () => {
       fromBatch = true;
       lastResult = resultFromBatch(b);
       $("#ye-year").value = String(lastResult.taxYear);
       render(lastResult);
-      status(null, () => t("yearend.statusFromBatch", { n: lastResult.rows.length, when: relTime(b.at) }));
+      status(null, () => t("yearend.statusFromBatch", { n: lastResult.rows.length, when: relTime(b.createdAt) }));
     });
   };
   renderRecent();
-  EventBus.on("batches:changed", (e) => { if (!e || e.kind === "yearend") renderRecent(); if (!e || e.kind === "claims") { if (lastResult) render(lastResult); } });
-  EventBus.on("store:batches.yearend", renderRecent);
-  EventBus.on("store:batches.claims", () => { if (lastResult) render(lastResult); });
+  // Any batch change: a new 연말정산 run (recent strip) or a new claims batch (cross-check card re-derived).
+  Batches.onChange(() => { renderRecent(); if (lastResult) render(lastResult); });
 
   const finish = (result, statusFn) => {
     fromBatch = false;
@@ -286,7 +286,7 @@ export function initTab3() {
   $("#ye-download").addEventListener("click", () => {
     if (!lastResult) return;
     const org = Org.get();
-    const biz = String(org.bizNo || "biz").replace(/-/g, "");
+    const biz = String(org.biz || "biz").replace(/-/g, "");
     const rows = lastResult.rows.map(r => headerRow([
       ...orgHeaderPairs(org), ["yearend.col.row", r.row], ["yearend.col.name", fromBatch ? Patients.alias(r.pid) : r.name], ["yearend.col.pid", r.pid || ""],
       ["yearend.col.rrn", fromBatch ? "—" : r.masked], ["yearend.col.date", r.date],
@@ -296,20 +296,22 @@ export function initTab3() {
     ActivityLog.push("yearend", t("yearend.logDl", { n: rows.length }), {});
   });
 
-  // Sample: the five shared demo patients (fictional names/RRNs live ONLY in this file); dates follow the
-  // selected tax year (default = last year → 2025). The set deliberately keeps one bad RRN (12 digits),
-  // one negative amount and one duplicate row. Column headers are the Korean EMR-export names the validator
-  // expects (data, not UI copy); 환자번호 is the optional column the claims cross-check joins on.
+  // Sample: the five shared demo patients (fictional names/RRNs live ONLY in this file). Month/day match the
+  // shared 2026-08 claims sample (data/jabo-sample-claims.json: M2608-0001 · 0002 · 0006 · 0008 · 0012) so the
+  // cross-check finds 5 overlaps, 7 claims-only visits and 1 file-only visit when the tax year is the batch's year
+  // (seed() aligns it). The set deliberately keeps one bad RRN (12 digits), one negative amount and one duplicate
+  // row. Column headers are the Korean EMR-export names the validator expects (data, not UI copy); 환자번호 is the
+  // optional column the claims cross-check joins on.
   const sampleYeData = () => {
     const y = taxYear();
     return [
-      { 환자번호: "P-2026-0142", 환자성명: "김민지", 주민등록번호: "880314-2123458", 진료일자: `${y}-04-08`, 본인부담금: 12000, 비급여금액: 38000 },
-      { 환자번호: "P-2026-0142", 환자성명: "김민지", 주민등록번호: "880314-2123458", 진료일자: `${y}-04-15`, 본인부담금: 12000, 비급여금액: 0 },
-      { 환자번호: "P-2026-0233", 환자성명: "박지훈", 주민등록번호: "750822-1234569", 진료일자: `${y}-06-02`, 본인부담금: 18000, 비급여금액: 80000 },
-      { 환자번호: "P-2026-0233", 환자성명: "박지훈", 주민등록번호: "750822-1234569", 진료일자: `${y}-06-02`, 본인부담금: 18000, 비급여금액: 80000 },
-      { 환자번호: "P-2026-0301", 환자성명: "이서윤", 주민등록번호: "920506-265432",  진료일자: `${y}-08-21`, 본인부담금: 15000, 비급여금액: 120000 },
+      { 환자번호: "P-2026-0142", 환자성명: "김민지", 주민등록번호: "880314-2123458", 진료일자: `${y}-08-04`, 본인부담금: 12000, 비급여금액: 38000 },
+      { 환자번호: "P-2026-0142", 환자성명: "김민지", 주민등록번호: "880314-2123458", 진료일자: `${y}-08-07`, 본인부담금: 12000, 비급여금액: 0 },
+      { 환자번호: "P-2026-0233", 환자성명: "박지훈", 주민등록번호: "750822-1234569", 진료일자: `${y}-08-05`, 본인부담금: 18000, 비급여금액: 80000 },
+      { 환자번호: "P-2026-0233", 환자성명: "박지훈", 주민등록번호: "750822-1234569", 진료일자: `${y}-08-05`, 본인부담금: 18000, 비급여금액: 80000 },
+      { 환자번호: "P-2026-0301", 환자성명: "이서윤", 주민등록번호: "920506-265432",  진료일자: `${y}-08-06`, 본인부담금: 15000, 비급여금액: 120000 },
       { 환자번호: "P-2026-0418", 환자성명: "최다은", 주민등록번호: "010912-4123452", 진료일자: `${y}-09-03`, 본인부담금: -9000, 비급여금액: 45000 },
-      { 환자번호: "P-2026-0509", 환자성명: "정하늘", 주민등록번호: "830127-1234562", 진료일자: `${y}-11-19`, 본인부담금: 9000,  비급여금액: 20000 }
+      { 환자번호: "P-2026-0509", 환자성명: "정하늘", 주민등록번호: "830127-1234562", 진료일자: `${y}-08-27`, 본인부담금: 9000,  비급여금액: 20000 }
     ];
   };
 
@@ -319,7 +321,9 @@ export function initTab3() {
   });
 
   const runSample = () => {
-    ensureDemoOrg(Org);
+    // Follow the current claims batch's year so the cross-check has something to join on.
+    const batchYear = Batches.latest("claims")?.meta?.month?.slice(0, 4);
+    if (batchYear && $("#ye-year").value !== batchYear) { $("#ye-year").value = batchYear; $("#ye-year").dispatchEvent(new Event("change", { bubbles: true })); }
     const result = validate(sampleYeData());
     storeBatch(result, { sample: true });
     ActivityLog.push("yearend", t("yearend.logSample", { n: result.rows.length }), { sample: true });
@@ -333,8 +337,8 @@ export function initTab3() {
 
   // Deadline click from 00 → { taxYear }
   EventBus.on("tab:activated", (p) => {
-    const { id, ctx } = normTabEvent(p);
-    if (id !== "tab-yearend") return;
+    if (p?.id !== "tab-yearend") return;
+    const ctx = p.ctx;
     if (ctx?.taxYear) {
       $("#ye-year").value = String(ctx.taxYear);
       $("#ye-year").dispatchEvent(new Event("change", { bubbles: true }));

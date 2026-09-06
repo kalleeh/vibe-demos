@@ -29,39 +29,16 @@ export function maskRRN(raw) {
   return d.slice(0, 6) + "-" + (d[6] || "") + "******";
 }
 
-/* ── Shared fictional clinic (the ONLY institution the demos know) ── */
-export const DEMO_ORG = { name: "한솔한방병원", ykiho: "11000123", bizNo: "123-45-67890", kind: "병원급", rep: "윤지훈" };
-
-/* Canonical org view. F1's Org.get() shape is { name, ykiho, bizNo, kind, rep }; the aliases only cushion
-   an integration drift and cost nothing. `clinicLevel` = 의원급 (reports 비급여 once a year, March data). */
+/* Canonical org view over core/entities.js Org.get() = { name, ykiho, biz, kind: "병원"|"의원", rep }.
+   `clinicLevel` = 의원급 (reports 비급여 once a year, March data); `kindLabel` follows the UI language. */
 export function orgView(o) {
   const v = o || {};
-  const kind = v.kind ?? v.type ?? "";
-  return {
-    name: v.name ?? v.clinic ?? "",
-    ykiho: v.ykiho ?? v.code ?? "",
-    bizNo: v.bizNo ?? v.biz ?? "",
-    kind,
-    rep: v.rep ?? v.director ?? "",
-    clinicLevel: /의원/.test(String(kind))
-  };
-}
-
-// Fill missing org fields from DEMO_ORG (used by the tabs' seed()/샘플 시연 so the demo is coherent); never overwrites.
-export function ensureDemoOrg(Org) {
-  const cur = Org.get() || {};
-  const patch = Object.fromEntries(Object.entries(DEMO_ORG).filter(([k]) => !cur[k]));
-  if (Object.keys(patch).length) Org.set(patch);
-}
-
-/* `tab:activated` payload — the contract shape is { id, ctx }; the legacy nav emits a bare id string. */
-export function normTabEvent(p) {
-  if (p && typeof p === "object") return { id: p.id, ctx: p.ctx || null };
-  return { id: p, ctx: null };
+  const kind = v.kind === "의원" ? "의원" : "병원";
+  return { name: v.name || "", ykiho: v.ykiho || "", biz: v.biz || "", kind, kindLabel: t("org.kind." + kind), rep: v.rep || "", clinicLevel: kind === "의원" };
 }
 
 /* Read-only institution block for 03/04 ("Org profile everywhere"). `onEdit` is wired by the caller to
-   activateTab("tab-today", { openOrg: true }). Rows with no value show "미입력" so the gap is visible. */
+   EventBus "shell:openInfo" (the shell owns the editor). Rows with no value show "미입력" so the gap is visible. */
 export function renderOrgReadOnly(el, org, { onEdit } = {}) {
   if (!el) return;
   const v = orgView(org);
@@ -70,8 +47,8 @@ export function renderOrgReadOnly(el, org, { onEdit } = {}) {
     <div class="org-ro" role="group" aria-label="${esc(t("common.clinicInfo"))}">
       ${cell("common.clinicName", v.name)}
       ${cell("reporting.org.ykiho", v.ykiho)}
-      ${cell("reporting.org.bizNo", v.bizNo)}
-      ${cell("reporting.org.kind", v.kind)}
+      ${cell("reporting.org.bizNo", v.biz)}
+      ${cell("reporting.org.kind", v.kindLabel)}
       ${cell("reporting.org.rep", v.rep)}
       <button type="button" class="org-edit small-link" data-org-edit>${esc(t("reporting.org.edit"))}</button>
     </div>`;
@@ -81,5 +58,5 @@ export function renderOrgReadOnly(el, org, { onEdit } = {}) {
 // Export header pairs (headerKey, value) for the sheet writers — same institution columns in every reporting file.
 export function orgHeaderPairs(org) {
   const v = orgView(org);
-  return [["reporting.col.ykiho", v.ykiho], ["reporting.col.clinic", v.name], ["reporting.col.bizNo", v.bizNo]];
+  return [["reporting.col.ykiho", v.ykiho], ["reporting.col.clinic", v.name], ["reporting.col.bizNo", v.biz]];
 }

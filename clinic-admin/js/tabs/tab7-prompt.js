@@ -91,19 +91,18 @@ bigeup: [ ]  ← 자보 환자
 </output>
 </exemplar>`;
 
-// 병원급 (한방병원) vs 의원급 (한의원) changes what may be claimed and reported; the Org record decides.
+// 병원급 (한방병원) vs 의원급 (한의원) changes what may be claimed and reported; Org.kind ("병원" | "의원") decides.
 const KIND_RULES = {
-  "한방병원": "병원급 — 한방 입원료 산정 가능(경상환자 입원 심사 강화 유의), 비급여 진료비용 보고는 연 2회(3월·9월분), 진찰료는 병원급 단가 적용.",
-  "한의원":   "의원급 — 입원료 원칙적 미해당, 비급여 진료비용 보고는 연 1회(3월분), 진찰료는 의원급 단가 적용."
+  "병원": { label: "한방병원 (병원급)", rules: "병원급 — 한방 입원료 산정 가능(경상환자 입원 심사 강화 유의), 비급여 진료비용 보고는 연 2회(3월·9월분), 진찰료는 병원급 단가 적용." },
+  "의원": { label: "한의원 (의원급)",   rules: "의원급 — 입원료 원칙적 미해당, 비급여 진료비용 보고는 연 1회(3월분), 진찰료는 의원급 단가 적용." }
 };
 export function buildSystemPrompt(org) {
   const o = org || {};
-  const kind = o.kind || "한방병원";
-  const rules = KIND_RULES[kind] || KIND_RULES["한방병원"];
+  const { label, rules } = KIND_RULES[o.kind === "의원" ? "의원" : "병원"];
   return SYSTEM_PROMPT + `
 
 <clinic>
-기관: ${o.name || "—"} · 종별: ${kind} · 요양기관기호: ${o.ykiho || "—"}
+기관: ${o.name || "—"} · 종별: ${label} · 요양기관기호: ${o.ykiho || "—"}
 ${rules}
 추천 코드는 이 기관의 종별에서 청구 가능한 것만 제안한다.
 </clinic>`;

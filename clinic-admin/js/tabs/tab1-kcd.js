@@ -11,13 +11,14 @@ import { t, onLangChange } from "../core/i18n.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { downloadXLSX, headerRow } from "../core/files.js";
 import { Masters, toEdi, toDotted } from "../core/masters.js";
-import { activateTab, Patients } from "./_entities-shim-claims.js"; // TODO(integrator): ../core/nav.js + ../core/entities.js
+import { activateTab } from "../core/nav.js";
+import { Patients } from "../core/entities.js";
 import { currentClaimsBatch, ingestClaimsFile, kcdRowsOf, renderBatchStrip, onClaimsChange, ensureSampleBatch, loadSampleRows } from "./claims-shared.js";
 
 let seedFn = null;
 export function seed() { return seedFn ? seedFn() : Promise.resolve(); }
 
-export function initTab1(ctx) {
+export function init(ctx) {
   const { DATA } = ctx;
   Masters.init(DATA);
   let lastResult = null, lastStatus = null, lastBatchId = null, focusStmt = null;
@@ -144,7 +145,7 @@ export function initTab1(ctx) {
           <th class="code">${esc(t("kcd.thInput"))}</th><th class="code">${esc(t("kcd.thEdi"))}</th><th>${esc(t("common.thResult"))}</th><th>${esc(t("common.thNote"))}</th><th>${esc(t("kcd.thActions"))}</th>
         </tr></thead>
         <tbody>
-          ${shown.map((r, i) => {
+          ${shown.map(r => {
             const label = verdictLabel(r.verdict), cls = CLS[r.verdict] || "ok";
             const idx = rows.indexOf(r);
             const actions = ASKABLE.has(r.verdict)
@@ -269,17 +270,20 @@ export function initTab1(ctx) {
     el.querySelector("[data-masters]").addEventListener("click", () => activateTab("tab-search", { section: "masters" }));
   };
   renderBanner();
-  Masters.onChange(() => { renderBanner(); const b = currentClaimsBatch(); if (b && lastResult) run(b, { silent: true }); });
+  // A silent re-run that keeps the "최근 정비 …" resume line (kcd.lastSummary) when there is one — the batch line is
+  // for explicit runs and batch switches. Used on boot and when the master source flips underneath the result.
+  const rerunQuietly = (b) => {
+    run(b, { silent: true });
+    const s = Store.get("kcd.lastSummary");
+    if (s) status(null, () => t("kcd.statusLast", { t: relTime(s.at), n: s.total, m: s.missing }));
+  };
+  Masters.onChange(() => { renderBanner(); const b = currentClaimsBatch(); if (b && lastResult) rerunQuietly(b); });
 
-  // Restore the current batch on boot; follow batch changes made in 02. A silent restore keeps the
-  // "최근 정비 …" resume line (kcd.lastSummary) when there is one — the batch line is for explicit runs.
+  // Restore the current batch on boot; follow batch changes made in 02.
   const restore = () => {
     const b = currentClaimsBatch();
-    if (b) {
-      run(b, { silent: true });
-      const s = Store.get("kcd.lastSummary");
-      if (s) status(null, () => t("kcd.statusLast", { t: relTime(s.at), n: s.total, m: s.missing }));
-    } else { lastResult = null; lastBatchId = null; $("#kcd-toolbar").style.display = "none"; renderFilter(); $("#kcd-result").innerHTML = `<div class="empty-state">${esc(t("kcd.empty"))}</div>`; }
+    if (b) rerunQuietly(b);
+    else { lastResult = null; lastBatchId = null; $("#kcd-toolbar").style.display = "none"; renderFilter(); $("#kcd-result").innerHTML = `<div class="empty-state">${esc(t("kcd.empty"))}</div>`; }
   };
   onClaimsChange((ev) => {
     strip();
@@ -292,8 +296,8 @@ export function initTab1(ctx) {
 
   // ctx from 02 (and the palette): { stmt } → filter + highlight that 명세서.
   EventBus.on("tab:activated", (p) => {
-    const id = typeof p === "string" ? p : p?.id; const c = typeof p === "string" ? null : p?.ctx;
-    if (id !== "tab-kcd" || !c) return;
+    const c = p?.id === "tab-kcd" ? p.ctx : null;
+    if (!c) return;
     if (c.stmt) {
       if (!lastResult) { const b = currentClaimsBatch(); if (b) run(b, { silent: true }); }
       if (lastResult) { focusStmt = c.stmt; renderResult(lastResult); }

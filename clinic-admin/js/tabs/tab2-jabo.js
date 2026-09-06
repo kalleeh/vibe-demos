@@ -13,25 +13,22 @@ import { t, tOr, pick, onLangChange } from "../core/i18n.js";
 import { Store, EventBus, ActivityLog, bindPersist } from "../core/store.js";
 import { readSpreadsheet, downloadXLSX, headerRow } from "../core/files.js";
 import { Masters, toEdi, toDotted } from "../core/masters.js";
-import { activateTab, Insurers, Patients } from "./_entities-shim-claims.js"; // TODO(integrator): ../core/nav.js + ../core/entities.js
+import { activateTab } from "../core/nav.js";
+import { Insurers, Patients } from "../core/entities.js";
 import { currentClaimsBatch, reviewFor, ingestClaimsFile, createReviewBatch, itemLinesOf, stmtCodes, renderBatchStrip, onClaimsChange, ensureSampleBatch, loadSampleRows } from "./claims-shared.js";
 
 let seedFn = null;
 export function seed() { return seedFn ? seedFn() : Promise.resolve(); }
 
-export function initTab2(ctx) {
+export function init(ctx) {
   const { DATA } = ctx;
   Masters.init(DATA);
   const REASONS = DATA.jabo.adjustment_reasons || [];
   const reasonLabel = (key, fallbackKey) => { const r = REASONS.find(x => x.key === key); return r ? pick(r, "label") : (fallbackKey ? t(fallbackKey) : (key ? String(key) : "")); };
   const unitLabel = (u) => tOr("common.unit." + (u || "회"), u || "회");
   const catLabel = (c) => c ? tOr("jabo.cat." + c, c) : "";
-  // Insurers: the entity list when the clinic has one, else the bundled example list (strings or {value,label} rows).
-  const insurerRows = () => {
-    const l = Insurers.list();
-    const rows = l && l.length ? l : (DATA.jabo.insurers || []);
-    return rows.map(x => typeof x === "string" ? { value: x, label: x, label_en: x, type: "" } : x);
-  };
+  // Insurers (core/entities.js, loaded from data/jabo.json): [{ value, label, label_en, type }].
+  const insurerRows = () => Insurers.list();
   const insurerLabel = (v) => { const i = insurerRows().find(x => x.value === v); return i ? pick(i, "label") : (v || "—"); };
   const fillInsurerSelect = (sel, keepPlaceholder) => {
     const cur = sel.value;
@@ -46,7 +43,7 @@ export function initTab2(ctx) {
   };
 
   /* ───────────── Primary: file-based reconciliation ───────────── */
-  let lastRecon = null, lastReconStatus = null, lastClaimsId = null, lastReviewId = null;
+  let lastRecon = null, lastReconStatus = null, lastClaimsId = null;
   const reconStatus = (kind, fn) => { lastReconStatus = { kind, fn }; setStatus($("#jabo-recon-status"), kind, fn()); };
   const ASK_REASONS = new Set(["site_mismatch", "dup_same_site"]);
 
@@ -85,15 +82,18 @@ export function initTab2(ctx) {
     if (known) return pick(known, "label");
     return l.reasonText || t("jabo.reasonUnknown");
   };
-  const groupByReason = (lines) => {
+  // Group the cut lines by reason — `keyOf` = display text (tables) or the stable reason key (history → 00 KPI tile).
+  const groupBy = (lines, keyOf) => {
     const byReason = new Map();
     for (const l of lines) if (l.hasCut) {
-      const k = lineReason(l);
+      const k = keyOf(l);
       if (!byReason.has(k)) byReason.set(k, { reason: k, lines: 0, cut: 0 });
       const g = byReason.get(k); g.lines++; g.cut += l.delta;
     }
     return [...byReason.values()].sort((a, b) => b.cut - a.cut);
   };
+  const groupByReason = (lines) => groupBy(lines, lineReason);
+  const reasonKeys = (lines) => groupBy(lines, (l) => l.reasonKey || l.reasonText || "other").map(g => ({ key: g.reason, cut: g.cut, lines: g.lines }));
 
   const STATUS_CLS = { full: "ok", cut_part: "warn", cut_all: "err", none: "info" };
   const statusLabel = (s) => t("jabo.status." + s);
@@ -185,16 +185,16 @@ export function initTab2(ctx) {
   const runRecon = (claims, review, { silent = false, meta = {} } = {}) => {
     if (!claims || !review) return;
     const res = reconcile(itemLinesOf(claims), review.rows);
-    lastRecon = res; lastClaimsId = claims.id; lastReviewId = review.id;
+    lastRecon = res; lastClaimsId = claims.id;
     renderRecon(res);
     renderSlots();
     const insurer = reconInsurer.value || Insurers.lastUsed() || "";
     if (!silent) {
       if (insurer) Insurers.setLastUsed(insurer);
-      // History: 명세서 count + totals + insurer + batch id — no names, no claim numbers.
+      // History: 명세서 count + totals + insurer + batch id + cuts by reason key (00's KPI tiles) — no names, no claim numbers.
       const history = Store.get("jabo.history", []) || [];
       history.unshift({ at: Date.now(), kind: "recon", stmts: res.stmts, itemCount: res.lines.length, date: todayISO(),
-        claimed: res.totals.claimed, paid: res.totals.approved, cut: res.totals.cut, insurer, batchId: claims.id, month: claims.meta?.month || "" });
+        claimed: res.totals.claimed, paid: res.totals.approved, cut: res.totals.cut, insurer, batchId: claims.id, month: claims.meta?.month || "", byReason: reasonKeys(res.lines) });
       Store.set("jabo.history", history.slice(0, 100));
       ActivityLog.push("jabo", t("jabo.logRecon", { s: res.stmts, cut: won(res.totals.cut) }), meta);
     }
@@ -212,7 +212,7 @@ export function initTab2(ctx) {
     if (el2) el2.innerHTML = r ? `<span class="pill ${r.meta?.sample ? "" : "ok"}">${esc(t(r.meta?.sample ? "jabo.pillSample" : "jabo.pillRead"))}</span> ${esc(r.source)} · ${esc(t("common.nRows", { n: r.rows.length }))}` : "";
   };
   const clearRecon = () => {
-    lastRecon = null; lastClaimsId = null; lastReviewId = null;
+    lastRecon = null; lastClaimsId = null;
     $("#jabo-recon-toolbar").style.display = "none"; $("#jabo-recon-groups").innerHTML = "";
     $("#jabo-recon-result").innerHTML = `<div class="empty-state">${esc(t("jabo.reconEmpty"))}</div>`;
     renderSlots();
@@ -533,7 +533,7 @@ export function initTab2(ctx) {
   bindPersist("#jabo-dx", "jabo.draft.jabo-dx");
 
   const draftItems = Store.get("jabo.draft.items");
-  if (Array.isArray(draftItems) && draftItems.length) items.push(...draftItems.map(({ cutCode, ...rest }) => ({ cutKey: "", ...rest })));
+  if (Array.isArray(draftItems) && draftItems.length) items.push(...draftItems.map(d => { const it = { cutKey: "", ...d }; delete it.cutCode; return it; })); // cutCode: pre-security-pass field
   const persistDraftItems = debounce(() => {
     Store.set("jabo.draft.items", items.map(({ code, name, qty, unit, price, category, paid, cutKey }) => ({ code, name, qty, unit, price, category, paid, cutKey })));
   }, 500);
@@ -621,8 +621,8 @@ export function initTab2(ctx) {
   });
   EventBus.on("store:ui.claimsBatch", () => { const c = currentClaimsBatch(); if (c && c.id !== lastClaimsId) { strip(); restore(); } });
   EventBus.on("tab:activated", (p) => {
-    const id = typeof p === "string" ? p : p?.id; const c = typeof p === "string" ? null : p?.ctx;
-    if (id !== "tab-jabo" || !c) return;
+    const c = p?.id === "tab-jabo" ? p.ctx : null;
+    if (!c) return;
     if (c.dx || (Array.isArray(c.items) && c.items.length) || c.pid) applyCase(c);
   });
   restore();

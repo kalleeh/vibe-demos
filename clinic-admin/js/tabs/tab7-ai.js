@@ -23,7 +23,8 @@ import { Masters, toEdi } from "../core/masters.js";
 import { Session } from "../security/session.js";
 import { redactNote } from "../security/redact.js";
 import { buildSystemPrompt } from "./tab7-prompt.js";
-import { activateTab, Org, Patients } from "./_entities-shim-claims.js"; // TODO(integrator): ../core/nav.js + ../core/entities.js
+import { activateTab } from "../core/nav.js";
+import { Org, Patients } from "../core/entities.js";
 import { tariffRows } from "./claims-shared.js";
 
 const CONSENT_VERSION = 1;
@@ -41,7 +42,7 @@ export function seed() { return seedFn ? seedFn() : Promise.resolve(); }
    citations. Proxy-only live mode via Bedrock Opus.
    Non-streaming (structured JSON brief).
    ───────────────────────────────────────────────────────── */
-export function initTab7(ctx = {}) {
+export function init(ctx = {}) {
   const { DATA } = ctx;
   // Shared AI-state pill (the one next to the result header) — exactly three
   // visible states; hidden while there is no result to label (idle, busy, error).
@@ -99,8 +100,8 @@ export function initTab7(ctx = {}) {
     if (c.pid) Patients.ensure(c.pid, { tags: ["ai"] });
   };
   EventBus.on("tab:activated", (p) => {
-    const id = typeof p === "string" ? p : p?.id; const c = typeof p === "string" ? null : p?.ctx;
-    if (id !== "tab-ai" || !c) return;
+    const c = p?.id === "tab-ai" ? p.ctx : null;
+    if (!c) return;
     if (c.prefill || c.pid || c.stmt) applyCtx(c);
   });
 

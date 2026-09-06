@@ -34,11 +34,6 @@ const SENSITIVE_KEYS = {
   exact: ["jabo.history", "license.list", "activity", "intake-cards", "staff.list", "patients.register"],
   prefixes: ["jabo.draft.", "ai.", "yearend.", "bigeup.profile.", "claims.batch."]
 };
-/* Legacy-key ALIASES (compat shims, registered by core/entities.js). A read of an aliased key is served by a
-   getter over the shared entity, a write is routed to its setter; the key itself never touches localStorage.
-   Lets tab code that still says Store.get("license.list") / bindPersist("yearend.ye-biz") keep working while the
-   canonical data lives in org.profile / staff.list / tariff.*. Delete the alias once no caller remains. */
-const aliases = new Map(); // key → { get(): value|null, set(value) }
 /* Unlock hooks (entities.js registers its legacy → entity migration): awaited inside unlockedInit() AFTER the
    cache is populated and BEFORE the `store:<key>` re-emits, so tabs never initialise against un-migrated data. */
 const unlockHooks = [];
@@ -68,16 +63,8 @@ function touchMtime(key) {
 
 const Store = {
   isSensitive,
-  alias(key, handlers) { aliases.set(key, handlers); },
-  isAlias: (key) => aliases.has(key),
   onUnlock(fn) { unlockHooks.push(fn); },
   get(key, fallback = null) {
-    const a = aliases.get(key);
-    if (a) { const v = a.get(); return v == null ? fallback : v; }
-    return this.getStored(key, fallback);
-  },
-  // The stored value itself, ignoring aliases (the legacy → entity migration reads the old keys through this).
-  getStored(key, fallback = null) {
     if (isSensitive(key)) {
       if (!Session.isUnlocked()) return fallback;
       return cache.has(key) ? cache.get(key) : fallback;
@@ -86,8 +73,6 @@ const Store = {
     return v === undefined ? fallback : v;
   },
   set(key, value) {
-    const a = aliases.get(key);
-    if (a) { a.set(value); return; }
     if (isSensitive(key)) {
       if (!Session.isUnlocked()) { console.warn("Store.set ignored while locked:", key); return; }
       cache.set(key, value);

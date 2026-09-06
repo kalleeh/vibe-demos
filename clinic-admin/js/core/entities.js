@@ -22,8 +22,7 @@
      bigeup.tariff · bigeup.profile.bg-date                                                 → tariff.*
      license.list (role → job)                                                              → staff.list
      __ws.users without a staff row (match by name, else create one)                        → staff.list + staffId link
-   The legacy keys are DELETED once copied. Legacy READS/WRITES by tab code still work through Store aliases
-   (see the ALIASES block at the bottom) until F2/F3 switch to these APIs — then the aliases go. */
+   The legacy keys are DELETED once copied; every tab reads and writes through these APIs only. */
 import { redactSubject, redactStaff, todayISO } from "./dom.js";
 import { t } from "./i18n.js";
 import { Store, EventBus } from "./store.js";
@@ -58,7 +57,6 @@ const Org = {
     const cur = Org.get(), next = { ...cur };
     for (const f of ORG_FIELDS) if (patch && f in patch) next[f] = f === "kind" ? (patch.kind === "의원" ? "의원" : "병원") : str(patch[f]);
     Store.set(KEYS.org, next);
-    emitLegacy(["yearend.ye-biz", "yearend.ye-clinic", "bigeup.profile.bg-ykiho", "bigeup.profile.bg-clinic"]);
   },
   isComplete() { const o = Org.get(); return !!(o.name && o.ykiho && o.biz && o.rep); },
   isEmpty() { const o = Org.get(); return !(o.name || o.ykiho || o.biz || o.rep); },
@@ -105,7 +103,7 @@ function normRow(r) {
   return { ...row, ...dueOf(row) };
 }
 const readStaff = () => { const v = Store.get(KEYS.staff, []); return Array.isArray(v) ? v : []; };
-const writeStaff = (rows) => { Store.set(KEYS.staff, rows); emitLegacy(["license.list"]); };
+const writeStaff = (rows) => { Store.set(KEYS.staff, rows); };
 const assertUnlocked = () => { if (!Session.isUnlocked()) throw Object.assign(new Error("locked"), { code: "locked" }); };
 
 const Staff = {
@@ -138,7 +136,7 @@ const Staff = {
     const rows = readStaff();
     const i = rows.findIndex(x => x.id === id);
     if (i < 0) throw new Error("no-staff");
-    const { userId, id: _id, created, ...safe } = patch || {}; // links and identity are not patchable here
+    const safe = { ...(patch || {}) }; delete safe.userId; delete safe.id; delete safe.created; // links and identity are not patchable here
     rows[i] = normRow({ ...rows[i], ...safe, id, userId: rows[i].userId, created: rows[i].created });
     if (!rows[i].name) throw new Error(t("license.alertName"));
     writeStaff(rows);
@@ -268,15 +266,15 @@ const Tariff = {
     const items = readTariff();
     if (emptyEntry(entry)) delete items[code];
     else items[code] = { min: entry.min ?? "", max: entry.max ?? "", med: entry.med ?? "", freq: entry.freq ?? "" };
-    Store.set(KEYS.tariff, items); emitLegacy(["bigeup.tariff"]);
+    Store.set(KEYS.tariff, items);
   },
   replaceAll(obj) {
     const items = {};
     for (const [code, e] of Object.entries(obj || {})) if (!emptyEntry(e)) items[code] = { min: e.min ?? "", max: e.max ?? "", med: e.med ?? "", freq: e.freq ?? "" };
-    Store.set(KEYS.tariff, items); emitLegacy(["bigeup.tariff"]);
+    Store.set(KEYS.tariff, items);
   },
   effectiveDate() { return str(Store.get(KEYS.tariffDate, "")); },
-  setEffectiveDate(iso) { Store.set(KEYS.tariffDate, str(iso)); emitLegacy(["bigeup.profile.bg-date"]); },
+  setEffectiveDate(iso) { Store.set(KEYS.tariffDate, str(iso)); },
   onChange: null
 };
 Tariff.onChange = hub("tariff", [KEYS.tariff, KEYS.tariffDate], () => ({ items: Tariff.all(), effectiveDate: Tariff.effectiveDate() })).onChange;
@@ -293,7 +291,7 @@ const Insurers = {
 
 /* ═══════════════════════════════ Migration (legacy keys → entities) ═══════════════════════════════ */
 const LEGACY_ORG = { "yearend.ye-biz": "biz", "yearend.ye-clinic": "name", "bigeup.profile.bg-ykiho": "ykiho", "bigeup.profile.bg-clinic": "name" };
-const rawGet = (k) => { const v = Store.getStored(k); return v == null || v === "" ? null : v; }; // bypasses the aliases below
+const rawGet = (k) => { const v = Store.get(k); return v == null || v === "" ? null : v; };
 const legacyPresent = (k) => Store.keys().includes(k);
 
 async function migrateLegacy() {
@@ -342,25 +340,5 @@ async function migrateLegacy() {
   return out;
 }
 Store.onUnlock(migrateLegacy);
-
-/* ═══════════════════════════════ ALIASES — compat shims for tab code still on the legacy keys ═══════════════════════════════
-   Delete each line once its last caller is gone (tab0/tab3/tab4 today; see the integrator notes). */
-const legacyRow = (s) => ({ id: s.id, role: s.job, job: s.job, name: s.name, licenseNo: s.licenseNo, acquired: s.acquired, reported: s.reported, cme: s.cme, expiry: s.expiry, basis: s.basis, userId: s.userId });
-const nn = (v) => (v == null || v === "" ? null : v);
-Store.alias("license.list", {
-  get: () => Session.isUnlocked() ? readStaff().map(legacyRow) : null,
-  set: (rows) => { // keep logins of rows that survive by id
-    const cur = readStaff();
-    writeStaff((Array.isArray(rows) ? rows : []).map(r => normRow({ ...r, job: r.job ?? r.role, userId: cur.find(x => x.id === r.id)?.userId || null })));
-  }
-});
-Store.alias("bigeup.tariff", { get: () => Tariff.all(), set: (v) => Tariff.replaceAll(v) });
-Store.alias("bigeup.profile.bg-date", { get: () => nn(Tariff.effectiveDate()), set: (v) => Tariff.setEffectiveDate(v) });
-Store.alias("bigeup.profile.bg-ykiho", { get: () => nn(Org.get().ykiho), set: (v) => Org.set({ ykiho: v }) });
-Store.alias("bigeup.profile.bg-clinic", { get: () => nn(Org.get().name), set: (v) => Org.set({ name: v }) });
-Store.alias("yearend.ye-biz", { get: () => nn(Org.get().biz), set: (v) => Org.set({ biz: v }) });
-Store.alias("yearend.ye-clinic", { get: () => nn(Org.get().name), set: (v) => Org.set({ name: v }) });
-// Legacy listeners (EventBus.on("store:license.list") in tab0, bindPersist inputs in tab3/tab4) still get poked.
-function emitLegacy(keys) { for (const k of keys) EventBus.emitLocal(`store:${k}`, Store.get(k)); }
 
 export { Org, Staff, Patients, Batches, Tariff, Insurers, migrateLegacy, KEYS as ENTITY_KEYS, JOBS, DUTY, JOB_FOR_SYSROLE };

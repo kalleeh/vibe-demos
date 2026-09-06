@@ -3,8 +3,8 @@ import { $, $$, esc, todayISO, daysUntil, relTime, Haptic, Toast, Share } from "
 import { t, pick, onLangChange } from "../core/i18n.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { pocMark } from "../core/files.js";
-import { normTabEvent } from "./reporting-shared.js";
-import { Staff, Tariff, activateTab } from "./_entities-shim.js"; // TODO(integrator): → "../core/entities.js" + "../core/nav.js"
+import { activateTab } from "../core/nav.js";
+import { Staff, Tariff } from "../core/entities.js";
 
 /* ─────────────────────────────────────────────────────────
    자체점검 예시 — 의료기관평가인증원 한방병원 인증기준의 영역을 따라
@@ -99,7 +99,7 @@ const DERIVED = {
     return { level: "ok", reason: ["accred.auto.mr4.ok", { t: relTime(s.at) }] };
   },
   pr2() {
-    const n = Tariff.all().length, d = Tariff.effectiveDate();
+    const n = Object.keys(Tariff.all()).length, d = Tariff.effectiveDate();
     if (!n) return { level: "bad", reason: ["accred.auto.pr2.none"] };
     if (!d) return { level: "warn", reason: ["accred.auto.pr2.noDate", { n }] };
     return { level: "ok", reason: ["accred.auto.pr2.ok", { n, d }] };
@@ -124,7 +124,7 @@ function accredProgress(checked = Store.get("accred.checked", {}) || {}) {
 let api = null;
 export function seed() { api?.seed(); }
 
-export function initTab9() {
+export function init() {
   const cats = ACCRED_ITEMS;
   const checked = Store.get("accred.checked", {});
   const allItems = ALL_ITEMS;
@@ -243,14 +243,14 @@ export function initTab9() {
     render();
   });
   // Derived inputs changed → re-judge.
-  ["store:license.list", "store:retention.lastAudit", "store:kcd.lastSummary", "store:bigeup.tariff", "store:bigeup.tariffMeta", "tariff:changed", "staff:changed"]
-    .forEach(ev => EventBus.on(ev, () => render()));
+  ["store:retention.lastAudit", "store:kcd.lastSummary"].forEach(ev => EventBus.on(ev, () => render()));
+  Staff.onChange(() => render());
+  Tariff.onChange(() => render());
 
   // Deep link from 00 / other tabs → { itemId }: scroll to the item and highlight it briefly.
   EventBus.on("tab:activated", (p) => {
-    const { id, ctx } = normTabEvent(p);
-    if (id !== "tab-accred" || !ctx?.itemId) return;
-    const el = $(`.accred-item[data-id="${ctx.itemId}"]`);
+    if (p?.id !== "tab-accred" || !p.ctx?.itemId) return;
+    const el = $(`.accred-item[data-id="${p.ctx.itemId}"]`);
     if (!el) return;
     setTimeout(() => {
       el.scrollIntoView({ block: "center", behavior: "smooth" });

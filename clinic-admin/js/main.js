@@ -3,7 +3,7 @@
    palette, LOCK SCREEN), then boot() waits for the first PIN unlock + data load, initialises
    tabs 1‥9 then 0, fires app:ready, and finally the 접수 보드 boots (it needs the unlocked
    workspace key to encrypt cards).
-   Tab modules are passed as namespaces: shell.boot() calls their initTabN(ctx), shell.seedAll() their seed(ctx). */
+   Tab modules are passed as namespaces: shell.boot() calls their init(ctx), shell.seedAll() their seed(ctx). */
 import { boot } from "./shell.js";
 import * as Tab0 from "./tabs/tab0-today.js";
 import * as Tab1 from "./tabs/tab1-kcd.js";

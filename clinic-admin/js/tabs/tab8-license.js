@@ -20,15 +20,13 @@ import { Session } from "../security/session.js";
    common.roleShort.* / license.law.* / license.org.* so the register, .ics and share text follow the language.
    ───────────────────────────────────────────────────────── */
 
-// Compat shim — tab0/shell used to import hasDuty from here. Delete once every caller uses Staff.hasDuty.
-export const hasDuty = Staff.hasDuty;
 // The roster is a shared entity: shell.seedAll() seeds it (seedEntities) before calling tab seeds — nothing to add here.
 export function seed() {}
 
 const lawOf = (job) => t("license.law." + job);
 const orgOf = (job) => t("license.org." + job);
 
-export function initTab8() {
+export function init() {
   // Audit entries never carry the staff name in `text`; the pseudonymised subject
   // ("한의사 윤○○") is derived by ActivityLog from meta.subject = { role, name }.
   const subj = (row) => ({ subject: { role: row.job, name: row.name } });

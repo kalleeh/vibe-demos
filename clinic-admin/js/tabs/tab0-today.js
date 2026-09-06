@@ -1,18 +1,20 @@
 /* clinic-admin — Tab 00 · 오늘 dashboard */
-import { $, $$, esc, won, todayISO, relTime, daysUntil, debounce, Share, redactSubject, redactStaff, tagLabel } from "../core/ui.js";
+import { $, $$, esc, won, todayISO, relTime, daysUntil, debounce, Share, redactSubject, tagLabel } from "../core/ui.js";
 import { t, pick, getLang, onLangChange } from "../core/i18n.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { downloadText, pocMark } from "../core/files.js";
-import { statutoryDeadlines } from "../core/calendar.js";
+import { allDeadlines } from "../core/calendar.js";
+import { activateTab } from "../core/nav.js";
+import { Org, Staff, Batches, Tariff, Insurers } from "../core/entities.js";
 import { accredProgress } from "./tab9-accred.js";
-import { normTabEvent, orgView } from "./reporting-shared.js";
-import { Org, Staff, Batches, activateTab } from "./_entities-shim.js"; // TODO(integrator): → "../core/entities.js" + "../core/nav.js"
 
 /* ─────────────────────────────────────────────────────────
    Tab 0 — 오늘 / Today dashboard
    Backend-free orchestrator: it reads the Store / entities every other tab writes and computes
    deadlines + KPIs + resume cards live, re-rendering on any store change.
-   · Deadline rows carry a ctx ({ refMonth } · { taxYear } · { staffId }) and open the target tab with it.
+   · Deadlines come from core/calendar.js allDeadlines() (statutory + per-person from the Staff roster — the same
+     list the topbar chip uses); rows carry a ctx ({ refMonth } · { taxYear } · { staffId }) and open the target
+     tab with it. Per-person items are windowed to −30 … +365 days here.
    · Nudges: 기관 정보 미완료 (Org.isComplete() false) and 직원 명부 비어 있음 (Staff.list() empty).
    · { openOrg: true } on tab:activated → EventBus "shell:openInfo" { section: "org" } — the shell owns the
      info modal (F1's org editor lives there); this tab only asks for it.
@@ -21,63 +23,18 @@ import { Org, Staff, Batches, activateTab } from "./_entities-shim.js"; // TODO(
    ───────────────────────────────────────────────────────── */
 export function seed() { /* 00 derives everything from the other tabs' state — nothing to seed */ }
 
-export function initTab0(ctx) {
+export function init(ctx) {
   const { DATA } = ctx;
   const NOW = new Date();
   const Y = NOW.getFullYear();
   const REASONS = DATA?.jabo?.adjustment_reasons || [];
-  const INSURERS = DATA?.jabo?.insurers || [];
   const reasonLabel = (k) => { const r = REASONS.find(x => x.key === k); return r ? pick(r, "label") : String(k ?? ""); };
-  const insurerLabel = (v) => { const i = INSURERS.find(x => x.value === v); return i ? pick(i, "label") : String(v ?? ""); };
+  const insurerLabel = (v) => { const i = Insurers.list().find(x => x.value === v); return i ? pick(i, "label") : String(v ?? ""); };
   const openOrg = () => EventBus.emitLocal("shell:openInfo", { section: "org" });
-  const addYears = (iso, n) => { if (!iso) return ""; const d = new Date(iso + "T00:00:00"); if (isNaN(d)) return ""; d.setFullYear(d.getFullYear() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
 
-  // ── deadlines ──
-  // ctx fallback for calendar items that do not carry one yet (the calendar is F1's; the keys are stable).
-  const ctxFor = (d) => {
-    if (d.ctx) return d.ctx;
-    if (d.key === "bigeup-h1") return { refMonth: 3 };
-    if (d.key === "bigeup-h2") return { refMonth: 9 };
-    if (d.key === "yearend") return { taxYear: +String(d.date).slice(0, 4) - 1 };
-    return null;
-  };
-  // All deadlines in the window (recurring: next 12 months; per-person: −30 … +365 days).
-  function loadDeadlines() {
-    const clinicLevel = orgView(Org.get()).clinicLevel;
-    const list = statutoryDeadlines(NOW)
-      .filter(d => !(clinicLevel && d.key === "bigeup-h2")) // 의원급: March data only
-      .map(d => ({ ...d, ctx: ctxFor(d) }));
-    for (const s of Staff.list()) {
-      const who = redactStaff({ role: s.job, name: s.name });
-      // 원무·기타 carry no 신고 duty — never a D-day, even for legacy records with an expiry.
-      if (Staff.hasDuty(s.job)) {
-        const expiry = s.expiry || addYears(s.reported || s.acquired, 3);
-        const basis = s.basis || (s.reported ? "reported" : "acquired");
-        const d = daysUntil(expiry);
-        if (expiry && d != null && d <= 365 && d >= -30) {
-          list.push({
-            key: `lic-${s.id}-exp`, title: t(basis === "acquired" ? "today.dl.licReportUnverified" : "today.dl.licReport", { who }),
-            date: expiry, link: "tab-license", ctx: { staffId: s.id },
-            source: t(basis === "acquired" ? "today.dl.licSourceAcquired" : "today.dl.licSourceReported")
-          });
-        }
-      }
-      if (s.cme) {
-        const d = daysUntil(s.cme);
-        if (d != null && d <= 365 && d >= -30) {
-          list.push({ key: `lic-${s.id}-cme`, title: t("today.dl.cme", { who }), date: s.cme, link: "tab-license", ctx: { staffId: s.id }, source: t("today.dl.cmeSource") });
-        }
-      }
-    }
-    // Sort: smallest |days| first, but past-due last
-    list.forEach(d => d.daysLeft = daysUntil(d.date));
-    list.sort((a, b) => {
-      if (a.daysLeft < 0 && b.daysLeft >= 0) return 1;
-      if (b.daysLeft < 0 && a.daysLeft >= 0) return -1;
-      return Math.abs(a.daysLeft) - Math.abs(b.daysLeft);
-    });
-    return list;
-  }
+  // ── deadlines ── statutory (next 12 months, 의원급 drops the September window — core/calendar.js decides)
+  // + per-person licence items windowed to −30 … +365 days; already sorted soonest first, past-due last.
+  const loadDeadlines = () => allDeadlines(NOW).filter(d => !d.key.startsWith("lic-") || (d.daysLeft != null && d.daysLeft <= 365 && d.daysLeft >= -30));
 
   // Group: 초과 / 이번 달 / 다음 달 / 이후 — 이후 is collapsed behind "더 보기".
   const groupOf = (d) => {
@@ -165,7 +122,7 @@ export function initTab0(ctx) {
       const cur = byReason.get(k) || { cut: 0, lines: 0 }; cur.cut += +g.cut || 0; cur.lines += +g.lines || 0; byReason.set(k, cur);
     }
     if (!byReason.size) {
-      for (const b of reviews.filter(b => monthKey(b.at) === month || month === thisM)) for (const r of b.rows || []) {
+      for (const b of reviews.filter(b => monthKey(b.createdAt) === month || month === thisM)) for (const r of b.rows || []) {
         const k = r.reasonKey || r.reason || r.reasonText || ""; if (!k) continue;
         const cur = byReason.get(k) || { cut: 0, lines: 0 }; cur.lines++; cur.cut += Math.max(0, (+r.claimed || 0) - (+r.approved || 0)); byReason.set(k, cur);
       }
@@ -222,11 +179,11 @@ export function initTab0(ctx) {
     const cards = [];
     const jabo = Store.get("jabo.draft.items");
     if (Array.isArray(jabo) && jabo.length) {
-      const name = Store.get("jabo.draft.jabo-name"), pid = Store.get("jabo.draft.jabo-pid");
-      const who = (name || pid) ? redactSubject({ name, pid }) : t("today.resume.noPatient");
+      const pid = Store.get("jabo.draft.jabo-pid");
+      const who = pid ? redactSubject({ pid }) : t("today.resume.noPatient");
       cards.push({ tab: "tab-jabo", label: t("nav.jabo"), who: who + ` · ${t("today.resume.nProcs", { n: jabo.length })}`, when: "" });
     }
-    const tariffCount = Object.keys(Store.get("bigeup.tariff", {}) || {}).length;
+    const tariffCount = Object.keys(Tariff.all()).length;
     if (tariffCount > 0 && tariffCount < (DATA?.bigeup?.items?.length || Infinity)) {
       cards.push({ tab: "tab-bigeup", label: t("nav.bigeup"), who: t("today.resume.tariff", { n: tariffCount }), when: "" });
     }
@@ -240,7 +197,7 @@ export function initTab0(ctx) {
     }
     const ye = Batches.latest("yearend");
     if (ye && (ye.meta?.errors || 0) > 0) {
-      cards.push({ tab: "tab-yearend", label: t("nav.yearend"), who: t("today.resume.yeLeft", { e: ye.meta.errors, y: ye.meta.taxYear || "" }), when: relTime(ye.at) });
+      cards.push({ tab: "tab-yearend", label: t("nav.yearend"), who: t("today.resume.yeLeft", { e: ye.meta.errors, y: ye.meta.taxYear || "" }), when: relTime(ye.createdAt) });
     }
     if (!cards.length) {
       $("#resume-list").innerHTML = `<div class="resume"><span class="empty">${esc(t("today.resumeEmpty"))}</span></div>`;
@@ -366,17 +323,13 @@ export function initTab0(ctx) {
 
   // Live re-render when any tab updates state (debounced — a prefill writes 28 tariff rows in one burst)
   const renderSoon = debounce(renderAll, 60);
-  ["activity", "jabo.history", "retention.lastAudit", "kcd.lastSummary",
-   "license.list", "accred.checked", "bigeup.tariff", "bigeup.tariffMeta", "jabo.draft.items", "org.profile",
-   "batches.review", "batches.yearend", "batches.claims"
-  ].forEach(k => EventBus.on(`store:${k}`, renderSoon));
-  ["org:changed", "tariff:changed", "batches:changed", "staff:changed"].forEach(ev => EventBus.on(ev, renderSoon));
-  Org.onChange(renderSoon);
+  ["activity", "jabo.history", "retention.lastAudit", "kcd.lastSummary", "accred.checked", "jabo.draft.items"]
+    .forEach(k => EventBus.on(`store:${k}`, renderSoon));
+  for (const E of [Org, Staff, Batches, Tariff]) E.onChange(renderSoon);
   EventBus.on("tab:activated", (p) => {
-    const { id, ctx: c } = normTabEvent(p);
-    if (id !== "tab-today") return;
+    if (p?.id !== "tab-today") return;
     renderAll();
-    if (c?.openOrg) openOrg();
+    if (p.ctx?.openOrg) openOrg();
   });
   onLangChange(renderAll);
 

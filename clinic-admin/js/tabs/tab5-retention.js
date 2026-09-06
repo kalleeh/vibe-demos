@@ -1,10 +1,10 @@
 /* clinic-admin — Tab 05 · 의무기록 보존기간 점검 */
 import { $, esc, todayISO, relTime, setStatus, bindDrop } from "../core/ui.js";
 import { t, pick, onLangChange } from "../core/i18n.js";
-import { Store, EventBus, ActivityLog } from "../core/store.js";
+import { Store, ActivityLog } from "../core/store.js";
 import { readSpreadsheet, downloadXLSX, headerRow } from "../core/files.js";
+import { Org, Batches, Patients } from "../core/entities.js";
 import { orgHeaderPairs } from "./reporting-shared.js";
-import { Org, Batches, Patients } from "./_entities-shim.js"; // TODO(integrator): → "../core/entities.js"
 
 /* ─────────────────────────────────────────────────────────
    Tab 5 — 의무기록 보존기간 점검 (의료법 시행규칙 §15)
@@ -17,7 +17,7 @@ import { Org, Batches, Patients } from "./_entities-shim.js"; // TODO(integrator
 let api = null;
 export function seed() { api?.seed(); }
 
-export function initTab5(ctx) {
+export function init(ctx) {
   const { DATA } = ctx;
   const catName = (c) => pick(c, "name") || c.key;
   // render legal table
@@ -154,8 +154,8 @@ export function initTab5(ctx) {
   // Batch: the row-level result without the free-text ledger cells (type is the normalised category key).
   const storeBatch = (result, meta) => {
     const rows = result.rows.map(r => ({ id: r.id, pid: r.pid, type: r.type, basisDate: r.basisDate, basis: r.basis, years: r.years, expiry: r.expiry, remaining: r.remaining, kind: r.kind, notes: r.notes, fallback: r.fallback }));
-    for (const r of result.rows) if (r.pid) Patients.touch(r.pid);
-    return Batches.add("retention", { rows, meta: { n: rows.length, ...result.stats, ...meta } });
+    for (const r of result.rows) if (r.pid) Patients.touch(r.pid, /^\d{4}-\d{2}-\d{2}$/.test(r.basisDate) ? r.basisDate : undefined);
+    return Batches.create({ kind: "retention", source: meta.fileName || "sample", rows, meta: { n: rows.length, ...result.stats, ...meta } });
   };
   const resultFromBatch = (b) => ({
     rows: (b.rows || []).map(r => ({ ...r, cat: catByKey(r.type), notes: r.notes || [] })),
@@ -166,17 +166,16 @@ export function initTab5(ctx) {
     const b = Batches.latest("retention");
     if (!b) { el.innerHTML = ""; el.style.display = "none"; return; }
     el.style.display = "flex";
-    el.innerHTML = `<span class="dot"></span><span>${esc(t("retention.recent", { n: b.meta?.n ?? (b.rows || []).length, o: b.meta?.over ?? 0, when: relTime(b.at) }))}</span>
+    el.innerHTML = `<span class="dot"></span><span>${esc(t("retention.recent", { n: b.meta?.n ?? (b.rows || []).length, o: b.meta?.over ?? 0, when: relTime(b.createdAt) }))}</span>
       <button type="button" class="small-link" id="ret-recent-open">${esc(t("retention.recentOpen"))}</button>`;
     $("#ret-recent-open")?.addEventListener("click", () => {
       lastResult = resultFromBatch(b);
       render(lastResult);
-      status(null, () => t("retention.statusFromBatch", { n: lastResult.rows.length, when: relTime(b.at) }));
+      status(null, () => t("retention.statusFromBatch", { n: lastResult.rows.length, when: relTime(b.createdAt) }));
     });
   };
   renderRecent();
-  EventBus.on("batches:changed", (e) => { if (!e || e.kind === "retention") renderRecent(); });
-  EventBus.on("store:batches.retention", renderRecent);
+  Batches.onChange(renderRecent);
 
   const exportRows = (result) => result.rows.map(r => headerRow([
     ...orgHeaderPairs(Org.get()),
