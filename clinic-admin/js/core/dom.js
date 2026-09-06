@@ -66,4 +66,19 @@ function debounce(fn, ms = 250) {
   let t;
   return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
 }
-export { $, $$, fmtKRW, todayISO, esc, setStatus, CHO, extractCho, fuzzyMatch, relTime, daysUntil, debounce };
+
+/* Pseudonymised subject reference for every user-visible surface that is NOT the record
+   itself — toasts, the ⌘K palette, the dashboard feed, the activity log.
+     redactSubject({ name, pid }) → string
+       pid  "2026-0142" → "****0142"   (last 4 characters of the 환자번호, digits/letters)
+       name only        → "[환자]"      (a name is never shown, not even an initial)
+       nothing          → "—"
+   Names are not partially masked ("홍*동") on purpose: with a 3-character Korean name that
+   still identifies the person inside a clinic. */
+function redactSubject({ name, pid } = {}) {
+  const p = String(pid ?? "").replace(/\s+/g, "");
+  if (p) return "****" + p.slice(-4);
+  if (name && String(name).trim()) return "[환자]";
+  return "—";
+}
+export { $, $$, fmtKRW, todayISO, esc, setStatus, CHO, extractCho, fuzzyMatch, relTime, daysUntil, debounce, redactSubject };

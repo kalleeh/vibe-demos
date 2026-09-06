@@ -1,7 +1,22 @@
 /* clinic-admin — Store + EventBus + ActivityLog + SyncStatus + bindPersist
-   Extracted verbatim from the former single-file index.html; behaviour unchanged. */
-import { $, relTime, debounce } from "./dom.js";
+
+   Security pass (2026-09): Store gained an ENCRYPTED TIER.
+   ─ Any key matching SENSITIVE_KEYS is persisted as an AES-GCM envelope { v:1, iv, ct } under
+     the workspace master key (js/security/session.js). Plaintext for those keys lives only in an
+     in-memory cache while the session is unlocked.
+   ─ Store.get(sensitiveKey, fallback) returns `fallback` while locked (callers pass [] / {} / null,
+     so tabs render their empty state; use Session.isUnlocked() to tell "locked" from "empty").
+   ─ Store.set(sensitiveKey) is a no-op while locked (warns).
+   ─ Cross-tab sync: BroadcastChannel carries only a "changed" NOTICE for sensitive keys — never
+     plaintext — and the receiving tab re-reads + decrypts with its own unlocked key.
+   ─ Plaintext values left by an earlier build are migrated (read → encrypt → overwrite) on the
+     first unlock (Store.unlockedInit), together with IndexedDB attachments.
+   Events: `session:unlocked` (after the cache is populated) and `session:locked` (local only). */
+import { $, relTime, debounce, redactSubject } from "./dom.js";
 import { Attachments } from "./attachments.js";
+import { Session } from "../security/session.js";
+import { encryptJSON, decryptJSON, isEnvelope } from "../security/crypto.js";
+import { scrubIdentifiers } from "../security/redact.js";
 
 /* ─────────────────────────────────────────────────────────
    Foundation — Store + EventBus + ActivityLog + SyncStatus
@@ -10,23 +25,77 @@ import { Attachments } from "./attachments.js";
    'storage' window event keep multiple browser tabs in sync.
    ───────────────────────────────────────────────────────── */
 const NS = "vibe.clinic-admin";
+
+/* Encryption policy. Anything that can hold a person's name / 번호 / date is here.
+   NOT sensitive (plaintext): accred.checked, bigeup.tariff (price list), kcd.lastSummary and
+   retention.lastAudit (counts only), ui.* (screen settings), __* (internal: key ring, mtimes). */
+const SENSITIVE_KEYS = {
+  exact: ["jabo.history", "license.list", "activity", "intake-cards"],
+  prefixes: ["jabo.draft.", "ai.", "yearend.", "bigeup.profile."]
+};
+const isSensitive = (key) => SENSITIVE_KEYS.exact.includes(key) || SENSITIVE_KEYS.prefixes.some(p => key.startsWith(p));
+const isInternal = (key) => key.startsWith("__");
+
+const cache = new Map();        // sensitive key → plaintext (unlocked only)
+const writeChains = new Map();  // sensitive key → tail promise (serialises async encrypt+write)
+let unlockP = Promise.resolve();
+
+function enqueueWrite(key, job) {
+  const tail = (writeChains.get(key) || Promise.resolve()).then(job).catch(e => console.warn("Store encrypt/write failed", key, e));
+  writeChains.set(key, tail);
+  return tail;
+}
+function readRaw(key) {
+  try { const raw = localStorage.getItem(`${NS}.${key}`); return raw == null ? undefined : JSON.parse(raw); } catch { return undefined; }
+}
+function touchMtime(key) {
+  if (isInternal(key)) return;
+  try {
+    const m = readRaw("__mtime") || {};
+    m[key] = Date.now();
+    localStorage.setItem(`${NS}.__mtime`, JSON.stringify(m));
+  } catch {}
+}
+
 const Store = {
+  isSensitive,
   get(key, fallback = null) {
-    try {
-      const raw = localStorage.getItem(`${NS}.${key}`);
-      return raw == null ? fallback : JSON.parse(raw);
-    } catch { return fallback; }
+    if (isSensitive(key)) {
+      if (!Session.isUnlocked()) return fallback;
+      return cache.has(key) ? cache.get(key) : fallback;
+    }
+    const v = readRaw(key);
+    return v === undefined ? fallback : v;
   },
   set(key, value) {
+    if (isSensitive(key)) {
+      if (!Session.isUnlocked()) { console.warn("Store.set ignored while locked:", key); return; }
+      cache.set(key, value);
+      touchMtime(key);
+      SyncStatus.touch();
+      EventBus.emitLocal(`store:${key}`, value);
+      const k = Session.key();
+      enqueueWrite(key, async () => {
+        const env = await encryptJSON(k, value);
+        localStorage.setItem(`${NS}.${key}`, JSON.stringify(env));
+        EventBus.notify(`store:${key}`); // only after the envelope is on disk — peers re-read it
+      });
+      return;
+    }
     try {
       localStorage.setItem(`${NS}.${key}`, JSON.stringify(value));
+      touchMtime(key);
       SyncStatus.touch();
       EventBus.emit(`store:${key}`, value);
     } catch (e) { console.warn("Store.set failed", e); }
   },
   remove(key) {
+    cache.delete(key);
+    enqueueWrite(key, () => { try { localStorage.removeItem(`${NS}.${key}`); } catch {} });
     try { localStorage.removeItem(`${NS}.${key}`); } catch {}
-    EventBus.emit(`store:${key}`, null);
+    const m = readRaw("__mtime"); if (m && key in m) { delete m[key]; try { localStorage.setItem(`${NS}.__mtime`, JSON.stringify(m)); } catch {} }
+    if (isSensitive(key)) { EventBus.emitLocal(`store:${key}`, null); EventBus.notify(`store:${key}`); }
+    else EventBus.emit(`store:${key}`, null);
   },
   keys() {
     const out = [];
@@ -37,8 +106,64 @@ const Store = {
     }
     return out;
   },
-  async wipeAll() {
-    for (const k of this.keys()) localStorage.removeItem(`${NS}.${k}`);
+  mtime(key) { return (readRaw("__mtime") || {})[key] || null; },
+  // Raw envelope (or plaintext for non-sensitive keys) — used by the encrypted backup.
+  raw(key) { return readRaw(key); },
+  // Await every pending encrypted write (before backup / lock / wipe).
+  async flush() { await Promise.all([...writeChains.values()]); },
+  whenUnlocked() { return unlockP; },
+
+  /* Called once per unlock: decrypt every sensitive key into the cache, migrate legacy
+     plaintext, then tell the tabs to re-render (`store:<key>` for each restored key). */
+  async unlockedInit() {
+    const key = Session.key();
+    if (!key) return;
+    cache.clear();
+    const restored = [];
+    let migrated = 0;
+    for (const k of this.keys()) {
+      if (!isSensitive(k)) continue;
+      const raw = readRaw(k);
+      if (raw === undefined) continue;
+      if (isEnvelope(raw)) {
+        try { cache.set(k, await decryptJSON(key, raw)); restored.push(k); }
+        catch (e) { console.warn("Store: cannot decrypt", k, "— wrong workspace key? leaving as-is"); }
+      } else {
+        cache.set(k, raw); restored.push(k); migrated++;
+        await enqueueWrite(k, async () => {
+          const env = await encryptJSON(key, raw);
+          localStorage.setItem(`${NS}.${k}`, JSON.stringify(env));
+        });
+      }
+    }
+    try { migrated += await Attachments.migratePlaintext(); } catch (e) { console.warn("attachment migration", e); }
+    for (const k of restored) EventBus.emitLocal(`store:${k}`, cache.get(k));
+    return { restored: restored.length, migrated };
+  },
+  lockedTeardown() { cache.clear(); },
+  // Cross-tab: a peer changed a sensitive key → re-read + decrypt with OUR key.
+  async refreshKey(key) {
+    if (!isSensitive(key) || !Session.isUnlocked()) return;
+    const raw = readRaw(key);
+    if (raw === undefined) { cache.delete(key); EventBus.emitLocal(`store:${key}`, null); return; }
+    if (!isEnvelope(raw)) return;
+    try {
+      const prev = cache.get(key);
+      const v = await decryptJSON(Session.key(), raw);
+      cache.set(key, v);
+      EventBus.emitLocal(`store:${key}`, v);
+      if (key === "activity" && Array.isArray(v) && v[0] && (!prev?.[0] || v[0].at > prev[0].at)) EventBus.emitLocal("activity:push", v[0]);
+    } catch {}
+  },
+  /* keepWorkspace: leave the key ring (__ws) in place — "선택 항목 파기" uses remove(); this is the
+     full wipe. Without keepWorkspace the users + wrapped keys go too (전체 파기). */
+  async wipeAll({ keepWorkspace = false } = {}) {
+    await this.flush();
+    for (const k of this.keys()) {
+      if (keepWorkspace && k === "__ws") continue;
+      localStorage.removeItem(`${NS}.${k}`);
+    }
+    cache.clear();
     // Attachments (license photos) live in IndexedDB, not localStorage.
     try { await Attachments.close(); } catch {}
     await new Promise((res) => {
@@ -60,15 +185,22 @@ const EventBus = (() => {
     const wild = handlers.get("*") || [];
     for (const fn of wild) { try { fn(ev, data); } catch (e) { console.error(e); } }
   };
-  if (bc) bc.onmessage = (e) => {
-    emitLocal(e.data?.ev, e.data?.data);
+  const onPeer = (msg) => {
+    if (!msg || !msg.ev) return;
+    if (msg.notice) {
+      // "changed" notice for an encrypted key — no plaintext crossed the channel.
+      if (msg.ev.startsWith("store:")) Store.refreshKey(msg.ev.slice(6));
+      else emitLocal(msg.ev, undefined);
+    } else emitLocal(msg.ev, msg.data);
     SyncStatus.peer();
   };
+  if (bc) bc.onmessage = (e) => onPeer(e.data);
   // 'storage' is only the fallback when BroadcastChannel is unavailable —
   // running both would deliver every cross-tab store event twice.
   else window.addEventListener("storage", (e) => {
     if (!e.key || !e.key.startsWith(`${NS}.`)) return;
     const key = e.key.slice(NS.length + 1);
+    if (isSensitive(key)) { Store.refreshKey(key); SyncStatus.peer(); return; }
     try { emitLocal(`store:${key}`, e.newValue ? JSON.parse(e.newValue) : null); } catch {}
     SyncStatus.peer();
   });
@@ -77,24 +209,72 @@ const EventBus = (() => {
       if (!handlers.has(ev)) handlers.set(ev, []);
       handlers.get(ev).push(fn);
     },
+    // local + cross-tab WITH data — only for non-sensitive payloads
     emit(ev, data) {
       emitLocal(ev, data);
       if (bc) try { bc.postMessage({ ev, data }); } catch {}
-    }
+    },
+    emitLocal,
+    // cross-tab "something changed" — never carries a value
+    notify(ev) { if (bc) try { bc.postMessage({ ev, notice: true }); } catch {} }
   };
 })();
 
+/* Session ↔ Store bridge. Unlock → decrypt cache → `session:unlocked`; lock → drop cache → `session:locked`. */
+Session.onChange((what, reason) => {
+  if (what === "unlocked") {
+    unlockP = Store.unlockedInit().then((r) => { EventBus.emitLocal("session:unlocked", { user: Session.user(), ...r }); return r; });
+  } else if (what === "locked") {
+    Store.lockedTeardown();
+    EventBus.emitLocal("session:locked", reason || "manual");
+  } else if (what === "users") {
+    EventBus.emitLocal("session:users", Session.users());
+  }
+});
+
+/* ─────────────────────────────────────────────────────────
+   ActivityLog — append-only, pseudonymised, encrypted (key `activity`).
+   Entry: { at, actor, role, tag, action, subject, text, meta }
+     actor/role  — the unlocked user (never a patient)
+     action      — what happened; RRN/phone digits scrubbed defensively
+     subject     — pseudonymised reference from redactSubject(), e.g. "****0142"; NEVER a name
+     text        — alias of `action` (older render code reads entry.text)
+   push(tag, text, meta) is the legacy signature: pass meta.subject = { name, pid } (or meta.pid)
+   and the subject is derived; do NOT embed a patient name in `text`.
+   No per-entry delete. clear()/export() are 원장-only (compliance panel). Retention 1 year
+   (lifecycle.js purges on unlock). */
 const ActivityLog = {
-  MAX: 50,
-  push(tag, text, meta = {}) {
-    const items = Store.get("activity", []);
-    const entry = { at: Date.now(), tag, text, meta };
+  MAX: 500,
+  add({ tag, action, subject = null, meta = {} }) {
+    if (!Session.isUnlocked()) return null; // an entry without an actor is not an audit entry
+    const u = Session.user();
+    const keep = {};
+    for (const k of ["silent", "sample", "len", "id"]) if (k in meta) keep[k] = meta[k];
+    const act = scrubIdentifiers(String(action ?? ""));
+    const entry = { at: Date.now(), actor: u.name, role: u.role, tag, action: act, subject: subject || null, text: act, meta: keep };
+    const items = Store.get("activity", []) || [];
     items.unshift(entry);
     Store.set("activity", items.slice(0, this.MAX));
+    EventBus.emitLocal("activity:push", entry);
     return entry;
   },
-  recent(n = 10) { return Store.get("activity", []).slice(0, n); },
-  clear() { Store.remove("activity"); }
+  push(tag, text, meta = {}) {
+    const subject = meta?.subject ? redactSubject(meta.subject) : meta?.pid ? redactSubject({ pid: meta.pid }) : null;
+    return this.add({ tag, action: text, subject, meta: meta || {} });
+  },
+  recent(n = 10) { return (Store.get("activity", []) || []).slice(0, n); },
+  all() { return Store.get("activity", []) || []; },
+  // CSV text (BOM + header). The caller adds the PoC watermark row via files.js/pocWatermark.
+  exportRows() {
+    return this.all().map(e => ({
+      "일시": new Date(e.at).toISOString(), "사용자": e.actor || "", "역할": e.role || "",
+      "영역": e.tag || "", "작업": e.action || e.text || "", "대상(가명)": e.subject || ""
+    }));
+  },
+  clear() {
+    if (!Session.isOwner()) throw new Error("원장 권한이 필요합니다");
+    Store.remove("activity");
+  }
 };
 
 const SyncStatus = (() => {
@@ -113,7 +293,7 @@ const SyncStatus = (() => {
       led.classList.remove("idle");
       led.classList.add("live");
     }
-    if (msg) msg.textContent = "로컬 저장 — 자동으로 이 브라우저에 보관됩니다.";
+    if (msg) msg.textContent = "로컬 저장 · 암호화 — 자동으로 이 브라우저에 보관됩니다.";
   };
   return {
     touch() {
@@ -131,7 +311,7 @@ const SyncStatus = (() => {
 })();
 
 /* Auto-bind a form input to a Store key so values persist across reloads
-   and sync across tabs. Restores on page load. */
+   and sync across tabs. Restores on page load (and again on `store:<key>` after an unlock). */
 function bindPersist(selectorOrEl, key, opts = {}) {
   const el = typeof selectorOrEl === "string" ? $(selectorOrEl) : selectorOrEl;
   if (!el) return;
@@ -148,4 +328,4 @@ function bindPersist(selectorOrEl, key, opts = {}) {
     if (v != null && el.value !== v && document.activeElement !== el) el.value = v;
   });
 }
-export { NS, Store, EventBus, ActivityLog, SyncStatus, bindPersist };
+export { NS, SENSITIVE_KEYS, Store, EventBus, ActivityLog, SyncStatus, bindPersist };
