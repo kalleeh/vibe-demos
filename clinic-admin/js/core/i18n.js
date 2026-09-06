@@ -13,8 +13,20 @@
      applyStatic(root)       [data-i18n] → textContent · [data-i18n-html] → innerHTML · [data-i18n-attr="a:k;b:k"]
    `?lang=en|ko` in the URL overrides once and is persisted. The Korean text in index.html stays the source of
    truth; tools/i18n-extract.mjs regenerates the KO entries from it and fails on keys missing from either dict. */
-import ko from "../i18n/ko.js";
-import en from "../i18n/en.js";
+import koBase from "../i18n/ko.js";
+import enBase from "../i18n/en.js";
+import koEntities from "../i18n/ko.entities.js";
+import enEntities from "../i18n/en.entities.js";
+import koClaims from "../i18n/ko.claims.js";
+import enClaims from "../i18n/en.claims.js";
+import koReporting from "../i18n/ko.reporting.js";
+import enReporting from "../i18n/en.reporting.js";
+
+/* Dictionaries are split by owner: ko.js/en.js (shell · security · core), *.entities.js (shared entities · org ·
+   roster · board), *.claims.js (tabs 01 02 06 07), *.reporting.js (tabs 00 03 04 05 09). Merged flat here;
+   tools/i18n-extract.mjs checks every referenced key against the merged set and flags duplicate keys. */
+const ko = { ...koBase, ...koEntities, ...koClaims, ...koReporting };
+const en = { ...enBase, ...enEntities, ...enClaims, ...enReporting };
 
 const KEY = "vibe.clinic-admin.ui.lang";
 const DICT = { ko, en };

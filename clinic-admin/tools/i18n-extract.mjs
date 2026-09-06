@@ -16,8 +16,21 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const EMIT = process.argv.includes("--emit-ko");
 const JSON_OUT = process.argv.includes("--json");
 
-const ko = (await import(pathToFileURL(join(root, "js/i18n/ko.js")).href)).default;
-const en = (await import(pathToFileURL(join(root, "js/i18n/en.js")).href)).default;
+/* Dictionaries are split by owner (ko.js · ko.entities.js · ko.claims.js · ko.reporting.js and the en.* twins) and
+   merged flat by core/i18n.js. Load every js/i18n/<lang>*.js the same way; a key defined in two files is a drift
+   bug (the later import silently wins at runtime) and is reported. */
+const dictFiles = (lang) => readdirSync(join(root, "js/i18n")).filter(f => f === `${lang}.js` || (f.startsWith(`${lang}.`) && f.endsWith(".js"))).sort();
+async function loadDict(lang) {
+  const merged = {}, owner = {}, dupes = [];
+  for (const f of dictFiles(lang)) {
+    const d = (await import(pathToFileURL(join(root, "js/i18n", f)).href)).default || {};
+    for (const [k, v] of Object.entries(d)) { if (k in merged) dupes.push(`${k} (${owner[k]} + ${f})`); merged[k] = v; owner[k] = f; }
+  }
+  return { dict: merged, dupes, files: dictFiles(lang) };
+}
+const koL = await loadDict("ko"), enL = await loadDict("en");
+const ko = koL.dict, en = enL.dict;
+const dupes = [...koL.dupes.map(d => "ko: " + d), ...enL.dupes.map(d => "en: " + d)];
 
 /* ── static keys from index.html (with the current Korean content for --emit-ko) ── */
 const html = readFileSync(join(root, "index.html"), "utf8");
@@ -85,13 +98,20 @@ if (EMIT) {
   console.log(out.join("\n"));
   process.exit(0);
 }
+// Keys present in one language but not the other (the EN set must mirror KO exactly).
+// (lifecycle.reg.* is EN-only by design: the Korean registry text lives on the REGISTRY rows in security/lifecycle.js.)
+const koOnly = Object.keys(ko).filter(k => !(k in en)), enOnly = Object.keys(en).filter(k => !(k in ko) && !k.startsWith("lifecycle.reg."));
+const bad = missingKo.length || missingEn.length || dupes.length || koOnly.length;
 if (JSON_OUT) {
-  console.log(JSON.stringify({ total: all.size, static: staticKeys.size, dynamic: jsKeys.size, koEntries: Object.keys(ko).length, enEntries: Object.keys(en).length, missingKo, missingEn, enWithHangul, perNs }));
-  process.exit(missingKo.length || missingEn.length ? 1 : 0);
+  console.log(JSON.stringify({ total: all.size, static: staticKeys.size, dynamic: jsKeys.size, koEntries: Object.keys(ko).length, enEntries: Object.keys(en).length, missingKo, missingEn, dupes, koOnly, enOnly, enWithHangul, perNs, files: { ko: koL.files, en: enL.files } }));
+  process.exit(bad ? 1 : 0);
 }
-console.log(`keys referenced: ${all.size} (static ${staticKeys.size} · dynamic ${jsKeys.size}) · ko.js ${Object.keys(ko).length} · en.js ${Object.keys(en).length}`);
+console.log(`keys referenced: ${all.size} (static ${staticKeys.size} · dynamic ${jsKeys.size}) · ko ${Object.keys(ko).length} [${koL.files.join(" ")}] · en ${Object.keys(en).length} [${enL.files.join(" ")}]`);
 console.log("per namespace (en):", Object.entries(perNs).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(" · "));
-if (missingKo.length) console.log(`MISSING IN ko.js (${missingKo.length}):`, missingKo.join(", "));
-if (missingEn.length) console.log(`MISSING IN en.js (${missingEn.length}):`, missingEn.join(", "));
-if (enWithHangul.length) console.log(`en.js values with Hangul outside parentheses (${enWithHangul.length}):`, enWithHangul.join(", "));
-if (missingKo.length || missingEn.length) { process.exitCode = 1; } else console.log("OK — every referenced key exists in both dictionaries.");
+if (missingKo.length) console.log(`MISSING IN ko (${missingKo.length}):`, missingKo.join(", "));
+if (missingEn.length) console.log(`MISSING IN en (${missingEn.length}):`, missingEn.join(", "));
+if (dupes.length) console.log(`DUPLICATE KEYS across dictionary files (${dupes.length}):`, dupes.join(", "));
+if (koOnly.length) console.log(`KO keys without an EN entry (${koOnly.length}):`, koOnly.join(", "));
+if (enOnly.length) console.log(`en keys without a KO entry — stale? (${enOnly.length}):`, enOnly.join(", "));
+if (enWithHangul.length) console.log(`en values with Hangul outside parentheses (${enWithHangul.length}):`, enWithHangul.join(", "));
+if (bad) { process.exitCode = 1; } else console.log("OK — every referenced key exists in both dictionaries, no duplicates across files.");

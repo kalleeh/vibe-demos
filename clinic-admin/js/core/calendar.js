@@ -1,7 +1,11 @@
-/* clinic-admin — statutory reporting calendar shared by 00 오늘, 04 비급여 and the topbar due chip.
-   Near-leaf module (imports only core/i18n.js). Sits in core so shell.js and the tabs read ONE set of dates.
-   Labels are resolved through t() at call time so a language toggle re-renders them. */
+/* clinic-admin — statutory reporting calendar shared by 00 오늘, 04 비급여, 08 면허 and the topbar due chip.
+   Sits in core so shell.js and the tabs read ONE set of dates. Labels are resolved through t() at call time so a
+   language toggle re-renders them.
+   Every item carries `ctx` for activateTab(link, ctx): { refMonth } for a 비급여 window, { taxYear } for 연말정산,
+   { staffId } for the per-person licence items produced from the shared Staff roster (core/entities.js). */
 import { t } from "./i18n.js";
+import { daysUntil } from "./dom.js";
+import { Staff } from "./entities.js";
 
 /* 비급여 보고 (의료법 §45조의2 · 고시 「비급여 진료비용 등의 보고 및 공개에 관한 기준」):
    reference months March / September, submission windows April / October.
@@ -31,15 +35,51 @@ export function nextOccurrence(month, day, now = new Date()) {
   return iso(y) >= todayISO ? iso(y) : iso(y + 1);
 }
 
-// The recurring statutory deadlines as { key, title, date, link, source } for the next 12 months.
+// The recurring statutory deadlines as { key, title, date, link, source, ctx } for the next 12 months.
 export function statutoryDeadlines(now = new Date()) {
-  return [
-    ...BIGEUP_WINDOWS.map(w => ({
-      key: w.key, title: w.label, date: nextOccurrence(w.month, null, now),
-      link: "tab-bigeup", source: t("today.dl.bigeupSource", { m: w.refMonth })
-    })),
-    { key: YEAREND_DEADLINE.key, title: YEAREND_DEADLINE.label,
-      date: nextOccurrence(YEAREND_DEADLINE.month, YEAREND_DEADLINE.day, now),
-      link: "tab-yearend", source: t("today.dl.yearendSource") }
-  ];
+  const bigeup = BIGEUP_WINDOWS.map(w => {
+    const date = nextOccurrence(w.month, null, now);
+    return {
+      key: w.key, title: w.label, date, link: "tab-bigeup", source: t("today.dl.bigeupSource", { m: w.refMonth }),
+      ctx: { refMonth: `${date.slice(0, 4)}-${String(w.refMonth).padStart(2, "0")}` }
+    };
+  });
+  const yeDate = nextOccurrence(YEAREND_DEADLINE.month, YEAREND_DEADLINE.day, now);
+  const yearend = {
+    key: YEAREND_DEADLINE.key, title: YEAREND_DEADLINE.label, date: yeDate, link: "tab-yearend",
+    source: t("today.dl.yearendSource"), ctx: { taxYear: +yeDate.slice(0, 4) - 1 }
+  };
+  return [...bigeup, yearend];
+}
+
+/* Per-person items from the roster: 면허신고 기한 (jobs with a 신고 duty only — 원무·행정·기타 never get a D-day)
+   and 보수교육 마감. `basis` tells "acquired" (신고 이력 미확인) from "reported". Unfiltered by distance — callers
+   window them (00 오늘 shows −30 … +365 days, the topbar chip 0 … 14). Empty while the workspace is locked. */
+export function staffDeadlines() {
+  const out = [];
+  for (const s of Staff.list()) {
+    const who = Staff.ref(s);
+    if (s.expiry && Staff.hasDuty(s.job)) out.push({
+      key: `lic-${s.id}-exp`, title: t(s.basis === "acquired" ? "today.dl.licReportUnverified" : "today.dl.licReport", { who }),
+      date: s.expiry, link: "tab-license", source: t(s.basis === "acquired" ? "today.dl.licSourceAcquired" : "today.dl.licSourceReported"),
+      ctx: { staffId: s.id }, basis: s.basis, kind: "report"
+    });
+    if (s.cme) out.push({
+      key: `lic-${s.id}-cme`, title: t("today.dl.cme", { who }), date: s.cme, link: "tab-license",
+      source: t("today.dl.cmeSource"), ctx: { staffId: s.id }, kind: "cme"
+    });
+  }
+  return out;
+}
+
+// Everything, with daysLeft; sorted soonest first, past-due last.
+export function allDeadlines(now = new Date()) {
+  const list = [...statutoryDeadlines(now), ...staffDeadlines()];
+  for (const d of list) d.daysLeft = daysUntil(d.date);
+  list.sort((a, b) => {
+    if (a.daysLeft < 0 && b.daysLeft >= 0) return 1;
+    if (b.daysLeft < 0 && a.daysLeft >= 0) return -1;
+    return Math.abs(a.daysLeft) - Math.abs(b.daysLeft);
+  });
+  return list;
 }

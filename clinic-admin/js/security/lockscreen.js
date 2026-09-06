@@ -11,6 +11,8 @@ import { $, $$, esc, Toast, Dialog, relTime, roleLabel } from "../core/ui.js";
 import { t, getLang, onLangChange } from "../core/i18n.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { downloadCSV } from "../core/files.js";
+import { activateTab } from "../core/nav.js";
+import { Staff, JOB_FOR_SYSROLE } from "../core/entities.js";
 import { Session } from "./session.js";
 import { inventory, purgeExpired, destroy, destroyAll, exportBackup, parseBackup, restoreBackup } from "./lifecycle.js";
 
@@ -26,6 +28,7 @@ const Lock = (() => {
   const ready = new Promise(res => { readyResolve = res; });
   let booted = false, selectedUser = null, countdownT = null, idleT = null, hiddenT = null, hiddenAt = 0, lastReset = 0;
   let restoreBk = null, pane = "unlock", reason = "", backoffShown = false;
+  let created = false; // this page load created the workspace → shell shows the 기관 정보 first-run step
 
   function closeAllDialogs() {
     $$(".welcome-scrim.open, .palette-scrim.open, .lightbox.open").forEach(s => Dialog.close(s));
@@ -146,6 +149,7 @@ const Lock = (() => {
       const btn = $("#setup-submit"); btn.disabled = true; btn.textContent = t("lock.creating");
       try {
         await Session.create({ name, role, pin });
+        created = true;
       } catch (err) { setErr("#setup-err", err.message || String(err)); }
       finally { btn.disabled = false; btn.textContent = t("lock.createBtn"); }
     });
@@ -230,7 +234,7 @@ const Lock = (() => {
     open();
     return ready;
   }
-  return { init, ready: () => ready, lock, open, openRestore, armIdle };
+  return { init, ready: () => ready, lock, open, openRestore, armIdle, justCreated: () => created };
 })();
 
 /* topbar user chip */
@@ -241,48 +245,67 @@ function updateChip() {
   const tt = $("#topbar-user-text"); if (tt && u) tt.textContent = `${u.name} · ${roleLabel(u.role)}`;
 }
 
-/* ─────────────────────────── 사용자 panel ─────────────────────────── */
+/* ─────────────────────────── 사용자 panel ───────────────────────────
+   A thin view over the roster (core/entities.js Staff): every login IS a staff row with a userId. Rows show the
+   system role (원장·행정·원무) next to the job; "삭제" here is Staff.revokeLogin (the person stays in the roster,
+   only the PIN goes). Adding a user creates/links a roster row and issues the login — 원장 only. */
 const UsersPanel = (() => {
   const scrim = () => $("#users-scrim");
   const msg = (text, kind = "") => { const el = $("#users-msg"); if (!el) return; el.textContent = text || ""; el.className = "sec-msg " + kind; el.hidden = !text; };
+  // Audit subject for a login row: the pseudonymised staff reference ("한의사 윤○○"), never the name.
+  const subj = (s, u) => (s ? Staff.ref(s) : (u ? roleLabel(u.role) : null));
   function render() {
     const me = Session.user(); if (!me) return;
     const owner = Session.isOwner();
     $("#users-me").innerHTML = `<strong>${esc(me.name)}</strong> · ${esc(roleLabel(me.role))}${owner ? ` <span class="sec-tag">${esc(t("users.adminTag"))}</span>` : ""}`;
     $("#users-autolock").value = String(Session.autolockMin());
-    $("#users-list").innerHTML = Session.users().map(u => `
-      <div class="sec-row">
-        <span class="sec-name">${esc(u.name)}</span>
-        <span class="sec-role">${esc(roleLabel(u.role))}</span>
+    const staff = Staff.list();
+    const rows = Session.users().map(u => ({ u, s: staff.find(x => x.userId === u.id) || staff.find(x => x.id === u.staffId) || null }));
+    $("#users-list").innerHTML = rows.map(({ u, s }) => `
+      <div class="sec-row" data-user="${esc(u.id)}">
+        <span class="sec-name">${esc(u.name)}${u.role === "원장" ? ` <span class="sec-tag">${esc(t("users.ownerTag"))}</span>` : ""}</span>
+        <span class="sec-role">${esc(roleLabel(u.role))}${s ? ` · ${esc(roleLabel(s.job))}` : ""}</span>
         <span class="sec-meta">${u.aiConsent ? esc(t("users.aiConsentAt", { dt: fmtDT(u.aiConsent.at) })) : esc(t("users.noAiConsent"))}</span>
         <span class="sec-actions">
           ${owner && u.id !== me.id ? `<button type="button" class="btn secondary sm" data-act="reset" data-id="${esc(u.id)}">${esc(t("users.resetPin"))}</button>
-          <button type="button" class="btn secondary sm" data-act="remove" data-id="${esc(u.id)}">${esc(t("common.delete"))}</button>` : ""}
+          <button type="button" class="btn secondary sm" data-act="remove" data-id="${esc(u.id)}" data-staff="${esc(s?.id || "")}">${esc(t("users.revokeLogin"))}</button>` : ""}
           ${u.aiConsent ? `<button type="button" class="btn secondary sm" data-act="revoke" data-id="${esc(u.id)}" ${owner || u.id === me.id ? "" : "disabled"}>${esc(t("users.revokeAi"))}</button>` : ""}
         </span>
       </div>`).join("");
+    // Issuing a login is a 원장 action (Staff.issueLogin enforces it) — the form is read-only for everyone else.
+    $$("#users-add-form input, #users-add-form select, #users-add-form button").forEach(el => { el.disabled = !owner; });
+    const note = $("#users-add-note"); if (note) note.textContent = owner ? t("users.addNoteOwner") : t("common.ownerRequired");
     $$("#users-list [data-act]").forEach(b => b.addEventListener("click", async () => {
       const id = b.dataset.id, u = Session.users().find(x => x.id === id);
+      const s = staff.find(x => x.userId === id) || null;
       const who = { name: u.name, role: roleLabel(u.role) };
       try {
         if (b.dataset.act === "reset") {
           const pin = prompt(t("users.promptNewPin", who)); if (pin == null) return;
           await Session.resetPin(id, pin.trim());
-          ActivityLog.add({ tag: "system", action: t("users.logReset", who) });
+          ActivityLog.add({ tag: "system", action: t("users.logReset", { role: who.role }), subject: subj(s, u) });
           msg(t("users.msgReset"), "ok");
         } else if (b.dataset.act === "remove") {
-          if (!confirm(t("users.confirmRemove", who))) return;
-          Session.removeUser(id);
-          ActivityLog.add({ tag: "system", action: t("users.logRemove", who) });
-          msg(t("users.msgRemoved"), "ok");
+          if (!confirm(t("users.confirmRevokeLogin", who))) return;
+          if (s) Staff.revokeLogin(s.id); else Session.removeUser(id);
+          ActivityLog.add({ tag: "system", action: t("users.logRevokeLogin", { role: who.role }), subject: subj(s, u) });
+          msg(t("users.msgLoginRevoked"), "ok");
         } else if (b.dataset.act === "revoke") {
           Session.updateUser(id, { aiConsent: null });
-          ActivityLog.add({ tag: "system", action: t("users.logRevoke", who) });
+          ActivityLog.add({ tag: "system", action: t("users.logRevoke", { role: who.role }), subject: subj(s, u) });
           msg(t("users.msgRevoked"), "ok");
         }
       } catch (err) { msg(err.message || String(err), "err"); }
       render();
     }));
+  }
+  /* Add = find the roster row with that exact name and no login (link it) or create one, then issue the login. */
+  async function addLogin({ name, role, pin }) {
+    const clean = String(name || "").trim();
+    let row = Staff.list().find(x => !x.userId && x.name === clean);
+    const id = row ? row.id : Staff.add({ name: clean, job: JOB_FOR_SYSROLE[role] || "기타" });
+    const u = await Staff.issueLogin(id, { sysRole: role, pin });
+    return { user: u, row: Staff.get(id) };
   }
   function open() { if (!Session.isUnlocked()) return; msg(""); render(); Dialog.open(scrim(), "#users-close"); }
   function close() { Dialog.close(scrim()); }
@@ -297,12 +320,14 @@ const UsersPanel = (() => {
       e.preventDefault();
       const name = $("#users-add-name").value.trim(), role = $("#users-add-role").value, pin = $("#users-add-pin").value;
       try {
-        const u = await Session.addUser({ name, role, pin });
-        ActivityLog.add({ tag: "system", action: t("users.logAdd", { name: u.name, role: roleLabel(u.role) }) });
+        const { user: u, row } = await addLogin({ name, role, pin });
+        ActivityLog.add({ tag: "system", action: t("users.logAdd", { role: roleLabel(u.role) }), subject: Staff.ref(row) });
         $("#users-add-name").value = ""; $("#users-add-pin").value = "";
         msg(t("users.msgAdded", { name: u.name }), "ok"); render();
       } catch (err) { msg(err.message || String(err), "err"); }
     });
+    $("#users-open-roster")?.addEventListener("click", () => { close(); activateTab("tab-license"); });
+    Staff.onChange(() => { if (Dialog.isOpen(scrim())) render(); });
     $("#users-pin-form")?.addEventListener("submit", async (e) => {
       e.preventDefault();
       try {

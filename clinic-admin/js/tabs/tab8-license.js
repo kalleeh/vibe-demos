@@ -1,91 +1,99 @@
-/* clinic-admin — Tab 08 · 면허·자격 트래커 */
-import { $, $$, esc, todayISO, daysUntil, Haptic, Toast, Lightbox, Share, bindCameraButton, redactStaff, roleLabel } from "../core/ui.js";
+/* clinic-admin — Tab 08 · 직원 명부 — 면허·자격 + 로그인 (the roster UI over core/entities.js Staff) */
+import { $, $$, esc, todayISO, daysUntil, Haptic, Toast, Lightbox, Share, bindCameraButton, roleLabel } from "../core/ui.js";
 import { t, getLang, onLangChange } from "../core/i18n.js";
-import { Store, EventBus, ActivityLog } from "../core/store.js";
+import { EventBus, ActivityLog } from "../core/store.js";
 import { Attachments } from "../core/attachments.js";
 import { OCR } from "../core/ocr.js";
 import { downloadText, pocMark } from "../core/files.js";
+import { Staff } from "../core/entities.js";
+import { Session } from "../security/session.js";
 
 /* ─────────────────────────────────────────────────────────
-   Tab 8 — 면허·자격 트래커
-   Record: { id, role, name, licenseNo, acquired, reported, cme, expiry, basis }
-   · expiry (kept under its historical key so dashboard / ics / palette keep working)
-     = reported + 3y when the last 신고일 is known,
-     = acquired + 3y flagged basis:"acquired" ("신고 이력 미확인") otherwise,
-     = "" for roles with no 신고 duty (원무 · 기타).
+   Tab 8 — 직원 명부 (면허·자격 트래커 + 로그인)
+   Row (Staff): { id, name, job, licenseNo, acquired, reported, cme, note, userId, expiry, basis }
+   · expiry = reported + 3y when the last 신고일 is known, = acquired + 3y flagged basis:"acquired"
+     ("신고 이력 미확인") otherwise, = "" for jobs with no 신고 duty (행정 · 원무 · 기타). Computed by Staff.
    · 면허증 OCR reads 면허번호 + 취득일 — a card never shows a 신고일.
-   i18n: role VALUES stay Korean (stored); labels, laws and association names resolve through
+   · 로그인 column: a row may carry a workspace login (PIN) — issue / revoke is 원장 only; "원장 권한" marks the
+     login that administers the workspace. The 사용자 panel is a view over the same rows.
+   i18n: job VALUES stay Korean (stored); labels, laws and association names resolve through
    common.roleShort.* / license.law.* / license.org.* so the register, .ics and share text follow the language.
    ───────────────────────────────────────────────────────── */
 
-// Which roles carry a periodic 신고 duty, and where it is filed.
-// 한의사 — 의료법 §25 (3년, 대한한의사협회). 간호사 — 의료법 §25 (3년, 대한간호협회).
-// 간호조무사 — 의료법 §80 준용 (3년, 대한간호조무사협회). 물리치료사 — 의료기사 등에 관한 법률 §11 (3년, 대한물리치료사협회).
-// Confidence: high on the duty + 3-year cycle; portal URLs are "확인 필요".
-const ROLE_DUTY = {
-  "한의사":     { years: 3, url: "https://www.akom.org" },
-  "간호사":     { years: 3, url: "https://www.koreanurse.or.kr" },
-  "간호조무사": { years: 3, url: "https://www.klpna.or.kr" },
-  "물리치료사": { years: 3, url: "https://www.kpta.co.kr" }
-};
-const lawOf = (role) => t("license.law." + role);
-const orgOf = (role) => t("license.org." + role);
-export const hasDuty = (role) => !!ROLE_DUTY[role];
+// Compat shim — tab0/shell used to import hasDuty from here. Delete once every caller uses Staff.hasDuty.
+export const hasDuty = Staff.hasDuty;
+// The roster is a shared entity: shell.seedAll() seeds it (seedEntities) before calling tab seeds — nothing to add here.
+export function seed() {}
+
+const lawOf = (job) => t("license.law." + job);
+const orgOf = (job) => t("license.org." + job);
 
 export function initTab8() {
-  // Local-date arithmetic — toISOString() would shift KST midnight back a day.
-  const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  const addYears = (iso, n) => {
-    if (!iso) return "";
-    const d = new Date(iso + "T00:00:00");
-    if (isNaN(d)) return "";
-    d.setFullYear(d.getFullYear() + n);
-    return ymd(d);
-  };
-  // Deadline + basis from the record's dates and role.
-  const computeDue = ({ role, reported, acquired }) => {
-    const duty = ROLE_DUTY[role];
-    if (!duty) return { expiry: "", basis: "none" };
-    if (reported) return { expiry: addYears(reported, duty.years), basis: "reported" };
-    if (acquired) return { expiry: addYears(acquired, duty.years), basis: "acquired" };
-    return { expiry: "", basis: "unknown" };
-  };
   // Audit entries never carry the staff name in `text`; the pseudonymised subject
   // ("한의사 윤○○") is derived by ActivityLog from meta.subject = { role, name }.
-  const subj = (lic) => ({ subject: { role: lic.role, name: lic.name } });
+  const subj = (row) => ({ subject: { role: row.job, name: row.name } });
 
-  let editingId = null;
+  let editingId = null, loginFor = null, highlightId = null;
   const setEditing = (on) => {
     $("#lic-add-btn").textContent = t(on ? "common.save" : "common.add");
     $("#lic-cancel").style.display = on ? "" : "none";
   };
   const resetForm = () => {
     editingId = null;
-    $("#lic-name").value = "";
-    $("#lic-no").value = "";
-    $("#lic-acquired").value = "";
-    $("#lic-reported").value = "";
-    $("#lic-cme").value = "";
+    ["lic-name", "lic-no", "lic-acquired", "lic-reported", "lic-cme"].forEach(id => { $("#" + id).value = ""; });
     setEditing(false);
   };
-  // 원무·기타 have no 신고 duty — grey out the date fields in the form.
+  // 행정·원무·기타 have no 신고 duty — grey out the licence fields in the form.
   const syncRoleFields = () => {
-    const duty = hasDuty($("#lic-role").value);
+    const duty = Staff.hasDuty($("#lic-role").value);
     ["lic-acquired", "lic-reported", "lic-no"].forEach(id => { $("#" + id).disabled = !duty; });
     $("#lic-role-note").textContent = duty ? "" : t("license.noDutyNote");
   };
   $("#lic-role").addEventListener("change", syncRoleFields);
 
+  /* ── login form (inline, below the list) ── */
+  const loginForm = () => $("#lic-login-form");
+  const showLogin = (row) => {
+    loginFor = row.id;
+    $("#lic-login-who").textContent = t("license.loginWho", { name: row.name, job: roleLabel(row.job) });
+    $("#lic-login-role").value = row.job === "행정" ? "행정" : row.job === "원무" ? "원무" : "행정";
+    $("#lic-login-pin").value = "";
+    loginForm().hidden = false;
+    loginForm().scrollIntoView({ block: "nearest", behavior: "smooth" });
+    setTimeout(() => $("#lic-login-pin").focus(), 30);
+  };
+  const hideLogin = () => { loginFor = null; loginForm().hidden = true; $("#lic-login-pin").value = ""; };
+  $("#lic-login-cancel").addEventListener("click", () => { hideLogin(); Haptic.tap(); });
+  $("#lic-login-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const row = loginFor && Staff.get(loginFor);
+    if (!row) { hideLogin(); return; }
+    const sysRole = $("#lic-login-role").value, pin = $("#lic-login-pin").value;
+    const btn = $("#lic-login-ok"); btn.disabled = true;
+    try {
+      await Staff.issueLogin(row.id, { sysRole, pin });
+      ActivityLog.push("license", t("license.logLoginIssued", { role: roleLabel(sysRole) }), subj(row));
+      Toast.show({ tag: "license", html: esc(t("license.loginIssuedToast", { who: Staff.ref(row), role: roleLabel(sysRole) })) });
+      Haptic.save();
+      hideLogin();
+    } catch (err) {
+      Toast.show({ tag: "license", html: esc(err.message || String(err)) });
+      Haptic.warn();
+    } finally { btn.disabled = false; }
+    renderList();
+  });
+
   const renderList = () => {
-    const list = Store.get("license.list", []);
+    const list = Staff.list();
+    const owner = Session.isOwner(), me = Session.user();
     if (!list.length) {
       $("#lic-list").innerHTML = `<div class="empty-state">${esc(t("license.emptyList"))}</div>`;
-      $("#lic-summary").textContent = t("license.summary", { n: 0, i: 0 });
+      $("#lic-summary").textContent = t("license.summary", { n: 0, i: 0, l: 0 });
       return;
     }
-    let imminent = 0;
+    let imminent = 0, logins = 0;
     const html = list.map(lic => {
-      const duty = hasDuty(lic.role);
+      const duty = Staff.hasDuty(lic.job);
       const expDays = duty ? daysUntil(lic.expiry) : null;
       const cmeDays = daysUntil(lic.cme);
       const minDays = Math.min(expDays ?? 99999, cmeDays ?? 99999);
@@ -101,12 +109,21 @@ export function initTab8() {
           ? t("license.dueAcquired", { d: esc(lic.expiry), flag: esc(t("license.unverifiedFlag")), acq: esc(lic.acquired) })
           : esc(t("license.dueReported", { d: lic.expiry, r: lic.reported }));
       const noText = lic.licenseNo ? esc(t("license.noText", { no: lic.licenseNo })) : "";
+      // 로그인 column — badge for a linked login (원장 권한 when it administers the workspace) + 원장-only actions.
+      const login = Staff.loginOf(lic);
+      if (login) logins++;
+      const loginCell = login
+        ? `<span class="sec-tag${login.role === "원장" ? " owner" : ""}" title="${esc(t("license.loginTagTitle"))}">${esc(login.role === "원장" ? t("license.ownerTag") : t("license.loginTag", { role: roleLabel(login.role) }))}</span>${login.id === me?.id ? `<span class="lic-me">${esc(t("license.meTag"))}</span>` : ""}
+           ${owner && login.id !== me?.id ? `<button type="button" class="lic-link" data-id="${esc(lic.id)}" data-act="revoke">${esc(t("license.revokeLogin"))}</button>` : ""}`
+        : owner ? `<button type="button" class="lic-link" data-id="${esc(lic.id)}" data-act="login">${esc(t("license.issueLogin"))}</button>`
+                : `<span class="lic-nologin">${esc(t("license.noLogin"))}</span>`;
       return `
-        <div class="lic ${cls}" data-id="${esc(lic.id)}">
-          <span class="lic-role">${esc(roleLabel(lic.role))}</span>
+        <div class="lic ${cls}${lic.id === highlightId ? " highlight" : ""}" data-id="${esc(lic.id)}">
+          <span class="lic-role">${esc(roleLabel(lic.job))}</span>
           <span class="lic-name">${esc(lic.name)}
             <span class="lic-meta">${dueText}${noText}${esc(t("license.cmeMeta", { cme: lic.cme || "—" }))}</span>
             <span class="attach-row" data-attach-row data-owner="${esc(lic.id)}"></span>
+            <span class="lic-login">${loginCell}</span>
           </span>
           <span class="lic-due">${note}</span>
           <span class="lic-actions">
@@ -120,46 +137,50 @@ export function initTab8() {
         </div>`;
     }).join("");
     $("#lic-list").innerHTML = html;
-    $("#lic-summary").textContent = t("license.summary", { n: list.length, i: imminent });
+    $("#lic-summary").textContent = t("license.summary", { n: list.length, i: imminent, l: logins });
 
-    $$("#lic-list .lic-actions > button").forEach(b => {
+    $$("#lic-list .lic-actions > button, #lic-list .lic-login > button").forEach(b => {
       b.addEventListener("click", () => {
         const id = b.dataset.id;
+        const row = list.find(x => x.id === id);
+        if (!row) return;
         if (b.dataset.act === "del") {
-          // No confirm — the row (and its IndexedDB attachments, which are keyed
-          // by id and left untouched) comes back from the undo toast for 6 s.
+          // No confirm — the row (and its IndexedDB attachments, which are keyed by id and left untouched)
+          // comes back from the undo toast for 6 s. A row with a login must have it revoked first.
           const idx = list.findIndex(x => x.id === id);
-          const removed = list[idx];
+          let removed;
+          try { removed = Staff.remove(id); } catch (err) { Toast.show({ tag: "license", html: esc(err.message || String(err)) }); Haptic.warn(); return; }
           if (!removed) return;
           if (editingId === id) resetForm();
-          Store.set("license.list", list.filter(x => x.id !== id));
           ActivityLog.push("license", t("license.logDelete"), { silent: true, ...subj(removed) });
           Haptic.del();
-          renderList();
-          Toast.withUndo(t("license.removedToast", { who: redactStaff(removed) }), () => {
-            const cur = Store.get("license.list", []);
-            if (cur.some(x => x.id === id)) return;
-            cur.splice(Math.min(idx, cur.length), 0, removed);
-            Store.set("license.list", cur);
+          Toast.withUndo(t("license.removedToast", { who: Staff.ref(removed) }), () => {
+            Staff.insert(removed, idx);
             ActivityLog.push("license", t("license.logUndo"), { silent: true, ...subj(removed) });
-            renderList();
           }, "license");
         } else if (b.dataset.act === "edit") {
-          // Edit in place — the record (and its IndexedDB attachments keyed by id) stays put
-          // until 저장; nothing is deleted up front.
-          const lic = list.find(x => x.id === id);
-          if (!lic) return;
+          // Edit in place — the record (and its IndexedDB attachments keyed by id) stays put until 저장.
           editingId = id;
-          $("#lic-role").value = lic.role;
-          $("#lic-name").value = lic.name;
-          $("#lic-no").value = lic.licenseNo || "";
-          $("#lic-acquired").value = lic.acquired || "";
-          $("#lic-reported").value = lic.reported || "";
-          $("#lic-cme").value = lic.cme || "";
+          $("#lic-role").value = row.job;
+          $("#lic-name").value = row.name;
+          $("#lic-no").value = row.licenseNo || "";
+          $("#lic-acquired").value = row.acquired || "";
+          $("#lic-reported").value = row.reported || "";
+          $("#lic-cme").value = row.cme || "";
           syncRoleFields();
           setEditing(true);
           $("#lic-name").focus();
           Haptic.tap();
+        } else if (b.dataset.act === "login") {
+          showLogin(row);
+        } else if (b.dataset.act === "revoke") {
+          if (!confirm(t("license.confirmRevoke", { who: Staff.ref(row) }))) return;
+          try {
+            Staff.revokeLogin(id);
+            ActivityLog.push("license", t("license.logLoginRevoked"), subj(row));
+            Toast.show({ tag: "license", html: esc(t("license.loginRevokedToast", { who: Staff.ref(row) })) });
+            Haptic.del();
+          } catch (err) { Toast.show({ tag: "license", html: esc(err.message || String(err)) }); Haptic.warn(); }
         }
       });
     });
@@ -190,13 +211,12 @@ export function initTab8() {
             }
           });
           if (issued || licenseNo) {
-            const list2 = Store.get("license.list", []);
-            const target = list2.find(x => x.id === ownerId);
+            const target = Staff.get(ownerId);
             if (target) {
-              if (issued) target.acquired = issued;
-              if (licenseNo) target.licenseNo = licenseNo;
-              Object.assign(target, computeDue(target));
-              Store.set("license.list", list2);
+              const patch = {};
+              if (issued) patch.acquired = issued;
+              if (licenseNo) patch.licenseNo = licenseNo;
+              Staff.update(ownerId, patch);
               ActivityLog.push("license", t("license.ocrLog", { what: [issued && t("license.acquiredWord"), licenseNo && t("license.licNoWord")].filter(Boolean).join("·") }), subj(target));
             }
             shim.classList.add("success");
@@ -214,15 +234,18 @@ export function initTab8() {
           Toast.show({ tag: "license", html: esc(err.message || t("license.ocrErr")) });
           setTimeout(() => shim.remove(), 4000);
         }
-        // Re-render attachments thumbs for this row
         renderAttachments(ownerId);
       });
     });
 
     // ── Render existing attachments (async) ──
-    $$("#lic-list [data-attach-row]").forEach(el => {
-      renderAttachments(el.dataset.owner);
-    });
+    $$("#lic-list [data-attach-row]").forEach(el => { renderAttachments(el.dataset.owner); });
+
+    if (highlightId) {
+      const el = $(`#lic-list .lic[data-id="${highlightId}"]`);
+      if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
+      highlightId = null;
+    }
   };
 
   async function renderAttachments(ownerId) {
@@ -255,58 +278,32 @@ export function initTab8() {
   }
 
   $("#lic-add-btn").addEventListener("click", () => {
-    const role = $("#lic-role").value;
+    const job = $("#lic-role").value;
     const name = $("#lic-name").value.trim();
-    const duty = hasDuty(role);
-    const licenseNo = duty ? $("#lic-no").value.trim() : "";
-    const acquired = duty ? $("#lic-acquired").value : "";
-    const reported = duty ? $("#lic-reported").value : "";
-    const cme = $("#lic-cme").value;
+    const duty = Staff.hasDuty(job);
+    const rec = {
+      name, job,
+      licenseNo: duty ? $("#lic-no").value.trim() : "", acquired: duty ? $("#lic-acquired").value : "", reported: duty ? $("#lic-reported").value : "",
+      cme: $("#lic-cme").value
+    };
     if (!name) { Haptic.warn(); alert(t("license.alertName")); return; }
-    const rec = { role, name, licenseNo, acquired, reported, cme };
-    Object.assign(rec, computeDue(rec));
-    const list = Store.get("license.list", []);
-    if (editingId) {
-      const target = list.find(x => x.id === editingId);
-      if (target) Object.assign(target, rec);
-      else list.push({ id: editingId, ...rec });
-      ActivityLog.push("license", t("license.logEdit"), subj(rec));
-    } else {
-      list.push({ id: "lic-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6), ...rec });
-      ActivityLog.push("license", t("license.logAdd"), subj(rec));
-    }
-    Store.set("license.list", list);
+    try {
+      if (editingId) {
+        const row = Staff.update(editingId, rec);
+        ActivityLog.push("license", t("license.logEdit"), subj(row));
+      } else {
+        const id = Staff.add(rec);
+        ActivityLog.push("license", t("license.logAdd"), subj(Staff.get(id)));
+      }
+    } catch (err) { Toast.show({ tag: "license", html: esc(err.message || String(err)) }); Haptic.warn(); return; }
     Haptic.save();
     resetForm();
     syncRoleFields();
-    renderList();
   });
   $("#lic-cancel").addEventListener("click", () => { resetForm(); syncRoleFields(); Haptic.tap(); });
 
-  $("#lic-sample").addEventListener("click", () => {
-    const today = new Date();
-    const offset = (m) => {
-      const d = new Date(today); d.setMonth(d.getMonth() + m);
-      return ymd(d);
-    };
-    // reported = last 면허신고 (months relative to today); one row has only a 취득일 (basis
-    // "acquired" → flagged), and one 원무 row has no duty at all. Ids are opaque — an id is
-    // the attachment owner + .ics UID, so it must never embed the name.
-    const sample = [
-      { role: "한의사",     name: "윤지훈", licenseNo: "12345", acquired: "2009-02-27", reported: offset(2 - 36),  cme: offset(8) },
-      { role: "한의사",     name: "박서영", licenseNo: "23456", acquired: "1998-02-27", reported: "",              cme: offset(-1) },
-      { role: "간호사",     name: "이민하", licenseNo: "345678", acquired: "2014-02-25", reported: offset(5 - 36),  cme: offset(11) },
-      { role: "물리치료사", name: "김도현", licenseNo: "45678", acquired: "2016-03-01", reported: offset(22 - 36), cme: offset(4) },
-      { role: "간호조무사", name: "최유진", licenseNo: "567890", acquired: "2018-01-20", reported: offset(-2 - 36), cme: offset(7) },
-      { role: "원무",       name: "한지원", licenseNo: "", acquired: "", reported: "", cme: "" }
-    ].map((x, i) => ({ ...x, id: `lic-sample-${String(i + 1).padStart(2, "0")}`, ...computeDue(x) }));
-    Store.set("license.list", sample);
-    ActivityLog.push("license", t("license.logSample", { n: sample.length }), {});
-    renderList();
-  });
-
   $("#lic-ics").addEventListener("click", () => {
-    const list = Store.get("license.list", []);
+    const list = Staff.list();
     if (!list.length) { alert(t("license.alertNoStaff")); return; }
     const pad = n => String(n).padStart(2, "0");
     const fmt = d => {
@@ -318,16 +315,16 @@ export function initTab8() {
     const mark = pocMark();
     const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", `PRODID:-//Vibe Studio//Clinic Admin//${getLang().toUpperCase()}`, `X-POC-NOTICE:${icsText(mark)}`];
     for (const lic of list) {
-      const duty = ROLE_DUTY[lic.role];
-      const role = roleLabel(lic.role);
+      const duty = Staff.DUTY[lic.job];
+      const role = roleLabel(lic.job);
       if (duty && lic.expiry) ics.push("BEGIN:VEVENT",
         `UID:${lic.id}-exp@vibe-clinic-admin`,
         `DTSTAMP:${fmt(todayISO())}Z`, `DTSTART:${fmt(lic.expiry)}`,
         `DTEND:${fmt(lic.expiry).slice(0,11)}5959`,
         `SUMMARY:${icsText(t("license.icsReport", { role, name: lic.name, flag: lic.basis === "acquired" ? t("license.icsUnverified") : "" }))}`,
-        `DESCRIPTION:${icsText(t("license.icsReportDesc", { mark, law: lawOf(lic.role), basis: t(lic.basis === "acquired" ? "license.basisAcquired" : "license.basisReported"), y: duty.years }))}`,
+        `DESCRIPTION:${icsText(t("license.icsReportDesc", { mark, law: lawOf(lic.job), basis: t(lic.basis === "acquired" ? "license.basisAcquired" : "license.basisReported"), y: duty.years }))}`,
         "BEGIN:VALARM","TRIGGER:-P30D","ACTION:DISPLAY",
-        `DESCRIPTION:${icsText(t("license.icsAlarm", { law: lawOf(lic.role) }))}`,"END:VALARM",
+        `DESCRIPTION:${icsText(t("license.icsAlarm", { law: lawOf(lic.job) }))}`,"END:VALARM",
         "END:VEVENT");
       if (lic.cme) ics.push("BEGIN:VEVENT",
         `UID:${lic.id}-cme@vibe-clinic-admin`,
@@ -345,11 +342,11 @@ export function initTab8() {
   });
 
   $("#lic-share")?.addEventListener("click", async () => {
-    const list = Store.get("license.list", []);
+    const list = Staff.list();
     if (!list.length) { alert(t("license.alertNoStaff")); return; }
     const lines = list.map(l => {
-      const role = roleLabel(l.role);
-      if (!hasDuty(l.role)) return t("license.shareNoDuty", { role, name: l.name, cme: l.cme || "—" });
+      const role = roleLabel(l.job);
+      if (!Staff.hasDuty(l.job)) return t("license.shareNoDuty", { role, name: l.name, cme: l.cme || "—" });
       const expDays = daysUntil(l.expiry);
       const tag = expDays == null ? "—" : (expDays < 0 ? `D+${-expDays}` : `D-${expDays}`);
       return t("license.shareLine", { role, name: l.name, d: l.expiry || "—", tag, flag: l.basis === "acquired" ? t("license.shareFlag") : "", cme: l.cme || "—" });
@@ -359,19 +356,24 @@ export function initTab8() {
     ActivityLog.push("license", t("license.logShare"), {});
   });
 
-  // Per-role 협회 links for the caveat (URLs marked 확인 필요 in the HTML). Re-filled after a language swap
+  // Per-job 협회 links for the caveat (URLs marked 확인 필요 in the HTML). Re-filled after a language swap
   // (the caveat is a data-i18n-html block, so the #lic-orgs span is re-created).
   const renderOrgs = () => {
     const orgEl = $("#lic-orgs");
-    if (orgEl) orgEl.innerHTML = Object.entries(ROLE_DUTY).map(([role, d]) =>
-      `${esc(roleLabel(role))} → <a class="small-link" href="${esc(d.url)}" target="_blank" rel="noopener noreferrer">${esc(orgOf(role))}</a> (${esc(lawOf(role))})`
+    if (orgEl) orgEl.innerHTML = Object.entries(Staff.DUTY).map(([job, d]) =>
+      `${esc(roleLabel(job))} → <a class="small-link" href="${esc(d.url)}" target="_blank" rel="noopener noreferrer">${esc(orgOf(job))}</a> (${esc(lawOf(job))})`
     ).join(" · ");
   };
   renderOrgs();
 
-  EventBus.on("store:license.list", renderList);
+  // Re-render on roster changes (local or peer tab), on user switch (owner-only buttons) and when another surface
+  // lands here with { staffId } (dashboard deadline, palette, topbar chip).
+  Staff.onChange(renderList);
+  EventBus.on("session:unlocked", renderList);
+  EventBus.on("session:users", renderList);
+  EventBus.on("tab:activated", (p) => { if (p?.id === "tab-license" && p.ctx?.staffId) { highlightId = p.ctx.staffId; renderList(); } });
   syncRoleFields();
   renderList();
 
-  onLangChange(() => { renderOrgs(); setEditing(!!editingId); syncRoleFields(); renderList(); });
+  onLangChange(() => { renderOrgs(); setEditing(!!editingId); syncRoleFields(); renderList(); if (loginFor) { const r = Staff.get(loginFor); if (r) $("#lic-login-who").textContent = t("license.loginWho", { name: r.name, job: roleLabel(r.job) }); } });
 }

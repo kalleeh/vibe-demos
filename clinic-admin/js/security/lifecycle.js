@@ -11,6 +11,7 @@ import { Session } from "./session.js";
 import { encryptJSON, decryptJSON, isEnvelope } from "./crypto.js";
 import { downloadText, POC_MARK } from "../core/files.js";
 import { Masters } from "../core/masters.js";
+import { Staff } from "../core/entities.js";
 import { t, tOr } from "../core/i18n.js";
 
 const DAY = 86400000;
@@ -41,8 +42,20 @@ const REGISTRY = [
   { id: "activity", match: exact("activity"), label: "활동 기록 (감사 로그)", detail: "일시·사용자·역할·작업·가명 대상(****1234)",
     purpose: "누가 언제 무엇을 처리했는지 기록", basis: "개인정보보호법 §29 · 안전성 확보조치 기준 §8 접속기록 보관 (PoC: 브라우저 내 1년)",
     encrypted: true, retention: "1년 · 추가만 가능", days: 365, purge: (v, cutoff) => (Array.isArray(v) ? v.filter(e => (e.at || 0) >= cutoff) : v) },
-  { id: "license.list", match: exact("license.list"), label: "직원 면허 명부", detail: "이름·역할·면허번호·취득일·면허신고일·보수교육 마감",
-    purpose: "면허신고 기한 관리", basis: "의료법 §25 면허신고 의무 이행 · 개인정보보호법 §15①2 (법령상 의무)", encrypted: true, retention: "직원 삭제 시까지", days: null },
+  /* ── shared entities (core/entities.js) ── */
+  { id: "org.profile", match: exact("org.profile"), label: "기관 프로필", detail: "기관명·요양기관기호·사업자등록번호·종별·대표자 (기관 정보 — 개인정보 아님)",
+    purpose: "보고·제출 파일 헤더 · 화면 표시", basis: "의료법 §45의2 · 소득세법 §165 자료제출 준비", encrypted: false, retention: "수정 시까지", days: null },
+  { id: "staff.list", match: exact("staff.list"), label: "직원 명부 (면허·로그인)", detail: "이름·직종·면허번호·취득일·면허신고일·보수교육 마감·로그인 연결",
+    purpose: "면허신고 기한 관리 · 사용자 계정 연결", basis: "의료법 §25 면허신고 의무 이행 · 개인정보보호법 §15①2 (법령상 의무)", encrypted: true, retention: "직원 삭제 시까지", days: null },
+  { id: "patients.register", match: exact("patients.register"), label: "가명 환자 대장", detail: "환자번호(가명)·태그·첫/마지막 진료일 — 이름·주민번호 없음",
+    purpose: "탭 간 동일 환자 참조 (****0142)", basis: "가명처리 · 개인정보보호법 §28의2", encrypted: true, retention: "삭제 시까지", days: null },
+  { id: "claims.batch", match: prefix("claims.batch."), label: "업로드 배치", detail: "업로드 파일에서 파싱한 행 (명세서·환자번호·일자·코드) — 청구·심사·정비·연말정산·보존",
+    purpose: "탭 간 재사용·대조 (업로드 1회, 여러 탭에서 참조)", basis: "자동차손해배상 보장법 §12의2 · 개인정보보호법 §15①4 (계약 이행)", encrypted: true, retention: "90일 · 최대 20건", days: 90,
+    purge: (v, cutoff) => ((v?.createdAt || 0) >= cutoff ? v : null) },
+  { id: "tariff", match: prefix("tariff."), label: "비급여 단가표 · 적용일", detail: "항목별 금액·빈도, 적용일 (개인정보 아님)",
+    purpose: "반기보고 파일 생성", basis: "의료법 §45의2", encrypted: false, retention: "수정 시까지", days: null },
+  { id: "insurers.lastUsed", match: exact("insurers.lastUsed"), label: "최근 보험사", detail: "마지막으로 선택한 보험사명 (개인정보 아님)",
+    purpose: "자보 탭 기본값", basis: "—", encrypted: false, retention: "설정", days: null },
   { id: "attachments", store: "IndexedDB", label: "면허증 사진", detail: "카메라 촬영 이미지 (data URL)",
     purpose: "면허신고일 OCR 확인", basis: "동일", encrypted: true, retention: "직원 삭제 시까지 · 고아 첨부는 잠금 해제 시 파기", days: null },
   { id: "intake-cards", match: exact("intake-cards"), label: "접수 보드 로컬 카드", detail: "고정 가상 환자명·메모·상태",
@@ -51,12 +64,9 @@ const REGISTRY = [
     purpose: "공유 보드에서 이 기기가 올린 카드 표시", basis: "—", encrypted: false, retention: "전체 파기 시까지", days: null },
   { id: "masters", store: "IndexedDB (masters)", label: "업로드 마스터 (KOICD 상병 · 심평원 행위·수가)", detail: "공개 참조표 (개인정보 아님)",
     purpose: "정비·정산·검색·AI 탭의 대조 기준", basis: "—", encrypted: false, retention: "「업로드본 지우기」 또는 전체 파기 시까지", days: null },
-  { id: "yearend", match: prefix("yearend."), label: "연말정산 기관 정보", detail: "사업자등록번호·의료기관명·증빙코드",
-    purpose: "의료비 자료제출 파일 헤더", basis: "소득세법 §165 자료제출 준비", encrypted: true, retention: "수정 시까지", days: null },
-  { id: "bigeup.profile", match: prefix("bigeup.profile."), label: "비급여 보고 기관 정보", detail: "요양기관기호·기관명·적용일",
-    purpose: "HIRA 비급여 반기보고 헤더", basis: "의료법 §45의2 비급여 보고", encrypted: true, retention: "수정 시까지", days: null },
-  { id: "bigeup.tariff", match: exact("bigeup.tariff"), label: "비급여 단가표", detail: "항목별 금액 (개인정보 아님)",
-    purpose: "반기보고 파일 생성", basis: "의료법 §45의2", encrypted: false, retention: "수정 시까지", days: null },
+  // 기관 정보 moved to org.profile (migrated on unlock); what is left under yearend.* is the tab's tax-year setting.
+  { id: "yearend", match: prefix("yearend."), label: "연말정산 설정", detail: "과세연도 (기관 정보는 「기관 프로필」로 이전)",
+    purpose: "의료비 자료 사전점검 기준 연도", basis: "—", encrypted: true, retention: "수정 시까지", days: null },
   { id: "accred.checked", match: exact("accred.checked"), label: "인증평가 체크 상태", detail: "항목 ID → 체크 (개인정보 아님)",
     purpose: "인증 준비 진행률", basis: "의료법 §58 인증 준비", encrypted: false, retention: "초기화 시까지", days: null },
   { id: "kcd.lastSummary", match: exact("kcd.lastSummary"), label: "KCD 정비 최근 요약", detail: "건수만",
@@ -70,6 +80,9 @@ const REGISTRY = [
   { id: "__internal", match: (k) => k.startsWith("__") && k !== "__ws", label: "내부 메타", detail: "마지막 저장 시각·키별 수정 시각",
     purpose: "동기화 표시·처리 현황", basis: "—", encrypted: false, retention: "설정", days: null }
 ];
+
+// Rows whose count is "keys present", not "items inside" (scalar settings / one profile object).
+const ONE_PER_KEY = new Set(["jabo.draft", "yearend", "ui", "ai.settings", "org.profile", "tariff", "insurers.lastUsed"]);
 
 async function inventory() {
   const keys = Store.keys();
@@ -93,7 +106,7 @@ async function inventory() {
     let count = 0, last = null;
     for (const k of mine) {
       const v = Store.get(k);
-      count += (r.id === "jabo.draft" || r.id === "yearend" || r.id === "bigeup.profile" || r.id === "ui" || r.id === "ai.settings") ? (v == null || v === "" ? 0 : 1) : len(v);
+      count += ONE_PER_KEY.has(r.id) ? (v == null || v === "" ? 0 : 1) : r.id === "claims.batch" ? 1 : len(v);
       const m = Store.mtime(k); if (m && (!last || m > last)) last = m;
     }
     rows.push({ ...r, keys: mine, count, lastModified: last, present: mine.length > 0 });
@@ -115,13 +128,14 @@ async function purgeExpired() {
       if (r.days === 0) { Store.remove(k); out[r.id] = (out[r.id] || 0) + 1; continue; }
       if (!r.purge) continue;
       const kept = r.purge(v, now - r.days * DAY);
+      if (kept == null) { Store.remove(k); out[r.id] = (out[r.id] || 0) + 1; continue; } // whole record expired (a batch)
       const removed = len(v) - len(kept);
       if (removed > 0) { Store.set(k, kept); out[r.id] = (out[r.id] || 0) + removed; }
     }
   }
   // Orphan attachments: photos whose staff row no longer exists.
   try {
-    const owners = new Set((Store.get("license.list", []) || []).map(l => l.id));
+    const owners = new Set(Staff.list().map(s => s.id));
     const st = await Attachments.stats();
     const orphans = st.owners.filter(o => !owners.has(o));
     if (orphans.length) out.attachments = await Attachments.deleteByOwners(orphans);
@@ -164,8 +178,14 @@ async function destroyAll() {
 /* ── Encrypted backup ─────────────────────────────────────────────────────────────
    { format, v, exportedAt, poc, keyring, sensitive: { key: envelope }, plain: envelope, attachments: [raw] }
    `sensitive` are the stored envelopes verbatim; `plain` is the non-sensitive keys bundled and
-   encrypted too, so the file contains no readable app data at all. Decrypting needs any user's PIN. */
+   encrypted too, so the file contains no readable app data at all. Decrypting needs any user's PIN.
+   v2 (entities pass): same envelope layout; the key set now includes org.profile · staff.list · patients.register ·
+   claims.batch.* · tariff.* · insurers.lastUsed and the keyring users carry `staffId`. A v1 file (license.list,
+   yearend.*, bigeup.profile.*, bigeup.tariff) restores unchanged — the unlock that follows the restore runs the
+   legacy → entity migration (core/entities.js, via Store.onUnlock), exactly like an in-place upgrade. */
 const BACKUP_FORMAT = "vibe.clinic-admin.backup";
+const BACKUP_VERSION = 2;
+const BACKUP_VERSIONS_ACCEPTED = [1, 2];
 
 async function exportBackup() {
   if (!Session.isUnlocked()) throw new Error("locked");
@@ -178,7 +198,7 @@ async function exportBackup() {
     else plain[k] = raw;
   }
   const bk = {
-    format: BACKUP_FORMAT, v: 1, exportedAt: new Date().toISOString(), poc: POC_MARK,
+    format: BACKUP_FORMAT, v: BACKUP_VERSION, exportedAt: new Date().toISOString(), poc: POC_MARK,
     keyring: Session.exportKeyring(),
     sensitive,
     plain: await encryptJSON(Session.key(), plain),
@@ -193,7 +213,7 @@ async function exportBackup() {
 function parseBackup(text) {
   let bk;
   try { bk = JSON.parse(text); } catch { throw new Error(t("lock.errNotJson")); }
-  if (!bk || bk.format !== BACKUP_FORMAT || bk.v !== 1 || !bk.keyring?.users?.length || !isEnvelope(bk.plain)) throw new Error(t("lock.errNotBackup"));
+  if (!bk || bk.format !== BACKUP_FORMAT || !BACKUP_VERSIONS_ACCEPTED.includes(bk.v) || !bk.keyring?.users?.length || !isEnvelope(bk.plain)) throw new Error(t("lock.errNotBackup"));
   return bk;
 }
 
@@ -209,9 +229,9 @@ async function restoreBackup(bk, userId, pin) {
   Session.importKeyring(bk.keyring);
   const user = bk.keyring.users.find(u => u.id === userId);
   Session.adopt(key, user);
-  await Store.whenUnlocked();
-  ActivityLog.add({ tag: "system", action: t("lifecycle.restoreAction", { at: bk.exportedAt }) });
-  return { keys: Object.keys(bk.sensitive || {}).length + Object.keys(plain || {}).length, attachments: (bk.attachments || []).length };
+  const r = await Store.whenUnlocked(); // ← runs the legacy → entity migration for a v1 file (r.hooks has the counts)
+  ActivityLog.add({ tag: "system", action: t("lifecycle.restoreAction", { at: bk.exportedAt }) + (bk.v < BACKUP_VERSION ? " · " + t("lifecycle.restoreMigrated", { v: bk.v }) : "") });
+  return { keys: Object.keys(bk.sensitive || {}).length + Object.keys(plain || {}).length, attachments: (bk.attachments || []).length, version: bk.v, migrated: r?.hooks || null };
 }
 
-export { REGISTRY, inventory, purgeExpired, destroy, destroyAll, exportBackup, parseBackup, restoreBackup, BACKUP_FORMAT };
+export { REGISTRY, inventory, purgeExpired, destroy, destroyAll, exportBackup, parseBackup, restoreBackup, BACKUP_FORMAT, BACKUP_VERSION };
