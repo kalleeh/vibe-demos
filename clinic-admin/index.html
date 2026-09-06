@@ -283,18 +283,18 @@
     <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-kcd" role="tabpanel">
       <div class="panel-head">
-        <span class="panel-num">01 · 진단코드 정비</span>
-        <h3>잘못된 진단코드, <em>청구 전</em>에 한 번 더</h3>
+        <span class="panel-num">01 · 상병코드 정비</span>
+        <h3>입력한 상병코드, <em>EDI 표준형</em>으로 한 번 더</h3>
         <div class="badges">
-          <span class="badge law">통계청 KCD-8 (2021)</span>
-          <span class="badge live">HIRA 심사조정 #1 = 상병명 부적합</span>
+          <span class="badge law">KOICD 상병마스터 · KCD-9 (2026-01-01 시행 — 확인 필요)</span>
+          <span class="badge live">심평원 심사조정 #1 = 상병 부적합</span>
         </div>
       </div>
       <p class="panel-blurb">
-        진단코드 하나가 옛날 형식이거나 빠지면 청구가 통째로 반려됩니다. EMR에서 뽑은 진단 대장을 올려두기만 하면 — <em>옛날 코드는 표준형으로</em>, <em>중복은 정리</em>, <em>빠진 한방 보조코드는 표시</em>. 청구 누르기 전 5분의 점검이 한 달 매출을 지킵니다.
+        EMR에서 뽑은 상병 대장을 올려두기만 하면 — <em>마침표·공백 섞인 입력형은 EDI 표준형(M545)으로</em>, <em>같은 명세서 안의 중복은 정리</em>, <em>비U 주상병 없이 홀로 선 한의 병증 U코드는 표시</em>, 그리고 최신 개정판 마스터에 없는 코드는 <em>미수록</em>으로. 청구 누르기 전 5분의 점검입니다.
       </p>
       <div class="demo-strip">
-        <span class="demo-label">처음이신가요? <strong>한방 다빈도 9건</strong>(요통·오십견·염좌 등)으로 정비 결과를 미리 보실 수 있습니다.</span>
+        <span class="demo-label">처음이신가요? <strong>한방 다빈도 10건</strong>(요통·오십견·염좌·U코드 등)으로 정비 결과를 미리 보실 수 있습니다.</span>
         <button type="button" class="demo-cta" data-action="run-kcd"><span class="play">▶</span> 샘플로 시연</button>
       </div>
 
@@ -312,31 +312,33 @@
             <p>엑셀 또는 CSV 파일을 끌어다 놓으세요</p>
             <span class="hint">.xlsx · .xls · .csv</span>
             <div class="drop-actions">
-              <button type="button" class="ghost" data-action="sample-kcd">샘플 파일 받기</button>
+              <button type="button" class="ghost" data-action="sample-kcd">샘플 파일 받기 (예시)</button>
             </div>
           </label>
           <div class="schema">
             <span class="label">필요한 컬럼 (헤더 1행)</span>
-            <code>환자번호</code> · <code>진료일자</code> · <code>진단명</code> · <code>KCD코드</code> · <code>비고</code>
+            <code>환자번호</code> · <code>진료일자</code> · <code>주/부상병</code> · <code>진단명</code> · <code>KCD코드</code> · <code>비고</code>
+            <br><span class="label" style="margin-top:6px">별칭 허용 — 상병구분/주부구분, 상병코드/상병기호, 상병명. 주/부상병 컬럼이 없으면 진료일자별 첫 비U 코드를 주상병으로 간주하고 경고합니다.</span>
           </div>
+          <div class="master-badge" id="kcd-master-badge"></div>
           <p class="caveat">
-            ※ 본 도구는 한방 다빈도 ~70개 KCD-8 코드의 발췌 마스터입니다. 마스터에 없는 코드는 <a class="small-link" href="https://www.koicd.kr" target="_blank" rel="noopener noreferrer">KOICD</a>에서 직접 확인해주세요. 한의 변증(U20-U99)은 양방 진단(M/G/K…)과 함께 입력되어야 EDI 청구가 통과합니다.
+            ※ 내장 표는 한방 다빈도 약 60개 상병의 <strong>발췌본(예시)</strong>이며 완전한 마스터가 아닙니다. 발췌본에 없는 코드는 <a class="small-link" href="https://www.koicd.kr" target="_blank" rel="noopener noreferrer">KOICD</a>에서 확인하거나, <strong>코드 검색 탭</strong>에서 KOICD 상병마스터(xlsx)를 업로드하면 실제 마스터로 대조합니다. 한의 병증 U코드(U20–U33, U50–U79)는 같은 명세서(환자번호+진료일자)에 비U 주상병이 있어야 청구가 통과합니다. U80–U89는 WHO 항생제 내성 코드입니다.
           </p>
         </div>
 
         <div class="card">
-          <h4><span class="step">02</span> 변환 결과</h4>
+          <h4><span class="step">02</span> 정비 결과</h4>
           <div id="kcd-status" class="status-line" style="display:none"></div>
           <div class="result-toolbar" id="kcd-toolbar" style="display:none">
             <div class="summary" id="kcd-summary"></div>
             <div class="actions">
               <button class="btn" id="kcd-download" disabled>
-                다운로드 <span class="arrow">↓</span>
+                상병코드 정리표 <span class="arrow">↓</span>
               </button>
             </div>
           </div>
           <div class="result" id="kcd-result">
-            <div class="empty-state">파일을 올리면 여기에 매핑 결과가 표시됩니다.</div>
+            <div class="empty-state">파일을 올리면 여기에 정비 결과가 표시됩니다.</div>
           </div>
         </div>
       </div>
@@ -347,46 +349,74 @@
     <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-jabo" role="tabpanel">
       <div class="panel-head">
-        <span class="panel-num">02 · 자보 EDI 정산</span>
-        <h3>보험사가 <em>왜 깎았는지</em>, 한눈에</h3>
+        <span class="panel-num">02 · 자보 심사결과 정산</span>
+        <h3>심평원이 <em>무엇을 조정했는지</em>, 명세서 단위로 대조</h3>
         <div class="badges">
-          <span class="badge law">국토교통부 고시</span>
-          <span class="badge live">HIRA 자보 EDI</span>
+          <span class="badge law">자동차보험진료수가 기준 (국토교통부 고시)</span>
+          <span class="badge live">심평원 자보 심사 · 이의제기</span>
         </div>
       </div>
       <p class="panel-blurb">
-        교통사고 환자 청구 후 보험사에서 <em>이만큼 못 드린다</em>고 답이 옵니다. 무엇이 왜 깎였는지 한 줄씩 대조하고, 보험사별·달별 추세까지 자동 집계. 같은 사유가 반복되면 <em>다음 달에는 미리 피할 수 있습니다</em>. 자보 매출이 큰 한방병원의 핵심 도구입니다.
+        2013년 7월부터 자보 진료수가는 병원이 <em>심평원(HIRA)에 명세서를 청구</em>하고 심평원이 <em>심사결과통보서</em>를 보내는 구조입니다. 조정에 대한 <em>이의제기도 보험사가 아닌 심평원</em>에 합니다. 청구 명세서 export와 심사결과 파일을 올리면 — 명세서번호+행위코드로 줄마다 <em>청구 vs 인정</em>을 대조하고, <em>조정사유별·월별</em>로 묶어 드립니다. 같은 사유가 반복되면 다음 달에는 미리 피할 수 있습니다.
       </p>
       <div class="demo-strip">
-        <span class="demo-label"><strong>경추·요추 염좌</strong> 통원 케이스 — 침술·부항·추나·약침에 보험사 지급내역과 삭감 사유까지 자동 채움.</span>
-        <button type="button" class="demo-cta" data-action="run-jabo"><span class="play">▶</span> 샘플 케이스로 시연</button>
+        <span class="demo-label"><strong>명세서 5건 · 행위 18줄</strong> 샘플(예시) — 동일부위 중복·추나 횟수 한도·첩약 처방일수·경상환자 4주 진단서 등 실제 조정 패턴을 대조표로 보여드립니다.</span>
+        <button type="button" class="demo-cta" data-action="run-jabo"><span class="play">▶</span> 샘플 파일로 시연</button>
       </div>
 
       <div class="work">
         <div class="card">
-          <h4><span class="step">01</span> 환자 · 청구 정보</h4>
-          <div class="form-grid">
-            <div class="field">
-              <label>환자명</label>
-              <input id="jabo-name" type="text" placeholder="홍길동">
+          <h4><span class="step">01</span> 파일 대조 — 청구 명세서 ⨝ 심사결과통보</h4>
+          <div class="process-note">
+            병원 → 심평원 <strong>자보 진료수가 명세서 청구</strong> → 심평원 <strong>심사결과통보</strong> → 조정 확인 → (필요시) <strong>심평원에 이의제기</strong>. 보험사·공제조합은 심평원 결정에 따라 지급합니다.
+          </div>
+          <div class="recon-drops">
+            <div>
+              <label class="drop" id="drop-jabo-claims">
+                <input type="file" accept=".xlsx,.xls,.csv">
+                <p>① 청구 명세서 export</p>
+                <span class="hint">명세서번호 · 환자번호 · 진료일자 · 행위코드 · 횟수 · 청구금액</span>
+                <div class="drop-actions"><button type="button" class="ghost" data-action="sample-jabo-claims">샘플 받기 (예시)</button></div>
+              </label>
+              <div class="recon-file" id="jabo-file-claims"></div>
             </div>
+            <div>
+              <label class="drop" id="drop-jabo-review">
+                <input type="file" accept=".xlsx,.xls,.csv">
+                <p>② 심평원 심사결과 파일</p>
+                <span class="hint">명세서번호 · 행위코드 · 인정횟수 · 인정금액 · 조정사유코드 · 조정사유</span>
+                <div class="drop-actions"><button type="button" class="ghost" data-action="sample-jabo-review">샘플 받기 (예시)</button></div>
+              </label>
+              <div class="recon-file" id="jabo-file-review"></div>
+            </div>
+          </div>
+          <div id="jabo-recon-status" class="status-line" style="display:none"></div>
+          <div class="result-toolbar" id="jabo-recon-toolbar" style="display:none">
+            <div class="summary" id="jabo-recon-summary"></div>
+            <div class="actions">
+              <button class="btn" id="jabo-recon-download" disabled>대조표 XLSX <span class="arrow">↓</span></button>
+            </div>
+          </div>
+          <div id="jabo-recon-groups"></div>
+          <div class="result" id="jabo-recon-result">
+            <div class="empty-state">두 파일을 올리면 명세서번호+행위코드로 결합한 대조표가 표시됩니다.</div>
+          </div>
+          <p class="caveat">
+            ※ 조정사유는 <strong>예시 분류</strong>(상병-처치 부위 불일치 · 동일부위 중복 산정 · 추나 횟수 한도 · 첩약 처방일수 · 경상환자 4주 진단서 미제출 · 통원기간 초과 · 초·재진 진찰료)로 묶습니다. 실제 심사결과통보서의 사유 표기를 우선하며, 이의제기 기한은 통보서 기준으로 확인하세요.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4><span class="step">02</span> 수기 단건 정산 <span style="font-weight:400; color:var(--muted); font-size:12px">— 파일이 없을 때</span></h4>
+          <div class="form-grid">
             <div class="field">
               <label>환자번호</label>
               <input id="jabo-pid" type="text" placeholder="2026-0142">
             </div>
             <div class="field">
-              <label>보험사</label>
+              <label>보험사 / 공제조합</label>
               <select id="jabo-insurer">
                 <option value="">— 선택 —</option>
-                <option value="DB">DB손해보험</option>
-                <option value="삼성">삼성화재</option>
-                <option value="현대">현대해상</option>
-                <option value="KB">KB손해보험</option>
-                <option value="메리츠">메리츠화재</option>
-                <option value="한화">한화손해보험</option>
-                <option value="롯데">롯데손해보험</option>
-                <option value="흥국">흥국화재</option>
-                <option value="기타">기타</option>
               </select>
             </div>
             <div class="field">
@@ -401,44 +431,40 @@
               <label>진료일자</label>
               <input id="jabo-date" type="date">
             </div>
-            <div class="field" style="grid-column: 1/-1">
-              <label>주 상병</label>
+            <div class="field">
+              <label>주상병 (EDI형)</label>
               <select id="jabo-dx"></select>
             </div>
           </div>
 
-          <h4 style="margin-top: 24px;"><span class="step">02</span> 행위·지급내역 입력</h4>
+          <div class="fee-badge" id="jabo-fee-badge"></div>
           <div class="item-search">
-            <input type="text" id="jabo-search" placeholder="시술 검색 — 예: 침술, 부항, 추나, 약침…">
+            <input type="text" id="jabo-search" placeholder="행위 검색 — 예: 침술, 부항, 추나, 약침…">
             <div class="item-search-results" id="jabo-search-results"></div>
           </div>
           <div class="items" id="jabo-items"></div>
 
           <div class="total-strip">
-            <span class="label">청구 vs 지급</span>
-            <span class="value">청구 <em id="jabo-total-num">0</em> · 지급 <em id="jabo-paid-num">0</em> · 삭감 <em id="jabo-cut-num">0</em> 원</span>
+            <span class="label">청구 vs 인정</span>
+            <span class="value">청구 <em id="jabo-total-num">0</em> · 인정 <em id="jabo-paid-num">0</em> · 조정 <em id="jabo-cut-num">0</em> 원</span>
           </div>
-        </div>
 
-        <div class="card">
-          <h4><span class="step">03</span> 정산표 생성</h4>
-          <div id="jabo-status" class="status-line" style="display:none"></div>
+          <div id="jabo-status" class="status-line" style="display:none; margin-top:12px"></div>
           <div class="result-toolbar">
             <div class="summary" id="jabo-summary">
-              <strong>0건</strong> 행위 · 청구 <strong>0원</strong> · 지급 <strong>0원</strong> · 삭감률 <strong>0%</strong>
+              <strong>0건</strong> 행위 · 청구 <strong>0원</strong> · 인정 <strong>0원</strong> · 조정률 <strong>0%</strong>
             </div>
             <div class="actions">
+              <button type="button" class="btn secondary" data-action="run-jabo-manual" title="예시 행위로 수기 케이스를 채웁니다">수기 샘플</button>
               <button class="btn secondary" id="jabo-new" title="환자·청구 정보와 행위 목록을 비우고 새 케이스를 시작합니다">새 케이스</button>
-              <button class="btn" id="jabo-download" disabled>
-                정산표 XLSX <span class="arrow">↓</span>
-              </button>
+              <button class="btn" id="jabo-download" disabled>정산표 XLSX <span class="arrow">↓</span></button>
             </div>
           </div>
           <div class="result" id="jabo-preview">
-            <div class="empty-state">행위와 지급내역을 입력하면 정산표가 표시됩니다.</div>
+            <div class="empty-state">행위와 인정금액을 입력하면 정산표가 표시됩니다.</div>
           </div>
           <p class="caveat">
-            ※ 삭감 사유 코드는 HIRA 심사조정 사유표 발췌본입니다. 정확한 사유는 보험사 지급내역서·HIRA 심사결과통보서를 우선 확인하세요.
+            ※ 내장 행위표는 <strong>예시 수가표</strong>입니다 — 코드는 '예시-NN' 자리표시자, 단가는 임의값. <strong>코드 검색 탭</strong>에서 심평원 행위·수가 마스터(xlsx)를 업로드하면 실제 코드·단가로 대체됩니다. 자보는 건강보험 행위 급여목록의 코드를 그대로 씁니다.
           </p>
         </div>
       </div>
@@ -717,29 +743,31 @@
     <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-search" role="tabpanel">
       <div class="panel-head">
-        <span class="panel-num">06 · 통합 코드 검색</span>
-        <h3>"요통" 한 단어로 — <em>진단·수가·비급여</em> 한 화면</h3>
+        <span class="panel-num">06 · 통합 코드 검색 · 마스터</span>
+        <h3>"요통" 한 단어로 — <em>상병·행위·비급여</em> 한 화면</h3>
         <div class="badges">
-          <span class="badge live">KCD-8 · 자보 · 비급여</span>
+          <span class="badge live">KCD · 행위·수가 · 비급여</span>
+          <span class="badge law">KOICD · 심평원 마스터 업로드</span>
         </div>
       </div>
       <p class="panel-blurb">
-        진단·수가·비급여를 매번 따로 찾아 헤매지 않아도 됩니다. <em>한글</em>·<em>코드</em>·<em>ㅇㅌ</em> 같은 초성까지 인식해서 — <em>한방 진단</em>과 그에 묶이는 <em>자보 수가</em>·<em>비급여 항목</em>을 한 화면에 모아드립니다. 결과는 엑셀로 바로 내려받습니다.
+        상병·행위·비급여를 매번 따로 찾아 헤매지 않아도 됩니다. <em>한글</em>·<em>코드</em>·<em>ㅇㅌ</em> 같은 초성까지 인식해서 한 화면에 모아드립니다. 내장 표는 <em>데모 발췌·예시</em>이므로, 아래에서 <em>KOICD 상병마스터</em>와 <em>심평원 행위·수가 마스터</em>를 올리면 정비·정산·검색·AI 탭이 모두 실제 마스터를 기준으로 동작합니다. 결과는 엑셀로 바로 내려받습니다.
       </p>
       <div class="demo-strip">
-        <span class="demo-label">예시 검색어 — <strong>"요통"</strong> 하나로 KCD 진단·자보 수가·비급여가 어떻게 묶이는지 보여드립니다.</span>
+        <span class="demo-label">예시 검색어 — <strong>"요통"</strong> 하나로 KCD 상병·행위 수가·비급여가 어떻게 묶이는지 보여드립니다.</span>
         <button type="button" class="demo-cta" data-action="run-search"><span class="play">▶</span> 예시 검색어로 시연</button>
       </div>
 
       <div class="search-hero">
-        <input id="search-input" type="search" placeholder="요통 · 추나 · BC0001 · ㅇㅈㅍ…" autocomplete="off">
+        <input id="search-input" type="search" placeholder="요통 · 추나 · S13.4 · ㅇㅈㅍ…" autocomplete="off">
         <div class="search-filters">
           <button class="filter-chip active" data-source="all">전체</button>
-          <button class="filter-chip" data-source="kcd">KCD 진단</button>
-          <button class="filter-chip" data-source="jabo">자보 수가</button>
+          <button class="filter-chip" data-source="kcd">KCD 상병</button>
+          <button class="filter-chip" data-source="jabo">행위·수가</button>
           <button class="filter-chip" data-source="bigeup">비급여</button>
         </div>
       </div>
+      <div class="source-badge" id="search-source-badge"></div>
 
       <div class="result-toolbar">
         <div class="summary" id="search-summary">검색어를 입력하세요.</div>
@@ -750,7 +778,32 @@
         </div>
       </div>
       <div class="result" id="search-result">
-        <div class="empty-state">예) "요통", "추나", "BC0001", "ㅇㅈ"</div>
+        <div class="empty-state">예) "요통", "추나", "S13.4", "ㅇㅈ"</div>
+      </div>
+
+      <div class="master-upload">
+        <div class="master-card">
+          <h5>상병 마스터 업로드 — KOICD</h5>
+          <p class="desc">KOICD에서 내려받은 상병마스터(xlsx). 컬럼 예: <code>상병기호</code> · <code>한글명</code> · <code>영문명</code> · <code>완전코드구분</code>. 올린 뒤 헤더를 매핑하면 정비·검색·AI 탭이 이 표를 기준으로 동작합니다. 공개 참조표이므로 이 브라우저(IndexedDB)에만 보관됩니다.</p>
+          <div class="master-status" id="master-status-kcd"></div>
+          <div class="master-actions">
+            <label class="btn secondary" for="master-file-kcd">xlsx 선택</label>
+            <input type="file" id="master-file-kcd" accept=".xlsx,.xls,.csv">
+            <button type="button" class="btn secondary" id="master-clear-kcd" disabled>업로드본 지우기</button>
+          </div>
+          <div class="master-map" id="master-map-kcd" hidden></div>
+        </div>
+        <div class="master-card">
+          <h5>행위·수가 마스터 업로드 — 심평원</h5>
+          <p class="desc">심평원 행위 급여·비급여 목록 및 수가 마스터(xlsx). 컬럼 예: <code>수가코드</code> · <code>한글명</code> · <code>단가</code> · <code>분류</code> · <code>급여구분</code> · <code>자보구분</code>. 올리면 자보 정산의 예시 수가표와 검색 결과가 실제 코드로 바뀌고, 급여/비급여/자보 표시가 함께 나옵니다.</p>
+          <div class="master-status" id="master-status-fee"></div>
+          <div class="master-actions">
+            <label class="btn secondary" for="master-file-fee">xlsx 선택</label>
+            <input type="file" id="master-file-fee" accept=".xlsx,.xls,.csv">
+            <button type="button" class="btn secondary" id="master-clear-fee" disabled>업로드본 지우기</button>
+          </div>
+          <div class="master-map" id="master-map-fee" hidden></div>
+        </div>
       </div>
     </section>
 
@@ -763,10 +816,11 @@
         <h3>코드 찾는 시간 30분 → <em>3분</em></h3>
         <div class="badges">
           <span class="badge">Claude AI · 한국어 그대로</span>
+          <span class="badge law">예시 목록 기준 — 마스터 업로드 시 마스터 기준</span>
         </div>
       </div>
       <p class="panel-blurb">
-        한의사·간호사가 적은 <em>진료 메모</em>를 그대로 붙여넣거나 <em>음성으로 받아쓰면</em> — AI가 진단코드·자보 수가·비급여 항목을 한꺼번에 골라드립니다. 추천마다 <em>왜 이 코드인지 근거</em>가 함께 나오니, 행정원장은 <em>맞는지 확인만</em> 하면 됩니다. 결정은 사람이, 검색은 AI가.
+        한의사·간호사가 적은 <em>진료 메모</em>를 그대로 붙여넣거나 <em>음성으로 받아쓰면</em> — AI가 상병(KCD)·한의 병증 U코드·행위 코드 초안을 한꺼번에 골라드립니다. 추천마다 <em>왜 이 코드인지 근거</em>와 <em>조정 주의점</em>(상병-처치 부위 일치, 추나 횟수 한도, 경상환자 4주 진단서, 첩약 처방일수, 초·재진 진찰료)이 함께 나오니, 원무팀은 <em>맞는지 확인만</em> 하면 됩니다. 결정은 사람이, 검색은 AI가.
       </p>
       <div class="demo-strip">
         <span class="demo-label">처음이신가요? <strong>"교통사고 후 경추·요추 통증"</strong> 메모로 — 메모 한 줄에서 청구 가능한 코드들이 어떻게 한 번에 나오는지 보여드립니다.</span>
@@ -802,7 +856,7 @@
             <div class="placeholder">메모를 입력하고 <em>코드 추천</em>을 누르면 결과가 여기에 표시됩니다.</div>
           </div>
           <p class="caveat">
-            ※ AI는 <em>찾아드리는 일</em>까지만 합니다. 청구 결정은 행정원의 몫이에요. 실제 청구 전에 <em>코드 정비</em>·<em>자보 정산</em> 탭에서 한 번 더 확인해주세요.
+            ※ AI는 <em>찾아드리는 일</em>까지만 합니다. 추천 코드는 <strong>예시 목록</strong>(내장 발췌·예시표) 기준이며, 코드 검색 탭에서 마스터를 업로드하면 마스터에 있는 코드만 제안합니다. 자보는 건강보험 행위 코드를 그대로 쓰고, 교통사고 환자에게는 비급여를 제안하지 않습니다. 청구 결정은 원무팀의 몫 — 실제 청구 전에 <em>상병코드 정비</em>·<em>자보 정산</em> 탭에서 한 번 더 확인해주세요.
           </p>
         </div>
       </div>
