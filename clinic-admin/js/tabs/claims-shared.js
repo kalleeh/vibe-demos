@@ -225,7 +225,7 @@ export const onClaimsChange = (fn) => EventBus.on(EV, fn);
 
 /* ── side views ── */
 // 상병 정비: one row per 상병 line, 명세서-aware. `rank` only when the file had a 주/부상병 column.
-export const kcdRowsOf = (batch) => (batch?.rows || []).flatMap(s => s.kcdCodes.map(k => ({
+export const kcdRowsOf = (batch) => (batch?.rows || []).flatMap(s => (s.kcdCodes || []).map(k => ({
   stmt: s.stmt, pid: s.pid, date: s.date, rank: batch.meta?.hasRank ? (k.primary ? "주" : "부") : "",
   dx: k.name || "", input: k.input || k.code, memo: k.memo || ""
 })));

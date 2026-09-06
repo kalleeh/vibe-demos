@@ -30,6 +30,8 @@ const walk = (file) => {
   const src = readFileSync(join(root, file), "utf8");
   for (const m of src.matchAll(/\bfrom\s+"(\.{1,2}\/[^"]+)"/g)) walk(relative(root, resolve(join(root, dirname(file)), m[1])));
   for (const m of src.matchAll(/\bimport\s+"(\.{1,2}\/[^"]+)"/g)) walk(relative(root, resolve(join(root, dirname(file)), m[1])));
+  // Same-origin files fetched at runtime by URL (the vendored PocketBase SDK: new URL("../../vendor/…", import.meta.url)).
+  for (const m of src.matchAll(/new URL\(\s*"(\.{1,2}\/[^"]+)"\s*,\s*import\.meta\.url\s*\)/g)) loaded.add(relative(root, resolve(join(root, dirname(file)), m[1])));
   for (const m of src.matchAll(/loadJSON\(\s*"\.\/([^"]+)"/g)) loaded.add(m[1]);
   for (const m of src.matchAll(/fetch\(\s*"\.\/([^"]+)"/g)) loaded.add(m[1]);
 };

@@ -1,4 +1,4 @@
-/* clinic-admin — 접수 보드 (PocketBase realtime, local-first fallback) — END-TO-END ENCRYPTED.
+/* clinic-admin — 접수 보드 (PocketBase realtime, local-first fallback) — END-TO-END ENCRYPTED, MEMBERS ONLY.
 
    ============================================================
    LIVE SHARED INTAKE BOARD — PocketBase realtime showcase
@@ -8,32 +8,30 @@
    ⚠ PURE DEMO DATA. Every card references a PSEUDONYMOUS patient from
    the shared register (core/entities.js Patients): #intake-name is a
    <select> over Patients.list() (P-2026-0142 → "환자 ****0142") plus
-   "새 가명 환자". No name is ever typed or stored. Since the security
-   pass the card body is nevertheless ENCRYPTED CLIENT-SIDE with the
-   workspace master key before it is uploaded, to prove the pattern:
-   the server never sees a pid or a summary.
+   "새 가명 환자". No name is ever typed or stored. The card body is
+   ENCRYPTED CLIENT-SIDE with the clinic master key before it is
+   uploaded: the server never sees a pid or a summary.
+
+   Shared identity (step A): ONE clinic instance. The client is the
+   authenticated Cloud client (js/security/cloud.js — the PIN login of
+   the lock screen); the server rule `@request.auth.id != ""` on every
+   intake_card action is the gate (pb_migrations/005_cloud_identity.js),
+   realtime honours it per connection. The per-device `ws` hash of the
+   previous design is gone — one clinic = one key = one board.
 
    Collection: intake_card (base) — https://clinic-admin.pb.gurum.se/_/
-     ws        (text, required, max 64)  — sha256(workspaceId): routes cards to a workspace,
-                                            reveals nothing about it
      payload   (json, max 4096)           — { v:1, iv, ct } AES-GCM over { pid, summary } (older cards: { name, summary })
      status    (text, required, max 12)   — 대기 | 진료중 | 완료 (plaintext: column placement only)
-     player_id (text, max 64)             — anonymous UUID, "added by you" marker, NOT auth
-     Rules: list="" view="" create="" update="" delete=""   (see pb_migrations/004_intake_e2e.js
-            for the residual-risk note and the Tier-3 path)
+     player_id (text, max 64)             — anonymous device UUID, "added by you" marker, NOT auth
+     ws        (text, optional, legacy)   — pre-cloud rows only; not written any more
+     Rules: list/view/create/update/delete = @request.auth.id != ""
 
-   Realtime: subscribe('*', …, { filter: ws = <ours> }) — only this
-   workspace's rows arrive. Rows that do not decrypt (another
-   workspace, tampering, garbage written through the open create rule)
-   are hidden and counted: "다른 워크스페이스 카드 N".
+   Rows that do not decrypt (pre-cloud rows encrypted with a device
+   key, tampering) are hidden and counted: "다른 워크스페이스 카드 N".
 
-   Local mode: cards live in Store key `intake-cards`, which is in the
-   SENSITIVE_KEYS policy → AES-GCM envelope in localStorage.
-
-   Supply chain: the PocketBase SDK is fetched, its SHA-384 compared to
-   the pinned hash (dynamic import() cannot carry an integrity
-   attribute), and only then imported from a blob URL. A mismatch keeps
-   the board in local mode.
+   Local mode (server unreachable / not logged in): cards live in Store
+   key `intake-cards`, which is in the SENSITIVE_KEYS policy → AES-GCM
+   envelope in localStorage.
 
    i18n: status VALUES stay Korean (server column + Store), only the labels/buttons go through t();
    the fictional seed summaries are sample data and stay Korean on purpose.
@@ -44,36 +42,15 @@ import { Store, EventBus } from "./core/store.js";
 import { Patients } from "./core/entities.js";
 import { activateTab } from "./core/nav.js";
 import { Session } from "./security/session.js";
-import { encryptJSON, decryptJSON, sha256hex, sha384b64, isEnvelope } from "./security/crypto.js";
+import { Cloud } from "./security/cloud.js";
+import { encryptJSON, decryptJSON, isEnvelope } from "./security/crypto.js";
 
-const PB_URL = "https://clinic-admin.pb.gurum.se";
-const PB_ESM = "https://cdn.jsdelivr.net/npm/pocketbase@0.28.1/dist/pocketbase.es.mjs";
-// sha384 of the pinned file above (curl + openssl dgst -sha384 -binary | base64, 2026-09-06)
-const PB_ESM_SRI = "sha384-+CEHLdvG3y8opDX+t0ebtelkKG4Gbt730x7qJtt7zgO5jC8MXhUwgSoR9cPhFFJc";
 const STATUSES = ["대기", "진료중", "완료"];
 const LS_LOCAL = "intake-cards"; // Store key (sensitive → encrypted)
 const statusLabel = (st) => t("board.status." + st);
 
-let pb = null, online = false, _pbPromise = null, _sub = null, wsHash = null;
-
-async function loadPBModule() {
-  const r = await fetch(PB_ESM, { cache: "force-cache" });
-  if (!r.ok) throw new Error("sdk " + r.status);
-  const buf = await r.arrayBuffer();
-  const got = "sha384-" + await sha384b64(buf);
-  if (got !== PB_ESM_SRI) { console.warn("PocketBase SDK integrity mismatch — board stays local", got); throw new Error("sri"); }
-  const url = URL.createObjectURL(new Blob([buf], { type: "text/javascript" }));
-  try { return await import(url); } finally { URL.revokeObjectURL(url); }
-}
-function getPB() {
-  if (pb) return Promise.resolve(pb);
-  if (!_pbPromise) {
-    _pbPromise = loadPBModule()
-      .then((m) => { pb = new m.default(PB_URL); return pb; })
-      .catch(() => { _pbPromise = null; return null; });
-  }
-  return _pbPromise;
-}
+let online = false, _sub = null, connecting = null;
+const getPB = () => Cloud.getPB().catch(() => null);
 
 // Anonymous identity — NOT access control. Only tags which device
 // created a card so the UI can show an "added by you" marker.
@@ -295,7 +272,7 @@ async function rebuildFromRecords(flashId) {
 
 function persistIfLocal() { if (!online) saveLocal(Array.from(cards.values())); }
 
-const toServerBody = async (c) => ({ ws: wsHash, payload: await sealCard(c), status: c.status, player_id: c.player_id || "" });
+const toServerBody = async (c) => ({ payload: await sealCard(c), status: c.status, player_id: c.player_id || "" });
 
 // ── Mutations: try backend, fall back to local ──
 async function advanceCard(id) {
@@ -383,60 +360,65 @@ function goLocal() {
   online = false; setSync(false, "board.syncLocalEnc");
   try { _sub?.(); } catch {} _sub = null;
   setForeign(0);
+  bootLocal();
 }
 
-// ── Boot: health check once, then either go live or run local ──
+/* ── Connect: authenticated → list + realtime; otherwise local. Re-run on every unlock (a fresh login = a fresh token,
+   and the realtime subscription must carry it). ── */
+async function connect() {
+  if (connecting) return connecting;
+  connecting = (async () => {
+    try { _sub?.(); } catch {} _sub = null;
+    online = false;
+    if (!Session.isUnlocked() || !Cloud.isAuthed()) { bootLocal(); return; }
+    let c = null;
+    try { c = await getPB(); if (c) { await c.health.check(); online = true; } } catch (e) { online = false; }
+    if (!online || !c) { bootLocal(); return; }
+    setSync(true, "board.syncLive");
+    try {
+      const rows = await c.collection("intake_card").getFullList({ sort: "created" });
+      records = new Map(rows.map((r) => [r.id, r]));
+      // First run of the INSTANCE: plant the fictional samples (encrypted under the clinic key).
+      if (records.size === 0) {
+        ensureSeedPatients();
+        for (const s of seedCards()) {
+          try { await c.collection("intake_card").create(await toServerBody(s)); } catch (e) {}
+        }
+        const seeded = await c.collection("intake_card").getFullList({ sort: "created" });
+        records = new Map(seeded.map((r) => [r.id, r]));
+      }
+      await rebuildFromRecords();
+      // Realtime: live create/update/delete across every logged-in screen (the server rule gates per connection).
+      _sub = await c.collection("intake_card").subscribe("*", (e) => {
+        if (e.action === "delete") records.delete(e.record.id);
+        else records.set(e.record.id, e.record);
+        rebuildFromRecords(e.action === "create" || e.action === "update" ? e.record.id : null);
+      });
+    } catch (e) { online = false; setSync(false, "board.syncLocalEnc"); setForeign(0); bootLocal(); }
+  })().finally(() => { connecting = null; });
+  return connecting;
+}
+
+// ── Boot: wire once, then connect (again after every unlock) ──
 async function boot() {
   // Wire add controls immediately (work in every mode).
   const btn = $id("intake-add-btn");
   if (btn) btn.addEventListener("click", addCard);
   const sumEl = $id("intake-summary");
   if (sumEl) sumEl.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addCard(); } });
-  // After a re-unlock the key is back: re-decrypt whatever we hold.
-  EventBus.on("session:unlocked", () => { renderPicker(); if (online) rebuildFromRecords(); else bootLocal(); });
+  // After a (re-)unlock the key and a fresh token are back: reconnect (or re-decrypt locally).
+  EventBus.on("session:unlocked", () => { renderPicker(); connect(); });
+  EventBus.on("session:locked", () => { try { _sub?.(); } catch {} _sub = null; online = false; });
   // Register changes (any tab) → picker + card labels follow.
   Patients.onChange(() => { renderPicker(); render(); });
   renderPicker();
   // Language toggle: same cards, new labels (applyStatic already reset the static sync text → repaint it).
   onLangChange(() => { setSync(syncOn, syncKey); setForeign(foreign); renderPicker(); render(); });
-
-  const wsId = Session.workspaceId();
-  wsHash = wsId ? await sha256hex(wsId) : null;
-
-  let c = null;
-  try { c = await getPB(); if (c) { await c.health.check(); online = true; } } catch (e) { online = false; }
-
-  if (online && c && wsHash) {
-    setSync(true, "board.syncLive");
-    try {
-      const filter = c.filter("ws = {:ws}", { ws: wsHash });
-      const rows = await c.collection("intake_card").getFullList({ sort: "created", filter });
-      records = new Map(rows.map((r) => [r.id, r]));
-      // First-run seed for THIS workspace: plant the fictional samples (encrypted).
-      if (records.size === 0) {
-        ensureSeedPatients();
-        for (const s of seedCards()) {
-          try { await c.collection("intake_card").create(await toServerBody(s)); } catch (e) {}
-        }
-        const seeded = await c.collection("intake_card").getFullList({ sort: "created", filter });
-        records = new Map(seeded.map((r) => [r.id, r]));
-      }
-      await rebuildFromRecords();
-      // Realtime: live create/update/delete across all open screens — this workspace only.
-      _sub = await c.collection("intake_card").subscribe("*", (e) => {
-        if (e.action === "delete") records.delete(e.record.id);
-        else records.set(e.record.id, e.record);
-        rebuildFromRecords(e.action === "create" || e.action === "update" ? e.record.id : null);
-      }, { filter });
-      return;
-    } catch (e) { goLocal(); }
-  }
-
-  bootLocal();
+  await connect();
 }
 
 function bootLocal() {
-  // Local-first path (no backend / offline / CDN down / integrity mismatch / no workspace).
+  // Local-first path (no backend / offline / not logged in / SDK integrity mismatch).
   setSync(false, "board.syncLocalEnc");
   const stored = loadLocal();
   const list = (stored && stored.length) ? stored : seedCards();
@@ -446,6 +428,6 @@ function bootLocal() {
 }
 
 // Expose for quick console checks.
-window.__intake = { getPB, get pb() { return pb; }, get online() { return online; }, playerId, get cards() { return cards; }, get foreign() { return foreign; } };
+window.__intake = { getPB, get online() { return online; }, playerId, get cards() { return cards; }, get foreign() { return foreign; }, connect };
 
-export { boot, getPB, playerId };
+export { boot, getPB, playerId, connect };

@@ -1,5 +1,5 @@
 /* clinic-admin — minimal offline shell SW */
-const CACHE = "vibe-clinic-admin-v32";
+const CACHE = "vibe-clinic-admin-v33";
 // Every same-origin file the page loads. Verified against the tree by tools/check-sw-shell.mjs.
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
@@ -19,7 +19,7 @@ const SHELL = [
   "./js/i18n/ko.reporting.js", "./js/i18n/en.reporting.js",
   "./js/i18n/ko.ia.js", "./js/i18n/en.ia.js",
   "./js/i18n/ko.patients.js", "./js/i18n/en.patients.js", "./js/i18n/ko.claims2.js", "./js/i18n/en.claims2.js", "./js/i18n/ko.kpi.js", "./js/i18n/en.kpi.js",
-  "./js/security/crypto.js", "./js/security/session.js", "./js/security/redact.js",
+  "./js/security/crypto.js", "./js/security/cloud.js", "./js/security/session.js", "./js/security/redact.js",
   "./js/security/lifecycle.js", "./js/security/lockscreen.js",
   "./js/tabs/reporting-shared.js", "./js/tabs/claims-shared.js", "./js/tabs/claims-landing.js",
   "./js/tabs/patients-shared.js", "./js/tabs/tab-guarantee.js", "./js/tabs/tab-docs.js", "./js/tabs/tab-consent.js", "./js/tabs/tab-nhis.js", "./js/tabs/tab-appeal.js",
@@ -27,7 +27,7 @@ const SHELL = [
   "./js/tabs/tab3-yearend.js", "./js/tabs/tab4-bigeup.js", "./js/tabs/tab5-retention.js",
   "./js/tabs/tab6-search.js", "./js/tabs/tab7-ai.js", "./js/tabs/tab7-prompt.js",
   "./js/tabs/tab8-license.js", "./js/tabs/tab9-accred.js",
-  "./vendor/xlsx.full.min.js",
+  "./vendor/xlsx.full.min.js", "./vendor/pocketbase.es.mjs",
   "./data/kcd9.json",
   "./data/jabo.json",
   "./data/jabo-sample-claims.json",
@@ -51,11 +51,11 @@ self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
   // Never intercept cross-origin requests — PocketBase API/realtime
-  // (clinic-admin.pb.gurum.se), the PB SDK ESM (jsdelivr), Tesseract.js
-  // (jsdelivr, too large to precache — OCR is online-only), the Claude
-  // proxy (ai.pb.gurum.se), etc. Let them hit the network untouched so the
-  // live intake board and AI calls are always fresh and the SW never caches
-  // stale data. SheetJS is vendored (./vendor) and precached above.
+  // (clinic-admin.pb.gurum.se), Tesseract.js (jsdelivr, too large to
+  // precache — OCR is online-only), the Claude proxy (ai.pb.gurum.se), etc.
+  // Let them hit the network untouched so the live intake board and AI calls
+  // are always fresh and the SW never caches stale data. SheetJS and the
+  // PocketBase SDK are vendored (./vendor) and precached above.
   if (new URL(req.url).origin !== self.location.origin) return;
   if (req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html")) {
     e.respondWith(

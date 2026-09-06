@@ -14,8 +14,9 @@ import { Session } from "../security/session.js";
    · expiry = reported + 3y when the last 신고일 is known, = acquired + 3y flagged basis:"acquired"
      ("신고 이력 미확인") otherwise, = "" for jobs with no 신고 duty (행정 · 원무 · 기타). Computed by Staff.
    · 면허증 OCR reads 면허번호 + 취득일 — a card never shows a 신고일.
-   · 로그인 column: a row may carry a workspace login (PIN) — issue / revoke is 원장 only; "원장 권한" marks the
-     login that administers the workspace. The 사용자 panel is a view over the same rows.
+   · 로그인 column: a row may carry a SERVER login (shared identity: Staff.issueLogin → Cloud.createUser with a temp PIN,
+     the person sets their own PIN at first login) — issue / revoke is 원장 only; "원장 권한" marks the logins that
+     administer the workspace. The 사용자 panel is the server directory joined with these rows.
    i18n: job VALUES stay Korean (stored); labels, laws and association names resolve through
    common.roleShort.* / license.law.* / license.org.* so the register, .ics and share text follow the language.
    ───────────────────────────────────────────────────────── */
@@ -173,12 +174,13 @@ export function init() {
           showLogin(row);
         } else if (b.dataset.act === "revoke") {
           if (!confirm(t("license.confirmRevoke", { who: Staff.ref(row) }))) return;
-          try {
-            Staff.revokeLogin(id);
+          b.disabled = true;
+          // Server call (DELETE /api/clinic/users/{id}) — async; the roster re-renders on Staff.onChange.
+          Staff.revokeLogin(id).then(() => {
             ActivityLog.push("license", t("license.logLoginRevoked"), subj(row));
             Toast.show({ tag: "license", html: esc(t("license.loginRevokedToast", { who: Staff.ref(row) })) });
             Haptic.del();
-          } catch (err) { Toast.show({ tag: "license", html: esc(err.message || String(err)) }); Haptic.warn(); }
+          }).catch((err) => { b.disabled = false; Toast.show({ tag: "license", html: esc(err.message || String(err)) }); Haptic.warn(); });
         }
       });
     });

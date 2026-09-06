@@ -1,16 +1,18 @@
-/* clinic-admin — security UI: lock screen (first-run setup / unlock / backup restore / PIN 재확인), idle +
-   visibility + absolute-expiry auto-lock, the 사용자 panel, the 데이터 처리 현황 panel, the PoC banner and the
-   topbar user chip. Import position: files/lifecycle → lockscreen → shell (never imported by core/ or tabs/).
+/* clinic-admin — security UI: lock screen (instance bootstrap / server PIN unlock / forced new PIN / offline /
+   backup restore / PIN 재확인), idle + visibility + absolute-expiry auto-lock, the 사용자 panel, the 데이터 처리 현황
+   panel, the PoC banner and the topbar user chip. Import position: files/lifecycle → lockscreen → shell (never
+   imported by core/ or tabs/).
 
-   Boot contract: shell.boot() awaits Lock.ready() before loading data and initialising tabs, so
-   every tab always starts with an unlocked Store. Lock.init() covers the shell at once, then asks
-   Session.restore() to resume from the IndexedDB session record; only when that fails does a pane
-   (setup / unlock) appear — a resumed session never sees the PIN pane. Later locks just drop the key
-   + cover the UI; the next unlock re-decrypts and re-emits `store:<key>` so tab renders refresh.
-   Re-auth: Session.requireRaw() (login issue · PIN reset) calls the "PIN 재확인" dialog registered here
-   via Session.setReauthPrompt — the current user's PIN, same backoff as the lock screen.
-   i18n: every string goes through t(); the lock screen works while locked because core/i18n.js is a leaf
-   (plain localStorage, not a Store key). onLangChange re-paints whatever pane/panel is open. */
+   Boot contract: shell.boot() awaits Lock.ready() before loading data and initialising tabs, so every tab always
+   starts with an unlocked Store. Lock.init() covers the shell at once and asks Session.restore() to resume from the
+   IndexedDB session record (no PIN, no server); only when that fails does it ask the server (Session.probe) which pane
+   to show:  unreachable → "offline" (retry) · no workspace yet → "setup" (bootstrap the instance, optionally from this
+   device's legacy keyring) · bootstrapped → "unlock" (directory dropdown + PIN). A temp-PIN login lands on "newpin"
+   before the app opens. Later locks just drop the key + cover the UI; the next unlock re-decrypts and re-emits
+   `store:<key>` so tab renders refresh.
+   Re-auth: Session.requireRaw() (login issue · PIN reset) calls the "PIN 재확인" dialog registered here via
+   Session.setReauthPrompt — the current user's PIN checked offline against the cached wrapped key, same backoff.
+   i18n: every string goes through t(); the lock screen works while locked because core/i18n.js is a leaf. */
 import { $, $$, esc, Toast, Dialog, relTime, roleLabel } from "../core/ui.js";
 import { t, getLang, onLangChange } from "../core/i18n.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
@@ -18,12 +20,15 @@ import { downloadCSV } from "../core/files.js";
 import { activateTab } from "../core/nav.js";
 import { Staff, JOB_FOR_SYSROLE } from "../core/entities.js";
 import { Session } from "./session.js";
+import { Cloud } from "./cloud.js";
 import { inventory, purgeExpired, destroy, destroyAll, exportBackup, parseBackup, restoreBackup } from "./lifecycle.js";
 
 const HIDDEN_LOCK_MS = 60000;
 const fmtDT = (ts) => ts ? new Date(ts).toLocaleString(getLang() === "en" ? "en-GB" : "ko-KR", { hour12: false }) : "—";
 // Typed confirmation for 전체 파기 — the Korean word in both languages, plus DESTROY for the English reviewer.
 const isDestroyWord = (s) => { const v = String(s ?? "").trim(); return v === "파기" || v.toUpperCase() === "DESTROY"; };
+const PANES = ["setup", "unlock", "restore", "offline", "newpin"];
+const TITLE_KEY = { setup: "lock.title.setup", restore: "lock.title.restore", offline: "lock.title.offline", newpin: "lock.title.newpin" };
 
 /* ─────────────────────────── Lock screen ─────────────────────────── */
 const Lock = (() => {
@@ -31,23 +36,25 @@ const Lock = (() => {
   let readyResolve;
   const ready = new Promise(res => { readyResolve = res; });
   let booted = false, selectedUser = null, countdownT = null, idleT = null, hiddenT = null, expiryT = null, hiddenAt = 0, lastReset = 0;
-  let restoreBk = null, pane = "unlock", reason = "", backoffShown = false;
-  let created = false; // this page load created the workspace → shell shows the 기관 정보 first-run step
+  let restoreBk = null, pane = "none", reason = "", backoffShown = false, probeSeq = 0, lastProbeErr = null;
+  let created = false; // this page load bootstrapped the instance → shell shows the 기관 정보 first-run step
 
   function closeAllDialogs() {
     $$(".welcome-scrim.open, .search-scrim.open, .lightbox.open").forEach(s => Dialog.close(s));
     document.body.classList.remove("more-open");
     EventBus.emitLocal("shell:closeAll", true); // shell: ⋯ sheet + AI drawer
   }
-  // "none" = scrim up, no pane (the moment between boot and Session.restore() deciding).
+  // "none" = scrim up, no pane (while Session.restore() / the server probe decide).
   function showPane(name) {
     pane = name;
-    ["setup", "unlock", "restore"].forEach(p => { const el = $(`#lock-${p}`); if (el) el.hidden = p !== name; });
+    PANES.forEach(p => { const el = $(`#lock-${p}`); if (el) el.hidden = p !== name; });
+    const lg = $("#setup-legacy"); if (lg && name !== "setup") lg.hidden = true; // renderLegacy() decides on the setup pane
     const tt = $("#lock-title");
-    if (tt) tt.innerHTML = t(name === "setup" ? "lock.title.setup" : name === "restore" ? "lock.title.restore" : "lock.title.locked");
+    if (tt) tt.innerHTML = t(TITLE_KEY[name] || "lock.title.locked");
     if (name === "unlock") renderHint();
   }
   function setErr(id, msg) { const el = $(id); if (!el) return; el.textContent = msg || ""; el.hidden = !msg; }
+  function setBusy(msg) { const el = $("#lock-busy"); if (!el) return; el.textContent = msg || ""; el.hidden = !msg; }
   const absLabel = () => { const mode = Session.sessionMode(); return mode === "tab" ? t("users.sessionTab") : t("lock.hours", { h: parseInt(mode, 10) }); };
   function renderReason() {
     const why = $("#lock-reason"); if (!why) return;
@@ -55,7 +62,8 @@ const Lock = (() => {
       : reason === "hidden" ? t("lock.reasonHidden")
       : reason === "manual" ? t("lock.reasonManual")
       : reason === "expired" ? t("lock.reasonExpired", { abs: absLabel() })
-      : reason === "peer" ? t("lock.reasonPeer") : "";
+      : reason === "peer" ? t("lock.reasonPeer")
+      : reason === "revoked" ? t("lock.reasonRevoked") : "";
     why.hidden = !why.textContent;
   }
   // Unlock pane: one line that states the persistence contract with the CURRENT settings.
@@ -64,18 +72,23 @@ const Lock = (() => {
     const m = Session.autolockMin();
     el.textContent = Session.sessionMode() === "tab" ? t("lock.persistHintTab", { m }) : t("lock.persistHint", { abs: absLabel(), m });
   }
+  function renderClinic() {
+    const el = $("#lock-clinic"); if (!el) return;
+    const ws = Session.workspace();
+    el.textContent = ws?.name ? t("lock.clinicLine", { name: ws.name, host: Cloud.url().replace(/^https?:\/\//, "") }) : "";
+    el.hidden = !el.textContent;
+  }
 
+  /* Unlock pane — the server directory as a dropdown (name · role). */
   function renderUsers() {
-    const list = $("#lock-users"); if (!list) return;
+    const sel = $("#lock-user"); if (!sel) return;
     const users = Session.users();
     if (!users.find(u => u.id === selectedUser)) selectedUser = users[0]?.id || null;
-    list.innerHTML = users.map(u => `
-      <button type="button" class="lock-user${u.id === selectedUser ? " sel" : ""}" data-id="${esc(u.id)}" role="radio" aria-checked="${u.id === selectedUser}">
-        <span class="lu-name">${esc(u.name)}</span><span class="lu-role">${esc(roleLabel(u.role))}</span>
-      </button>`).join("");
-    list.querySelectorAll(".lock-user").forEach(b => b.addEventListener("click", () => {
-      selectedUser = b.dataset.id; renderUsers(); $("#lock-pin")?.focus(); setErr("#lock-err", ""); armBackoff();
-    }));
+    sel.innerHTML = users.map(u => `<option value="${esc(u.id)}">${esc(u.name)} · ${esc(roleLabel(u.role))}</option>`).join("");
+    if (selectedUser) sel.value = selectedUser;
+    sel.disabled = !users.length;
+    const empty = $("#lock-users-empty"); if (empty) empty.hidden = users.length > 0;
+    renderClinic();
   }
   // Disable the submit while the selected user is in backoff; show a live countdown.
   function armBackoff() {
@@ -90,6 +103,46 @@ const Lock = (() => {
     tick();
     countdownT = setInterval(tick, 250);
   }
+  /* Setup pane: the bootstrap-from-legacy offer when this device still has a pre-cloud keyring. */
+  function renderLegacy() {
+    const box = $("#setup-legacy"); if (!box) return;
+    const legacy = Session.legacy();
+    box.hidden = !legacy;
+    if (!legacy) return;
+    const owners = legacy.users.filter(u => u.role === "원장");
+    const list = owners.length ? owners : legacy.users;
+    const sel = $("#legacy-user");
+    if (sel) sel.innerHTML = list.map(u => `<option value="${esc(u.id)}">${esc(u.name)} · ${esc(roleLabel(u.role))}</option>`).join("");
+    const note = $("#legacy-note"); if (note) note.textContent = t("lock.legacyNote", { n: legacy.users.length });
+  }
+
+  /* No session to resume → ask the server which pane applies. */
+  async function decidePane() {
+    const seq = ++probeSeq;
+    showPane("none");
+    setBusy(t("lock.connecting"));
+    const r = await Session.probe();
+    if (seq !== probeSeq || Session.isUnlocked()) return; // a newer probe / a resume won
+    setBusy("");
+    lastProbeErr = r.error || null;
+    if (!r.reachable) {
+      showPane("offline");
+      setErr("#offline-err", t(r.error?.code === "sri" || /sri|sdk/.test(r.error?.message || "") ? "cloud.errSdk" : "cloud.errOffline", { s: r.error?.status || 0 }));
+      const host = $("#offline-host"); if (host) host.textContent = Cloud.url();
+      return;
+    }
+    if (!r.workspace?.bootstrapped) {
+      showPane("setup");
+      renderLegacy();
+      const clinic = $("#setup-clinic");
+      if (clinic && !clinic.value) { try { clinic.value = Store.get("org.profile")?.name || ""; } catch {} }
+      // Focus synchronously — a deferred focus would steal keystrokes already going into another field.
+      $(clinic?.value ? "#setup-name" : "#setup-clinic")?.focus();
+      return;
+    }
+    showPane("unlock"); renderUsers(); armBackoff();
+    $("#lock-pin")?.focus();
+  }
 
   function open(why) {
     const sc = scrim(); if (!sc) return;
@@ -99,15 +152,15 @@ const Lock = (() => {
     sc.classList.add("open");
     reason = why || "";
     renderReason();
-    if (Session.exists()) { showPane("unlock"); renderUsers(); armBackoff(); setTimeout(() => $("#lock-pin")?.focus(), 30); }
-    else { showPane("setup"); setTimeout(() => $("#setup-name")?.focus(), 30); }
     $$("#lock-scrim input[type=password]").forEach(i => { i.value = ""; });
     updateChip();
+    decidePane();
   }
   function close() {
     const sc = scrim(); if (!sc) return;
     sc.classList.remove("open");
     document.body.classList.remove("locked");
+    setBusy("");
     const shell = $(".frame.shell"); if (shell) shell.inert = false;
     updateChip();
   }
@@ -214,37 +267,75 @@ const Lock = (() => {
     sel.innerHTML = restoreBk.keyring.users.map(u => `<option value="${esc(u.id)}">${esc(u.name)} · ${esc(roleLabel(u.role))}</option>`).join("");
     if (cur) sel.value = cur;
   }
+  // Server / PIN errors of the lock screen forms → one readable line.
+  const errText = (err, fallbackKey) => err?.code === "pin-format" ? t("lock.errPinFormat") : err?.code === "wrong-pin" ? t("lock.errWrongPin") : (err?.message || t(fallbackKey));
 
   /* ── wiring ── */
   function wire() {
-    // Setup
+    // Setup = bootstrap the instance (clinic name · first 원장 · PIN)
     $("#lock-setup")?.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const name = $("#setup-name").value.trim(), role = $("#setup-role").value, pin = $("#setup-pin").value, pin2 = $("#setup-pin2").value;
+      const clinic = $("#setup-clinic").value.trim(), name = $("#setup-name").value.trim(), pin = $("#setup-pin").value, pin2 = $("#setup-pin2").value;
       if (pin !== pin2) { setErr("#setup-err", t("lock.errPinMismatch")); return; }
+      setErr("#setup-err", "");
       const btn = $("#setup-submit"); btn.disabled = true; btn.textContent = t("lock.creating");
       try {
-        await Session.create({ name, role, pin });
+        await Session.bootstrap({ workspaceName: clinic, name, pin });
         created = true;
-      } catch (err) { setErr("#setup-err", err.message || String(err)); }
+      } catch (err) { setErr("#setup-err", errText(err, "lock.errUnlock")); }
       finally { btn.disabled = false; btn.textContent = t("lock.createBtn"); }
     });
-    // Unlock
+    // Setup — bootstrap FROM this device's legacy workspace (same master key → local data stays readable)
+    $("#lock-legacy-form")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const legacyUserId = $("#legacy-user").value, oldPin = $("#legacy-old-pin").value, newPin = $("#legacy-new-pin").value, newPin2 = $("#legacy-new-pin2").value;
+      const clinic = $("#setup-clinic").value.trim();
+      if (newPin !== newPin2) { setErr("#legacy-err", t("lock.errPinMismatch")); return; }
+      setErr("#legacy-err", "");
+      const btn = $("#legacy-submit"); btn.disabled = true; btn.textContent = t("lock.creating");
+      try {
+        const r = await Session.bootstrapFromLegacy({ workspaceName: clinic, legacyUserId, oldPin, newPin: newPin || null });
+        created = true;
+        Toast.show({ tag: "system", ttl: 12000, html: t("lock.legacyDoneToast", { name: esc(r.user.name), n: r.skipped }) });
+      } catch (err) { setErr("#legacy-err", err.code === "wrong-pin" ? t("lock.errLegacyPin") : errText(err, "lock.errUnlock")); }
+      finally { btn.disabled = false; btn.textContent = t("lock.legacyBtn"); }
+    });
+    // Unlock (server PIN auth)
+    $("#lock-user")?.addEventListener("change", (e) => { selectedUser = e.target.value; setErr("#lock-err", ""); armBackoff(); $("#lock-pin")?.focus(); });
     $("#lock-pin-form")?.addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!selectedUser) { setErr("#lock-err", t("lock.errPickUser")); return; }
       const pin = $("#lock-pin").value;
       const btn = $("#lock-submit"); btn.disabled = true; btn.textContent = t("lock.checking");
       try {
-        await Session.unlock(selectedUser, pin);
+        const r = await Session.unlock(selectedUser, pin);
+        if (r?.mustChangePin) {
+          // temp PIN → the forced new PIN before the app opens
+          $("#lock-pin").value = "";
+          const who = $("#newpin-user"); if (who) who.textContent = `${r.user.name} · ${roleLabel(r.user.role)}`;
+          setErr("#newpin-err", ""); showPane("newpin"); $("#newpin-pin")?.focus(); // synchronous — no deferred focus steals keystrokes
+        }
         // success → session:unlocked handler closes the screen
       } catch (err) {
         $("#lock-pin").value = "";
         if (err.code === "pin-format") setErr("#lock-err", t("lock.errPinFormat"));
         else if (err.code === "backoff" || err.code === "wrong-pin") armBackoff();
         else setErr("#lock-err", err.message || t("lock.errUnlock"));
-      } finally { btn.textContent = t("lock.unlockBtn"); armBackoff(); /* re-enables unless the user is in backoff */ }
+      } finally { btn.textContent = t("lock.unlockBtn"); if (pane === "unlock") armBackoff(); /* re-enables unless the user is in backoff */ }
     });
+    // Forced new PIN after a temp-PIN login
+    $("#lock-newpin-form")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const pin = $("#newpin-pin").value, pin2 = $("#newpin-pin2").value;
+      if (pin !== pin2) { setErr("#newpin-err", t("lock.errPinMismatch")); return; }
+      const btn = $("#newpin-submit"); btn.disabled = true; btn.textContent = t("lock.checking");
+      try { await Session.completePinChange(pin); }
+      catch (err) { $("#newpin-pin").value = ""; $("#newpin-pin2").value = ""; setErr("#newpin-err", errText(err, "lock.errUnlock")); }
+      finally { btn.disabled = false; btn.textContent = t("lock.newpinBtn"); }
+    });
+    $("#newpin-cancel")?.addEventListener("click", () => { Session.cancelPending(); $("#newpin-pin").value = ""; $("#newpin-pin2").value = ""; showPane("unlock"); renderUsers(); armBackoff(); });
+    // Offline → retry
+    $("#offline-retry")?.addEventListener("click", () => decidePane());
     $$("#lock-goto-restore, #lock-goto-restore2").forEach(b => b.addEventListener("click", () => openRestore()));
     $("#restore-back")?.addEventListener("click", () => { restoreBk = null; open(); });
     $("#restore-file")?.addEventListener("change", async (e) => {
@@ -259,7 +350,7 @@ const Lock = (() => {
     $("#restore-form")?.addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!restoreBk) { setErr("#restore-err", t("lock.errNoFile")); return; }
-      if (Session.exists() && !confirm(t("lock.restoreConfirm"))) return;
+      if (!confirm(t("lock.restoreConfirm"))) return;
       const btn = $("#restore-submit"); btn.disabled = true; btn.textContent = t("lock.restoring");
       try {
         const wasBooted = booted;
@@ -286,20 +377,25 @@ const Lock = (() => {
       ActivityLog.add({ tag: "system", action: t(p?.resumed ? "lock.logResume" : "lock.logUnlock"), meta: { silent: true } });
     });
     EventBus.on("session:locked", (why) => open(why));
-    EventBus.on("session:users", () => { if (scrim()?.classList.contains("open")) { renderUsers(); renderHint(); } updateChip(); });
+    EventBus.on("session:users", () => { if (scrim()?.classList.contains("open") && pane === "unlock") { renderUsers(); renderHint(); } updateChip(); });
     // Language toggle while the lock screen is up: static copy is already swapped by applyStatic; redo the
     // dynamic parts (title, reason line, user roles, restore meta, any backoff countdown).
     onLangChange(() => {
       if (!scrim()?.classList.contains("open")) return;
       showPane(pane); renderReason();
       if (pane === "unlock") { renderUsers(); armBackoff(); }
+      if (pane === "setup") renderLegacy();
       if (pane === "restore") renderRestoreMeta();
+      if (pane === "offline") { setErr("#offline-err", t(lastProbeErr && /sri|sdk/.test(lastProbeErr.message || "") ? "cloud.errSdk" : "cloud.errOffline", { s: lastProbeErr?.status || 0 })); }
+      if (pane === "none") setBusy(t("lock.connecting"));
     });
   }
 
   function openRestore() {
     if (Session.isUnlocked()) Session.lock("restore");
     const sc = scrim(); if (sc && !sc.classList.contains("open")) open("restore");
+    probeSeq++; // the pane below wins over a probe in flight
+    setBusy("");
     showPane("restore");
     $("#restore-step2").hidden = true; setErr("#restore-err", "");
     const f = $("#restore-file"); if (f) f.value = "";
@@ -310,19 +406,19 @@ const Lock = (() => {
     wire();
     Session.setReauthPrompt(reauth);
     // Cover the shell now, decide the pane after Session.restore(): a resumed session closes the scrim from the
-    // session:unlocked handler and never sees a PIN pane; anything else opens setup / unlock as before.
-    if (!Session.exists()) { open(); return ready; } // first run: nothing to resume, setup pane at once
+    // session:unlocked handler and never sees a PIN pane (nor the server); anything else asks the server.
     const sc = scrim();
     if (sc) {
       document.body.classList.add("locked");
       const shell = $(".frame.shell"); if (shell) shell.inert = true;
       sc.classList.add("open");
       showPane("none");
+      setBusy(t("lock.connecting"));
     }
     Session.restore().then((resumed) => { if (!resumed) open(); }).catch((e) => { console.warn("session restore", e); open(); });
     return ready;
   }
-  return { init, ready: () => ready, lock, open, openRestore, armIdle, reauth, justCreated: () => created };
+  return { init, ready: () => ready, lock, open, openRestore, armIdle, reauth, justCreated: () => created, pane: () => pane };
 })();
 
 /* topbar user chip — tooltip carries the absolute session expiry ("세션 만료 HH:MM"). */
@@ -336,9 +432,10 @@ function updateChip() {
 }
 
 /* ─────────────────────────── 사용자 panel ───────────────────────────
-   A thin view over the roster (core/entities.js Staff): every login IS a staff row with a userId. Rows show the
-   system role (원장·행정·원무) next to the job; "삭제" here is Staff.revokeLogin (the person stays in the roster,
-   only the PIN goes). Adding a user creates/links a roster row and issues the login — 원장 only. */
+   The server DIRECTORY (Session.users()) joined with the local roster (core/entities.js Staff) by staffId. Rows show the
+   system role (원장·행정·원무) next to the job when this device has the roster row; "로그인 해제" = Staff.revokeLogin /
+   Session.removeUser (the person stays in the roster, the server login goes). Issuing a login = a TEMP PIN the owner
+   hands over; the new user sets their own PIN at first login (mustChangePin). 원장 only. */
 const UsersPanel = (() => {
   const scrim = () => $("#users-scrim");
   const msg = (text, kind = "") => { const el = $("#users-msg"); if (!el) return; el.textContent = text || ""; el.className = "sec-msg " + kind; el.hidden = !text; };
@@ -348,13 +445,15 @@ const UsersPanel = (() => {
     const me = Session.user(); if (!me) return;
     const owner = Session.isOwner();
     $("#users-me").innerHTML = `<strong>${esc(me.name)}</strong> · ${esc(roleLabel(me.role))}${owner ? ` <span class="sec-tag">${esc(t("users.adminTag"))}</span>` : ""}`;
+    const cloud = $("#users-cloud");
+    if (cloud) { const ws = Session.workspace(); cloud.textContent = t(Session.isAuthed() ? "users.cloudLine" : "users.cloudLineOffline", { name: ws?.name || "—", host: Cloud.url().replace(/^https?:\/\//, ""), n: Session.users().length }); }
     $("#users-autolock").value = String(Session.autolockMin());
     const sessSel = $("#users-session"); if (sessSel) { sessSel.value = Session.sessionMode(); sessSel.disabled = !owner; sessSel.title = owner ? "" : t("common.ownerRequired"); }
     const staff = Staff.list();
-    const rows = Session.users().map(u => ({ u, s: staff.find(x => x.userId === u.id) || staff.find(x => x.id === u.staffId) || null }));
+    const rows = Session.users().map(u => ({ u, s: staff.find(x => x.id === u.staffId) || staff.find(x => x.userId === u.id) || null }));
     $("#users-list").innerHTML = rows.map(({ u, s }) => `
       <div class="sec-row" data-user="${esc(u.id)}">
-        <span class="sec-name">${esc(u.name)}${u.role === "원장" ? ` <span class="sec-tag">${esc(t("users.ownerTag"))}</span>` : ""}</span>
+        <span class="sec-name">${esc(u.name)}${u.role === "원장" ? ` <span class="sec-tag">${esc(t("users.ownerTag"))}</span>` : ""}${u.id === me.id ? ` <span class="lic-me">${esc(t("license.meTag"))}</span>` : ""}</span>
         <span class="sec-role">${esc(roleLabel(u.role))}${s ? ` · ${esc(roleLabel(s.job))}` : ""}</span>
         <span class="sec-meta">${u.aiConsent ? esc(t("users.aiConsentAt", { dt: fmtDT(u.aiConsent.at) })) : esc(t("users.noAiConsent"))}</span>
         <span class="sec-actions">
@@ -368,17 +467,18 @@ const UsersPanel = (() => {
     const note = $("#users-add-note"); if (note) note.textContent = owner ? t("users.addNoteOwner") : t("common.ownerRequired");
     $$("#users-list [data-act]").forEach(b => b.addEventListener("click", async () => {
       const id = b.dataset.id, u = Session.users().find(x => x.id === id);
-      const s = staff.find(x => x.userId === id) || null;
-      const who = { name: u.name, role: roleLabel(u.role) };
+      const s = staff.find(x => x.id === u?.staffId) || staff.find(x => x.userId === id) || null;
+      const who = { name: u?.name || "", role: roleLabel(u?.role) };
+      b.disabled = true;
       try {
         if (b.dataset.act === "reset") {
-          const pin = prompt(t("users.promptNewPin", who)); if (pin == null) return;
+          const pin = prompt(t("users.promptTempPin", who)); if (pin == null) return;
           await Session.resetPin(id, pin.trim());
           ActivityLog.add({ tag: "system", action: t("users.logReset", { role: who.role }), subject: subj(s, u) });
           msg(t("users.msgReset"), "ok");
         } else if (b.dataset.act === "remove") {
           if (!confirm(t("users.confirmRevokeLogin", who))) return;
-          if (s) Staff.revokeLogin(s.id); else Session.removeUser(id);
+          if (s) await Staff.revokeLogin(s.id); else await Session.removeUser(id);
           ActivityLog.add({ tag: "system", action: t("users.logRevokeLogin", { role: who.role }), subject: subj(s, u) });
           msg(t("users.msgLoginRevoked"), "ok");
         } else if (b.dataset.act === "revoke") {
@@ -387,10 +487,11 @@ const UsersPanel = (() => {
           msg(t("users.msgRevoked"), "ok");
         }
       } catch (err) { msg(err.message || String(err), "err"); }
+      finally { b.disabled = false; }
       render();
     }));
   }
-  /* Add = find the roster row with that exact name and no login (link it) or create one, then issue the login. */
+  /* Add = find the roster row with that exact name and no login (link it) or create one, then issue the login (temp PIN). */
   async function addLogin({ name, role, pin }) {
     const clean = String(name || "").trim();
     let row = Staff.list().find(x => !x.userId && x.name === clean);
@@ -420,23 +521,27 @@ const UsersPanel = (() => {
     $("#users-add-form")?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const name = $("#users-add-name").value.trim(), role = $("#users-add-role").value, pin = $("#users-add-pin").value;
+      const btn = $("#users-add-btn"); btn.disabled = true;
       try {
         const { user: u, row } = await addLogin({ name, role, pin });
         ActivityLog.add({ tag: "system", action: t("users.logAdd", { role: roleLabel(u.role) }), subject: Staff.ref(row) });
         $("#users-add-name").value = ""; $("#users-add-pin").value = "";
         msg(t("users.msgAdded", { name: u.name }), "ok"); render();
       } catch (err) { msg(err.message || String(err), "err"); }
+      finally { btn.disabled = !Session.isOwner(); }
     });
     $("#users-open-roster")?.addEventListener("click", () => { close(); activateTab("tab-license"); });
     Staff.onChange(() => { if (Dialog.isOpen(scrim())) render(); });
     $("#users-pin-form")?.addEventListener("submit", async (e) => {
       e.preventDefault();
+      const btn = $("#users-pin-form button[type=submit]"); if (btn) btn.disabled = true;
       try {
         await Session.changeOwnPin($("#users-old-pin").value, $("#users-new-pin").value);
         ActivityLog.add({ tag: "system", action: t("users.logPinChanged") });
         $("#users-old-pin").value = ""; $("#users-new-pin").value = "";
         msg(t("users.msgPinChanged"), "ok");
       } catch (err) { msg(err.message || String(err), "err"); }
+      finally { if (btn) btn.disabled = false; }
     });
     onLangChange(() => { if (Dialog.isOpen(scrim())) { msg(""); render(); } });
   }
@@ -450,6 +555,7 @@ const PrivacyPanel = (() => {
   const panel = () => $("#tab-privacy");
   const isActive = () => !!panel()?.classList.contains("active");
   const msg = (text, kind = "") => { const el = $("#privacy-msg"); if (!el) return; el.textContent = text || ""; el.className = "sec-msg " + kind; el.hidden = !text; };
+  const NO_DESTROY = new Set(["__lock", "__internal", "session", "cloud.directory", "cloud.password", "cloud.token"]);
   function selectTab(name) {
     $$("#tab-privacy [data-privacy-tab]").forEach(b => b.classList.toggle("active", b.dataset.privacyTab === name));
     $$("#tab-privacy [data-privacy-pane]").forEach(p => p.classList.toggle("active", p.dataset.privacyPane === name));
@@ -460,8 +566,8 @@ const PrivacyPanel = (() => {
     const rows = await inventory();
     const encLabel = (e) => e === true ? t("privacy.encYes") : e === false ? t("privacy.encNo") : String(e);
     $("#privacy-table").innerHTML = rows.map(r => `
-      <tr class="${r.present ? "" : "absent"}${r.unregistered ? " unregistered" : ""}">
-        <td>${r.id === "__ws" || r.id === "__internal" || r.id === "session" ? "" : `<input type="checkbox" data-destroy="${esc(r.id)}" ${r.present ? "" : "disabled"} aria-label="${esc(t("privacy.destroyAria", { label: r.label }))}">`}</td>
+      <tr class="${r.present ? "" : "absent"}${r.unregistered ? " unregistered" : ""}${r.server ? " server" : ""}">
+        <td>${NO_DESTROY.has(r.id) ? "" : `<input type="checkbox" data-destroy="${esc(r.id)}" ${r.present ? "" : "disabled"} aria-label="${esc(t("privacy.destroyAria", { label: r.label }))}">`}</td>
         <td><strong>${esc(r.label)}</strong><div class="sec-detail">${esc(r.detail || "")} · <code>${esc(r.store || (r.keys.length ? r.keys.join(", ") : "—"))}</code></div></td>
         <td>${esc(r.purpose)}<div class="sec-detail">${esc(r.basis)}</div></td>
         <td class="${r.encrypted === true ? "enc-yes" : ""}">${esc(encLabel(r.encrypted))}</td>
@@ -471,8 +577,7 @@ const PrivacyPanel = (() => {
       </tr>`).join("");
     const n = ActivityLog.all().length;
     $("#privacy-audit-count").textContent = t("privacy.auditCount", { n, t: n ? relTime(ActivityLog.all()[0].at) : "—" });
-    const wsid = Session.workspaceId();
-    const ws = $("#privacy-wsid"); if (ws) ws.textContent = wsid ? wsid.slice(0, 8) + "…" : "—";
+    const ws = $("#privacy-wsid"); if (ws) ws.textContent = (Session.workspaceName() || "—") + " @ " + Cloud.url().replace(/^https?:\/\//, "");
   }
   function open(tab = "status") { if (!Session.isUnlocked()) return; msg(""); selectTab(tab); activateTab("tab-privacy", { section: tab }); }
   function close() { /* a panel has nothing to close — kept for callers */ }
@@ -482,6 +587,7 @@ const PrivacyPanel = (() => {
     $("#poc-banner-link")?.addEventListener("click", (e) => { e.preventDefault(); open("legal"); });
     EventBus.on("tab:activated", (p) => { if (p?.id !== "tab-privacy") return; if (p.ctx?.section) selectTab(p.ctx.section); render(); });
     EventBus.on("lifecycle:purged", () => { if (isActive()) render(); });
+    EventBus.on("session:users", () => { if (isActive()) render(); });
     $$("#tab-privacy [data-privacy-tab]").forEach(b => b.addEventListener("click", () => selectTab(b.dataset.privacyTab)));
     $("#privacy-destroy-selected")?.addEventListener("click", async () => {
       const ids = $$("#privacy-table input[data-destroy]:checked").map(i => i.dataset.destroy);

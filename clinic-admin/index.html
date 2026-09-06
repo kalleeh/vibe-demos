@@ -41,45 +41,88 @@
     <button type="button" class="pb-x" id="poc-banner-x" aria-label="이 세션 동안 배너 닫기" data-i18n="shell.bannerClose" data-i18n-attr="aria-label:shell.bannerCloseAria">닫기</button>
   </div>
 
-  <!-- ── Lock screen — first-run setup / PIN unlock / encrypted-backup restore. Not a Dialog (never Esc-closable). ── -->
+  <!-- ── Lock screen — instance bootstrap / server PIN unlock / forced new PIN / offline / encrypted-backup restore.
+       Not a Dialog (never Esc-closable). Panes are decided by js/security/lockscreen.js after Session.restore() + probe. ── -->
   <div class="lock-scrim" id="lock-scrim" role="dialog" aria-modal="true" aria-labelledby="lock-title">
     <div class="lock-card">
       <div class="lang-toggle lock-lang" role="group" aria-label="Language"><button type="button" data-lang="ko" aria-pressed="true">KO</button><button type="button" data-lang="en" aria-pressed="false">EN</button></div>
       <div class="eyebrow" data-i18n="lock.eyebrow">워크스페이스 잠금 · PIN</div>
       <h2 id="lock-title" data-i18n-html="lock.title.locked">잠겨 <em>있습니다</em></h2>
       <p class="lock-reason" id="lock-reason" hidden></p>
+      <p class="lock-busy" id="lock-busy" hidden aria-live="polite"></p>
 
+      <!-- setup = bootstrap the ONE clinic instance on the server (first device only) -->
       <form class="lock-pane" id="lock-setup" hidden autocomplete="off">
         <div class="lock-warn" data-i18n-html="lock.setupWarn">
-          이 브라우저에 <strong>새 워크스페이스</strong>를 만듭니다. 무작위 256-bit 마스터키가 생성되고, 각 사용자의 PIN(PBKDF2-SHA256 310k회)으로만 열 수 있게 감싸집니다.
+          이 서버에는 아직 병원 워크스페이스가 없습니다. 지금 만들면 무작위 256-bit 마스터키가 생성되어 <strong>원장 PIN으로 감싼 채 서버에</strong> 저장되고, 이후 모든 기기가 같은 사용자 목록·PIN·접수 보드를 공유합니다. PIN 자체는 서버에 보내지 않습니다(PIN에서 유도한 비밀번호만).
           <strong>모든 사용자의 PIN을 잃으면 데이터는 복구할 수 없습니다</strong> — 정기적으로 「암호화 백업」을 내려받아 두세요.
         </div>
+        <div class="field"><label for="setup-clinic" data-i18n="lock.clinicLabel">기관명</label><input id="setup-clinic" type="text" maxlength="80" placeholder="예: 한솔한방병원" data-i18n-attr="placeholder:lock.clinicPlaceholder"></div>
+        <div class="field"><label for="setup-name" data-i18n="lock.ownerNameLabel">첫 원장 이름 · 이니셜</label><input id="setup-name" type="text" maxlength="20" placeholder="예: 홍 원장 / KW" data-i18n-attr="placeholder:lock.namePlaceholder" required></div>
         <div class="lock-two">
-          <div class="field"><label for="setup-name" data-i18n="lock.nameLabel">이름 · 이니셜</label><input id="setup-name" type="text" maxlength="20" placeholder="예: 홍 원장 / KW" data-i18n-attr="placeholder:lock.namePlaceholder" required></div>
-          <div class="field"><label for="setup-role" data-i18n="lock.roleLabel">역할</label>
-            <select id="setup-role"><option value="원장" data-i18n="lock.role.ownerAdmin">원장 (관리)</option><option value="행정" data-i18n="common.role.행정">행정</option><option value="원무" data-i18n="common.role.원무">원무</option></select></div>
-        </div>
-        <div class="lock-two">
-          <div class="field"><label for="setup-pin" data-i18n="lock.pinLabel">PIN (4~8자리 숫자)</label><input id="setup-pin" type="password" inputmode="numeric" pattern="\d{4,8}" minlength="4" maxlength="8" required autocomplete="new-password"></div>
-          <div class="field"><label for="setup-pin2" data-i18n="lock.pin2Label">PIN 확인</label><input id="setup-pin2" type="password" inputmode="numeric" pattern="\d{4,8}" minlength="4" maxlength="8" required autocomplete="new-password"></div>
+          <div class="field"><label for="setup-pin" data-i18n="lock.pinLabel">PIN (6~8자리 숫자)</label><input id="setup-pin" type="password" inputmode="numeric" pattern="\d{6,8}" minlength="6" maxlength="8" required autocomplete="new-password"></div>
+          <div class="field"><label for="setup-pin2" data-i18n="lock.pin2Label">PIN 확인</label><input id="setup-pin2" type="password" inputmode="numeric" pattern="\d{6,8}" minlength="6" maxlength="8" required autocomplete="new-password"></div>
         </div>
         <p class="lock-err" id="setup-err" hidden></p>
-        <button type="submit" class="btn" id="setup-submit" style="width:100%;justify-content:center" data-i18n="lock.createBtn">워크스페이스 만들기</button>
-        <p class="lock-note"><span data-i18n="lock.haveBackup">이미 백업 파일이 있나요?</span> <button type="button" class="link" id="lock-goto-restore" data-i18n="lock.restoreLink">암호화 백업 복원</button></p>
+        <button type="submit" class="btn" id="setup-submit" style="width:100%;justify-content:center" data-i18n="lock.createBtn">서버에 워크스페이스 만들기</button>
       </form>
+      <!-- setup, variant: this device still has a pre-cloud workspace → move it (same master key) -->
+      <div class="lock-pane lock-legacy" id="setup-legacy" hidden>
+      <form id="lock-legacy-form" autocomplete="off">
+        <h5 data-i18n="lock.legacyH">이 기기의 워크스페이스를 서버로 올리기</h5>
+        <p class="sec-note" id="legacy-note"></p>
+        <div class="field"><label for="legacy-user" data-i18n="lock.legacyUser">원장 사용자</label><select id="legacy-user"></select></div>
+        <div class="field"><label for="legacy-old-pin" data-i18n="lock.legacyOldPin">그 사용자의 현재 PIN</label><input id="legacy-old-pin" type="password" inputmode="numeric" maxlength="8" required autocomplete="current-password"></div>
+        <div class="lock-two">
+          <div class="field"><label for="legacy-new-pin" data-i18n="lock.legacyNewPin">새 PIN (6~8자리 · 비우면 현재 PIN 유지)</label><input id="legacy-new-pin" type="password" inputmode="numeric" pattern="\d{6,8}" maxlength="8" autocomplete="new-password"></div>
+          <div class="field"><label for="legacy-new-pin2" data-i18n="lock.pin2Label">PIN 확인</label><input id="legacy-new-pin2" type="password" inputmode="numeric" pattern="\d{6,8}" maxlength="8" autocomplete="new-password"></div>
+        </div>
+        <p class="lock-err" id="legacy-err" hidden></p>
+        <button type="submit" class="btn secondary" id="legacy-submit" style="width:100%;justify-content:center" data-i18n="lock.legacyBtn">기존 키로 서버에 올리기</button>
+      </form>
+      </div>
 
       <div class="lock-pane" id="lock-unlock" hidden>
-        <div class="lock-users" id="lock-users" role="radiogroup" aria-label="사용자 선택" data-i18n-attr="aria-label:lock.usersAria"></div>
-        <form id="lock-pin-form" class="lock-row" autocomplete="off">
-          <input id="lock-pin" type="password" inputmode="numeric" pattern="\d{4,8}" maxlength="8" placeholder="PIN" aria-label="PIN" autocomplete="current-password">
-          <button type="submit" class="btn" id="lock-submit" data-i18n="lock.unlockBtn">열기</button>
+        <p class="lock-clinic" id="lock-clinic" hidden></p>
+        <form id="lock-pin-form" autocomplete="off">
+          <div class="field"><label for="lock-user" data-i18n="lock.usersAria">사용자 선택</label><select id="lock-user" aria-label="사용자 선택" data-i18n-attr="aria-label:lock.usersAria"></select></div>
+          <p class="sec-note" id="lock-users-empty" hidden data-i18n="lock.usersEmpty">서버에 사용자가 없습니다 — 원장에게 로그인 발급을 요청하세요.</p>
+          <div class="lock-row">
+            <input id="lock-pin" type="password" inputmode="numeric" pattern="\d{6,8}" maxlength="8" placeholder="PIN" aria-label="PIN" autocomplete="current-password">
+            <button type="submit" class="btn" id="lock-submit" data-i18n="lock.unlockBtn">열기</button>
+          </div>
         </form>
         <p class="lock-err" id="lock-err" hidden></p>
         <p class="lock-persist" id="lock-persist-hint"></p>
         <p class="lock-note">
-          <span data-i18n-html="lock.forgotNote">PIN을 잊었다면 <strong>원장</strong> 사용자가 「사용자」 패널에서 재설정할 수 있습니다. 모든 사용자의 PIN을 잃으면 <strong>이 브라우저의 데이터는 복구할 수 없습니다</strong> — 유일한 복구 수단은 이전에 내려받은 암호화 백업입니다.</span>
+          <span data-i18n-html="lock.forgotNote">PIN을 잊었다면 <strong>원장</strong>이 「사용자」 패널에서 임시 PIN으로 재설정합니다 — 다음 로그인에서 새 PIN을 정하게 됩니다. 모든 사용자의 PIN을 잃으면 <strong>데이터는 복구할 수 없습니다</strong> — 유일한 복구 수단은 이전에 내려받은 암호화 백업입니다.</span>
           <button type="button" class="link" id="lock-goto-restore2" data-i18n="lock.restoreLink">암호화 백업 복원</button>
         </p>
+      </div>
+
+      <!-- forced new PIN after a temp-PIN login (mustChangePin) -->
+      <div class="lock-pane" id="lock-newpin" hidden>
+      <form id="lock-newpin-form" autocomplete="off">
+        <p class="sec-note" style="margin-bottom:12px"><span data-i18n="lock.newpinNote">임시 PIN으로 들어왔습니다. 계속하려면 본인만 아는 새 PIN을 정하세요 —</span> <strong id="newpin-user">—</strong></p>
+        <div class="lock-two">
+          <div class="field"><label for="newpin-pin" data-i18n="lock.newpinLabel">새 PIN (6~8자리)</label><input id="newpin-pin" type="password" inputmode="numeric" pattern="\d{6,8}" minlength="6" maxlength="8" required autocomplete="new-password"></div>
+          <div class="field"><label for="newpin-pin2" data-i18n="lock.pin2Label">PIN 확인</label><input id="newpin-pin2" type="password" inputmode="numeric" pattern="\d{6,8}" minlength="6" maxlength="8" required autocomplete="new-password"></div>
+        </div>
+        <p class="lock-err" id="newpin-err" hidden></p>
+        <div class="lock-row">
+          <button type="submit" class="btn" id="newpin-submit" style="flex:1;justify-content:center" data-i18n="lock.newpinBtn">새 PIN 설정</button>
+          <button type="button" class="btn secondary" id="newpin-cancel" data-i18n="common.cancel">취소</button>
+        </div>
+      </form>
+      </div>
+
+      <!-- server unreachable and nothing to resume -->
+      <div class="lock-pane" id="lock-offline" hidden>
+        <p class="lock-warn" data-i18n="lock.offlineNote">서버에 연결할 수 없어요 — 마지막으로 로그인한 기기에서만 오프라인 사용이 가능합니다. 네트워크를 확인한 뒤 다시 시도하세요.</p>
+        <p class="sec-note"><code id="offline-host"></code></p>
+        <p class="lock-err" id="offline-err" hidden></p>
+        <button type="button" class="btn" id="offline-retry" style="width:100%;justify-content:center" data-i18n="common.retry">다시 시도</button>
+        <p class="lock-note"><span data-i18n="lock.haveBackup">이미 백업 파일이 있나요?</span> <button type="button" class="link" id="lock-goto-restore" data-i18n="lock.restoreLink">암호화 백업 복원</button></p>
       </div>
 
       <div class="lock-pane" id="lock-restore" hidden>
@@ -480,7 +523,7 @@
       <div class="intake-board" id="intake-board" role="region" aria-label="실시간 접수 현황판" data-i18n-attr="aria-label:board.aria">
         <div class="board-head">
           <h4><span class="step">★</span> <span data-i18n="board.title">실시간 접수 현황판</span></h4>
-          <span class="intake-pill" title="이 현황판은 공유 PocketBase(clinic-admin.pb.gurum.se)에 기록되는 공개 데모 보드입니다. 환자명은 고정된 가상 이름만 선택할 수 있으며, 실제 진료기록이 아닙니다." data-i18n="board.pill" data-i18n-attr="title:board.pillTitle">공유 보드 — 실명 입력 불가</span>
+          <span class="intake-pill" title="이 현황판은 병원 서버(clinic-admin.pb.gurum.se)에 E2E 암호화되어 기록되며 로그인한 구성원만 읽고 쓸 수 있습니다. 환자는 가명 환자번호만 선택할 수 있으며, 실제 진료기록이 아닙니다." data-i18n="board.pill" data-i18n-attr="title:board.pillTitle">구성원 공유 보드 — 실명 입력 불가</span>
           <span class="intake-sync" id="intake-sync"><span class="dot">○</span><span id="intake-sync-text" data-i18n="board.syncLocal">로컬 — 이 기기에서만</span></span>
         </div>
         <div class="intake-cols">
@@ -501,7 +544,7 @@
           <select id="intake-name" aria-label="가명 환자 선택 (환자번호 뒷 4자리 — 이름 입력 불가)" data-i18n-attr="aria-label:board.nameAria"></select>
           <input type="text" id="intake-summary" maxlength="120" placeholder="간단 메모 (예: 요통 초진)" autocomplete="off" aria-label="접수 메모" data-i18n-attr="placeholder:board.summaryPlaceholder;aria-label:board.summaryAria">
           <button type="button" class="pc-btn advance" id="intake-add-btn" data-i18n="board.addBtn">+ 접수 추가</button>
-          <p class="add-note" id="intake-add-note" data-i18n="board.addNote">공개 공유 보드입니다 — 다른 기기·탭에서 열어두면 추가·상태변경이 즉시 동기화됩니다. 환자명은 가상 이름만 선택할 수 있고, 메모에도 실제 환자 정보를 쓰지 마세요.</p>
+          <p class="add-note" id="intake-add-note" data-i18n="board.addNote">병원 구성원 공유 보드입니다 — 로그인한 다른 기기·탭에서 열어두면 추가·상태변경이 즉시 동기화됩니다(카드 내용은 워크스페이스 키로 암호화). 환자는 가명 환자번호만 선택할 수 있고, 메모에도 실제 환자 정보를 쓰지 마세요.</p>
         </div>
       </div>
     </section>
@@ -1302,7 +1345,7 @@
           <div class="lic-login-row">
             <div class="field"><label for="lic-login-role" data-i18n="license.loginRoleLabel">시스템 권한</label>
               <select id="lic-login-role"><option value="행정" data-i18n="common.role.행정">행정</option><option value="원무" data-i18n="common.role.원무">원무</option><option value="원장" data-i18n="common.role.원장">원장</option></select></div>
-            <div class="field"><label for="lic-login-pin" data-i18n="users.pinLabel">PIN (4~8자리)</label><input id="lic-login-pin" type="password" inputmode="numeric" pattern="\d{4,8}" minlength="4" maxlength="8" required autocomplete="new-password"></div>
+            <div class="field"><label for="lic-login-pin" data-i18n="users.pinLabel">임시 PIN (6~8자리)</label><input id="lic-login-pin" type="password" inputmode="numeric" pattern="\d{6,8}" minlength="6" maxlength="8" required autocomplete="new-password"></div>
             <button type="submit" class="btn" id="lic-login-ok" data-i18n="license.loginOk">발급</button>
             <button type="button" class="btn secondary" id="lic-login-cancel" data-i18n="common.cancel">취소</button>
           </div>
@@ -1419,7 +1462,8 @@
       </div>
 
       <div class="sec-pane active" data-privacy-pane="status">
-        <p class="sec-note" style="margin-bottom:10px" data-i18n-html="privacy.statusNote">이 브라우저의 워크스페이스 <code id="privacy-wsid">—</code>. 「암호화 예」인 항목은 워크스페이스 키(AES-GCM)로 암호문만 저장됩니다. 보존기간이 지난 항목은 잠금 해제 때마다 자동 파기됩니다.</p>
+        <p class="sec-note" style="margin-bottom:10px" data-i18n-html="privacy.statusNote">워크스페이스 <code id="privacy-wsid">—</code>. 「암호화 예」인 항목은 워크스페이스 키(AES-GCM)로 암호문만 저장됩니다. 보존기간이 지난 항목은 잠금 해제 때마다 자동 파기됩니다.</p>
+        <p class="sec-note lock-warn" style="margin-bottom:10px" data-i18n-html="privacy.cloudNote"><strong>서버가 보는 것과 보지 못하는 것 (PoC).</strong> 병원 서버(PocketBase)에는 사용자 <strong>이름·역할</strong>(로그인 전 드롭다운을 위해 <strong>URL을 아는 누구나 읽을 수 있음</strong>), PIN에서 유도한 비밀번호의 bcrypt 해시, 각 사용자 PIN으로 감싼 마스터키(암호문), 접수 보드 카드의 암호문·상태만 있습니다. 서버는 PIN도, 마스터키도, 카드 내용도, 이 브라우저의 환자·직원 데이터도 볼 수 없습니다. 반대로 서버 관리자는 사용자를 지우거나 카드 암호문을 삭제할 수는 있습니다(가용성은 보호되지 않음).</p>
         <div class="sec-table-wrap">
           <table class="sec-table">
             <thead><tr><th></th><th data-i18n="privacy.thItem">항목 · 저장 위치</th><th data-i18n="privacy.thPurpose">목적 · 근거 (PoC 문안)</th><th data-i18n="privacy.thEnc">암호화</th><th data-i18n="privacy.thRetention">보존</th><th data-i18n="privacy.thCount">건수</th><th data-i18n="privacy.thModified">최근 수정</th></tr></thead>
@@ -1454,7 +1498,8 @@
             <tr data-i18n-html="privacy.legal2"><td>주민등록번호 (연말정산 탭 업로드)</td><td>§24 고유식별정보 · §24의2 주민등록번호 처리 제한</td><td><span class="yes">함</span> — 브라우저 안에서만 처리, 저장하지 않음(No persistence of RRN), 자동 마스킹, AI 전송 시 [주민번호]로 치환</td><td>법령상 근거(소득세법 §165) 범위 확인, 제출 파일 암호화·전송 경로 검토</td></tr>
             <tr data-i18n-html="privacy.legal3"><td>AI 코드 추천 (메모를 ai.pb.gurum.se → Amazon Bedrock, eu-north-1 스톡홀름으로 전송)</td><td>§26 업무위탁 · §28의8 국외 이전 · §23</td><td><span class="yes">함</span> — 기본은 예시 모드, 사용자별 동의 대화상자(목적지·보존·위탁계약 없음 고지), 자동 마스킹 + 전송 내용 미리보기, 서버 미저장</td><td><span class="no">남음</span> — LLM 벤더와의 <strong>위탁계약</strong> 또는 온프레미스 모델, 국외 이전 고지·동의 절차, 위탁자 관리·감독</td></tr>
             <tr data-i18n-html="privacy.legal4"><td>음성 받아쓰기 (브라우저 제조사 클라우드 STT)</td><td>§26 · §28의8</td><td><span class="yes">함</span> — 기본 OFF, 인라인 고지(No cloud STT by default)</td><td><span class="no">남음</span> — 온디바이스 STT 또는 위탁계약이 있는 서비스</td></tr>
-            <tr data-i18n-html="privacy.legal5"><td>실시간 접수 현황판 (공유 PocketBase)</td><td>§29 · 의료법 §21</td><td><span class="yes">함</span> — 카드 내용 종단간 암호화(E2E), 서버에는 워크스페이스 해시·암호문·상태만, 실명 입력 불가</td><td><span class="no">남음</span> — 로그인 기반 접근 규칙(Tier 3), 가용성·무결성 보호 (현재 누구나 암호문 삽입·삭제 가능)</td></tr>
+            <tr data-i18n-html="privacy.legal5"><td>실시간 접수 현황판 (공유 PocketBase)</td><td>§29 · 의료법 §21</td><td><span class="yes">함</span> — 카드 내용 종단간 암호화(E2E), 서버에는 암호문·상태만, 실명 입력 불가, 읽기·쓰기 모두 <strong>로그인한 구성원만</strong>(서버 규칙)</td><td><span class="no">남음</span> — 가용성·무결성 보호 (구성원 누구나 카드 삭제·상태 변경 가능), 서버 측 감사 로그</td></tr>
+            <tr data-i18n-html="privacy.legal10"><td>사용자 계정 · PIN (병원 서버)</td><td>§29 · 안전성 확보조치 기준 §5 접근권한 · §7 비밀번호</td><td><span class="yes">함</span> — 사용자 목록·PIN 검증이 서버에 있어 모든 기기가 같은 계정을 씀. PIN(6자리 이상)은 브라우저에서 PBKDF2-SHA256 310k회로 유도한 비밀번호로 바뀌어 전송되고 서버는 bcrypt로 저장, 로그인 시도 서버 rate limit, 로그인 발급은 임시 PIN + 첫 로그인 시 변경 강제, 원장만 발급·재설정·해제</td><td><span class="no">남음</span> — 사용자 <strong>이름·역할 디렉터리가 공개 읽기</strong>(URL을 아는 누구나 조회 가능 — PoC 편의), PIN 6자리의 낮은 엔트로피(실사용 시 비밀번호 또는 2단계 인증), 서버 측 접속기록·계정 변경 기록</td></tr>
             <tr data-i18n-html="privacy.legal6"><td>활동 기록 (감사 로그)</td><td>§29 · 안전성 확보조치 기준 §8 접속기록</td><td><span class="yes">함</span> — 사용자·역할·작업·가명 대상(****1234) 기록, 이름 미기록, 추가만 가능, 암호화, 1년 보존, 원장만 내보내기·삭제</td><td><span class="no">남음</span> — 접속기록의 <strong>서버 측 1년 이상 보관</strong>(기준에 따라 2년)·위변조 방지·월 1회 점검. 브라우저 안의 기록은 사용자가 지울 수 있음</td></tr>
             <tr data-i18n-html="privacy.legal7"><td>다운로드 · 인쇄물</td><td>§29 · 의료법 §21</td><td><span class="yes">함</span> — 모든 파일·인쇄에 「PoC — 실제 제출 불가 · 데모 데이터」 워터마크, 파일명 _PoC</td><td>반출 승인 절차, 출력물 관리대장</td></tr>
             <tr data-i18n-html="privacy.legal8"><td>보존 · 파기</td><td>§21 파기 · 의료법 시행규칙 §15 보존기간</td><td><span class="yes">함</span> — 항목별 보존기간(자보 기록 90일·활동 1년·AI 메모 0일), 잠금 해제 시 자동 파기, 선택/전체 파기, 암호화 백업·복원</td><td>파기 기록·증적, 백업 매체 관리 규정</td></tr>
@@ -1858,21 +1903,22 @@
       <button type="button" class="close-x" id="users-close" aria-label="닫기" data-i18n-attr="aria-label:common.close">×</button>
       <div class="eyebrow" data-i18n="users.eyebrow">사용자 · PIN · 자동 잠금</div>
       <h2 id="users-title" data-i18n-html="users.title">누가 <em>열 수 있는지</em></h2>
-      <p class="sec-note"><span data-i18n="users.current">현재 사용자:</span> <span id="users-me">—</span>. <span data-i18n="users.note">각 사용자는 자기 PIN으로만 워크스페이스를 엽니다. PIN은 저장되지 않고, PIN에서 유도한 키로 마스터키를 감싸둔 것만 저장됩니다.</span></p>
+      <p class="sec-note"><span data-i18n="users.current">현재 사용자:</span> <span id="users-me">—</span>. <span data-i18n="users.note">사용자 목록과 PIN 검증은 병원 서버(PocketBase)에 있어 모든 기기가 같은 목록을 봅니다. PIN 자체는 서버에 보내지 않고 PIN에서 유도한 비밀번호만 보내며, 마스터키는 각자의 PIN으로 감싼 채 저장됩니다.</span></p>
+      <p class="sec-note" id="users-cloud">—</p>
 
       <div class="sec-section">
-        <h5 data-i18n="users.listH">로그인 있는 직원</h5>
+        <h5 data-i18n="users.listH">서버 사용자 디렉터리</h5>
         <div id="users-list"></div>
         <p class="sec-note" style="margin-top:8px"><span data-i18n="users.rosterNote">로그인은 조직 › 직원 명부의 한 행에 연결됩니다 — 직종·면허는 명부에서, PIN은 여기서.</span> <button type="button" class="link" id="users-open-roster" data-i18n="users.openRoster">명부 열기 →</button></p>
       </div>
 
       <div class="sec-section">
-        <h5 data-i18n="users.addH">로그인 발급 (원장 · PIN 재확인 후 마스터키를 새 PIN으로 한 번 더 감쌉니다)</h5>
+        <h5 data-i18n="users.addH">로그인 발급 (원장 · 임시 PIN — 본인이 첫 로그인에서 새 PIN을 정합니다)</h5>
         <p class="sec-note" id="users-add-note" style="margin-bottom:8px"></p>
         <form id="users-add-form" class="sec-inline" autocomplete="off">
           <div class="field"><label for="users-add-name" data-i18n="lock.nameLabel">이름 · 이니셜</label><input id="users-add-name" type="text" maxlength="20" required></div>
           <div class="field"><label for="users-add-role" data-i18n="lock.roleLabel">역할</label><select id="users-add-role"><option value="행정" data-i18n="common.role.행정">행정</option><option value="원무" data-i18n="common.role.원무">원무</option><option value="원장" data-i18n="common.role.원장">원장</option></select></div>
-          <div class="field"><label for="users-add-pin" data-i18n="users.pinLabel">PIN (4~8자리)</label><input id="users-add-pin" type="password" inputmode="numeric" pattern="\d{4,8}" maxlength="8" required autocomplete="new-password"></div>
+          <div class="field"><label for="users-add-pin" data-i18n="users.pinLabel">임시 PIN (6~8자리)</label><input id="users-add-pin" type="password" inputmode="numeric" pattern="\d{6,8}" minlength="6" maxlength="8" required autocomplete="new-password"></div>
           <button type="submit" class="btn" id="users-add-btn" data-i18n="common.add">추가</button>
         </form>
       </div>
@@ -1881,7 +1927,7 @@
         <h5 data-i18n="users.changePinH">내 PIN 변경</h5>
         <form id="users-pin-form" class="sec-inline two" autocomplete="off">
           <div class="field"><label for="users-old-pin" data-i18n="users.oldPin">현재 PIN</label><input id="users-old-pin" type="password" inputmode="numeric" maxlength="8" required autocomplete="current-password"></div>
-          <div class="field"><label for="users-new-pin" data-i18n="users.newPin">새 PIN (4~8자리)</label><input id="users-new-pin" type="password" inputmode="numeric" pattern="\d{4,8}" maxlength="8" required autocomplete="new-password"></div>
+          <div class="field"><label for="users-new-pin" data-i18n="users.newPin">새 PIN (6~8자리)</label><input id="users-new-pin" type="password" inputmode="numeric" pattern="\d{6,8}" minlength="6" maxlength="8" required autocomplete="new-password"></div>
           <button type="submit" class="btn secondary" data-i18n="users.changeBtn">변경</button>
         </form>
       </div>
@@ -1917,7 +1963,7 @@
       <h2 id="reauth-title" data-i18n="lock.reauthTitle">PIN 재확인</h2>
       <p class="sec-note" data-i18n-html="lock.reauthNote">로그인 발급·PIN 재설정은 마스터키를 새 PIN으로 다시 감싸야 하므로 현재 사용자 <strong id="reauth-user">—</strong>의 PIN을 다시 확인합니다. 이 세션이 PIN 없이 이어졌거나(새로 고침·탭 재열기) PIN 입력 후 5분이 지났을 때 묻습니다.</p>
       <form id="reauth-form" class="lock-row" autocomplete="off">
-        <input id="reauth-pin" type="password" inputmode="numeric" pattern="\d{4,8}" maxlength="8" placeholder="PIN" aria-label="PIN" autocomplete="current-password">
+        <input id="reauth-pin" type="password" inputmode="numeric" pattern="\d{6,8}" maxlength="8" placeholder="PIN" aria-label="PIN" autocomplete="current-password">
         <button type="submit" class="btn" id="reauth-submit" data-i18n="lock.reauthBtn">확인</button>
         <button type="button" class="btn secondary" id="reauth-cancel" data-i18n="lock.reauthCancel">취소</button>
       </form>

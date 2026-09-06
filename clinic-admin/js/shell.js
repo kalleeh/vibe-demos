@@ -377,10 +377,13 @@ const Install = (() => {
    ONE fictional clinic — 한솔한방병원. seedAll() seeds ONLY the shared entities (core/entities.js) here, then
    asks every tab module for its own sample via the `seed(ctx)` export (see boot() for the module convention).
    Every tab's sample data must reference these people / patients, never invent its own names.
-   Demo logins issued by the seed (원장 only; PIN is the same for all three so a reviewer can switch users):
-     윤지훈 · 원장  /  정수아 · 행정  /  한지우 · 원무   — PIN 0000
+   Demo logins issued by the seed (원장 only; PIN is the same for all three so a reviewer can switch users). They are
+   SERVER users now (shared identity): created through Cloud.createUser with mustChangePin:false — the only path that
+   skips the temp-PIN rule — and only when the directory has no user of that name + role yet (a second device that
+   seeds just links its roster rows to the existing logins):
+     윤지훈 · 원장  /  정수아 · 행정  /  한지우 · 원무   — PIN 000000
    ───────────────────────────────────────────────────────── */
-const SEED_PIN = "0000";
+const SEED_PIN = "000000";
 const SEED = {
   org: { name: "한솔한방병원", ykiho: "11000123", biz: "123-45-67890", kind: "병원", rep: "윤지훈" },
   // reportedM / cmeM = months relative to today (one row has only a 취득일 → flagged; 행정·원무 carry no duty).
@@ -411,7 +414,11 @@ async function seedEntities() {
       row = Staff.get(id); out.staff++;
     }
     if (s.login && !row.userId && Session.isOwner()) {
-      try { await Staff.issueLogin(row.id, { sysRole: s.login, pin: SEED_PIN }); out.logins++; } catch (e) { console.warn("seed login", s.name, e.message); }
+      const existing = Session.users().find(u => u.name === s.name && u.role === s.login);
+      try {
+        if (existing) Staff.linkUser(row.id, existing.id);
+        else { await Staff.issueLogin(row.id, { sysRole: s.login, pin: SEED_PIN, mustChangePin: false }); out.logins++; }
+      } catch (e) { console.warn("seed login", s.name, e.message); }
     }
   }
   for (const [pid, tags] of SEED.patients) { if (!Patients.get(pid)) out.patients++; Patients.ensure(pid, { tags }); }
@@ -532,8 +539,8 @@ async function showVersion(version) {
   const el = $("#info-version"); if (!el) return;
   let cache = t("shell.notInstalled");
   try { const keys = await caches.keys(); cache = keys.filter(k => k.startsWith("vibe-clinic-admin-")).sort().pop() || t("shell.notInstalled"); } catch {}
-  const ws = Session.workspaceId();
-  el.textContent = t("shell.versionLine", { v: version, c: cache, ws: ws ? ws.slice(0, 8) + "…" : t("shell.none") });
+  const ws = Session.workspaceName();
+  el.textContent = t("shell.versionLine", { v: version, c: cache, ws: ws || t("shell.none") });
 }
 EventBus.on("session:unlocked", () => { const el = $("#info-version"); if (el?.dataset.version) showVersion(el.dataset.version); });
 onLangChange(() => { const el = $("#info-version"); if (el?.dataset.version) showVersion(el.dataset.version); if (Dialog.isOpen($("#info-scrim"))) renderInfoOrg(); });

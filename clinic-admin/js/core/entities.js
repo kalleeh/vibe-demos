@@ -21,7 +21,7 @@
      yearend.ye-biz · yearend.ye-clinic · bigeup.profile.bg-ykiho · bigeup.profile.bg-clinic → org.profile
      bigeup.tariff · bigeup.profile.bg-date                                                 → tariff.*
      license.list (role → job)                                                              → staff.list
-     __ws.users without a staff row (match by name, else create one)                        → staff.list + staffId link
+     server directory logins without a staff row (row id = login.staffId, else name match)  → staff.list + userId link
    The legacy keys are DELETED once copied; every tab reads and writes through these APIs only. */
 import { redactSubject, redactStaff, todayISO } from "./dom.js";
 import { t } from "./i18n.js";
@@ -152,28 +152,36 @@ const Staff = {
     return { ...row };
   },
   byUser(userId) { const r = readStaff().find(x => x.userId && x.userId === userId); return r ? { ...r } : null; },
-  /* 원장 only: creates the login (keyring user wrapped under `pin`) and links it to the roster row. */
-  async issueLogin(id, { sysRole, pin }) {
+  /* 원장 only: creates the SERVER login (temp PIN, mustChangePin unless the demo seed says otherwise) and links it to
+     the roster row — the row id travels to the server as `staffId`, so every device links the same row. */
+  async issueLogin(id, { sysRole, pin, mustChangePin = true }) {
     assertUnlocked();
     if (!Session.isOwner()) throw new Error(t("common.ownerRequired"));
     const rows = readStaff();
     const row = rows.find(x => x.id === id);
     if (!row) throw new Error("no-staff");
     if (row.userId && Session.users().some(u => u.id === row.userId)) throw new Error(t("license.errHasLogin"));
-    const user = await Session.addUser({ name: row.name, role: sysRole, pin, staffId: id });
-    row.userId = user.id; writeStaff(rows);
+    const user = await Session.addUser({ name: row.name, role: sysRole, pin, staffId: id, mustChangePin });
+    const fresh = readStaff(); const r2 = fresh.find(x => x.id === id); if (r2) { r2.userId = user.id; writeStaff(fresh); }
     return user;
   },
-  /* 원장 only (Session.removeUser enforces owner · not self · not the last user). */
-  revokeLogin(id) {
+  /* Link a roster row to an EXISTING server login (seed on a second device, directory already has the person). */
+  linkUser(id, userId) {
     assertUnlocked();
     const rows = readStaff();
     const row = rows.find(x => x.id === id);
-    if (!row || !row.userId) return;
-    if (Session.users().some(u => u.id === row.userId)) Session.removeUser(row.userId);
-    row.userId = null; writeStaff(rows);
+    if (!row) throw new Error("no-staff");
+    row.userId = userId || null; writeStaff(rows);
   },
-  // The login (public keyring user) behind a row, or null.
+  /* 원장 only (Session.removeUser enforces owner · not self); the server login goes, the roster row stays. */
+  async revokeLogin(id) {
+    assertUnlocked();
+    const row = readStaff().find(x => x.id === id);
+    if (!row || !row.userId) return;
+    if (Session.users().some(u => u.id === row.userId)) await Session.removeUser(row.userId);
+    const rows = readStaff(); const r2 = rows.find(x => x.id === id); if (r2) { r2.userId = null; writeStaff(rows); }
+  },
+  // The login (server directory entry) behind a row, or null.
   loginOf(row) { return row?.userId ? Session.users().find(u => u.id === row.userId) || null : null; },
   onChange: null
 };
@@ -324,18 +332,26 @@ async function migrateLegacy() {
     }
     if (legacyPresent("license.list")) { Store.remove("license.list"); out.removed++; }
   }
-  // 4 · Users ⇄ Staff — every login gets a roster row: existing link, else match by name, else a new row.
+  // 4 · Server directory ⇄ Staff — every login gets a roster row on THIS device: the row whose id is the login's
+  //     staffId (created with that very id when missing, so all devices share row ids), else a name match, else a
+  //     new row. Rows whose login vanished from the directory (revoked elsewhere) are unlinked. Skipped while the
+  //     directory is empty (offline resume without a snapshot).
   {
-    const rows = readStaff();
-    let changed = false;
-    for (const u of Session.users()) {
-      if (u.staffId && rows.some(r => r.id === u.staffId)) { const r = rows.find(x => x.id === u.staffId); if (r.userId !== u.id) { r.userId = u.id; changed = true; } continue; }
-      let r = rows.find(x => !x.userId && x.name === str(u.name));
-      if (!r) { r = normRow({ name: u.name, job: JOB_FOR_SYSROLE[u.role] || "기타", userId: u.id }); rows.push(r); }
-      r.userId = u.id; changed = true; out.users++;
-      try { Session.linkStaff(u.id, r.id); } catch (e) { console.warn("linkStaff", e); }
+    const dir = Session.users();
+    if (dir.length) {
+      const rows = readStaff();
+      let changed = false;
+      const ids = new Set(dir.map(u => u.id));
+      for (const r of rows) if (r.userId && !ids.has(r.userId)) { r.userId = null; changed = true; }
+      for (const u of dir) {
+        if (rows.some(r => r.userId === u.id)) continue;
+        let r = u.staffId ? rows.find(x => x.id === u.staffId) : null;
+        if (!r) r = rows.find(x => !x.userId && x.name === str(u.name));
+        if (!r) { r = normRow({ id: u.staffId || undefined, name: u.name, job: JOB_FOR_SYSROLE[u.role] || "기타", userId: u.id }); rows.push(r); }
+        r.userId = u.id; changed = true; out.users++;
+      }
+      if (changed) writeStaff(rows);
     }
-    if (changed) writeStaff(rows);
   }
   return out;
 }

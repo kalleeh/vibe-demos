@@ -8,7 +8,8 @@
 import { Store, EventBus, ActivityLog, NS, SENSITIVE_KEYS } from "../core/store.js";
 import { Attachments } from "../core/attachments.js";
 import { Session } from "./session.js";
-import { encryptJSON, decryptJSON, isEnvelope, importSessionKey } from "./crypto.js";
+import { Cloud } from "./cloud.js";
+import { encryptJSON, decryptJSON, isEnvelope, importSessionKey, unwrapMaster } from "./crypto.js";
 import { downloadText, POC_MARK } from "../core/files.js";
 import { Masters } from "../core/masters.js";
 import { Staff } from "../core/entities.js";
@@ -76,13 +77,23 @@ const REGISTRY = [
     purpose: "대시보드 이어하기", basis: "—", encrypted: false, retention: "다음 실행 시 대체", days: null },
   { id: "ui", match: prefix("ui."), label: "화면 설정", detail: "마지막 탭·안내 표시 여부·언어·현재 청구 배치 id",
     purpose: "UX", basis: "—", encrypted: false, retention: "설정", days: null },
-  { id: "__ws", match: exact("__ws"), label: "워크스페이스 키링", detail: "사용자 이름·역할 (평문) · PIN으로 래핑된 마스터키 · salt · AI 동의 · 자동 잠금·세션 길이 설정",
-    purpose: "접근 통제 (PIN 잠금)", basis: "개인정보보호법 §29 · 안전성 확보조치 기준 §5 접근권한", encrypted: "부분 (키는 래핑)", retention: "전체 파기 시까지", days: null },
-  // The session record (security/session.js): a NON-extractable AES-GCM CryptoKey + user id + timestamps. Not personal data;
-  // it is what lets a reload resume without the PIN. Removed by lock / expiry / 전체 파기 — not destroyable from the table.
-  { id: "session", store: "IndexedDB (session)", label: "세션 키 (추출 불가 CryptoKey)", detail: "잠금 해제 상태를 이어가는 세션 키 · 사용자 id · 해제/만료/최근 활동 시각 (개인정보 아님 · 키는 내보낼 수 없음)",
+  { id: "__lock", match: exact("__lock"), label: "잠금 설정 (이 기기)", detail: "자동 잠금·세션 길이 · 사용자 id별 PIN 오류 백오프 · AI 동의 (이름 없음 — 사용자·키는 서버)",
+    purpose: "접근 통제 (PIN 잠금) 설정", basis: "개인정보보호법 §29 · 안전성 확보조치 기준 §5 접근권한", encrypted: false, retention: "전체 파기 시까지", days: null },
+  // The session record (security/session.js): a NON-extractable AES-GCM CryptoKey + user id + timestamps + a SEALED blob
+  // (name · role · server token · my wrapped key · directory snapshot, AES-GCM under that very key). It is what lets a reload
+  // resume without the PIN. Removed by lock / expiry / 전체 파기 — not destroyable from the table.
+  { id: "session", store: "IndexedDB (session)", label: "세션 키 (추출 불가 CryptoKey)", detail: "잠금 해제 상태를 이어가는 세션 키 · 사용자 id · 해제/만료/최근 활동 시각 · 세션 키로 봉인한 서버 토큰·이름·역할 (키는 내보낼 수 없음)",
     purpose: "새로 고침·탭 재열기 후 PIN 없이 이어가기 (세션 길이·무활동 시간 안에서만)", basis: "안전성 확보조치 기준 §5 — 세션 관리 · 무활동 시 자동 잠금", encrypted: "추출 불가 CryptoKey", retention: "만료 시 삭제 · 잠금 시 삭제", days: null },
-  { id: "__internal", match: (k) => k.startsWith("__") && k !== "__ws", label: "내부 메타", detail: "마지막 저장 시각·키별 수정 시각",
+  /* ── the server side (js/security/cloud.js · pb/pb_migrations/005_cloud_identity.js) — listed so the register is complete ── */
+  { id: "cloud.directory", server: true, store: "서버 workspace.directory", label: "서버 사용자 디렉터리 (이름·역할, 공개 읽기 — PoC)", detail: "로그인 id · 이름 · 시스템 역할 · 명부 행 id — 로그인 전 드롭다운을 위해 URL을 아는 누구나 읽을 수 있음",
+    purpose: "모든 기기에서 같은 사용자 목록으로 잠금 해제", basis: "안전성 확보조치 기준 §5 접근권한 (PoC: 공개 읽기 — 실사용 시 인증 뒤로)", encrypted: false, retention: "원장이 로그인 해제할 때까지", days: null },
+  { id: "cloud.password", server: true, store: "서버 staff_users · staff_keys", label: "PIN 파생 비밀번호 (bcrypt, 서버) — PIN 6자리 이상, 서버 rate limit", detail: "PBKDF2-SHA256 310k회로 PIN에서 유도한 비밀번호의 bcrypt 해시 · PIN으로 감싼 마스터키(암호문, 본인만 조회) · 임시 PIN 여부 — PIN 자체는 서버에 없음",
+    purpose: "서버 PIN 검증 · 마스터키 배포", basis: "안전성 확보조치 기준 §7 비밀번호 · §5 접근권한", encrypted: "해시 · 래핑", retention: "로그인 해제 시 삭제", days: null },
+  { id: "cloud.token", server: true, store: "IndexedDB (session · 봉인)", label: "서버 세션 토큰 (IndexedDB 세션 레코드)", detail: "PocketBase 인증 토큰 — 세션 키로 봉인되어 세션 레코드 안에만 저장 (localStorage 아님) · 잠금·만료 시 삭제 · PIN 재설정 시 서버가 무효화",
+    purpose: "잠금 해제 상태에서 서버 호출 (접수 보드 · 사용자 관리)", basis: "안전성 확보조치 기준 §5 — 세션 관리", encrypted: "세션 키로 봉인", retention: "잠금·만료 시 삭제", days: null },
+  { id: "pbUrl", match: exact("pbUrl"), label: "서버 주소 (개발용 override)", detail: "?pb=… 또는 localStorage로 지정한 PocketBase 주소 — 없으면 clinic-admin.pb.gurum.se (개인정보 아님)",
+    purpose: "로컬 테스트 서버 지정 (tools/e2e.mjs)", basis: "—", encrypted: false, retention: "설정", days: null },
+  { id: "__internal", match: (k) => k.startsWith("__") && k !== "__lock", label: "내부 메타", detail: "마지막 저장 시각·키별 수정 시각",
     purpose: "동기화 표시·처리 현황", basis: "—", encrypted: false, retention: "설정", days: null }
 ];
 
@@ -104,6 +115,11 @@ async function inventory() {
       let rec = null;
       try { rec = await Session.sessionRecord(); } catch {}
       rows.push({ ...r, keys: [`${Session.SESSION_DB}/${Session.SESSION_STORE}`], count: rec ? 1 : 0, lastModified: rec?.lastActiveAt || null, present: !!rec });
+      continue;
+    }
+    if (r.server) {
+      const n = r.id === "cloud.directory" ? Session.users().length : r.id === "cloud.password" ? Session.users().length : (Session.isAuthed() ? 1 : 0);
+      rows.push({ ...r, keys: [r.store], count: n, lastModified: null, present: n > 0 });
       continue;
     }
     if (r.store === "IndexedDB") {
@@ -169,34 +185,36 @@ async function destroy(ids) {
     if (!r) continue;
     if (r.id === "masters") { await Masters.clear("kcd"); await Masters.clear("fee"); n++; continue; }
     if (r.store === "IndexedDB") { await Attachments.clearAll(); n++; continue; }
-    if (r.id === "__ws" || r.id === "__internal" || r.id === "session") continue; // only via 전체 파기 (session: via 잠금)
+    if (r.id === "__lock" || r.id === "__internal" || r.id === "session" || r.server) continue; // only via 전체 파기 (session: via 잠금; server rows: via the 사용자 panel)
     for (const k of Store.keys().filter(r.match)) { Store.remove(k); n++; }
   }
   if (n) ActivityLog.add({ tag: "system", action: t("lifecycle.destroyedAction", { ids: ids.join(", ") }), meta: { silent: true } });
   return n;
 }
 
-/* 전체 파기 — data + attachments + uploaded masters + users + wrapped keys. Caller has already
-   collected the typed "파기". Masters are public reference tables, but a wipe is total. */
+/* 전체 파기 — THIS DEVICE: data + attachments + uploaded masters + lock settings + session (server logout). The server
+   accounts and the shared board are the clinic's and stay (the 원장 removes logins in the 사용자 panel). Caller has
+   already collected the typed "파기". Masters are public reference tables, but a wipe is total. */
 async function destroyAll() {
   try { ActivityLog.add({ tag: "system", action: t("lifecycle.destroyAllAction"), meta: { silent: true } }); } catch {}
   await Store.wipeAll({ keepWorkspace: false });
   try { await Masters.destroy(); } catch (e) { console.warn("masters wipe", e); }
-  await Session.destroy(); // drops the IndexedDB session store too
+  await Session.destroy(); // drops the IndexedDB session store (incl. the sealed server token) too
   try { localStorage.removeItem("vibe.clinic-admin.player-id"); } catch {}
 }
 
 /* ── Encrypted backup ─────────────────────────────────────────────────────────────
    { format, v, exportedAt, poc, keyring, sensitive: { key: envelope }, plain: envelope, attachments: [raw] }
    `sensitive` are the stored envelopes verbatim; `plain` is the non-sensitive keys bundled and
-   encrypted too, so the file contains no readable app data at all. Decrypting needs any user's PIN.
-   v2 (entities pass): same envelope layout; the key set now includes org.profile · staff.list · patients.register ·
-   claims.batch.* · tariff.* · insurers.lastUsed and the keyring users carry `staffId`. A v1 file (license.list,
-   yearend.*, bigeup.profile.*, bigeup.tariff) restores unchanged — the unlock that follows the restore runs the
-   legacy → entity migration (core/entities.js, via Store.onUnlock), exactly like an in-place upgrade. */
+   encrypted too, so the file contains no readable app data at all.
+   v3 (shared identity): `keyring` = { v:3, workspace, users:[ the EXPORTING user's wrapped copy of the clinic key ] }.
+   Restore unwraps it with that user's PIN, then proves ONLINE that it is the clinic's key (Cloud.login with the same
+   PIN → unwrap the server copy → byte-equal); a file made under another master key is refused before anything is
+   touched. v1/v2 files (device-local keyrings) are refused — their key is not the clinic key; the upgrade path for an
+   old device is the lock screen's "이 기기의 워크스페이스를 서버로 올리기". */
 const BACKUP_FORMAT = "vibe.clinic-admin.backup";
-const BACKUP_VERSION = 2;
-const BACKUP_VERSIONS_ACCEPTED = [1, 2];
+const BACKUP_VERSION = 3;
+const BACKUP_VERSIONS_ACCEPTED = [3];
 
 async function exportBackup() {
   if (!Session.isUnlocked()) throw new Error("locked");
@@ -224,26 +242,34 @@ async function exportBackup() {
 function parseBackup(text) {
   let bk;
   try { bk = JSON.parse(text); } catch { throw new Error(t("lock.errNotJson")); }
-  if (!bk || bk.format !== BACKUP_FORMAT || !BACKUP_VERSIONS_ACCEPTED.includes(bk.v) || !bk.keyring?.users?.length || !isEnvelope(bk.plain)) throw new Error(t("lock.errNotBackup"));
+  if (!bk || bk.format !== BACKUP_FORMAT) throw new Error(t("lock.errNotBackup"));
+  if (bk.v === 1 || bk.v === 2) throw new Error(t("lock.errLegacyBackup", { v: bk.v }));
+  if (!BACKUP_VERSIONS_ACCEPTED.includes(bk.v) || !bk.keyring?.users?.length || !isEnvelope(bk.plain)) throw new Error(t("lock.errNotBackup"));
   return bk;
 }
 
-/* Restore replaces everything in this profile. Throws on a wrong PIN before touching anything. The session that
-   follows is NOT persisted (Session.adopt) — a restore always ends with a PIN entry on the next load. */
+/* Restore replaces everything in this profile. Throws on a wrong PIN / a foreign key / no server before touching
+   anything. The session that follows is NOT persisted (Session.adopt) — a restore always ends with a PIN entry on the
+   next load. Needs the server: the backup's key is compared byte-for-byte with the clinic key that PIN unwraps. */
 async function restoreBackup(bk, userId, pin) {
   const raw = await Session.unwrapFromKeyring(bk.keyring, userId, pin); // wrong PIN → throws here
   const key = await importSessionKey(raw);
   const plain = await decryptJSON(key, bk.plain);                       // proves the key matches the data
-  Session.lock("restore");                                              // also deletes the IndexedDB session record
+  let login;
+  try { login = await Cloud.login(userId, pin); }
+  catch (e) { throw new Error(e.code === "offline" ? t("cloud.errOffline", { s: 0 }) : e.code === "wrong-pin" ? t("lock.errWrongPin") : e.code === "rate" ? t("cloud.errRate") : t("lock.errRestoreUser")); }
+  const serverRaw = await unwrapMaster(login.wrapped, pin);
+  const same = raw.length === serverRaw.length && raw.every((b, i) => b === serverRaw[i]);
+  if (!same) { Cloud.logout(); throw new Error(t("lock.errKeyMismatchBackup")); }
+  Session.lock("restore");                                              // also deletes the IndexedDB session record (+ logs out)
   await Store.wipeAll({ keepWorkspace: false });
   for (const [k, env] of Object.entries(bk.sensitive || {})) if (isEnvelope(env)) localStorage.setItem(`${NS}.${k}`, JSON.stringify(env));
   for (const [k, v] of Object.entries(plain || {})) localStorage.setItem(`${NS}.${k}`, JSON.stringify(v));
   await Attachments.importRaw(bk.attachments || []);
-  Session.importKeyring(bk.keyring);
-  const user = bk.keyring.users.find(u => u.id === userId);
-  await Session.adopt(raw, user);
-  const r = await Store.whenUnlocked(); // ← runs the legacy → entity migration for a v1 file (r.hooks has the counts)
-  ActivityLog.add({ tag: "system", action: t("lifecycle.restoreAction", { at: bk.exportedAt }) + (bk.v < BACKUP_VERSION ? " · " + t("lifecycle.restoreMigrated", { v: bk.v }) : "") });
+  try { await Cloud.login(userId, pin); } catch {} // a token for the board — best effort, the data is already readable
+  await Session.adopt(raw, login.user, login.wrapped);
+  const r = await Store.whenUnlocked();
+  ActivityLog.add({ tag: "system", action: t("lifecycle.restoreAction", { at: bk.exportedAt }) });
   return { keys: Object.keys(bk.sensitive || {}).length + Object.keys(plain || {}).length, attachments: (bk.attachments || []).length, version: bk.v, migrated: r?.hooks || null };
 }
 

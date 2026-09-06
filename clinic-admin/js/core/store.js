@@ -33,7 +33,8 @@ const NS = "vibe.clinic-admin";
    security/lifecycle.js registerRows() also adds any `encrypted: true` key it registers, so a new tab module cannot
    register a pid-carrying key on the plain tier by omission.
    NOT sensitive (plaintext): accred.checked, tariff.* (price list + history, no names), kcd.lastSummary and
-   retention.lastAudit (counts only), ui.* (screen settings), __* (internal: key ring, mtimes). */
+   retention.lastAudit (counts only), ui.* (screen settings), __* (internal: lock settings, mtimes — no names; the
+   users + wrapped keys live on the server since the shared-identity pass). */
 const SENSITIVE_KEYS = {
   exact: ["jabo.history", "license.list", "activity", "intake-cards", "staff.list", "patients.register",
           "appeals.list", "nhis.history", "guarantee.list", "docs.list", "consent.list", "retention.disposals"],
@@ -170,12 +171,12 @@ const Store = {
       if (key === "activity" && Array.isArray(v) && v[0] && (!prev?.[0] || v[0].at > prev[0].at)) EventBus.emitLocal("activity:push", v[0]);
     } catch {}
   },
-  /* keepWorkspace: leave the key ring (__ws) in place — "선택 항목 파기" uses remove(); this is the
-     full wipe. Without keepWorkspace the users + wrapped keys go too (전체 파기). */
+  /* keepWorkspace: leave the device lock settings (__lock) in place — "선택 항목 파기" uses remove(); this is the
+     full wipe. Without keepWorkspace the lock settings go too (전체 파기 — the server accounts are the clinic's and stay). */
   async wipeAll({ keepWorkspace = false } = {}) {
     await this.flush();
     for (const k of this.keys()) {
-      if (keepWorkspace && k === "__ws") continue;
+      if (keepWorkspace && k === "__lock") continue;
       localStorage.removeItem(`${NS}.${k}`);
     }
     cache.clear();
