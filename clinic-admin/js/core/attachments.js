@@ -4,9 +4,12 @@
    where `enc` is the AES-GCM ciphertext (workspace master key) of the UTF-8 bytes of the
    data URL. `owner` is the opaque staff-row id, never a name. Reads return the decrypted
    `{ …, data }` shape callers always used; while locked put() throws and getByOwner() → [].
-   Plaintext records left by an earlier build are re-encrypted on first unlock (migratePlaintext). */
+   Plaintext records left by an earlier build are re-encrypted on first unlock (migratePlaintext).
+   ENTITY SYNC (core/sync.js): every sealed record is mirrored to the server's `sync_file` collection (put → upload,
+   del → soft-delete); a device that lacks a photo receives it through the realtime stream or pulls on a miss. */
 import { Session } from "../security/session.js";
 import { encryptString, decryptString, isEnvelope } from "../security/crypto.js";
+import { Sync } from "./sync.js";
 
 // ── IndexedDB attachment store (binary lives outside localStorage) ──
 const Attachments = (() => {
@@ -36,6 +39,8 @@ const Attachments = (() => {
 
   async function putRaw(rec) { const s = await tx("readwrite"); await req(s.put(rec)); return rec; }
   async function getAllRaw() { const s = await tx("readonly"); return req(s.getAll()); }
+  async function getRaw(id) { const s = await tx("readonly"); return (await req(s.get(id))) || null; }
+  async function delRaw(id) { const s = await tx("readwrite"); await req(s.delete(id)); return true; }
 
   async function seal(rec) {
     const key = Session.key();
@@ -56,17 +61,24 @@ const Attachments = (() => {
 
   async function put(rec) {
     await putRaw(await seal(rec));
+    Sync.filePut(rec.id);
     return rec;
   }
-  async function getByOwner(owner) {
-    if (!Session.isUnlocked()) return [];
+  async function readOwner(owner) {
     const all = await getAllRaw();
     const mine = all.filter(x => x.owner === owner).sort((a, b) => a.at - b.at);
     return (await Promise.all(mine.map(unseal))).filter(Boolean);
   }
-  async function del(id) { const s = await tx("readwrite"); await req(s.delete(id)); return true; }
+  async function getByOwner(owner) {
+    if (!Session.isUnlocked()) return [];
+    let list = await readOwner(owner);
+    // Pull-on-miss: this device has no photo for the row — another device may have taken one (rate-limited inside Sync).
+    if (!list.length && Sync.state().online) { try { if (await Sync.pullFiles()) list = await readOwner(owner); } catch {} }
+    return list;
+  }
+  async function del(id) { await delRaw(id); Sync.fileDel(id); return true; }
   async function count() { const s = await tx("readonly"); return req(s.count()); }
-  async function clearAll() { const s = await tx("readwrite"); await req(s.clear()); }
+  async function clearAll() { const ids = (await getAllRaw()).map(r => r.id); const s = await tx("readwrite"); await req(s.clear()); for (const id of ids) Sync.fileDel(id); }
   async function close() {
     if (!dbp) return;
     const db = await dbp;
@@ -100,6 +112,8 @@ const Attachments = (() => {
     for (const r of all) if (set.has(r.owner)) { await del(r.id); n++; }
     return n;
   }
+  // The server mirror (core/sync.js) reads and writes the sealed records directly — never through put()/del(), which enqueue.
+  Sync.bindFiles({ getRaw, putRaw, del: delRaw, allRaw: getAllRaw });
   return { put, getByOwner, del, count, close, clearAll, migratePlaintext, exportRaw, importRaw, stats, deleteByOwners };
 })();
 export { Attachments };

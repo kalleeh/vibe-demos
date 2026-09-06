@@ -72,12 +72,15 @@ export async function startLocalPB({ quiet = true } = {}) {
   const data = join(DIR, "pb_data");
   const common = ["--dir", data, "--migrationsDir", MIGRATIONS, "--hooksDir", HOOKS, "--dev=false"];
   let child = null, log = [];
+  // The e2e's server-side scan (every sync_blob payload is ciphertext) reads the collections as this superuser — the
+  // credentials stay in memory, are handed back to the caller only, and change on every start.
+  const superuser = { email: SU_EMAIL, password: "pb" + randomBytes(16).toString("hex") };
   const boot = async () => {
     rmSync(data, { recursive: true, force: true });
     mkdirSync(data, { recursive: true });
     // Throw-away superuser first → no installer tab in the user's browser (see the header). Never printed.
     // hex + a letter prefix: a base64url value can start with "-" and be parsed as a flag by the CLI.
-    const su = spawnSync(bin, ["superuser", "upsert", SU_EMAIL, "pb" + randomBytes(16).toString("hex"), ...common], { encoding: "utf8" });
+    const su = spawnSync(bin, ["superuser", "upsert", SU_EMAIL, superuser.password, ...common], { encoding: "utf8" });
     if (su.status !== 0) throw new Error("pb-local: superuser upsert failed\n" + (su.stderr || su.stdout));
     child = spawn(bin, ["serve", ...common, "--http", `127.0.0.1:${PORT}`], { stdio: ["ignore", "pipe", "pipe"] });
     children.add(child);
@@ -93,7 +96,7 @@ export async function startLocalPB({ quiet = true } = {}) {
     await new Promise((res) => { c.once("exit", res); c.kill("SIGTERM"); setTimeout(() => { try { c.kill("SIGKILL"); } catch {} res(); }, 3000); });
   };
   await boot();
-  return { url: URL_, stop, reset: async () => { await stop(); await boot(); }, log: () => log.join("") };
+  return { url: URL_, superuser, stop, reset: async () => { await stop(); await boot(); }, log: () => log.join("") };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

@@ -7,6 +7,7 @@
    NOT listed here shows up as "미등록" in the panel so a new key cannot hide. */
 import { Store, EventBus, ActivityLog, NS, SENSITIVE_KEYS } from "../core/store.js";
 import { Attachments } from "../core/attachments.js";
+import { Sync } from "../core/sync.js";
 import { Session } from "./session.js";
 import { Cloud } from "./cloud.js";
 import { encryptJSON, decryptJSON, isEnvelope, importSessionKey, unwrapMaster } from "./crypto.js";
@@ -93,7 +94,18 @@ const REGISTRY = [
     purpose: "잠금 해제 상태에서 서버 호출 (접수 보드 · 사용자 관리)", basis: "안전성 확보조치 기준 §5 — 세션 관리", encrypted: "세션 키로 봉인", retention: "잠금·만료 시 삭제", days: null },
   { id: "pbUrl", match: exact("pbUrl"), label: "서버 주소 (개발용 override)", detail: "?pb=… 또는 localStorage로 지정한 PocketBase 주소 — 없으면 clinic-admin.pb.gurum.se (개인정보 아님)",
     purpose: "로컬 테스트 서버 지정 (tools/e2e.mjs)", basis: "—", encrypted: false, retention: "설정", days: null },
-  { id: "__internal", match: (k) => k.startsWith("__") && k !== "__lock", label: "내부 메타", detail: "마지막 저장 시각·키별 수정 시각",
+  /* ── entity sync (core/sync.js · pb/pb_migrations/006_sync_blobs.js) ── */
+  { id: "__sync", match: exact("__sync"), label: "동기화 메타 (이 기기)", detail: "마지막 동기화 시각 · 키별 서버 rev — 키 이름만, 값 없음 (개인정보 아님)",
+    purpose: "다음 동기화에서 바뀐 것만 받기", basis: "—", encrypted: false, retention: "전체 파기 시까지", days: null },
+  { id: "__outbox", match: exact("__outbox"), label: "동기화 대기 변경 (아웃박스, 이 기기)", detail: "오프라인·잠금 중 아직 서버로 못 보낸 변경의 사본 — 보내면 삭제",
+    purpose: "오프라인 편집을 잃지 않기", basis: "안전성 확보조치 기준 §7 암호화", encrypted: true, retention: "전송 즉시 삭제", days: null },
+  { id: "__conflicts", match: exact("__conflicts"), label: "동기화 충돌 기록 (이 기기)", detail: "다른 기기의 값이 이긴 편집 최근 20건 — 이 기기의 값(적용되지 않음)·항목·시각·덮어쓴 사용자",
+    purpose: "덮어쓰인 편집을 확인·되살리기", basis: "—", encrypted: true, retention: "최근 20건 · 「충돌 기록 지우기」", days: null },
+  { id: "sync_blob", server: true, store: "서버 sync_blob", label: "서버 동기화 블롭 (E2E 암호문) · 회원만 · soft-delete", detail: "Store 키마다 한 행 — 키 이름 · 클리닉 키로 잠근 AES-GCM 암호문 · rev · 수정자 명부 행 id · 삭제 표시 · 서버 시각. 서버는 값을 볼 수 없고 키 이름·크기·시각만 봅니다 (화면 설정 · 잠금 설정 · AI 메모는 기기에만)",
+    purpose: "모든 기기에서 같은 클리닉 데이터 (명부·환자 대장·청구 배치·이의신청·트래커·단가표·기관 프로필·활동 기록)", basis: "안전성 확보조치 기준 §7 암호화 — 전송·저장 모두 암호문 · §5 접근권한 (로그인한 구성원만)", encrypted: "E2E · 클리닉 키", retention: "원장 전체 파기(서버 포함) 시 soft-delete", days: null },
+  { id: "sync_file", server: true, store: "서버 sync_file", label: "서버 동기화 첨부 (면허증 사진 암호문) · 회원만 · soft-delete", detail: "첨부마다 한 행 — 첨부 id · 클리닉 키로 잠근 암호문 파일 · 수정자 · 삭제 표시",
+    purpose: "다른 기기에서도 같은 면허증 사진", basis: "동일", encrypted: "E2E · 클리닉 키", retention: "첨부 삭제 · 원장 전체 파기(서버 포함) 시 soft-delete", days: null },
+  { id: "__internal", match: (k) => k.startsWith("__") && !["__lock", "__sync", "__outbox", "__conflicts"].includes(k), label: "내부 메타", detail: "마지막 저장 시각·키별 수정 시각",
     purpose: "동기화 표시·처리 현황", basis: "—", encrypted: false, retention: "설정", days: null }
 ];
 
@@ -118,8 +130,15 @@ async function inventory() {
       continue;
     }
     if (r.server) {
-      const n = r.id === "cloud.directory" ? Session.users().length : r.id === "cloud.password" ? Session.users().length : (Session.isAuthed() ? 1 : 0);
-      rows.push({ ...r, keys: [r.store], count: n, lastModified: null, present: n > 0 });
+      const sy = Sync.state();
+      const n = r.id === "cloud.directory" ? Session.users().length : r.id === "cloud.password" ? Session.users().length
+        : r.id === "sync_blob" ? sy.serverKeys : r.id === "sync_file" ? sy.files : (Session.isAuthed() ? 1 : 0);
+      rows.push({ ...r, keys: [r.store], count: n, lastModified: r.id === "sync_blob" || r.id === "sync_file" ? sy.lastOkAt : null, present: n > 0 });
+      continue;
+    }
+    if (r.id === "__outbox") { // count = changes waiting, not the object's two buckets
+      const mine = keys.filter(r.match); mine.forEach(k => seen.add(k));
+      rows.push({ ...r, keys: mine, count: Sync.state().pending, lastModified: null, present: mine.length > 0 });
       continue;
     }
     if (r.store === "IndexedDB") {
@@ -185,7 +204,7 @@ async function destroy(ids) {
     if (!r) continue;
     if (r.id === "masters") { await Masters.clear("kcd"); await Masters.clear("fee"); n++; continue; }
     if (r.store === "IndexedDB") { await Attachments.clearAll(); n++; continue; }
-    if (r.id === "__lock" || r.id === "__internal" || r.id === "session" || r.server) continue; // only via 전체 파기 (session: via 잠금; server rows: via the 사용자 panel)
+    if (r.id === "__lock" || r.id === "__internal" || r.id === "__sync" || r.id === "__outbox" || r.id === "session" || r.server) continue; // only via 전체 파기 (session: via 잠금; server rows: via the 사용자 panel / 전체 파기)
     for (const k of Store.keys().filter(r.match)) { Store.remove(k); n++; }
   }
   if (n) ActivityLog.add({ tag: "system", action: t("lifecycle.destroyedAction", { ids: ids.join(", ") }), meta: { silent: true } });
@@ -194,13 +213,20 @@ async function destroy(ids) {
 
 /* 전체 파기 — THIS DEVICE: data + attachments + uploaded masters + lock settings + session (server logout). The server
    accounts and the shared board are the clinic's and stay (the 원장 removes logins in the 사용자 panel). Caller has
-   already collected the typed "파기". Masters are public reference tables, but a wipe is total. */
-async function destroyAll() {
-  try { ActivityLog.add({ tag: "system", action: t("lifecycle.destroyAllAction"), meta: { silent: true } }); } catch {}
+   already collected the typed "파기". Masters are public reference tables, but a wipe is total.
+   `server: true` (원장 only — the panel's "이 클리닉의 서버 데이터도 파기" checkbox, default on): every sync_blob / sync_file
+   row is tombstoned FIRST (payload blanked, deleted:true), so every other device empties itself on its next pull / realtime
+   event. A non-owner's 파기 always stays device-local. Returns { server: { blobs, files } | null }. */
+async function destroyAll({ server = false } = {}) {
+  try { ActivityLog.add({ tag: "system", action: t(server && Session.isOwner() ? "lifecycle.destroyAllServerAction" : "lifecycle.destroyAllAction"), meta: { silent: true } }); } catch {}
+  let wiped = null;
+  Sync.discardPending(); // the audit entry above must not race the tombstones back onto the server
+  if (server && Session.isOwner()) { try { wiped = await Sync.wipeServer(); } catch (e) { console.warn("server wipe", e); } }
   await Store.wipeAll({ keepWorkspace: false });
   try { await Masters.destroy(); } catch (e) { console.warn("masters wipe", e); }
   await Session.destroy(); // drops the IndexedDB session store (incl. the sealed server token) too
   try { localStorage.removeItem("vibe.clinic-admin.player-id"); } catch {}
+  return { server: wiped };
 }
 
 /* ── Encrypted backup ─────────────────────────────────────────────────────────────
@@ -211,10 +237,14 @@ async function destroyAll() {
    Restore unwraps it with that user's PIN, then proves ONLINE that it is the clinic's key (Cloud.login with the same
    PIN → unwrap the server copy → byte-equal); a file made under another master key is refused before anything is
    touched. v1/v2 files (device-local keyrings) are refused — their key is not the clinic key; the upgrade path for an
-   old device is the lock screen's "이 기기의 워크스페이스를 서버로 올리기". */
+   old device is the lock screen's "이 기기의 워크스페이스를 서버로 올리기".
+   v4 (entity sync): same content model + `lastSyncAt` (the server watermark at export time, informational). A restore
+   stamps every restored key's mtime with "now" and drops the sync meta, so the unlock that follows runs a FULL pull +
+   push reconciliation in which the restored values win over older server state (incl. the tombstones of a 전체 파기)
+   and are pushed to every device — a restore is a deliberate owner action. v3 files are still accepted. */
 const BACKUP_FORMAT = "vibe.clinic-admin.backup";
-const BACKUP_VERSION = 3;
-const BACKUP_VERSIONS_ACCEPTED = [3];
+const BACKUP_VERSION = 4;
+const BACKUP_VERSIONS_ACCEPTED = [3, 4];
 
 async function exportBackup() {
   if (!Session.isUnlocked()) throw new Error("locked");
@@ -228,6 +258,7 @@ async function exportBackup() {
   }
   const bk = {
     format: BACKUP_FORMAT, v: BACKUP_VERSION, exportedAt: new Date().toISOString(), poc: POC_MARK,
+    lastSyncAt: Sync.meta().lastSyncAt || null,
     keyring: Session.exportKeyring(),
     sensitive,
     plain: await encryptJSON(Session.key(), plain),
@@ -263,8 +294,10 @@ async function restoreBackup(bk, userId, pin) {
   if (!same) { Cloud.logout(); throw new Error(t("lock.errKeyMismatchBackup")); }
   Session.lock("restore");                                              // also deletes the IndexedDB session record (+ logs out)
   await Store.wipeAll({ keepWorkspace: false });
-  for (const [k, env] of Object.entries(bk.sensitive || {})) if (isEnvelope(env)) localStorage.setItem(`${NS}.${k}`, JSON.stringify(env));
-  for (const [k, v] of Object.entries(plain || {})) localStorage.setItem(`${NS}.${k}`, JSON.stringify(v));
+  const now = Date.now(), mtimes = {};
+  for (const [k, env] of Object.entries(bk.sensitive || {})) if (isEnvelope(env)) { localStorage.setItem(`${NS}.${k}`, JSON.stringify(env)); mtimes[k] = now; }
+  for (const [k, v] of Object.entries(plain || {})) { localStorage.setItem(`${NS}.${k}`, JSON.stringify(v)); mtimes[k] = now; }
+  localStorage.setItem(`${NS}.__mtime`, JSON.stringify(mtimes)); // the restored values are "edited now" → they win the LWW reconciliation
   await Attachments.importRaw(bk.attachments || []);
   try { await Cloud.login(userId, pin); } catch {} // a token for the board — best effort, the data is already readable
   await Session.adopt(raw, login.user, login.wrapped);

@@ -334,7 +334,7 @@
         <span class="chip action" id="topbar-org" role="button" style="display:none"><span class="led"></span><span id="topbar-org-text">—</span></span>
         <span class="chip" id="topbar-due" style="display:none"><span class="led warn"></span><span id="topbar-due-text">—</span></span>
         <span class="chip action" id="topbar-user" role="button" title="사용자 · PIN · 자동 잠금" data-i18n-attr="title:shell.userChipTitle" style="display:none"><span class="led"></span><span id="topbar-user-text">—</span></span>
-        <span class="chip" id="topbar-sync"><span class="led idle" id="sync-led"></span><span id="sync-msg" data-i18n="shell.syncIdle">로컬 저장 · 암호화</span></span>
+        <span class="chip action" id="topbar-sync" role="button" title="서버 동기화 상태 — 클릭하면 데이터 처리 현황의 동기화 항목으로" data-i18n-attr="title:shell.syncChipTitle"><span class="led idle" id="sync-led"></span><span id="sync-msg" data-i18n="shell.syncIdle">로컬 저장 · 암호화</span></span>
         <span class="lang-toggle topbar-lang" role="group" aria-label="Language"><button type="button" data-lang="ko" aria-pressed="true">KO</button><button type="button" data-lang="en" aria-pressed="false">EN</button></span>
         <button type="button" class="topbar-btn" id="topbar-search" title="검색 · 이동 · 명령 (⌘K · Ctrl+K)" data-i18n-attr="title:shell.cmdkChipTitle;aria-label:shell.cmdkChipTitle">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg><span class="tb-word" data-i18n="shell.cmdkWord">검색</span><kbd class="cmdk-key">⌘K</kbd>
@@ -1463,7 +1463,7 @@
 
       <div class="sec-pane active" data-privacy-pane="status">
         <p class="sec-note" style="margin-bottom:10px" data-i18n-html="privacy.statusNote">워크스페이스 <code id="privacy-wsid">—</code>. 「암호화 예」인 항목은 워크스페이스 키(AES-GCM)로 암호문만 저장됩니다. 보존기간이 지난 항목은 잠금 해제 때마다 자동 파기됩니다.</p>
-        <p class="sec-note lock-warn" style="margin-bottom:10px" data-i18n-html="privacy.cloudNote"><strong>서버가 보는 것과 보지 못하는 것 (PoC).</strong> 병원 서버(PocketBase)에는 사용자 <strong>이름·역할</strong>(로그인 전 드롭다운을 위해 <strong>URL을 아는 누구나 읽을 수 있음</strong>), PIN에서 유도한 비밀번호의 bcrypt 해시, 각 사용자 PIN으로 감싼 마스터키(암호문), 접수 보드 카드의 암호문·상태만 있습니다. 서버는 PIN도, 마스터키도, 카드 내용도, 이 브라우저의 환자·직원 데이터도 볼 수 없습니다. 반대로 서버 관리자는 사용자를 지우거나 카드 암호문을 삭제할 수는 있습니다(가용성은 보호되지 않음).</p>
+        <p class="sec-note lock-warn" style="margin-bottom:10px" data-i18n-html="privacy.cloudNote"><strong>서버가 보는 것과 보지 못하는 것 (PoC).</strong> 병원 서버(PocketBase)에는 사용자 <strong>이름·역할</strong>(로그인 전 드롭다운을 위해 <strong>URL을 아는 누구나 읽을 수 있음</strong>), PIN에서 유도한 비밀번호의 bcrypt 해시, 각 사용자 PIN으로 감싼 마스터키(암호문), 접수 보드 카드의 암호문·상태, 그리고 <strong>이 클리닉 데이터 전체의 암호문</strong>(명부·환자 대장·청구 배치·이의신청·트래커·단가표·기관 프로필·활동 기록·면허증 사진 — 클리닉 키로 잠겨 있어 서버에는 키 이름·크기·수정 시각·수정자 id만 보임)이 있습니다. 서버는 PIN도, 마스터키도, 어떤 값도 볼 수 없습니다. 반대로 서버 관리자는 사용자를 지우거나 암호문을 삭제할 수 있고, 로그인한 구성원은 누구나 어떤 항목이든 덮어쓸 수 있습니다(가용성·무결성은 보호되지 않음). 화면 설정·잠금 설정·AI 메모는 이 기기에만 남습니다.</p>
         <div class="sec-table-wrap">
           <table class="sec-table">
             <thead><tr><th></th><th data-i18n="privacy.thItem">항목 · 저장 위치</th><th data-i18n="privacy.thPurpose">목적 · 근거 (PoC 문안)</th><th data-i18n="privacy.thEnc">암호화</th><th data-i18n="privacy.thRetention">보존</th><th data-i18n="privacy.thCount">건수</th><th data-i18n="privacy.thModified">최근 수정</th></tr></thead>
@@ -1473,9 +1473,26 @@
         <div class="sec-toolbar">
           <button type="button" class="btn secondary sm" id="privacy-destroy-selected" data-i18n="privacy.destroySelected">선택 항목 파기</button>
           <button type="button" class="btn secondary sm" id="privacy-destroy-all" title="원장 권한" data-i18n="privacy.destroyAll" data-i18n-attr="title:common.ownerOnly">전체 파기 (사용자·키 포함)</button>
+          <label class="sec-check" for="privacy-destroy-server" title="원장 권한" data-i18n-attr="title:common.ownerOnly"><input type="checkbox" id="privacy-destroy-server" checked> <span data-i18n="privacy.destroyServer">이 클리닉의 서버 데이터도 파기 (원장 · 모든 기기에서 사라짐)</span></label>
           <span class="spacer"></span>
           <button type="button" class="btn sm" id="privacy-backup" data-i18n="privacy.backupBtn">암호화 백업 내려받기</button>
           <button type="button" class="btn secondary sm" id="privacy-restore" data-i18n="privacy.restoreBtn">백업 복원…</button>
+        </div>
+        <div class="sec-section" id="privacy-sync">
+          <h5 data-i18n="privacy.sync.h">서버 동기화 — 모든 기기 · E2E 암호문 · 항목별 마지막 쓰기 우선</h5>
+          <p class="sec-note" data-i18n-html="privacy.sync.note">화면 설정·잠금 설정·AI 메모를 뺀 모든 항목이 클리닉 키로 잠긴 암호문으로 서버에 올라가 다른 기기에서 열립니다. 같은 항목을 두 기기가 고치면 <strong>서버 시각 기준 마지막 쓰기</strong>가 남고, 이 기기의 밀린 값은 아래에 보관됩니다(최근 20건) — <strong>되살리기</strong>로 되돌릴 수 있습니다. 오프라인 편집은 암호화된 아웃박스에 쌓여 다시 연결되면 보내집니다.</p>
+          <div class="sec-toolbar" style="margin-top:4px;align-items:center">
+            <span class="sec-note" id="privacy-sync-line">—</span>
+            <span class="spacer"></span>
+            <button type="button" class="btn sm" id="privacy-sync-now" data-i18n="privacy.sync.now">지금 동기화</button>
+            <button type="button" class="btn secondary sm" id="privacy-sync-clear" data-i18n="privacy.sync.clear">충돌 기록 지우기</button>
+          </div>
+          <div class="sec-table-wrap">
+            <table class="sec-table sync-conflicts">
+              <thead><tr><th data-i18n="privacy.sync.thAt">시각</th><th data-i18n="privacy.sync.thKey">항목</th><th data-i18n="privacy.sync.thBy">덮어쓴 사용자</th><th data-i18n="privacy.sync.thLosing">이 기기의 값 (적용되지 않음)</th><th></th></tr></thead>
+              <tbody id="privacy-sync-conflicts"></tbody>
+            </table>
+          </div>
         </div>
         <div class="sec-section">
           <h5 data-i18n="privacy.auditH">활동 기록 (감사 로그) — 추가만 가능 · 암호화 · 1년</h5>
@@ -1499,6 +1516,7 @@
             <tr data-i18n-html="privacy.legal3"><td>AI 코드 추천 (메모를 ai.pb.gurum.se → Amazon Bedrock, eu-north-1 스톡홀름으로 전송)</td><td>§26 업무위탁 · §28의8 국외 이전 · §23</td><td><span class="yes">함</span> — 기본은 예시 모드, 사용자별 동의 대화상자(목적지·보존·위탁계약 없음 고지), 자동 마스킹 + 전송 내용 미리보기, 서버 미저장</td><td><span class="no">남음</span> — LLM 벤더와의 <strong>위탁계약</strong> 또는 온프레미스 모델, 국외 이전 고지·동의 절차, 위탁자 관리·감독</td></tr>
             <tr data-i18n-html="privacy.legal4"><td>음성 받아쓰기 (브라우저 제조사 클라우드 STT)</td><td>§26 · §28의8</td><td><span class="yes">함</span> — 기본 OFF, 인라인 고지(No cloud STT by default)</td><td><span class="no">남음</span> — 온디바이스 STT 또는 위탁계약이 있는 서비스</td></tr>
             <tr data-i18n-html="privacy.legal5"><td>실시간 접수 현황판 (공유 PocketBase)</td><td>§29 · 의료법 §21</td><td><span class="yes">함</span> — 카드 내용 종단간 암호화(E2E), 서버에는 암호문·상태만, 실명 입력 불가, 읽기·쓰기 모두 <strong>로그인한 구성원만</strong>(서버 규칙)</td><td><span class="no">남음</span> — 가용성·무결성 보호 (구성원 누구나 카드 삭제·상태 변경 가능), 서버 측 감사 로그</td></tr>
+            <tr data-i18n-html="privacy.legal11"><td>기기 간 동기화 (모든 클리닉 데이터 — 명부·환자 대장·청구 배치·트래커·활동 기록)</td><td>§23 · §29 · 안전성 확보조치 기준 §7 암호화 · §5 접근권한</td><td><span class="yes">함</span> — 항목마다 클리닉 키로 잠근 AES-GCM 암호문만 서버에 저장(전송·저장 모두), 로그인한 구성원만 읽기·쓰기, 삭제는 soft-delete, 항목별 마지막 쓰기 우선 + 밀린 값 보관·되살리기, 오프라인 아웃박스도 암호화. 서버가 보는 것: 키 이름·크기·수정 시각·수정자 id</td><td><span class="no">남음</span> — 구성원 누구나 어떤 항목이든 덮어쓸 수 있음(서버 측 권한·버전 이력 없음), 시계 차이가 있으면 마지막 쓰기 판정이 어긋남, 서버 측 접속기록, 키 이름·크기·시각의 메타데이터 노출</td></tr>
             <tr data-i18n-html="privacy.legal10"><td>사용자 계정 · PIN (병원 서버)</td><td>§29 · 안전성 확보조치 기준 §5 접근권한 · §7 비밀번호</td><td><span class="yes">함</span> — 사용자 목록·PIN 검증이 서버에 있어 모든 기기가 같은 계정을 씀. PIN(6자리 이상)은 브라우저에서 PBKDF2-SHA256 310k회로 유도한 비밀번호로 바뀌어 전송되고 서버는 bcrypt로 저장, 로그인 시도 서버 rate limit, 로그인 발급은 임시 PIN + 첫 로그인 시 변경 강제, 원장만 발급·재설정·해제</td><td><span class="no">남음</span> — 사용자 <strong>이름·역할 디렉터리가 공개 읽기</strong>(URL을 아는 누구나 조회 가능 — PoC 편의), PIN 6자리의 낮은 엔트로피(실사용 시 비밀번호 또는 2단계 인증), 서버 측 접속기록·계정 변경 기록</td></tr>
             <tr data-i18n-html="privacy.legal6"><td>활동 기록 (감사 로그)</td><td>§29 · 안전성 확보조치 기준 §8 접속기록</td><td><span class="yes">함</span> — 사용자·역할·작업·가명 대상(****1234) 기록, 이름 미기록, 추가만 가능, 암호화, 1년 보존, 원장만 내보내기·삭제</td><td><span class="no">남음</span> — 접속기록의 <strong>서버 측 1년 이상 보관</strong>(기준에 따라 2년)·위변조 방지·월 1회 점검. 브라우저 안의 기록은 사용자가 지울 수 있음</td></tr>
             <tr data-i18n-html="privacy.legal7"><td>다운로드 · 인쇄물</td><td>§29 · 의료법 §21</td><td><span class="yes">함</span> — 모든 파일·인쇄에 「PoC — 실제 제출 불가 · 데모 데이터」 워터마크, 파일명 _PoC</td><td>반출 승인 절차, 출력물 관리대장</td></tr>

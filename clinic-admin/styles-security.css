@@ -232,3 +232,15 @@ mark.redact { background: rgba(176,74,47,0.14); color: var(--accent); border-bot
 #lock-offline .lock-warn { margin-bottom: 10px; }
 .sec-table tr.server td { background: rgba(123,168,154,0.06); }
 .privacy-card .sec-note.lock-warn { margin-top: 0; }
+
+/* ── Entity sync (step B): topbar chip states + the 동기화 section of 데이터 처리 현황 ── */
+/* "동기화 중…" / "저장 중" — visible motion (loading-ux.md), not a static label. */
+#topbar-sync.syncing .led { background: var(--accent); animation: sync-beat 0.8s ease-in-out infinite; }
+@keyframes sync-beat { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.7); } }
+@media (prefers-reduced-motion: reduce) { #topbar-sync.syncing .led { animation: none; opacity: 0.7; } }
+.sec-check { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--ink-2); cursor: pointer; }
+.sec-check input { margin: 0; }
+.sec-check:has(input:disabled) { opacity: 0.55; cursor: default; }
+.sync-conflicts td.when { white-space: nowrap; font-family: "JetBrains Mono", monospace; font-size: 11px; }
+.sync-conflicts .sync-losing { display: inline-block; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; font-size: 11px; }
+.sync-conflicts tr.absent td { color: var(--muted); font-size: 12px; }

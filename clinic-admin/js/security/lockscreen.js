@@ -14,14 +14,15 @@
    Session.setReauthPrompt — the current user's PIN checked offline against the cached wrapped key, same backoff.
    i18n: every string goes through t(); the lock screen works while locked because core/i18n.js is a leaf. */
 import { $, $$, esc, Toast, Dialog, relTime, roleLabel } from "../core/ui.js";
-import { t, getLang, onLangChange } from "../core/i18n.js";
+import { t, tOr, getLang, onLangChange } from "../core/i18n.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
+import { Sync } from "../core/sync.js";
 import { downloadCSV } from "../core/files.js";
 import { activateTab } from "../core/nav.js";
 import { Staff, JOB_FOR_SYSROLE } from "../core/entities.js";
 import { Session } from "./session.js";
 import { Cloud } from "./cloud.js";
-import { inventory, purgeExpired, destroy, destroyAll, exportBackup, parseBackup, restoreBackup } from "./lifecycle.js";
+import { inventory, purgeExpired, destroy, destroyAll, exportBackup, parseBackup, restoreBackup, REGISTRY } from "./lifecycle.js";
 
 const HIDDEN_LOCK_MS = 60000;
 const fmtDT = (ts) => ts ? new Date(ts).toLocaleString(getLang() === "en" ? "en-GB" : "ko-KR", { hour12: false }) : "—";
@@ -367,6 +368,7 @@ const Lock = (() => {
 
     EventBus.on("session:unlocked", async (p) => {
       await Store.whenUnlocked();
+      if (!Session.isUnlocked()) return; // locked again while the Store was initialising (revoked resume) — keep the lock screen
       try { await purgeExpired(); } catch (e) { console.warn("purge", e); }
       close();
       armIdle();
@@ -555,7 +557,29 @@ const PrivacyPanel = (() => {
   const panel = () => $("#tab-privacy");
   const isActive = () => !!panel()?.classList.contains("active");
   const msg = (text, kind = "") => { const el = $("#privacy-msg"); if (!el) return; el.textContent = text || ""; el.className = "sec-msg " + kind; el.hidden = !text; };
-  const NO_DESTROY = new Set(["__lock", "__internal", "session", "cloud.directory", "cloud.password", "cloud.token"]);
+  const NO_DESTROY = new Set(["__lock", "__internal", "__sync", "__outbox", "session", "cloud.directory", "cloud.password", "cloud.token", "sync_blob", "sync_file"]);
+  // 동기화 section — status line + the conflicts ring (core/sync.js). Re-rendered on every Sync change while the panel is up.
+  const regLabel = (key) => { const r = REGISTRY.find(x => x.match && x.match(key)); return r ? tOr(`lifecycle.reg.${r.id}.label`, r.label) : key; };
+  const whoLabel = (staffId) => { const row = staffId ? Staff.get(staffId) : null; return row ? Staff.ref(row) : (staffId ? staffId.slice(0, 8) + "…" : "—"); };
+  const preview = (v) => { let sv; try { sv = typeof v === "string" ? v : JSON.stringify(v); } catch { sv = String(v); } sv = String(sv ?? ""); return sv.length > 90 ? sv.slice(0, 90) + "…" : sv; };
+  function renderSync() {
+    const line = $("#privacy-sync-line"); if (!line) return;
+    const st = Sync.state();
+    const state = !st.enabled ? t("privacy.sync.stateLocal") : st.syncing ? t("privacy.sync.stateSyncing") : st.online ? t("privacy.sync.stateOn") : t("privacy.sync.stateOff");
+    line.textContent = t("privacy.sync.line", { state, t: st.lastOkAt ? fmtDT(st.lastOkAt) : "—", k: st.serverKeys, f: st.files, p: st.pending, c: st.conflicts });
+    const now = $("#privacy-sync-now"); if (now) now.disabled = !st.enabled;
+    const list = Sync.conflicts();
+    const clr = $("#privacy-sync-clear"); if (clr) clr.disabled = !list.length;
+    const tb = $("#privacy-sync-conflicts"); if (!tb) return;
+    tb.innerHTML = list.length ? list.map(cf => `
+      <tr data-conflict="${esc(cf.id)}">
+        <td class="when">${esc(fmtDT(cf.at))}</td>
+        <td><strong>${esc(regLabel(cf.key))}</strong><div class="sec-detail"><code>${esc(cf.key)}</code></div></td>
+        <td>${esc(whoLabel(cf.by))}</td>
+        <td><code class="sync-losing">${esc(cf.deleted ? t("privacy.sync.deletedVal") : preview(cf.losing))}</code></td>
+        <td><button type="button" class="btn secondary sm" data-restore-conflict="${esc(cf.id)}">${esc(t("privacy.sync.restore"))}</button></td>
+      </tr>`).join("") : `<tr class="absent"><td colspan="5">${esc(t("privacy.sync.empty"))}</td></tr>`;
+  }
   function selectTab(name) {
     $$("#tab-privacy [data-privacy-tab]").forEach(b => b.classList.toggle("active", b.dataset.privacyTab === name));
     $$("#tab-privacy [data-privacy-pane]").forEach(p => p.classList.toggle("active", p.dataset.privacyPane === name));
@@ -578,6 +602,9 @@ const PrivacyPanel = (() => {
     const n = ActivityLog.all().length;
     $("#privacy-audit-count").textContent = t("privacy.auditCount", { n, t: n ? relTime(ActivityLog.all()[0].at) : "—" });
     const ws = $("#privacy-wsid"); if (ws) ws.textContent = (Session.workspaceName() || "—") + " @ " + Cloud.url().replace(/^https?:\/\//, "");
+    // "이 클리닉의 서버 데이터도 파기" — 원장 only (a non-owner's 파기 is always device-local); default on.
+    const srv = $("#privacy-destroy-server"); if (srv) { srv.disabled = !owner; if (!owner) srv.checked = false; else if (!srv.dataset.touched) srv.checked = true; }
+    renderSync();
   }
   function open(tab = "status") { if (!Session.isUnlocked()) return; msg(""); selectTab(tab); activateTab("tab-privacy", { section: tab }); }
   function close() { /* a panel has nothing to close — kept for callers */ }
@@ -596,13 +623,30 @@ const PrivacyPanel = (() => {
       const n = await destroy(ids);
       msg(t("privacy.msgDestroyed", { n }), "ok"); render();
     });
+    $("#privacy-destroy-server")?.addEventListener("change", (e) => { e.target.dataset.touched = "1"; });
     $("#privacy-destroy-all")?.addEventListener("click", async () => {
-      const typed = prompt(t("privacy.wipePrompt"));
+      const server = Session.isOwner() && !!$("#privacy-destroy-server")?.checked;
+      const typed = prompt(t(server ? "privacy.wipePromptServer" : "privacy.wipePrompt"));
       if (typed == null) return;
       if (!isDestroyWord(typed)) { msg(t("privacy.msgTypeWord"), "err"); return; }
-      await destroyAll();
+      await destroyAll({ server });
       location.reload();
     });
+    // 동기화 section
+    $("#privacy-sync-now")?.addEventListener("click", async () => {
+      const b = $("#privacy-sync-now"); b.disabled = true;
+      try { await Sync.now(); msg(t(Sync.state().online ? "privacy.sync.msgNow" : "privacy.sync.msgOffline"), Sync.state().online ? "ok" : "err"); }
+      finally { renderSync(); }
+    });
+    $("#privacy-sync-clear")?.addEventListener("click", () => { Sync.clearConflicts(); msg(t("privacy.sync.msgCleared"), "ok"); renderSync(); });
+    $("#privacy-sync-conflicts")?.addEventListener("click", (e) => {
+      const b = e.target.closest?.("[data-restore-conflict]"); if (!b) return;
+      if (Sync.restoreConflict(b.dataset.restoreConflict)) { ActivityLog.add({ tag: "system", action: t("privacy.sync.logRestored"), meta: { silent: true } }); msg(t("privacy.sync.msgRestored"), "ok"); }
+      renderSync();
+    });
+    Sync.onChange(() => { if (isActive()) renderSync(); });
+    // The topbar chip opens this section.
+    $("#topbar-sync")?.addEventListener("click", () => { if (!Session.isUnlocked()) return; open("status"); setTimeout(() => $("#privacy-sync")?.scrollIntoView({ block: "start", behavior: "smooth" }), 150); });
     $("#privacy-backup")?.addEventListener("click", async () => {
       try { const bk = await exportBackup(); msg(t("privacy.msgBackup", { n: Object.keys(bk.sensitive).length, a: bk.attachments.length }), "ok"); }
       catch (err) { msg(err.message || String(err), "err"); }

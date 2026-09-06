@@ -12,10 +12,14 @@
    ─ Plaintext values left by an earlier build are migrated (read → encrypt → overwrite) on the
      first unlock (Store.unlockedInit), together with IndexedDB attachments.
    Events: `session:unlocked` (after the cache is populated; `resumed: true` when restored from the IndexedDB session
-   record at boot without a PIN) and `session:locked` (local only — session.js has its own cross-tab channel). */
-import { $, relTime, debounce, redactSubject, redactStaff } from "./dom.js";
-import { t } from "./i18n.js";
+   record at boot without a PIN) and `session:locked` (local only — session.js has its own cross-tab channel).
+   ENTITY SYNC (step B, core/sync.js): every set()/remove() of a syncable key is also enqueued for the encrypted server mirror;
+   remote changes come back through Store.applyRemote() (local write + the normal `store:<key>` event, no re-enqueue). The
+   initial pull runs inside unlockedInit() BEFORE the unlock hooks. */
+import { $, debounce, redactSubject, redactStaff } from "./dom.js";
+import { t, getLang } from "./i18n.js";
 import { Attachments } from "./attachments.js";
+import { Sync } from "./sync.js";
 import { Session } from "../security/session.js";
 import { encryptJSON, decryptJSON, isEnvelope } from "../security/crypto.js";
 import { scrubIdentifiers } from "../security/redact.js";
@@ -37,7 +41,8 @@ const NS = "vibe.clinic-admin";
    users + wrapped keys live on the server since the shared-identity pass). */
 const SENSITIVE_KEYS = {
   exact: ["jabo.history", "license.list", "activity", "intake-cards", "staff.list", "patients.register",
-          "appeals.list", "nhis.history", "guarantee.list", "docs.list", "consent.list", "retention.disposals"],
+          "appeals.list", "nhis.history", "guarantee.list", "docs.list", "consent.list", "retention.disposals",
+          "__outbox", "__conflicts"], // sync.js: unsent edits + losing values hold real data → sealed like everything else
   prefixes: ["jabo.draft.", "ai.", "yearend.", "bigeup.profile.", "claims.batch."]
 };
 /* Unlock hooks (entities.js registers its legacy → entity migration): awaited inside unlockedInit() AFTER the
@@ -67,6 +72,38 @@ function touchMtime(key) {
   } catch {}
 }
 
+/* The local half of set()/remove() — shared by the user's own writes and by remote changes (Store.applyRemote). */
+function writeLocal(key, value) {
+  if (isSensitive(key)) {
+    cache.set(key, value);
+    touchMtime(key);
+    SyncStatus.touch();
+    EventBus.emitLocal(`store:${key}`, value);
+    const k = Session.key();
+    enqueueWrite(key, async () => {
+      const env = await encryptJSON(k, value);
+      localStorage.setItem(`${NS}.${key}`, JSON.stringify(env));
+      EventBus.notify(`store:${key}`); // only after the envelope is on disk — peers re-read it
+    });
+    return true;
+  }
+  try {
+    localStorage.setItem(`${NS}.${key}`, JSON.stringify(value));
+    touchMtime(key);
+    SyncStatus.touch();
+    EventBus.emit(`store:${key}`, value);
+    return true;
+  } catch (e) { console.warn("Store.set failed", e); return false; }
+}
+function removeLocal(key) {
+  cache.delete(key);
+  enqueueWrite(key, () => { try { localStorage.removeItem(`${NS}.${key}`); } catch {} });
+  try { localStorage.removeItem(`${NS}.${key}`); } catch {}
+  const m = readRaw("__mtime"); if (m && key in m) { delete m[key]; try { localStorage.setItem(`${NS}.__mtime`, JSON.stringify(m)); } catch {} }
+  if (isSensitive(key)) { EventBus.emitLocal(`store:${key}`, null); EventBus.notify(`store:${key}`); }
+  else EventBus.emit(`store:${key}`, null);
+}
+
 const Store = {
   isSensitive,
   onUnlock(fn) { unlockHooks.push(fn); },
@@ -81,32 +118,24 @@ const Store = {
   set(key, value) {
     if (isSensitive(key)) {
       if (!Session.isUnlocked()) { console.warn("Store.set ignored while locked:", key); return; }
-      cache.set(key, value);
-      touchMtime(key);
-      SyncStatus.touch();
-      EventBus.emitLocal(`store:${key}`, value);
-      const k = Session.key();
-      enqueueWrite(key, async () => {
-        const env = await encryptJSON(k, value);
-        localStorage.setItem(`${NS}.${key}`, JSON.stringify(env));
-        EventBus.notify(`store:${key}`); // only after the envelope is on disk — peers re-read it
-      });
+      writeLocal(key, value);
+      Sync.enqueue(key, value);
       return;
     }
-    try {
-      localStorage.setItem(`${NS}.${key}`, JSON.stringify(value));
-      touchMtime(key);
-      SyncStatus.touch();
-      EventBus.emit(`store:${key}`, value);
-    } catch (e) { console.warn("Store.set failed", e); }
+    if (writeLocal(key, value)) Sync.enqueue(key, value);
   },
   remove(key) {
-    cache.delete(key);
-    enqueueWrite(key, () => { try { localStorage.removeItem(`${NS}.${key}`); } catch {} });
-    try { localStorage.removeItem(`${NS}.${key}`); } catch {}
-    const m = readRaw("__mtime"); if (m && key in m) { delete m[key]; try { localStorage.setItem(`${NS}.__mtime`, JSON.stringify(m)); } catch {} }
-    if (isSensitive(key)) { EventBus.emitLocal(`store:${key}`, null); EventBus.notify(`store:${key}`); }
-    else EventBus.emit(`store:${key}`, null);
+    removeLocal(key);
+    Sync.enqueue(key, undefined, { deleted: true });
+  },
+  /* A change that arrived from the server (core/sync.js): the same local write + events as set()/remove(), but nothing is
+     enqueued back. `null` = the key was deleted on another device. */
+  applyRemote(key, value) {
+    if (value === null || value === undefined) { removeLocal(key); return; }
+    if (isSensitive(key) && !Session.isUnlocked()) return;
+    const prev = isSensitive(key) ? cache.get(key) : undefined;
+    writeLocal(key, value);
+    if (key === "activity" && Array.isArray(value) && value[0] && (!prev?.[0] || value[0].at > prev[0].at)) EventBus.emitLocal("activity:push", value[0]);
   },
   // Every key under the namespace — what is on disk PLUS sensitive keys set this session whose encrypted write is
   // still in flight (a batch created a moment ago must be listable at once; backup awaits flush() before reading).
@@ -151,10 +180,16 @@ const Store = {
       }
     }
     try { migrated += await Attachments.migratePlaintext(); } catch (e) { console.warn("attachment migration", e); }
+    // Entity sync: pull the clinic's data (LWW against what this device holds) BEFORE the hooks — a fresh device must not
+    // "migrate" the server directory into stub roster rows and then push them over the real roster.
+    let sync = null;
+    try { sync = await Sync.initialPull(); } catch (e) { console.warn("sync pull", e); }
+    // Locked while the pull was in flight (a resumed session revoked by Session.verifyResumed) — the lock screen owns the UI.
+    if (!Session.isUnlocked()) { cache.clear(); return { restored: 0, migrated, hooks: {}, sync, aborted: true }; }
     const hooks = {};
     for (const fn of unlockHooks) { try { Object.assign(hooks, await fn()); } catch (e) { console.warn("Store unlock hook", e); } }
     for (const k of restored) if (cache.has(k)) EventBus.emitLocal(`store:${k}`, cache.get(k));
-    return { restored: restored.length, migrated, hooks };
+    return { restored: restored.length, migrated, hooks, sync };
   },
   lockedTeardown() { cache.clear(); },
   // Cross-tab: a peer changed a sensitive key → re-read + decrypt with OUR key.
@@ -240,8 +275,12 @@ const EventBus = (() => {
    `resumed: true` on the unlock payload = the session came back from the IndexedDB record at boot (no PIN typed). */
 Session.onChange((what, reason) => {
   if (what === "unlocked") {
-    unlockP = Store.unlockedInit().then((r) => { EventBus.emitLocal("session:unlocked", { user: Session.user(), resumed: reason === "restored", ...r }); return r; });
+    unlockP = Store.unlockedInit().then((r) => {
+      if (!Session.isUnlocked() || r?.aborted) return r; // locked again meanwhile (revoked resume) — no start, no unlocked event
+      Sync.start(); EventBus.emitLocal("session:unlocked", { user: Session.user(), resumed: reason === "restored", ...r }); return r;
+    });
   } else if (what === "locked") {
+    Sync.stop();
     Store.lockedTeardown();
     EventBus.emitLocal("session:locked", reason || "manual");
   } else if (what === "users") {
@@ -271,7 +310,8 @@ const ActivityLog = {
     const keep = {};
     for (const k of ["silent", "sample", "len", "id"]) if (k in meta) keep[k] = meta[k];
     const act = scrubIdentifiers(String(action ?? ""));
-    const entry = { at: Date.now(), actor: u.name, staffId: u.staffId || null, role: u.role, tag, action: act, subject: subject || null, text: act, meta: keep };
+    // `id` — entries are unioned across devices by id (core/sync.js), never last-write-wins.
+    const entry = { id: "a-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 7), at: Date.now(), actor: u.name, staffId: u.staffId || null, role: u.role, tag, action: act, subject: subject || null, text: act, meta: keep };
     const items = Store.get("activity", []) || [];
     items.unshift(entry);
     Store.set("activity", items.slice(0, this.MAX));
@@ -300,24 +340,30 @@ const ActivityLog = {
   }
 };
 
+/* Topbar sync chip (#topbar-sync). Locked / not logged in → "로컬 저장 · 암호화"; otherwise the entity-sync state:
+   "동기화 중…" (visible motion) · "오프라인 · N건 대기" · "충돌 N" · "저장 중 · N건" · "동기화됨 HH:MM". */
 const SyncStatus = (() => {
   let peerTimer = null;
+  const hhmm = (ts) => new Date(ts).toLocaleTimeString(getLang() === "en" ? "en-GB" : "ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
   const tickEls = () => {
     const led = $("#sync-led");
     const msg = $("#sync-msg");
-    const saved = $("#sync-saved");
-    const when = $("#sync-when");
-    const last = Store.get("__lastSave");
-    if (last && saved && when) {
-      saved.style.display = "inline-flex";
-      when.textContent = relTime(last);
-    }
-    if (led) {
-      led.classList.remove("idle");
-      led.classList.add("live");
-    }
-    if (msg) msg.textContent = t("shell.syncSaved");
+    const chip = $("#topbar-sync");
+    if (!led || !msg) return;
+    const st = Sync.state();
+    let text, ledCls = "live", chipCls = "";
+    if (!st.enabled) { text = t("shell.syncIdle"); ledCls = "idle"; }
+    else if (st.syncing) { text = t("shell.syncSyncing"); chipCls = "syncing"; }
+    else if (!st.online) { text = t("shell.syncOffline", { n: st.pending }); ledCls = "warn"; chipCls = "warn"; }
+    else if (st.conflicts) { text = t("shell.syncConflicts", { n: st.conflicts }); ledCls = "warn"; chipCls = "warn"; }
+    else if (st.pending) { text = t("shell.syncPending", { n: st.pending }); chipCls = "syncing"; }
+    else if (st.lastOkAt) text = t("shell.syncSynced", { t: hhmm(st.lastOkAt) });
+    else text = t("shell.syncSaved");
+    led.classList.remove("idle", "live", "warn"); led.classList.add(ledCls);
+    msg.textContent = text;
+    if (chip) { chip.classList.remove("syncing", "warn"); if (chipCls) chip.classList.add(chipCls); chip.title = t("shell.syncChipTitle"); }
   };
+  Sync.onChange(tickEls);
   return {
     touch() {
       try { localStorage.setItem(`${NS}.__lastSave`, JSON.stringify(Date.now())); } catch {}
@@ -351,4 +397,10 @@ function bindPersist(selectorOrEl, key, opts = {}) {
     if (v != null && el.value !== v && document.activeElement !== el) el.value = v;
   });
 }
+/* Hand the sync layer its Store bridge (sync.js sits below store.js in the import DAG and cannot import it). */
+Sync.bind({
+  get: (k, fb) => Store.get(k, fb), keys: () => Store.keys(), mtime: (k) => Store.mtime(k),
+  set: (k, v) => Store.set(k, v), remove: (k) => Store.remove(k), applyRemote: (k, v) => Store.applyRemote(k, v),
+  activityAdd: (action) => ActivityLog.add({ tag: "system", action, meta: { silent: true } })
+});
 export { NS, SENSITIVE_KEYS, Store, EventBus, ActivityLog, SyncStatus, bindPersist };

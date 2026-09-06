@@ -37,6 +37,16 @@
    the lock screen before setup, all 18 panels + the overlay + the drawer free of Hangul in headings/buttons/table headers/
    labels/pills/caveats (glosses in parentheses and sample values excepted), KO round-trip keeps the result tables, EN
    export headers + watermark, reload persists EN, `?lang=en` boots a fresh profile in English.
+   ENTITY SYNC (step B, 3.1.0-poc): the phone (fresh profile) receives the WHOLE clinic on login — a sha256 digest of every
+   syncable Store key (registry minus LOCAL_ONLY, minus the union-merged activity log) is identical on both devices within
+   5 s, roster / picker / KPI tiles match; B edits a tracker row + adds an appeal → A sees them live; the activity log is
+   unioned by id; A goes OFFLINE (context.setOffline) → edits wait in the encrypted __outbox, chip "오프라인 · N건 대기" →
+   back online → flushed, B receives; the same key edited on both sides while A was offline → last write (server time)
+   wins, A's losing value lands in __conflicts + an audit entry, "충돌 1" chip, 되살리기 from the register; a licence photo
+   added on A opens on B (sync_file), its removal propagates; the server DB (read as the throw-away superuser) holds
+   envelopes only — no names / pids / PINs / tokens, no ui.* / __* keys; 원장 전체 파기 with "서버 데이터도 파기" tombstones
+   every row and empties a still-logged-in device; a restore wins over the tombstones and re-pushes; the legacy device
+   (data + empty server) pushes everything on its first sync.
    Zero page errors + zero console errors (blocked-host resource failures excepted) is asserted.
 
    Run:  node clinic-admin/tools/e2e.mjs            (desktop 1280×900)
@@ -151,7 +161,7 @@ function watch(p, tag) {
     if (BLOCKED.test(safeHost(loc))) return; // intentional: blocked CDN / PocketBase hosts
     // Chrome logs every non-2xx fetch as a console error. Expected API answers from the local PocketBase (wrong PIN → 400,
     // no workspace yet → 404, non-owner hook call → 403, revoked token → 401) are part of the flows under test.
-    if (loc.startsWith(PB_LOCAL) && /Failed to load resource: .* (400|401|403|404)|net::ERR_FAILED/.test(m.text())) return; // ERR_FAILED: the offline test aborts the request on purpose
+    if (loc.startsWith(PB_LOCAL) && /Failed to load resource: .* (400|401|403|404)|net::ERR_FAILED|net::ERR_INTERNET_DISCONNECTED/.test(m.text())) return; // ERR_FAILED / DISCONNECTED: the offline tests abort requests on purpose
     consoleErrors.push(`${tag}${m.text()} @ ${loc}`);
   });
 }
@@ -292,7 +302,34 @@ const unlockAs = async (name, pin, p = page) => { await pickUser(name, p); await
 // A fresh profile opens the welcome deck ~350 ms after app:ready — close it before clicking the chrome.
 const dismissWelcome = async (p) => { try { await p.waitForSelector("#welcome-scrim.open", { timeout: 3000 }); } catch { return; } await p.locator("#welcome-blank").click(); await p.waitForFunction(() => !document.querySelector("#welcome-scrim")?.classList.contains("open")); };
 // Server directory size as the app sees it (Session.users()).
-const waitUsers = (n, p = page, timeout = 30000) => p.waitForFunction(async (n) => (await import("./js/security/session.js")).Session.users().length === n, n, { timeout });
+// NOTE: page.waitForFunction does NOT await an async predicate (a returned Promise is truthy → it resolves at once — verified
+// with Playwright 1.61). Predicates that need `await import(...)` therefore poll through page.evaluate instead.
+const waitFor = async (p, fn, arg, timeout = 10000) => { const t0 = Date.now(); for (;;) { if (await p.evaluate(fn, arg)) return true; if (Date.now() - t0 > timeout) return false; await p.waitForTimeout(150); } };
+const waitUsers = async (n, p = page, timeout = 30000) => { if (!(await waitFor(p, async (n) => (await import("./js/security/session.js")).Session.users().length === n, n, timeout))) throw new Error(`waitUsers: directory did not reach ${n}`); };
+/* ── entity sync helpers ── */
+const syncState = (p) => p.evaluate(async () => (await import("./js/core/sync.js")).Sync.state());
+// Nothing pending, nothing in flight, server reachable (throws on timeout like a waitForFunction would).
+const settled = async (p, timeout = 10000) => { if (!(await waitFor(p, async () => { const { Sync } = await import("./js/core/sync.js"); const s = Sync.state(); return s.online && !s.syncing && s.pending === 0; }, null, timeout))) throw new Error(`settled: ${JSON.stringify(await syncState(p))}`); };
+// sha256 over every syncable key (the registry-listed data minus LOCAL_ONLY; `activity` is unioned, not identical, so it is left out).
+const digest = (p) => p.evaluate(async () => {
+  const { Store } = await import("./js/core/store.js"); const { Sync } = await import("./js/core/sync.js"); const C = await import("./js/security/crypto.js");
+  const keys = Store.keys().filter(k => Sync.isSyncable(k) && k !== "activity").sort();
+  const obj = {}; for (const k of keys) obj[k] = Store.get(k);
+  return { keys, hash: await C.sha256hex(JSON.stringify(obj)) };
+});
+// The server side as the e2e superuser (pb-local hands the throw-away credentials back; never printed).
+let suTok = null;
+const superToken = async () => {
+  if (suTok) return suTok;
+  const r = await (await fetch(PB_LOCAL + "/api/collections/_superusers/auth-with-password", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ identity: pbLocal.superuser.email, password: pbLocal.superuser.password }) })).json();
+  if (!r.token) throw new Error("superuser auth failed: " + JSON.stringify(r).slice(0, 120));
+  suTok = r.token; return suTok;
+};
+const serverRows = async (col) => { const r = await (await fetch(`${PB_LOCAL}/api/collections/${col}/records?perPage=500&sort=key`, { headers: { Authorization: await superToken() } })).json(); if (!Array.isArray(r.items)) throw new Error(`${col} list failed: ${JSON.stringify(r).slice(0, 120)}`); return r.items; };
+const resetPB = async () => { await pbLocal.reset(); suTok = null; };
+const isEnv = (x) => !!x && x.v === 1 && typeof x.iv === "string" && typeof x.ct === "string";
+const NO_SYNC_RE = /^ui\.|^__|^pbUrl$|^player-id$|^ai\.draft$/;
+const PNG_1PX = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
 const storeSnapshot = () => page.evaluate(async () => {
   const ls = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); ls[k] = localStorage.getItem(k); }
   const idb = {};
@@ -705,7 +742,7 @@ try {
   await page.waitForSelector("#info-scrim.open");
   ok(/한솔한방병원/.test(await $("#info-org").innerText()) && (await $("#info-org input").count()) === 0 && (await $("#info-org [data-org-edit]").count()) === 1, "ⓘ modal keeps a READ-ONLY org summary + link (no editor)");
   const infoTxt = await $("#info-scrim").innerText();
-  ok(/앱 v3\.0\.0-poc/.test(infoTxt) && infoTxt.includes(`워크스페이스 ${ORG.name}`) && /▶ 시연/.test(infoTxt) && /AI 어시스트/.test(infoTxt) && !/AI 코딩|다음 단계에서|둘러보기 다시/.test(infoTxt), "info modal: current version line names the server workspace, ▶ 시연 pointer, no stale wording");
+  ok(/앱 v3\.1\.0-poc/.test(infoTxt) && infoTxt.includes(`워크스페이스 ${ORG.name}`) && /▶ 시연/.test(infoTxt) && /AI 어시스트/.test(infoTxt) && !/AI 코딩|다음 단계에서|둘러보기 다시/.test(infoTxt), "info modal: current version line names the server workspace, ▶ 시연 pointer, no stale wording");
   await noKeys("info modal", "#info-scrim");
   await $("#info-close").click(); await closed("#info-scrim");
   await goTab("tab-yearend");
@@ -893,7 +930,7 @@ try {
   const listText = (panel) => page.evaluate((p) => document.querySelector(`#${p} [data-list]`)?.innerText || "", panel);
   const stubPrint = () => page.evaluate(() => { window.open = () => null; window.print = () => {}; }); // print → #p3-print-fallback (readable)
   const openAppealRow = (id) => page.evaluate((id) => { const tr = document.querySelector(`#appeal-list tr.appeal-row[data-id="${id}"]`); if (tr && !tr.classList.contains("open")) tr.click(); }, id);
-  const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+  const todayISO = () => new Date().toISOString().slice(0, 10); // same UTC date as js/core/dom.js todayISO (a local-date copy flaked between 00:00 and 02:00 CEST)
   const plusDays = (iso, n) => { const d = new Date(iso + "T00:00:00"); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
 
   at("P3 홈 — the overdue appeal todo → 이의신청 drawer; the expiring guarantee todo → 지불보증 editor; .ics carries both");
@@ -1392,13 +1429,37 @@ try {
   await pP.waitForSelector("body:not(.locked)", { timeout: 30000 });
   ok((await $P("#topbar-user-text").innerText()).includes("한지우"), "phone: unlocked as 한지우 · 원무 with the seeded PIN");
   await dismissWelcome(pP);
-  ok((await pP.locator("#lic-list .lic").count()) === 5 && (await pP.locator("#lic-list .lic-link").count()) === 0, "phone: roster shows the 5 directory logins as rows (created from the directory, ids = staffId), no owner actions for 원무");
+
+  /* ── ENTITY SYNC (step B): the fresh device receives the whole clinic ── */
+  at("sync: fresh device receives the whole clinic (registry keys minus LOCAL_ONLY) within 5 s · roster · KPIs · counts identical");
+  await settled(page).catch(() => {});
+  const tSync0 = Date.now();
+  let dA = await digest(page), dB = await digest(pP);
+  while (dB.hash !== dA.hash && Date.now() - tSync0 < 5000) { await pP.waitForTimeout(250); dA = await digest(page); dB = await digest(pP); }
+  const onlyA = dA.keys.filter(k => !dB.keys.includes(k)), onlyB = dB.keys.filter(k => !dA.keys.includes(k));
+  ok(dB.hash === dA.hash && dA.keys.length >= 20, `digest of ${dA.keys.length} syncable keys identical on both devices after ${Date.now() - tSync0} ms (A-only: ${onlyA.join(",") || "none"} · B-only: ${onlyB.join(",") || "none"})`);
+  ok(dA.keys.every(k => !NO_SYNC_RE.test(k)) && ["staff.list", "patients.register", "org.profile", "tariff.items", "appeals.list", "guarantee.list", "docs.list", "consent.list", "nhis.history", "jabo.history", "retention.disposals", "accred.checked", "kcd.lastSummary", "retention.lastAudit", "insurers.lastUsed"].every(k => dA.keys.includes(k)) && dA.keys.some(k => k.startsWith("claims.batch.")), `synced key set covers every entity + tracker + setting (${dA.keys.length} keys), none device-local`);
+  await settled(pP).catch(() => {}); // its own unlock audit entry is unioned into `activity` and pushed right after the pull
+  const stB = await syncState(pP);
+  ok(stB.enabled && stB.online && stB.pending === 0 && stB.conflicts === 0 && stB.serverKeys >= 20 && stB.lastOkAt > 0 && stB.undecryptable === 0, `phone Sync.state(): online · 0 pending · 0 conflicts · ${stB.serverKeys} server keys · 0 undecryptable (${JSON.stringify(stB)})`);
+  ok(/동기화됨 \d{2}:\d{2}/.test(await $P("#sync-msg").innerText()), `phone topbar chip: "${await $P("#sync-msg").innerText()}"`);
+  const rosterA = await $("#lic-list .lic").count();
+  ok(await waitFor(pP, (n) => document.querySelectorAll("#lic-list .lic").length === n, rosterA, 5000) && (await pP.locator("#lic-list .lic-link").count()) === 0, `phone: roster = the clinic's ${rosterA} rows (synced, not the 5 directory stubs), no owner actions for 원무`);
+  await goTab("tab-today", pP); await goTab("tab-today");
+  await pP.waitForFunction(() => !document.querySelector("#tab-today .kpi.kpi-loading"), null, { timeout: 10000 });
+  const kpiSel = "#ins-jabo-card, #ins-nhis-card, #ins-cut-card, #ins-reason-card";
+  const kpiOf = (p) => p.evaluate((sel) => Array.from(document.querySelectorAll(sel)).map(e => e.innerText.replace(/\s+/g, " ").trim()).join(" | "), kpiSel);
+  const kpiA = await kpiOf(page), kpiB = await kpiOf(pP);
+  ok(kpiA.length > 20 && kpiA === kpiB, `홈 KPI tiles identical on both devices ("${kpiA.slice(0, 70)}…")`);
+  const countsOf = ({ CS, E, Store }) => ({ ap: CS.Appeals.list().length, g: Store.get("guarantee.list", []).length, d: Store.get("docs.list", []).length, c: Store.get("consent.list", []).length, disp: Store.get("retention.disposals", []).length, b: E.Batches.list().length, tariff: Object.keys(E.Tariff.all()).length, tdate: E.Tariff.effectiveDate(), org: E.Org.get().name, pts: E.Patients.list().length, staff: E.Staff.list().length });
+  const cntB = await mods(pP, countsOf), cntA = await M(countsOf);
+  ok(JSON.stringify(cntB) === JSON.stringify(cntA) && cntB.org === ORG.name && cntB.ap >= 3 && cntB.b >= 6 && cntB.tariff > 10 && cntB.g === 3, `phone counts = desktop counts: ${JSON.stringify(cntB)}`);
   await goTab("tab-board", pP);
   await pP.waitForFunction(() => Array.from(document.querySelectorAll("#intake-col-대기 .intake-card .pc-name")).some(n => n.textContent.includes("****0418")), null, { timeout: 20000 });
   ok(await pP.evaluate(() => window.__intake.online && window.__intake.foreign === 0), "phone: board live, every card decrypts under the shared clinic key (0 foreign)");
   // The pseudonymous register is still per device in step A: the phone mints a fresh pid ("새 가명 환자"); the desktop labels
   // the card from the pid inside the decrypted payload (Patients.alias works without a register row).
-  ok((await $P("#intake-name option").count()) === 1, "phone: its own register is empty (entity sync is step B) — only 새 가명 환자 in the picker");
+  ok((await $P("#intake-name option").count()) === cntB.pts + 1, `phone: picker lists the synced pseudonymous register (${cntB.pts} pids + 새 가명 환자)`);
   await $P("#intake-name").selectOption("__new"); await $P("#intake-summary").fill("휴대폰에서 추가 · 요통");
   await $P("#intake-add-btn").click();
   await page.waitForFunction(() => Array.from(document.querySelectorAll("#intake-col-대기 .intake-card")).some(c => /휴대폰에서 추가/.test(c.textContent)), null, { timeout: 20000 });
@@ -1406,6 +1467,71 @@ try {
   await page.evaluate(() => { const c = Array.from(document.querySelectorAll("#intake-col-대기 .intake-card")).find(c => /휴대폰에서 추가/.test(c.textContent)); c.querySelector(".pc-btn.advance").click(); });
   await pP.waitForFunction(() => Array.from(document.querySelectorAll("#intake-col-진료중 .intake-card")).some(c => /휴대폰에서 추가/.test(c.textContent)), null, { timeout: 20000 });
   ok(true, "status advanced on the desktop → the phone's column moved in realtime");
+
+  at("sync: B edits a tracker row + adds an appeal → A sees them live; the activity log is unioned by id");
+  const bEdit = await mods(pP, ({ CS, P, Store, ActivityLog }) => {
+    const G = P.collection("guarantee.list"); const row = G.list()[0]; G.upsert({ ...row, note: "phone-edit-지불보증" });
+    const a = CS.Appeals.create({ payer: "auto", batchId: "phone-batch", stmt: "PH-0001", code: "예시-03", pid: "P-2026-0233", cutAmount: 12345, reason: "phone appeal" });
+    ActivityLog.add({ tag: "system", action: "phone-e2e-entry" });
+    return { gid: row.id, aid: a.id, ap: CS.Appeals.list().length };
+  });
+  ok(await waitFor(page, async ([gid, aid]) => { const CS = await import("./js/tabs/claims-shared.js"); const { Store } = await import("./js/core/store.js"); return !!CS.Appeals.get(aid) && (Store.get("guarantee.list", []) || []).some(r => r.id === gid && r.note === "phone-edit-지불보증"); }, [bEdit.gid, bEdit.aid]), "desktop received the phone's guarantee edit + new appeal live (decrypted under the shared clinic key)");
+  await goTab("tab-appeal");
+  const traceOf = (p) => p.evaluate(async () => (await import("./js/core/sync.js")).Sync.trace().slice(-60).map(e => `${new Date(e.t).toISOString().slice(11, 23)} ${e.ev} ${JSON.stringify({ ...e, t: undefined, ev: undefined })}`));
+  const apDiag = async () => JSON.stringify({ A: await M(({ CS }) => ({ n: CS.Appeals.list().length })), Astate: await syncState(page), Bstate: await syncState(pP), server: (await serverRows("sync_blob")).filter(r => r.key === "appeals.list").map(r => ({ rev: r.rev, by: r.updatedBy, updated: r.updated })), traceA: await traceOf(page), traceB: await traceOf(pP) }, null, 1);
+  ok((await $("#appeal-list tr.appeal-row").count()) === bEdit.ap, `desktop 이의신청 register re-rendered from the remote change (${bEdit.ap} rows) — diag ${(await $("#appeal-list tr.appeal-row").count()) === bEdit.ap ? "" : await apDiag()}`);
+  ok(await waitFor(page, async () => (await import("./js/core/store.js")).ActivityLog.all().some(e => e.action === "phone-e2e-entry")), "activity log: B's entry reached A (union by id, not last-write-wins)");
+  const actB = await pP.evaluate(async () => { const { ActivityLog } = await import("./js/core/store.js"); const all = ActivityLog.all(); return { n: all.length, hasOwner: all.some(e => e.actor === "홍 원장"), hasPhone: all.some(e => e.action === "phone-e2e-entry"), ids: all.every(e => e.id), dupes: all.length - new Set(all.map(e => e.id)).size, sorted: all.every((e, i) => i === 0 || all[i - 1].at >= e.at) }; });
+  ok(actB.hasOwner && actB.hasPhone && actB.dupes === 0 && actB.ids && actB.sorted && actB.n > 15, `phone activity log holds both devices' entries (${actB.n}, every entry has an id, no duplicates, sorted by at)`);
+
+  at("sync: A offline → edits wait in the encrypted outbox (chip 오프라인 · N건 대기) → back online → flushed, B receives; same key edited on both → LWW, losing value kept");
+  await settled(page); await settled(pP);
+  await context.setOffline(true);
+  await wait(300);
+  await ent(page, (E) => { E.Org.set({ rep: "오프라인-대표" }); E.Tariff.setEffectiveDate("2026-01-15"); });
+  await page.waitForFunction(() => /오프라인 · \d+건 대기/.test(document.querySelector("#sync-msg").textContent), null, { timeout: 10000 });
+  const off = await page.evaluate(async () => { const { Store } = await import("./js/core/store.js"); const { Sync } = await import("./js/core/sync.js"); const ob = Store.get("__outbox"); let raw = null; try { raw = JSON.parse(localStorage.getItem("vibe.clinic-admin.__outbox")); } catch {} return { chip: document.querySelector("#sync-msg").textContent, st: Sync.state(), keys: Object.keys(ob?.blobs || {}).sort(), env: !!(raw && raw.v === 1 && raw.iv && raw.ct), led: document.querySelector("#sync-led").className }; });
+  ok(!off.st.online && off.st.pending === 2 && off.keys.join() === "org.profile,tariff.effectiveDate" && off.env && /warn/.test(off.led), `offline: 2 edits wait in __outbox (an AES-GCM envelope on disk), chip "${off.chip}"`);
+  // Meanwhile the phone (online) edits the SAME key a moment later → the server's newer write must win when A reconnects.
+  await ent(pP, (E) => E.Org.set({ rep: "온라인-대표" }));
+  await settled(pP);
+  ok((await ent(pP, (E) => E.Org.get().rep)) === "온라인-대표", "phone: its org edit is on the server while A is offline");
+  await context.setOffline(false);
+  await page.waitForFunction(() => /동기화됨|충돌/.test(document.querySelector("#sync-msg").textContent), null, { timeout: 30000 });
+  await settled(page, 15000);
+  const afterOff = await ent(page, (E, S, Store) => ({ rep: E.Org.get().rep, date: E.Tariff.effectiveDate(), conflicts: Store.get("__conflicts", []), chip: document.querySelector("#sync-msg").textContent, outbox: localStorage.getItem("vibe.clinic-admin.__outbox") }));
+  ok(afterOff.rep === "온라인-대표" && afterOff.conflicts.length === 1 && afterOff.conflicts[0].key === "org.profile" && afterOff.conflicts[0].losing?.rep === "오프라인-대표" && /^st-/.test(afterOff.conflicts[0].by), `LWW: the phone's later write won org.profile; A's losing value sits in __conflicts (${afterOff.conflicts[0]?.key} · overwritten by ${afterOff.conflicts[0]?.by})`);
+  ok(/충돌 1/.test(afterOff.chip), `chip flags the conflict: "${afterOff.chip}"`);
+  ok(await ent(page, (E, S, St, Ev, a, C, cal, ActivityLog) => ActivityLog.all().some(e => /동기화 충돌 — 서버 값 적용/.test(e.action) && /org\.profile/.test(e.action))), "audit entry 「동기화 충돌 — 서버 값 적용 (org.profile)」 written on A");
+  ok(afterOff.date === "2026-01-15" && afterOff.outbox === null, "A's other offline edit (tariff.effectiveDate) was flushed, not lost; outbox emptied");
+  ok(await waitFor(pP, async () => (await import("./js/core/entities.js")).Tariff.effectiveDate() === "2026-01-15"), "…and reached the phone");
+
+  at("sync: A adds a licence photo → B can open it; the server file is ciphertext; A removes it → B's copy goes");
+  const attA = await page.evaluate(async (png) => { const { Attachments } = await import("./js/core/attachments.js"); const E = await import("./js/core/entities.js"); const owner = (E.Staff.list().find(s => s.job === "간호사") || E.Staff.list()[0]).id; await Attachments.put({ id: "att-e2e-sync-1", owner, kind: "license", at: Date.now(), data: png }); return { owner }; }, PNG_1PX);
+  await settled(page);
+  ok(await waitFor(pP, async ([owner, png]) => { const { Attachments } = await import("./js/core/attachments.js"); return (await Attachments.getByOwner(owner)).some(a => a.id === "att-e2e-sync-1" && a.data === png); }, [attA.owner, PNG_1PX], 15000), "phone opened the photo (sync_file → IndexedDB, decrypted under the clinic key)");
+  const sf = await serverRows("sync_file");
+  ok(sf.length === 1 && sf[0].key === "att-e2e-sync-1" && sf[0].blob && sf[0].deleted === false && /^st-/.test(sf[0].updatedBy) && sf[0].id.length === 15, `server sync_file: 1 row, file present, updatedBy = staffId`);
+  const sfBody = await (await fetch(`${PB_LOCAL}/api/files/sync_file/${sf[0].id}/${sf[0].blob}`)).text();
+  ok(!sfBody.includes("data:image") && !sfBody.includes(attA.owner) && isEnv(JSON.parse(sfBody)), "the uploaded file is one AES-GCM envelope (no data URL, no owner id in clear)");
+  await page.evaluate(async () => { const { Attachments } = await import("./js/core/attachments.js"); await Attachments.del("att-e2e-sync-1"); });
+  await settled(page);
+  ok(await waitFor(pP, async (owner) => { const { Attachments } = await import("./js/core/attachments.js"); return (await Attachments.getByOwner(owner)).length === 0; }, attA.owner, 15000), "phone dropped the photo after A removed it (soft-delete propagated)");
+  const sf2 = await serverRows("sync_file");
+  ok(sf2.length === 1 && sf2[0].deleted === true && !sf2[0].blob, "server row soft-deleted, file cleared");
+
+  at("sync: server holds ciphertext only — every sync_blob payload is an envelope, no names / pids / PINs / tokens, no device-local keys");
+  const blobs = await serverRows("sync_blob");
+  const badBlobs = blobs.filter(r => r.deleted ? !(r.payload == null || isEnv(r.payload)) : !isEnv(r.payload));
+  ok(blobs.length >= 20 && badBlobs.length === 0, `${blobs.length} sync_blob rows, every payload an envelope (bad: ${badBlobs.map(r => r.key).join(",") || "none"})`);
+  const blobText = JSON.stringify(blobs);
+  ok(!ALL_NAMES.some(n => blobText.includes(n)) && !blobText.includes("P-2026-") && !blobText.includes("2123458") && !/"(123456|000000|567890|778899)"/.test(blobText) && !JWT_RE.test(blobText) && !blobText.includes(ORG.name) && !blobText.includes("오프라인-대표") && !blobText.includes("온라인-대표"), "server DB: no plaintext names, pids, RRN, PINs, tokens, institution name or edited values");
+  ok(blobs.every(r => /^[A-Za-z0-9._-]+$/.test(r.key) && !NO_SYNC_RE.test(r.key)) && blobs.every(r => /^st-/.test(r.updatedBy) && r.rev >= 1), "server keys are the syncable Store keys only (no ui.* / __* / pbUrl / player-id / ai.draft); updatedBy = staffId, rev ≥ 1");
+  ok(blobs.every(r => r.id.length === 15) && new Set(blobs.map(r => r.key)).size === blobs.length && blobs.some(r => r.key === "staff.list") && blobs.some(r => r.key === "activity"), "one row per key with a 15-char deterministic id (staff.list · activity · …)");
+  const unauthBlobs = await (await fetch(PB_LOCAL + "/api/collections/sync_blob/records")).json();
+  ok(unauthBlobs.totalItems === 0 && unauthBlobs.items.length === 0, "unauthenticated sync_blob list → empty (rule @request.auth.id != \"\")");
+  const delTry = await pP.evaluate(async (id) => { const { Cloud } = await import("./js/security/cloud.js"); const c = await Cloud.getPB(); try { await c.collection("sync_blob").delete(id); return "deleted"; } catch (e) { return e.status; } }, blobs[0].id);
+  ok(delTry === 403 || delTry === 404, `hard delete refused for members (deleteRule null → ${delTry}); removal is soft-delete only`);
   const hook403 = await pP.evaluate(async () => { const { Cloud } = await import("./js/security/cloud.js"); const out = {}; try { await Cloud.createUser({ name: "x", role: "원무", staffId: "", pin: "111111", wrapped: { salt: "AAAAAAAAAAAAAAAAAAAAAA==", iterations: 310000, wrapped: { v: 1, iv: "AAAAAAAAAAAAAAAA", ct: "A".repeat(64) } } }); out.create = "ok"; } catch (e) { out.create = e.status; } try { await Cloud.deleteUser("aaaaaaaaaaaaaaa"); out.del = "ok"; } catch (e) { out.del = e.status; } try { await Cloud.resetPin("aaaaaaaaaaaaaaa", "111111", { salt: "AAAAAAAAAAAAAAAAAAAAAA==", iterations: 310000, wrapped: { v: 1, iv: "AAAAAAAAAAAAAAAA", ct: "A".repeat(64) } }); out.reset = "ok"; } catch (e) { out.reset = e.status; } return out; });
   ok(hook403.create === 403 && hook403.del === 403 && hook403.reset === 403, `phone (원무): hook routes refuse a non-owner (${JSON.stringify(hook403)})`);
   const pubWs = await (await fetch(PB_LOCAL + "/api/collections/workspace/records")).json();
@@ -1478,6 +1604,27 @@ try {
   const cloudRows = ["서버 사용자 디렉터리", "PIN 파생 비밀번호", "서버 세션 토큰"].map(l => regRow(l));
   ok(cloudRows.every(Boolean) && /공개 읽기/.test(cloudRows[0].text) && /6자리 이상/.test(cloudRows[1].text) && /IndexedDB/.test(cloudRows[2].text) && cloudRows.every(r => !r.enc), "register lists the three server rows (directory · PIN-derived password · sealed token) and states the public-read trade-off");
   ok(await page.evaluate(() => !document.querySelector('#privacy-table input[data-destroy="cloud.directory"]') && !document.querySelector('#privacy-table input[data-destroy="__lock"]')), "server rows and the lock settings have no 파기 checkbox");
+  const syncRows = ["동기화 메타", "동기화 대기 변경", "동기화 충돌 기록", "서버 동기화 블롭", "서버 동기화 첨부"].map(l => regRow(l));
+  ok(syncRows.every(Boolean) && /soft-delete/.test(syncRows[3].text) && /회원만/.test(syncRows[3].text) && /E2E/.test(syncRows[3].text) && syncRows[1].enc && syncRows[2].enc && !syncRows[0].enc, "register lists the sync rows: __sync (plain, key names only) · __outbox + __conflicts (encrypted) · sync_blob (E2E 암호문 · 회원만 · soft-delete) · sync_file");
+  ok(/\d+/.test(syncRows[3].text) && await page.evaluate(() => !document.querySelector('#privacy-table input[data-destroy="sync_blob"]') && !document.querySelector('#privacy-table input[data-destroy="__sync"]') && !document.querySelector('#privacy-table input[data-destroy="__outbox"]') && !!document.querySelector('#privacy-table input[data-destroy="__conflicts"]')), "sync_blob / __sync / __outbox have no 파기 checkbox; the conflicts ring does");
+  const syncLine = await $("#privacy-sync-line").innerText();
+  ok(/연결됨/.test(syncLine) && /서버 항목 \d+개/.test(syncLine) && /충돌 1건/.test(syncLine) && /대기 0건/.test(syncLine), `동기화 section status line: "${syncLine}"`);
+  const confTbl = await $("#privacy-sync-conflicts").innerText();
+  ok((await $("#privacy-sync-conflicts tr[data-conflict]").count()) === 1 && /기관 프로필/.test(confTbl) && /오프라인-대표/.test(confTbl) && /org\.profile/.test(confTbl) && !/온라인-대표/.test(confTbl), "conflicts table shows the org.profile conflict with this device's losing value, the overwriting user as a pseudonym");
+  await $("#privacy-sync-conflicts [data-restore-conflict]").click();
+  await page.waitForFunction(() => document.querySelectorAll("#privacy-sync-conflicts tr[data-conflict]").length === 0);
+  ok((await ent(page, (E) => E.Org.get().rep)) === "오프라인-대표" && (await syncState(page)).conflicts === 0, "되살리기 → this device's value is back (queued for the server), ring emptied, audit entry");
+  await settled(page);
+  ok(/동기화됨 \d{2}:\d{2}/.test(await $("#sync-msg").innerText()), `chip back to 동기화됨 HH:MM ("${await $("#sync-msg").innerText()}")`);
+  const restoredBlob = (await serverRows("sync_blob")).find(r => r.key === "org.profile");
+  ok(restoredBlob && !restoredBlob.deleted && isEnv(restoredBlob.payload) && restoredBlob.rev >= 3, `server org.profile row rewritten by the restore (rev ${restoredBlob?.rev}, still an envelope)`);
+  await $("#privacy-sync-now").click();
+  await page.waitForFunction(() => /동기화했습니다/.test(document.querySelector("#privacy-msg")?.textContent || ""), null, { timeout: 15000 });
+  ok(true, "지금 동기화 → 동기화했습니다");
+  ok(await $("#privacy-destroy-server").isChecked() && !(await $("#privacy-destroy-server").isDisabled()), "원장: 「이 클리닉의 서버 데이터도 파기」 checkbox present, default on");
+  await page.evaluate(() => document.querySelector("#topbar-sync").click());
+  await page.waitForSelector("#tab-privacy.active");
+  ok(true, "topbar sync chip → 데이터 처리 현황 (동기화 section)");
   ok(/서버가 보는 것과 보지 못하는 것/.test(await $("#tab-privacy").innerText()) && /URL을 아는 누구나/.test(await $("#tab-privacy").innerText()), "status pane carries the honest server-visibility paragraph");
   ok((await $("#privacy-wsid").innerText()).includes(ORG.name) && (await $("#privacy-wsid").innerText()).includes("127.0.0.1"), `status line names the workspace + server host (${await $("#privacy-wsid").innerText()})`);
   const rawEnv = await page.evaluate(() => Object.fromEntries(["appeals.list", "nhis.history", "guarantee.list", "docs.list", "consent.list", "retention.disposals"].map(k => { let j = null; try { j = JSON.parse(localStorage.getItem("vibe.clinic-admin." + k)); } catch {} return [k, !!(j && j.v === 1 && j.iv && j.ct)]; })));
@@ -1486,7 +1633,7 @@ try {
   const bk = await download(() => $("#privacy-backup").click());
   ok(/_PoC\.json$/.test(bk.name), `backup filename watermarked (${bk.name})`);
   const bkJ = JSON.parse(bk.text);
-  ok(bkJ.v === 3 && bkJ.keyring.v === 3 && bkJ.keyring.users.length === 1 && bkJ.keyring.users[0].name === "홍 원장" && bkJ.keyring.users[0].staffId && bkJ.keyring.users[0].wrapped?.ct && bkJ.keyring.workspace?.name === ORG.name && Object.keys(bkJ.sensitive).includes("staff.list") && Object.keys(bkJ.sensitive).includes("patients.register") && Object.keys(bkJ.sensitive).some(k => k.startsWith("claims.batch.")), "backup is v3: keyring = the exporting user's wrapped clinic key only (+ workspace name), staff.list + patients.register + claims.batch.* envelopes included");
+  ok(bkJ.v === 4 && typeof bkJ.lastSyncAt === "string" && bkJ.keyring.v === 3 && bkJ.keyring.users.length === 1 && bkJ.keyring.users[0].name === "홍 원장" && bkJ.keyring.users[0].staffId && bkJ.keyring.users[0].wrapped?.ct && bkJ.keyring.workspace?.name === ORG.name && Object.keys(bkJ.sensitive).includes("staff.list") && Object.keys(bkJ.sensitive).includes("patients.register") && Object.keys(bkJ.sensitive).some(k => k.startsWith("claims.batch.")) && !Object.keys(bkJ.sensitive).some(k => k.startsWith("__")), "backup is v4: lastSyncAt recorded, keyring = the exporting user's wrapped clinic key only (+ workspace name), staff.list + patients.register + claims.batch.* envelopes included, no __outbox / __conflicts");
   ok(["appeals.list", "nhis.history", "guarantee.list", "docs.list", "consent.list", "retention.disposals"].every(k => Object.keys(bkJ.sensitive).includes(k)), "backup carries the six Phase-3 envelopes");
   ok(!ALL_NAMES.some(n => JSON.stringify({ ...bkJ, keyring: null }).includes(n)) && !JWT_RE.test(bk.text), "backup file has no plaintext names outside the keyring and no server token (org.profile travels inside the encrypted `plain` bundle)");
   if (MOBILE) await noOverflow("privacy panel");
@@ -1532,7 +1679,7 @@ try {
   await goTab("tab-jabo");
   ok((await $("#jabo-recon-result tbody tr").count()) === 42, "02 reconciliation re-derived from the shared batch after re-unlock");
   await goTab("tab-appeal");
-  ok((await $("#appeal-list tr.appeal-row").count()) === 5, "이의신청 register re-rendered after re-unlock (3 seeded + 2 created)");
+  ok((await $("#appeal-list tr.appeal-row").count()) === 6, "이의신청 register re-rendered after re-unlock (3 seeded + 2 created + 1 from the phone)");
   await goTab("tab-guarantee");
   ok((await $("#tab-guarantee .p3-table tbody tr").count()) === 3, "지불보증 list re-rendered after re-unlock (3 rows)");
 
@@ -1559,6 +1706,12 @@ try {
   await page.waitForFunction(() => document.querySelector("#privacy-destroy-all") && !document.querySelector("#privacy-destroy-all").disabled);
   const preWipe = await sessionRec();
   ok(preWipe.db && preWipe.rec && preWipe.rec.keyType === "CryptoKey", "session DB + record present before 전체 파기 (PIN unlock persisted it)");
+  // A second device stays logged in to observe the SERVER side of the wipe (checkbox "이 클리닉의 서버 데이터도 파기" is on by default).
+  const ctxW = await newCtx({ ...VIEW, locale: "ko-KR" }); const pW = await ctxW.newPage(); watch(pW, "[wipe-observer] "); await blockAll(pW);
+  await pW.goto(BASE, { waitUntil: "domcontentloaded" }); await unlockAs("한지우", SEED_PIN, pW); await pW.waitForSelector("body:not(.locked)", { timeout: 30000 }); await dismissWelcome(pW);
+  await settled(pW, 15000);
+  ok((await pW.evaluate(async () => (await import("./js/core/entities.js")).Staff.list().length)) === 10 && (await serverRows("sync_blob")).filter(r => !r.deleted).length >= 20, "observer device synced the roster (10 rows); server rows live before the wipe");
+  ok(await $("#privacy-destroy-server").isChecked(), "server-wipe checkbox is on");
   page.once("dialog", d => d.accept("파기"));
   await Promise.all([page.waitForNavigation({ waitUntil: "domcontentloaded" }), $("#privacy-destroy-all").click()]);
   await page.waitForSelector("#lock-scrim.open");
@@ -1572,6 +1725,12 @@ try {
   ok(after.ls.every(k => BOOT_KEYS.has(k)), `localStorage cleared except boot UI state (${after.ls.join(",") || "empty"})`);
   ok(!after.ls.includes("vibe.clinic-admin.__lock") && !after.ls.includes("vibe.clinic-admin.__ws"), "lock settings (__lock) gone, no legacy keyring");
   ok(!after.dbs.includes("vibe-clinic-admin-masters") && !after.dbs.includes("vibe-clinic-admin") && !after.dbs.includes("vibe-clinic-admin-session"), `IndexedDB cleared incl. the session store (${after.dbs.join(",") || "empty"})`);
+  ok(await waitFor(pW, async () => { const E = await import("./js/core/entities.js"); const { Store } = await import("./js/core/store.js"); return E.Staff.list().length === 0 && E.Patients.list().length === 0 && E.Batches.list().length === 0 && (Store.get("appeals.list", []) || []).length === 0 && !E.Org.get().name && Object.keys(E.Tariff.all()).length === 0; }, null, 20000), "observer device emptied itself (tombstones via realtime: roster · patients · batches · appeals · org · tariff)");
+  ok((await pW.evaluate(async () => (await import("./js/security/session.js")).Session.isUnlocked())), "…while its login stays valid (accounts are the clinic's; the data is gone)");
+  const tomb = await serverRows("sync_blob");
+  ok(tomb.length >= 20 && tomb.every(r => r.deleted === true && r.payload == null), `server: every sync_blob row tombstoned with the payload blanked (${tomb.length} rows)`);
+  ok((await serverRows("sync_file")).every(r => r.deleted === true && !r.blob), "server: every sync_file row tombstoned, file cleared");
+  await ctxW.close();
 
   /* 10 · restore */
   at("restore encrypted backup (v3) with PIN → verified against the server key → data back");
@@ -1596,10 +1755,13 @@ try {
   ok((await $("#topbar-org-text").innerText()) === ORG.name, "org profile restored (topbar chip)");
   ok(/건/.test(await $("#ins-jabo").innerText()), "jabo history restored (dashboard insight)");
   const postRestore = await M(({ CS, Store }) => ({ ap: CS.Appeals.list().length, nh: CS.nhisHistory().length, g: Store.get("guarantee.list", []).length, d: Store.get("docs.list", []).length, c: Store.get("consent.list", []).length, disp: Store.get("retention.disposals", []).length, th: Store.get("tariff.history", []).length }));
-  ok(JSON.stringify(postRestore) === JSON.stringify(preBackup) && postRestore.ap === 5 && postRestore.g === 3 && postRestore.d === 5 && postRestore.c === 4 && postRestore.disp === 6, `Phase-3 data round-tripped through backup → wipe → restore (${JSON.stringify(postRestore)})`);
+  ok(JSON.stringify(postRestore) === JSON.stringify(preBackup) && postRestore.ap === 6 && postRestore.g === 3 && postRestore.d === 5 && postRestore.c === 4 && postRestore.disp === 6, `Phase-3 data round-tripped through backup → wipe → restore (${JSON.stringify(postRestore)})`);
   await wait(600); // the first-run welcome would open 350 ms after app:ready — it must not, ui.welcomed came back with the backup
   ok(!(await $("#welcome-scrim").evaluate(el => el.classList.contains("open"))), "welcome tour does not reopen after a restore");
   ok(!(await sessionRec()).rec, "(h) restore required the PIN and left NO session record — the adopted key lives in this page only");
+  await settled(page, 20000);
+  const reborn = (await serverRows("sync_blob")).filter(r => !r.deleted);
+  ok(reborn.length >= 20 && reborn.some(r => r.key === "staff.list") && reborn.some(r => r.key === "appeals.list") && reborn.every(r => isEnv(r.payload)), `restore → full pull + push reconciliation: ${reborn.length} server rows live again (the restored values won over the tombstones)`);
   await goTab("tab-kcd");
   const curKcd = await M(({ CS }) => { const b = CS.currentClaimsBatch(); return { payer: b?.meta?.payer, lines: b?.meta?.kcdLines }; });
   ok(/최근 정비/.test(await $("#kcd-status").innerText()) && curKcd.payer === "nhis" && (await $("#kcd-result tbody tr").count()) === curKcd.lines, `kcd.lastSummary + the current claims batch restored — the 건보 batch the appeal hand-off selected (${curKcd.lines} rows re-derived)`);
@@ -1820,7 +1982,7 @@ try {
   /* 12 · LEGACY DEVICE WORKSPACE → SERVER (reset instance), then LEGACY KEYS → ENTITIES, activateTab ctx, Batches cap, v1 backup */
   at("legacy: reset server + a device with a pre-cloud __ws keyring and data encrypted under ITS key → bootstrap-from-legacy keeps the data readable");
   await page.goto("about:blank"); // the desktop story is done — drop its realtime stream before the server restarts
-  await pbLocal.reset();
+  await resetPB();
   const ctxL = await newCtx({ ...VIEW, locale: "ko-KR" });
   const pL = await ctxL.newPage();
   shotPage = pL;
@@ -1868,6 +2030,9 @@ try {
   ok(mig0.raw === legacyIds.rawB64, "the SAME master key travelled to the server (unwrapping the server copy yields the legacy raw key)");
   ok(mig0.staff.some(([n, id]) => n === "고은별" && id === "st-legacy-01") && mig0.staff.some(([n, id, uid]) => n === "홍 원장" && id === "st-legacy-owner" && uid === mig0.me.id) && mig0.patients.includes("P-2026-0142"), `existing encrypted local data still decrypts (roster ${mig0.staff.map(s => s[0]).join(", ")} · patients ${mig0.patients.join(", ")}) and the creator row now links the server login`);
   ok(mig0.wsKey === null && mig0.lock.autolockMin === 30 && mig0.lock.sessionMode === "4h", "legacy keyring (__ws) deleted; its lock settings carried over to __lock");
+  await settled(pL, 15000);
+  const legacyBlobs = await serverRows("sync_blob");
+  ok(legacyBlobs.some(r => r.key === "staff.list" && isEnv(r.payload)) && legacyBlobs.some(r => r.key === "patients.register") && legacyBlobs.some(r => r.key === "org.profile") && legacyBlobs.every(r => !r.deleted), `first device with existing local data + EMPTY server → everything pushed on the first sync (${legacyBlobs.length} rows: ${legacyBlobs.map(r => r.key).join(", ")})`);
   ok(await pL.evaluate(() => Array.from(document.querySelectorAll("#toast-tray .toast")).some(t => /서버로 올렸습니다/.test(t.textContent) && /1명/.test(t.textContent))), "toast: moved to the server, 1 user not migrated (re-issue)");
   ok(!(await $L("#org-scrim").evaluate(el => el.classList.contains("open"))), "no first-run 기관 정보 step (the device already had a complete profile)");
   await pL.waitForSelector("#welcome-scrim.open", { timeout: 15000 });
@@ -1968,7 +2133,7 @@ try {
 
   /* 13 · ENGLISH pass — fresh profile on a reset server */
   at("EN: fresh profile → EN toggle on the lock screen → bootstrap pane is English");
-  await pbLocal.reset();
+  await resetPB();
   const ctx2 = await newCtx({ ...VIEW, locale: "en-GB" });
   const p2 = await ctx2.newPage();
   shotPage = p2;
