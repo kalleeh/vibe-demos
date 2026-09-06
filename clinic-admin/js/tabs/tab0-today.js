@@ -1,9 +1,10 @@
-/* clinic-admin — Tab 00
-   Extracted verbatim from the former single-file index.html; behaviour unchanged. */
-import { $, $$, fmtKRW, todayISO, relTime, daysUntil, Share } from "../core/ui.js";
+/* clinic-admin — Tab 00 · 오늘 dashboard */
+import { $, $$, esc, fmtKRW, todayISO, relTime, daysUntil, Share } from "../core/ui.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { activateTab } from "../core/nav.js";
 import { ACCRED_ITEMS } from "./tab9-accred.js";
+import { hasDuty } from "./tab8-license.js";
+import { redactSubject, BIGEUP_WINDOWS, YEAREND_DEADLINE, nextOccurrence } from "./reporting-shared.js";
 
 /* ─────────────────────────────────────────────────────────
    Tab 0 — 오늘 / Today dashboard
@@ -13,35 +14,36 @@ import { ACCRED_ITEMS } from "./tab9-accred.js";
    ───────────────────────────────────────────────────────── */
 export function initTab0(ctx) {
   const { DATA } = ctx;
-  // Compliance deadlines — Korean Traditional Hospital admin calendar
-  // Recurring twice-yearly / annual due dates per ministry / agency.
+  // Compliance deadlines — Korean Traditional Hospital admin calendar.
+  // Recurring statutory dates are computed as the NEXT occurrence (today inclusive), so
+  // e.g. the January 연말정산 deadline is visible during January instead of a year away.
+  // Per-person 면허신고 deadlines come from the license tracker (의료법 §25 · 3-year cycle).
   const NOW = new Date();
   const Y = NOW.getFullYear();
-  const fixedDeadlines = [
-    { key: "bigeup-h1", title: "HIRA 비급여 반기보고 (상반기)", date: `${Y}-03-31`,
-      link: "tab-bigeup", source: "의료법 §45조의2" },
-    { key: "bigeup-h2", title: "HIRA 비급여 반기보고 (하반기)", date: `${Y}-09-30`,
-      link: "tab-bigeup", source: "의료법 §45조의2" },
-    { key: "yearend",   title: "국세청 의료비 일괄제출", date: `${Y+1}-01-15`,
-      link: "tab-yearend", source: "국세청 홈택스" },
-    // 면허신고 (의료법 §25) is a per-person 3-year cycle from each person's last
-    // report — it comes from the license tracker below, not a fixed calendar date.
-    { key: "audit",     title: "의무기록 보존 정기 감사 (분기)",
-      date: `${Y}-${String(Math.min(12, (Math.floor((NOW.getMonth())/3) + 1) * 3)).padStart(2, "0")}-30`,
-      link: "tab-retention", source: "의료법 시행규칙 §15" }
+  const fixedDeadlines = () => [
+    ...BIGEUP_WINDOWS.map(w => ({
+      key: w.key, title: w.label, date: nextOccurrence(w.month, null, NOW),
+      link: "tab-bigeup", source: `${w.refMonth}월 진료분 · 의료법 §45조의2 · 비급여 보고 고시`
+    })),
+    { key: YEAREND_DEADLINE.key, title: YEAREND_DEADLINE.label,
+      date: nextOccurrence(YEAREND_DEADLINE.month, YEAREND_DEADLINE.day, NOW),
+      link: "tab-yearend", source: "소득세법 시행령 §216조의3 · 홈택스" }
   ];
 
-  // Add license-specific deadlines from license tracker
+  // All deadlines in the window (recurring: next 12 months; per-person: −30 … +365 days).
   function loadDeadlines() {
-    const list = [...fixedDeadlines];
+    const list = fixedDeadlines();
     const licenses = Store.get("license.list", []);
     for (const lic of licenses) {
-      if (lic.expiry) {
+      const who = `${lic.role} ${redactSubject({ name: lic.name })}`;
+      // 원무·기타 carry no 신고 duty — never a D-day, even for legacy records with an expiry.
+      if (lic.expiry && hasDuty(lic.role)) {
         const d = daysUntil(lic.expiry);
         if (d != null && d <= 365 && d >= -30) {
           list.push({
-            key: `lic-${lic.id}-exp`, title: `${lic.role} ${lic.name} — 면허신고 기한`,
-            date: lic.expiry, link: "tab-license", source: "의료법 §25 (신고일 + 3년)"
+            key: `lic-${lic.id}-exp`, title: `${who} — 면허신고 기한${lic.basis === "acquired" ? " (신고 이력 미확인)" : ""}`,
+            date: lic.expiry, link: "tab-license",
+            source: lic.basis === "acquired" ? "의료법 §25 (취득일 + 3년 · 협회 포털 확인)" : "의료법 §25 (신고일 + 3년)"
           });
         }
       }
@@ -49,7 +51,7 @@ export function initTab0(ctx) {
         const d = daysUntil(lic.cme);
         if (d != null && d <= 365 && d >= -30) {
           list.push({
-            key: `lic-${lic.id}-cme`, title: `${lic.role} ${lic.name} — 보수교육 마감`,
+            key: `lic-${lic.id}-cme`, title: `${who} — 보수교육 마감`,
             date: lic.cme, link: "tab-license", source: "보수교육 의무"
           });
         }
@@ -62,12 +64,25 @@ export function initTab0(ctx) {
       if (b.daysLeft < 0 && a.daysLeft >= 0) return -1;
       return Math.abs(a.daysLeft) - Math.abs(b.daysLeft);
     });
-    return list.slice(0, 6);
+    return list;
   }
+
+  // Group: 초과 / 이번 달 / 다음 달 / 이후 — 이후 is collapsed behind "더 보기".
+  const groupOf = (d) => {
+    if (d.daysLeft == null) return "later";
+    if (d.daysLeft < 0) return "over";
+    const dt = new Date(d.date + "T00:00:00");
+    const m = (dt.getFullYear() - Y) * 12 + dt.getMonth() - NOW.getMonth();
+    return m <= 0 ? "this" : m === 1 ? "next" : "later";
+  };
+  const GROUP_LABEL = { over: "기한 초과", this: "이번 달", next: "다음 달", later: "이후" };
+  let showLater = false;
 
   function renderDeadlines() {
     const list = loadDeadlines();
-    const html = list.map(d => {
+    const groups = { over: [], this: [], next: [], later: [] };
+    for (const d of list) groups[groupOf(d)].push(d);
+    const item = (d) => {
       const days = d.daysLeft;
       let cls = "", label = "";
       if (days == null) { cls = ""; label = "—"; }
@@ -77,31 +92,44 @@ export function initTab0(ctx) {
       else if (days <= 60) { cls = "warn"; label = `${days}<em>일</em>`; }
       else { cls = ""; label = `${days}<em>일</em>`; }
       return `
-        <div class="dday ${cls}" data-link="${d.link}">
+        <div class="dday ${cls}" data-link="${esc(d.link)}">
           <div class="dnum">${label}</div>
           <div class="dbody">
-            <div class="dtitle">${d.title}</div>
-            <div class="dmeta">${d.date} · ${d.source}</div>
+            <div class="dtitle">${esc(d.title)}</div>
+            <div class="dmeta">${esc(d.date)} · ${esc(d.source)}</div>
           </div>
           <div class="arrow">→</div>
         </div>`;
-    }).join("");
+    };
+    let html = "";
+    for (const g of ["over", "this", "next"]) {
+      if (!groups[g].length) continue;
+      html += `<div class="dday-group"><div class="dday-group-label">${GROUP_LABEL[g]} · ${groups[g].length}</div>${groups[g].map(item).join("")}</div>`;
+    }
+    if (groups.later.length) {
+      html += `<div class="dday-group">
+        <button type="button" class="dday-more" id="dday-more" aria-expanded="${showLater}">${showLater ? "접기" : "더 보기"} — ${GROUP_LABEL.later} ${groups.later.length}건 ${showLater ? "↑" : "↓"}</button>
+        ${showLater ? groups.later.map(item).join("") : ""}
+      </div>`;
+    }
     $("#dday-list").innerHTML = html || `<div class="empty-state">다가오는 마감이 없습니다.</div>`;
     $$("#dday-list .dday").forEach(el => {
       el.addEventListener("click", () => activateTab(el.dataset.link));
     });
+    $("#dday-more")?.addEventListener("click", () => { showLater = !showLater; renderDeadlines(); });
   }
 
   function renderResume() {
     const cards = [];
     const jabo = Store.get("jabo.draft.items");
     if (Array.isArray(jabo) && jabo.length) {
-      const name = Store.get("jabo.draft.jabo-name") || Store.get("jabo.draft.jabo-pid") || "환자 미입력";
-      cards.push({ tab: "tab-jabo", label: "자보 정산", who: name + ` · ${jabo.length}개 행위`, when: "" });
+      const name = Store.get("jabo.draft.jabo-name"), pid = Store.get("jabo.draft.jabo-pid");
+      const who = (name || pid) ? redactSubject({ name, pid }) : "환자 미입력";
+      cards.push({ tab: "tab-jabo", label: "자보 정산", who: who + ` · ${jabo.length}개 행위`, when: "" });
     }
     const tariff = Store.get("bigeup.tariff", {});
     const tariffCount = Object.keys(tariff).length;
-    if (tariffCount > 0 && tariffCount < (DATA?.bigeup?.items?.length || 30)) {
+    if (tariffCount > 0 && tariffCount < (DATA?.bigeup?.items?.length || Infinity)) {
       cards.push({ tab: "tab-bigeup", label: "비급여 반기보고", who: `${tariffCount}개 항목 단가 입력 중`, when: "" });
     }
     const lastKcd = Store.get("kcd.lastSummary");
@@ -117,10 +145,10 @@ export function initTab0(ctx) {
       return;
     }
     $("#resume-list").innerHTML = cards.map(c => `
-      <div class="resume" data-tab="${c.tab}">
-        <span><span class="label">${c.label}</span></span>
-        <span class="who">${c.who}</span>
-        <span class="when">${c.when || "→"}</span>
+      <div class="resume" data-tab="${esc(c.tab)}">
+        <span><span class="label">${esc(c.label)}</span></span>
+        <span class="who">${esc(c.who)}</span>
+        <span class="when">${esc(c.when || "→")}</span>
       </div>`).join("");
     $$("#resume-list .resume").forEach(el => {
       el.addEventListener("click", () => activateTab(el.dataset.tab));
@@ -138,11 +166,20 @@ export function initTab0(ctx) {
       $("#act-feed").innerHTML = `<div class="act-empty">최근 활동이 없습니다.</div>`;
       return;
     }
+    // Entries carrying meta.subject get the redacted label appended; the legacy 자보 line
+    // format ("자보 정산표 — <name> · …") is redacted in place so no raw name reaches the feed.
+    const feedText = (it) => {
+      let text = String(it.text ?? "");
+      if (it.tag === "jabo") text = text.replace(/^(자보 정산표 — )(.+?)( · )/, (_, a, who, b) => a + redactSubject({ name: who }) + b);
+      let out = esc(text);
+      if (it.meta?.subject) out += ` <span class="act-subject">${esc(redactSubject(it.meta.subject))}</span>`;
+      return out;
+    };
     $("#act-feed").innerHTML = items.map(it => `
       <div class="act-row">
         <span class="act-when">${relTime(it.at)}</span>
-        <span class="act-text">${it.text}</span>
-        <span class="act-tag">${TAG_LABELS[it.tag] || it.tag}</span>
+        <span class="act-text">${feedText(it)}</span>
+        <span class="act-tag">${esc(TAG_LABELS[it.tag] || it.tag)}</span>
       </div>`).join("");
   }
 
@@ -205,10 +242,12 @@ export function initTab0(ctx) {
       const dt = new Date(d + "T09:00:00");
       return `${dt.getFullYear()}${pad(dt.getMonth()+1)}${pad(dt.getDate())}T090000`;
     };
+    const icsText = (s) => String(s).replace(/\\/g, "\\\\").replace(/[,;]/g, m => "\\" + m).replace(/\n/g, "\\n");
     const ics = [
       "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Vibe Studio//Clinic Admin//KO",
       "CALSCALE:GREGORIAN", "METHOD:PUBLISH"
     ];
+    // Every deadline in the window — not just the ones expanded on screen.
     for (const d of list) {
       ics.push(
         "BEGIN:VEVENT",
@@ -216,9 +255,9 @@ export function initTab0(ctx) {
         `DTSTAMP:${fmt(todayISO())}Z`,
         `DTSTART:${fmt(d.date)}`,
         `DTEND:${fmt(d.date).slice(0,11)}5959`,
-        `SUMMARY:${d.title}`,
-        `DESCRIPTION:${d.source}`,
-        "BEGIN:VALARM", "TRIGGER:-P14D", "ACTION:DISPLAY", `DESCRIPTION:${d.title}`, "END:VALARM",
+        `SUMMARY:${icsText(d.title)}`,
+        `DESCRIPTION:${icsText(d.source)}`,
+        "BEGIN:VALARM", "TRIGGER:-P14D", "ACTION:DISPLAY", `DESCRIPTION:${icsText(d.title)}`, "END:VALARM",
         "END:VEVENT"
       );
     }
@@ -235,7 +274,7 @@ export function initTab0(ctx) {
   // Share dashboard summary — text snapshot of upcoming deadlines
   $("#dday-share")?.addEventListener("click", async () => {
     const list = loadDeadlines();
-    const lines = list.slice(0, 8).map(d => {
+    const lines = list.map(d => {
       const ds = daysUntil(d.date);
       const tag = ds < 0 ? `D+${-ds}` : `D-${ds}`;
       return `• ${tag} · ${d.date} · ${d.title}`;

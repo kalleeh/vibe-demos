@@ -252,7 +252,7 @@
           <h4><span class="step">01</span> 다가오는 마감</h4>
           <div class="dday-list" id="dday-list"></div>
           <div class="result-toolbar" style="margin-top:18px; margin-bottom:0">
-            <div class="summary">캘린더로 내려받아 일정 앱에 넣어두세요.</div>
+            <div class="summary">캘린더로 내려받아 일정 앱에 넣어두세요 — .ics에는 접힌 항목까지 모두 들어갑니다. 법정 기한은 연도별 공지로 확인 필요.</div>
             <div class="actions">
               <button class="btn secondary" id="dday-ics">.ics 캘린더 <span class="arrow">↓</span></button>
               <button class="btn secondary" id="dday-share">공유 <span class="arrow">↗</span></button>
@@ -449,18 +449,18 @@
     <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-yearend" role="tabpanel">
       <div class="panel-head">
-        <span class="panel-num">03 · 연말정산 사전검증</span>
+        <span class="panel-num">03 · 연말정산 의료비 사전점검</span>
         <h3>1월 환자 전화 — "<em>영수증 빠졌어요</em>"</h3>
         <div class="badges">
-          <span class="badge law">국세청 의료비 자료제출 표준</span>
-          <span class="badge live">매년 1월 7-15일 일괄제출 전</span>
+          <span class="badge law">소득세법 시행령 §216조의3 · 간소화 자료</span>
+          <span class="badge live">매년 1월 13일 제출 기한 (확인 필요)</span>
         </div>
       </div>
       <p class="panel-blurb">
-        매년 1월이면 <em>현금결제 비급여</em>·<em>간소화 누락분</em>을 챙겨달라는 환자 전화가 쏟아집니다. 진료기록을 올려두면 — 주민번호 자릿수, 금액 부호, 환자별 합계까지 자동 검증해서 <em>홈택스 제출용 정리 CSV</em>(형식 확인 필요)로 만들어드립니다. 한 명씩 손으로 정리하던 오후 한 나절을 돌려드립니다.
+        매년 1월이면 <em>현금결제 비급여</em>·<em>간소화 자료 누락분</em>을 챙겨달라는 환자 전화가 쏟아집니다. 진료기록을 올려두면 — 주민번호 자릿수·검증식, 진료일자·과세연도, 금액 부호와 합계 관계, 중복 행, 환자별 합계까지 행 단위로 점검해 <em>사전점검 정리표</em>로 만들어드립니다. 한 명씩 손으로 대조하던 오후 한 나절을 돌려드립니다.
       </p>
       <div class="demo-strip">
-        <span class="demo-label">3명 환자 · <strong>5건 진료</strong> — PCC 누락분과 환자 요청분을 합쳐 일괄제출 형식으로 변환하는 흐름을 미리 보실 수 있습니다.</span>
+        <span class="demo-label">4명 환자 · <strong>6건 진료</strong> — 주민번호 자릿수 오류·음수 금액·중복 행이 섞인 데이터로 사전점검 흐름을 미리 보실 수 있습니다.</span>
         <button type="button" class="demo-cta" data-action="run-ye"><span class="play">▶</span> 샘플로 시연</button>
       </div>
 
@@ -477,18 +477,8 @@
               <input id="ye-clinic" type="text" placeholder="OO 한방병원">
             </div>
             <div class="field">
-              <label>증빙코드</label>
-              <select id="ye-evid">
-                <option value="1">1 · 의료기관</option>
-                <option value="2">2 · 약국</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>한방여부</label>
-              <select id="ye-han">
-                <option value="Y">Y · 한방</option>
-                <option value="N">N · 양방</option>
-              </select>
+              <label>과세연도 <span style="color:var(--faint);font-weight:400">(진료일자 범위 점검)</span></label>
+              <input id="ye-year" type="number" min="2000" max="2100" step="1" placeholder="2025">
             </div>
           </div>
 
@@ -509,15 +499,15 @@
           </label>
           <div class="schema">
             <span class="label">필요한 컬럼</span>
-            <code>환자성명</code> · <code>주민등록번호</code> · <code>진료일자</code> · <code>본인부담금</code> · <code>비급여금액</code>
+            <code>환자성명</code> · <code>주민등록번호</code> · <code>진료일자</code> · <code>본인부담금</code> · <code>비급여금액</code> · <span style="color:var(--faint)">선택</span> <code>의료비총액</code>
           </div>
           <p class="caveat">
-            주민등록번호는 본 페이지에서만 처리·자동 마스킹되며, 실제 일괄제출은 사업자가 홈택스 의료비 자료제출 메뉴에서 직접 수행합니다.
+            주민등록번호는 브라우저 메모리에서만 점검되고 저장되지 않으며 화면·파일 모두 앞 7자리까지만 마스킹 표시됩니다. 검증식 불일치는 2020년 10월 이후 발급분·외국인등록번호에서 정상일 수 있어 <em>주의</em>로만 표시합니다.
           </p>
         </div>
 
         <div class="card">
-          <h4><span class="step">03</span> 홈택스 일괄제출 표준</h4>
+          <h4><span class="step">03</span> 의료비 자료 사전점검 정리표</h4>
           <div id="ye-status" class="status-line" style="display:none"></div>
           <div class="result-toolbar" id="ye-toolbar" style="display:none">
             <div class="summary" id="ye-summary"></div>
@@ -528,8 +518,11 @@
             </div>
           </div>
           <div class="result" id="ye-result">
-            <div class="empty-state">진료 기록을 올리면 검증 결과와 홈택스 표준 자료가 생성됩니다.</div>
+            <div class="empty-state">진료 기록을 올리면 행 단위 점검 결과·환자별 합계·정리표가 여기에 표시됩니다.</div>
           </div>
+          <p class="caveat">
+            ※ 이 파일은 <em>사전점검용</em>입니다. 국세청 제출은 <a class="small-link" href="https://www.hometax.go.kr" target="_blank" rel="noopener noreferrer">홈택스 연말정산간소화 자료제출</a> 또는 EMR의 국세청 자료제출 모듈에서 수행하며, 제출 형식·기한은 연도별 국세청 안내로 확인하십시오.
+          </p>
         </div>
       </div>
     </section>
@@ -539,18 +532,18 @@
     <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-bigeup" role="tabpanel">
       <div class="panel-head">
-        <span class="panel-num">04 · HIRA 비급여 반기보고</span>
-        <h3>3월·9월 마감, <em>30개 항목</em> 단가만 적으면 됩니다</h3>
+        <span class="panel-num">04 · 비급여 보고 준비</span>
+        <h3>3월·9월 진료분, <em>단가와 빈도</em>만 적으면 준비표가 됩니다</h3>
         <div class="badges">
-          <span class="badge law">의료법 §45조의2</span>
-          <span class="badge live">반기 보고 (3월·9월)</span>
+          <span class="badge law">의료법 §45조의2 · 비급여 보고 고시</span>
+          <span class="badge live" id="bg-window">보고 기간 4월·10월 (확인 필요)</span>
         </div>
       </div>
       <p class="panel-blurb">
-        반기보고 시즌이면 빈 엑셀 양식부터 다시 그리던 일, 이제 안 하셔도 됩니다. <em>한방 항목 30개</em>는 이미 채워져 있고 — <em>우리 병원 단가</em>만 적으면, 심평원에 제출하는 형식 그대로 엑셀로 떨어집니다. 마감 전날 야근이 사라집니다.
+        보고 시즌이면 빈 엑셀 양식부터 다시 그리던 일, 이제 안 하셔도 됩니다. 한방 비급여 <em>예시 항목 <span data-bg-count>—</span>개</em>가 채워져 있고 — 항목별 <em>우리 병원 단가</em>와 <em>참고월 실시빈도</em>만 적으면 보고 준비표가 엑셀로 떨어집니다. 병원급은 3월·9월 진료분을 각각 4월·10월에 보고합니다 (의원급은 3월분만 연 1회 — 확인 필요).
       </p>
       <div class="demo-strip">
-        <span class="demo-label">병원 정보와 <strong>30개 한방 비급여 항목</strong>의 표본 단가를 자동으로 채워, 검증·보고 파일이 어떻게 만들어지는지 보여드립니다.</span>
+        <span class="demo-label">병원 정보와 <strong>예시 항목 <span data-bg-count>—</span>개</strong>의 표본 단가·빈도를 자동으로 채워, 검증·준비표가 어떻게 만들어지는지 보여드립니다.</span>
         <button type="button" class="demo-cta" data-action="run-bigeup"><span class="play">▶</span> 샘플로 시연</button>
       </div>
 
@@ -572,20 +565,21 @@
             </div>
           </div>
 
-          <h4 style="margin-top: 18px;"><span class="step">02</span> 한방 비급여 항목 단가</h4>
+          <h4 style="margin-top: 18px;"><span class="step">02</span> 한방 비급여 예시 항목 — 단가 · 실시빈도</h4>
           <p class="caveat" style="margin-top:0">
-            HIRA 비급여 코드 마스터에서 한방 항목 ~30개를 발췌했습니다. 병원급은 <em>최저</em>·<em>최고</em>·<em>중간금액</em>을 모두 입력합니다 (의원급은 단일가). 입력값은 자동으로 검증됩니다.
+            <em>예시 항목 — 실제 항목코드·명칭은 심평원 비급여 보고 표준코드 목록 기준 (요양기관업무포털)</em>. 추나요법(2019년 급여화)·도수치료(한의 행위 아님)는 제외했고, 첩약은 건강보험 시범사업 대상 외 분만 해당합니다. 보고 자료의 핵심은 항목별 <em>단가</em>와 <em>참고월 실시빈도(건수)</em>이며, 최저·최고·중간은 이 앱의 입력 점검용입니다 — 공개되는 분포는 심평원이 전체 기관 제출값으로 산출합니다.
           </p>
           <div class="result" style="max-height: 460px; margin-top: 12px;">
             <table id="bg-table">
               <thead>
                 <tr>
-                  <th class="code">코드</th>
+                  <th class="code">예시코드</th>
                   <th>항목명</th>
                   <th>분류</th>
                   <th>최저</th>
                   <th>최고</th>
                   <th>중간</th>
+                  <th>실시빈도<br><span style="font-weight:400;color:var(--faint)">참고월 건수</span></th>
                 </tr>
               </thead>
               <tbody id="bg-tbody"></tbody>
@@ -594,7 +588,7 @@
         </div>
 
         <div class="card">
-          <h4><span class="step">03</span> 검증 · HIRA 보고용 자료</h4>
+          <h4><span class="step">03</span> 검증 · 비급여 보고 준비표</h4>
           <div id="bg-status" class="status-line" style="display:none"></div>
           <div class="audit-summary" id="bg-summary-strip">
             <div class="audit-stat">
@@ -620,7 +614,7 @@
             </div>
           </div>
           <p class="caveat">
-            검증 규칙 — 최저 ≤ 중간 ≤ 최고. 빈 항목은 보고 파일에서 자동 제외됩니다. 실제 보고는 <a class="small-link" href="https://biz.hira.or.kr" target="_blank" rel="noopener noreferrer">요양기관업무포털</a>에서 진행하십시오.
+            검증 규칙 — 최저 ≤ 중간 ≤ 최고, 실시빈도는 0 이상. 단가가 빈 항목은 준비표에서 자동 제외됩니다. 이 파일은 <em>준비표</em>이며 실제 보고는 <a class="small-link" href="https://biz.hira.or.kr" target="_blank" rel="noopener noreferrer">요양기관업무포털</a>의 비급여 보고 메뉴에서 표준코드로 입력·제출합니다.
           </p>
         </div>
       </div>
@@ -631,18 +625,18 @@
     <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-retention" role="tabpanel">
       <div class="panel-head">
-        <span class="panel-num">05 · 의무기록 보존</span>
+        <span class="panel-num">05 · 의무기록 보존기간 점검</span>
         <h3>10년·5년·3년·2년 — <em>혼동하기 쉬운</em> 보존기간</h3>
         <div class="badges">
           <span class="badge law">의료법 시행규칙 §15</span>
-          <span class="badge live">상시</span>
+          <span class="badge live">기준일 = 진료완료일</span>
         </div>
       </div>
       <p class="panel-blurb">
-        의무기록은 종류별로 보존기간이 다릅니다 — <em>진료기록 10년, 처방전 2년, 검사·간호 5년, 진단서부본 3년</em>. 헷갈리면 폐기 시점이 어긋나고, 인증조사에서 바로 지적사항이 됩니다. 기록 대장만 올려두면 <em>만료 임박</em>과 <em>분류 오류</em>를 표로 표시 — 폐기심의위원회 자료가 자동으로 만들어집니다.
+        의무기록은 종류별로 보존기간이 다릅니다 — <em>진료기록 10년, 처방전 2년, 검사·간호 5년, 진단서부본 3년</em>. 기간은 <em>진료완료일</em>(마지막 진료일)부터 계산되며, 작성일자로 세면 만료가 앞당겨 잘못 잡힙니다. 기록 대장만 올려두면 <em>보존기간 경과</em>·<em>만료 임박</em>·<em>분류 오류</em>를 표로 표시하고, 내부 폐기 심의(법정 의무 아닌 내부 절차) 자료로 쓸 점검표를 만들어드립니다.
       </p>
       <div class="demo-strip">
-        <span class="demo-label"><strong>9건 가상 기록</strong> — 만료 초과부터 정상 보존까지 다양한 케이스로 감사 보고서를 미리 보실 수 있습니다.</span>
+        <span class="demo-label"><strong>9건 가상 기록</strong> — 보존기간 경과부터 정상 보존, 진료완료일이 없어 작성일자로 계산된 행까지 다양한 케이스로 점검표를 미리 보실 수 있습니다.</span>
         <button type="button" class="demo-cta" data-action="run-ret"><span class="play">▶</span> 샘플로 시연</button>
       </div>
 
@@ -665,8 +659,11 @@
           </label>
           <div class="schema">
             <span class="label">필요한 컬럼</span>
-            <code>기록ID</code> · <code>기록종류</code> · <code>환자번호</code> · <code>작성일자</code> · <code>상태</code>
+            <code>기록ID</code> · <code>기록종류</code> · <code>진료완료일</code> (또는 <code>마지막진료일</code>·<code>최종진료일</code>) · <span style="color:var(--faint)">대체</span> <code>작성일자</code>
           </div>
+          <p class="caveat">
+            기준일은 <em>진료완료일</em>을 우선 사용하고, 없을 때만 작성일자로 계산하며 해당 행에 "작성일자 기준" 경고를 표시합니다. 시행규칙 §15②에 따라 환자 진료가 계속 중이면 보존기간을 연장할 수 있습니다 (1회, 확인 필요).
+          </p>
 
           <h4 style="margin-top: 22px;"><span class="step">02</span> 법정 보존기간</h4>
           <div class="result" style="max-height: 240px;">
@@ -680,7 +677,7 @@
         </div>
 
         <div class="card">
-          <h4><span class="step">03</span> 감사 결과</h4>
+          <h4><span class="step">03</span> 점검 결과</h4>
           <div id="ret-status" class="status-line" style="display:none"></div>
           <div class="audit-summary" id="ret-stats" style="display:none">
             <div class="audit-stat">
@@ -692,7 +689,7 @@
               <div class="num" id="ret-soon">0</div>
             </div>
             <div class="audit-stat err">
-              <div class="label">만료 초과</div>
+              <div class="label">보존기간 경과</div>
               <div class="num" id="ret-over">0</div>
             </div>
             <div class="audit-stat err">
@@ -704,12 +701,12 @@
             <div class="summary" id="ret-summary"></div>
             <div class="actions">
               <button class="btn" id="ret-download" disabled>
-                감사보고서 <span class="arrow">↓</span>
+                보존기간 점검표 <span class="arrow">↓</span>
               </button>
             </div>
           </div>
           <div class="result" id="ret-result">
-            <div class="empty-state">기록 대장을 올리면 감사 결과가 여기에 표시됩니다.</div>
+            <div class="empty-state">기록 대장을 올리면 점검 결과가 여기에 표시됩니다.</div>
           </div>
         </div>
       </div>
@@ -819,12 +816,12 @@
         <span class="panel-num">08 · 면허·자격 갱신</span>
         <h3>"<em>다음달이 신고 기한</em>이에요" — 그 전화, 이제 안 옵니다</h3>
         <div class="badges">
-          <span class="badge law">의료법 §25 · §30</span>
-          <span class="badge">한의사 3년 · 간호사 3년 · 보수교육 매년</span>
+          <span class="badge law">의료법 §25 · 의료기사법 §11</span>
+          <span class="badge">한의사·간호사·간호조무사·물리치료사 3년 · 보수교육 매년</span>
         </div>
       </div>
       <p class="panel-blurb">
-        의료인 면허는 만료되지 않지만, <em>면허신고</em>(의료법 §25)는 사람마다 다른 날짜로 3년마다 돌아옵니다 — 마지막 신고일 + 3년. 50명이 넘어가면 머리로는 못 외우고, 한 명만 놓쳐도 <em>행정처분</em>이 됩니다. 명부에 신고일만 등록해두면 — 기한을 자동 계산하고 6개월 전부터 알림, 면허증 사진을 찍으면 <em>날짜를 자동으로 읽어 입력</em>합니다.
+        의료인 면허는 만료되지 않지만, <em>면허신고</em>(의료법 §25)는 사람마다 다른 날짜로 3년마다 돌아옵니다 — 마지막 신고일 + 3년. 50명이 넘어가면 머리로는 못 외우고, 한 명만 놓쳐도 <em>행정처분</em>이 됩니다. 명부에 신고일을 등록하면 기한을 자동 계산하고 6개월 전부터 알립니다. 신고일을 모르면 <em>취득일 + 3년</em>으로 잡고 "신고 이력 미확인"으로 표시합니다 — 면허증 사진에서 <em>면허번호·취득일을 자동으로 읽어</em> 입력할 수 있습니다 (면허증에는 신고일이 없습니다).
       </p>
 
       <div class="card">
@@ -851,7 +848,15 @@
             <input id="lic-name" type="text" placeholder="홍길동">
           </div>
           <div class="field">
-            <label>최근 면허신고일 <span style="color:var(--faint);font-weight:400">(기한 = +3년)</span></label>
+            <label>면허번호 <span style="color:var(--faint);font-weight:400">(선택 · OCR 자동)</span></label>
+            <input id="lic-no" type="text" inputmode="numeric" placeholder="12345">
+          </div>
+          <div class="field">
+            <label>취득일 <span style="color:var(--faint);font-weight:400">(면허증 기재 · OCR 자동)</span></label>
+            <input id="lic-acquired" type="date">
+          </div>
+          <div class="field">
+            <label>최근 면허신고일 <span style="color:var(--faint);font-weight:400">(기한 = +3년 · 모르면 비워두기)</span></label>
             <input id="lic-reported" type="date">
           </div>
           <div class="field">
@@ -860,6 +865,7 @@
           </div>
           <button class="btn" id="lic-add-btn">추가</button>
           <button class="btn secondary" id="lic-cancel" style="display:none">취소</button>
+          <p class="lic-role-note" id="lic-role-note" aria-live="polite"></p>
         </div>
 
         <div class="result-toolbar" style="margin-top:18px">
@@ -872,7 +878,7 @@
         </div>
 
         <p class="caveat">
-          ※ 면허 신고는 <a class="small-link" href="https://license.kma.org" target="_blank" rel="noopener noreferrer">대한의사협회 면허신고센터</a> · 한의사는 <a class="small-link" href="https://license.akom.org" target="_blank" rel="noopener noreferrer">대한한의사협회</a>를 통해 진행됩니다. 보수교육 이수증은 각 협회 시스템에 보관됩니다.
+          ※ 면허·자격 신고는 역할별 중앙회를 통해 진행됩니다 — <span id="lic-orgs">—</span>. 링크는 각 협회 대표 사이트이며 신고 포털 주소는 <em>확인 필요</em>합니다. 원무·행정·기타 직원은 신고 대상이 아니므로 "해당 없음"으로 표시되고 마감 계산에서 제외됩니다. 보수교육 이수증은 각 협회 시스템에 보관됩니다.
         </p>
       </div>
     </section>
@@ -882,15 +888,15 @@
     <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-accred" role="tabpanel">
       <div class="panel-head">
-        <span class="panel-num">09 · 인증평가 체크리스트</span>
+        <span class="panel-num">09 · 인증 자체점검</span>
         <h3>인증조사 한 달 전 — 그때 시작하면 <em>늦습니다</em></h3>
         <div class="badges">
-          <span class="badge law">한국의료기관평가인증원</span>
-          <span class="badge">4년 주기 갱신</span>
+          <span class="badge law">의료법 §58 · 의료기관평가인증원</span>
+          <span class="badge">한방병원 자율 인증 · 유효기간 4년</span>
         </div>
       </div>
       <p class="panel-blurb">
-        4년에 한 번 오는 인증평가, 막판에 몰아서 하면 결국 <em>지적사항</em>이 됩니다. <em>안전·환자권리·의무기록·감염관리·시설·인사</em> 항목을 평소에 한 줄씩 체크해두면 — <em>오늘</em> 탭에 진행률이 자동 표시되고, 조사 직전엔 PDF 한 장으로 정리됩니다.
+        의료기관 인증은 <em>한방병원에는 자율</em>입니다 — 의무 인증 대상은 요양병원·정신병원 등(의료법 §58조의4, 확인 필요)이고, 인증 유효기간은 4년입니다. 그래도 신청을 결정한 뒤 막판에 몰아서 준비하면 결국 <em>지적사항</em>이 됩니다. 아래는 <em>자체점검 예시 (<span data-accred-count>—</span>항목)</em> — 실제 기준은 의료기관평가인증원 한방병원 인증기준을 따르세요. 평소에 한 줄씩 체크해두면 <em>오늘</em> 탭에 진행률이 표시되고, 조사 직전엔 PDF 한 장으로 정리됩니다.
       </p>
 
       <div class="card">
@@ -907,8 +913,9 @@
           <!-- populated by JS -->
         </div>
         <p class="caveat" style="margin-top:18px">
-          ※ 본 체크리스트는 한방병원 인증조사 항목을 압축·요약한 것입니다. 실제 조사 항목은 <a class="small-link" href="https://www.koiha.or.kr" target="_blank" rel="noopener noreferrer">한국의료기관평가인증원</a> 최신 매뉴얼을 우선합니다.
+          ※ 자체점검 예시 (<span data-accred-count>—</span>항목) — 실제 기준은 <a class="small-link" href="https://www.koiha.or.kr" target="_blank" rel="noopener noreferrer">의료기관평가인증원</a> 한방병원 인증기준 최신판을 우선합니다. "이 앱의 관련 도구"는 인증 기준이 아니라 이 앱 안의 연관 화면으로 가는 링크입니다.
         </p>
+        <p class="poc-print-footer" id="accred-print-footer"></p>
       </div>
     </section>
 

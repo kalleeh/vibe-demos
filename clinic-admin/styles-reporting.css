@@ -1,1 +1,64 @@
 /* clinic-admin — reporting area styles (Phase 2). Append-only; owned by the reporting agent. */
+
+/* ── 00 오늘 · grouped deadlines (이번 달 / 다음 달 / 이후 behind 더 보기) ── */
+.dday-group + .dday-group { margin-top: 10px; }
+.dday-group-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--muted); margin: 0 0 6px 2px;
+}
+.dday-more {
+  width: 100%; text-align: left; background: none; border: 1px dashed var(--line); border-radius: 4px;
+  padding: 8px 12px; font: inherit; font-size: 12px; color: var(--muted); cursor: pointer;
+}
+.dday-more:hover { color: var(--accent); border-color: var(--accent); }
+.act-row .act-subject { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 11px; margin-left: 6px; }
+
+/* ── 03 연말정산 · issue + patient tables ── */
+.ye-subhead {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--muted); margin: 16px 0 8px;
+}
+.ye-subhead:first-child { margin-top: 0; }
+.ye-issues tr.row-err td { background: rgba(176,74,47,0.06); }
+.ye-issues tr.row-warn td { background: rgba(184,122,28,0.06); }
+
+/* ── 04 비급여 · numeric inputs (단가 · 실시빈도) ── */
+.bg-num {
+  width: 90px; padding: 5px 7px; border: 1px solid var(--line); border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; text-align: right; background: rgba(255,255,255,0.6);
+}
+.bg-num.bg-freq { width: 72px; }
+
+/* ── 05 보존 · 작성일자-basis warning chip ── */
+.basis-warn {
+  display: block; margin-top: 3px; width: max-content; padding: 1px 6px; border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: .3px;
+  background: rgba(184,122,28,0.15); color: var(--warn); vertical-align: middle;
+}
+
+/* ── 08 면허 · 신고 이력 미확인 flag + no-duty note ── */
+.lic-flag {
+  display: inline-block; margin: 0 4px; padding: 1px 6px; border-radius: 3px;
+  font-size: 10.5px; background: rgba(184,122,28,0.15); color: var(--warn);
+}
+.lic-role-note { grid-column: 1 / -1; margin: 0; font-size: 12px; color: var(--muted); min-height: 1em; }
+.lic-role-note:empty { display: none; }
+
+/* ── 09 인증 · related-tools block (not counted) + PoC print footer ── */
+.accred-cat.accred-tools { opacity: .85; }
+.accred-item.tool { cursor: default; }
+.accred-item.tool .check { color: var(--muted); }
+.poc-print-footer { display: none; }
+@media print {
+  .poc-print-footer {
+    display: block; margin-top: 18px; padding-top: 8px; border-top: 1px solid #999;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #444;
+  }
+}
+
+/* 8-column 비급여 table — keep it inside the card at desktop widths */
+#bg-table th, #bg-table td { padding-left: 7px; padding-right: 7px; }
+#bg-table td.code, #bg-table td:nth-child(3) { white-space: nowrap; }
+#bg-table .bg-num { width: 68px; }
+#bg-table .bg-num.bg-freq { width: 54px; }
+#bg-table .bg-unit { color: var(--faint); font-family: "JetBrains Mono", monospace; font-size: 10px; white-space: nowrap; }
