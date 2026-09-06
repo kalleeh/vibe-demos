@@ -201,7 +201,7 @@ function contextFor(note, opts = {}) {
   const n = typeof opts === "number" ? opts : (opts.n ?? 12);
   const tariff = Array.isArray(opts.tariff) ? opts.tariff : [];
   const parts = [];
-  const words = String(note || "").split(/[\s,.·;:/()\[\]]+/).map(w => w.trim()).filter(w => w.length >= 2);
+  const words = String(note || "").split(/[\s,.·;:/()[\]]+/).map(w => w.trim()).filter(w => w.length >= 2);
   const score = (name) => words.reduce((s, w) => s + (name.includes(w) ? 1 : 0), 0);
   const top = (rows, fmt) => rows.map(r => [score(r.name || ""), r]).filter(([s]) => s > 0).sort((a, b) => b[0] - a[0]).slice(0, n).map(([, r]) => fmt(r));
   if (cache.kcd) {

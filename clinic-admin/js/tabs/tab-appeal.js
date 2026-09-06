@@ -8,19 +8,23 @@
    row, XLSX "이의신청 대장" (watermarked), a printable "이의신청서 초안" (plain text, PoC mark, "양식은 심평원 서식 기준 — 확인 필요").
    Hand-offs: 대조로 보기 → tab-jabo | tab-nhis { stmt } · 상병 정비 → tab-kcd { stmt, batchId } · AI에게 근거 정리 요청 → tab-ai
    { prefill, pid, stmt }. ctx accepted: { create } · { appealId } · { filter: { payer, month, status } } · { from: { batchId } }.
-   Data: claims-shared.js Appeals (appeals.list, encrypted, 1년) · appealDeadlines() re-exported for 홈 (P3c).
+   Data: claims-shared.js Appeals (appeals.list, encrypted, 1년). appealDeadlines() / appealStats() live there (홈 reads them
+   from claims-shared.js directly); this module re-exports them and registers appealDeadlines as a core/calendar.js deadline
+   source at load, so 홈's todo, the D-day list, the topbar chip and the .ics carry every open appeal's 기한.
    Domain: 국민건강보험법 §87 이의신청 — 90일 from knowing the decision (medium-high confidence, "확인 필요"); 자보 이의제기 goes
    to 심평원 자보심사센터 first (LOW confidence on its window — same 90-day placeholder). */
 import { $, esc, won, fmtKRW, todayISO, setStatus, daysUntil } from "../core/ui.js";
 import { t, pick, getLang, onLangChange } from "../core/i18n.js";
 import { EventBus, ActivityLog } from "../core/store.js";
 import { downloadXLSX, headerRow, pocMark } from "../core/files.js";
+import { registerDeadlineSource } from "../core/calendar.js";
 import { Masters } from "../core/masters.js";
 import { activateTab } from "../core/nav.js";
 import { Org, Patients, Insurers } from "../core/entities.js";
-import { Appeals, appealDeadlines, appealStateOf, reconOf, appealFactsOf, nhisReasonLabel, payerLabel, reconTabOf, currentClaimsBatch, ensureSampleBatch, ensureNhisSampleBatch, reconcile, itemLinesOf, onClaimsChange } from "./claims-shared.js";
+import { Appeals, appealDeadlines, appealStats, appealStateOf, reconOf, appealFactsOf, nhisReasonLabel, payerLabel, reconTabOf, currentClaimsBatch, ensureSampleBatch, ensureNhisSampleBatch, reconcile, itemLinesOf, onClaimsChange } from "./claims-shared.js";
 
-export { appealDeadlines, appealStateOf };
+export { appealDeadlines, appealStats, appealStateOf };
+registerDeadlineSource(appealDeadlines, { link: "tab-appeal", kind: "appeal" });
 let seedFn = null;
 export function seed(ctx) { return seedFn ? seedFn(ctx) : Promise.resolve(); }
 

@@ -29,23 +29,17 @@ export default {
   "board.num": "Patients · Intake board",
   "board.h3": "Today’s <em>waiting · in treatment · done</em>, on one board",
   "board.badgeLive": "PocketBase realtime · E2E encrypted", "board.badge": "Pseudonymous patients only · no real names",
-  "board.blurb": "The front-desk whiteboard, moved here — pick a pseudonymous patient, add a one-line note, and the card appears <em>instantly on every device and tab</em>. Card contents are <em>end-to-end encrypted</em> with this workspace key; the server only ever sees ciphertext. Payment guarantees, issued-document ledger and non-covered consent join this area in the next phase.",
+  "board.blurb": "The front-desk whiteboard, moved here — pick a pseudonymous patient, add a one-line note, and the card appears <em>instantly on every device and tab</em>. Card contents are <em>end-to-end encrypted</em> with this workspace key; the server only ever sees ciphertext. A card’s <em>⋯</em> menu opens that patient’s <em>auto-insurance guarantee</em>, <em>document issuance log</em> and <em>non-covered consent</em> directly — the three trackers are the other panels of this area.",
 
-  /* ── Claims › claim batch landing ── */
+  /* ── Claims › claim batch landing (payer-aware head copy — claims.p3.* — and the payer cards live in en.claims2.js) ── */
   "claims.num": "Claims · Claim batch",
-  "claims.h3": "Upload the statements once, finish in <em>three steps</em>",
-  "claims.badgeLaw": "Auto-insurance fee schedule · HIRA (심평원) auto-insurance review", "claims.badgeLive": "Diagnosis codes → review reconciliation → appeals",
-  "claims.blurb": "The <em>claim batch</em> is the unit — one claim-statement export from the EMR becomes the batch that both diagnosis-code cleanup and review reconciliation work on, and HIRA’s review-result file is linked to it. Upload both files here and just read <em>how far you are</em> in the three steps below. Appeals arrive in the next phase.",
   "claims.uploadH": "Upload — claim statements · review results",
-  "claims.dropClaims": "Claim statement export", "claims.dropClaimsHint": "Statement no. · patient no. · visit date · diagnosis code · procedure code · claimed amount — becomes a new claim batch",
+  "claims.dropClaims": "Claim statement export",
   "claims.dropReview": "HIRA review-result file", "claims.dropReviewHint": "Statement no. · procedure code · approved amount · adjustment reason — linked to the current batch",
   "claims.caveat": "※ Uploading the same file in <strong>Diagnosis codes</strong> or <strong>Review reconciliation</strong> creates the same batch. Batches are encrypted in the browser and kept 90 days · up to 20 (Organisation › Data processing).",
-  "claims.stepsH": "Progress — current batch",
-  "claims.statusClaims": "{src} — {n} statements read as a new claim batch. Start with the diagnosis codes.",
   "claims.statusReview": "{src} — {n} review lines linked to the current batch. The reconciliation refreshes.",
-  "claims.card.empty": "No claim batch yet — upload a claim-statement export on the left and the batch summary and progress appear here.",
   "claims.card.noReview": "No review results",
-  "claims.card.stmts": "Statements", "claims.card.patients": "Patients", "claims.card.kcdLines": "Diagnosis lines", "claims.card.itemLines": "Procedure lines", "claims.card.created": "Uploaded", "claims.card.batches": "Batches kept",
+  "claims.card.stmts": "Statements", "claims.card.patients": "Patients", "claims.card.kcdLines": "Diagnosis lines", "claims.card.itemLines": "Procedure lines", "claims.card.created": "Uploaded",
   "claims.step.kcd": "Diagnosis code cleanup", "claims.step.noBatch": "Upload a claim batch first",
   "claims.step.kcdNoSide": "This batch has no diagnosis columns (procedures only)",
   "claims.step.kcdTodo": "{n} diagnosis lines — not cleaned yet", "claims.step.kcdDone": "{n} reviewed · {m} not listed / invalid · {r} to review",
@@ -54,8 +48,8 @@ export default {
   "claims.step.reconNeed": "No HIRA review-result file yet — upload it and every statement and procedure is reconciled",
   "claims.step.reconTodo": "{n} review lines linked — check the reconciliation table", "claims.step.reconDone": "Adjusted {cut} · rate {rate}%",
   "claims.step.reconUpload": "Upload review results", "claims.step.reconBtn": "View reconciliation", "claims.step.reconOpen": "Open reconciliation",
-  "claims.step.appeal": "Appeals", "claims.step.appealSoon": "Next phase — an appeal tracker per adjusted line plugs in here", "claims.step.appealBtn": "Coming next",
-  "claims.state.idle": "waiting", "claims.state.todo": "to do", "claims.state.need": "file needed", "claims.state.done": "done", "claims.state.soon": "next phase",
+  "claims.step.appeal": "Appeals",
+  "claims.state.idle": "waiting", "claims.state.todo": "to do", "claims.state.need": "file needed", "claims.state.done": "done",
   "jabo.batch.open": "Claim batch →",
 
   /* ── Organisation › institution profile panel ── */

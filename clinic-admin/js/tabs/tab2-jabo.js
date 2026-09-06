@@ -6,6 +6,9 @@
    recon history entry. Rows with a cut carry 이의신청 준비 → tab-appeal { create }; ctx { stmt } from 이의신청 highlights a 명세서.
    Secondary path: manual single-case entry. Receives ctx from 07/06: activateTab("tab-jabo", { dx, items, pid,
    insurer?, claim?, accident? }) → sets the 주상병, adds each 행위, prefills the 환자번호.
+   TWO CODE SPACES: `items` are 자보 fee-list codes (Masters.fee / data/jabo.json 예시-NN); `bigeupItems` (from 환자 › 비급여
+   동의) are Tariff codes (data/bigeup.json 예시-NN — the same-looking ids name different things). 비급여 codes are added as
+   비급여 lines (kind "bigeup") priced from the clinic's Tariff; they never resolve against the fee list.
    Cross-tab actions per reconciliation row: 상병 정비에서 보기 (01, focused on the 명세서) · 행위 검색 (06) ·
    AI에게 묻기 (07, for 상병-처치 부위 불일치 / 동일부위 중복).
    i18n: everything user-visible goes through t()/pick(); the language toggle re-renders from state the tab holds. */
@@ -17,7 +20,7 @@ import { Masters, toEdi, toDotted } from "../core/masters.js";
 import { activateTab } from "../core/nav.js";
 import { Insurers, Patients } from "../core/entities.js";
 import { currentClaimsBatch, reviewFor, ingestClaimsFile, createReviewBatch, stmtCodes, renderBatchStrip, onClaimsChange, ensureSampleBatch, loadSampleRows,
-         renderReconciliation, reconExportRows, lineReasonOf, groupCuts, reasonKeysOf, payerLabel, batchPayer, Appeals } from "./claims-shared.js";
+         renderReconciliation, reconExportRows, lineReasonOf, groupCuts, reasonKeysOf, payerLabel, batchPayer, Appeals, tariffPrice } from "./claims-shared.js";
 
 let seedFn = null;
 export function seed() { return seedFn ? seedFn() : Promise.resolve(); }
@@ -187,13 +190,16 @@ export function init(ctx) {
   });
 
   /* ───────────── Secondary: manual single-case entry ───────────── */
-  const items = []; // {code, name, qty, unit, price, category, paid, cutKey}
+  const items = []; // {code, name, qty, unit, price, category, paid, cutKey, kind?} — kind "bigeup" = a 비급여 line (Tariff code space)
   const dxSel = $("#jabo-dx");
   const insSel = $("#jabo-insurer");
   const feeRows = () => Masters.fee().rows;
   const feeByCode = (code) => feeRows().find(i => i.code === code);
   // Procedure name for display: the fee table's localised name when the code is known, else the stored/file name.
   const procName = (code, name) => { const d = feeByCode(code); return d ? (pick(d, "name") || name) : name; };
+  // Line name: a 비급여 line keeps its Tariff name (its code would collide with the fee list's 예시-NN); fee lines resolve as usual.
+  const bigeupDef = (code) => (DATA.bigeup?.items || []).find(i => i.code === code) || null;
+  const lineName = (it) => it.kind === "bigeup" ? (bigeupDef(it.code) ? pick(bigeupDef(it.code), "name") : it.name) : procName(it.code, it.name);
   let extraDx = null; // a 주상병 handed over by 07/06 that is not in the example list: { code(EDI), name }
   const buildSelects = () => {
     const dxCur = dxSel.value;
@@ -257,12 +263,22 @@ export function init(ctx) {
   const addItem = (code, { render = true } = {}) => {
     const def = feeByCode(code);
     if (!def) return false;
-    const existing = items.find(x => x.code === code);
+    const existing = items.find(x => x.code === code && x.kind !== "bigeup");
     if (existing) existing.qty++;
     else items.push({ code: def.code, name: def.name, unit: def.unit || "회", price: def.price ?? 0, category: def.category || "", qty: 1, paid: def.price ?? 0, cutKey: "" });
     searchEl.value = "";
     resultsEl.classList.remove("show");
     if (render) renderItems();
+    return true;
+  };
+  // 비급여 line from the Tariff code space (환자 › 비급여 동의 hand-off): name from data/bigeup.json, price = the clinic's own 단가
+  // (중간값, else the min/max midpoint). No Tariff price → not added (the caller reports the code as skipped).
+  const addBigeupItem = (code, { qty = 1 } = {}) => {
+    const def = bigeupDef(code), price = tariffPrice(code);
+    if (!def || !price) return false;
+    const existing = items.find(x => x.code === code && x.kind === "bigeup");
+    if (existing) existing.qty += qty;
+    else items.push({ code, name: def.name, unit: def.unit || "회", price, category: "비급여", qty, paid: price, cutKey: "", kind: "bigeup" });
     return true;
   };
 
@@ -276,9 +292,9 @@ export function init(ctx) {
   const rowHTML = (it, i) => {
     const { claimed, cut } = lineOf(it);
     return `
-      <div class="item-row recon" data-i="${i}">
+      <div class="item-row recon${it.kind === "bigeup" ? " bigeup" : ""}" data-i="${i}">
         <span class="code-tag">${esc(it.code)}</span>
-        <span class="name">${esc(procName(it.code, it.name))} <span style="color: var(--faint); font-size: 11px; margin-left: 4px;">${esc(catLabel(it.category))}</span></span>
+        <span class="name">${esc(lineName(it))} <span style="color: var(--faint); font-size: 11px; margin-left: 4px;">${esc(catLabel(it.category))}</span></span>
         <input type="number" class="qty" min="1" max="999" value="${it.qty}" data-i="${i}" aria-label="${esc(t("jabo.qtyAria"))}" title="${esc(t("jabo.qtyAria"))}">
         <span class="price-display claimed">${esc(t("jabo.claimedLabel", { amt: fmtKRW(claimed) }))}</span>
         <input type="number" class="paid-unit" min="0" value="${it.paid}" data-i="${i}" aria-label="${esc(t("jabo.paidAria"))}" title="${esc(t("jabo.paidTitle"))}" placeholder="${it.price}">
@@ -321,7 +337,7 @@ export function init(ctx) {
             ${items.map(it => {
               const { claimed, paid, cut } = lineOf(it);
               return `<tr>
-                <td class="code">${esc(it.code)}</td><td>${esc(procName(it.code, it.name))}</td>
+                <td class="code">${esc(it.code)}</td><td>${esc(lineName(it))}</td>
                 <td class="code" style="text-align:right">${fmtKRW(it.price)}</td><td class="code" style="text-align:right">${it.qty}</td>
                 <td class="code" style="text-align:right">${fmtKRW(claimed)}</td><td class="code" style="text-align:right">${fmtKRW(paid)}</td>
                 <td class="code" style="text-align:right${cut > 0 ? "; color:var(--accent); font-weight:600" : ""}">${cut > 0 ? "−" + fmtKRW(cut) : "0"}</td>
@@ -373,7 +389,7 @@ export function init(ctx) {
     const [removed] = items.splice(i, 1);
     renderItems();
     Haptic.del();
-    Toast.withUndo(t("jabo.removedToast", { name: procName(removed.code, removed.name) }), () => { items.splice(Math.min(i, items.length), 0, removed); renderItems(); }, "jabo");
+    Toast.withUndo(t("jabo.removedToast", { name: lineName(removed) }), () => { items.splice(Math.min(i, items.length), 0, removed); renderItems(); }, "jabo");
   });
 
   searchEl.addEventListener("input", e => renderSearch(e.target.value));
@@ -406,7 +422,7 @@ export function init(ctx) {
       const { claimed, paid, cut } = lineOf(it);
       return headerRow([
         ["jabo.mcol.pid", pid], ["jabo.mcol.insurer", insurerLbl], ["jabo.mcol.claim", claimNo], ["jabo.mcol.accident", accident], ["jabo.mcol.date", date],
-        ["jabo.mcol.dx", dx], ["jabo.mcol.dxName", dxName], ["jabo.mcol.code", it.code], ["jabo.mcol.name", procName(it.code, it.name)], ["jabo.mcol.cat", catLabel(it.category)],
+        ["jabo.mcol.dx", dx], ["jabo.mcol.dxName", dxName], ["jabo.mcol.code", it.code], ["jabo.mcol.name", lineName(it)], ["jabo.mcol.cat", catLabel(it.category)],
         ["jabo.mcol.price", it.price], ["jabo.mcol.unit", unitLabel(it.unit)], ["jabo.mcol.qty", it.qty], ["jabo.mcol.claimed", claimed], ["jabo.mcol.approved", paid], ["jabo.mcol.cut", cut],
         ["jabo.mcol.reason", cut > 0 ? reasonLabel(it.cutKey, "jabo.reasonMissing") : ""]
       ]);
@@ -428,7 +444,7 @@ export function init(ctx) {
   const draftItems = Store.get("jabo.draft.items");
   if (Array.isArray(draftItems) && draftItems.length) items.push(...draftItems.map(d => { const it = { cutKey: "", ...d }; delete it.cutCode; return it; })); // cutCode: pre-security-pass field
   const persistDraftItems = debounce(() => {
-    Store.set("jabo.draft.items", items.map(({ code, name, qty, unit, price, category, paid, cutKey }) => ({ code, name, qty, unit, price, category, paid, cutKey })));
+    Store.set("jabo.draft.items", items.map(({ code, name, qty, unit, price, category, paid, cutKey, kind }) => ({ code, name, qty, unit, price, category, paid, cutKey, ...(kind ? { kind } : {}) })));
   }, 500);
   renderItems();
 
@@ -471,7 +487,7 @@ export function init(ctx) {
   $("#jabo-new-same").addEventListener("click", () => { $("#jabo-new-menu").hidden = true; newCase("same"); });
   $("#jabo-new-fresh").addEventListener("click", () => { $("#jabo-new-menu").hidden = true; newCase("fresh"); });
 
-  // ctx from 07 (AI result) / 06 (insert): { dx, items, pid, insurer, claim, accident, date }
+  // ctx from 07 (AI result) / 06 (insert) / 환자 trackers: { dx, items, bigeupItems, pid, insurer, claim, accident, date }
   const applyCase = (c) => {
     if (c.pid) { $("#jabo-pid").value = c.pid; $("#jabo-pid").dispatchEvent(new Event("change", { bubbles: true })); }
     if (c.insurer) { insSel.value = c.insurer; insSel.dispatchEvent(new Event("change", { bubbles: true })); }
@@ -480,10 +496,14 @@ export function init(ctx) {
     if (c.accident) { $("#jabo-accident").value = c.accident; $("#jabo-accident").dispatchEvent(new Event("change", { bubbles: true })); }
     if (c.date) { $("#jabo-date").value = c.date; $("#jabo-date").dispatchEvent(new Event("change", { bubbles: true })); }
     if (c.dx) setDx(c.dx);
-    const added = [], skipped = [];
+    const added = [], skipped = [], addedBg = [], skippedBg = [];
     for (const code of (Array.isArray(c.items) ? c.items : [])) (addItem(code, { render: false }) ? added : skipped).push(code);
+    for (const code of (Array.isArray(c.bigeupItems) ? c.bigeupItems : [])) (addBigeupItem(code) ? addedBg : skippedBg).push(code);
     renderItems();
-    manualStatus(skipped.length ? "warn" : null, () => t("jabo.caseFilled", { n: added.length, dx: c.dx ? toEdi(c.dx) : "—" }) + (skipped.length ? t("jabo.caseSkipped", { codes: skipped.join(", ") }) : ""));
+    manualStatus(skipped.length || skippedBg.length ? "warn" : null, () => t("jabo.caseFilled", { n: added.length, dx: c.dx ? toEdi(c.dx) : "—" })
+      + (skipped.length ? t("jabo.caseSkipped", { codes: skipped.join(", ") }) : "")
+      + (addedBg.length ? t("jabo.caseBigeup", { n: addedBg.length }) : "")
+      + (skippedBg.length ? t("jabo.caseBigeupSkipped", { codes: skippedBg.join(", ") }) : ""));
     $("#jabo-items")?.closest(".card")?.scrollIntoView({ block: "start", behavior: "smooth" });
   };
 
@@ -524,7 +544,7 @@ export function init(ctx) {
   EventBus.on("tab:activated", (p) => {
     const c = p?.id === "tab-jabo" ? p.ctx : null;
     if (!c) return;
-    if (c.dx || (Array.isArray(c.items) && c.items.length) || c.pid) applyCase(c);
+    if (c.dx || (Array.isArray(c.items) && c.items.length) || (Array.isArray(c.bigeupItems) && c.bigeupItems.length) || c.pid) applyCase(c);
     else if (c.focus === "manual") setTimeout(() => $("#jabo-items")?.closest(".card")?.scrollIntoView({ block: "start", behavior: "smooth" }), 60); // 홈 todo → the unfinished 수기 case
     else if (c.stmt) { // 이의신청 → 대조로 보기: highlight that 명세서's rows
       focusStmt = c.stmt;

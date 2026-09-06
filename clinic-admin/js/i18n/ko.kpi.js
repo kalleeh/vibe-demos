@@ -17,7 +17,7 @@ export default {
   "today.kpi.nonpay": "비급여 매출 추정",
   "today.kpi.nonpayNone": "비급여 동의 기록이 쌓이면 단가표로 추정",
   "today.kpi.guar": "지불보증 만료 임박",
-  "today.kpi.guarSub": "30일 안에 만료되는 지불보증",
+  "today.kpi.guarSub": "7일 안에 만료되는 지불보증 (환자 › 자보 지불보증)",
   "today.kpi.caveat": "※ 자보·건보는 심사결과 대조 기록에서, 이의신청·지불보증·비급여 동의는 각 대장에서 집계합니다. 미수금·비급여 매출은 <em>추정치</em>입니다 — 회계 자료가 아닙니다.",
   /* ── 홈 · 이번 달 숫자 (dynamic) ── */
   "today.payer.auto": "자보", "today.payer.nhis": "건보",
@@ -40,7 +40,7 @@ export default {
   "today.sum.ar": "미수금 지표(청구 − 인정, 미신청): {amt}",
   "today.sum.nonpay": "비급여 매출 추정: {amt} (동의 {n}건 × 단가표)",
   "today.sum.nonpayNone": "비급여 매출 추정: — (동의 기록 없음)",
-  "today.sum.guar": "지불보증 만료 임박(30일): {n}건 · 이미 만료 {o}건",
+  "today.sum.guar": "지불보증 만료 임박(7일): {n}건 · 이미 만료 {o}건",
   "today.sum.retention": "보존: 보존기간 경과 {o}건 · 파기 대장 {d}건",
   "today.sum.retentionNone": "보존: 감사 기록 없음",
   "today.sum.foot": "— {date} 기준 · {poc}",
@@ -100,6 +100,5 @@ export default {
   "yearend.lookup.missingHint": "자보 진료(본인부담 없음)·비급여 현금결제는 자료에 빠지는 것이 정상일 수 있습니다. 누락이면 EMR에서 해당 진료를 추가해 다시 점검하세요.",
   "yearend.lookup.docsBtn": "영수증 재발급 대장에 기록",
   "yearend.lookup.docsHint": "환자 › 발급 대장에 「영수증 재발급」 건을 만듭니다.",
-  "yearend.lookup.docsSoon": "발급 대장 패널이 아직 없습니다 — 다음 단계에서 환자 영역에 붙습니다.",
   "yearend.lookup.log": "연말정산 문의 → 영수증 재발급 대장 인계"
 };

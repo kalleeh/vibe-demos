@@ -1,5 +1,5 @@
 /* clinic-admin — Tab 03 · 연말정산 의료비 자료 사전점검 */
-import { $, esc, fmtKRW, won, todayISO, relTime, setStatus, bindDrop, Toast } from "../core/ui.js";
+import { $, esc, fmtKRW, won, todayISO, relTime, setStatus, bindDrop } from "../core/ui.js";
 import { t, onLangChange } from "../core/i18n.js";
 import { EventBus, ActivityLog, bindPersist } from "../core/store.js";
 import { readSpreadsheet, downloadXLSX, downloadCSV, headerRow } from "../core/files.js";
@@ -18,8 +18,8 @@ import { checkRRN, maskRRN, renderOrgReadOnly, orgHeaderPairs } from "./reportin
    · Cross-check: when a `claims` batch exists, pid+date pairs in the tax year are compared both ways.
    · 환자 문의 대응 (Phase 3): January's "영수증 빠졌어요" call — type a 환자번호, see whether it is in the latest yearend
      batch (visits · 합계 · errors, alias only) and hand the case to the 발급 대장:
-     activateTab("tab-docs", { pid, create: true, docType: "영수증 재발급" }). While that panel is not mounted the button
-     explains so (toast) — the ctx it would send is on the button's data-ctx.
+     activateTab("tab-docs", { pid, create: true, docType: "영수증 재발급" }) — 환자 › 발급 대장 opens its editor prefilled
+     (the ctx is also on the button's data-ctx for tests).
    i18n: rows keep neutral fields + [key, vars] issue messages so tables, status and CSV headers re-render. */
 let api = null;
 export function seed() { api?.seed(); }
@@ -34,7 +34,7 @@ export function init() {
   const DATE_COLS = ["진료일자", "진료일", "일자"];
   const parseAmount = (v) => {
     if (v == null || v === "") return { value: 0, missing: true };
-    const s = String(v).replace(/[^0-9.\-]/g, "");
+    const s = String(v).replace(/[^0-9.-]/g, "");
     if (s === "" || s === "-" || isNaN(+s)) return { value: NaN, missing: false };
     return { value: +s, missing: false };
   };
@@ -112,9 +112,11 @@ export function init() {
   };
   const rowNotes = (r) => r.issues.map(i => `${fieldText(i.field)}: ${msgText(i.msg)}`).join(" / ");
 
-  // ── claims cross-check (pid ⨝ date, tax year only) ──
+  // ── claims cross-check (pid ⨝ date, tax year only) — over EVERY stored claims batch: the medical-expense data covers
+  //    all payers, so the 자보 and the 건보 batches (Phase 3) both count as "claimed visits". `claims` = the latest one (meta).
   const xcheck = (result) => {
-    const claims = Batches.latest("claims");
+    const batches = Batches.list("claims");
+    const claims = batches[0];
     if (!claims) return null;
     if (!result.hasPid) return { claims, noPid: true };
     const y = String(result.taxYear);
@@ -122,7 +124,7 @@ export function init() {
     const fileKeys = new Map();
     for (const r of result.rows) if (r.pid && /^\d{4}-\d{2}-\d{2}$/.test(r.date) && r.date.startsWith(y)) fileKeys.set(key(r.pid, r.date), r);
     const claimKeys = new Map();
-    for (const c of claims.rows || []) {
+    for (const c of batches.flatMap(b => b.rows || [])) {
       const d = parseDate(c.date); const pid = String(c.pid ?? "").trim();
       if (!pid || !d || !d.startsWith(y)) continue;
       const k = key(pid, d);
@@ -303,8 +305,7 @@ export function init() {
       const c = DOC_CTX(pid);
       Patients.ensure(pid, { tags: ["연말정산"] });
       ActivityLog.push("yearend", t("yearend.lookup.log"), { pid });
-      if (document.getElementById("tab-docs")) activateTab("tab-docs", c);
-      else Toast.show({ tag: "system", html: esc(t("yearend.lookup.docsSoon")) });
+      activateTab("tab-docs", c); // 환자 › 발급 대장 opens its editor prefilled (tab-docs.js onCreate)
     });
   }
   $("#ye-lookup-btn")?.addEventListener("click", lookup);

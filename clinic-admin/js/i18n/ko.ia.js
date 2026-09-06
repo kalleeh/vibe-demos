@@ -30,23 +30,17 @@ export default {
   "board.num": "환자 · 접수 보드",
   "board.h3": "오늘 <em>대기 · 진료중 · 완료</em>, 한 판에",
   "board.badgeLive": "PocketBase 실시간 · E2E 암호화", "board.badge": "가명 환자만 · 실명 입력 불가",
-  "board.blurb": "접수 창구의 화이트보드를 그대로 옮겼습니다 — 가명 환자를 고르고 메모 한 줄이면 카드가 생기고, 다른 기기·탭에서도 <em>즉시 같은 판</em>을 봅니다. 카드 내용은 이 워크스페이스 키로 <em>종단간 암호화</em>되어 서버는 암호문만 봅니다. 지불보증·발급 대장·비급여 동의는 다음 단계에서 이 영역에 붙습니다.",
+  "board.blurb": "접수 창구의 화이트보드를 그대로 옮겼습니다 — 가명 환자를 고르고 메모 한 줄이면 카드가 생기고, 다른 기기·탭에서도 <em>즉시 같은 판</em>을 봅니다. 카드 내용은 이 워크스페이스 키로 <em>종단간 암호화</em>되어 서버는 암호문만 봅니다. 카드의 <em>⋯</em> 메뉴에서 그 환자의 <em>자보 지불보증</em>·<em>서류 발급 대장</em>·<em>비급여 설명·동의</em>를 바로 열 수 있습니다 — 세 추적기가 이 영역의 나머지 패널입니다.",
 
-  /* ── 청구 › 청구 배치 landing ── */
+  /* ── 청구 › 청구 배치 landing (the payer-aware head copy — claims.p3.* — and the payer cards live in ko.claims2.js) ── */
   "claims.num": "청구 · 청구 배치",
-  "claims.h3": "명세서 한 번 올리고, <em>세 단계</em>로 끝까지",
-  "claims.badgeLaw": "자동차보험진료수가 기준 · 심평원 자보 심사", "claims.badgeLive": "상병 정비 → 심사결과 대조 → 이의신청",
-  "claims.blurb": "<em>청구 배치</em>가 단위입니다 — EMR에서 뽑은 청구 명세서 export 한 장이 상병 정비와 심사결과 대조가 함께 쓰는 배치가 되고, 심평원 심사결과 파일은 그 배치에 연결됩니다. 여기서 두 파일을 올리고, 아래 세 단계의 <em>어디까지 왔는지</em>만 보세요. 이의신청은 다음 단계에서 붙습니다.",
   "claims.uploadH": "파일 업로드 — 청구 명세서 · 심사결과통보",
-  "claims.dropClaims": "청구 명세서 export", "claims.dropClaimsHint": "명세서번호 · 환자번호 · 진료일자 · 상병코드 · 행위코드 · 청구금액 — 새 청구 배치가 됩니다",
+  "claims.dropClaims": "청구 명세서 export",
   "claims.dropReview": "심평원 심사결과 파일", "claims.dropReviewHint": "명세서번호 · 행위코드 · 인정금액 · 조정사유 — 현재 배치에 연결됩니다",
   "claims.caveat": "※ 같은 파일을 <strong>상병 정비</strong>나 <strong>심사결과 대조</strong>에서 올려도 같은 배치가 됩니다. 배치는 브라우저 안에서 암호화되어 90일 · 최대 20건까지 보관됩니다 (조직 › 데이터 처리 현황).",
-  "claims.stepsH": "진행 단계 — 현재 배치",
-  "claims.statusClaims": "{src} — 명세서 {n}건을 새 청구 배치로 읽었습니다. 상병 정비부터 시작하세요.",
   "claims.statusReview": "{src} — 심사결과 {n}줄을 현재 배치에 연결했습니다. 심사결과 대조가 갱신됩니다.",
-  "claims.card.empty": "청구 배치가 없습니다 — 왼쪽에서 청구 명세서 export를 올리면 여기에 배치 요약과 진행 단계가 보입니다.",
   "claims.card.noReview": "심사결과 없음",
-  "claims.card.stmts": "명세서", "claims.card.patients": "환자", "claims.card.kcdLines": "상병 줄", "claims.card.itemLines": "행위 줄", "claims.card.created": "업로드", "claims.card.batches": "보관 배치",
+  "claims.card.stmts": "명세서", "claims.card.patients": "환자", "claims.card.kcdLines": "상병 줄", "claims.card.itemLines": "행위 줄", "claims.card.created": "업로드",
   "claims.step.kcd": "상병 정비", "claims.step.noBatch": "청구 배치를 먼저 올려주세요",
   "claims.step.kcdNoSide": "이 배치에는 상병 컬럼이 없습니다 (행위만)",
   "claims.step.kcdTodo": "상병 {n}줄 — 아직 정비하지 않았습니다", "claims.step.kcdDone": "{n}건 검토 · 미수록/오류 {m}건 · 검토필요 {r}건",
@@ -55,8 +49,8 @@ export default {
   "claims.step.reconNeed": "심평원 심사결과 파일이 아직 없습니다 — 올리면 명세서·행위 단위로 대조됩니다",
   "claims.step.reconTodo": "심사결과 {n}줄 연결됨 — 대조표를 확인하세요", "claims.step.reconDone": "조정 {cut} · 조정률 {rate}%",
   "claims.step.reconUpload": "심사결과 파일 올리기", "claims.step.reconBtn": "대조표 보기", "claims.step.reconOpen": "심사결과 대조 열기",
-  "claims.step.appeal": "이의신청", "claims.step.appealSoon": "다음 단계 — 조정 건별 이의신청 추적기가 여기에 붙습니다", "claims.step.appealBtn": "준비 중",
-  "claims.state.idle": "대기", "claims.state.todo": "할 일", "claims.state.need": "파일 필요", "claims.state.done": "완료", "claims.state.soon": "다음 단계",
+  "claims.step.appeal": "이의신청",
+  "claims.state.idle": "대기", "claims.state.todo": "할 일", "claims.state.need": "파일 필요", "claims.state.done": "완료",
   "jabo.batch.open": "청구 배치 →",
 
   /* ── 조직 › 기관 프로필 panel ── */

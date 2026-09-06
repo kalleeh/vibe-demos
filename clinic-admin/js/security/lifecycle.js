@@ -5,7 +5,7 @@
    store with purpose, legal basis (PoC wording — a real 개인정보 처리방침 needs the DPO's text),
    encryption, retention and how items are counted. Anything stored under the namespace that is
    NOT listed here shows up as "미등록" in the panel so a new key cannot hide. */
-import { Store, EventBus, ActivityLog, NS } from "../core/store.js";
+import { Store, EventBus, ActivityLog, NS, SENSITIVE_KEYS } from "../core/store.js";
 import { Attachments } from "../core/attachments.js";
 import { Session } from "./session.js";
 import { encryptJSON, decryptJSON, isEnvelope } from "./crypto.js";
@@ -52,7 +52,8 @@ const REGISTRY = [
   { id: "claims.batch", match: prefix("claims.batch."), label: "업로드 배치", detail: "업로드 파일에서 파싱한 행 (명세서·환자번호·일자·코드) — 청구·심사·정비·연말정산·보존",
     purpose: "탭 간 재사용·대조 (업로드 1회, 여러 탭에서 참조)", basis: "자동차손해배상 보장법 §12의2 · 개인정보보호법 §15①4 (계약 이행)", encrypted: true, retention: "90일 · 최대 20건", days: 90,
     purge: (v, cutoff) => ((v?.createdAt || 0) >= cutoff ? v : null) },
-  { id: "tariff", match: prefix("tariff."), label: "비급여 단가표 · 적용일", detail: "항목별 금액·빈도, 적용일 (개인정보 아님)",
+  // tariff.items + tariff.effectiveDate only — tariff.history is its own row (registered by tab4-bigeup.js), not double-listed here.
+  { id: "tariff", match: (k) => k === "tariff.items" || k === "tariff.effectiveDate", label: "비급여 단가표 · 적용일", detail: "항목별 금액·빈도, 적용일 (개인정보 아님)",
     purpose: "반기보고 파일 생성", basis: "의료법 §45의2", encrypted: false, retention: "수정 시까지", days: null },
   { id: "insurers.lastUsed", match: exact("insurers.lastUsed"), label: "최근 보험사", detail: "마지막으로 선택한 보험사명 (개인정보 아님)",
     purpose: "자보 탭 기본값", basis: "—", encrypted: false, retention: "설정", days: null },
@@ -234,6 +235,21 @@ async function restoreBackup(bk, userId, pin) {
   return { keys: Object.keys(bk.sensitive || {}).length + Object.keys(plain || {}).length, attachments: (bk.attachments || []).length, version: bk.v, migrated: r?.hooks || null };
 }
 
-/** Phase 3: tab modules register their own Store keys at module load (tabs → security is an allowed import direction). */
-export function registerRows(rows) { for (const r of rows) if (!REGISTRY.some(x => x.id === r.id)) REGISTRY.push(r); }
+/* Phase 3: tab modules register their own Store keys at module load (tabs → security is an allowed import direction).
+   registerRows([{ key?, id?, match?, label, detail, purpose, basis, encrypted, retention, days?, purge? }])
+     · `key` alone is enough for a single exact key: `id` defaults to it and `match` to (k) => k === key.
+     · `encrypted: true` puts the key on Store's AES-GCM tier (SENSITIVE_KEYS.exact) — main.js imports every tab module before
+       the first unlock, so the tier is known before Store.unlockedInit decrypts. Store.js already lists the Phase-3 keys; this
+       is the safety net for the next module.
+     · Registering an id twice is a no-op (the first row wins). */
+export function registerRows(rows) {
+  for (const r0 of Array.isArray(rows) ? rows : []) {
+    if (!r0) continue;
+    const { key, ...rest } = r0;
+    const r = { id: r0.id || key, match: r0.match || (key ? exact(key) : null), days: null, ...rest };
+    if (!r.id || (!r.match && !r.store)) { console.warn("registerRows: row needs an id + match (or key)", r0); continue; }
+    if (r.encrypted === true && key && !Store.isSensitive(key)) SENSITIVE_KEYS.exact.push(key);
+    if (!REGISTRY.some(x => x.id === r.id)) REGISTRY.push(r);
+  }
+}
 export { REGISTRY, inventory, purgeExpired, destroy, destroyAll, exportBackup, parseBackup, restoreBackup, BACKUP_FORMAT, BACKUP_VERSION };

@@ -1,10 +1,13 @@
-/* clinic-admin — Tab 09 · 인증 자체점검 + ACCRED_ITEMS (shared constant — imported by tab0-today.js and shell.js) */
+/* clinic-admin — Tab 09 · 인증 자체점검 + ACCRED_ITEMS (shared constant — imported by tab0-today.js and shell.js)
+   Sibling import: retentionStats from tab5-retention.js (the 파기 대장 count is mr3's disposal-review evidence); tab5 never
+   imports tab9, so the direction is one-way. */
 import { $, $$, esc, todayISO, daysUntil, relTime, Haptic, Toast, Share } from "../core/ui.js";
 import { t, pick, onLangChange } from "../core/i18n.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { pocMark } from "../core/files.js";
 import { activateTab } from "../core/nav.js";
 import { Staff, Tariff } from "../core/entities.js";
+import { retentionStats } from "./tab5-retention.js";
 
 /* ─────────────────────────────────────────────────────────
    자체점검 예시 — 의료기관평가인증원 한방병원 인증기준의 영역을 따라
@@ -64,7 +67,9 @@ const accredText = (obj, field) => pick(obj, field);
 /* ── Derived (자동 판정) items — each returns { level: "ok"|"warn"|"bad", reason: [key, vars], ctx? } ──
    hr1  Staff: every 신고-duty row has a 신고일 and none is due within 90 days.
    mr1  retention.lastAudit: run exists and 0 rows past their retention period.
-   mr3  retention.lastAudit: run exists (the disposal-review evidence) and 0 classification errors.
+   mr3  retention.disposals (tab5 retentionStats): the 파기 대장 is the disposal-review evidence — ok when at least one
+        disposal is recorded; warn when the last audit found expired rows but nothing was disposed (or rows are misclassified);
+        bad when no audit has run at all.
    mr4  kcd.lastSummary: run within the quarter (90 d) and nothing 미수록/검토.
    pr2  Tariff: ≥1 priced item AND an 적용일 (the price list the 사전설명 is based on). */
 const addYears = (iso, n) => { if (!iso) return ""; const d = new Date(iso + "T00:00:00"); if (isNaN(d)) return ""; d.setFullYear(d.getFullYear() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
@@ -86,8 +91,11 @@ const DERIVED = {
   },
   mr3() {
     const a = Store.get("retention.lastAudit");
-    if (!a) return { level: "bad", reason: ["accred.auto.noAudit"] };
+    const rs = retentionStats();
+    if (!a && !rs.disposals) return { level: "bad", reason: ["accred.auto.noAudit"] };
+    if (rs.disposals > 0) return { level: "ok", reason: ["accred.auto.mr3.ledger", { n: rs.disposals, t: relTime(rs.lastDisposalAt) }] };
     if (a.bad > 0) return { level: "warn", reason: ["accred.auto.mr3.bad", { n: a.bad }] };
+    if (a.over > 0) return { level: "warn", reason: ["accred.auto.mr3.noLedger", { n: a.over, t: relTime(a.at) }] };
     return { level: "ok", reason: ["accred.auto.mr3.ok", { t: relTime(a.at), n: a.total }] };
   },
   mr4() {
@@ -243,7 +251,7 @@ export function init() {
     render();
   });
   // Derived inputs changed → re-judge.
-  ["store:retention.lastAudit", "store:kcd.lastSummary"].forEach(ev => EventBus.on(ev, () => render()));
+  ["store:retention.lastAudit", "store:retention.disposals", "store:kcd.lastSummary", "session:unlocked"].forEach(ev => EventBus.on(ev, () => render()));
   Staff.onChange(() => render());
   Tariff.onChange(() => render());
 

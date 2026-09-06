@@ -16,9 +16,9 @@
    the same summary / by-reason / by-month / line table for either payer (자보 with the 보험사 select, 건보 without) and wires
    the per-row hand-offs (상병 정비 · 검색 · AI · 이의신청 준비).
 
-   APPEALS (이의신청) live here as a data layer (Appeals) so the landing, both 대조 panels and the 이의신청 panel share one
-   store key without a tab→tab import cycle: `appeals.list` (encrypted — carries the 환자번호 — registered below with
-   purpose/basis/retention; SENSITIVE_KEYS is extended at module load because store.js is not owned by this builder).
+   APPEALS (이의신청) live here as a data layer (Appeals) so the landing, both 대조 panels, the 이의신청 panel and 홈 share one
+   store key without a tab→tab import cycle: `appeals.list` (encrypted — carries the 환자번호 — listed in store.js
+   SENSITIVE_KEYS and registered below with purpose/basis/retention). 홈 reads appealStats() / appealDeadlines() from here.
 
    DOMAIN NOTES (confidence stated):
    · 건강보험: 요양기관 → 심평원 EDI 명세서 청구 (monthly) → 심사결과통보서 (조정 lines + 조정사유) → 공단 지급 at 인정 amount.
@@ -30,8 +30,8 @@
    Entities: core/entities.js (Batches · Patients · Tariff). Events: `claims:batch` { id, kind: "claims" | "review" | "select" |
    "remove" | "payer" } is emitted LOCALLY here after every batch mutation. */
 import { esc, todayISO, daysUntil, fmtKRW, won } from "../core/ui.js";
-import { t, tOr, pick } from "../core/i18n.js";
-import { Store, EventBus, ActivityLog, SENSITIVE_KEYS } from "../core/store.js";
+import { t } from "../core/i18n.js";
+import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { readSpreadsheet, loadJSON, headerRow } from "../core/files.js";
 import { toEdi, toDotted } from "../core/masters.js";
 import { activateTab } from "../core/nav.js";
@@ -530,7 +530,6 @@ export const ensureNhisSampleBatch = () => ensurePair({ tag: NHIS_SAMPLE_TAG, pa
    nhis.history — the 건보 대조 counterpart of jabo.history (counts + totals + byReason, no pid), 90 days. */
 const APPEALS_KEY = "appeals.list";
 const NHIS_HISTORY_KEY = "nhis.history";
-for (const k of [APPEALS_KEY, NHIS_HISTORY_KEY]) if (!SENSITIVE_KEYS.exact.includes(k)) SENSITIVE_KEYS.exact.push(k); // store.js is not ours — extend the policy at load
 registerRows([
   { id: "appeals.list", match: (k) => k === APPEALS_KEY, label: "이의신청 대장", detail: "조정 건별 이의신청 초안·상태 (환자번호·명세서번호·조정금액·기한·근거 메모)",
     purpose: "심평원 심사조정에 대한 이의신청 준비·기한 관리", basis: "국민건강보험법 §87 이의신청 · 자동차손해배상 보장법 §12의2 · 개인정보보호법 §15①4 (계약 이행)",
@@ -607,6 +606,20 @@ export function appealDeadlines() {
     const label = t("appeal.dl.title", { stmt: a.stmt, who: a.pid ? Patients.alias(a.pid) : "—", payer: payerLabel(a.payer) });
     return { key: `appeal-${a.id}`, label, title: label, due: a.dueDate, date: a.dueDate, daysLeft: daysUntil(a.dueDate), link: "tab-appeal", ctx: { appealId: a.id }, payer: a.payer, status: a.status, source: t("appeal.dl.source", { n: APPEAL_WINDOW_DAYS[a.payer] }) };
   }).sort((a, b) => a.daysLeft - b.daysLeft);
+}
+/* appealStats() → the tracker's global status for 홈's 이의신청 tile / 원장 요약 (rows are not month-scoped):
+     open       준비중 (prep) count            submitted  제출 count           overdue  open rows past their 기한
+     resolved   결과 (result) count            recovered  Σ resultAmount of resolved rows
+     appealed   Σ cutAmount of the open rows (prep + submitted) — what is already under appeal, subtracted from 미수금 */
+export function appealStats() {
+  const s = { open: 0, overdue: 0, submitted: 0, resolved: 0, recovered: 0, appealed: 0 };
+  for (const a of Appeals.list()) {
+    if (a.status === "result") { s.resolved++; s.recovered += +a.resultAmount || 0; continue; }
+    if (a.status === "submitted") s.submitted++; else s.open++;
+    s.appealed += a.cutAmount;
+    if (Appeals.isOverdue(a)) s.overdue++;
+  }
+  return s;
 }
 /* Appeal-step state for one payer's current batch — used by the landing (claimsSteps) and exposed for 홈:
    { state: "idle" | "todo" | "need" | "done", cuts, appeals, open, overdue, resolved } */

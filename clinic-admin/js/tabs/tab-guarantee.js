@@ -12,23 +12,26 @@
        contact: { name, phone, fax } (the INSURER's adjuster — a business contact, not a patient), status, log: [{ at,
        actor (staffId), kind: 전화|팩스|메모, text }], note, createdAt, updatedAt }
    Status values stay Korean (stored): 요청중 · 보증 · 연장요청 · 만료 · 거절; labels via guarantee.status.*.
-   Exports for 홈 (P3c): guaranteeDeadlines() → [{ key, label, due, ctx: { guaranteeId }, link, daysLeft, pid }].
-   ctx handled: { pid } (filter + strip) · { pid, create: true } (editor prefilled) · { id } (highlight + editor). */
+   guaranteeState(row) / guaranteeDeadlines() live in patients-shared.js (홈 reads them there); this module re-exports them
+   and registers guaranteeDeadlines as a core/calendar.js deadline source at load, so 홈's todo, the D-day list, the topbar
+   chip and the .ics export carry every expiring / expired guarantee ({ key: "guar-<id>", label, due, ctx: { guaranteeId } }).
+   ctx handled: { pid } (filter + strip) · { pid, create: true } (editor prefilled) · { id } | { guaranteeId } (highlight + editor). */
 import { Toast, Haptic, todayISO } from "../core/ui.js";
 import { t, onLangChange } from "../core/i18n.js";
 import { downloadXLSX, headerRow, orgHeader } from "../core/files.js";
+import { registerDeadlineSource } from "../core/calendar.js";
 import { activateTab } from "../core/nav.js";
 import { Patients, Insurers } from "../core/entities.js";
 import { Session } from "../security/session.js";
 import { registerRows } from "../security/lifecycle.js";
-import { $, $$, esc, daysUntil, KEYS, collection, str, audit, renderTable, chipRow, onPanelCtx, renderPatientStrip, pidOptions, staffRef, insurerOptions, insurerLabel, aliasOf, dash, dLabel, addDays, introHTML } from "./patients-shared.js";
+import { $, $$, esc, KEYS, collection, str, audit, renderTable, chipRow, onPanelCtx, renderPatientStrip, pidOptions, staffRef, insurerOptions, insurerLabel, aliasOf, dash, dLabel, addDays, introHTML,
+         guaranteeState, guaranteeDeadlines, GUARANTEE_STATUSES as STATUSES, GUARANTEE_ACTIVE as ACTIVE } from "./patients-shared.js";
 
-const STATUSES = ["요청중", "보증", "연장요청", "만료", "거절"];
+export { guaranteeState, guaranteeDeadlines };
 const LOG_KINDS = ["전화", "팩스", "메모"];
-const ACTIVE = new Set(["보증", "연장요청"]);
-const SOON_DAYS = 7;
 const TAG = "guarantee";
 const G = collection(KEYS.guarantee);
+registerDeadlineSource(guaranteeDeadlines, { link: "tab-guarantee", kind: "guarantee" });
 
 // Retention basis: the guarantee end date when known, else the record's creation — 1 year after that the row is purged.
 const basisMs = (r) => { const d = r?.to ? Date.parse(r.to + "T00:00:00") : NaN; return Number.isFinite(d) ? d : (r?.createdAt || 0); };
@@ -41,34 +44,8 @@ registerRows([{
   purge: (v, cutoff) => (Array.isArray(v) ? v.filter(r => basisMs(r) >= cutoff) : v)
 }]);
 
-/* ── derived state ── */
-// "expired" — status 만료, or an active guarantee whose end date has passed; "expiring" — active and ending within 7 days.
-export function guaranteeState(r) {
-  const left = r.to ? daysUntil(r.to) : null;
-  if (r.status === "만료" || (ACTIVE.has(r.status) && left != null && left < 0)) return "expired";
-  if (ACTIVE.has(r.status) && left != null && left <= SOON_DAYS) return "expiring";
-  return null;
-}
 export const list = () => G.list();
 export const get = (id) => G.get(id);
-
-/* 홈 todo feed — one item per guarantee that is expiring (≤ 7 days) or has expired without a decision (status still active
-   or 만료). Label carries the alias and the insurer, never a name. Empty while locked. */
-export function guaranteeDeadlines() {
-  if (!Session.isUnlocked()) return [];
-  const out = [];
-  for (const r of G.list()) {
-    const st = guaranteeState(r);
-    if (!st || !r.to || r.status === "거절") continue;
-    const daysLeft = daysUntil(r.to);
-    out.push({
-      key: `guar-${r.id}`,
-      label: t(st === "expired" ? "guarantee.dl.expired" : "guarantee.dl.expiring", { who: aliasOf(r.pid), insurer: insurerLabel(r.insurer) }),
-      due: r.to, ctx: { guaranteeId: r.id }, link: "tab-guarantee", daysLeft, pid: r.pid, state: st
-    });
-  }
-  return out.sort((a, b) => a.daysLeft - b.daysLeft);
-}
 
 /* ── panel ── */
 const statusLabel = (s) => t("guarantee.status." + s);

@@ -14,7 +14,7 @@ export default {
   "today.kpi.nonpay": "Est. non-covered revenue",
   "today.kpi.nonpayNone": "Estimated from the price table once consents are recorded",
   "today.kpi.guar": "Guarantees expiring",
-  "today.kpi.guarSub": "Payment guarantees expiring within 30 days",
+  "today.kpi.guarSub": "Payment guarantees expiring within 7 days (Patients › Auto-insurance guarantees)",
   "today.kpi.caveat": "※ Auto-insurance and NHIS figures come from the reconciliation records; appeals, guarantees and consents from their ledgers. Outstanding and non-covered revenue are <em>estimates</em> — not accounting data.",
   /* ── Home · this month's numbers (dynamic) ── */
   "today.payer.auto": "Auto", "today.payer.nhis": "NHIS",
@@ -37,7 +37,7 @@ export default {
   "today.sum.ar": "Outstanding (claimed − approved, not appealed): {amt}",
   "today.sum.nonpay": "Est. non-covered revenue: {amt} ({n} consents × price table)",
   "today.sum.nonpayNone": "Est. non-covered revenue: — (no consents recorded)",
-  "today.sum.guar": "Guarantees expiring within 30 days: {n} · already expired {o}",
+  "today.sum.guar": "Guarantees expiring within 7 days: {n} · already expired {o}",
   "today.sum.retention": "Records: {o} past retention · disposal ledger {d}",
   "today.sum.retentionNone": "Records: no audit yet",
   "today.sum.foot": "— as of {date} · {poc}",
@@ -97,6 +97,5 @@ export default {
   "yearend.lookup.missingHint": "Auto-insurance visits (no co-payment) and cash-paid non-covered care are normally absent. If it is a real omission, add the visit in the EMR and re-run the check.",
   "yearend.lookup.docsBtn": "Record a receipt re-issue",
   "yearend.lookup.docsHint": "Creates a \"receipt re-issue\" entry in Patients › Document ledger.",
-  "yearend.lookup.docsSoon": "The document ledger panel is not here yet — it joins the Patients area in the next step.",
   "yearend.lookup.log": "Year-end enquiry → receipt re-issue hand-off"
 };

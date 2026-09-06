@@ -1,5 +1,5 @@
 /* clinic-admin — minimal offline shell SW */
-const CACHE = "vibe-clinic-admin-v27";
+const CACHE = "vibe-clinic-admin-v28";
 // Every same-origin file the page loads. Verified against the tree by tools/check-sw-shell.mjs.
 const SHELL = [
   "./", "./index.html", "./manifest.webmanifest", "./icon.svg",
@@ -32,6 +32,8 @@ const SHELL = [
   "./data/jabo.json",
   "./data/jabo-sample-claims.json",
   "./data/jabo-sample-review.json",
+  "./data/nhis-sample-claims.json",
+  "./data/nhis-sample-review.json",
   "./data/bigeup.json",
   "./data/retention.json"
 ];

@@ -10,7 +10,9 @@
      { id, pid, at, items: [{ code (Tariff code), name, price, qty }], explainedBy (staffId), method: 구두+서면|서면|전자,
        signed: boolean, note, createdAt, updatedAt }
    Item names are snapshotted at save time (a tariff rename later must not rewrite a signed record).
-   ctx handled: { pid } · { pid, create: true } · { id } · { pid, create: true, items: [codes] } (prefilled item lines). */
+   ctx handled: { pid } · { pid, create: true } · { id } · { pid, create: true, items: [codes] } (prefilled item lines).
+   Hand-off: 자보 케이스에 항목 추가 → activateTab("tab-jabo", { pid, bigeupItems: [Tariff codes] }) — the 비급여 code space
+   (예시-NN of data/bigeup.json) is NOT the 자보 fee list's (예시-NN of data/jabo.json), so the key names the space. */
 import { Toast, Haptic, todayISO, won } from "../core/ui.js";
 import { t, pick, onLangChange } from "../core/i18n.js";
 import { downloadXLSX, headerRow, orgHeader } from "../core/files.js";
@@ -130,7 +132,8 @@ export function init({ DATA } = {}) {
     const id = b.closest("tr")?.dataset.id; const r = id && C.get(id); if (!r) return;
     if (b.dataset.act === "edit") openEditor(r);
     else if (b.dataset.act === "print") printDraft(r);
-    else if (b.dataset.act === "jabo") activateTab("tab-jabo", { pid: r.pid, items: (r.items || []).map(it => it.code) });
+    // 비급여 codes live in the Tariff code space (data/bigeup.json), not the 자보 fee list — tab-jabo adds them as 비급여 lines.
+    else if (b.dataset.act === "jabo") activateTab("tab-jabo", { pid: r.pid, bigeupItems: (r.items || []).map(it => it.code) });
     else if (b.dataset.act === "del") {
       const removed = C.remove(r.id); if (!removed) return;
       if (draft?.id === r.id) closeEditor();

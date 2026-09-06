@@ -27,11 +27,15 @@ import { scrubIdentifiers } from "../security/redact.js";
    ───────────────────────────────────────────────────────── */
 const NS = "vibe.clinic-admin";
 
-/* Encryption policy. Anything that can hold a person's name / 번호 / date is here.
-   NOT sensitive (plaintext): accred.checked, bigeup.tariff (price list), kcd.lastSummary and
+/* Encryption policy. Anything that can hold a person's name / 번호 / date is here — this list is the CANONICAL home
+   (Phase 3 trackers included: appeals.list · nhis.history · guarantee.list · docs.list · consent.list · retention.disposals).
+   security/lifecycle.js registerRows() also adds any `encrypted: true` key it registers, so a new tab module cannot
+   register a pid-carrying key on the plain tier by omission.
+   NOT sensitive (plaintext): accred.checked, tariff.* (price list + history, no names), kcd.lastSummary and
    retention.lastAudit (counts only), ui.* (screen settings), __* (internal: key ring, mtimes). */
 const SENSITIVE_KEYS = {
-  exact: ["jabo.history", "license.list", "activity", "intake-cards", "staff.list", "patients.register"],
+  exact: ["jabo.history", "license.list", "activity", "intake-cards", "staff.list", "patients.register",
+          "appeals.list", "nhis.history", "guarantee.list", "docs.list", "consent.list", "retention.disposals"],
   prefixes: ["jabo.draft.", "ai.", "yearend.", "bigeup.profile.", "claims.batch."]
 };
 /* Unlock hooks (entities.js registers its legacy → entity migration): awaited inside unlockedInit() AFTER the

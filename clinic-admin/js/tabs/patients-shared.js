@@ -9,22 +9,20 @@
      docs.list        [{ id, no, pid, docType, issuedAt, issuedBy, purpose, fee, copies, recipient, proxy, note, createdAt, updatedAt }]
      consent.list     [{ id, pid, at, items, explainedBy, method, signed, note, createdAt, updatedAt }]
    collection(key) is the tiny synchronous facade the tabs share (list · get · upsert · remove · insert · onChange).
-   renderPatientStrip(host, pid) / patientCounts(pid) are the beginning of a per-patient view — 홈 (P3c) reads the counts.
-   Import position: a tab-level module (imports core + security only; never shell.js). */
+   renderPatientStrip(host, pid) / patientCounts(pid) are the beginning of a per-patient view — 홈 reads the counts.
+   guaranteeState(row) / guaranteeDeadlines() live here too so 홈 (tab0-today.js) and the calendar source registered by
+   tab-guarantee.js read one derivation without a tab→tab import.
+   ENCRYPTED TIER: the three keys are listed in store.js SENSITIVE_KEYS (canonical) — registerRows(encrypted: true) would add
+   them anyway. Import position: a tab-level module (imports core + security only; never shell.js). */
 import { $, $$, esc, daysUntil, roleLabel } from "../core/ui.js";
 import { t, pick, getLang } from "../core/i18n.js";
-import { Store, EventBus, ActivityLog, SENSITIVE_KEYS } from "../core/store.js";
+import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { activateTab } from "../core/nav.js";
 import { pocMark } from "../core/files.js";
 import { Patients, Staff, Insurers } from "../core/entities.js";
 import { Session } from "../security/session.js";
 
 export const KEYS = { guarantee: "guarantee.list", docs: "docs.list", consent: "consent.list" };
-/* ENCRYPTED TIER. Every tracker key references a pid, so it must live in Store's AES-GCM tier. lifecycle.registerRows()
-   only adds the processing-register row; the encryption policy is Store's SENSITIVE_KEYS, which we join here at import
-   time — before the first unlock decrypts the cache, so a stored envelope is read back correctly. (Integrator: the
-   canonical home for these three names is store.js SENSITIVE_KEYS.exact; this push is idempotent either way.) */
-for (const k of Object.values(KEYS)) if (!SENSITIVE_KEYS.exact.includes(k)) SENSITIVE_KEYS.exact.push(k);
 
 /* Intro block rendered INSIDE the slot (the panel head above it belongs to the coordinator's scaffold): the two badges
    and the domain blurb, from the <ns>.badgeLaw / <ns>.badge / <ns>.blurb keys. */
@@ -74,6 +72,38 @@ export function collection(key) {
     // Local + peer-tab changes and every re-unlock (the cache is refilled then).
     onChange(fn) { EventBus.on(`store:${key}`, () => fn()); EventBus.on("session:unlocked", () => fn()); }
   };
+}
+
+/* ── 자보 지불보증 derived state (shared by tab-guarantee.js and 홈) ──
+   Status values stay Korean (stored): 요청중 · 보증 · 연장요청 · 만료 · 거절.
+   "expired" — status 만료, or an active guarantee whose end date has passed; "expiring" — active and ending within 7 days. */
+export const GUARANTEE_STATUSES = ["요청중", "보증", "연장요청", "만료", "거절"];
+export const GUARANTEE_ACTIVE = new Set(["보증", "연장요청"]);
+export const GUARANTEE_SOON_DAYS = 7;
+export function guaranteeState(r) {
+  const left = r.to ? daysUntil(r.to) : null;
+  if (r.status === "만료" || (GUARANTEE_ACTIVE.has(r.status) && left != null && left < 0)) return "expired";
+  if (GUARANTEE_ACTIVE.has(r.status) && left != null && left <= GUARANTEE_SOON_DAYS) return "expiring";
+  return null;
+}
+/* 홈 todo / calendar feed — one item per guarantee that is expiring (≤ 7 days) or has expired without a decision (status still
+   active or 만료). Label carries the alias and the insurer, never a name. Empty while locked.
+   → [{ key, label, due, ctx: { guaranteeId }, link, daysLeft, pid, state }] sorted soonest first (expired negative first). */
+export function guaranteeDeadlines() {
+  if (!Session.isUnlocked()) return [];
+  const out = [];
+  for (const r of (Store.get(KEYS.guarantee, []) || [])) {
+    if (!r) continue;
+    const st = guaranteeState(r);
+    if (!st || !r.to || r.status === "거절") continue;
+    const daysLeft = daysUntil(r.to);
+    out.push({
+      key: `guar-${r.id}`,
+      label: t(st === "expired" ? "guarantee.dl.expired" : "guarantee.dl.expiring", { who: aliasOf(r.pid), insurer: insurerLabel(r.insurer) }),
+      due: r.to, ctx: { guaranteeId: r.id }, link: "tab-guarantee", daysLeft, pid: r.pid, state: st
+    });
+  }
+  return out.sort((a, b) => a.daysLeft - b.daysLeft);
 }
 
 /* ── per-patient counts (홈 · the strip) ── */
@@ -153,13 +183,14 @@ export function chipRow(values, active, labelOf, attr = "data-chip") {
   return values.map(v => `<button type="button" class="filter-chip${v === active ? " active" : ""}" ${attr}="${esc(v)}">${esc(labelOf(v))}</button>`).join("");
 }
 
-/* ── tab:activated dispatcher — ctx { pid } · { pid, create: true } · { id } ── */
+/* ── tab:activated dispatcher — ctx { pid } · { pid, create: true } · { id } (the calendar items carry { guaranteeId }) ── */
 export function onPanelCtx(tabId, { onPid, onCreate, onId }) {
   EventBus.on("tab:activated", (p) => {
     if (p?.id !== tabId) return;
     const c = p.ctx;
     if (!c) return;
-    if (c.id && onId) onId(c.id);
+    const id = c.id || c.guaranteeId || c.docId || c.consentId;
+    if (id && onId) onId(id);
     else if (c.create && onCreate) onCreate(c);
     else if (c.pid && onPid) onPid(c.pid);
   });

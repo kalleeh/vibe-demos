@@ -65,6 +65,8 @@ export default {
   "jabo.newSameStatus": "같은 사고 다음 진료 — {who} 정보 유지, 행위 목록을 비웠습니다.",
   "jabo.caseFilled": "케이스 채움 — 주상병 {dx} · 행위 {n}개 (AI 어시스트 / 검색에서 넘어옴). 인정금액·조정사유를 확인하세요.",
   "jabo.caseSkipped": " · 행위표에 없는 코드 건너뜀: {codes}",
+  "jabo.caseBigeup": " · 비급여 {n}개 항목을 단가표 가격으로 추가 (비급여 동의에서 넘어옴)",
+  "jabo.caseBigeupSkipped": " · 단가표에 가격이 없는 비급여 코드 건너뜀: {codes}",
   "jabo.statusManualSample": "수기 샘플 — 한솔한방병원 P-2026-0142 · 삼성화재 · 명세서 M2608-0001 (약침 부위 불일치 조정 포함). 인정단가를 바꿔 조정률이 움직이는지 확인해보세요.",
 
   /* ── 06 통합 코드 검색 ── */

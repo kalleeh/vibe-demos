@@ -3,16 +3,20 @@ import { $, $$, esc, won, todayISO, relTime, daysUntil, debounce, Share, Toast, 
 import { t, pick, getLang, onLangChange } from "../core/i18n.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { downloadText, pocMark } from "../core/files.js";
-import { allDeadlines, registerDeadlineSource } from "../core/calendar.js";
+import { allDeadlines } from "../core/calendar.js";
 import { activateTab } from "../core/nav.js";
 import { Org, Staff, Batches, Tariff, Insurers } from "../core/entities.js";
 import { accredProgress } from "./tab9-accred.js";
 import { claimsSteps } from "./claims-landing.js";
-import { onClaimsChange } from "./claims-shared.js";
+import { onClaimsChange, appealStats, nhisHistory, nhisReasonLabel } from "./claims-shared.js";
+import { guaranteeDeadlines } from "./patients-shared.js";
 import { entryMonth, payerOf, monthKeyOf } from "./reporting-shared.js";
 import { retentionStats } from "./tab5-retention.js";
-// TODO(integrator): swap for ../tabs/tab-appeal.js (appealDeadlines · appealStats) and ../tabs/tab-guarantee.js (guaranteeDeadlines).
-import { appealDeadlines, appealStats, guaranteeDeadlines } from "./_p3-shim.js";
+/* Sibling imports: 홈 is the one panel that reads every other area's derivations — the shared producers live in the
+   area-level shared modules (claims-shared · patients-shared · reporting-shared) or are exported by the owning tab
+   (tab9 accredProgress · tab5 retentionStats), never the other way round, so there is no import cycle. The deadline
+   sources (appealDeadlines · guaranteeDeadlines) reach 홈 through core/calendar.js — tab-appeal.js / tab-guarantee.js
+   register them at load; 홈 only calls allDeadlines(). */
 
 /* ─────────────────────────────────────────────────────────
    홈 › 오늘 — task-first home
@@ -27,12 +31,12 @@ import { appealDeadlines, appealStats, guaranteeDeadlines } from "./_p3-shim.js"
      external sources; the .ics export takes the same list.
    · 이번 달 숫자 (#today-insights .insight.kpi) — the management KPIs a 행정원장 reviews with the 원장, for ONE month
      (#kpi-month: default = the latest month that has reconciliation data — the seeded batch is 2026-08):
-       자보 / 건보 청구 vs 인정 (jabo.history recon rows split by `payer`, missing → 자보)        confidence: high
+       자보 / 건보 청구 vs 인정 (jabo.history + nhis.history recon rows, split by `payer`; missing → 자보)  confidence: high
        조정률 per payer, 최다 조정사유 (both payers, byReason keys), 보험사별 조정                 high
-       이의신청 현황 open / overdue / 회수 (tab-appeal appealStats — shim derives from appeals.list)  medium
-       지불보증 만료 임박 ≤30일 (tab-guarantee guaranteeDeadlines)                                   medium
-       비급여 매출 추정 = Σ consent items × Tariff price, this month (consent.list from tab-consent;
-         row shape assumed { at|date, items:[{ code, qty?, price? }] } — "—" until the panel exists)   low
+       이의신청 현황 open / overdue / 회수 (claims-shared appealStats over appeals.list)             high
+       지불보증 만료 임박 (patients-shared guaranteeDeadlines: expiring ≤7일 → soon, 만료 → over)   high
+       비급여 매출 추정 = Σ consent items × price, this month (consent.list rows { at: "yyyy-mm-dd",
+         items:[{ code, qty, price }] } — price snapshotted at consent time, Tariff as fallback)    medium
        미수금 지표 = Σ(청구 − 인정) of the month − 이의신청 금액 already filed (global, not per month)   low
      Skeleton shimmer until the first render; "원장 보고용 요약 복사" renders the same numbers as plain text (clipboard +
      on-screen <pre>), watermarked with the PoC line, no person names.
@@ -47,16 +51,11 @@ export function init(ctx) {
   const NOW = new Date();
   const Y = NOW.getFullYear();
   const REASONS = DATA?.jabo?.adjustment_reasons || [];
-  const reasonLabel = (k) => { const r = REASONS.find(x => x.key === k); return r ? pick(r, "label") : String(k ?? ""); };
+  // 조정사유 label across both vocabularies: 자보 classes (data/jabo.json) → 건보 classes (nhis.reason.*) → the stored text.
+  const reasonLabel = (k) => { const r = REASONS.find(x => x.key === k); return r ? pick(r, "label") : (nhisReasonLabel(k) || String(k ?? "")); };
   const insurerLabel = (v) => { const i = Insurers.list().find(x => x.value === v); return i ? pick(i, "label") : String(v ?? ""); };
   const payerLabel = (p) => t("today.payer." + p);
   const openOrg = () => activateTab("tab-org");
-
-  // External deadline producers — until tab-appeal / tab-guarantee register themselves at load, 홈 registers the shim's.
-  // TODO(integrator): delete these two lines once the real modules call registerDeadlineSource at load (dedupe by key
-  // keeps a double registration harmless in the meantime).
-  registerDeadlineSource(appealDeadlines, { link: "tab-appeal", kind: "appeal" });
-  registerDeadlineSource(guaranteeDeadlines, { link: "tab-guarantee", kind: "guarantee" });
 
   // ── deadlines ── statutory (next 12 months, 의원급 drops the September window — core/calendar.js decides)
   // + per-person licence items windowed to −30 … +365 days + external sources (same window); sorted soonest first, past-due last.
@@ -124,16 +123,8 @@ export function init(ctx) {
   // case) → 이번 주 (≤7 days) → 이번 달 (≤30 days).
   const TODO_GROUPS = ["over", "today", "week", "month"];
   const todoGroup = (days) => days == null ? "today" : days < 0 ? "over" : days === 0 ? "today" : days <= 7 ? "week" : "month";
-  // claimsSteps per payer — P3a's version takes { payer: "auto"|"nhis" }; the pre-P3 one ignores the argument and returns
-  // the same three steps for both, which is detected (identical lists, no `payer` field) and read as 자보 only.
-  const stepsByPayer = () => {
-    const call = (payer) => { try { return (claimsSteps({ payer }) || []).filter(Boolean); } catch { return []; } };
-    const auto = call("auto"), nhis = call("nhis");
-    const sig = (l) => JSON.stringify(l.map(s => [s.key, s.state, s.detail, s.payer || ""]));
-    const aware = [...auto, ...nhis].some(s => s.payer) || sig(auto) !== sig(nhis);
-    const tag = (list, payer) => list.map(s => ({ ...s, payer: s.payer || payer }));
-    return aware ? [...tag(auto, "auto"), ...tag(nhis, "nhis")] : tag(auto, "auto");
-  };
+  // claimsSteps(payer) — the 3 steps of that payer's current batch (claims-landing.js); every step carries `payer` + `batchId`.
+  const stepsByPayer = () => PAYERS.flatMap(p => { try { return (claimsSteps(p) || []).filter(Boolean); } catch { return []; } });
   function todoItems() {
     const items = [];
     // Setup nudges — blocking, so they sit first in 오늘.
@@ -146,7 +137,7 @@ export function init(ctx) {
     }
     for (const s of stepsByPayer()) {
       if (s.state !== "todo" && s.state !== "need") continue;
-      items.push({ key: s.payer === "nhis" ? `batch:nhis:${s.key}` : `batch:${s.key}`, cls: "step", when: esc(payerLabel(s.payer)), title: s.title, meta: s.detail, link: s.link, ctx: s.ctx, btn: s.btn, days: null, order: 100 });
+      items.push({ key: `batch:${s.payer}:${s.key}`, cls: "step", when: esc(payerLabel(s.payer)), title: s.title, meta: s.detail, link: s.link, ctx: s.ctx, btn: s.btn, days: null, order: 100 }); // key unique per payer
     }
     const draft = Store.get("jabo.draft.items");
     if (Array.isArray(draft) && draft.length) {
@@ -199,7 +190,8 @@ export function init(ctx) {
 
   // ── KPI tiles ──
   let kpiMonth = null; // null → the latest month with reconciliation data (falls back to the current month)
-  const history = () => (Store.get("jabo.history", []) || []).filter(h => h && typeof h.at === "number" && h.claimed != null);
+  // 자보 rows (jabo.history — recon + manual) and 건보 rows (nhis.history, stamped payer:"nhis" by 건보 대조) in one list.
+  const history = () => [...(Store.get("jabo.history", []) || []), ...(nhisHistory() || [])].filter(h => h && typeof h.at === "number" && h.claimed != null);
   const monthsWithData = () => [...new Set(history().map(entryMonth))].sort().reverse();
   const currentMonth = () => { const ms = monthsWithData(); if (kpiMonth && ms.includes(kpiMonth)) return kpiMonth; return ms[0] || monthKeyOf(Date.now()); };
   const sum = (arr, f) => arr.reduce((s, x) => s + (+f(x) || 0), 0);
@@ -239,17 +231,18 @@ export function init(ctx) {
     try { appeals = { ...appeals, ...(appealStats() || {}) }; } catch {}
     // 미수금 = this month's (청구 − 인정) minus what is already under appeal. Confidence: low — `appealed` is global.
     const outstanding = Math.max(0, cut - (+appeals.appealed || 0));
-    // 지불보증 만료 임박 — within 30 days (overdue counted separately).
-    let guar = { soon: 0, over: 0 };
-    try { for (const g of guaranteeDeadlines() || []) { const d = daysUntil(String(g.due || g.date || "").slice(0, 10)); if (d == null) continue; if (d < 0) guar.over++; else if (d <= 30) guar.soon++; } } catch {}
-    // 비급여 매출 추정 — consent rows of the month × Tariff price. null → the consent panel has stored nothing yet.
+    // 지불보증 — the tracker's feed: `state` "expiring" (active, ends ≤ 7 days) → soon · "expired" (past its end, no decision) → over.
+    const guar = { soon: 0, over: 0 };
+    try { for (const g of guaranteeDeadlines() || []) { if (g.state === "expired") guar.over++; else guar.soon++; } } catch {}
+    // 비급여 매출 추정 — consent rows of the month × price (snapshotted on the row, Tariff as fallback). null → no consent stored yet.
     const consents = Store.get("consent.list", null);
     let nonpay = null;
     if (Array.isArray(consents)) {
       nonpay = { amount: 0, n: 0, items: 0 };
       for (const c of consents) {
         if (!c) continue;
-        const m = c.date ? String(c.date).slice(0, 7) : c.at ? monthKeyOf(c.at) : "";
+        const when = c.at ?? c.date;
+        const m = typeof when === "string" ? when.slice(0, 7) : typeof when === "number" ? monthKeyOf(when) : "";
         if (m !== month) continue;
         nonpay.n++;
         for (const it of c.items || []) { const q = +it.qty || 1; const p = it.price != null ? +it.price : tariffPrice(it.code); nonpay.amount += q * (p || 0); nonpay.items += q; }
@@ -506,8 +499,8 @@ export function init(ctx) {
 
   // Live re-render when any tab updates state (debounced — a prefill writes 28 tariff rows in one burst)
   const renderSoon = debounce(renderAll, 60);
-  ["activity", "jabo.history", "retention.lastAudit", "retention.disposals", "kcd.lastSummary", "accred.checked", "jabo.draft.items",
-   "appeals.list", "guarantee.list", "consent.list", "docs.list", "ui.claimsBatch", "jabo.draft.jabo-pid"]
+  ["activity", "jabo.history", "nhis.history", "retention.lastAudit", "retention.disposals", "kcd.lastSummary", "accred.checked", "jabo.draft.items",
+   "appeals.list", "guarantee.list", "consent.list", "docs.list", "ui.claimsBatch", "ui.claimsBatch.auto", "ui.claimsBatch.nhis", "jabo.draft.jabo-pid"]
     .forEach(k => EventBus.on(`store:${k}`, renderSoon));
   for (const E of [Org, Staff, Batches, Tariff]) E.onChange(renderSoon);
   onClaimsChange(renderSoon);

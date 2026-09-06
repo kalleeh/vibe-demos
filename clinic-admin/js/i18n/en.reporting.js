@@ -96,6 +96,8 @@ export default {
   "accred.auto.mr1.ok": "0 past retention (checked {t})",
   "accred.auto.mr3.bad": "{n} misclassified records — fix before disposal review",
   "accred.auto.mr3.ok": "Check on file · {n} records ({t})",
+  "accred.auto.mr3.ledger": "Disposal ledger: {n} records (last {t}) — disposal-review evidence",
+  "accred.auto.mr3.noLedger": "{n} records past retention (checked {t}) — no disposal ledger yet",
   "accred.auto.mr4.none": "No KCD clean-up yet — check diagnosis codes in Claims › Diagnosis codes",
   "accred.auto.mr4.stale": "Last clean-up {t} — quarterly cycle overdue",
   "accred.auto.mr4.open": "{m} unlisted · {r} to review",

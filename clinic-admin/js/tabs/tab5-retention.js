@@ -6,8 +6,7 @@ import { readSpreadsheet, downloadXLSX, headerRow, pocMark } from "../core/files
 import { Session } from "../security/session.js";
 import { Org, Staff, Batches, Patients } from "../core/entities.js";
 import { orgHeaderPairs, pseudoId } from "./reporting-shared.js";
-// TODO(integrator): swap for the real registerRows once lifecycle.js exports one (see _p3-shim.js).
-import { registerRows } from "./_p3-shim.js";
+import { registerRows } from "../security/lifecycle.js";
 
 /* ─────────────────────────────────────────────────────────
    Tab 5 — 의무기록 보존기간 점검 (의료법 시행규칙 §15)
@@ -33,8 +32,8 @@ registerRows([{
   purge: (v, cutoff) => (Array.isArray(v) ? v.filter(d => (d.at || 0) >= cutoff) : v)
 }]);
 const readDisposals = () => { const v = Store.get(DISPOSALS_KEY, []); return Array.isArray(v) ? v : []; };
-/* retentionStats() — for 인증 자체점검 (tab9 mr3) and 홈: { disposals, lastDisposalAt, lastAudit }.
-   TODO(integrator): tab9-accred.js mr3 should count `disposals` as the disposal-review evidence (not P3c's file). */
+/* retentionStats() — for 인증 자체점검 (tab9-accred.js mr3 reads `disposals` as the disposal-review evidence) and 홈:
+   { disposals, lastDisposalAt, lastAudit }. */
 export function retentionStats() {
   const rows = readDisposals();
   return { disposals: rows.length, lastDisposalAt: rows.reduce((m, r) => Math.max(m, r.at || 0), 0) || null, lastAudit: Store.get("retention.lastAudit") || null };

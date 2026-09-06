@@ -8,8 +8,7 @@ import { activateTab } from "../core/nav.js";
 import { Session } from "../security/session.js";
 import { Org, Staff, Tariff } from "../core/entities.js";
 import { renderOrgReadOnly, orgView, orgHeaderPairs } from "./reporting-shared.js";
-// TODO(integrator): swap for the real registerRows once lifecycle.js exports one (see _p3-shim.js).
-import { registerRows } from "./_p3-shim.js";
+import { registerRows } from "../security/lifecycle.js";
 
 /* ─────────────────────────────────────────────────────────
    Tab 4 — 비급여 진료비용 보고 준비 (의료법 §45조의2)

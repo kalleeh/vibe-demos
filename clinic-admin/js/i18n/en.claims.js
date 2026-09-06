@@ -64,6 +64,8 @@ export default {
   "jabo.newSameStatus": "Next visit, same accident — kept {who}'s details, cleared the procedure list.",
   "jabo.caseFilled": "Case filled — primary diagnosis {dx} · {n} procedures (handed over from AI assist / Search). Check approved amounts and reasons.",
   "jabo.caseSkipped": " · skipped codes not in the fee table: {codes}",
+  "jabo.caseBigeup": " · {n} non-covered items added at the price-table price (handed over from Non-covered consent)",
+  "jabo.caseBigeupSkipped": " · skipped non-covered codes without a price in the price table: {codes}",
   "jabo.statusManualSample": "Manual sample — Hansol KM Hospital P-2026-0142 · Samsung Fire & Marine · statement M2608-0001 (includes a pharmacopuncture site-mismatch adjustment). Change an approved unit price to watch the rate move.",
 
   /* ── 06 Unified code search ── */

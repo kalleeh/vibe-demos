@@ -97,6 +97,8 @@ export default {
   "accred.auto.mr1.ok": "경과 0건 (점검 {t})",
   "accred.auto.mr3.bad": "분류 오류 {n}건 — 폐기 심의 전 정정",
   "accred.auto.mr3.ok": "점검 이력 있음 · {n}건 ({t})",
+  "accred.auto.mr3.ledger": "파기 대장 {n}건 (최근 {t}) — 폐기 심의 증빙",
+  "accred.auto.mr3.noLedger": "보존기간 경과 {n}건 (점검 {t}) — 파기 대장 없음",
   "accred.auto.mr4.none": "KCD 정비 미실시 — 청구 › 상병 정비에서 상병코드를 점검하세요",
   "accred.auto.mr4.stale": "마지막 정비 {t} — 분기 점검 주기 경과",
   "accred.auto.mr4.open": "미수록 {m}건 · 검토 {r}건 남음",
