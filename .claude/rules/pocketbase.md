@@ -44,7 +44,7 @@ Use PocketBase for: multiplayer/shared state, persistent leaderboards (survive b
 - **Migrations are the source of truth.** Admin UI edits are prototyping only — snapshot back to files with `ssh pb-backends "cd /opt/pocketbase/<slug> && ./pocketbase migrate collections"` before committing.
 - **Ports:** always increment from 8091, never reuse.
 - **SDK version: pin exactly, never `@latest`** — but pin a *recent* version. Query Context7 (`/pocketbase/js-sdk` for SDK tag, `/pocketbase/pocketbase` for core) for current latest, then pin that.
-  - **State (verified 2026-06-08, re-verify via Context7):** server binary `/opt/pocketbase/pocketbase` is `0.25.8`. `backends/config.json` registers 10 backends: seven frontends pin SDK `0.25.0` (clinic-admin, intake-companion, korean-mbti, live-globe, resonans, sweden-food-guide, tinywings); `contraption-lab` pins `0.26.2`; `ai` (hook-only proxy) and `changwon-homes` (data-upload chute only — its `upload.html` pins `0.26.2`; the live page has no SDK) ship no frontend SDK. SDK `0.25.x`/`0.26.x` talk to a `0.25.8` server fine. Core has reached `0.35.x`.
+  - **State (verified 2026-09-06, re-verify via Context7):** server binary `/opt/pocketbase/pocketbase` is `0.40.2`. `backends/config.json` registers 10 backends: seven frontends pin SDK `0.25.0` (clinic-admin, intake-companion, korean-mbti, live-globe, resonans, sweden-food-guide, tinywings); `contraption-lab` pins `0.26.2`; `ai` (hook-only proxy) and `changwon-homes` (data-upload chute only — its `upload.html` pins `0.26.2`; the live page has no SDK) ship no frontend SDK. SDK `0.25.x`/`0.26.x` talk to a `0.40.2` server fine. Core has reached `0.35.x`.
   - **Bumping the server binary affects ALL deployed backends at once** (single shared binary) — treat as a coordinated migration: read release notes for breaking changes, test against a non-critical backend first, bump SDK pins to match. Don't bump casually mid-feature.
   - New isolated backend: pin the latest verified SDK; keep it ≥ the server's major.minor.
 
@@ -54,7 +54,7 @@ Load the SDK lazily by full URL with a dynamic `import()` — NOT a static `impo
 
 ```js
 const PB_URL = "https://<slug>.pb.gurum.se";
-const PB_ESM = "https://cdn.jsdelivr.net/npm/pocketbase@0.26.2/dist/pocketbase.es.mjs";
+const PB_ESM = "https://cdn.jsdelivr.net/npm/pocketbase@0.28.1/dist/pocketbase.es.mjs";
 let pb = null, _pbPromise = null;
 function getPB() {
   if (pb) return Promise.resolve(pb);
@@ -207,4 +207,4 @@ migrate((app) => {
 - Do NOT rely on API keys in the frontend — collection rules are the access control.
 - Do NOT implement reconnection polling — check health on user actions only.
 
-> Versions (2026-09-06): server PocketBase 0.40.2 on the shared box (backup tarball `/opt/pocketbase/pb_data-all-pre-0.40.2-*.tgz`, previous binary `pocketbase.0.25.8.bak`); every frontend pins the JS SDK at `pocketbase@0.28.1` (no breaking SDK changes since 0.22).
+> Versions (2026-09-06): server PocketBase 0.40.2 on the shared box (backup tarball `/opt/pocketbase/pb_data-all-pre-0.40.2-*.tgz`, previous binary `pocketbase.0.40.2.bak`); every frontend pins the JS SDK at `pocketbase@0.28.1` (no breaking SDK changes since 0.22).
