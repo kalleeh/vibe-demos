@@ -18,7 +18,11 @@
    대장 · tariff history + website CSV · yearend pid lookup → docs hand-off → 조직: accred mr3 turns ✓ from the ledger →
    조직 › 데이터 처리 현황 panel (zero 미등록, every Phase-3 key registered + encrypted) → no plaintext names in
    localStorage/IndexedDB → lock/unlock as a SEEDED login (정수아 · PIN 0000; trackers read empty while locked) → audit log
-   shape → encrypted backup v2 (Phase-3 envelopes included) → 전체 파기 → restore (tracker counts back) → reload persistence →
+   shape → encrypted backup v2 (Phase-3 envelopes included) → 전체 파기 (session DB gone too) → restore (tracker counts back,
+   no session record) → reload asks the PIN → SESSION PERSISTENCE (non-extractable CryptoKey in IndexedDB: record shape + no
+   raw key bytes anywhere · reload resumes without a PIN, one resume audit entry · login issue after a resume → PIN 재확인
+   with backoff · PIN change/reset drop the record · explicit lock → PIN pane · second tab resumes / locks together /
+   탭을 닫으면 잠금 nonce · fake-clock idle lock + 8 h absolute expiry · stale record not resumed) →
    legacy-key migration + activateTab ctx + Batches cap + v1 backup restore.
    Then an ENGLISH pass on a fresh profile: i18n coverage gate (tools/i18n-extract.mjs → 0 missing keys), toggle EN on
    the lock screen before setup, all 18 panels + the overlay + the drawer free of Hangul in headings/buttons/table headers/
@@ -235,6 +239,24 @@ async function noKeys(label, scope, p = page) { const l = await leakedKeys(p, sc
 /* Rail foot / ⋯ sheet contract: exactly install · lock · users · info · demo (+ the KO|EN toggle), no duplicates of the topbar utilities. */
 const RAIL_FOOT = ["rail-install", "rail-lock", "rail-users", "rail-info", "rail-demo"];
 const expandLater = async () => { await page.evaluate(() => { const d = document.querySelector("#home-deadlines"); if (d) d.open = true; }); const m = $("#dday-more"); if (await m.count() && (await m.getAttribute("aria-expanded")) === "false") { await m.click(); await wait(100); } };
+/* Session record in IndexedDB (vibe-clinic-admin-session / session / "current") WITHOUT trusting the app's own accessor:
+   raw IDB read, CryptoKey shape, and a real exportKey() attempt (must throw InvalidAccessError). Waits a beat first — the
+   app deletes the record from a non-awaited lock path. */
+const sessionRec = async (p = page) => { await p.waitForTimeout(250); return p.evaluate(async () => {
+  const dbs = (await indexedDB.databases()).map(d => d.name);
+  if (!dbs.includes("vibe-clinic-admin-session")) return { db: false, rec: null };
+  const db = await new Promise((res, rej) => { const r = indexedDB.open("vibe-clinic-admin-session"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+  if (!db.objectStoreNames.contains("session")) { db.close(); return { db: true, rec: null }; }
+  const rec = await new Promise((res, rej) => { const r = db.transaction("session").objectStore("session").get("current"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+  db.close();
+  if (!rec) return { db: true, rec: null };
+  let exportErr = null;
+  if (rec.key) { try { await crypto.subtle.exportKey("raw", rec.key); exportErr = "EXPORTED"; } catch (e) { exportErr = e.name; } }
+  return { db: true, rec: { userId: rec.userId, mode: rec.mode, unlockedAt: rec.unlockedAt, expiresAt: rec.expiresAt, lastActiveAt: rec.lastActiveAt, nonce: rec.nonce ?? null,
+    keyType: rec.key instanceof CryptoKey ? "CryptoKey" : typeof rec.key, extractable: rec.key?.extractable, alg: rec.key?.algorithm?.name, usages: rec.key?.usages, exportErr } };
+}); };
+// Key management may ask for the PIN again (raw-key grant lapsed) — answer it when the dialog is up.
+const answerReauth = async (pin, p = page) => { await p.waitForTimeout(300); if (await p.locator("#reauth-scrim.open").count()) { await p.locator("#reauth-pin").fill(pin); await p.locator("#reauth-submit").click(); await p.waitForFunction(() => !document.querySelector("#reauth-scrim")?.classList.contains("open")); } };
 const storeSnapshot = () => page.evaluate(async () => {
   const ls = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); ls[k] = localStorage.getItem(k); }
   const idb = {};
@@ -398,6 +420,7 @@ try {
   await noKeys("users modal", "#users-scrim");
   await $("#users-add-name").fill("행정 김"); await $("#users-add-role").selectOption("행정"); await $("#users-add-pin").fill("5678");
   await $("#users-add-btn").click();
+  await answerReauth("1234");
   await page.waitForFunction(() => document.querySelectorAll("#users-list .sec-row").length === 5);
   ok(true, "users panel lists 5 logins (creator + 3 seeded + 행정 김)");
   await $("#users-close").click(); await closed("#users-scrim");
@@ -622,7 +645,7 @@ try {
   await page.waitForSelector("#info-scrim.open");
   ok(/한솔한방병원/.test(await $("#info-org").innerText()) && (await $("#info-org input").count()) === 0 && (await $("#info-org [data-org-edit]").count()) === 1, "ⓘ modal keeps a READ-ONLY org summary + link (no editor)");
   const infoTxt = await $("#info-scrim").innerText();
-  ok(/앱 v2\.4\.0-poc/.test(infoTxt) && /▶ 시연/.test(infoTxt) && /AI 어시스트/.test(infoTxt) && !/AI 코딩|다음 단계에서|둘러보기 다시/.test(infoTxt), "info modal: current version line, ▶ 시연 pointer, no stale wording");
+  ok(/앱 v2\.5\.0-poc/.test(infoTxt) && /▶ 시연/.test(infoTxt) && /AI 어시스트/.test(infoTxt) && !/AI 코딩|다음 단계에서|둘러보기 다시/.test(infoTxt), "info modal: current version line, ▶ 시연 pointer, no stale wording");
   await noKeys("info modal", "#info-scrim");
   await $("#info-close").click(); await closed("#info-scrim");
   await goTab("tab-yearend");
@@ -744,6 +767,7 @@ try {
   ok((await $("#lic-login-who").innerText()).includes("오하늬"), "login form names the row");
   await $("#lic-login-role").selectOption("원무"); await $("#lic-login-pin").fill("4321");
   await $("#lic-login-ok").click();
+  await answerReauth("1234");
   await page.waitForFunction(() => document.querySelector("#lic-login-form")?.hidden === true, null, { timeout: 15000 });
   await page.waitForFunction((k) => JSON.parse(localStorage.getItem(k) || "{}").users?.length === 6, WS_KEY);
   const linked = await ent(page, (E, Session) => { const s = E.Staff.list().find(x => x.name === "오하늬"); const u = Session.users().find(x => x.id === s?.userId); return { userId: s?.userId, role: u?.role, staffId: u?.staffId, sid: s?.id, byUser: E.Staff.byUser(u?.id)?.name }; });
@@ -1298,8 +1322,14 @@ try {
   const regRow = (label) => reg3.find(r => r.text.includes(label));
   ok(["이의신청 대장", "건보 대조 기록", "자보 지불보증 대장", "진단서 등 발급 대장", "비급여 사전 설명·동의 기록", "의무기록 파기 대장"].every(l => regRow(l)?.enc) && regRow("비급여 가격표 변경 이력") && !regRow("비급여 가격표 변경 이력").enc, "Phase-3 register rows present: six encrypted trackers/ledgers + the plaintext tariff history");
   ok(/보증 종료 후 1년/.test(regRow("자보 지불보증 대장").text) && /3년/.test(regRow("진단서 등 발급 대장").text) && /5년 \(확인 필요\)/.test(regRow("비급여 사전 설명·동의 기록").text) && /1년/.test(regRow("이의신청 대장").text), "retention wording: 1년 · 3년 · 5년 (확인 필요) · 1년");
-  const inv3 = await M(async ({ life }) => { const rows = await life.inventory(); return { th: rows.filter(r => r.keys.includes("tariff.history")).map(r => r.id), ti: rows.filter(r => r.keys.includes("tariff.items")).map(r => r.id), unreg: rows.filter(r => r.unregistered).map(r => r.id) }; });
+  const inv3 = await M(async ({ life }) => { const rows = await life.inventory(); const sess = rows.find(r => r.id === "session"); return { th: rows.filter(r => r.keys.includes("tariff.history")).map(r => r.id), ti: rows.filter(r => r.keys.includes("tariff.items")).map(r => r.id), unreg: rows.filter(r => r.unregistered).map(r => r.id), sess: sess ? { count: sess.count, present: sess.present, keys: sess.keys, enc: sess.encrypted, ret: sess.retention } : null }; });
   ok(inv3.th.join() === "tariff.history" && inv3.ti.join() === "tariff" && inv3.unreg.length === 0, `inventory: tariff.history listed once (${inv3.th}), tariff.items under the tariff row, 0 unregistered`);
+  const sessRow = regRow("세션 키 (추출 불가 CryptoKey)");
+  ok(sessRow && /IndexedDB/.test(sessRow.text) && /만료 시 삭제/.test(sessRow.text) && /개인정보 아님/.test(sessRow.text) && !sessRow.enc, "register lists the session store: 세션 키 (추출 불가 CryptoKey) · IndexedDB · 만료 시 삭제 · 개인정보 아님");
+  // The roster step revoked a login a moment ago — any keyring change drops the session record, so the row counts 0 here
+  // (it counts 1 again after the PIN unlock in the session block below).
+  ok(inv3.sess && !inv3.sess.present && inv3.sess.count === 0 && inv3.sess.keys.join() === "vibe-clinic-admin-session/session" && inv3.sess.enc === "추출 불가 CryptoKey", `inventory: session row present, counts 0 after the login revoke dropped the record (${JSON.stringify(inv3.sess)})`);
+  ok(await page.evaluate(() => !document.querySelector('#privacy-table input[data-destroy="session"]')), "session row has no 파기 checkbox (removed by 잠금 / expiry, not from the table)");
   const rawEnv = await page.evaluate(() => Object.fromEntries(["appeals.list", "nhis.history", "guarantee.list", "docs.list", "consent.list", "retention.disposals"].map(k => { let j = null; try { j = JSON.parse(localStorage.getItem("vibe.clinic-admin." + k)); } catch {} return [k, !!(j && j.v === 1 && j.iv && j.ct)]; })));
   ok(Object.values(rawEnv).every(Boolean), `all six Phase-3 keys stored as AES-GCM envelopes (${JSON.stringify(rawEnv)})`);
   const preBackup = await M(({ CS, Store }) => ({ ap: CS.Appeals.list().length, nh: CS.nhisHistory().length, g: Store.get("guarantee.list", []).length, d: Store.get("docs.list", []).length, c: Store.get("consent.list", []).length, disp: Store.get("retention.disposals", []).length, th: Store.get("tariff.history", []).length }));
@@ -1371,6 +1401,8 @@ try {
   await page.waitForSelector("body:not(.locked)", { timeout: 20000 });
   await goTab("tab-privacy");
   await page.waitForFunction(() => document.querySelector("#privacy-destroy-all") && !document.querySelector("#privacy-destroy-all").disabled);
+  const preWipe = await sessionRec();
+  ok(preWipe.db && preWipe.rec && preWipe.rec.keyType === "CryptoKey", "session DB + record present before 전체 파기 (PIN unlock persisted it)");
   page.once("dialog", d => d.accept("파기"));
   await Promise.all([page.waitForNavigation({ waitUntil: "domcontentloaded" }), $("#privacy-destroy-all").click()]);
   await page.waitForSelector("#lock-scrim.open");
@@ -1381,7 +1413,7 @@ try {
   const BOOT_KEYS = new Set(["vibe.clinic-admin.__mtime", "vibe.clinic-admin.__lastSave", "vibe.clinic-admin.ui.activeTab"]);
   ok(after.ls.every(k => BOOT_KEYS.has(k)), `localStorage cleared except boot UI state (${after.ls.join(",") || "empty"})`);
   ok(!after.ls.includes("vibe.clinic-admin.__ws"), "key ring (__ws) gone");
-  ok(!after.dbs.includes("vibe-clinic-admin-masters") && !after.dbs.includes("vibe-clinic-admin"), `IndexedDB cleared (${after.dbs.join(",") || "empty"})`);
+  ok(!after.dbs.includes("vibe-clinic-admin-masters") && !after.dbs.includes("vibe-clinic-admin") && !after.dbs.includes("vibe-clinic-admin-session"), `IndexedDB cleared incl. the session store (${after.dbs.join(",") || "empty"})`);
 
   /* 10 · restore */
   at("restore encrypted backup (v2) with PIN → data back");
@@ -1401,15 +1433,17 @@ try {
   ok(JSON.stringify(postRestore) === JSON.stringify(preBackup) && postRestore.ap === 5 && postRestore.g === 3 && postRestore.d === 5 && postRestore.c === 4 && postRestore.disp === 6, `Phase-3 data round-tripped through backup → wipe → restore (${JSON.stringify(postRestore)})`);
   await wait(600); // the first-run welcome would open 350 ms after app:ready — it must not, ui.welcomed came back with the backup
   ok(!(await $("#welcome-scrim").evaluate(el => el.classList.contains("open"))), "welcome tour does not reopen after a restore");
+  ok(!(await sessionRec()).rec, "(h) restore required the PIN and left NO session record — the adopted key lives in this page only");
   await goTab("tab-kcd");
   const curKcd = await M(({ CS }) => { const b = CS.currentClaimsBatch(); return { payer: b?.meta?.payer, lines: b?.meta?.kcdLines }; });
   ok(/최근 정비/.test(await $("#kcd-status").innerText()) && curKcd.payer === "nhis" && (await $("#kcd-result tbody tr").count()) === curKcd.lines, `kcd.lastSummary + the current claims batch restored — the 건보 batch the appeal hand-off selected (${curKcd.lines} rows re-derived)`);
 
-  /* 11 · reload persistence */
-  at("reload → unlock → data persists");
+  /* 11 · reload after a restore → PIN pane (restore never persists a session) */
+  at("reload after restore → PIN pane → unlock → data persists");
   await page.reload({ waitUntil: "domcontentloaded" });
   await page.waitForSelector("#lock-scrim.open");
-  ok(await $("#lock-unlock").isVisible(), "unlock pane after reload");
+  await page.waitForSelector("#lock-unlock:not([hidden])");
+  ok(await $("#lock-unlock").isVisible(), "unlock pane after reload (no session record to resume)");
   await page.locator(".lock-user", { hasText: "홍 원장" }).click();
   await $("#lock-pin").fill("1234"); await $("#lock-submit").click();
   await page.waitForSelector("body:not(.locked)", { timeout: 20000 });
@@ -1417,6 +1451,191 @@ try {
   ok(true, "roster persists across reload");
   ok(!(await $("#welcome-scrim").evaluate(el => el.classList.contains("open"))), "welcome does not reopen (ui.welcomed restored)");
   if (MOBILE) await noOverflow("shell (after reload)");
+
+  /* 11b · SESSION PERSISTENCE — non-extractable session key in IndexedDB */
+  at("session (i): record = non-extractable AES-GCM CryptoKey (exportKey throws), 8h default, no raw key bytes in any storage");
+  const rawKey = await ent(page, async (E, S, St, Ev, a, C) => { const u = S.meta().users.find(x => x.name === "홍 원장"); const raw = await C.unwrapMaster(u, "1234"); return { b64: C.b64(raw), hex: Array.from(raw).map(b => b.toString(16).padStart(2, "0")).join(""), arr: JSON.stringify(Array.from(raw)) }; });
+  const sess0 = await sessionRec();
+  ok(sess0.rec && sess0.rec.keyType === "CryptoKey" && sess0.rec.extractable === false && sess0.rec.alg === "AES-GCM" && sess0.rec.exportErr === "InvalidAccessError" && (sess0.rec.usages || []).join() === "encrypt,decrypt", `vibe-clinic-admin-session/session/current holds a non-extractable AES-GCM CryptoKey (exportKey → ${sess0.rec?.exportErr}, usages ${sess0.rec?.usages})`);
+  ok(sess0.rec.mode === "8h" && sess0.rec.expiresAt - sess0.rec.unlockedAt === 8 * 3600000 && sess0.rec.nonce === null && typeof sess0.rec.lastActiveAt === "number", "default mode 8h: expiresAt = unlockedAt + 8 h, no tab nonce, lastActiveAt set");
+  const snapS = await storeSnapshot();
+  const allText = JSON.stringify(snapS.ls) + JSON.stringify(snapS.idb) + (await page.evaluate(() => JSON.stringify(Object.entries(sessionStorage))));
+  ok(rawKey.b64.length === 44 && !allText.includes(rawKey.b64) && !allText.includes(rawKey.hex) && !allText.includes(rawKey.arr), "no raw master-key bytes (b64 / hex / byte array) in localStorage, sessionStorage or any IndexedDB value");
+  ok(await page.evaluate(() => sessionStorage.getItem("vibe.clinic-admin.session-nonce") === null), "8h mode: no tab nonce in sessionStorage");
+  ok(await M(async ({ life }) => { const r = (await life.inventory()).find(x => x.id === "session"); return r && r.present && r.count === 1 && r.lastModified > 0; }), "processing register: session row now counts the live record (1)");
+
+  at("session (a): reload → still unlocked, PIN pane never shown, data visible, exactly one 세션 이어가기 audit entry");
+  const t0 = await page.evaluate(() => Date.now());
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForSelector("body:not(.locked)", { timeout: 20000 });
+  ok(!(await page.evaluate(() => document.querySelector("#lock-scrim").classList.contains("open"))), "lock scrim closed after the reload without a PIN");
+  ok(await page.evaluate(() => document.querySelector("#lock-unlock").hidden && document.querySelector("#lock-setup").hidden), "unlock + setup panes still hidden — no PIN pane flashed");
+  await page.waitForFunction(() => document.querySelectorAll("#lic-list .lic").length === 10, null, { timeout: 15000 });
+  ok(true, "roster (10 rows) visible — the resumed session decrypted the Store");
+  ok((await $("#topbar-user-text").innerText()).includes("홍 원장"), "topbar chip = 홍 원장 (resumed user)");
+  const chipTitle = await $("#topbar-user").getAttribute("title");
+  ok(/세션 만료 \d\d:\d\d/.test(chipTitle), `chip tooltip carries the expiry (${chipTitle})`);
+  const resumeLog = await page.evaluate(async (t) => { const { ActivityLog } = await import("./js/core/store.js"); return ActivityLog.all().filter(e => e.at >= t).map(e => e.action); }, t0);
+  ok(resumeLog.filter(a => a === "잠금 해제 (세션 이어가기 · PIN 없이)").length === 1 && !resumeLog.includes("잠금 해제"), `audit since the reload: one 세션 이어가기 entry, no PIN unlock entry (${resumeLog.join(" | ")})`);
+  ok(await ent(page, (E, S) => S.isUnlocked() && !S.hasRawGrant()), "resumed session has NO raw-key grant — key management must re-auth");
+  ok(!(await $("#welcome-scrim").evaluate(el => el.classList.contains("open"))), "welcome does not reopen on a resumed session");
+  ok(await ent(page, (E, S, Store) => E.Staff.list().length === 10 && Store.get("jabo.history", []).length > 0), "Staff + encrypted history readable through the resumed (non-extractable) key");
+  if (MOBILE) await noOverflow("shell (resumed session)");
+
+  at("session (f): login issue after a resume → PIN 재확인; wrong PIN → backoff; right PIN → issued; PIN reset rides the grant");
+  await railClick("#rail-users");
+  await page.waitForSelector("#users-scrim.open");
+  ok((await $("#users-session").inputValue()) === "8h" && !(await $("#users-session").isDisabled()), "users panel: session length select = 8h, enabled for 원장");
+  await noKeys("users modal (session section)", "#users-scrim");
+  await $("#users-add-name").fill("신유진"); await $("#users-add-role").selectOption("원무"); await $("#users-add-pin").fill("2468");
+  await $("#users-add-btn").click();
+  await page.waitForSelector("#reauth-scrim.open");
+  ok((await $("#reauth-title").innerText()) === "PIN 재확인" && (await $("#reauth-user").innerText()).includes("홍 원장"), "PIN 재확인 dialog opened for the current user (no PIN was typed this page load)");
+  await noKeys("re-auth dialog", "#reauth-scrim");
+  if (MOBILE) await noOverflow("re-auth dialog");
+  await $("#reauth-pin").fill("9999"); await $("#reauth-submit").click();
+  await page.waitForFunction(() => { const e = document.querySelector("#reauth-err"); return e && !e.hidden && /초 후/.test(e.textContent); });
+  ok(await $("#reauth-submit").isDisabled() && /PIN이 틀렸습니다/.test(await $("#reauth-err").innerText()), "wrong PIN → the lock screen's backoff (submit disabled, countdown)");
+  ok(await ent(page, (E, S) => { const u = S.users().find(x => x.name === "홍 원장"); return u.fails === 1 && u.lockedUntil > Date.now() - 5000; }), "backoff persisted on the keyring user (fails = 1)");
+  await page.waitForFunction(() => !document.querySelector("#reauth-submit").disabled, null, { timeout: 5000 });
+  await $("#reauth-pin").fill("1234"); await $("#reauth-submit").click();
+  await closed("#reauth-scrim");
+  await page.waitForFunction(() => /신유진/.test(document.querySelector("#users-msg")?.textContent || ""));
+  ok(/로그인을 발급/.test(await $("#users-msg").innerText()) && (await $("#users-list .sec-row").count()) === 6, "right PIN → login issued (6 logins)");
+  ok(await ent(page, (E, S) => S.hasRawGrant() && S.users().find(x => x.name === "홍 원장").fails === 0), "successful re-auth opened a raw-key grant and reset the fail counter");
+  ok(!!(await sessionRec()).rec, "issuing a login keeps this tab's session record");
+  page.once("dialog", d => d.accept("1357"));
+  await page.locator("#users-list .sec-row", { hasText: "신유진" }).locator('[data-act="reset"]').click();
+  await page.waitForFunction(() => /PIN을 재설정/.test(document.querySelector("#users-msg")?.textContent || ""));
+  ok(!(await $("#reauth-scrim.open").count()), "PIN reset within the grant window → no second PIN prompt");
+  ok(!(await sessionRec()).rec, "PIN reset deletes the session record (the next reload asks for a PIN)");
+  ok(await ent(page, (E, S) => S.isUnlocked()), "…but this tab stays unlocked in memory");
+  await ent(page, (E, S) => S.forgetRaw());
+  ok(await ent(page, (E, S) => !S.hasRawGrant()), "forgetRaw() drops the grant");
+
+  at("session (f): change own PIN — wrong current PIN rejected (backoff), right one re-wraps and drops the record → reload asks PIN");
+  await $("#users-old-pin").fill("0000"); await $("#users-new-pin").fill("4321"); await page.locator("#users-pin-form button[type=submit]").click();
+  await page.waitForFunction(() => /현재 PIN이 틀렸습니다/.test(document.querySelector("#users-msg")?.textContent || ""));
+  ok(true, "wrong current PIN → 현재 PIN이 틀렸습니다");
+  await wait(1100); // 1 s backoff
+  await $("#users-old-pin").fill("1234"); await $("#users-new-pin").fill("4321"); await page.locator("#users-pin-form button[type=submit]").click();
+  await page.waitForFunction(() => /PIN을 변경했습니다/.test(document.querySelector("#users-msg")?.textContent || ""));
+  await $("#users-close").click(); await closed("#users-scrim");
+  ok(!(await sessionRec()).rec, "own PIN change deletes the session record");
+  const PIN2 = "4321";
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForSelector("#lock-scrim.open"); await page.waitForSelector("#lock-unlock:not([hidden])");
+  ok(true, "reload after a PIN change → PIN pane");
+  const hint = await $("#lock-persist-hint").innerText();
+  ok(/이 기기에서는 다시 열어도 잠기지 않아요 · 8시간 또는 10분 미사용 시 잠금/.test(hint), `unlock pane hint reflects the settings (${hint})`);
+  await noKeys("lock screen (with hint)", "#lock-scrim");
+  await page.locator(".lock-user", { hasText: "홍 원장" }).click();
+  await $("#lock-pin").fill("1234"); await $("#lock-submit").click();
+  await page.waitForFunction(() => { const e = document.querySelector("#lock-err"); return e && !e.hidden; });
+  ok(/PIN이 틀렸습니다/.test(await $("#lock-err").innerText()), "old PIN no longer opens the workspace");
+  await page.waitForFunction(() => !document.querySelector("#lock-submit").disabled, null, { timeout: 5000 });
+  await $("#lock-pin").fill(PIN2); await $("#lock-submit").click();
+  await page.waitForSelector("body:not(.locked)", { timeout: 20000 });
+  ok(!!(await sessionRec()).rec, "new PIN unlocks and persists a fresh record");
+
+  at("session (c): explicit 잠금 → record deleted → reload → PIN pane");
+  await railClick("#rail-lock");
+  await page.waitForSelector("body.locked");
+  ok(/잠금 버튼/.test(await $("#lock-reason").innerText()), "reason line: manual lock");
+  ok(!(await sessionRec()).rec, "manual lock deleted the session record");
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForSelector("#lock-scrim.open"); await page.waitForSelector("#lock-unlock:not([hidden])");
+  ok(true, "reload after an explicit lock → PIN pane");
+  await page.locator(".lock-user", { hasText: "홍 원장" }).click();
+  await $("#lock-pin").fill(PIN2); await $("#lock-submit").click();
+  await page.waitForSelector("body:not(.locked)", { timeout: 20000 });
+
+  at("session (d): 8h → a second tab resumes; locking there locks this tab; unlocking there resumes it; 탭을 닫으면 잠금 → new tab asks PIN");
+  const pT = await context.newPage(); watch(pT, "[tab2] "); await blockAll(pT);
+  await pT.goto(BASE, { waitUntil: "domcontentloaded" });
+  await pT.waitForSelector("body:not(.locked)", { timeout: 20000 });
+  ok(await pT.evaluate(() => !document.querySelector("#lock-scrim").classList.contains("open") && document.querySelector("#lock-unlock").hidden), "second tab resumes from the IndexedDB record — no PIN pane");
+  await pT.waitForFunction(() => document.querySelectorAll("#lic-list .lic").length === 11, null, { timeout: 15000 });
+  ok(true, "second tab shows the decrypted roster (11 rows incl. 신유진)");
+  await railClick("#rail-lock", pT);
+  await pT.waitForSelector("body.locked");
+  await page.waitForSelector("body.locked", { timeout: 5000 });
+  ok(/다른 탭에서 잠겼습니다/.test(await $("#lock-reason").innerText()), "locking in tab 2 locks tab 1 (BroadcastChannel · reason 다른 탭)");
+  ok(!(await sessionRec()).rec, "session record gone after the cross-tab lock");
+  await pT.locator(".lock-user", { hasText: "홍 원장" }).click(); await pT.locator("#lock-pin").fill(PIN2); await pT.locator("#lock-submit").click();
+  await pT.waitForSelector("body:not(.locked)", { timeout: 20000 });
+  await page.waitForSelector("body:not(.locked)", { timeout: 10000 });
+  ok(await ent(page, (E, S) => S.isUnlocked() && !S.hasRawGrant()), "unlocking in tab 2 resumes tab 1 from the new record (no grant there — it typed no PIN)");
+  await pT.close();
+  await railClick("#rail-users"); await page.waitForSelector("#users-scrim.open");
+  await $("#users-session").selectOption("tab");
+  await page.waitForFunction(() => /세션 유지: 탭을 닫으면 잠금/.test(document.querySelector("#users-msg")?.textContent || ""));
+  await $("#users-close").click(); await closed("#users-scrim");
+  const sessTab = await sessionRec();
+  ok(sessTab.rec?.mode === "tab" && typeof sessTab.rec.nonce === "string" && sessTab.rec.nonce.length === 32 && (await page.evaluate(() => sessionStorage.getItem("vibe.clinic-admin.session-nonce"))) === sessTab.rec.nonce, "tab mode: record re-persisted with a nonce that matches this tab's sessionStorage");
+  ok(/세션 만료/.test(await $("#topbar-user").getAttribute("title")), "chip tooltip still shows an expiry (tab mode is capped at 8 h)");
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForSelector("body:not(.locked)", { timeout: 20000 });
+  ok(await page.evaluate(() => document.querySelector("#lock-unlock").hidden), "tab mode: a reload of the SAME tab still resumes (sessionStorage survives a reload)");
+  const pT2 = await context.newPage(); watch(pT2, "[tab3] "); await blockAll(pT2);
+  await pT2.goto(BASE, { waitUntil: "domcontentloaded" });
+  await pT2.waitForSelector("#lock-scrim.open"); await pT2.waitForSelector("#lock-unlock:not([hidden])");
+  const hintTab = await pT2.locator("#lock-persist-hint").innerText();
+  ok(/새로 고침해도 잠기지 않아요 · 탭을 닫거나 10분 미사용 시 잠금/.test(hintTab), `tab mode: a NEW tab (no nonce) gets the PIN pane; hint says 탭을 닫거나 (${hintTab})`);
+  await pT2.close();
+  ok(!(await sessionRec()).rec && (await ent(page, (E, S) => S.isUnlocked())), "the new tab's failed restore dropped the stale record; this tab stays unlocked in memory");
+  await railClick("#rail-users"); await page.waitForSelector("#users-scrim.open");
+  await $("#users-session").selectOption("8h");
+  await page.waitForFunction(() => /세션 유지: 8시간/.test(document.querySelector("#users-msg")?.textContent || ""));
+  await $("#users-close").click(); await closed("#users-scrim");
+  ok((await sessionRec()).rec?.mode === "8h" && (await page.evaluate(() => sessionStorage.getItem("vibe.clinic-admin.session-nonce"))) !== null, "back to 8h: record re-persisted (the old nonce string may stay in sessionStorage — it is not consulted)");
+
+  at("session: a record older than the idle window (browser closed for 11 min) is not resumed");
+  await page.evaluate(async () => {
+    const db = await new Promise((res, rej) => { const r = indexedDB.open("vibe-clinic-admin-session"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+    const st = db.transaction("session", "readwrite").objectStore("session");
+    const rec = await new Promise((res, rej) => { const r = st.get("current"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+    rec.lastActiveAt = Date.now() - 11 * 60000;
+    await new Promise((res, rej) => { const r = st.put(rec, "current"); r.onsuccess = () => res(); r.onerror = () => rej(r.error); });
+    db.close();
+  });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForSelector("#lock-scrim.open"); await page.waitForSelector("#lock-unlock:not([hidden])");
+  ok(!(await sessionRec()).rec, "stale record (lastActiveAt 11 min ago > 10 min idle) → PIN pane, record deleted");
+  await page.locator(".lock-user", { hasText: "홍 원장" }).click(); await $("#lock-pin").fill(PIN2); await $("#lock-submit").click();
+  await page.waitForSelector("body:not(.locked)", { timeout: 20000 });
+
+  at("session (b): idle auto-lock under fake timers (10 min) → record deleted → reload → PIN pane");
+  await page.clock.install();
+  await wait(1100); // past the 1 s activity throttle
+  await page.keyboard.press("Shift"); // activity → the idle timer is re-armed on the fake clock
+  await page.evaluate(async () => (await import("./js/security/lockscreen.js")).Lock.armIdle()); // and explicitly, in case the throttle still held
+  await wait(100);
+  await page.clock.runFor(10 * 60000 + 2000);
+  await page.waitForSelector("body.locked", { timeout: 5000 });
+  ok(/10분 동안 활동이 없어/.test(await $("#lock-reason").innerText()), "idle lock fired (reason: 10분 무활동)");
+  ok(!(await sessionRec()).rec, "idle lock deleted the session record");
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForSelector("#lock-scrim.open"); await page.waitForSelector("#lock-unlock:not([hidden])");
+  ok(true, "reload after the idle lock → PIN pane");
+
+  at("session (e): absolute expiry (fake Date.now +8 h) → lock → reload → PIN pane");
+  await page.locator(".lock-user", { hasText: "홍 원장" }).click(); await $("#lock-pin").fill(PIN2); await $("#lock-submit").click();
+  await page.waitForSelector("body:not(.locked)", { timeout: 20000 });
+  ok(!!(await sessionRec()).rec, "PIN unlock persisted a fresh record");
+  // Jump the clock 8 h in 9-minute hops with activity between them: the idle timer keeps being re-armed, so the only
+  // timer that can fire is the absolute expiry (a single 8 h jump would trip the due idle timer first — also correct).
+  let hops = 0;
+  while (hops < 60 && !(await page.evaluate(() => document.body.classList.contains("locked")))) { await page.clock.fastForward(9 * 60000); await page.keyboard.press("Shift"); hops++; }
+  await page.waitForSelector("body.locked", { timeout: 5000 });
+  ok(hops >= 53 && hops <= 55 && /세션 시간\(8시간\)이 지나/.test(await $("#lock-reason").innerText()), `absolute-expiry lock fired after ${hops} × 9 min with activity in between (reason: 세션 시간 8시간)`);
+  ok(!(await sessionRec()).rec, "expiry deleted the session record");
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForSelector("#lock-scrim.open"); await page.waitForSelector("#lock-unlock:not([hidden])");
+  ok(true, "reload after expiry → PIN pane");
+  const auditWhy = await page.evaluate(async () => { const { Session } = await import("./js/security/session.js"); await Session.unlock(Session.users().find(u => u.name === "홍 원장").id, "4321"); const { Store, ActivityLog } = await import("./js/core/store.js"); await Store.whenUnlocked(); return ActivityLog.all().slice(0, 40).map(e => e.action); });
+  ok(auditWhy.includes("잠금 (자동 · 세션 만료)") && auditWhy.includes("잠금 (자동 · 무활동)") && auditWhy.some(a => /세션 유지 설정 변경/.test(a)), `audit carries 세션 만료 · 무활동 locks + the session-length change (${auditWhy.filter(a => /잠금|세션/.test(a)).slice(0, 8).join(" | ")})`);
+  await page.waitForSelector("body:not(.locked)", { timeout: 20000 });
 
   /* 12 · LEGACY → ENTITIES: fresh profile with pre-entities keys, activateTab ctx payload, v1 backup restore */
   at("legacy: fresh workspace + pre-entities keys (license.list / yearend.* / bigeup.*) → unlock migrates them");
@@ -1676,10 +1895,14 @@ try {
   await noKeys("[EN] tour card", "#tour-card", p2);
   await $2("#tour-next").click(); await p2.waitForSelector("#tour-card[hidden]", { state: "attached" });
 
-  at("EN: reload persists the choice (lock screen in English)");
+  at("EN: resumed session after reload, then lock → lock screen in English (hint line + reason)");
   await p2.reload({ waitUntil: "domcontentloaded" });
-  await p2.waitForSelector("#lock-scrim.open");
-  ok((await p2.evaluate(() => document.documentElement.lang)) === "en", "<html lang> = en after reload");
+  await p2.waitForSelector("body:not(.locked)", { timeout: 20000 });
+  ok((await p2.evaluate(() => document.documentElement.lang)) === "en" && !(await p2.evaluate(() => document.querySelector("#lock-scrim").classList.contains("open"))), "<html lang> = en after reload; the session resumed without a PIN pane");
+  await railClick("#rail-lock", p2);
+  await p2.waitForSelector("body.locked");
+  await p2.waitForSelector("#lock-unlock:not([hidden])");
+  ok(/Stays unlocked on this device across reloads · locks after 8 h or 10 min idle/.test(await $2("#lock-persist-hint").innerText()), "EN hint line on the unlock pane");
   const unlockTxt = await $2("#lock-unlock").innerText();
   ok(/Unlock/.test(unlockTxt) && /Director/.test(unlockTxt) && leftoverHangul([unlockTxt]).length === 0, `unlock pane in English (${leftoverHangul([unlockTxt]).join(" | ") || "no Hangul"})`);
   ok((await p2.evaluate(() => localStorage.getItem("vibe.clinic-admin.ui.lang"))) === "en", "persisted under vibe.clinic-admin.ui.lang (plain, works while locked)");

@@ -8,7 +8,7 @@
 import { Store, EventBus, ActivityLog, NS, SENSITIVE_KEYS } from "../core/store.js";
 import { Attachments } from "../core/attachments.js";
 import { Session } from "./session.js";
-import { encryptJSON, decryptJSON, isEnvelope } from "./crypto.js";
+import { encryptJSON, decryptJSON, isEnvelope, importSessionKey } from "./crypto.js";
 import { downloadText, POC_MARK } from "../core/files.js";
 import { Masters } from "../core/masters.js";
 import { Staff } from "../core/entities.js";
@@ -76,8 +76,12 @@ const REGISTRY = [
     purpose: "대시보드 이어하기", basis: "—", encrypted: false, retention: "다음 실행 시 대체", days: null },
   { id: "ui", match: prefix("ui."), label: "화면 설정", detail: "마지막 탭·안내 표시 여부·언어·현재 청구 배치 id",
     purpose: "UX", basis: "—", encrypted: false, retention: "설정", days: null },
-  { id: "__ws", match: exact("__ws"), label: "워크스페이스 키링", detail: "사용자 이름·역할 (평문) · PIN으로 래핑된 마스터키 · salt · AI 동의",
+  { id: "__ws", match: exact("__ws"), label: "워크스페이스 키링", detail: "사용자 이름·역할 (평문) · PIN으로 래핑된 마스터키 · salt · AI 동의 · 자동 잠금·세션 길이 설정",
     purpose: "접근 통제 (PIN 잠금)", basis: "개인정보보호법 §29 · 안전성 확보조치 기준 §5 접근권한", encrypted: "부분 (키는 래핑)", retention: "전체 파기 시까지", days: null },
+  // The session record (security/session.js): a NON-extractable AES-GCM CryptoKey + user id + timestamps. Not personal data;
+  // it is what lets a reload resume without the PIN. Removed by lock / expiry / 전체 파기 — not destroyable from the table.
+  { id: "session", store: "IndexedDB (session)", label: "세션 키 (추출 불가 CryptoKey)", detail: "잠금 해제 상태를 이어가는 세션 키 · 사용자 id · 해제/만료/최근 활동 시각 (개인정보 아님 · 키는 내보낼 수 없음)",
+    purpose: "새로 고침·탭 재열기 후 PIN 없이 이어가기 (세션 길이·무활동 시간 안에서만)", basis: "안전성 확보조치 기준 §5 — 세션 관리 · 무활동 시 자동 잠금", encrypted: "추출 불가 CryptoKey", retention: "만료 시 삭제 · 잠금 시 삭제", days: null },
   { id: "__internal", match: (k) => k.startsWith("__") && k !== "__ws", label: "내부 메타", detail: "마지막 저장 시각·키별 수정 시각",
     purpose: "동기화 표시·처리 현황", basis: "—", encrypted: false, retention: "설정", days: null }
 ];
@@ -94,6 +98,12 @@ async function inventory() {
     if (r.id === "masters") {
       const recs = ["kcd", "fee"].map(k => Masters.get(k)).filter(Boolean);
       rows.push({ ...r, keys: recs.map(m => m.id), count: recs.reduce((n, m) => n + (m.count || 0), 0), lastModified: null, present: recs.length > 0 });
+      continue;
+    }
+    if (r.id === "session") {
+      let rec = null;
+      try { rec = await Session.sessionRecord(); } catch {}
+      rows.push({ ...r, keys: [`${Session.SESSION_DB}/${Session.SESSION_STORE}`], count: rec ? 1 : 0, lastModified: rec?.lastActiveAt || null, present: !!rec });
       continue;
     }
     if (r.store === "IndexedDB") {
@@ -159,7 +169,7 @@ async function destroy(ids) {
     if (!r) continue;
     if (r.id === "masters") { await Masters.clear("kcd"); await Masters.clear("fee"); n++; continue; }
     if (r.store === "IndexedDB") { await Attachments.clearAll(); n++; continue; }
-    if (r.id === "__ws" || r.id === "__internal") continue; // only via 전체 파기
+    if (r.id === "__ws" || r.id === "__internal" || r.id === "session") continue; // only via 전체 파기 (session: via 잠금)
     for (const k of Store.keys().filter(r.match)) { Store.remove(k); n++; }
   }
   if (n) ActivityLog.add({ tag: "system", action: t("lifecycle.destroyedAction", { ids: ids.join(", ") }), meta: { silent: true } });
@@ -172,7 +182,7 @@ async function destroyAll() {
   try { ActivityLog.add({ tag: "system", action: t("lifecycle.destroyAllAction"), meta: { silent: true } }); } catch {}
   await Store.wipeAll({ keepWorkspace: false });
   try { await Masters.destroy(); } catch (e) { console.warn("masters wipe", e); }
-  Session.destroy();
+  await Session.destroy(); // drops the IndexedDB session store too
   try { localStorage.removeItem("vibe.clinic-admin.player-id"); } catch {}
 }
 
@@ -218,18 +228,20 @@ function parseBackup(text) {
   return bk;
 }
 
-/* Restore replaces everything in this profile. Throws on a wrong PIN before touching anything. */
+/* Restore replaces everything in this profile. Throws on a wrong PIN before touching anything. The session that
+   follows is NOT persisted (Session.adopt) — a restore always ends with a PIN entry on the next load. */
 async function restoreBackup(bk, userId, pin) {
-  const key = await Session.unwrapFromKeyring(bk.keyring, userId, pin); // wrong PIN → throws here
+  const raw = await Session.unwrapFromKeyring(bk.keyring, userId, pin); // wrong PIN → throws here
+  const key = await importSessionKey(raw);
   const plain = await decryptJSON(key, bk.plain);                       // proves the key matches the data
-  Session.lock("restore");
+  Session.lock("restore");                                              // also deletes the IndexedDB session record
   await Store.wipeAll({ keepWorkspace: false });
   for (const [k, env] of Object.entries(bk.sensitive || {})) if (isEnvelope(env)) localStorage.setItem(`${NS}.${k}`, JSON.stringify(env));
   for (const [k, v] of Object.entries(plain || {})) localStorage.setItem(`${NS}.${k}`, JSON.stringify(v));
   await Attachments.importRaw(bk.attachments || []);
   Session.importKeyring(bk.keyring);
   const user = bk.keyring.users.find(u => u.id === userId);
-  Session.adopt(key, user);
+  await Session.adopt(raw, user);
   const r = await Store.whenUnlocked(); // ← runs the legacy → entity migration for a v1 file (r.hooks has the counts)
   ActivityLog.add({ tag: "system", action: t("lifecycle.restoreAction", { at: bk.exportedAt }) + (bk.v < BACKUP_VERSION ? " · " + t("lifecycle.restoreMigrated", { v: bk.v }) : "") });
   return { keys: Object.keys(bk.sensitive || {}).length + Object.keys(plain || {}).length, attachments: (bk.attachments || []).length, version: bk.v, migrated: r?.hooks || null };

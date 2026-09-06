@@ -11,7 +11,8 @@
      plaintext — and the receiving tab re-reads + decrypts with its own unlocked key.
    ─ Plaintext values left by an earlier build are migrated (read → encrypt → overwrite) on the
      first unlock (Store.unlockedInit), together with IndexedDB attachments.
-   Events: `session:unlocked` (after the cache is populated) and `session:locked` (local only). */
+   Events: `session:unlocked` (after the cache is populated; `resumed: true` when restored from the IndexedDB session
+   record at boot without a PIN) and `session:locked` (local only — session.js has its own cross-tab channel). */
 import { $, relTime, debounce, redactSubject, redactStaff } from "./dom.js";
 import { t } from "./i18n.js";
 import { Attachments } from "./attachments.js";
@@ -234,10 +235,11 @@ const EventBus = (() => {
   };
 })();
 
-/* Session ↔ Store bridge. Unlock → decrypt cache → `session:unlocked`; lock → drop cache → `session:locked`. */
+/* Session ↔ Store bridge. Unlock → decrypt cache → `session:unlocked`; lock → drop cache → `session:locked`.
+   `resumed: true` on the unlock payload = the session came back from the IndexedDB record at boot (no PIN typed). */
 Session.onChange((what, reason) => {
   if (what === "unlocked") {
-    unlockP = Store.unlockedInit().then((r) => { EventBus.emitLocal("session:unlocked", { user: Session.user(), ...r }); return r; });
+    unlockP = Store.unlockedInit().then((r) => { EventBus.emitLocal("session:unlocked", { user: Session.user(), resumed: reason === "restored", ...r }); return r; });
   } else if (what === "locked") {
     Store.lockedTeardown();
     EventBus.emitLocal("session:locked", reason || "manual");

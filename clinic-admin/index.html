@@ -75,6 +75,7 @@
           <button type="submit" class="btn" id="lock-submit" data-i18n="lock.unlockBtn">열기</button>
         </form>
         <p class="lock-err" id="lock-err" hidden></p>
+        <p class="lock-persist" id="lock-persist-hint"></p>
         <p class="lock-note">
           <span data-i18n-html="lock.forgotNote">PIN을 잊었다면 <strong>원장</strong> 사용자가 「사용자」 패널에서 재설정할 수 있습니다. 모든 사용자의 PIN을 잃으면 <strong>이 브라우저의 데이터는 복구할 수 없습니다</strong> — 유일한 복구 수단은 이전에 내려받은 암호화 백업입니다.</span>
           <button type="button" class="link" id="lock-goto-restore2" data-i18n="lock.restoreLink">암호화 백업 복원</button>
@@ -1449,7 +1450,7 @@
         <table>
           <thead><tr data-i18n-html="privacy.legalHead"><th>흐름</th><th>관련 조항</th><th>이 PoC에서</th><th>실제 사용 시 추가로 필요</th></tr></thead>
           <tbody>
-            <tr data-i18n-html="privacy.legal1"><td>자보 정산 · 면허 명부 (이름·번호·날짜 저장)</td><td>개인정보보호법 §23 민감정보(건강) · §29 안전성 확보조치 · 의료법 §21 기록 열람 제한</td><td><span class="yes">함</span> — PIN 잠금(사용자별), AES-GCM 암호화 저장, 10분 무활동·60초 이탈 시 자동 잠금, 원장 권한 분리</td><td>병원 내부 서버 또는 인증받은 EMR 연동, 접근권한 부여·변경 기록, 정기 점검</td></tr>
+            <tr data-i18n-html="privacy.legal1"><td>자보 정산 · 면허 명부 (이름·번호·날짜 저장)</td><td>개인정보보호법 §23 민감정보(건강) · §29 안전성 확보조치 · 의료법 §21 기록 열람 제한</td><td><span class="yes">함</span> — PIN 잠금(사용자별), AES-GCM 암호화 저장, 10분 무활동·60초 이탈·세션 길이(기본 8시간) 만료 시 자동 잠금, 원장 권한 분리. 세션 키는 추출 불가 CryptoKey로 브라우저(IndexedDB)에만 보관되어 새로 고침 후에도 이어짐 — 세션 시간 안의 잠기지 않은 무인 브라우저는 누구나 쓸 수 있으므로 무활동 잠금이 통제 수단</td><td>병원 내부 서버 또는 인증받은 EMR 연동, 접근권한 부여·변경 기록, 정기 점검</td></tr>
             <tr data-i18n-html="privacy.legal2"><td>주민등록번호 (연말정산 탭 업로드)</td><td>§24 고유식별정보 · §24의2 주민등록번호 처리 제한</td><td><span class="yes">함</span> — 브라우저 안에서만 처리, 저장하지 않음(No persistence of RRN), 자동 마스킹, AI 전송 시 [주민번호]로 치환</td><td>법령상 근거(소득세법 §165) 범위 확인, 제출 파일 암호화·전송 경로 검토</td></tr>
             <tr data-i18n-html="privacy.legal3"><td>AI 코드 추천 (메모를 ai.pb.gurum.se → Amazon Bedrock, eu-north-1 스톡홀름으로 전송)</td><td>§26 업무위탁 · §28의8 국외 이전 · §23</td><td><span class="yes">함</span> — 기본은 예시 모드, 사용자별 동의 대화상자(목적지·보존·위탁계약 없음 고지), 자동 마스킹 + 전송 내용 미리보기, 서버 미저장</td><td><span class="no">남음</span> — LLM 벤더와의 <strong>위탁계약</strong> 또는 온프레미스 모델, 국외 이전 고지·동의 절차, 위탁자 관리·감독</td></tr>
             <tr data-i18n-html="privacy.legal4"><td>음성 받아쓰기 (브라우저 제조사 클라우드 STT)</td><td>§26 · §28의8</td><td><span class="yes">함</span> — 기본 OFF, 인라인 고지(No cloud STT by default)</td><td><span class="no">남음</span> — 온디바이스 STT 또는 위탁계약이 있는 서비스</td></tr>
@@ -1614,7 +1615,7 @@
         <p style="font-size:13px;line-height:1.6;color:var(--ink-2);margin-bottom:18px" data-i18n-html="shell.infoNotice">
           본 도구는 <strong>PoC</strong>(개념 검증)이며 행정 보조용입니다 — 실제 환자 정보를 입력하지 마시고, 최종 청구·제출 전 원본 고시·매뉴얼을 반드시 확인하십시오. 모든 다운로드·인쇄물(.xlsx · .csv · .ics · PDF)에는 「PoC — 실제 제출 불가 · 데모 데이터」 표시와 <code>_PoC</code> 파일명이 붙습니다.<br>
           내장 상병·행위 표는 <strong>예시·발췌</strong>입니다 — 조직 › 마스터 업로드에서 KOICD 상병마스터와 심평원 행위·수가 마스터(xlsx)를 올리면 상병 정비·심사결과 대조(자보·건보)·검색·AI 어시스트가 그 표를 기준으로 동작합니다 (공개 참조표, 이 브라우저에만 보관). 건보 조정사유 분류와 이의신청 기한(통보일 + 90일)은 <strong>설명용 예시</strong>이며 실제 심평원 코드·서식이 아닙니다 — 「확인 필요」 표시를 따르세요. 환자 영역의 지불보증·발급 대장·비급여 동의 추적기는 가명 환자번호만 저장합니다.<br>
-          파일 변환·검증·양식 처리는 브라우저 안에서만 이루어지며, 업로드한 엑셀·주민등록번호는 외부로 전송되지 않습니다. 워크스페이스는 사용자별 <strong>PIN</strong>으로 잠기고, 이름·번호를 담는 저장 항목은 PIN으로 보호되는 워크스페이스 키로 <strong>AES-GCM 암호화</strong>되어 이 브라우저에만 보관됩니다. 누가 무엇을 처리했는지는 가명(****1234) 기준의 활동 기록에 남습니다.<br>
+          파일 변환·검증·양식 처리는 브라우저 안에서만 이루어지며, 업로드한 엑셀·주민등록번호는 외부로 전송되지 않습니다. 워크스페이스는 사용자별 <strong>PIN</strong>으로 잠기고, 이름·번호를 담는 저장 항목은 PIN으로 보호되는 워크스페이스 키로 <strong>AES-GCM 암호화</strong>되어 이 브라우저에만 보관됩니다. 잠금을 해제하면 세션 키가 <strong>추출 불가 CryptoKey</strong>로 브라우저(IndexedDB)에 저장되어 새로 고침·탭 재열기 후에도 세션 길이(기본 8시간)와 무활동 시간(기본 10분) 안에서는 PIN 없이 이어집니다 — 그 시간 안에 잠기지 않은 브라우저 앞에 앉은 사람은 누구든 앱을 쓸 수 있으니 자리를 비울 때는 잠그세요. 누가 무엇을 처리했는지는 가명(****1234) 기준의 활동 기록에 남습니다.<br>
           예외 두 곳 — <strong>AI 어시스트</strong> 드로어의 메모는 사용자별 동의 후, 자동 마스킹과 전송 내용 미리보기를 거쳐 외부 AI 서버(ai.pb.gurum.se → Amazon Bedrock, 스톡홀름)로 전송됩니다 (서버에 저장되지 않고, 이 브라우저에도 남기지 않습니다). <strong>실시간 접수 현황판</strong>은 공유 PocketBase(clinic-admin.pb.gurum.se)에 기록되는 공개 데모 보드이며, 카드 내용은 워크스페이스 키로 종단간 암호화됩니다.
           자세한 내용은 <a class="small-link" href="#" id="info-privacy-link">데이터 처리 현황 (PoC)</a>. 처음이라면 메뉴의 <strong>▶ 시연</strong> — 샘플 데이터로 채우고 7단계 화면 안내를 따라가 보세요.
         </p>
@@ -1866,7 +1867,7 @@
       </div>
 
       <div class="sec-section">
-        <h5 data-i18n="users.addH">로그인 발급 (원장 · 열려 있는 동안 — 마스터키를 새 PIN으로 한 번 더 감쌉니다)</h5>
+        <h5 data-i18n="users.addH">로그인 발급 (원장 · PIN 재확인 후 마스터키를 새 PIN으로 한 번 더 감쌉니다)</h5>
         <p class="sec-note" id="users-add-note" style="margin-bottom:8px"></p>
         <form id="users-add-form" class="sec-inline" autocomplete="off">
           <div class="field"><label for="users-add-name" data-i18n="lock.nameLabel">이름 · 이니셜</label><input id="users-add-name" type="text" maxlength="20" required></div>
@@ -1890,11 +1891,37 @@
         <div class="sec-inline two" style="align-items:center">
           <div class="field"><label for="users-autolock" data-i18n="users.idleLabel">무활동 시</label>
             <select id="users-autolock"><option value="5" data-i18n="users.min5">5분</option><option value="10" data-i18n="users.min10">10분</option><option value="30" data-i18n="users.min30">30분</option></select></div>
-          <p class="sec-note" data-i18n="users.autolockNote">화면을 60초 이상 벗어나면(다른 탭·앱) 항상 잠깁니다. 잠기면 마스터키가 메모리에서 지워지고 화면이 가려집니다.</p>
+          <p class="sec-note" data-i18n="users.autolockNote">화면을 60초 이상 벗어나면(다른 탭·앱) 항상 잠깁니다. 잠기면 세션 키가 메모리와 브라우저 저장소(IndexedDB)에서 지워지고 화면이 가려집니다.</p>
           <button type="button" class="btn secondary" id="users-lock-now" data-i18n="users.lockNow">지금 잠금</button>
         </div>
       </div>
+
+      <div class="sec-section">
+        <h5 data-i18n="users.sessionH">세션 유지 (새로 고침 · 탭 재열기)</h5>
+        <div class="sec-inline two" style="align-items:center">
+          <div class="field"><label for="users-session" data-i18n="users.sessionLabel">잠금 해제 유지</label>
+            <select id="users-session"><option value="1h" data-i18n="users.session1h">1시간</option><option value="4h" data-i18n="users.session4h">4시간</option><option value="8h" data-i18n="users.session8h">8시간</option><option value="tab" data-i18n="users.sessionTab">탭을 닫으면 잠금</option></select></div>
+          <p class="sec-note" data-i18n="users.sessionNote">이 시간 안에는 새로 고침하거나 탭을 다시 열어도 PIN 없이 이어집니다 (무활동 잠금은 그대로). 세션 키는 내보낼 수 없는 CryptoKey로 이 브라우저의 IndexedDB에만 저장되고 잠금·만료 시 삭제됩니다. 잠기지 않은 브라우저 앞에 앉은 사람은 누구든 이 시간 안에 앱을 쓸 수 있으니 자리를 비울 때는 「지금 잠금」. 로그인 발급·PIN 재설정은 PIN을 다시 묻습니다. 변경은 원장만.</p>
+        </div>
+      </div>
       <p class="sec-msg" id="users-msg" hidden></p>
+    </div>
+  </div>
+
+  <!-- PIN 재확인 — key management (login issue · PIN reset) needs the raw master key; the session key in IndexedDB cannot
+       provide it, so Session.requireRaw() asks the current user's PIN here (js/security/lockscreen.js reauth()). -->
+  <div class="welcome-scrim" id="reauth-scrim" role="dialog" aria-modal="true" aria-labelledby="reauth-title">
+    <div class="welcome reauth">
+      <button type="button" class="close-x" id="reauth-close" aria-label="닫기" data-i18n-attr="aria-label:common.close">×</button>
+      <div class="eyebrow" data-i18n="lock.reauthEyebrow">키 관리 · PIN 재확인</div>
+      <h2 id="reauth-title" data-i18n="lock.reauthTitle">PIN 재확인</h2>
+      <p class="sec-note" data-i18n-html="lock.reauthNote">로그인 발급·PIN 재설정은 마스터키를 새 PIN으로 다시 감싸야 하므로 현재 사용자 <strong id="reauth-user">—</strong>의 PIN을 다시 확인합니다. 이 세션이 PIN 없이 이어졌거나(새로 고침·탭 재열기) PIN 입력 후 5분이 지났을 때 묻습니다.</p>
+      <form id="reauth-form" class="lock-row" autocomplete="off">
+        <input id="reauth-pin" type="password" inputmode="numeric" pattern="\d{4,8}" maxlength="8" placeholder="PIN" aria-label="PIN" autocomplete="current-password">
+        <button type="submit" class="btn" id="reauth-submit" data-i18n="lock.reauthBtn">확인</button>
+        <button type="button" class="btn secondary" id="reauth-cancel" data-i18n="lock.reauthCancel">취소</button>
+      </form>
+      <p class="lock-err" id="reauth-err" hidden></p>
     </div>
   </div>
 

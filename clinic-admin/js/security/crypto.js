@@ -4,10 +4,15 @@
    Hierarchy
      PIN ─PBKDF2-SHA256(≥300k, per-user salt)─▶ wrap key (AES-GCM 256)
      wrap key ─AES-GCM─▶ wrapped master key   (stored, one per user)
-     master key (AES-GCM 256, random, memory only while unlocked)
-     master key ─AES-GCM(random 96-bit IV)─▶ every sensitive Store value,
-                                              every IndexedDB attachment,
-                                              every 접수 보드 card payload.
+     master key (32 random bytes) — exists as RAW BYTES only for the moment between a PIN entry and
+                 (a) importSessionKey → a NON-EXTRACTABLE AES-GCM CryptoKey (the "session key", persisted in
+                     IndexedDB by session.js so a reload resumes without the PIN; it can encrypt/decrypt but
+                     never be exported), and
+                 (b) wrapMaster for key-management (a new user / PIN change) — needs the raw bytes again,
+                     which is why those operations re-ask the PIN (session.js requireRaw).
+     session key ─AES-GCM(random 96-bit IV)─▶ every sensitive Store value,
+                                               every IndexedDB attachment,
+                                               every 접수 보드 card payload.
    Envelope shape everywhere: { v: 1, iv: <b64>, ct: <b64> }. */
 
 const subtle = crypto.subtle;
@@ -42,12 +47,11 @@ async function sha384b64(buf) {
 const isEnvelope = (x) => !!x && typeof x === "object" && x.v === 1 && typeof x.iv === "string" && typeof x.ct === "string";
 
 /* ── master key ── */
-// extractable: true so an unlocked session can re-wrap it for a new user / PIN change.
-function generateMasterKey() {
-  return subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
-}
-function importMasterRaw(raw) {
-  return subtle.importKey("raw", raw, { name: "AES-GCM" }, true, ["encrypt", "decrypt"]);
+// 32 random bytes. Kept as bytes (not a CryptoKey) so the caller decides how long they live.
+function generateMasterRaw() { return randomBytes(32); }
+// The session key: NON-extractable. encrypt/decrypt only — exportKey() on it throws InvalidAccessError.
+function importSessionKey(raw) {
+  return subtle.importKey("raw", raw, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
 }
 
 /* ── PIN → wrap key ── */
@@ -58,21 +62,21 @@ async function deriveWrapKey(pin, saltB64, iterations = PBKDF2_ITERATIONS) {
     base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
 }
 
-// → { salt, iterations, wrapped: {v, iv, ct} }
-async function wrapMaster(masterKey, pin) {
+// raw master bytes → { salt, iterations, wrapped: {v, iv, ct} }
+async function wrapMaster(raw, pin) {
+  if (!(raw instanceof Uint8Array) || raw.length !== 32) throw new Error("wrapMaster: raw master bytes required");
   const salt = b64(randomBytes(16));
   const iterations = PBKDF2_ITERATIONS;
   const wk = await deriveWrapKey(pin, salt, iterations);
-  const raw = await subtle.exportKey("raw", masterKey);
   const iv = randomBytes(12);
   const ct = await subtle.encrypt({ name: "AES-GCM", iv }, wk, raw);
   return { salt, iterations, wrapped: { v: 1, iv: b64(iv), ct: b64(ct) } };
 }
-// Throws on a wrong PIN (AES-GCM tag mismatch → OperationError).
+// → raw master bytes (Uint8Array). Throws on a wrong PIN (AES-GCM tag mismatch → OperationError).
 async function unwrapMaster({ salt, iterations, wrapped }, pin) {
   const wk = await deriveWrapKey(pin, salt, iterations);
   const raw = await subtle.decrypt({ name: "AES-GCM", iv: unb64(wrapped.iv) }, wk, unb64(wrapped.ct));
-  return importMasterRaw(raw);
+  return new Uint8Array(raw);
 }
 
 /* ── payload encryption under the master key ── */
@@ -93,6 +97,6 @@ const decryptString = async (key, env) => dec.decode(await decryptBytes(key, env
 
 export {
   PBKDF2_ITERATIONS, randomBytes, b64, unb64, sha256hex, sha384b64, isEnvelope,
-  generateMasterKey, importMasterRaw, deriveWrapKey, wrapMaster, unwrapMaster,
+  generateMasterRaw, importSessionKey, deriveWrapKey, wrapMaster, unwrapMaster,
   encryptBytes, decryptBytes, encryptJSON, decryptJSON, encryptString, decryptString
 };

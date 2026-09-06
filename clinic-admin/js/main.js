@@ -26,7 +26,7 @@ import * as Appeal from "./tabs/tab-appeal.js";
 import { boot as bootBoard } from "./board.js";
 
 // Bump on every user-visible release; shown in the info modal next to the SW cache name.
-export const APP_VERSION = "2.4.0-poc";
+export const APP_VERSION = "2.5.0-poc";
 
 boot([Tab1, Tab2, Tab3, Tab4, Tab5, Tab6, Tab7, Tab8, Tab9, Claims, Guarantee, Docs, Consent, Nhis, Appeal, Tab0], { version: APP_VERSION })
   .then(() => bootBoard());

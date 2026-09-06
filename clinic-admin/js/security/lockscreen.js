@@ -1,10 +1,14 @@
-/* clinic-admin — security UI: lock screen (first-run setup / unlock / backup restore), idle + visibility
-   auto-lock, the 사용자 panel, the 데이터 처리 현황 panel, the PoC banner and the topbar user chip.
-   Import position: files/lifecycle → lockscreen → shell (never imported by core/ or tabs/).
+/* clinic-admin — security UI: lock screen (first-run setup / unlock / backup restore / PIN 재확인), idle +
+   visibility + absolute-expiry auto-lock, the 사용자 panel, the 데이터 처리 현황 panel, the PoC banner and the
+   topbar user chip. Import position: files/lifecycle → lockscreen → shell (never imported by core/ or tabs/).
 
    Boot contract: shell.boot() awaits Lock.ready() before loading data and initialising tabs, so
-   every tab always starts with an unlocked Store. Later locks just drop the key + cover the UI;
-   the next unlock re-decrypts and re-emits `store:<key>` so tab renders refresh.
+   every tab always starts with an unlocked Store. Lock.init() covers the shell at once, then asks
+   Session.restore() to resume from the IndexedDB session record; only when that fails does a pane
+   (setup / unlock) appear — a resumed session never sees the PIN pane. Later locks just drop the key
+   + cover the UI; the next unlock re-decrypts and re-emits `store:<key>` so tab renders refresh.
+   Re-auth: Session.requireRaw() (login issue · PIN reset) calls the "PIN 재확인" dialog registered here
+   via Session.setReauthPrompt — the current user's PIN, same backoff as the lock screen.
    i18n: every string goes through t(); the lock screen works while locked because core/i18n.js is a leaf
    (plain localStorage, not a Store key). onLangChange re-paints whatever pane/panel is open. */
 import { $, $$, esc, Toast, Dialog, relTime, roleLabel } from "../core/ui.js";
@@ -26,7 +30,7 @@ const Lock = (() => {
   const scrim = () => $("#lock-scrim");
   let readyResolve;
   const ready = new Promise(res => { readyResolve = res; });
-  let booted = false, selectedUser = null, countdownT = null, idleT = null, hiddenT = null, hiddenAt = 0, lastReset = 0;
+  let booted = false, selectedUser = null, countdownT = null, idleT = null, hiddenT = null, expiryT = null, hiddenAt = 0, lastReset = 0;
   let restoreBk = null, pane = "unlock", reason = "", backoffShown = false;
   let created = false; // this page load created the workspace → shell shows the 기관 정보 first-run step
 
@@ -35,19 +39,30 @@ const Lock = (() => {
     document.body.classList.remove("more-open");
     EventBus.emitLocal("shell:closeAll", true); // shell: ⋯ sheet + AI drawer
   }
+  // "none" = scrim up, no pane (the moment between boot and Session.restore() deciding).
   function showPane(name) {
     pane = name;
     ["setup", "unlock", "restore"].forEach(p => { const el = $(`#lock-${p}`); if (el) el.hidden = p !== name; });
     const tt = $("#lock-title");
     if (tt) tt.innerHTML = t(name === "setup" ? "lock.title.setup" : name === "restore" ? "lock.title.restore" : "lock.title.locked");
+    if (name === "unlock") renderHint();
   }
   function setErr(id, msg) { const el = $(id); if (!el) return; el.textContent = msg || ""; el.hidden = !msg; }
+  const absLabel = () => { const mode = Session.sessionMode(); return mode === "tab" ? t("users.sessionTab") : t("lock.hours", { h: parseInt(mode, 10) }); };
   function renderReason() {
     const why = $("#lock-reason"); if (!why) return;
     why.textContent = reason === "idle" ? t("lock.reasonIdle", { m: Session.autolockMin() })
       : reason === "hidden" ? t("lock.reasonHidden")
-      : reason === "manual" ? t("lock.reasonManual") : "";
+      : reason === "manual" ? t("lock.reasonManual")
+      : reason === "expired" ? t("lock.reasonExpired", { abs: absLabel() })
+      : reason === "peer" ? t("lock.reasonPeer") : "";
     why.hidden = !why.textContent;
+  }
+  // Unlock pane: one line that states the persistence contract with the CURRENT settings.
+  function renderHint() {
+    const el = $("#lock-persist-hint"); if (!el) return;
+    const m = Session.autolockMin();
+    el.textContent = Session.sessionMode() === "tab" ? t("lock.persistHintTab", { m }) : t("lock.persistHint", { abs: absLabel(), m });
   }
 
   function renderUsers() {
@@ -97,17 +112,27 @@ const Lock = (() => {
     updateChip();
   }
 
-  /* ── idle / visibility auto-lock ── */
+  /* ── idle / visibility / absolute-expiry auto-lock ── */
+  function armExpiry() {
+    clearTimeout(expiryT);
+    const at = Session.expiresAt();
+    if (!Session.isUnlocked() || !at) return;
+    const left = at - Date.now();
+    if (left <= 0) { lock("expired"); return; }
+    expiryT = setTimeout(() => lock("expired"), Math.min(left, 2147000000)); // setTimeout caps at ~24.8 days
+  }
   function armIdle() {
     clearTimeout(idleT);
     if (!Session.isUnlocked()) return;
     idleT = setTimeout(() => lock("idle"), Session.autolockMin() * 60000);
+    armExpiry();
   }
   function onActivity() {
     const now = Date.now();
     if (now - lastReset < 1000) return; // throttle
     lastReset = now;
     armIdle();
+    Session.touch(); // lastActiveAt in the session record — session.js throttles the write to ≥30 s
   }
   ["pointerdown", "keydown", "touchstart", "wheel"].forEach(ev => document.addEventListener(ev, onActivity, { passive: true, capture: true }));
   document.addEventListener("visibilitychange", () => {
@@ -118,16 +143,66 @@ const Lock = (() => {
     } else {
       clearTimeout(hiddenT);
       if (hiddenAt && Date.now() - hiddenAt > HIDDEN_LOCK_MS && Session.isUnlocked()) lock("hidden");
+      else if (Session.isUnlocked() && Session.expiresAt() && Date.now() >= Session.expiresAt()) lock("expired"); // timers stall in a suspended tab
       hiddenAt = 0;
       armIdle();
     }
   });
 
+  const WHY_KEY = { idle: "lock.whyIdle", hidden: "lock.whyHidden", expired: "lock.whyExpired", manual: "lock.whyManual" };
   function lock(why = "manual") {
     if (!Session.isUnlocked()) return;
-    clearTimeout(idleT); clearTimeout(hiddenT);
-    ActivityLog.add({ tag: "system", action: t("lock.logLock", { why: t(why === "idle" ? "lock.whyIdle" : why === "hidden" ? "lock.whyHidden" : "lock.whyManual") }), meta: { silent: true } });
-    Session.lock(why); // → store bridge → session:locked → open()
+    clearTimeout(idleT); clearTimeout(hiddenT); clearTimeout(expiryT);
+    ActivityLog.add({ tag: "system", action: t("lock.logLock", { why: t(WHY_KEY[why] || "lock.whyManual") }), meta: { silent: true } });
+    Session.lock(why); // → store bridge → session:locked → open(); deletes the IndexedDB session record; tells other tabs
+  }
+
+  /* ── PIN 재확인 — Session.requireRaw() calls this when key management needs the raw master key and the
+     post-PIN grant has lapsed (or the session was resumed from IndexedDB, so no PIN was typed this page load).
+     Resolves the raw bytes (Session.verifyPin) or null when cancelled. Wrong PIN → the shared backoff. ── */
+  function reauth() {
+    return new Promise((resolve) => {
+      const sc = $("#reauth-scrim"), form = $("#reauth-form"), pinEl = $("#reauth-pin"), btn = $("#reauth-submit");
+      const me = Session.user();
+      if (!sc || !form || !me) return resolve(null);
+      const who = $("#reauth-user"); if (who) who.textContent = `${me.name} · ${roleLabel(me.role)}`;
+      pinEl.value = ""; setErr("#reauth-err", "");
+      let cd = null, shown = false, done = false;
+      const tick = () => {
+        const u = Session.users().find(x => x.id === me.id);
+        const left = u ? Math.ceil(((u.lockedUntil || 0) - Date.now()) / 1000) : 0;
+        if (left > 0) { btn.disabled = true; shown = true; setErr("#reauth-err", t("lock.errBackoff", { s: left })); }
+        else { btn.disabled = false; clearInterval(cd); if (shown) { shown = false; setErr("#reauth-err", ""); } }
+      };
+      const arm = () => { clearInterval(cd); tick(); cd = setInterval(tick, 250); };
+      const cancelBtn = $("#reauth-cancel"), closeBtn = $("#reauth-close");
+      const finish = (raw) => {
+        if (done) return; done = true;
+        clearInterval(cd);
+        form.removeEventListener("submit", onSubmit); cancelBtn?.removeEventListener("click", onCancel); closeBtn?.removeEventListener("click", onCancel); sc.removeEventListener("click", onScrim);
+        pinEl.value = "";
+        Dialog.close(sc);
+        resolve(raw);
+      };
+      const onCancel = () => finish(null);
+      const onScrim = (e) => { if (e.target === sc) finish(null); };
+      const onSubmit = async (e) => {
+        e.preventDefault();
+        const pin = pinEl.value;
+        btn.disabled = true;
+        try { finish(await Session.verifyPin(pin)); }
+        catch (err) {
+          pinEl.value = "";
+          if (err.code === "pin-format") { setErr("#reauth-err", t("lock.errPinFormat")); btn.disabled = false; }
+          else if (err.code === "wrong-pin" || err.code === "backoff") arm();
+          else { setErr("#reauth-err", err.message || String(err)); btn.disabled = false; }
+          pinEl.focus();
+        }
+      };
+      form.addEventListener("submit", onSubmit); cancelBtn?.addEventListener("click", onCancel); closeBtn?.addEventListener("click", onCancel); sc.addEventListener("click", onScrim);
+      arm();
+      Dialog.open(sc, "#reauth-pin");
+    });
   }
 
   function renderRestoreMeta() {
@@ -199,7 +274,7 @@ const Lock = (() => {
     $("#rail-lock")?.addEventListener("click", () => lock("manual"));
     $("#topbar-lock")?.addEventListener("click", () => lock("manual"));
 
-    EventBus.on("session:unlocked", async () => {
+    EventBus.on("session:unlocked", async (p) => {
       await Store.whenUnlocked();
       try { await purgeExpired(); } catch (e) { console.warn("purge", e); }
       close();
@@ -207,10 +282,11 @@ const Lock = (() => {
       const u = Session.user();
       if (booted) Toast.show({ tag: "system", html: t("lock.unlockedToast", { name: esc(u.name), role: esc(roleLabel(u.role)) }) });
       if (!booted) { booted = true; readyResolve(u); }
-      ActivityLog.add({ tag: "system", action: t("lock.logUnlock"), meta: { silent: true } });
+      // A resumed session (IndexedDB record, no PIN typed) is logged as such — the audit trail must show it.
+      ActivityLog.add({ tag: "system", action: t(p?.resumed ? "lock.logResume" : "lock.logUnlock"), meta: { silent: true } });
     });
     EventBus.on("session:locked", (why) => open(why));
-    EventBus.on("session:users", () => { if (scrim()?.classList.contains("open")) renderUsers(); updateChip(); });
+    EventBus.on("session:users", () => { if (scrim()?.classList.contains("open")) { renderUsers(); renderHint(); } updateChip(); });
     // Language toggle while the lock screen is up: static copy is already swapped by applyStatic; redo the
     // dynamic parts (title, reason line, user roles, restore meta, any backoff countdown).
     onLangChange(() => {
@@ -232,18 +308,31 @@ const Lock = (() => {
 
   function init() {
     wire();
-    open();
+    Session.setReauthPrompt(reauth);
+    // Cover the shell now, decide the pane after Session.restore(): a resumed session closes the scrim from the
+    // session:unlocked handler and never sees a PIN pane; anything else opens setup / unlock as before.
+    if (!Session.exists()) { open(); return ready; } // first run: nothing to resume, setup pane at once
+    const sc = scrim();
+    if (sc) {
+      document.body.classList.add("locked");
+      const shell = $(".frame.shell"); if (shell) shell.inert = true;
+      sc.classList.add("open");
+      showPane("none");
+    }
+    Session.restore().then((resumed) => { if (!resumed) open(); }).catch((e) => { console.warn("session restore", e); open(); });
     return ready;
   }
-  return { init, ready: () => ready, lock, open, openRestore, armIdle, justCreated: () => created };
+  return { init, ready: () => ready, lock, open, openRestore, armIdle, reauth, justCreated: () => created };
 })();
 
-/* topbar user chip */
+/* topbar user chip — tooltip carries the absolute session expiry ("세션 만료 HH:MM"). */
 function updateChip() {
   const chip = $("#topbar-user"); if (!chip) return;
   const u = Session.user();
   chip.style.display = u ? "inline-flex" : "none";
   const tt = $("#topbar-user-text"); if (tt && u) tt.textContent = `${u.name} · ${roleLabel(u.role)}`;
+  const at = Session.expiresAt();
+  chip.title = t("shell.userChipTitle") + (u && at ? ` · ${t("shell.userChipExpiry", { t: new Date(at).toLocaleTimeString(getLang() === "en" ? "en-GB" : "ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false }) })}` : "");
 }
 
 /* ─────────────────────────── 사용자 panel ───────────────────────────
@@ -260,6 +349,7 @@ const UsersPanel = (() => {
     const owner = Session.isOwner();
     $("#users-me").innerHTML = `<strong>${esc(me.name)}</strong> · ${esc(roleLabel(me.role))}${owner ? ` <span class="sec-tag">${esc(t("users.adminTag"))}</span>` : ""}`;
     $("#users-autolock").value = String(Session.autolockMin());
+    const sessSel = $("#users-session"); if (sessSel) { sessSel.value = Session.sessionMode(); sessSel.disabled = !owner; sessSel.title = owner ? "" : t("common.ownerRequired"); }
     const staff = Staff.list();
     const rows = Session.users().map(u => ({ u, s: staff.find(x => x.userId === u.id) || staff.find(x => x.id === u.staffId) || null }));
     $("#users-list").innerHTML = rows.map(({ u, s }) => `
@@ -317,6 +407,16 @@ const UsersPanel = (() => {
     scrim()?.addEventListener("click", e => { if (e.target.id === "users-scrim") close(); });
     $("#users-lock-now")?.addEventListener("click", () => { close(); Lock.lock("manual"); });
     $("#users-autolock")?.addEventListener("change", (e) => { Session.setAutolock(e.target.value); Lock.armIdle(); msg(t("users.msgAutolock", { m: e.target.value }), "ok"); });
+    const modeLabel = (v) => v === "tab" ? t("users.sessionTab") : t("lock.hours", { h: parseInt(v, 10) });
+    $("#users-session")?.addEventListener("change", async (e) => {
+      const v = e.target.value;
+      try {
+        await Session.setSessionMode(v);
+        Lock.armIdle(); updateChip();
+        ActivityLog.add({ tag: "system", action: t("users.logSession", { v: modeLabel(v) }), meta: { silent: true } });
+        msg(t("users.msgSession", { v: modeLabel(v) }), "ok");
+      } catch (err) { msg(err.message || String(err), "err"); render(); }
+    });
     $("#users-add-form")?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const name = $("#users-add-name").value.trim(), role = $("#users-add-role").value, pin = $("#users-add-pin").value;
@@ -361,7 +461,7 @@ const PrivacyPanel = (() => {
     const encLabel = (e) => e === true ? t("privacy.encYes") : e === false ? t("privacy.encNo") : String(e);
     $("#privacy-table").innerHTML = rows.map(r => `
       <tr class="${r.present ? "" : "absent"}${r.unregistered ? " unregistered" : ""}">
-        <td>${r.id === "__ws" || r.id === "__internal" ? "" : `<input type="checkbox" data-destroy="${esc(r.id)}" ${r.present ? "" : "disabled"} aria-label="${esc(t("privacy.destroyAria", { label: r.label }))}">`}</td>
+        <td>${r.id === "__ws" || r.id === "__internal" || r.id === "session" ? "" : `<input type="checkbox" data-destroy="${esc(r.id)}" ${r.present ? "" : "disabled"} aria-label="${esc(t("privacy.destroyAria", { label: r.label }))}">`}</td>
         <td><strong>${esc(r.label)}</strong><div class="sec-detail">${esc(r.detail || "")} · <code>${esc(r.store || (r.keys.length ? r.keys.join(", ") : "—"))}</code></div></td>
         <td>${esc(r.purpose)}<div class="sec-detail">${esc(r.basis)}</div></td>
         <td class="${r.encrypted === true ? "enc-yes" : ""}">${esc(encLabel(r.encrypted))}</td>

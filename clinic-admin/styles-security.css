@@ -57,6 +57,11 @@ body.locked .frame.shell, body.locked .toast-tray, body.locked .poc-banner { vis
 .lock-err { color: var(--err); font-size: 12.5px; margin-top: 10px; min-height: 1.2em; }
 .lock-err[hidden] { display: none; }
 .lock-note { font-size: 12px; line-height: 1.55; color: var(--muted); margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.lock-persist { font-size: 11.5px; line-height: 1.5; color: var(--muted); margin-top: 10px; }
+.lock-persist:empty { display: none; }
+.welcome.reauth { max-width: 460px; }
+.welcome.reauth .lock-row { margin-top: 12px; }
+.welcome.reauth input[type=password] { font-family: "JetBrains Mono", monospace; letter-spacing: 4px; }
 .lock-note strong { color: var(--ink-2); }
 .lock-note .link { background: none; border: none; padding: 0; color: var(--accent); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; font: inherit; }
 .lock-warn { background: rgba(184,122,28,0.10); border: 1px solid rgba(184,122,28,0.35); border-radius: 6px; padding: 10px 12px; font-size: 12.5px; line-height: 1.5; color: var(--ink-2); margin: 4px 0 14px; }
