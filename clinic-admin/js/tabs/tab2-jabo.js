@@ -1,8 +1,9 @@
-/* clinic-admin — Tab 02 · 자보 심사결과 정산
-   Primary path: file-based reconciliation — the 청구 명세서 export (one `claims` batch, shared with tab 01 — see
-   tabs/claims-shared.js) ⨝ 심평원 심사결과통보 (a `review` batch linked by meta.claimsBatchId), joined on
-   명세서번호 + 행위코드 → per-line 청구 vs 인정 delta, grouped by 조정사유 and month. A batch-level 보험사 select
-   (default Insurers.lastUsed()) is stored on every recon history entry.
+/* clinic-admin — 청구 › 심사결과 대조 (자보 payer)
+   Primary path: file-based reconciliation — the 자보 청구 명세서 export (a `claims` batch with meta.payer "auto", shared with
+   상병 정비 — see tabs/claims-shared.js) ⨝ 심평원 심사결과통보 (a `review` batch linked by meta.claimsBatchId), joined on
+   명세서번호 + 행위코드 → per-line 청구 vs 인정 delta, grouped by 조정사유 and month. The join + tables are the shared
+   renderReconciliation (also used by 건보 대조); a batch-level 보험사 select (default Insurers.lastUsed()) is stored on every
+   recon history entry. Rows with a cut carry 이의신청 준비 → tab-appeal { create }; ctx { stmt } from 이의신청 highlights a 명세서.
    Secondary path: manual single-case entry. Receives ctx from 07/06: activateTab("tab-jabo", { dx, items, pid,
    insurer?, claim?, accident? }) → sets the 주상병, adds each 행위, prefills the 환자번호.
    Cross-tab actions per reconciliation row: 상병 정비에서 보기 (01, focused on the 명세서) · 행위 검색 (06) ·
@@ -15,7 +16,8 @@ import { readSpreadsheet, downloadXLSX, headerRow } from "../core/files.js";
 import { Masters, toEdi, toDotted } from "../core/masters.js";
 import { activateTab } from "../core/nav.js";
 import { Insurers, Patients } from "../core/entities.js";
-import { currentClaimsBatch, reviewFor, ingestClaimsFile, createReviewBatch, itemLinesOf, stmtCodes, renderBatchStrip, onClaimsChange, ensureSampleBatch, loadSampleRows } from "./claims-shared.js";
+import { currentClaimsBatch, reviewFor, ingestClaimsFile, createReviewBatch, stmtCodes, renderBatchStrip, onClaimsChange, ensureSampleBatch, loadSampleRows,
+         renderReconciliation, reconExportRows, lineReasonOf, groupCuts, reasonKeysOf, payerLabel, batchPayer, Appeals } from "./claims-shared.js";
 
 let seedFn = null;
 export function seed() { return seedFn ? seedFn() : Promise.resolve(); }
@@ -42,132 +44,29 @@ export function init(ctx) {
     sel.value = cur;
   };
 
-  /* ───────────── Primary: file-based reconciliation ───────────── */
-  let lastRecon = null, lastReconStatus = null, lastClaimsId = null;
+  /* ───────────── Primary: file-based reconciliation (자보 payer) ─────────────
+     The join + tables live in claims-shared.js (renderReconciliation) and are shared with 건보 대조; this panel owns the
+     보험사 select, the recon history entry (홈 KPIs), the status line and the XLSX footer rows. */
+  let lastRecon = null, lastPair = null, lastReconStatus = null, lastClaimsId = null, focusStmt = null;
   const reconStatus = (kind, fn) => { lastReconStatus = { kind, fn }; setStatus($("#jabo-recon-status"), kind, fn()); };
   const ASK_REASONS = new Set(["site_mismatch", "dup_same_site"]);
-
-  // lines: itemLinesOf(claimsBatch) · review: reviewBatch.rows (parseReview shape)
-  const reconcile = (lines, review) => {
-    const revIdx = new Map();
-    for (const r of review) revIdx.set(`${r.stmt}|${r.code}`, r);
-    const out = [];
-    const matched = new Set();
-    for (const c of lines) {
-      const key = `${c.stmt}|${c.code}`;
-      const r = revIdx.get(key);
-      const approved = r ? r.approved : null;
-      const delta = approved == null ? 0 : c.claimed - approved;
-      const status = !r ? "none" : delta <= 0 ? "full" : approved === 0 ? "cut_all" : "cut_part";
-      if (r) matched.add(key);
-      out.push({ ...c, approvedQty: r ? r.approvedQty : null, approved, delta, status, reasonKey: r?.reasonKey || "", reasonText: r?.reasonText || "", hasCut: delta > 0 });
-    }
-    const orphans = review.filter(r => !matched.has(`${r.stmt}|${r.code}`)).map(r => ({ stmt: r.stmt, code: r.code, approved: r.approved, reason: r.reasonText }));
-    const totals = out.reduce((a, l) => { a.claimed += l.claimed; if (l.approved != null) { a.approved += l.approved; a.reviewed += l.claimed; } a.cut += Math.max(0, l.delta); return a; }, { claimed: 0, approved: 0, reviewed: 0, cut: 0 });
-    const byMonth = new Map();
-    for (const l of out) {
-      const m = (l.date || "").slice(0, 7) || "—";
-      if (!byMonth.has(m)) byMonth.set(m, { month: m, claimed: 0, approved: 0, cut: 0, lines: 0, unreviewed: 0 });
-      const g = byMonth.get(m); g.lines++; g.claimed += l.claimed;
-      if (l.approved == null) g.unreviewed++; else { g.approved += l.approved; g.cut += Math.max(0, l.delta); }
-    }
-    const stmts = new Set(out.map(l => l.stmt)).size;
-    return { lines: out, orphans, totals, stmts, byMonth: [...byMonth.values()].sort((a, b) => a.month.localeCompare(b.month)) };
-  };
-  // Reason text for a line — file wording first (the notice's own words win), else the example class in the UI
-  // language (matched by key), else "reason not stated". Resolved at render time so it follows the language.
-  const lineReason = (l) => {
-    if (!l.hasCut) return "";
-    const known = REASONS.find(x => x.key === l.reasonKey);
-    if (known) return pick(known, "label");
-    return l.reasonText || t("jabo.reasonUnknown");
-  };
-  // Group the cut lines by reason — `keyOf` = display text (tables) or the stable reason key (history → 00 KPI tile).
-  const groupBy = (lines, keyOf) => {
-    const byReason = new Map();
-    for (const l of lines) if (l.hasCut) {
-      const k = keyOf(l);
-      if (!byReason.has(k)) byReason.set(k, { reason: k, lines: 0, cut: 0 });
-      const g = byReason.get(k); g.lines++; g.cut += l.delta;
-    }
-    return [...byReason.values()].sort((a, b) => b.cut - a.cut);
-  };
-  const groupByReason = (lines) => groupBy(lines, lineReason);
-  const reasonKeys = (lines) => groupBy(lines, (l) => l.reasonKey || l.reasonText || "other").map(g => ({ key: g.reason, cut: g.cut, lines: g.lines }));
-
-  const STATUS_CLS = { full: "ok", cut_part: "warn", cut_all: "err", none: "info" };
-  const statusLabel = (s) => t("jabo.status." + s);
+  const knownReason = (key) => { const r = REASONS.find(x => x.key === key); return r ? pick(r, "label") : null; };
+  const lineReason = lineReasonOf(knownReason);
+  const groupByReason = (lines) => groupCuts(lines, lineReason);
   const askPrefill = (l) => {
-    const batch = currentClaimsBatch();
+    const batch = lastPair?.claims || currentClaimsBatch("auto");
     const dx = stmtCodes(batch, l.stmt).join(", ") || "—";
     return t("jabo.askPrefill", { stmt: l.stmt, who: Patients.alias(l.pid), dx, code: l.code, name: procName(l.code, l.name) || l.code, reason: lineReason(l) || "—" });
   };
-
-  const renderRecon = (res) => {
-    const { lines, orphans, totals, byMonth, stmts } = res;
-    const byReason = groupByReason(lines);
-    const rate = totals.reviewed ? Math.round((totals.cut / totals.reviewed) * 1000) / 10 : 0;
-    $("#jabo-recon-toolbar").style.display = "flex";
-    $("#jabo-recon-download").disabled = false;
-    $("#jabo-recon-summary").innerHTML = t("jabo.reconSummary", { s: stmts, l: lines.length, c: won(totals.claimed), a: won(totals.approved), cut: won(totals.cut), rate });
-
-    $("#jabo-recon-groups").innerHTML = `
-      <div class="recon-groups">
-        <div class="recon-group">
-          <h5>${esc(t("jabo.byReasonH"))} <span>${esc(t("jabo.exampleClass"))}</span></h5>
-          ${byReason.length ? `<table><thead><tr><th>${esc(t("jabo.thReason"))}</th><th class="code">${esc(t("jabo.thLines"))}</th><th class="code">${esc(t("jabo.thCut"))}</th></tr></thead><tbody>
-            ${byReason.map(g => `<tr><td>${esc(g.reason)}</td><td class="code" style="text-align:right">${g.lines}</td><td class="code" style="text-align:right; color:var(--accent)">−${fmtKRW(g.cut)}</td></tr>`).join("")}
-          </tbody></table>` : `<div class="empty-state small">${esc(t("jabo.noCuts"))}</div>`}
-        </div>
-        <div class="recon-group">
-          <h5>${esc(t("jabo.byMonthH"))}</h5>
-          <table><thead><tr><th>${esc(t("jabo.thMonth"))}</th><th class="code">${esc(t("jabo.thClaimed"))}</th><th class="code">${esc(t("jabo.thApproved"))}</th><th class="code">${esc(t("jabo.thAdj"))}</th><th class="code">${esc(t("jabo.thRate"))}</th></tr></thead><tbody>
-            ${byMonth.map(g => {
-              const rv = g.claimed ? Math.round((g.cut / g.claimed) * 1000) / 10 : 0;
-              return `<tr><td class="code">${esc(g.month)}${g.unreviewed ? ` <span class="pill info" title="${esc(t("jabo.unreviewedTitle"))}">${g.unreviewed}</span>` : ""}</td>
-                <td class="code" style="text-align:right">${fmtKRW(g.claimed)}</td><td class="code" style="text-align:right">${fmtKRW(g.approved)}</td>
-                <td class="code" style="text-align:right; color:var(--accent)">${g.cut ? "−" + fmtKRW(g.cut) : "0"}</td><td class="code" style="text-align:right">${rv}%</td></tr>`;
-            }).join("")}
-          </tbody></table>
-        </div>
-      </div>`;
-
-    $("#jabo-recon-result").innerHTML = `
-      <table>
-        <thead><tr>
-          <th class="code">${esc(t("jabo.thStmt"))}</th><th>${esc(t("jabo.fPid"))}</th><th class="code">${esc(t("jabo.fDate"))}</th><th class="code">${esc(t("jabo.thCode"))}</th><th>${esc(t("jabo.thName"))}</th>
-          <th class="code">${esc(t("jabo.thClaimed"))}</th><th class="code">${esc(t("jabo.thApproved"))}</th><th class="code">${esc(t("jabo.thDelta"))}</th><th>${esc(t("common.thResult"))}</th><th>${esc(t("jabo.thReason"))}</th><th>${esc(t("jabo.thActions"))}</th>
-        </tr></thead>
-        <tbody>
-          ${lines.map((l, i) => `<tr>
-              <td class="code">${esc(l.stmt)}</td><td>${esc(l.pid) || "—"}</td><td class="code">${esc(l.date)}</td>
-              <td class="code">${esc(l.code)}</td><td>${esc(procName(l.code, l.name)) || "—"}</td>
-              <td class="code" style="text-align:right">${fmtKRW(l.claimed)}<span class="qty-mini">×${l.qty}</span></td>
-              <td class="code" style="text-align:right">${l.approved == null ? "—" : fmtKRW(l.approved) + `<span class="qty-mini">×${l.approvedQty}</span>`}</td>
-              <td class="code" style="text-align:right${l.delta > 0 ? "; color:var(--accent); font-weight:600" : ""}">${l.delta > 0 ? "−" + fmtKRW(l.delta) : l.approved == null ? "—" : "0"}</td>
-              <td><span class="pill ${STATUS_CLS[l.status]}">${esc(statusLabel(l.status))}</span></td>
-              <td style="font-size:11px; color:var(--ink-2)">${esc(lineReason(l)) || "—"}</td>
-              <td class="actions">
-                <button type="button" class="row-act" data-act="kcd" data-i="${i}" title="${esc(t("jabo.actKcdTitle"))}">${esc(t("jabo.actKcd"))}</button>
-                <button type="button" class="row-act" data-act="search" data-i="${i}" title="${esc(t("jabo.actSearchTitle"))}">${esc(t("jabo.actSearch"))}</button>
-                ${l.hasCut && ASK_REASONS.has(l.reasonKey) ? `<button type="button" class="row-act accent" data-act="ask" data-i="${i}" title="${esc(t("jabo.actAskTitle"))}">${esc(t("jabo.actAsk"))}</button>` : ""}
-              </td>
-            </tr>`).join("")}
-          ${orphans.map(o => `<tr class="orphan">
-              <td class="code">${esc(o.stmt)}</td><td>—</td><td>—</td><td class="code">${esc(o.code)}</td><td><em>${esc(t("jabo.orphanLine"))}</em></td>
-              <td>—</td><td class="code" style="text-align:right">${fmtKRW(o.approved)}</td><td>—</td><td><span class="pill warn">${esc(t("jabo.status.orphan"))}</span></td><td style="font-size:11px">${esc(o.reason) || "—"}</td><td>—</td>
-            </tr>`).join("")}
-        </tbody>
-      </table>`;
-    $("#jabo-recon-result").querySelectorAll("button[data-act]").forEach(btn => btn.addEventListener("click", () => {
-      const l = lines[+btn.dataset.i]; if (!l) return;
-      if (btn.dataset.act === "kcd") activateTab("tab-kcd", { stmt: l.stmt });
-      else if (btn.dataset.act === "search") activateTab("tab-search", { query: l.code });
-      else if (btn.dataset.act === "ask") {
-        ActivityLog.push("jabo", t("jabo.logAsk", { code: l.code }), { pid: l.pid });
-        activateTab("tab-ai", { prefill: askPrefill(l), pid: l.pid, stmt: l.stmt });
-      }
-    }));
+  const reconHost = () => $("#jabo-recon-card");
+  const renderRecon = () => {
+    if (!lastPair) return null;
+    const res = renderReconciliation(reconHost(), {
+      claims: lastPair.claims, review: lastPair.review, payer: "auto", insurerSelect: true, procName, reasonLabel: knownReason,
+      askReasons: ASK_REASONS, askPrefill, insurer: () => reconInsurer.value || Insurers.lastUsed() || "", focusStmt
+    });
+    lastRecon = res;
+    return res;
   };
 
   // Batch-level 보험사 — default Insurers.lastUsed(); every recon history entry carries it.
@@ -184,17 +83,16 @@ export function init(ctx) {
 
   const runRecon = (claims, review, { silent = false, meta = {} } = {}) => {
     if (!claims || !review) return;
-    const res = reconcile(itemLinesOf(claims), review.rows);
-    lastRecon = res; lastClaimsId = claims.id;
-    renderRecon(res);
+    lastPair = { claims, review }; lastClaimsId = claims.id;
+    const res = renderRecon();
     renderSlots();
     const insurer = reconInsurer.value || Insurers.lastUsed() || "";
     if (!silent) {
       if (insurer) Insurers.setLastUsed(insurer);
-      // History: 명세서 count + totals + insurer + batch id + cuts by reason key (00's KPI tiles) — no names, no claim numbers.
+      // History: 명세서 count + totals + insurer + batch id + cuts by reason key (홈's KPI tiles) — no names, no claim numbers.
       const history = Store.get("jabo.history", []) || [];
       history.unshift({ at: Date.now(), kind: "recon", stmts: res.stmts, itemCount: res.lines.length, date: todayISO(),
-        claimed: res.totals.claimed, paid: res.totals.approved, cut: res.totals.cut, insurer, batchId: claims.id, month: claims.meta?.month || "", byReason: reasonKeys(res.lines) });
+        claimed: res.totals.claimed, paid: res.totals.approved, cut: res.totals.cut, insurer, batchId: claims.id, month: claims.meta?.month || "", byReason: reasonKeysOf(res.lines) });
       Store.set("jabo.history", history.slice(0, 100));
       ActivityLog.push("jabo", t("jabo.logRecon", { s: res.stmts, cut: won(res.totals.cut) }), meta);
     }
@@ -204,23 +102,29 @@ export function init(ctx) {
       (unreviewed ? t("jabo.statusUnreviewed", { n: unreviewed }) : "") + t("jabo.statusAppeal"));
   };
 
-  // File slots under the two drops: current claims batch + its linked review batch.
+  // File slots under the two drops: the 자보 claims batch + its linked review batch.
   const renderSlots = () => {
-    const c = currentClaimsBatch(), r = c ? reviewFor(c.id) : null;
+    const c = currentClaimsBatch("auto"), r = c ? reviewFor(c.id) : null;
     const el1 = $("#jabo-file-claims"), el2 = $("#jabo-file-review");
     if (el1) el1.innerHTML = c ? `<span class="pill ${c.meta?.sample ? "" : "ok"}">${esc(t(c.meta?.sample ? "jabo.pillSample" : "jabo.pillRead"))}</span> ${esc(c.source)} · ${esc(t("common.nRows", { n: c.meta?.itemLines ?? 0 }))}` : "";
     if (el2) el2.innerHTML = r ? `<span class="pill ${r.meta?.sample ? "" : "ok"}">${esc(t(r.meta?.sample ? "jabo.pillSample" : "jabo.pillRead"))}</span> ${esc(r.source)} · ${esc(t("common.nRows", { n: r.rows.length }))}` : "";
   };
   const clearRecon = () => {
-    lastRecon = null; lastClaimsId = null;
+    lastRecon = null; lastPair = null; lastClaimsId = null;
     $("#jabo-recon-toolbar").style.display = "none"; $("#jabo-recon-groups").innerHTML = "";
     $("#jabo-recon-result").innerHTML = `<div class="empty-state">${esc(t("jabo.reconEmpty"))}</div>`;
     renderSlots();
   };
-  // Re-derive the reconciliation from the current batch pair (boot, batch switch, review upload).
+  // Re-derive the reconciliation from the 자보 batch pair (boot, batch switch, review upload). A global current batch of
+  // another payer (건보 · 미지정) is named in the status line with a pointer to its own panel / the landing.
   const restore = ({ silent = true, meta } = {}) => {
-    const c = currentClaimsBatch();
-    if (!c) { clearRecon(); return; }
+    const c = currentClaimsBatch("auto");
+    if (!c) {
+      clearRecon();
+      const g = currentClaimsBatch();
+      if (g) reconStatus(null, () => t("jabo.statusOtherPayer", { src: g.source || "—", payer: payerLabel(batchPayer(g)) }));
+      return;
+    }
     if (c.meta?.partial === "kcd") { clearRecon(); reconStatus("warn", () => t("jabo.noItemSide")); return; }
     const r = reviewFor(c.id);
     if (!r) { clearRecon(); reconStatus(null, () => t("jabo.statusNeedReview", { src: c.source || "—", n: c.meta?.stmts ?? c.rows.length })); return; }
@@ -230,7 +134,7 @@ export function init(ctx) {
   const ingestClaims = async (file) => {
     try {
       reconStatus(null, () => t("common.statusReading", { name: esc(file.name) }));
-      const r = await ingestClaimsFile(file);
+      const r = await ingestClaimsFile(file, { defaultPayer: "auto" });
       if (r.empty) { reconStatus("warn", () => t("common.statusEmptyFile")); return; }
       ActivityLog.push("jabo", t("jabo.logBatch", { src: file.name, n: r.batch.meta.stmts }), { rows: r.batch.rows.length });
       restore({ silent: false, meta: { claims: r.batch.rows.length } });
@@ -238,7 +142,7 @@ export function init(ctx) {
   };
   const ingestReview = async (file) => {
     try {
-      const c = currentClaimsBatch();
+      const c = currentClaimsBatch("auto");
       if (!c) { reconStatus("warn", () => t("jabo.statusNoClaims")); return; }
       reconStatus(null, () => t("common.statusReading", { name: esc(file.name) }));
       const rows = await readSpreadsheet(file);
@@ -251,7 +155,7 @@ export function init(ctx) {
   };
   bindDrop("drop-jabo-claims", ingestClaims);
   bindDrop("drop-jabo-review", ingestReview);
-  const strip = () => renderBatchStrip($("#jabo-batch-strip"), { onFile: ingestClaims, compact: true }); // one line → 청구 › 청구 배치
+  const strip = () => renderBatchStrip($("#jabo-batch-strip"), { onFile: ingestClaims, compact: true, payer: "auto" }); // one line → 청구 › 청구 배치
   strip();
 
   $('[data-action="sample-jabo-claims"]').addEventListener("click", async (e) => {
@@ -276,18 +180,7 @@ export function init(ctx) {
 
   $("#jabo-recon-download").addEventListener("click", () => {
     if (!lastRecon) return;
-    const R = (l) => headerRow([
-      ["jabo.col.stmt", l.stmt], ["jabo.col.pid", l.pid], ["jabo.col.date", l.date], ["jabo.col.code", l.code], ["jabo.col.name", l.name],
-      ["jabo.col.qty", l.qty], ["jabo.col.claimed", l.claimed], ["jabo.col.aqty", l.aqty], ["jabo.col.approved", l.approved],
-      ["jabo.col.delta", l.delta], ["jabo.col.result", l.result], ["jabo.col.reason", l.reason]
-    ]);
-    const rows = lastRecon.lines.map(l => R({
-      stmt: l.stmt, pid: l.pid, date: l.date, code: l.code, name: procName(l.code, l.name), qty: l.qty, claimed: l.claimed,
-      aqty: l.approvedQty ?? "", approved: l.approved ?? "", delta: l.approved == null ? "" : l.delta, result: statusLabel(l.status), reason: lineReason(l)
-    }));
-    for (const o of lastRecon.orphans) rows.push(R({ stmt: o.stmt, pid: "", date: "", code: o.code, name: t("jabo.orphanLine"), qty: "", claimed: "", aqty: "", approved: o.approved, delta: "", result: t("jabo.status.orphan"), reason: o.reason }));
-    rows.push(R({ stmt: "", pid: "", date: "", code: "", name: t("jabo.total"), qty: "", claimed: lastRecon.totals.claimed, aqty: "", approved: lastRecon.totals.approved, delta: lastRecon.totals.cut, result: "", reason: "" }));
-    for (const g of groupByReason(lastRecon.lines)) rows.push(R({ stmt: "", pid: "", date: "", code: "", name: t("jabo.byReasonRow", { reason: g.reason }), qty: "", claimed: "", aqty: "", approved: "", delta: g.cut, result: t("jabo.nLines", { n: g.lines }), reason: "" }));
+    const { rows, R } = reconExportRows(lastRecon, { procName, reasonLabel: knownReason });
     rows.push(R({ stmt: "", pid: "", date: "", code: "", name: t("jabo.insurerRow", { ins: insurerLabel(reconInsurer.value) }), qty: "", claimed: "", aqty: "", approved: "", delta: "", result: "", reason: "" }));
     downloadXLSX(rows, t("jabo.reconFile", { date: todayISO() }), t("jabo.reconSheet")); // watermark + _PoC applied inside
     ActivityLog.push("jabo", t("jabo.logReconDl", { n: lastRecon.lines.length }), {});
@@ -613,30 +506,38 @@ export function init(ctx) {
   /* ───────────── batch changes · ctx · restore ───────────── */
   onClaimsChange((ev) => {
     strip();
-    const c = currentClaimsBatch();
-    if (!c) { clearRecon(); return; }
+    const c = currentClaimsBatch("auto");
+    if (!c) { restore(); return; }
     if (ev?.kind === "review") {
       // our own upload re-runs itself (non-silent) right after; the sample seed's review is run by seed(); a review
       // uploaded on the 청구 배치 landing (origin "landing") must be reconciled HERE — non-silent so the KPI history lands.
       if (ev.origin === "landing" && ev.claimsBatchId === c.id) restore({ silent: false, meta: { review: true } });
       return;
     }
-    // a batch created elsewhere (상병 정비 · 청구 배치) or here, a switch from the strip, or a removal → re-derive silently
-    if (c.id !== lastClaimsId || ev?.kind === "remove") restore();
+    // a 자보 batch created elsewhere (상병 정비 · 청구 배치) or here, a switch from the strip, a payer assignment, or a
+    // removal → re-derive silently. Events about the other payer's batches leave this panel alone.
+    if (c.id !== lastClaimsId || ev?.kind === "remove" || ev?.kind === "payer") restore();
   });
-  EventBus.on("store:ui.claimsBatch", () => { const c = currentClaimsBatch(); if (c && c.id !== lastClaimsId) { strip(); restore(); } });
+  ["store:ui.claimsBatch", "store:ui.claimsBatch.auto"].forEach(ev => EventBus.on(ev, () => { const c = currentClaimsBatch("auto"); if ((c && c.id !== lastClaimsId) || (!c && lastClaimsId)) { strip(); restore(); } }));
+  // Appeals change → the row buttons flip between 이의신청 준비 / 보기.
+  Appeals.onChange(() => { if (lastPair) renderRecon(); });
   EventBus.on("tab:activated", (p) => {
     const c = p?.id === "tab-jabo" ? p.ctx : null;
     if (!c) return;
     if (c.dx || (Array.isArray(c.items) && c.items.length) || c.pid) applyCase(c);
     else if (c.focus === "manual") setTimeout(() => $("#jabo-items")?.closest(".card")?.scrollIntoView({ block: "start", behavior: "smooth" }), 60); // 홈 todo → the unfinished 수기 case
+    else if (c.stmt) { // 이의신청 → 대조로 보기: highlight that 명세서's rows
+      focusStmt = c.stmt;
+      if (!lastPair) restore();
+      else renderRecon();
+    }
   });
   restore();
   EventBus.on("session:unlocked", () => { strip(); if (!lastRecon) restore(); });
 
   onLangChange(() => {
     buildSelects(); renderFeeBadge(); fillInsurerSelect(reconInsurer, true); strip();
-    if (lastRecon) renderRecon(lastRecon);
+    if (lastPair) renderRecon();
     renderSlots();
     if (lastReconStatus) setStatus($("#jabo-recon-status"), lastReconStatus.kind, lastReconStatus.fn());
     renderItems();

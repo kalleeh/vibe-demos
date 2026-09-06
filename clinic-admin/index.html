@@ -487,13 +487,13 @@
     <section class="panel" id="tab-claims" role="tabpanel">
       <div class="panel-head">
         <span class="panel-num" data-i18n="claims.num">청구 · 청구 배치</span>
-        <h3 data-i18n-html="claims.h3">명세서 한 번 올리고, <em>세 단계</em>로 끝까지</h3>
+        <h3 data-i18n-html="claims.p3.h3">명세서 한 번 올리고, <em>세 단계</em>로 끝까지 — 자보와 건보 모두</h3>
         <div class="badges">
-          <span class="badge law" data-i18n="claims.badgeLaw">자동차보험진료수가 기준 · 심평원 자보 심사</span>
-          <span class="badge live" data-i18n="claims.badgeLive">상병 정비 → 심사결과 대조 → 이의신청</span>
+          <span class="badge law" data-i18n="claims.p3.badgeLaw">자동차보험진료수가 기준 · 국민건강보험법 §47 · §87</span>
+          <span class="badge live" data-i18n="claims.p3.badgeLive">상병 정비 → 심사결과 대조 (자보 · 건보) → 이의신청</span>
         </div>
       </div>
-      <p class="panel-blurb" data-i18n-html="claims.blurb">
+      <p class="panel-blurb" data-i18n-html="claims.p3.blurb">
         <em>청구 배치</em>가 단위입니다 — EMR에서 뽑은 청구 명세서 export 한 장이 상병 정비와 심사결과 대조가 함께 쓰는 배치가 되고, 심평원 심사결과 파일은 그 배치에 연결됩니다. 여기서 두 파일을 올리고, 아래 세 단계의 <em>어디까지 왔는지</em>만 보세요. 이의신청은 다음 단계에서 붙습니다.
       </p>
 
@@ -507,7 +507,7 @@
               <label class="drop" id="drop-claims-claims">
                 <input type="file" accept=".xlsx,.xls,.csv">
                 <p data-i18n="claims.dropClaims">청구 명세서 export</p>
-                <span class="hint" data-i18n="claims.dropClaimsHint">명세서번호 · 환자번호 · 진료일자 · 상병코드 · 행위코드 · 청구금액 — 새 청구 배치가 됩니다</span>
+                <span class="hint" data-i18n="claims.p3.dropClaimsHint">명세서번호 · 환자번호 · 진료일자 · 상병코드 · 행위코드 · 청구금액 — 새 청구 배치가 됩니다</span>
               </label>
               <div class="recon-file" id="claims-file-claims"></div>
             </div>
@@ -521,15 +521,26 @@
             </div>
           </div>
           <div id="claims-status" class="status-line" style="display:none"></div>
+          <div class="recon-insurer claims-payer-ask" id="claims-payer-ask" hidden></div>
           <p class="caveat" data-i18n-html="claims.caveat">
             ※ 같은 파일을 <strong>상병 정비</strong>나 <strong>심사결과 대조</strong>에서 올려도 같은 배치가 됩니다. 배치는 브라우저 안에서 암호화되어 90일 · 최대 20건까지 보관됩니다 (조직 › 데이터 처리 현황).
           </p>
         </div>
 
         <div class="card">
-          <h4><span class="step">②</span> <span data-i18n="claims.stepsH">진행 단계 — 현재 배치</span></h4>
-          <div class="claims-batch-card" id="claims-batch-card"></div>
-          <ol class="claims-steps" id="claims-steps"></ol>
+          <h4><span class="step">②</span> <span data-i18n="claims.p3.stepsH">진행 단계 — 지급자별 현재 배치</span></h4>
+          <div class="claims-payers">
+            <div class="claims-payer" data-payer="auto">
+              <h5 class="claims-payer-h"><span class="pill info" data-i18n="claims.payer.auto">자보</span> <span data-i18n="claims.payerAuto.h">자동차보험 — 심평원 자보 심사</span></h5>
+              <div class="claims-batch-card" id="claims-batch-card"></div>
+              <ol class="claims-steps" id="claims-steps"></ol>
+            </div>
+            <div class="claims-payer" data-payer="nhis">
+              <h5 class="claims-payer-h"><span class="pill info" data-i18n="claims.payer.nhis">건보</span> <span data-i18n="claims.payerNhis.h">건강보험 — 심평원 EDI 심사 · 공단 지급</span></h5>
+              <div class="claims-batch-card" id="claims-batch-card-nhis"></div>
+              <ol class="claims-steps" id="claims-steps-nhis"></ol>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -627,7 +638,7 @@
       <div class="batch-strip-host" id="jabo-batch-strip"></div>
 
       <div class="work">
-        <div class="card">
+        <div class="card" id="jabo-recon-card">
           <h4><span class="step">01</span> <span data-i18n="jabo.step1">파일 대조 — 청구 명세서 ⨝ 심사결과통보</span></h4>
           <div class="process-note" data-i18n-html="jabo.processNote">
             병원 → 심평원 <strong>자보 진료수가 명세서 청구</strong> → 심평원 <strong>심사결과통보</strong> → 조정 확인 → (필요시) <strong>심평원에 이의제기</strong>. 보험사·공제조합은 심평원 결정에 따라 지급합니다.
@@ -654,7 +665,7 @@
               <div class="recon-file" id="jabo-file-review"></div>
             </div>
           </div>
-          <div class="recon-insurer">
+          <div class="recon-insurer" data-recon="insurer">
             <label for="jabo-recon-insurer" data-i18n="jabo.reconInsurer">보험사 / 공제조합 (배치 기준)</label>
             <select id="jabo-recon-insurer">
               <option value="" data-i18n="common.selectPlaceholder">— 선택 —</option>
@@ -662,14 +673,14 @@
             <span class="hint" data-i18n="jabo.reconInsurerHint">마지막 사용 보험사가 기본값 — 정산 기록에 함께 저장됩니다</span>
           </div>
           <div id="jabo-recon-status" class="status-line" style="display:none"></div>
-          <div class="result-toolbar" id="jabo-recon-toolbar" style="display:none">
-            <div class="summary" id="jabo-recon-summary"></div>
+          <div class="result-toolbar" id="jabo-recon-toolbar" data-recon="toolbar" style="display:none">
+            <div class="summary" id="jabo-recon-summary" data-recon="summary"></div>
             <div class="actions">
-              <button class="btn" id="jabo-recon-download" disabled data-i18n-html="jabo.reconDownload">대조표 XLSX <span class="arrow">↓</span></button>
+              <button class="btn" id="jabo-recon-download" data-recon="download" disabled data-i18n-html="jabo.reconDownload">대조표 XLSX <span class="arrow">↓</span></button>
             </div>
           </div>
-          <div id="jabo-recon-groups"></div>
-          <div class="result" id="jabo-recon-result">
+          <div id="jabo-recon-groups" data-recon="groups"></div>
+          <div class="result" id="jabo-recon-result" data-recon="result">
             <div class="empty-state" data-i18n="jabo.reconEmpty">두 파일을 올리면 명세서번호+행위코드로 결합한 대조표가 표시됩니다.</div>
           </div>
           <p class="caveat" data-i18n-html="jabo.reconCaveat">
@@ -756,7 +767,74 @@
         <span class="panel-num" data-i18n="p3.nhis.num">청구 · 건보 심사결과 대조</span>
         <h3 data-i18n-html="p3.nhis.h3">건강보험 <em>심사결과</em>를 청구 명세서와 대조</h3>
       </div>
-      <div class="panel-body" data-p3-slot="tab-nhis"></div>
+      <div class="panel-body" data-p3-slot="tab-nhis">
+        <div class="badges">
+          <span class="badge law" data-i18n="nhis.badgeLaw">국민건강보험법 §47 요양급여비용 청구 · §87 이의신청 90일 (확인 필요)</span>
+          <span class="badge live" data-i18n="nhis.badgeLive">심평원 EDI 청구 → 심사결과통보 → 공단 지급</span>
+        </div>
+        <p class="panel-blurb" data-i18n-html="nhis.blurb">
+          건강보험 진료비는 매달 <em>심평원에 EDI 명세서로 청구</em>하고, 심평원이 <em>심사결과통보서</em>로 조정 줄과 조정사유를 알려주면 <em>공단이 인정금액</em>을 지급하는 구조입니다. 건보 청구 명세서 export와 심사결과 파일을 올리면 — 자보와 같은 방식으로 명세서번호+행위코드로 줄마다 <em>청구 vs 인정</em>을 대조하고 <em>조정사유별·월별</em>로 묶습니다. 보험사 선택은 없습니다(지급자는 공단 하나). 조정 줄마다 <em>이의신청 준비</em>로 넘길 수 있습니다.
+        </p>
+        <div class="demo-strip">
+          <span class="demo-label" data-i18n-html="nhis.demoLabel"><strong>한솔한방병원 2026-08 · 건보 명세서 10건 · 행위 33줄</strong> 샘플(예시) — 첩약 처방일수 초과·침술 빈도 초과·서류 미비(자료 보완 미회신) 등 건보 조정 패턴을 대조표로 보여드립니다. 자보 샘플과 같은 건보 환자 3명입니다.</span>
+          <button type="button" class="demo-cta" data-action="run-nhis"><span class="play">▶</span> <span data-i18n="jabo.demoCta">샘플 파일로 시연</span></button>
+        </div>
+
+        <div class="batch-strip-host" id="nhis-batch-strip"></div>
+
+        <div class="work">
+          <div class="card" id="nhis-recon-card">
+            <h4><span class="step">01</span> <span data-i18n="nhis.step1">파일 대조 — 건보 청구 명세서 ⨝ 심사결과통보</span></h4>
+            <div class="process-note" data-i18n-html="nhis.processNote">
+              요양기관 → 심평원 <strong>EDI 요양급여비용 청구 (월 단위)</strong> → 심평원 <strong>심사결과통보서</strong> (조정 줄 · 조정사유) → <strong>공단 지급 (인정금액)</strong> → (필요시) <strong>심평원에 이의신청</strong> — 통보를 안 날부터 90일 이내 (확인 필요).
+            </div>
+            <div class="recon-drops">
+              <div>
+                <label class="drop" id="drop-nhis-claims">
+                  <input type="file" accept=".xlsx,.xls,.csv">
+                  <p data-i18n="nhis.dropClaims">① 건보 청구 명세서 export</p>
+                  <span class="hint" data-i18n="nhis.dropClaimsHint">명세서번호 · 환자번호 · 진료일자 · 보험유형(건강보험) · 행위코드 · 횟수 · 청구금액 (+ 상병코드 · 진단명 · 주/부상병)</span>
+                  <span class="hint legacy" data-i18n="nhis.dropClaimsLegacy">보험유형 컬럼이 없으면 이 화면에 올린 파일은 건보 배치가 됩니다</span>
+                  <div class="drop-actions"><button type="button" class="ghost" data-action="sample-nhis-claims" data-i18n="common.sampleExample">샘플 받기 (예시)</button></div>
+                </label>
+                <div class="recon-file" id="nhis-file-claims"></div>
+              </div>
+              <div>
+                <label class="drop" id="drop-nhis-review">
+                  <input type="file" accept=".xlsx,.xls,.csv">
+                  <p data-i18n="nhis.dropReview">② 심평원 심사결과통보 파일</p>
+                  <span class="hint" data-i18n="jabo.dropReviewHint">명세서번호 · 행위코드 · 인정횟수 · 인정금액 · 조정사유코드 · 조정사유</span>
+                  <span class="hint legacy" data-i18n="nhis.dropReviewLegacy">현재 건보 배치에 연결됩니다</span>
+                  <div class="drop-actions"><button type="button" class="ghost" data-action="sample-nhis-review" data-i18n="common.sampleExample">샘플 받기 (예시)</button></div>
+                </label>
+                <div class="recon-file" id="nhis-file-review"></div>
+              </div>
+            </div>
+            <div id="nhis-recon-status" class="status-line" style="display:none"></div>
+            <div class="result-toolbar" id="nhis-recon-toolbar" data-recon="toolbar" style="display:none">
+              <div class="summary" id="nhis-recon-summary" data-recon="summary"></div>
+              <div class="actions">
+                <button class="btn" id="nhis-recon-download" data-recon="download" disabled data-i18n-html="jabo.reconDownload">대조표 XLSX <span class="arrow">↓</span></button>
+              </div>
+            </div>
+            <div id="nhis-recon-groups" data-recon="groups"></div>
+            <div class="result" id="nhis-recon-result" data-recon="result">
+              <div class="empty-state" data-i18n="jabo.reconEmpty">두 파일을 올리면 명세서번호+행위코드로 결합한 대조표가 표시됩니다.</div>
+            </div>
+            <p class="caveat" data-i18n-html="nhis.caveat">
+              ※ 건보 조정사유는 <strong>서술형 예시 분류</strong>(<span id="nhis-reason-list"></span>)로 묶습니다 — 실제 심평원 조정사유코드가 아닙니다. 실제 심사결과통보서의 사유 표기를 우선하며, 이의신청 기한(통보를 안 날부터 90일 — 국민건강보험법 §87, <strong>확인 필요</strong>)은 통보서 기준으로 확인하세요.
+            </p>
+          </div>
+
+          <div class="card">
+            <h4><span class="step">02</span> <span data-i18n="nhis.step2">다음 단계 — 조정 건 처리</span></h4>
+            <div class="claims-batch-card" id="nhis-next"></div>
+            <p class="caveat" data-i18n-html="nhis.caveat2">
+              ※ 조정 줄의 <strong>이의신청 준비</strong>를 누르면 이의신청 관리에 초안이 생기고, 통보일을 적으면 기한(+90일, 확인 필요)이 계산됩니다. 반복되는 사유(처방일수·빈도 한도)는 다음 달 청구 전에 미리 걸러내는 것이 이의신청보다 빠릅니다.
+            </p>
+          </div>
+        </div>
+      </div>
     </section>
     <!-- Phase 3 slot: tab-appeal (owner fills panel-body) -->
     <section class="panel" id="tab-appeal" role="tabpanel">
@@ -764,7 +842,51 @@
         <span class="panel-num" data-i18n="p3.appeal.num">청구 · 이의신청 관리</span>
         <h3 data-i18n-html="p3.appeal.h3">조정 건의 <em>이의신청</em>, 기한과 함께</h3>
       </div>
-      <div class="panel-body" data-p3-slot="tab-appeal"></div>
+      <div class="panel-body" data-p3-slot="tab-appeal">
+        <div class="badges">
+          <span class="badge law" data-i18n="appeal.badgeLaw">국민건강보험법 §87 이의신청 · 자배법 §12의2 이의제기 (기한 확인 필요)</span>
+          <span class="badge live" data-i18n="appeal.badgeLive">준비중 → 제출 → 결과 (인정 · 일부인정 · 기각)</span>
+        </div>
+        <p class="panel-blurb" data-i18n-html="appeal.blurb">
+          심사결과 대조에서 <em>조정된 줄</em>을 그대로 이의신청 초안으로 넘기면 — 사실관계(명세서·행위·청구/인정/조정금액·통보서 사유)가 채워진 카드가 생기고, <em>통보일을 적으면 기한</em>(+90일, 확인 필요)이 D-day로 붙습니다. 사유 요약·근거 메모·첨부 체크리스트를 채우고 <em>제출 → 결과</em>로 상태를 옮기세요. 건보 이의신청은 <em>심평원</em>에, 자보 이의제기는 <em>심평원 자보심사센터</em>에 합니다(그 뒤 보험사 지불보증 분쟁은 별도).
+        </p>
+        <div class="demo-strip">
+          <span class="demo-label" data-i18n-html="appeal.demoLabel"><strong>한솔한방병원 2026-08</strong> 샘플(예시) — 기한 초과 1건(건보 첩약 처방일수) · 제출 1건(자보 추나 한도) · 일부인정 1건(건보 침 빈도)으로 대장·기한 배지·초안을 보여드립니다.</span>
+          <button type="button" class="demo-cta" data-action="run-appeal"><span class="play">▶</span> <span data-i18n="appeal.demoCta">샘플 이의신청 3건</span></button>
+        </div>
+
+        <div class="work appeal-work">
+          <div class="card">
+            <h4><span class="step">01</span> <span data-i18n="appeal.step1">이의신청 대장</span></h4>
+            <div class="process-note" data-i18n-html="appeal.processNote">
+              <strong>심사결과통보</strong> → 조정 줄 확인 → <strong>이의신청 (재심사조정청구)</strong> — 진료기록 사본·검사결과·소견서 첨부 → 심평원 <strong>결정: 인정 · 일부인정 · 기각</strong>. 기한은 통보를 안 날부터 90일(국민건강보험법 §87 — <strong>확인 필요</strong>); 자보는 통보서의 안내 기한을 우선하세요.
+            </div>
+            <div class="appeal-toolbar">
+              <label for="appeal-f-payer" data-i18n="appeal.f.payer">보험유형</label><select id="appeal-f-payer"></select>
+              <label for="appeal-f-month" data-i18n="appeal.f.month">청구월</label><select id="appeal-f-month"></select>
+              <label for="appeal-f-status" data-i18n="appeal.f.statusF">상태</label><select id="appeal-f-status"></select>
+              <button class="btn" id="appeal-export" disabled data-i18n-html="appeal.exportBtn">이의신청 대장 XLSX <span class="arrow">↓</span></button>
+            </div>
+            <div id="appeal-status" class="status-line" style="display:none"></div>
+            <div class="appeal-summary" id="appeal-summary"></div>
+            <div class="result appeal-list" id="appeal-list"></div>
+            <h5 class="appeal-sub" data-i18n="appeal.candH">대조에서 조정된 줄 — 아직 이의신청 없음</h5>
+            <div class="result" id="appeal-candidates"></div>
+            <p class="caveat" data-i18n-html="appeal.caveat">
+              ※ 이 대장은 <strong>PoC</strong>입니다 — 기한은 통보일 + 90일로 계산하며(<strong>확인 필요</strong>), 실제 기한과 서식은 심평원 안내를 따르세요. 환자는 가명 환자번호(****0000)로만 표시되고, 대장은 브라우저 안에서 암호화되어 1년 보관됩니다 (조직 › 데이터 처리 현황).
+            </p>
+          </div>
+
+          <div class="card" id="appeal-draft-card">
+            <h4><span class="step">02</span> <span data-i18n="appeal.step2">이의신청서 초안</span> <span class="appeal-draft-for" id="appeal-draft-for"></span></h4>
+            <div class="result" id="appeal-draft"></div>
+            <div class="appeal-draft-actions">
+              <button class="btn" id="appeal-draft-print" disabled data-i18n-html="appeal.printBtn">초안 인쇄 <span class="arrow">↗</span></button>
+              <span class="hint" data-i18n="appeal.draft.hint">양식은 심평원 서식 기준 — 확인 필요 · PoC 워터마크 포함</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
     <section class="panel" id="tab-yearend" role="tabpanel">
       <div class="panel-head">
