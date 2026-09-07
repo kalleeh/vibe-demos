@@ -16,8 +16,18 @@ const esc = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<"
 function setStatus(el, kind, text) {
   if (!el) return;
   el.style.display = "flex";
-  el.className = "status-line" + (kind ? " " + kind : "");
+  el.className = "status" + (kind ? " " + kind : "");
   el.innerHTML = `<span class="dot"></span><span>${text}</span>`;
+}
+
+// Canonical ③ empty state (styles-ia.css .empty): line 1 = what to do, line 2 = where the sample is.
+// demoOnly → the panel consumes no file (trackers · 이의신청 · 비급여): the hint names only [샘플로 시연].
+function emptyHTML(text, { demoOnly = false, small = false } = {}) {
+  return `<div class="empty${small ? " small" : ""}"><p>${text}</p>${small ? "" : `<p class="empty-hint">${esc(t(demoOnly ? "flow.emptyHintDemo" : "flow.emptyHint"))}</p>`}</div>`;
+}
+// Canonical ③ status copy — `{state} · {n}건 · {when}` (+ an optional trailing detail after an em dash).
+function flowStatus(state, n, extra = "") {
+  return `${state} · ${t("common.nItems", { n })} · ${relTime(Date.now())}${extra ? ` — ${extra}` : ""}`;
 }
 
 // 한글 초성 추출
@@ -96,4 +106,4 @@ function redactStaff({ role, name } = {}) {
   const initial = n ? n[0] + "○".repeat(Math.min(Math.max(n.length - 1, 1), 3)) : "—";
   return [roleLabel(role), initial].filter(Boolean).join(" ");
 }
-export { $, $$, fmtKRW, won, todayISO, esc, setStatus, CHO, extractCho, fuzzyMatch, relTime, daysUntil, debounce, roleLabel, redactSubject, redactStaff };
+export { $, $$, fmtKRW, won, todayISO, esc, setStatus, emptyHTML, flowStatus, CHO, extractCho, fuzzyMatch, relTime, daysUntil, debounce, roleLabel, redactSubject, redactStaff };

@@ -53,10 +53,9 @@ export default {
   "today.dl.guaranteeSource": "Insurer payment guarantee expiry · Patients › Guarantees",
 
   /* ── 04 Non-covered · website CSV + change history ── */
-  "bigeup.history.h": "Website CSV · price table change history",
+  "bigeup.history.h": "Price table change history",
   "bigeup.history.summary": "The website price list is a three-column CSV (<em>item · price · effective date</em>); the change history accumulates automatically every time prices are saved (when · effective date · before → after · by).",
-  "bigeup.web.btn": "Website CSV <span class=\"arrow\">↓</span>",
-  "bigeup.history.csvBtn": "History CSV <span class=\"arrow\">↓</span>",
+
   "bigeup.history.count": "Changes",
   "bigeup.history.empty": "Save prices and the change history appears here.",
   "bigeup.history.thWhen": "When", "bigeup.history.thCount": "Items", "bigeup.history.thChanges": "Changes (code before → after)", "bigeup.history.thBy": "By",
@@ -79,7 +78,7 @@ export default {
   "retention.method.shred": "Shredding", "retention.method.erase": "Electronic erasure",
   "retention.ledger.h": "Disposal ledger (cumulative)",
   "retention.ledger.summary": "Every generated ledger accumulates here — the evidence for the accreditation self-check (record-disposal review procedure).",
-  "retention.ledger.btn": "Full ledger XLSX <span class=\"arrow\">↓</span>",
+
   "retention.ledger.empty": "No disposal ledger yet.",
   "retention.ledger.thDate": "Disposed on", "retention.ledger.more": "+{n} more (all rows in the XLSX)",
   "retention.ledger.col.rec": "Record ID (pseudonymised)", "retention.ledger.col.pid": "Patient (alias)", "retention.ledger.col.type": "Record type", "retention.ledger.col.expiry": "Retention until",

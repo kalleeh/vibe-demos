@@ -216,7 +216,7 @@
             <button type="button" class="btn secondary sm" id="search-download" disabled data-i18n-html="search.downloadBtn">결과 XLSX <span class="arrow">↓</span></button>
           </div>
           <div class="result" id="search-result">
-            <div class="empty-state" data-i18n="search.empty">예) "요통", "추나", "S13.4", "ㅇㅈ"</div>
+            <div class="empty" data-i18n="search.empty">예) "요통", "추나", "S13.4", "ㅇㅈ"</div>
           </div>
         </section>
       </div>
@@ -473,7 +473,7 @@
       <section class="home-sec" id="home-recent" aria-labelledby="home-recent-h">
         <h4 class="home-h" id="home-recent-h" data-i18n="home.recentH">최근 작업</h4>
         <div class="resume-list" id="resume-list">
-          <div class="resume"><span class="empty" data-i18n="today.resumeEmpty">아직 진행 중인 작업이 없습니다.</span></div>
+          <div class="resume"><span class="resume-empty" data-i18n="today.resumeEmpty">아직 진행 중인 작업이 없습니다.</span></div>
         </div>
       </section>
 
@@ -553,6 +553,9 @@
     <!-- 청구 › 청구 배치 — the shared claim batch promoted to a landing page: current batch, both uploads, 3-step progress
          (상병 정비 → 심사결과 대조 → 이의신청). Steps + card rendered by js/tabs/claims-landing.js. -->
     <!-- ─────────────────────────────────────────── -->
+    <!-- ── Canonical panel flow (styles-ia.css .flow) — every record-consuming/producing panel below reads the same way:
+         ① 샘플 · 시연 → ② 데이터 올리기 / 입력 → ③ 결과 검토 → ④ 내보내기 · 다음 단계. The three 환자 trackers (tab-guarantee ·
+         tab-docs · tab-consent) render the same flow from patients-shared.js flowHTML(); tab-nhis / tab-appeal are static below. ── -->
     <!-- Phase 3 slot: tab-guarantee (owner fills panel-body) -->
     <section class="panel" id="tab-guarantee" role="tabpanel">
       <div class="panel-head">
@@ -577,6 +580,11 @@
       </div>
       <div class="panel-body" data-p3-slot="tab-consent"></div>
     </section>
+
+    <!-- ─────────────────────────────────────────── -->
+    <!-- 청구 › 청구 배치 — the shared claim batch as a landing page: ① both sample files + a demo that loads both payers' pairs,
+         ② the two uploads, ③ progress per payer (batch card + 3 steps, js/tabs/claims-landing.js), ④ hand-off to 상병 정비. -->
+    <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-claims" role="tabpanel">
       <div class="panel-head">
         <span class="panel-num" data-i18n="claims.num">청구 · 청구 배치</span>
@@ -592,47 +600,87 @@
 
       <div class="batch-strip-host" id="claims-batch-strip"></div>
 
-      <div class="claims-landing">
-        <div class="card claims-upload">
-          <h4><span class="step">①</span> <span data-i18n="claims.uploadH">파일 업로드 — 청구 명세서 · 심사결과통보</span></h4>
-          <div class="recon-drops">
-            <div>
-              <label class="drop" id="drop-claims-claims">
-                <input type="file" accept=".xlsx,.xls,.csv">
-                <p data-i18n="claims.dropClaims">청구 명세서 export</p>
-                <span class="hint" data-i18n="claims.p3.dropClaimsHint">명세서번호 · 환자번호 · 진료일자 · (보험유형) · 상병코드 · 행위코드 · 청구금액 — 새 청구 배치가 됩니다</span>
-              </label>
-              <div class="recon-file" id="claims-file-claims"></div>
-            </div>
-            <div>
-              <label class="drop" id="drop-claims-review">
-                <input type="file" accept=".xlsx,.xls,.csv">
-                <p data-i18n="claims.dropReview">심평원 심사결과 파일</p>
-                <span class="hint" data-i18n="claims.dropReviewHint">명세서번호 · 행위코드 · 인정금액 · 조정사유 — 현재 배치에 연결됩니다</span>
-              </label>
-              <div class="recon-file" id="claims-file-review"></div>
+      <div class="flow claims-landing">
+        <section class="flow-step" data-step="1">
+          <span class="step" aria-hidden="true">①</span>
+          <h4 data-i18n="flow.step1">샘플 · 시연</h4>
+          <div class="flow-body">
+            <p data-i18n-html="claims.demoLabel"><strong>한솔한방병원 2026-08</strong> — 자보 명세서 12건과 건보 명세서 10건, 각각의 심평원 심사결과가 두 배치로 올라가고 세 단계 진행 상황이 나란히 채워집니다.</p>
+            <div class="actions">
+              <span class="act"><span class="act-k" data-i18n="claims.dropClaims">청구 명세서 export</span><button type="button" class="btn secondary" data-action="sample-claims-claims" data-i18n-html="flow.sample">샘플 파일 받기 <span class="arrow">↓</span></button></span>
+              <span class="act"><span class="act-k" data-i18n="claims.dropReview">심평원 심사결과 파일</span><button type="button" class="btn secondary" data-action="sample-claims-review" data-i18n-html="flow.sample">샘플 파일 받기 <span class="arrow">↓</span></button></span>
+              <button type="button" class="btn" data-action="run-claims" data-i18n-html="flow.demo"><span class="play">▶</span> 샘플로 시연</button>
             </div>
           </div>
-          <div id="claims-status" class="status-line" style="display:none"></div>
-          <div class="recon-insurer claims-payer-ask" id="claims-payer-ask" hidden></div>
-          <p class="caveat" data-i18n-html="claims.caveat">
-            ※ 같은 파일을 <strong>상병 정비</strong>나 <strong>심사결과 대조</strong>에서 올려도 같은 배치가 됩니다. 배치는 브라우저 안에서 암호화되어 90일 · 최대 20건까지 보관됩니다 (조직 › 데이터 처리 현황).
-          </p>
-        </div>
+        </section>
+
+        <section class="flow-step claims-upload" data-step="2">
+          <span class="step" aria-hidden="true">②</span>
+          <h4 data-i18n="flow.step2">데이터 올리기</h4>
+          <div class="flow-body">
+            <div class="recon-drops">
+              <div>
+                <label class="drop" id="drop-claims-claims">
+                  <input type="file" accept=".xlsx,.xls,.csv">
+                  <p data-i18n="claims.dropClaims">청구 명세서 export</p>
+                  <span class="hint" data-i18n="flow.upload">엑셀 · CSV 파일을 끌어다 놓거나 눌러서 올리기</span>
+                  <span class="hint cols" data-i18n="claims.p3.dropClaimsHint">명세서번호 · 환자번호 · 진료일자 · (보험유형) · 상병코드 · 행위코드 · 청구금액 — 새 청구 배치가 됩니다</span>
+                </label>
+                <div class="recon-file" id="claims-file-claims"></div>
+              </div>
+              <div>
+                <label class="drop" id="drop-claims-review">
+                  <input type="file" accept=".xlsx,.xls,.csv">
+                  <p data-i18n="claims.dropReview">심평원 심사결과 파일</p>
+                  <span class="hint" data-i18n="flow.upload">엑셀 · CSV 파일을 끌어다 놓거나 눌러서 올리기</span>
+                  <span class="hint cols" data-i18n="claims.dropReviewHint">명세서번호 · 행위코드 · 인정금액 · 조정사유 — 현재 배치에 연결됩니다</span>
+                </label>
+                <div class="recon-file" id="claims-file-review"></div>
+              </div>
+            </div>
+            <details class="schema">
+              <summary data-i18n="flow.columns">열 이름 보기</summary>
+              <span class="label" data-i18n="claims.dropClaims">청구 명세서 export</span>
+              <code>명세서번호</code> · <code>환자번호</code> · <code>진료일자</code> · <code>보험유형</code> · <code>주/부상병</code> · <code>진단명</code> · <code>상병코드</code> · <code>행위코드</code> · <code>행위명</code> · <code>횟수</code> · <code>청구금액</code>
+              <br><span class="label" style="margin-top:6px" data-i18n="claims.dropReview">심평원 심사결과 파일</span>
+              <code>명세서번호</code> · <code>행위코드</code> · <code>인정횟수</code> · <code>인정금액</code> · <code>조정사유코드</code> · <code>조정사유</code>
+            </details>
+            <div class="recon-insurer claims-payer-ask" id="claims-payer-ask" hidden></div>
+            <p class="caveat" data-i18n-html="claims.caveat">
+              ※ 같은 파일을 <strong>상병 정비</strong>나 <strong>심사결과 대조</strong>에서 올려도 같은 배치가 됩니다. 배치는 브라우저 안에서 암호화되어 90일 · 최대 20건까지 보관됩니다 (조직 › 데이터 처리 현황).
+            </p>
+          </div>
+        </section>
 
         <!-- Progress — one column per 보험유형 (자보 · 건보): batch summary card + the three step rows, each with one action. -->
-        <section class="claims-progress" id="claims-progress" aria-labelledby="claims-progress-h">
-          <h4 class="claims-progress-h" id="claims-progress-h"><span class="step">②</span> <span data-i18n="claims.p3.stepsH">진행 단계 — 보험유형별 현재 배치</span></h4>
-          <div class="claims-payers">
-            <div class="claims-payer" data-payer="auto">
-              <h5 class="claims-payer-h"><span class="pill info" data-i18n="claims.payer.auto">자보</span> <span data-i18n="claims.payerAuto.h">자동차보험 — 심평원 자보 심사</span></h5>
-              <div class="claims-batch-card" id="claims-batch-card"></div>
-              <ol class="claims-steps" id="claims-steps"></ol>
+        <section class="flow-step claims-progress" data-step="3" id="claims-progress" aria-labelledby="claims-progress-h">
+          <span class="step" aria-hidden="true">③</span>
+          <h4 id="claims-progress-h"><span data-i18n="flow.step3">결과 검토</span> <span class="sub" data-i18n="claims.p3.stepsH">진행 단계 — 보험유형별 현재 배치</span></h4>
+          <div class="flow-body">
+            <div id="claims-status" class="status" style="display:none"></div>
+            <div class="claims-payers">
+              <div class="claims-payer" data-payer="auto">
+                <h5 class="claims-payer-h"><span class="pill info" data-i18n="claims.payer.auto">자보</span> <span data-i18n="claims.payerAuto.h">자동차보험 — 심평원 자보 심사</span></h5>
+                <div class="claims-batch-card" id="claims-batch-card"></div>
+                <ol class="claims-steps" id="claims-steps"></ol>
+              </div>
+              <div class="claims-payer" data-payer="nhis">
+                <h5 class="claims-payer-h"><span class="pill info" data-i18n="claims.payer.nhis">건보</span> <span data-i18n="claims.payerNhis.h">건강보험 — 심평원 EDI 심사 · 공단 지급</span></h5>
+                <div class="claims-batch-card" id="claims-batch-card-nhis"></div>
+                <ol class="claims-steps" id="claims-steps-nhis"></ol>
+              </div>
             </div>
-            <div class="claims-payer" data-payer="nhis">
-              <h5 class="claims-payer-h"><span class="pill info" data-i18n="claims.payer.nhis">건보</span> <span data-i18n="claims.payerNhis.h">건강보험 — 심평원 EDI 심사 · 공단 지급</span></h5>
-              <div class="claims-batch-card" id="claims-batch-card-nhis"></div>
-              <ol class="claims-steps" id="claims-steps-nhis"></ol>
+          </div>
+        </section>
+
+        <section class="flow-step" data-step="4">
+          <span class="step" aria-hidden="true">④</span>
+          <h4 data-i18n="flow.step4">내보내기 · 다음 단계</h4>
+          <div class="flow-body">
+            <div class="actions">
+              <span class="act-note" data-i18n="claims.noExport">배치 자체는 내보내지 않습니다 — 결과는 각 단계 화면에서</span>
+              <span class="spacer"></span>
+              <button type="button" class="btn secondary" data-go="tab-kcd"><span><span data-i18n="flow.next">다음</span>: <span data-i18n="nav.kcd">상병 정비</span></span> <span class="arrow">→</span></button>
             </div>
           </div>
         </section>
@@ -654,58 +702,78 @@
       <p class="panel-blurb" data-i18n-html="kcd.blurb">
         EMR에서 뽑은 상병 대장을 올려두기만 하면 — <em>마침표·공백 섞인 입력형은 EDI 표준형(M545)으로</em>, <em>같은 명세서 안의 중복은 정리</em>, <em>비U 주상병 없이 홀로 선 한의 병증 U코드는 표시</em>, 그리고 최신 개정판 마스터에 없는 코드는 <em>미수록</em>으로. 청구 누르기 전 5분의 점검입니다.
       </p>
-      <div class="demo-strip">
-        <span class="demo-label" data-i18n-html="kcd.demoLabel">처음이신가요? <strong>한솔한방병원 2026-08 명세서 12건</strong>(경추·요추 염좌·요통·U코드·EDI형 입력·5자리 입력 등)으로 정비 결과를 미리 보실 수 있습니다 — 심사결과 대조와 같은 청구 배치입니다.</span>
-        <button type="button" class="demo-cta" data-action="run-kcd"><span class="play">▶</span> <span data-i18n="common.demoSample">샘플로 시연</span></button>
-      </div>
 
       <div class="batch-strip-host" id="kcd-batch-strip"></div>
 
-      <div class="work">
-        <div class="card">
-          <h4><span class="step">01</span> <span data-i18n="kcd.step1">파일 업로드</span></h4>
-          <label class="drop" id="drop-kcd">
-            <input type="file" accept=".xlsx,.xls,.csv">
-            <div class="icon">
-              <svg viewBox="0 0 48 48" fill="none" stroke="#7ba89a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M24 32V12M24 12l-8 8M24 12l8 8"/>
-                <path d="M8 32v6a2 2 0 002 2h28a2 2 0 002-2v-6" opacity="0.5"/>
-              </svg>
-            </div>
-            <p data-i18n="kcd.dropP">엑셀 또는 CSV 파일을 끌어다 놓으세요</p>
-            <span class="hint">.xlsx · .xls · .csv</span>
-            <span class="hint legacy" data-i18n="kcd.dropLegacy">이 화면용 파일만(상병 컬럼) — 행위 컬럼이 함께 있으면 심사결과 대조와 같은 청구 배치로 묶입니다</span>
-            <div class="drop-actions">
-              <button type="button" class="ghost" data-action="sample-kcd" data-i18n="common.sampleFileExample">샘플 파일 받기 (예시)</button>
-            </div>
-          </label>
-          <div class="schema">
-            <span class="label" data-i18n="kcd.schemaLabel">필요한 컬럼 (헤더 1행)</span>
-            <code>환자번호</code> · <code>진료일자</code> · <code>주/부상병</code> · <code>진단명</code> · <code>KCD코드</code> · <code>비고</code>
-            <br><span class="label" style="margin-top:6px" data-i18n="kcd.schemaAlias">별칭 허용 — 상병구분/주부구분, 상병코드/상병기호, 상병명. 주/부상병 컬럼이 없으면 진료일자별 첫 비U 코드를 주상병으로 간주하고 경고합니다.</span>
-          </div>
-          <div class="master-badge" id="kcd-master-badge"></div>
-          <p class="caveat" data-i18n-html="kcd.caveat">
-            ※ 내장 표는 한방 다빈도 약 60개 상병의 <strong>발췌본(예시)</strong>이며 완전한 마스터가 아닙니다. 발췌본에 없는 코드는 <a class="small-link" href="https://www.koicd.kr" target="_blank" rel="noopener noreferrer">KOICD</a>에서 확인하거나, <strong>조직 › 마스터 업로드</strong>에서 KOICD 상병마스터(xlsx)를 업로드하면 실제 마스터로 대조합니다. 한의 병증 U코드(U20–U33, U50–U79)는 같은 명세서(환자번호+진료일자)에 비U 주상병이 있어야 청구가 통과합니다. U80–U89는 WHO 항생제 내성 코드입니다.
-          </p>
-        </div>
-
-        <div class="card">
-          <h4><span class="step">02</span> <span data-i18n="kcd.step2">정비 결과</span></h4>
-          <div id="kcd-status" class="status-line" style="display:none"></div>
-          <div id="kcd-filter" class="focus-chip" hidden></div>
-          <div class="result-toolbar" id="kcd-toolbar" style="display:none">
-            <div class="summary" id="kcd-summary"></div>
+      <div class="flow">
+        <section class="flow-step" data-step="1">
+          <span class="step" aria-hidden="true">①</span>
+          <h4 data-i18n="flow.step1">샘플 · 시연</h4>
+          <div class="flow-body">
+            <p data-i18n-html="kcd.demoLabel">처음이신가요? <strong>한솔한방병원 2026-08 명세서 12건</strong>(경추·요추 염좌·요통·U코드·EDI형 입력·5자리 입력 등)으로 정비 결과를 미리 보실 수 있습니다 — 심사결과 대조와 같은 청구 배치입니다.</p>
             <div class="actions">
-              <button class="btn" id="kcd-download" disabled data-i18n-html="kcd.downloadBtn">
-                상병코드 정리표 <span class="arrow">↓</span>
-              </button>
+              <button type="button" class="btn secondary" data-action="sample-kcd" data-i18n-html="flow.sample">샘플 파일 받기 <span class="arrow">↓</span></button>
+              <button type="button" class="btn" data-action="run-kcd" data-i18n-html="flow.demo"><span class="play">▶</span> 샘플로 시연</button>
             </div>
           </div>
-          <div class="result" id="kcd-result">
-            <div class="empty-state" data-i18n="kcd.empty">파일을 올리면 여기에 정비 결과가 표시됩니다.</div>
+        </section>
+
+        <section class="flow-step" data-step="2">
+          <span class="step" aria-hidden="true">②</span>
+          <h4 data-i18n="flow.step2">데이터 올리기</h4>
+          <div class="flow-body">
+            <label class="drop" id="drop-kcd">
+              <input type="file" accept=".xlsx,.xls,.csv">
+              <div class="icon">
+                <svg viewBox="0 0 48 48" fill="none" stroke="#7ba89a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M24 32V12M24 12l-8 8M24 12l8 8"/>
+                  <path d="M8 32v6a2 2 0 002 2h28a2 2 0 002-2v-6" opacity="0.5"/>
+                </svg>
+              </div>
+              <p data-i18n="kcd.dropP">상병 대장 (EMR export)</p>
+              <span class="hint" data-i18n="flow.upload">엑셀 · CSV 파일을 끌어다 놓거나 눌러서 올리기</span>
+            </label>
+            <div class="hint cols cols-out">환자번호 · 진료일자 · 주/부상병 · 진단명 · KCD코드 · 비고</div>
+            <details class="schema">
+              <summary data-i18n="flow.columns">열 이름 보기</summary>
+              <span class="label" data-i18n="kcd.schemaLabel">필요한 컬럼 (헤더 1행)</span>
+              <code>환자번호</code> · <code>진료일자</code> · <code>주/부상병</code> · <code>진단명</code> · <code>KCD코드</code> · <code>비고</code>
+              <br><span class="label" style="margin-top:6px" data-i18n="kcd.schemaAlias">별칭 허용 — 상병구분/주부구분, 상병코드/상병기호, 상병명. 주/부상병 컬럼이 없으면 진료일자별 첫 비U 코드를 주상병으로 간주하고 경고합니다.</span>
+              <br><span class="label" style="margin-top:6px" data-i18n="kcd.dropLegacy">이 화면용 파일만(상병 컬럼) — 행위 컬럼이 함께 있으면 심사결과 대조와 같은 청구 배치로 묶입니다</span>
+            </details>
+            <div class="master-badge" id="kcd-master-badge"></div>
+            <p class="caveat" data-i18n-html="kcd.caveat">
+              ※ 내장 표는 한방 다빈도 약 60개 상병의 <strong>발췌본(예시)</strong>이며 완전한 마스터가 아닙니다. 발췌본에 없는 코드는 <a class="small-link" href="https://www.koicd.kr" target="_blank" rel="noopener noreferrer">KOICD</a>에서 확인하거나, <strong>조직 › 마스터 업로드</strong>에서 KOICD 상병마스터(xlsx)를 업로드하면 실제 마스터로 대조합니다. 한의 병증 U코드(U20–U33, U50–U79)는 같은 명세서(환자번호+진료일자)에 비U 주상병이 있어야 청구가 통과합니다. U80–U89는 WHO 항생제 내성 코드입니다.
+            </p>
           </div>
-        </div>
+        </section>
+
+        <section class="flow-step" data-step="3">
+          <span class="step" aria-hidden="true">③</span>
+          <h4 data-i18n="flow.step3">결과 검토</h4>
+          <div class="flow-body">
+            <div id="kcd-status" class="status" style="display:none"></div>
+            <div id="kcd-filter" class="focus-chip" hidden></div>
+            <div class="result-toolbar" id="kcd-toolbar" style="display:none">
+              <div class="summary" id="kcd-summary"></div>
+            </div>
+            <div class="result" id="kcd-result">
+              <div class="empty"><p data-i18n="kcd.empty">파일을 올리면 여기에 정비 결과가 표시됩니다.</p><p class="empty-hint" data-i18n="flow.emptyHint">처음이라면 ① 샘플 · 시연 — 샘플 파일을 받거나 「샘플로 시연」을 누르세요.</p></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="flow-step" data-step="4">
+          <span class="step" aria-hidden="true">④</span>
+          <h4 data-i18n="flow.step4">내보내기 · 다음 단계</h4>
+          <div class="flow-body">
+            <div class="actions">
+              <span class="act"><span class="act-k" data-i18n="kcd.sheetName">상병코드 정리표</span><button class="btn" id="kcd-download" disabled data-i18n-html="flow.export.xlsx">XLSX 내려받기 <span class="arrow">↓</span></button></span>
+              <span class="spacer"></span>
+              <button type="button" class="btn secondary" data-go="tab-jabo"><span><span data-i18n="flow.next">다음</span>: <span data-i18n="nav.jabo">자보 심사결과 대조</span></span> <span class="arrow">→</span></button>
+            </div>
+          </div>
+        </section>
       </div>
     </section>
 
@@ -724,138 +792,169 @@
       <p class="panel-blurb" data-i18n-html="jabo.blurb">
         2013년 7월부터 자보 진료수가는 병원이 <em>심평원(HIRA)에 명세서를 청구</em>하고 심평원이 <em>심사결과통보서</em>를 보내는 구조입니다. 조정에 대한 <em>이의제기도 보험사가 아닌 심평원</em>에 합니다. 청구 명세서 export와 심사결과 파일을 올리면 — 명세서번호+행위코드로 줄마다 <em>청구 vs 인정</em>을 대조하고, <em>조정사유별·월별</em>로 묶어 드립니다. 같은 사유가 반복되면 다음 달에는 미리 피할 수 있습니다.
       </p>
-      <div class="demo-strip">
-        <span class="demo-label" data-i18n-html="jabo.demoLabel"><strong>한솔한방병원 2026-08 · 명세서 12건 · 행위 41줄</strong> 샘플(예시) — 상병-처치 부위 불일치·동일부위 중복·추나 횟수 한도·첩약 처방일수·경상환자 4주 진단서 등 실제 조정 패턴을 대조표로 보여드립니다. 상병 정비와 같은 청구 배치입니다.</span>
-        <button type="button" class="demo-cta" data-action="run-jabo"><span class="play">▶</span> <span data-i18n="jabo.demoCta">샘플 파일로 시연</span></button>
-      </div>
 
       <div class="batch-strip-host" id="jabo-batch-strip"></div>
 
-      <div class="work">
-        <div class="card" id="jabo-recon-card">
-          <h4><span class="step">01</span> <span data-i18n="jabo.step1">파일 대조 — 청구 명세서 ⨝ 심사결과통보</span></h4>
-          <div class="process-note" data-i18n-html="jabo.processNote">
-            병원 → 심평원 <strong>자보 진료수가 명세서 청구</strong> → 심평원 <strong>심사결과통보</strong> → 조정 확인 → (필요시) <strong>심평원에 이의제기</strong>. 보험사·공제조합은 심평원 결정에 따라 지급합니다.
-          </div>
-          <div class="recon-drops">
-            <div>
-              <label class="drop" id="drop-jabo-claims">
-                <input type="file" accept=".xlsx,.xls,.csv">
-                <p data-i18n="jabo.dropClaims">① 청구 명세서 export</p>
-                <span class="hint" data-i18n="jabo.dropClaimsHint">명세서번호 · 환자번호 · 진료일자 · 행위코드 · 횟수 · 청구금액 (+ 상병코드 · 진단명 · 주/부상병)</span>
-                <span class="hint legacy" data-i18n="jabo.dropClaimsLegacy">이 화면용 파일만(행위 컬럼)도 청구 배치가 됩니다 — 청구 배치 화면의 업로드와 같은 동작</span>
-                <div class="drop-actions"><button type="button" class="ghost" data-action="sample-jabo-claims" data-i18n="common.sampleExample">샘플 받기 (예시)</button></div>
-              </label>
-              <div class="recon-file" id="jabo-file-claims"></div>
-            </div>
-            <div>
-              <label class="drop" id="drop-jabo-review">
-                <input type="file" accept=".xlsx,.xls,.csv">
-                <p data-i18n="jabo.dropReview">② 심평원 심사결과 파일</p>
-                <span class="hint" data-i18n="jabo.dropReviewHint">명세서번호 · 행위코드 · 인정횟수 · 인정금액 · 조정사유코드 · 조정사유</span>
-                <span class="hint legacy" data-i18n="jabo.dropReviewLegacy">이 화면용 파일만 — 현재 청구 배치에 연결됩니다</span>
-                <div class="drop-actions"><button type="button" class="ghost" data-action="sample-jabo-review" data-i18n="common.sampleExample">샘플 받기 (예시)</button></div>
-              </label>
-              <div class="recon-file" id="jabo-file-review"></div>
-            </div>
-          </div>
-          <div class="recon-insurer" data-recon="insurer">
-            <label for="jabo-recon-insurer" data-i18n="jabo.reconInsurer">보험사 / 공제조합 (배치 기준)</label>
-            <select id="jabo-recon-insurer">
-              <option value="" data-i18n="common.selectPlaceholder">— 선택 —</option>
-            </select>
-            <span class="hint" data-i18n="jabo.reconInsurerHint">마지막 사용 보험사가 기본값 — 정산 기록에 함께 저장됩니다</span>
-          </div>
-          <div id="jabo-recon-status" class="status-line" style="display:none"></div>
-          <div class="result-toolbar" id="jabo-recon-toolbar" data-recon="toolbar" style="display:none">
-            <div class="summary" id="jabo-recon-summary" data-recon="summary"></div>
+      <div class="flow">
+        <section class="flow-step" data-step="1">
+          <span class="step" aria-hidden="true">①</span>
+          <h4 data-i18n="flow.step1">샘플 · 시연</h4>
+          <div class="flow-body">
+            <p data-i18n-html="jabo.demoLabel"><strong>한솔한방병원 2026-08 · 명세서 12건 · 행위 41줄</strong> 샘플(예시) — 상병-처치 부위 불일치·동일부위 중복·추나 횟수 한도·첩약 처방일수·경상환자 4주 진단서 등 실제 조정 패턴을 대조표로 보여드립니다. 상병 정비와 같은 청구 배치입니다.</p>
             <div class="actions">
-              <button class="btn" id="jabo-recon-download" data-recon="download" disabled data-i18n-html="jabo.reconDownload">대조표 XLSX <span class="arrow">↓</span></button>
+              <span class="act"><span class="act-k" data-i18n="claims.dropClaims">청구 명세서 export</span><button type="button" class="btn secondary" data-action="sample-jabo-claims" data-i18n-html="flow.sample">샘플 파일 받기 <span class="arrow">↓</span></button></span>
+              <span class="act"><span class="act-k" data-i18n="claims.dropReview">심평원 심사결과 파일</span><button type="button" class="btn secondary" data-action="sample-jabo-review" data-i18n-html="flow.sample">샘플 파일 받기 <span class="arrow">↓</span></button></span>
+              <button type="button" class="btn" data-action="run-jabo" data-i18n-html="flow.demo"><span class="play">▶</span> 샘플로 시연</button>
             </div>
           </div>
-          <div id="jabo-recon-groups" data-recon="groups"></div>
-          <div class="result" id="jabo-recon-result" data-recon="result">
-            <div class="empty-state" data-i18n="jabo.reconEmpty">두 파일을 올리면 명세서번호+행위코드로 결합한 대조표가 표시됩니다.</div>
-          </div>
-          <p class="caveat" data-i18n-html="jabo.reconCaveat">
-            ※ 조정사유는 <strong>예시 분류</strong>(상병-처치 부위 불일치 · 동일부위 중복 산정 · 추나 횟수 한도 · 첩약 처방일수 · 경상환자 4주 진단서 미제출 · 통원기간 초과 · 초·재진 진찰료)로 묶습니다. 실제 심사결과통보서의 사유 표기를 우선하며, 이의제기 기한은 통보서 기준으로 확인하세요.
-          </p>
-        </div>
+        </section>
 
-        <div class="card">
-          <h4><span class="step">02</span> <span data-i18n="jabo.step2">수기 단건 정산</span> <span style="font-weight:400; color:var(--muted); font-size:12px" data-i18n="jabo.step2Sub">— 파일이 없을 때</span></h4>
-          <div class="form-grid">
-            <div class="field">
-              <label data-i18n="jabo.fPid">환자번호</label>
-              <input id="jabo-pid" type="text" placeholder="2026-0142">
+        <section class="flow-step" data-step="2">
+          <span class="step" aria-hidden="true">②</span>
+          <h4 data-i18n="flow.step2">데이터 올리기</h4>
+          <div class="flow-body">
+            <div class="process-note" data-i18n-html="jabo.processNote">
+              병원 → 심평원 <strong>자보 진료수가 명세서 청구</strong> → 심평원 <strong>심사결과통보</strong> → 조정 확인 → (필요시) <strong>심평원에 이의제기</strong>. 보험사·공제조합은 심평원 결정에 따라 지급합니다.
             </div>
-            <div class="field">
-              <label data-i18n="jabo.fInsurer">보험사 / 공제조합</label>
-              <select id="jabo-insurer">
+            <div class="recon-drops">
+              <div>
+                <label class="drop" id="drop-jabo-claims">
+                  <input type="file" accept=".xlsx,.xls,.csv">
+                  <p data-i18n="jabo.dropClaims">청구 명세서 export</p>
+                  <span class="hint" data-i18n="flow.upload">엑셀 · CSV 파일을 끌어다 놓거나 눌러서 올리기</span>
+                  <span class="hint cols" data-i18n="jabo.dropClaimsHint">명세서번호 · 환자번호 · 진료일자 · 행위코드 · 횟수 · 청구금액 (+ 상병코드 · 진단명 · 주/부상병)</span>
+                </label>
+                <div class="recon-file" id="jabo-file-claims"></div>
+              </div>
+              <div>
+                <label class="drop" id="drop-jabo-review">
+                  <input type="file" accept=".xlsx,.xls,.csv">
+                  <p data-i18n="jabo.dropReview">심평원 심사결과 파일</p>
+                  <span class="hint" data-i18n="flow.upload">엑셀 · CSV 파일을 끌어다 놓거나 눌러서 올리기</span>
+                  <span class="hint cols" data-i18n="jabo.dropReviewHint">명세서번호 · 행위코드 · 인정횟수 · 인정금액 · 조정사유코드 · 조정사유</span>
+                </label>
+                <div class="recon-file" id="jabo-file-review"></div>
+              </div>
+            </div>
+            <details class="schema">
+              <summary data-i18n="flow.columns">열 이름 보기</summary>
+              <span class="label" data-i18n="jabo.dropClaims">청구 명세서 export</span>
+              <code>명세서번호</code> · <code>환자번호</code> · <code>진료일자</code> · <code>행위코드</code> · <code>행위명</code> · <code>횟수</code> · <code>청구금액</code> · <code>상병코드</code> · <code>진단명</code> · <code>주/부상병</code>
+              <br><span class="label" style="margin-top:6px" data-i18n="jabo.dropClaimsLegacy">이 화면용 파일만(행위 컬럼)도 청구 배치가 됩니다 — 청구 배치 화면의 업로드와 같은 동작</span>
+              <br><span class="label" style="margin-top:6px" data-i18n="jabo.dropReview">심평원 심사결과 파일</span>
+              <code>명세서번호</code> · <code>행위코드</code> · <code>인정횟수</code> · <code>인정금액</code> · <code>조정사유코드</code> · <code>조정사유</code>
+              <br><span class="label" style="margin-top:6px" data-i18n="jabo.dropReviewLegacy">이 화면용 파일만 — 현재 청구 배치에 연결됩니다</span>
+            </details>
+            <div class="recon-insurer" data-recon="insurer">
+              <label for="jabo-recon-insurer" data-i18n="jabo.reconInsurer">보험사 / 공제조합 (배치 기준)</label>
+              <select id="jabo-recon-insurer">
                 <option value="" data-i18n="common.selectPlaceholder">— 선택 —</option>
               </select>
+              <span class="hint" data-i18n="jabo.reconInsurerHint">마지막 사용 보험사가 기본값 — 정산 기록에 함께 저장됩니다</span>
             </div>
-            <div class="field">
-              <label data-i18n="jabo.fClaim">접수번호</label>
-              <input id="jabo-claim" type="text" placeholder="DB-2026-0421-1234">
+
+            <!-- Secondary path: manual single-case entry (no file). -->
+            <h5 class="flow-h5"><span data-i18n="jabo.step2">수기 단건 정산</span> <span class="sub" data-i18n="jabo.step2Sub">— 파일이 없을 때</span> <button type="button" class="ghost" data-action="run-jabo-manual" title="예시 행위로 수기 케이스를 채웁니다" data-i18n="jabo.manualSample" data-i18n-attr="title:jabo.manualSampleTitle">수기 샘플</button></h5>
+            <div class="form-grid">
+              <div class="field">
+                <label data-i18n="jabo.fPid">환자번호</label>
+                <input id="jabo-pid" type="text" placeholder="2026-0142">
+              </div>
+              <div class="field">
+                <label data-i18n="jabo.fInsurer">보험사 / 공제조합</label>
+                <select id="jabo-insurer">
+                  <option value="" data-i18n="common.selectPlaceholder">— 선택 —</option>
+                </select>
+              </div>
+              <div class="field">
+                <label data-i18n="jabo.fClaim">접수번호</label>
+                <input id="jabo-claim" type="text" placeholder="DB-2026-0421-1234">
+              </div>
+              <div class="field">
+                <label data-i18n="jabo.fAccident">사고일자</label>
+                <input id="jabo-accident" type="date">
+              </div>
+              <div class="field">
+                <label data-i18n="jabo.fDate">진료일자</label>
+                <input id="jabo-date" type="date">
+              </div>
+              <div class="field">
+                <label data-i18n="jabo.fDx">주상병 (EDI형)</label>
+                <select id="jabo-dx"></select>
+              </div>
             </div>
-            <div class="field">
-              <label data-i18n="jabo.fAccident">사고일자</label>
-              <input id="jabo-accident" type="date">
+            <div class="fee-badge" id="jabo-fee-badge"></div>
+            <div class="item-search">
+              <input type="text" id="jabo-search" placeholder="행위 검색 — 예: 침술, 부항, 추나, 약침…" data-i18n-attr="placeholder:jabo.searchPlaceholder">
+              <div class="item-search-results" id="jabo-search-results"></div>
             </div>
-            <div class="field">
-              <label data-i18n="jabo.fDate">진료일자</label>
-              <input id="jabo-date" type="date">
+            <div class="items" id="jabo-items"></div>
+            <p class="caveat" data-i18n-html="jabo.manualCaveat">
+              ※ 내장 행위표는 <strong>예시 수가표</strong>입니다 — 코드는 '예시-NN' 자리표시자, 단가는 임의값. <strong>조직 › 마스터 업로드</strong>에서 심평원 행위·수가 마스터(xlsx)를 업로드하면 실제 코드·단가로 대체됩니다. 자보는 건강보험 행위 급여목록의 코드를 그대로 씁니다.
+            </p>
+          </div>
+        </section>
+
+        <section class="flow-step" data-step="3">
+          <span class="step" aria-hidden="true">③</span>
+          <h4 data-i18n="flow.step3">결과 검토</h4>
+          <div class="flow-body">
+            <div id="jabo-recon-status" class="status" style="display:none"></div>
+            <div class="result-toolbar" id="jabo-recon-toolbar" data-recon="toolbar" style="display:none">
+              <div class="summary" id="jabo-recon-summary" data-recon="summary"></div>
             </div>
-            <div class="field">
-              <label data-i18n="jabo.fDx">주상병 (EDI형)</label>
-              <select id="jabo-dx"></select>
+            <div id="jabo-recon-groups" data-recon="groups"></div>
+            <div class="result" id="jabo-recon-result" data-recon="result">
+              <div class="empty"><p data-i18n="jabo.reconEmpty">두 파일을 올리면 명세서번호+행위코드로 결합한 대조표가 표시됩니다.</p><p class="empty-hint" data-i18n="flow.emptyHint">처음이라면 ① 샘플 · 시연 — 샘플 파일을 받거나 「샘플로 시연」을 누르세요.</p></div>
+            </div>
+            <p class="caveat" data-i18n-html="jabo.reconCaveat">
+              ※ 조정사유는 <strong>예시 분류</strong>(상병-처치 부위 불일치 · 동일부위 중복 산정 · 추나 횟수 한도 · 첩약 처방일수 · 경상환자 4주 진단서 미제출 · 통원기간 초과 · 초·재진 진찰료)로 묶습니다. 실제 심사결과통보서의 사유 표기를 우선하며, 이의제기 기한은 통보서 기준으로 확인하세요.
+            </p>
+
+            <h5 class="flow-h5"><span data-i18n="jabo.step2">수기 단건 정산</span></h5>
+            <div id="jabo-status" class="status" style="display:none"></div>
+            <div class="total-strip">
+              <span class="label" data-i18n="jabo.totalLabel">청구 vs 인정</span>
+              <span class="value" data-i18n-html="jabo.totalValue">청구 <em id="jabo-total-num">0</em> · 인정 <em id="jabo-paid-num">0</em> · 조정 <em id="jabo-cut-num">0</em> 원</span>
+            </div>
+            <div class="result-toolbar">
+              <div class="summary" id="jabo-summary">
+                <strong>0건</strong> 행위 · 청구 <strong>0원</strong> · 인정 <strong>0원</strong> · 조정률 <strong>0%</strong>
+              </div>
+              <div class="actions">
+                <span class="new-menu-wrap">
+                  <button class="btn secondary sm" id="jabo-new" title="같은 사고의 다음 진료 또는 완전히 새 케이스를 시작합니다" data-i18n="jabo.newCase" data-i18n-attr="title:jabo.newCaseTitle" aria-haspopup="menu">새 케이스 ▾</button>
+                  <div class="new-menu" id="jabo-new-menu" role="menu" hidden>
+                    <button type="button" role="menuitem" id="jabo-new-same"><strong data-i18n="jabo.newSame">같은 사고 다음 진료</strong><span data-i18n="jabo.newSameSub">환자번호·보험사·사고일·접수번호·주상병 유지 · 진료일은 오늘 · 행위 비움</span></button>
+                    <button type="button" role="menuitem" id="jabo-new-fresh"><strong data-i18n="jabo.newFresh">완전히 새로</strong><span data-i18n="jabo.newFreshSub">환자·청구 정보와 행위 목록을 모두 비움</span></button>
+                  </div>
+                </span>
+              </div>
+            </div>
+            <div class="result" id="jabo-preview">
+              <div class="empty"><p data-i18n="jabo.manualEmpty">행위와 인정금액을 입력하면 정산표가 표시됩니다.</p><p class="empty-hint" data-i18n="flow.emptyHintManual">처음이라면 ② 데이터 올리기의 「수기 샘플」이 예시 케이스를 채웁니다.</p></div>
             </div>
           </div>
+        </section>
 
-          <div class="fee-badge" id="jabo-fee-badge"></div>
-          <div class="item-search">
-            <input type="text" id="jabo-search" placeholder="행위 검색 — 예: 침술, 부항, 추나, 약침…" data-i18n-attr="placeholder:jabo.searchPlaceholder">
-            <div class="item-search-results" id="jabo-search-results"></div>
-          </div>
-          <div class="items" id="jabo-items"></div>
-
-          <div class="total-strip">
-            <span class="label" data-i18n="jabo.totalLabel">청구 vs 인정</span>
-            <span class="value" data-i18n-html="jabo.totalValue">청구 <em id="jabo-total-num">0</em> · 인정 <em id="jabo-paid-num">0</em> · 조정 <em id="jabo-cut-num">0</em> 원</span>
-          </div>
-
-          <div id="jabo-status" class="status-line" style="display:none; margin-top:12px"></div>
-          <div class="result-toolbar">
-            <div class="summary" id="jabo-summary">
-              <strong>0건</strong> 행위 · 청구 <strong>0원</strong> · 인정 <strong>0원</strong> · 조정률 <strong>0%</strong>
-            </div>
+        <section class="flow-step" data-step="4">
+          <span class="step" aria-hidden="true">④</span>
+          <h4 data-i18n="flow.step4">내보내기 · 다음 단계</h4>
+          <div class="flow-body">
             <div class="actions">
-              <button type="button" class="btn secondary" data-action="run-jabo-manual" title="예시 행위로 수기 케이스를 채웁니다" data-i18n="jabo.manualSample" data-i18n-attr="title:jabo.manualSampleTitle">수기 샘플</button>
-              <span class="new-menu-wrap">
-                <button class="btn secondary" id="jabo-new" title="같은 사고의 다음 진료 또는 완전히 새 케이스를 시작합니다" data-i18n="jabo.newCase" data-i18n-attr="title:jabo.newCaseTitle" aria-haspopup="menu">새 케이스 ▾</button>
-                <div class="new-menu" id="jabo-new-menu" role="menu" hidden>
-                  <button type="button" role="menuitem" id="jabo-new-same"><strong data-i18n="jabo.newSame">같은 사고 다음 진료</strong><span data-i18n="jabo.newSameSub">환자번호·보험사·사고일·접수번호·주상병 유지 · 진료일은 오늘 · 행위 비움</span></button>
-                  <button type="button" role="menuitem" id="jabo-new-fresh"><strong data-i18n="jabo.newFresh">완전히 새로</strong><span data-i18n="jabo.newFreshSub">환자·청구 정보와 행위 목록을 모두 비움</span></button>
-                </div>
-              </span>
-              <button class="btn" id="jabo-download" disabled data-i18n-html="jabo.manualDownload">정산표 XLSX <span class="arrow">↓</span></button>
+              <span class="act"><span class="act-k" data-i18n="jabo.reconSheet">대조표</span><button class="btn" id="jabo-recon-download" data-recon="download" disabled data-i18n-html="flow.export.xlsx">XLSX 내려받기 <span class="arrow">↓</span></button></span>
+              <span class="act"><span class="act-k" data-i18n="jabo.manualSheet">정산표 (수기)</span><button class="btn secondary" id="jabo-download" disabled data-i18n-html="flow.export.xlsx">XLSX 내려받기 <span class="arrow">↓</span></button></span>
+              <span class="spacer"></span>
+              <button type="button" class="btn secondary" data-go="tab-appeal"><span><span data-i18n="flow.next">다음</span>: <span data-i18n="nav.appeal">이의신청</span></span> <span class="arrow">→</span></button>
             </div>
           </div>
-          <div class="result" id="jabo-preview">
-            <div class="empty-state" data-i18n="jabo.manualEmpty">행위와 인정금액을 입력하면 정산표가 표시됩니다.</div>
-          </div>
-          <p class="caveat" data-i18n-html="jabo.manualCaveat">
-            ※ 내장 행위표는 <strong>예시 수가표</strong>입니다 — 코드는 '예시-NN' 자리표시자, 단가는 임의값. <strong>조직 › 마스터 업로드</strong>에서 심평원 행위·수가 마스터(xlsx)를 업로드하면 실제 코드·단가로 대체됩니다. 자보는 건강보험 행위 급여목록의 코드를 그대로 씁니다.
-          </p>
-        </div>
+        </section>
       </div>
     </section>
 
     <!-- ─────────────────────────────────────────── -->
-    <!-- 보고·기록 › 연말정산 의료비 사전검증 / 누락보정 -->
+    <!-- 청구 › 건보 심사결과 대조 (payer "nhis") — js/tabs/tab-nhis.js -->
     <!-- ─────────────────────────────────────────── -->
-    <!-- Phase 3 slot: tab-nhis (owner fills panel-body) -->
     <section class="panel" id="tab-nhis" role="tabpanel">
       <div class="panel-head">
         <span class="panel-num" data-i18n="p3.nhis.num">청구 · 건보 심사결과 대조</span>
@@ -869,68 +968,103 @@
         <p class="panel-blurb" data-i18n-html="nhis.blurb">
           건강보험 진료비는 매달 <em>심평원에 EDI 명세서로 청구</em>하고, 심평원이 <em>심사결과통보서</em>로 조정 줄과 조정사유를 알려주면 <em>공단이 인정금액</em>을 지급하는 구조입니다. 건보 청구 명세서 export와 심사결과 파일을 올리면 — 자보와 같은 방식으로 명세서번호+행위코드로 줄마다 <em>청구 vs 인정</em>을 대조하고 <em>조정사유별·월별</em>로 묶습니다. 보험사 선택은 없습니다(지급자는 공단 하나). 조정 줄마다 <em>이의신청 준비</em>로 넘길 수 있습니다.
         </p>
-        <div class="demo-strip">
-          <span class="demo-label" data-i18n-html="nhis.demoLabel"><strong>한솔한방병원 2026-08 · 건보 명세서 10건 · 행위 33줄</strong> 샘플(예시) — 첩약 처방일수 초과·침술 빈도 초과·서류 미비(자료 보완 미회신) 등 건보 조정 패턴을 대조표로 보여드립니다. 자보 샘플과 같은 건보 환자 3명입니다.</span>
-          <button type="button" class="demo-cta" data-action="run-nhis"><span class="play">▶</span> <span data-i18n="jabo.demoCta">샘플 파일로 시연</span></button>
-        </div>
 
         <div class="batch-strip-host" id="nhis-batch-strip"></div>
 
-        <div class="work">
-          <div class="card" id="nhis-recon-card">
-            <h4><span class="step">01</span> <span data-i18n="nhis.step1">파일 대조 — 건보 청구 명세서 ⨝ 심사결과통보</span></h4>
-            <div class="process-note" data-i18n-html="nhis.processNote">
-              요양기관 → 심평원 <strong>EDI 요양급여비용 청구 (월 단위)</strong> → 심평원 <strong>심사결과통보서</strong> (조정 줄 · 조정사유) → <strong>공단 지급 (인정금액)</strong> → (필요시) <strong>심평원에 이의신청</strong> — 통보를 안 날부터 90일 이내 (확인 필요).
-            </div>
-            <div class="recon-drops">
-              <div>
-                <label class="drop" id="drop-nhis-claims">
-                  <input type="file" accept=".xlsx,.xls,.csv">
-                  <p data-i18n="nhis.dropClaims">① 건보 청구 명세서 export</p>
-                  <span class="hint" data-i18n="nhis.dropClaimsHint">명세서번호 · 환자번호 · 진료일자 · 보험유형(건강보험) · 행위코드 · 횟수 · 청구금액 (+ 상병코드 · 진단명 · 주/부상병)</span>
-                  <span class="hint legacy" data-i18n="nhis.dropClaimsLegacy">보험유형 컬럼이 없으면 이 화면에 올린 파일은 건보 배치가 됩니다</span>
-                  <div class="drop-actions"><button type="button" class="ghost" data-action="sample-nhis-claims" data-i18n="common.sampleExample">샘플 받기 (예시)</button></div>
-                </label>
-                <div class="recon-file" id="nhis-file-claims"></div>
-              </div>
-              <div>
-                <label class="drop" id="drop-nhis-review">
-                  <input type="file" accept=".xlsx,.xls,.csv">
-                  <p data-i18n="nhis.dropReview">② 심평원 심사결과통보 파일</p>
-                  <span class="hint" data-i18n="jabo.dropReviewHint">명세서번호 · 행위코드 · 인정횟수 · 인정금액 · 조정사유코드 · 조정사유</span>
-                  <span class="hint legacy" data-i18n="nhis.dropReviewLegacy">현재 건보 배치에 연결됩니다</span>
-                  <div class="drop-actions"><button type="button" class="ghost" data-action="sample-nhis-review" data-i18n="common.sampleExample">샘플 받기 (예시)</button></div>
-                </label>
-                <div class="recon-file" id="nhis-file-review"></div>
-              </div>
-            </div>
-            <div id="nhis-recon-status" class="status-line" style="display:none"></div>
-            <div class="result-toolbar" id="nhis-recon-toolbar" data-recon="toolbar" style="display:none">
-              <div class="summary" id="nhis-recon-summary" data-recon="summary"></div>
+        <div class="flow">
+          <section class="flow-step" data-step="1">
+            <span class="step" aria-hidden="true">①</span>
+            <h4 data-i18n="flow.step1">샘플 · 시연</h4>
+            <div class="flow-body">
+              <p data-i18n-html="nhis.demoLabel"><strong>한솔한방병원 2026-08 · 건보 명세서 10건 · 행위 33줄</strong> 샘플(예시) — 첩약 처방일수 초과·침술 빈도 초과·서류 미비(자료 보완 미회신) 등 건보 조정 패턴을 대조표로 보여드립니다. 자보 샘플과 같은 건보 환자 3명입니다.</p>
               <div class="actions">
-                <button class="btn" id="nhis-recon-download" data-recon="download" disabled data-i18n-html="jabo.reconDownload">대조표 XLSX <span class="arrow">↓</span></button>
+                <span class="act"><span class="act-k" data-i18n="nhis.dropClaims">건보 청구 명세서 export</span><button type="button" class="btn secondary" data-action="sample-nhis-claims" data-i18n-html="flow.sample">샘플 파일 받기 <span class="arrow">↓</span></button></span>
+                <span class="act"><span class="act-k" data-i18n="nhis.dropReview">심평원 심사결과통보 파일</span><button type="button" class="btn secondary" data-action="sample-nhis-review" data-i18n-html="flow.sample">샘플 파일 받기 <span class="arrow">↓</span></button></span>
+                <button type="button" class="btn" data-action="run-nhis" data-i18n-html="flow.demo"><span class="play">▶</span> 샘플로 시연</button>
               </div>
             </div>
-            <div id="nhis-recon-groups" data-recon="groups"></div>
-            <div class="result" id="nhis-recon-result" data-recon="result">
-              <div class="empty-state" data-i18n="jabo.reconEmpty">두 파일을 올리면 명세서번호+행위코드로 결합한 대조표가 표시됩니다.</div>
-            </div>
-            <p class="caveat" data-i18n-html="nhis.caveat">
-              ※ 건보 조정사유는 <strong>서술형 예시 분류</strong>(<span id="nhis-reason-list"></span>)로 묶습니다 — 실제 심평원 조정사유코드가 아닙니다. 실제 심사결과통보서의 사유 표기를 우선하며, 이의신청 기한(통보를 안 날부터 90일 — 국민건강보험법 §87, <strong>확인 필요</strong>)은 통보서 기준으로 확인하세요.
-            </p>
-          </div>
+          </section>
 
-          <div class="card">
-            <h4><span class="step">02</span> <span data-i18n="nhis.step2">다음 단계 — 조정 건 처리</span></h4>
-            <div class="claims-batch-card" id="nhis-next"></div>
-            <p class="caveat" data-i18n-html="nhis.caveat2">
-              ※ 조정 줄의 <strong>이의신청 준비</strong>를 누르면 이의신청 대장에 초안이 생기고, 통보일을 적으면 기한(+90일, 확인 필요)이 계산됩니다. 반복되는 사유(처방일수·빈도 한도)는 다음 달 청구 전에 미리 걸러내는 것이 이의신청보다 빠릅니다.
-            </p>
-          </div>
+          <section class="flow-step" data-step="2">
+            <span class="step" aria-hidden="true">②</span>
+            <h4 data-i18n="flow.step2">데이터 올리기</h4>
+            <div class="flow-body">
+              <div class="process-note" data-i18n-html="nhis.processNote">
+                요양기관 → 심평원 <strong>EDI 요양급여비용 청구 (월 단위)</strong> → 심평원 <strong>심사결과통보서</strong> (조정 줄 · 조정사유) → <strong>공단 지급 (인정금액)</strong> → (필요시) <strong>심평원에 이의신청</strong> — 통보를 안 날부터 90일 이내 (확인 필요).
+              </div>
+              <div class="recon-drops">
+                <div>
+                  <label class="drop" id="drop-nhis-claims">
+                    <input type="file" accept=".xlsx,.xls,.csv">
+                    <p data-i18n="nhis.dropClaims">건보 청구 명세서 export</p>
+                    <span class="hint" data-i18n="flow.upload">엑셀 · CSV 파일을 끌어다 놓거나 눌러서 올리기</span>
+                    <span class="hint cols" data-i18n="nhis.dropClaimsHint">명세서번호 · 환자번호 · 진료일자 · 보험유형(건강보험) · 행위코드 · 횟수 · 청구금액 (+ 상병코드 · 진단명 · 주/부상병)</span>
+                  </label>
+                  <div class="recon-file" id="nhis-file-claims"></div>
+                </div>
+                <div>
+                  <label class="drop" id="drop-nhis-review">
+                    <input type="file" accept=".xlsx,.xls,.csv">
+                    <p data-i18n="nhis.dropReview">심평원 심사결과통보 파일</p>
+                    <span class="hint" data-i18n="flow.upload">엑셀 · CSV 파일을 끌어다 놓거나 눌러서 올리기</span>
+                    <span class="hint cols" data-i18n="jabo.dropReviewHint">명세서번호 · 행위코드 · 인정횟수 · 인정금액 · 조정사유코드 · 조정사유</span>
+                  </label>
+                  <div class="recon-file" id="nhis-file-review"></div>
+                </div>
+              </div>
+              <details class="schema">
+                <summary data-i18n="flow.columns">열 이름 보기</summary>
+                <span class="label" data-i18n="nhis.dropClaims">건보 청구 명세서 export</span>
+                <code>명세서번호</code> · <code>환자번호</code> · <code>진료일자</code> · <code>보험유형</code> · <code>행위코드</code> · <code>행위명</code> · <code>횟수</code> · <code>청구금액</code> · <code>상병코드</code> · <code>진단명</code> · <code>주/부상병</code>
+                <br><span class="label" style="margin-top:6px" data-i18n="nhis.dropClaimsLegacy">보험유형 컬럼이 없으면 이 화면에 올린 파일은 건보 배치가 됩니다</span>
+                <br><span class="label" style="margin-top:6px" data-i18n="nhis.dropReview">심평원 심사결과통보 파일</span>
+                <code>명세서번호</code> · <code>행위코드</code> · <code>인정횟수</code> · <code>인정금액</code> · <code>조정사유코드</code> · <code>조정사유</code>
+                <br><span class="label" style="margin-top:6px" data-i18n="nhis.dropReviewLegacy">현재 건보 배치에 연결됩니다</span>
+              </details>
+            </div>
+          </section>
+
+          <section class="flow-step" data-step="3">
+            <span class="step" aria-hidden="true">③</span>
+            <h4 data-i18n="flow.step3">결과 검토</h4>
+            <div class="flow-body">
+              <div id="nhis-recon-status" class="status" style="display:none"></div>
+              <div class="result-toolbar" id="nhis-recon-toolbar" data-recon="toolbar" style="display:none">
+                <div class="summary" id="nhis-recon-summary" data-recon="summary"></div>
+              </div>
+              <div id="nhis-recon-groups" data-recon="groups"></div>
+              <div class="result" id="nhis-recon-result" data-recon="result">
+                <div class="empty"><p data-i18n="jabo.reconEmpty">두 파일을 올리면 명세서번호+행위코드로 결합한 대조표가 표시됩니다.</p><p class="empty-hint" data-i18n="flow.emptyHint">처음이라면 ① 샘플 · 시연 — 샘플 파일을 받거나 「샘플로 시연」을 누르세요.</p></div>
+              </div>
+              <p class="caveat" data-i18n-html="nhis.caveat">
+                ※ 건보 조정사유는 <strong>서술형 예시 분류</strong>(<span id="nhis-reason-list"></span>)로 묶습니다 — 실제 심평원 조정사유코드가 아닙니다. 실제 심사결과통보서의 사유 표기를 우선하며, 이의신청 기한(통보를 안 날부터 90일 — 국민건강보험법 §87, <strong>확인 필요</strong>)은 통보서 기준으로 확인하세요.
+              </p>
+            </div>
+          </section>
+
+          <section class="flow-step" data-step="4">
+            <span class="step" aria-hidden="true">④</span>
+            <h4 data-i18n="flow.step4">내보내기 · 다음 단계</h4>
+            <div class="flow-body">
+              <div class="actions">
+                <span class="act"><span class="act-k" data-i18n="nhis.reconSheet">건보 대조표</span><button class="btn" id="nhis-recon-download" data-recon="download" disabled data-i18n-html="flow.export.xlsx">XLSX 내려받기 <span class="arrow">↓</span></button></span>
+                <span class="spacer"></span>
+                <button type="button" class="btn secondary" data-go="tab-appeal"><span><span data-i18n="flow.next">다음</span>: <span data-i18n="nav.appeal">이의신청</span></span> <span class="arrow">→</span></button>
+              </div>
+              <h5 class="flow-h5" data-i18n="nhis.step2">다음 단계 — 조정 건 처리</h5>
+              <div class="claims-batch-card" id="nhis-next"></div>
+              <p class="caveat" data-i18n-html="nhis.caveat2">
+                ※ 조정 줄의 <strong>이의신청 준비</strong>를 누르면 이의신청 대장에 초안이 생기고, 통보일을 적으면 기한(+90일, 확인 필요)이 계산됩니다. 반복되는 사유(처방일수·빈도 한도)는 다음 달 청구 전에 미리 걸러내는 것이 이의신청보다 빠릅니다.
+              </p>
+            </div>
+          </section>
         </div>
       </div>
     </section>
-    <!-- Phase 3 slot: tab-appeal (owner fills panel-body) -->
+
+    <!-- ─────────────────────────────────────────── -->
+    <!-- 청구 › 이의신청 — js/tabs/tab-appeal.js -->
+    <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-appeal" role="tabpanel">
       <div class="panel-head">
         <span class="panel-num" data-i18n="p3.appeal.num">청구 · 이의신청</span>
@@ -944,44 +1078,72 @@
         <p class="panel-blurb" data-i18n-html="appeal.blurb">
           심사결과 대조에서 <em>조정된 줄</em>을 그대로 이의신청 초안으로 넘기면 — 사실관계(명세서·행위·청구/인정/조정금액·통보서 사유)가 채워진 카드가 생기고, <em>통보일을 적으면 기한</em>(+90일, 확인 필요)이 D-day로 붙습니다. 사유 요약·근거 메모·첨부 체크리스트를 채우고 <em>제출 → 결과</em>로 상태를 옮기세요. 건보 이의신청은 <em>심평원</em>에, 자보 이의제기는 <em>심평원 자보심사센터</em>에 합니다(그 뒤 보험사 지불보증 분쟁은 별도).
         </p>
-        <div class="demo-strip">
-          <span class="demo-label" data-i18n-html="appeal.demoLabel"><strong>한솔한방병원 2026-08</strong> 샘플(예시) — 기한 초과 1건(건보 첩약 처방일수) · 제출 1건(자보 추나 한도) · 일부인정 1건(건보 침 빈도)으로 대장·기한 배지·초안을 보여드립니다.</span>
-          <button type="button" class="demo-cta" data-action="run-appeal"><span class="play">▶</span> <span data-i18n="appeal.demoCta">샘플 이의신청 3건</span></button>
-        </div>
 
-        <div class="work appeal-work">
-          <div class="card" id="appeal-register-card">
-            <h4><span class="step">01</span> <span data-i18n="appeal.step1">이의신청 대장</span></h4>
-            <div class="process-note" data-i18n-html="appeal.processNote">
-              <strong>심사결과통보</strong> → 조정 줄 확인 → <strong>이의신청 (재심사조정청구)</strong> — 진료기록 사본·검사결과·소견서 첨부 → 심평원 <strong>결정: 인정 · 일부인정 · 기각</strong>. 기한은 통보를 안 날부터 90일(국민건강보험법 §87 — <strong>확인 필요</strong>); 자보는 통보서의 안내 기한을 우선하세요.
+        <div class="flow">
+          <section class="flow-step" data-step="1">
+            <span class="step" aria-hidden="true">①</span>
+            <h4 data-i18n="flow.step1">샘플 · 시연</h4>
+            <div class="flow-body">
+              <p data-i18n-html="appeal.demoLabel"><strong>한솔한방병원 2026-08</strong> 샘플(예시) — 기한 초과 1건(건보 첩약 처방일수) · 제출 1건(자보 추나 한도) · 일부인정 1건(건보 침 빈도)으로 대장·기한 배지·초안을 보여드립니다.</p>
+              <div class="actions">
+                <button type="button" class="btn" data-action="run-appeal" data-i18n-html="flow.demo"><span class="play">▶</span> 샘플로 시연</button>
+              </div>
             </div>
-            <div class="appeal-toolbar">
-              <label for="appeal-f-payer" data-i18n="appeal.f.payer">보험유형</label><select id="appeal-f-payer"></select>
-              <label for="appeal-f-month" data-i18n="appeal.f.month">청구월</label><select id="appeal-f-month"></select>
-              <label for="appeal-f-status" data-i18n="appeal.f.statusF">상태</label><select id="appeal-f-status"></select>
-              <button class="btn" id="appeal-export" disabled data-i18n-html="appeal.exportBtn">이의신청 대장 XLSX <span class="arrow">↓</span></button>
-            </div>
-            <div id="appeal-status" class="status-line" style="display:none"></div>
-            <div class="appeal-summary" id="appeal-summary"></div>
-            <div class="result appeal-list" id="appeal-list"></div>
-            <h5 class="appeal-sub" data-i18n="appeal.candH">대조에서 조정된 줄 — 아직 이의신청 없음</h5>
-            <div class="result" id="appeal-candidates"></div>
-            <p class="caveat" data-i18n-html="appeal.caveat">
-              ※ 이 대장은 <strong>PoC</strong>입니다 — 기한은 통보일 + 90일로 계산하며(<strong>확인 필요</strong>), 실제 기한과 서식은 심평원 안내를 따르세요. 환자는 가명 환자번호(****0000)로만 표시되고, 대장은 브라우저 안에서 암호화되어 1년 보관됩니다 (조직 › 데이터 처리 현황).
-            </p>
-          </div>
+          </section>
 
-          <div class="card" id="appeal-draft-card">
-            <h4><span class="step">02</span> <span data-i18n="appeal.step2">이의신청서 초안</span> <span class="appeal-draft-for" id="appeal-draft-for"></span></h4>
-            <div class="result" id="appeal-draft"></div>
-            <div class="appeal-draft-actions">
-              <button class="btn" id="appeal-draft-print" disabled data-i18n-html="appeal.printBtn">초안 인쇄 <span class="arrow">↗</span></button>
-              <span class="hint" data-i18n="appeal.draft.hint">양식은 심평원 서식 기준 — 확인 필요 · PoC 워터마크 포함</span>
+          <section class="flow-step" data-step="2">
+            <span class="step" aria-hidden="true">②</span>
+            <h4><span data-i18n="flow.step2entry">입력</span> <span class="sub" data-i18n="appeal.candH">대조에서 조정된 줄 — 아직 이의신청 없음</span></h4>
+            <div class="flow-body">
+              <div class="process-note" data-i18n-html="appeal.processNote">
+                <strong>심사결과통보</strong> → 조정 줄 확인 → <strong>이의신청 (재심사조정청구)</strong> — 진료기록 사본·검사결과·소견서 첨부 → 심평원 <strong>결정: 인정 · 일부인정 · 기각</strong>. 기한은 통보를 안 날부터 90일(국민건강보험법 §87 — <strong>확인 필요</strong>); 자보는 통보서의 안내 기한을 우선하세요.
+              </div>
+              <div class="result" id="appeal-candidates"></div>
             </div>
-          </div>
+          </section>
+
+          <section class="flow-step" data-step="3" id="appeal-register-card">
+            <span class="step" aria-hidden="true">③</span>
+            <h4><span data-i18n="flow.step3">결과 검토</span> <span class="sub" data-i18n="appeal.step1">이의신청 대장</span></h4>
+            <div class="flow-body">
+              <div id="appeal-status" class="status" style="display:none"></div>
+              <div class="appeal-toolbar">
+                <label for="appeal-f-payer" data-i18n="appeal.f.payer">보험유형</label><select id="appeal-f-payer"></select>
+                <label for="appeal-f-month" data-i18n="appeal.f.month">청구월</label><select id="appeal-f-month"></select>
+                <label for="appeal-f-status" data-i18n="appeal.f.statusF">상태</label><select id="appeal-f-status"></select>
+              </div>
+              <div class="appeal-summary" id="appeal-summary"></div>
+              <div class="result appeal-list" id="appeal-list"></div>
+              <p class="caveat" data-i18n-html="appeal.caveat">
+                ※ 이 대장은 <strong>PoC</strong>입니다 — 기한은 통보일 + 90일로 계산하며(<strong>확인 필요</strong>), 실제 기한과 서식은 심평원 안내를 따르세요. 환자는 가명 환자번호(****0000)로만 표시되고, 대장은 브라우저 안에서 암호화되어 1년 보관됩니다 (조직 › 데이터 처리 현황).
+              </p>
+              <div id="appeal-draft-card">
+                <h5 class="flow-h5"><span data-i18n="appeal.step2">이의신청서 초안</span> <span class="appeal-draft-for sub" id="appeal-draft-for"></span></h5>
+                <div class="result" id="appeal-draft"></div>
+                <p class="caveat" data-i18n="appeal.draft.hint">양식은 심평원 서식 기준 — 확인 필요 · PoC 워터마크 포함</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="flow-step" data-step="4">
+            <span class="step" aria-hidden="true">④</span>
+            <h4 data-i18n="flow.step4">내보내기 · 다음 단계</h4>
+            <div class="flow-body">
+              <div class="actions">
+                <span class="act"><span class="act-k" data-i18n="appeal.step1">이의신청 대장</span><button class="btn" id="appeal-export" disabled data-i18n-html="flow.export.xlsx">XLSX 내려받기 <span class="arrow">↓</span></button></span>
+                <span class="act"><span class="act-k" data-i18n="appeal.step2">이의신청서 초안</span><button class="btn secondary" id="appeal-draft-print" disabled data-i18n-html="flow.export.print">인쇄 <span class="arrow">↗</span></button></span>
+                <span class="spacer"></span>
+                <button type="button" class="btn secondary" data-go="tab-today"><span><span data-i18n="flow.next">다음</span>: <span data-i18n="nav.today">오늘</span></span> <span class="arrow">→</span></button>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </section>
+
+    <!-- ─────────────────────────────────────────── -->
+    <!-- 보고·기록 › 연말정산 의료비 사전검증 / 누락보정 -->
+    <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-yearend" role="tabpanel">
       <div class="panel-head">
         <span class="panel-num" data-i18n="yearend.num">보고·기록 · 연말정산 점검</span>
@@ -994,76 +1156,94 @@
       <p class="panel-blurb" data-i18n-html="yearend.blurb">
         매년 1월이면 <em>현금결제 비급여</em>·<em>간소화 자료 누락분</em>을 챙겨달라는 환자 전화가 쏟아집니다. 진료기록을 올려두면 — 주민번호 자릿수·검증식, 진료일자·과세연도, 금액 부호와 합계 관계, 중복 행, 환자별 합계까지 행 단위로 점검해 <em>사전점검 정리표</em>로 만들어드립니다. 한 명씩 손으로 대조하던 오후 한 나절을 돌려드립니다.
       </p>
-      <div class="demo-strip">
-        <span class="demo-label" data-i18n-html="yearend.demoLabel">5명 환자 · <strong>7건 진료</strong> — 주민번호 자릿수 오류·음수 금액·중복 행이 섞인 데이터로 사전점검 흐름을 미리 보실 수 있습니다.</span>
-        <button type="button" class="demo-cta" data-action="run-ye"><span class="play">▶</span> <span data-i18n="common.demoSample">샘플로 시연</span></button>
-      </div>
 
-      <div class="work">
-        <div class="card">
-          <h4><span class="step">01</span> <span data-i18n="common.clinicInfo">의료기관 정보</span></h4>
-          <!-- Institution fields are read from the shared Org profile (edited in 조직 › 기관 프로필) — rendered by tab3-yearend.js -->
-          <div id="ye-org"></div>
-          <div class="form-grid" style="margin-top:12px">
-            <div class="field">
-              <label for="ye-year" data-i18n-html="yearend.fYear">과세연도 <span style="color:var(--faint);font-weight:400">(진료일자 범위 점검)</span></label>
-              <input id="ye-year" type="number" min="2000" max="2100" step="1" placeholder="2025">
-            </div>
-          </div>
-
-          <h4 style="margin-top: 22px;"><span class="step">02</span> <span data-i18n="yearend.step2">진료 기록 업로드</span></h4>
-          <label class="drop" id="drop-ye">
-            <input type="file" accept=".xlsx,.xls,.csv">
-            <div class="icon">
-              <svg viewBox="0 0 48 48" fill="none" stroke="#7ba89a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M24 32V12M24 12l-8 8M24 12l8 8"/>
-                <path d="M8 32v6a2 2 0 002 2h28a2 2 0 002-2v-6" opacity="0.5"/>
-              </svg>
-            </div>
-            <p data-i18n="yearend.dropP">병의원 내부 진료 기록 엑셀</p>
-            <span class="hint">.xlsx · .xls · .csv</span>
-            <div class="drop-actions">
-              <button type="button" class="ghost" data-action="sample-ye" data-i18n="common.sampleFile">샘플 파일 받기</button>
-            </div>
-          </label>
-          <div class="schema">
-            <span class="label" data-i18n="common.requiredColumns">필요한 컬럼</span>
-            <code>환자성명</code> · <code>주민등록번호</code> · <code>진료일자</code> · <code>본인부담금</code> · <code>비급여금액</code> · <span style="color:var(--faint)" data-i18n="common.optional">선택</span> <code>의료비총액</code> · <code>환자번호</code> (<span data-i18n="common.or">또는</span> <code>등록번호</code> — <span data-i18n="yearend.pidHint">청구 배치와 대조</span>)
-          </div>
-          <p class="caveat" data-i18n-html="yearend.caveatRrn">
-            주민등록번호는 브라우저 메모리에서만 점검되고 저장되지 않으며 화면·파일 모두 앞 7자리까지만 마스킹 표시됩니다. 검증식 불일치는 2020년 10월 이후 발급분·외국인등록번호에서 정상일 수 있어 <em>주의</em>로만 표시합니다.
-          </p>
-        </div>
-
-        <div class="card">
-          <h4><span class="step">03</span> <span data-i18n="yearend.step3">의료비 자료 사전점검 정리표</span></h4>
-          <div id="ye-recent" class="status-line recent-batch" style="display:none"></div>
-          <div id="ye-status" class="status-line" style="display:none"></div>
-          <div class="result-toolbar" id="ye-toolbar" style="display:none">
-            <div class="summary" id="ye-summary"></div>
+      <div class="flow">
+        <section class="flow-step" data-step="1">
+          <span class="step" aria-hidden="true">①</span>
+          <h4 data-i18n="flow.step1">샘플 · 시연</h4>
+          <div class="flow-body">
+            <p data-i18n-html="yearend.demoLabel">5명 환자 · <strong>7건 진료</strong> — 주민번호 자릿수 오류·음수 금액·중복 행이 섞인 데이터로 사전점검 흐름을 미리 보실 수 있습니다.</p>
             <div class="actions">
-              <button class="btn" id="ye-download" disabled>
-                CSV <span class="arrow">↓</span>
-              </button>
+              <button type="button" class="btn secondary" data-action="sample-ye" data-i18n-html="flow.sample">샘플 파일 받기 <span class="arrow">↓</span></button>
+              <button type="button" class="btn" data-action="run-ye" data-i18n-html="flow.demo"><span class="play">▶</span> 샘플로 시연</button>
             </div>
           </div>
-          <div class="result" id="ye-result">
-            <div class="empty-state" data-i18n="yearend.empty">진료 기록을 올리면 행 단위 점검 결과·환자별 합계·정리표가 여기에 표시됩니다.</div>
-          </div>
-          <p class="caveat" data-i18n-html="yearend.caveatSubmit">
-            ※ 이 파일은 <em>사전점검용</em>입니다. 국세청 제출은 <a class="small-link" href="https://www.hometax.go.kr" target="_blank" rel="noopener noreferrer">홈택스 연말정산간소화 자료제출</a> 또는 EMR의 국세청 자료제출 모듈에서 수행하며, 제출 형식·기한은 연도별 국세청 안내로 확인하십시오.
-          </p>
+        </section>
 
-          <!-- 환자 문의 대응 — January's "영수증 빠졌어요" call: pid → is it in the latest yearend batch? → hand-off to the 발급 대장 (tab3-yearend.js) -->
-          <h4 style="margin-top: 22px;"><span class="step">04</span> <span data-i18n="yearend.lookup.h">환자 문의 대응 — "제 자료 들어갔나요?"</span></h4>
-          <p class="caveat" style="margin-top:0" data-i18n-html="yearend.lookup.summary">1월 전화 대응용 — <em>환자번호</em>를 넣으면 최근 점검 배치에 그 환자의 진료가 들어 있는지, 합계는 얼마인지 바로 보입니다. 영수증 재발급이 필요하면 <em>발급 대장</em>으로 넘깁니다.</p>
-          <div class="ye-lookup-row">
-            <input id="ye-lookup-pid" list="ye-lookup-list" type="text" placeholder="P-2026-0142" autocomplete="off" aria-label="환자번호" data-i18n-attr="aria-label:yearend.thPid">
-            <datalist id="ye-lookup-list"></datalist>
-            <button type="button" class="btn secondary" id="ye-lookup-btn" data-i18n="yearend.lookup.btn">조회</button>
+        <section class="flow-step" data-step="2">
+          <span class="step" aria-hidden="true">②</span>
+          <h4 data-i18n="flow.step2">데이터 올리기</h4>
+          <div class="flow-body">
+            <!-- Institution fields are read from the shared Org profile (edited in 조직 › 기관 프로필) — rendered by tab3-yearend.js -->
+            <div id="ye-org"></div>
+            <div class="form-grid" style="margin:12px 0 14px">
+              <div class="field">
+                <label for="ye-year" data-i18n-html="yearend.fYear">과세연도 <span style="color:var(--faint);font-weight:400">(진료일자 범위 점검)</span></label>
+                <input id="ye-year" type="number" min="2000" max="2100" step="1" placeholder="2025">
+              </div>
+            </div>
+            <label class="drop" id="drop-ye">
+              <input type="file" accept=".xlsx,.xls,.csv">
+              <div class="icon">
+                <svg viewBox="0 0 48 48" fill="none" stroke="#7ba89a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M24 32V12M24 12l-8 8M24 12l8 8"/>
+                  <path d="M8 32v6a2 2 0 002 2h28a2 2 0 002-2v-6" opacity="0.5"/>
+                </svg>
+              </div>
+              <p data-i18n="yearend.dropP">병의원 내부 진료 기록 엑셀</p>
+              <span class="hint" data-i18n="flow.upload">엑셀 · CSV 파일을 끌어다 놓거나 눌러서 올리기</span>
+            </label>
+            <div class="hint cols cols-out">환자성명 · 주민등록번호 · 진료일자 · 본인부담금 · 비급여금액 · 의료비총액 · 환자번호</div>
+            <details class="schema">
+              <summary data-i18n="flow.columns">열 이름 보기</summary>
+              <span class="label" data-i18n="common.requiredColumns">필요한 컬럼</span>
+              <code>환자성명</code> · <code>주민등록번호</code> · <code>진료일자</code> · <code>본인부담금</code> · <code>비급여금액</code> · <span style="color:var(--faint)" data-i18n="common.optional">선택</span> <code>의료비총액</code> · <code>환자번호</code> (<span data-i18n="common.or">또는</span> <code>등록번호</code> — <span data-i18n="yearend.pidHint">청구 배치와 대조</span>)
+            </details>
+            <p class="caveat" data-i18n-html="yearend.caveatRrn">
+              주민등록번호는 브라우저 메모리에서만 점검되고 저장되지 않으며 화면·파일 모두 앞 7자리까지만 마스킹 표시됩니다. 검증식 불일치는 2020년 10월 이후 발급분·외국인등록번호에서 정상일 수 있어 <em>주의</em>로만 표시합니다.
+            </p>
           </div>
-          <div class="result ye-lookup" id="ye-lookup-out"></div>
-        </div>
+        </section>
+
+        <section class="flow-step" data-step="3">
+          <span class="step" aria-hidden="true">③</span>
+          <h4><span data-i18n="flow.step3">결과 검토</span> <span class="sub" data-i18n="yearend.step3">의료비 자료 사전점검 정리표</span></h4>
+          <div class="flow-body">
+            <div id="ye-recent" class="status recent-batch" style="display:none"></div>
+            <div id="ye-status" class="status" style="display:none"></div>
+            <div class="result-toolbar" id="ye-toolbar" style="display:none">
+              <div class="summary" id="ye-summary"></div>
+            </div>
+            <div class="result" id="ye-result">
+              <div class="empty"><p data-i18n="yearend.empty">진료 기록을 올리면 행 단위 점검 결과·환자별 합계·정리표가 여기에 표시됩니다.</p><p class="empty-hint" data-i18n="flow.emptyHint">처음이라면 ① 샘플 · 시연 — 샘플 파일을 받거나 「샘플로 시연」을 누르세요.</p></div>
+            </div>
+            <p class="caveat" data-i18n-html="yearend.caveatSubmit">
+              ※ 이 파일은 <em>사전점검용</em>입니다. 국세청 제출은 <a class="small-link" href="https://www.hometax.go.kr" target="_blank" rel="noopener noreferrer">홈택스 연말정산간소화 자료제출</a> 또는 EMR의 국세청 자료제출 모듈에서 수행하며, 제출 형식·기한은 연도별 국세청 안내로 확인하십시오.
+            </p>
+
+            <!-- 환자 문의 대응 — January's "영수증 빠졌어요" call: pid → is it in the latest yearend batch? → hand-off to the 발급 대장 (tab3-yearend.js) -->
+            <h5 class="flow-h5" data-i18n="yearend.lookup.h">환자 문의 대응 — "제 자료 들어갔나요?"</h5>
+            <p class="caveat" style="margin-top:0" data-i18n-html="yearend.lookup.summary">1월 전화 대응용 — <em>환자번호</em>를 넣으면 최근 점검 배치에 그 환자의 진료가 들어 있는지, 합계는 얼마인지 바로 보입니다. 영수증 재발급이 필요하면 <em>발급 대장</em>으로 넘깁니다.</p>
+            <div class="ye-lookup-row">
+              <input id="ye-lookup-pid" list="ye-lookup-list" type="text" placeholder="P-2026-0142" autocomplete="off" aria-label="환자번호" data-i18n-attr="aria-label:yearend.thPid">
+              <datalist id="ye-lookup-list"></datalist>
+              <button type="button" class="btn secondary" id="ye-lookup-btn" data-i18n="yearend.lookup.btn">조회</button>
+            </div>
+            <div class="result ye-lookup" id="ye-lookup-out"></div>
+          </div>
+        </section>
+
+        <section class="flow-step" data-step="4">
+          <span class="step" aria-hidden="true">④</span>
+          <h4 data-i18n="flow.step4">내보내기 · 다음 단계</h4>
+          <div class="flow-body">
+            <div class="actions">
+              <span class="act"><span class="act-k" data-i18n="yearend.step3">의료비 자료 사전점검 정리표</span><button class="btn" id="ye-download" disabled data-i18n-html="flow.export.csv">CSV 내려받기 <span class="arrow">↓</span></button></span>
+              <span class="spacer"></span>
+              <button type="button" class="btn secondary" data-go="tab-docs"><span><span data-i18n="flow.next">다음</span>: <span data-i18n="nav.docs">서류 발급 대장</span></span> <span class="arrow">→</span></button>
+            </div>
+          </div>
+        </section>
       </div>
     </section>
 
@@ -1082,101 +1262,115 @@
       <p class="panel-blurb" data-i18n-html="bigeup.blurb">
         보고 시즌이면 빈 엑셀 양식부터 다시 그리던 일, 이제 안 하셔도 됩니다. 한방 비급여 <em>예시 항목 <span data-bg-count>—</span>개</em>가 채워져 있고 — 항목별 <em>우리 병원 단가</em>와 <em>참고월 실시빈도</em>만 적으면 보고 준비표가 엑셀로 떨어집니다. 병원급은 3월·9월 진료분을 각각 4월·10월에 보고합니다 (의원급은 3월분만 연 1회 — 확인 필요).
       </p>
-      <div class="demo-strip">
-        <span class="demo-label" data-i18n-html="bigeup.demoLabel">병원 정보와 <strong>예시 항목 <span data-bg-count>—</span>개</strong>의 표본 단가·빈도를 자동으로 채워, 검증·준비표가 어떻게 만들어지는지 보여드립니다.</span>
-        <button type="button" class="demo-cta" data-action="run-bigeup"><span class="play">▶</span> <span data-i18n="common.demoSample">샘플로 시연</span></button>
-      </div>
 
-      <div class="work">
-        <div class="card">
-          <h4><span class="step">01</span> <span data-i18n="common.clinicInfo">의료기관 정보</span></h4>
-          <!-- Institution fields are read from the shared Org profile (edited in 조직 › 기관 프로필) — rendered by tab4-bigeup.js -->
-          <div id="bg-org"></div>
-          <div class="profile-strip" style="margin-top:12px">
-            <div class="field">
-              <label for="bg-refmonth" data-i18n="bigeup.fRefMonth">참고월 (진료분)</label>
-              <select id="bg-refmonth"></select>
-            </div>
-            <div class="field">
-              <label for="bg-date" data-i18n="bigeup.fDate">적용일</label>
-              <input id="bg-date" type="date">
-            </div>
-            <p class="bg-rule" id="bg-rule"></p>
-          </div>
-
-          <h4 style="margin-top: 18px;"><span class="step">02</span> <span data-i18n="bigeup.step2">한방 비급여 예시 항목 — 단가 · 실시빈도</span></h4>
-          <p class="caveat" style="margin-top:0" data-i18n-html="bigeup.caveatItems">
-            <em>예시 항목 — 실제 항목코드·명칭은 심평원 비급여 보고 표준코드 목록 기준 (요양기관업무포털)</em>. 추나요법(2019년 급여화)·도수치료(한의 행위 아님)는 제외했고, 첩약은 건강보험 시범사업 대상 외 분만 해당합니다. 보고 자료의 핵심은 항목별 <em>단가</em>와 <em>참고월 실시빈도(건수)</em>이며, 최저·최고·중간은 이 앱의 입력 점검용입니다 — 공개되는 분포는 심평원이 전체 기관 제출값으로 산출합니다.
-          </p>
-          <div class="result" style="max-height: 460px; margin-top: 12px;">
-            <table id="bg-table">
-              <thead>
-                <tr>
-                  <th class="code" data-i18n="bigeup.thCode">예시코드</th>
-                  <th data-i18n="bigeup.thName">항목명</th>
-                  <th data-i18n="common.thCategory">분류</th>
-                  <th data-i18n="bigeup.thMin">최저</th>
-                  <th data-i18n="bigeup.thMax">최고</th>
-                  <th data-i18n="bigeup.thMid">중간</th>
-                  <th data-i18n-html="bigeup.thFreq">실시빈도<br><span style="font-weight:400;color:var(--faint)">참고월 건수</span></th>
-                </tr>
-              </thead>
-              <tbody id="bg-tbody"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="card">
-          <h4><span class="step">03</span> <span data-i18n="bigeup.step3">검증 · 비급여 보고 준비표</span></h4>
-          <div id="bg-status" class="status-line" style="display:none"></div>
-          <div class="audit-summary" id="bg-summary-strip">
-            <div class="audit-stat">
-              <div class="label" data-i18n="bigeup.statDone">입력 완료</div>
-              <div class="num" id="bg-done">0</div>
-            </div>
-            <div class="audit-stat warn">
-              <div class="label" data-i18n="bigeup.statEmpty">미입력</div>
-              <div class="num" id="bg-empty">—</div>
-            </div>
-            <div class="audit-stat err">
-              <div class="label" data-i18n="bigeup.statErr">검증 오류</div>
-              <div class="num" id="bg-err">0</div>
-            </div>
-          </div>
-          <div class="result-toolbar">
-            <div class="summary" id="bg-summary" data-i18n="bigeup.summaryIdle">단가를 입력하면 검증됩니다.</div>
+      <div class="flow">
+        <section class="flow-step" data-step="1">
+          <span class="step" aria-hidden="true">①</span>
+          <h4 data-i18n="flow.step1">샘플 · 시연</h4>
+          <div class="flow-body">
+            <p data-i18n-html="bigeup.demoLabel">병원 정보와 <strong>예시 항목 <span data-bg-count>—</span>개</strong>의 표본 단가·빈도를 자동으로 채워, 검증·준비표가 어떻게 만들어지는지 보여드립니다.</p>
             <div class="actions">
-              <button class="btn secondary" id="bg-prefill" data-i18n="bigeup.prefill">표본 단가 채우기</button>
-              <button class="btn" id="bg-download" disabled>
-                XLSX <span class="arrow">↓</span>
-              </button>
+              <button type="button" class="btn" data-action="run-bigeup" data-i18n-html="flow.demo"><span class="play">▶</span> 샘플로 시연</button>
             </div>
           </div>
-          <p class="caveat" data-i18n-html="bigeup.caveatRules">
-            검증 규칙 — 최저 ≤ 중간 ≤ 최고, 실시빈도는 0 이상. 단가가 빈 항목은 준비표에서 자동 제외됩니다. 이 파일은 <em>준비표</em>이며 실제 보고는 <a class="small-link" href="https://biz.hira.or.kr" target="_blank" rel="noopener noreferrer">요양기관업무포털</a>의 비급여 보고 메뉴에서 표준코드로 입력·제출합니다.
-          </p>
+        </section>
 
-          <h4 style="margin-top: 22px;"><span class="step">04</span> <span data-i18n="bigeup.notice.h">가격 고지문 (접수 창구 게시용)</span></h4>
-          <div class="result-toolbar" style="margin-bottom:8px">
-            <div class="summary" data-i18n="bigeup.notice.summary">의료법 §45 비급여 고지 — 입력된 단가로 접수 창구에 붙일 가격표를 만듭니다. 중간값을 고지 단가로, 최저–최고를 범위로 표시합니다.</div>
-            <div class="actions">
-              <button type="button" class="btn secondary" id="bg-notice-print" disabled data-i18n-html="bigeup.notice.printBtn">가격 고지문 인쇄 <span class="arrow">↗</span></button>
+        <section class="flow-step" data-step="2">
+          <span class="step" aria-hidden="true">②</span>
+          <h4><span data-i18n="flow.step2entry">입력</span> <span class="sub" data-i18n="bigeup.step2">한방 비급여 예시 항목 — 단가 · 실시빈도</span></h4>
+          <div class="flow-body">
+            <!-- Institution fields are read from the shared Org profile (edited in 조직 › 기관 프로필) — rendered by tab4-bigeup.js -->
+            <div id="bg-org"></div>
+            <div class="profile-strip" style="margin-top:12px">
+              <div class="field">
+                <label for="bg-refmonth" data-i18n="bigeup.fRefMonth">참고월 (진료분)</label>
+                <select id="bg-refmonth"></select>
+              </div>
+              <div class="field">
+                <label for="bg-date" data-i18n="bigeup.fDate">적용일</label>
+                <input id="bg-date" type="date">
+              </div>
+              <p class="bg-rule" id="bg-rule"></p>
+            </div>
+            <p class="caveat" data-i18n-html="bigeup.caveatItems">
+              <em>예시 항목 — 실제 항목코드·명칭은 심평원 비급여 보고 표준코드 목록 기준 (요양기관업무포털)</em>. 추나요법(2019년 급여화)·도수치료(한의 행위 아님)는 제외했고, 첩약은 건강보험 시범사업 대상 외 분만 해당합니다. 보고 자료의 핵심은 항목별 <em>단가</em>와 <em>참고월 실시빈도(건수)</em>이며, 최저·최고·중간은 이 앱의 입력 점검용입니다 — 공개되는 분포는 심평원이 전체 기관 제출값으로 산출합니다.
+            </p>
+            <div class="result-toolbar" style="margin-top:12px">
+              <div class="summary" data-i18n="bigeup.summaryIdle">단가를 입력하면 검증됩니다.</div>
+              <div class="actions">
+                <button class="btn secondary sm" id="bg-prefill" data-i18n="bigeup.prefill">표본 단가 채우기</button>
+              </div>
+            </div>
+            <div class="result" style="max-height: 460px;">
+              <table id="bg-table">
+                <thead>
+                  <tr>
+                    <th class="code" data-i18n="bigeup.thCode">예시코드</th>
+                    <th data-i18n="bigeup.thName">항목명</th>
+                    <th data-i18n="common.thCategory">분류</th>
+                    <th data-i18n="bigeup.thMin">최저</th>
+                    <th data-i18n="bigeup.thMax">최고</th>
+                    <th data-i18n="bigeup.thMid">중간</th>
+                    <th data-i18n-html="bigeup.thFreq">실시빈도<br><span style="font-weight:400;color:var(--faint)">참고월 건수</span></th>
+                  </tr>
+                </thead>
+                <tbody id="bg-tbody"></tbody>
+              </table>
             </div>
           </div>
-          <div class="result bg-notice" id="bg-notice" style="max-height: 360px;"></div>
+        </section>
 
-          <!-- 가격표 as an entity output — website CSV + change history (tariff.history, appended by tab4-bigeup.js on every price save) -->
-          <h4 style="margin-top: 22px;"><span class="step">05</span> <span data-i18n="bigeup.history.h">홈페이지 고지용 CSV · 가격표 변경 이력</span></h4>
-          <div class="result-toolbar" style="margin-bottom:8px">
-            <div class="summary" data-i18n-html="bigeup.history.summary">홈페이지 게시용 가격표는 <em>항목 · 가격 · 적용일</em> 세 컬럼의 CSV로, 변경 이력은 단가를 저장할 때마다 자동으로 쌓입니다 (변경 시각 · 적용일 · 이전 → 이후 금액 · 담당).</div>
+        <section class="flow-step" data-step="3">
+          <span class="step" aria-hidden="true">③</span>
+          <h4><span data-i18n="flow.step3">결과 검토</span> <span class="sub" data-i18n="bigeup.step3">검증 · 비급여 보고 준비표</span></h4>
+          <div class="flow-body">
+            <div id="bg-status" class="status" style="display:none"></div>
+            <div class="audit-summary" id="bg-summary-strip">
+              <div class="audit-stat">
+                <div class="label" data-i18n="bigeup.statDone">입력 완료</div>
+                <div class="num" id="bg-done">0</div>
+              </div>
+              <div class="audit-stat warn">
+                <div class="label" data-i18n="bigeup.statEmpty">미입력</div>
+                <div class="num" id="bg-empty">—</div>
+              </div>
+              <div class="audit-stat err">
+                <div class="label" data-i18n="bigeup.statErr">검증 오류</div>
+                <div class="num" id="bg-err">0</div>
+              </div>
+            </div>
+            <div class="result-toolbar">
+              <div class="summary" id="bg-summary"></div>
+            </div>
+            <p class="caveat" data-i18n-html="bigeup.caveatRules">
+              검증 규칙 — 최저 ≤ 중간 ≤ 최고, 실시빈도는 0 이상. 단가가 빈 항목은 준비표에서 자동 제외됩니다. 이 파일은 <em>준비표</em>이며 실제 보고는 <a class="small-link" href="https://biz.hira.or.kr" target="_blank" rel="noopener noreferrer">요양기관업무포털</a>의 비급여 보고 메뉴에서 표준코드로 입력·제출합니다.
+            </p>
+
+            <h5 class="flow-h5" data-i18n="bigeup.notice.h">가격 고지문 (접수 창구 게시용)</h5>
+            <p class="caveat" style="margin-top:0" data-i18n="bigeup.notice.summary">의료법 §45 비급여 고지 — 입력된 단가로 접수 창구에 붙일 가격표를 만듭니다. 중간값을 고지 단가로, 최저–최고를 범위로 표시합니다.</p>
+            <div class="result bg-notice" id="bg-notice" style="max-height: 360px;"></div>
+
+            <!-- 가격표 as an entity output — change history (tariff.history, appended by tab4-bigeup.js on every price save) -->
+            <h5 class="flow-h5"><span data-i18n="bigeup.history.h">가격표 변경 이력</span> <span class="count" id="bg-history-count">0</span></h5>
+            <p class="caveat" style="margin-top:0" data-i18n-html="bigeup.history.summary">홈페이지 게시용 가격표는 <em>항목 · 가격 · 적용일</em> 세 컬럼의 CSV로, 변경 이력은 단가를 저장할 때마다 자동으로 쌓입니다 (변경 시각 · 적용일 · 이전 → 이후 금액 · 담당).</p>
+            <div class="result bg-history" id="bg-history" style="max-height: 300px;"></div>
+          </div>
+        </section>
+
+        <section class="flow-step" data-step="4">
+          <span class="step" aria-hidden="true">④</span>
+          <h4 data-i18n="flow.step4">내보내기 · 다음 단계</h4>
+          <div class="flow-body">
             <div class="actions">
-              <button type="button" class="btn secondary" id="bg-web-csv" disabled data-i18n-html="bigeup.web.btn">홈페이지 고지용 CSV <span class="arrow">↓</span></button>
-              <button type="button" class="btn secondary" id="bg-history-csv" data-i18n-html="bigeup.history.csvBtn">이력 CSV <span class="arrow">↓</span></button>
+              <span class="act"><span class="act-k" data-i18n="bigeup.sheet">비급여 보고 준비표</span><button class="btn" id="bg-download" disabled data-i18n-html="flow.export.xlsx">XLSX 내려받기 <span class="arrow">↓</span></button></span>
+              <span class="act"><span class="act-k" data-i18n="bigeup.web.k">홈페이지 고지용</span><button type="button" class="btn secondary" id="bg-web-csv" disabled data-i18n-html="flow.export.csv">CSV 내려받기 <span class="arrow">↓</span></button></span>
+              <span class="act"><span class="act-k" data-i18n="bigeup.history.k">변경 이력</span><button type="button" class="btn secondary" id="bg-history-csv" data-i18n-html="flow.export.csv">CSV 내려받기 <span class="arrow">↓</span></button></span>
+              <span class="act"><span class="act-k" data-i18n="bigeup.notice.k">가격 고지문</span><button type="button" class="btn secondary" id="bg-notice-print" disabled data-i18n-html="flow.export.print">인쇄 <span class="arrow">↗</span></button></span>
+              <span class="spacer"></span>
+              <button type="button" class="btn secondary" data-go="tab-consent"><span><span data-i18n="flow.next">다음</span>: <span data-i18n="nav.consent">비급여 설명·동의</span></span> <span class="arrow">→</span></button>
             </div>
           </div>
-          <p class="bg-history-count"><span data-i18n="bigeup.history.count">변경 기록</span> <strong id="bg-history-count">0</strong></p>
-          <div class="result bg-history" id="bg-history" style="max-height: 300px;"></div>
-        </div>
+        </section>
       </div>
     </section>
 
@@ -1195,106 +1389,122 @@
       <p class="panel-blurb" data-i18n-html="retention.blurb">
         의무기록은 종류별로 보존기간이 다릅니다 — <em>진료기록 10년, 처방전 2년, 검사·간호 5년, 진단서부본 3년</em>. 기간은 <em>진료완료일</em>(마지막 진료일)부터 계산되며, 작성일자로 세면 만료가 앞당겨 잘못 잡힙니다. 기록 대장만 올려두면 <em>보존기간 경과</em>·<em>만료 임박</em>·<em>분류 오류</em>를 표로 표시하고, 내부 폐기 심의(법정 의무 아닌 내부 절차) 자료로 쓸 점검표를 만들어드립니다.
       </p>
-      <div class="demo-strip">
-        <span class="demo-label" data-i18n-html="retention.demoLabel"><strong>9건 가상 기록</strong> — 보존기간 경과부터 정상 보존, 진료완료일이 없어 작성일자로 계산된 행까지 다양한 케이스로 점검표를 미리 보실 수 있습니다.</span>
-        <button type="button" class="demo-cta" data-action="run-ret"><span class="play">▶</span> <span data-i18n="common.demoSample">샘플로 시연</span></button>
-      </div>
 
-      <div class="work">
-        <div class="card">
-          <h4><span class="step">01</span> <span data-i18n="retention.step1">기록 대장 업로드</span></h4>
-          <label class="drop" id="drop-ret">
-            <input type="file" accept=".xlsx,.xls,.csv">
-            <div class="icon">
-              <svg viewBox="0 0 48 48" fill="none" stroke="#7ba89a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M24 32V12M24 12l-8 8M24 12l8 8"/>
-                <path d="M8 32v6a2 2 0 002 2h28a2 2 0 002-2v-6" opacity="0.5"/>
-              </svg>
-            </div>
-            <p data-i18n="retention.dropP">기록 대장 엑셀을 끌어다 놓으세요</p>
-            <span class="hint">.xlsx · .xls · .csv</span>
-            <div class="drop-actions">
-              <button type="button" class="ghost" data-action="sample-ret" data-i18n="common.sampleFile">샘플 파일 받기</button>
-            </div>
-          </label>
-          <div class="schema">
-            <span class="label" data-i18n="common.requiredColumns">필요한 컬럼</span>
-            <code>기록ID</code> · <code>기록종류</code> · <code>진료완료일</code> (<span data-i18n="common.or">또는</span> <code>마지막진료일</code>·<code>최종진료일</code>) · <span style="color:var(--faint)" data-i18n="common.fallback">대체</span> <code>작성일자</code> · <span style="color:var(--faint)" data-i18n="common.optional">선택</span> <code>환자번호</code>
-          </div>
-          <p class="caveat" data-i18n-html="retention.caveatBasis">
-            기준일은 <em>진료완료일</em>을 우선 사용하고, 없을 때만 작성일자로 계산하며 해당 행에 "작성일자 기준" 경고를 표시합니다. 시행규칙 §15②에 따라 환자 진료가 계속 중이면 보존기간을 연장할 수 있습니다 (1회, 확인 필요).
-          </p>
-
-          <h4 style="margin-top: 22px;"><span class="step">02</span> <span data-i18n="retention.step2">법정 보존기간</span></h4>
-          <div class="result" style="max-height: 240px;">
-            <table>
-              <thead>
-                <tr><th data-i18n="retention.thType">기록 종류</th><th data-i18n="retention.thYears">보존기간</th><th data-i18n="retention.thBasis">근거</th></tr>
-              </thead>
-              <tbody id="ret-table"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="card">
-          <h4><span class="step">03</span> <span data-i18n="retention.step3">점검 결과</span></h4>
-          <div id="ret-recent" class="status-line recent-batch" style="display:none"></div>
-          <div id="ret-status" class="status-line" style="display:none"></div>
-          <div class="audit-summary" id="ret-stats" style="display:none">
-            <div class="audit-stat">
-              <div class="label" data-i18n="retention.statOk">정상 보존</div>
-              <div class="num" id="ret-ok">0</div>
-            </div>
-            <div class="audit-stat warn">
-              <div class="label" data-i18n="retention.statSoon">만료 임박 6개월</div>
-              <div class="num" id="ret-soon">0</div>
-            </div>
-            <div class="audit-stat err">
-              <div class="label" data-i18n="retention.statOver">보존기간 경과</div>
-              <div class="num" id="ret-over">0</div>
-            </div>
-            <div class="audit-stat err">
-              <div class="label" data-i18n="retention.statBad">분류 오류</div>
-              <div class="num" id="ret-bad">0</div>
-            </div>
-          </div>
-          <div class="result-toolbar" id="ret-toolbar" style="display:none">
-            <div class="summary" id="ret-summary"></div>
+      <div class="flow">
+        <section class="flow-step" data-step="1">
+          <span class="step" aria-hidden="true">①</span>
+          <h4 data-i18n="flow.step1">샘플 · 시연</h4>
+          <div class="flow-body">
+            <p data-i18n-html="retention.demoLabel"><strong>9건 가상 기록 (2014–2016)</strong> — 보존기간 경과·만료 임박·분류 오류, 진료완료일이 없어 작성일자로 계산된 행까지 다양한 케이스로 점검표를 미리 보실 수 있습니다.</p>
             <div class="actions">
-              <button class="btn" id="ret-download" disabled data-i18n-html="retention.downloadBtn">
-                보존기간 점검표 <span class="arrow">↓</span>
-              </button>
+              <button type="button" class="btn secondary" data-action="sample-ret" data-i18n-html="flow.sample">샘플 파일 받기 <span class="arrow">↓</span></button>
+              <button type="button" class="btn" data-action="run-ret" data-i18n-html="flow.demo"><span class="play">▶</span> 샘플로 시연</button>
             </div>
           </div>
-          <div class="result" id="ret-result">
-            <div class="empty-state" data-i18n="retention.empty">기록 대장을 올리면 점검 결과가 여기에 표시됩니다.</div>
-          </div>
+        </section>
 
-          <!-- 파기 대장 — the 초과 rows become the disposal list; 파기 대장 생성 stores retention.disposals (encrypted) + downloads the XLSX ledger (tab5-retention.js) -->
-          <h4 style="margin-top: 22px;"><span class="step">04</span> <span data-i18n="retention.dispose.h">파기 대상 목록 → 파기 대장</span> <span class="home-count" id="ret-dispose-count">0</span></h4>
-          <p class="caveat" style="margin-top:0" data-i18n-html="retention.dispose.caveat">보존기간이 지난 기록만 대상입니다. 파기는 <em>내부 폐기 심의</em>(법정 의무 아님)를 거친 뒤 실행하고, 대장에는 기록ID를 가명화해 남깁니다 — 담당자는 현재 로그인, 승인자는 명부에서 고릅니다. 저장되는 대장은 이 브라우저 안에서 암호화됩니다.</p>
-          <div class="result-toolbar" style="margin-bottom:8px">
-            <div class="summary" id="ret-dispose-summary" data-i18n="retention.dispose.empty">점검 결과에 보존기간 경과 기록이 있으면 여기에 파기 대상이 나열됩니다.</div>
-            <div class="actions">
-              <button type="button" class="btn" id="ret-dispose-btn" disabled data-i18n-html="retention.dispose.btn">파기 대장 생성 <span class="arrow">↓</span></button>
+        <section class="flow-step" data-step="2">
+          <span class="step" aria-hidden="true">②</span>
+          <h4 data-i18n="flow.step2">데이터 올리기</h4>
+          <div class="flow-body">
+            <label class="drop" id="drop-ret">
+              <input type="file" accept=".xlsx,.xls,.csv">
+              <div class="icon">
+                <svg viewBox="0 0 48 48" fill="none" stroke="#7ba89a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M24 32V12M24 12l-8 8M24 12l8 8"/>
+                  <path d="M8 32v6a2 2 0 002 2h28a2 2 0 002-2v-6" opacity="0.5"/>
+                </svg>
+              </div>
+              <p data-i18n="retention.dropP">의무기록 대장</p>
+              <span class="hint" data-i18n="flow.upload">엑셀 · CSV 파일을 끌어다 놓거나 눌러서 올리기</span>
+            </label>
+            <div class="hint cols cols-out">기록ID · 기록종류 · 진료완료일 · 작성일자 · 환자번호</div>
+            <details class="schema">
+              <summary data-i18n="flow.columns">열 이름 보기</summary>
+              <span class="label" data-i18n="common.requiredColumns">필요한 컬럼</span>
+              <code>기록ID</code> · <code>기록종류</code> · <code>진료완료일</code> (<span data-i18n="common.or">또는</span> <code>마지막진료일</code>·<code>최종진료일</code>) · <span style="color:var(--faint)" data-i18n="common.fallback">대체</span> <code>작성일자</code> · <span style="color:var(--faint)" data-i18n="common.optional">선택</span> <code>환자번호</code>
+            </details>
+            <p class="caveat" data-i18n-html="retention.caveatBasis">
+              기준일은 <em>진료완료일</em>을 우선 사용하고, 없을 때만 작성일자로 계산하며 해당 행에 "작성일자 기준" 경고를 표시합니다. 시행규칙 §15②에 따라 환자 진료가 계속 중이면 보존기간을 연장할 수 있습니다 (1회, 확인 필요).
+            </p>
+            <h5 class="flow-h5" data-i18n="retention.step2">법정 보존기간</h5>
+            <div class="result" style="max-height: 240px;">
+              <table>
+                <thead>
+                  <tr><th data-i18n="retention.thType">기록 종류</th><th data-i18n="retention.thYears">보존기간</th><th data-i18n="retention.thBasis">근거</th></tr>
+                </thead>
+                <tbody id="ret-table"></tbody>
+              </table>
             </div>
           </div>
-          <div class="result ret-dispose" id="ret-dispose"></div>
+        </section>
 
-          <h4 style="margin-top: 22px;"><span class="step">05</span> <span data-i18n="retention.ledger.h">파기 대장 (누적)</span> <span class="home-count" id="ret-ledger-count">0</span></h4>
-          <div class="result-toolbar" style="margin-bottom:8px">
-            <div class="summary" data-i18n="retention.ledger.summary">생성된 파기 대장은 여기에 누적됩니다 — 인증 자체점검(기록부 폐기 심의 절차)의 증빙으로 쓰입니다.</div>
+        <section class="flow-step" data-step="3">
+          <span class="step" aria-hidden="true">③</span>
+          <h4><span data-i18n="flow.step3">결과 검토</span> <span class="sub" data-i18n="retention.step3">점검 결과</span></h4>
+          <div class="flow-body">
+            <div id="ret-recent" class="status recent-batch" style="display:none"></div>
+            <div id="ret-status" class="status" style="display:none"></div>
+            <div class="audit-summary" id="ret-stats" style="display:none">
+              <div class="audit-stat">
+                <div class="label" data-i18n="retention.statOk">정상 보존</div>
+                <div class="num" id="ret-ok">0</div>
+              </div>
+              <div class="audit-stat warn">
+                <div class="label" data-i18n="retention.statSoon">만료 임박 6개월</div>
+                <div class="num" id="ret-soon">0</div>
+              </div>
+              <div class="audit-stat err">
+                <div class="label" data-i18n="retention.statOver">보존기간 경과</div>
+                <div class="num" id="ret-over">0</div>
+              </div>
+              <div class="audit-stat err">
+                <div class="label" data-i18n="retention.statBad">분류 오류</div>
+                <div class="num" id="ret-bad">0</div>
+              </div>
+            </div>
+            <div class="result-toolbar" id="ret-toolbar" style="display:none">
+              <div class="summary" id="ret-summary"></div>
+            </div>
+            <div class="result" id="ret-result">
+              <div class="empty"><p data-i18n="retention.empty">기록 대장을 올리면 점검 결과가 여기에 표시됩니다.</p><p class="empty-hint" data-i18n="flow.emptyHint">처음이라면 ① 샘플 · 시연 — 샘플 파일을 받거나 「샘플로 시연」을 누르세요.</p></div>
+            </div>
+
+            <!-- 파기 대장 — the 초과 rows become the disposal list; 파기 대장 생성 stores retention.disposals (encrypted) + downloads the XLSX ledger (tab5-retention.js) -->
+            <h5 class="flow-h5"><span data-i18n="retention.dispose.h">파기 대상 목록 → 파기 대장</span> <span class="count" id="ret-dispose-count">0</span></h5>
+            <p class="caveat" style="margin-top:0" data-i18n-html="retention.dispose.caveat">보존기간이 지난 기록만 대상입니다. 파기는 <em>내부 폐기 심의</em>(법정 의무 아님)를 거친 뒤 실행하고, 대장에는 기록ID를 가명화해 남깁니다 — 담당자는 현재 로그인, 승인자는 명부에서 고릅니다. 저장되는 대장은 이 브라우저 안에서 암호화됩니다.</p>
+            <div class="result-toolbar" style="margin-bottom:8px">
+              <div class="summary" id="ret-dispose-summary" data-i18n="retention.dispose.empty">점검 결과에 보존기간 경과 기록이 있으면 여기에 파기 대상이 나열됩니다.</div>
+              <div class="actions">
+                <button type="button" class="btn sm" id="ret-dispose-btn" disabled data-i18n-html="retention.dispose.btn">파기 대장 생성 <span class="arrow">↓</span></button>
+              </div>
+            </div>
+            <div class="result ret-dispose" id="ret-dispose"></div>
+
+            <h5 class="flow-h5"><span data-i18n="retention.ledger.h">파기 대장 (누적)</span> <span class="count" id="ret-ledger-count">0</span></h5>
+            <p class="caveat" style="margin-top:0" data-i18n="retention.ledger.summary">생성된 파기 대장은 여기에 누적됩니다 — 인증 자체점검(기록부 폐기 심의 절차)의 증빙으로 쓰입니다.</p>
+            <div class="result ret-ledger" id="ret-ledger" style="max-height: 300px;"></div>
+          </div>
+        </section>
+
+        <section class="flow-step" data-step="4">
+          <span class="step" aria-hidden="true">④</span>
+          <h4 data-i18n="flow.step4">내보내기 · 다음 단계</h4>
+          <div class="flow-body">
             <div class="actions">
-              <button type="button" class="btn secondary" id="ret-ledger-download" disabled data-i18n-html="retention.ledger.btn">전체 대장 XLSX <span class="arrow">↓</span></button>
+              <span class="act"><span class="act-k" data-i18n="retention.sheet">보존기간 점검표</span><button class="btn" id="ret-download" disabled data-i18n-html="flow.export.xlsx">XLSX 내려받기 <span class="arrow">↓</span></button></span>
+              <span class="act"><span class="act-k" data-i18n="retention.ledger.h">파기 대장 (누적)</span><button type="button" class="btn secondary" id="ret-ledger-download" disabled data-i18n-html="flow.export.xlsx">XLSX 내려받기 <span class="arrow">↓</span></button></span>
+              <span class="spacer"></span>
+              <button type="button" class="btn secondary" data-go="tab-accred"><span><span data-i18n="flow.next">다음</span>: <span data-i18n="nav.accred">인증 자체점검</span></span> <span class="arrow">→</span></button>
             </div>
           </div>
-          <div class="result ret-ledger" id="ret-ledger" style="max-height: 300px;"></div>
-        </div>
+        </section>
       </div>
     </section>
 
     <!-- ─────────────────────────────────────────── -->
-    <!-- 조직 › 기관 프로필 — the Org editor promoted from the ⓘ modal (which keeps a read-only summary + link). Mounted by shell.js. -->
+    <!-- 조직 › 기관 프로필 — the Org editor promoted from the ⓘ modal (which keeps a read-only summary + link). Mounted by shell.js.
+         Flow subset: no ① (nothing to demo), ② the form, ③ completeness, ④ next step. -->
     <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-org" role="tabpanel">
       <div class="panel-head">
@@ -1308,12 +1518,36 @@
       <p class="panel-blurb" data-i18n-html="org.blurb">
         기관명·요양기관기호·사업자등록번호·종별·대표자는 <em>비급여 보고 준비표</em>, <em>연말정산 자료</em>, <em>자보 정산표</em>의 머리글에 그대로 들어가고, 종별(병원·의원)은 비급여 보고 주기와 마감 캘린더를 정합니다. 한 번만 입력해두면 모든 화면이 같은 프로필을 읽습니다.
       </p>
-      <div class="card">
-        <h4><span class="step">①</span> <span data-i18n="org.panelH">기관 프로필</span></h4>
-        <div id="org-panel-form"></div>
-        <p class="caveat" data-i18n-html="org.caveat">
-          ※ 기관 정보는 사업자등록·요양기관 공개 정보로 <strong>개인정보가 아니어서</strong> 평문(plain tier)으로 저장됩니다 — 조직 › 데이터 처리 현황의 「기관 프로필」 행을 참고하세요. 데모라면 「샘플 데이터로 둘러보기」가 한솔한방병원으로 채웁니다.
-        </p>
+      <div class="flow">
+        <section class="flow-step" data-step="2">
+          <span class="step" aria-hidden="true">②</span>
+          <h4 data-i18n="flow.step2entry">입력</h4>
+          <div class="flow-body">
+            <div id="org-panel-form"></div>
+            <p class="caveat" data-i18n-html="org.caveat">
+              ※ 기관 정보는 사업자등록·요양기관 공개 정보로 <strong>개인정보가 아니어서</strong> 평문(plain tier)으로 저장됩니다 — 조직 › 데이터 처리 현황의 「기관 프로필」 행을 참고하세요. 데모라면 「샘플 데이터로 둘러보기」가 한솔한방병원으로 채웁니다.
+            </p>
+          </div>
+        </section>
+        <section class="flow-step" data-step="3">
+          <span class="step" aria-hidden="true">③</span>
+          <h4><span data-i18n="flow.step3">결과 검토</span> <span class="sub" data-i18n="org.completeH">완성도</span></h4>
+          <div class="flow-body">
+            <div id="org-complete" class="status"></div>
+            <div id="org-panel-ro"></div>
+          </div>
+        </section>
+        <section class="flow-step" data-step="4">
+          <span class="step" aria-hidden="true">④</span>
+          <h4 data-i18n="flow.step4">내보내기 · 다음 단계</h4>
+          <div class="flow-body">
+            <div class="actions">
+              <span class="act-note" data-i18n="org.noExport">프로필은 모든 보고 파일의 머리글로 들어갑니다 — 별도 내보내기 없음</span>
+              <span class="spacer"></span>
+              <button type="button" class="btn secondary" data-go="tab-license"><span><span data-i18n="flow.next">다음</span>: <span data-i18n="nav.license">직원 명부</span></span> <span class="arrow">→</span></button>
+            </div>
+          </div>
+        </section>
       </div>
     </section>
 
@@ -1333,75 +1567,105 @@
         의료인 면허는 만료되지 않지만, <em>면허신고</em>(의료법 §25)는 사람마다 다른 날짜로 3년마다 돌아옵니다 — 마지막 신고일 + 3년. 50명이 넘어가면 머리로는 못 외우고, 한 명만 놓쳐도 <em>행정처분</em>이 됩니다. 명부에 신고일을 등록하면 기한을 자동 계산하고 6개월 전부터 알립니다. 신고일을 모르면 <em>취득일 + 3년</em>으로 잡고 "신고 이력 미확인"으로 표시합니다 — 면허증 사진에서 <em>면허번호·취득일을 자동으로 읽어</em> 입력할 수 있습니다 (면허증에는 신고일이 없습니다).
       </p>
 
-      <div class="card">
-        <h4><span class="step">01</span> <span data-i18n="license.step1">직원 명부 — 면허·자격 · 로그인</span></h4>
-        <div class="lic-list" id="lic-list">
-          <!-- populated by JS (core/entities.js Staff) -->
-        </div>
+      <div class="flow">
+        <section class="flow-step" data-step="1">
+          <span class="step" aria-hidden="true">①</span>
+          <h4 data-i18n="flow.step1">샘플 · 시연</h4>
+          <div class="flow-body">
+            <p data-i18n-html="license.demoLabel"><strong>한솔한방병원 직원 7명</strong> — 한의사 2 · 간호사 · 물리치료사 · 간호조무사 · 행정 · 원무. 신고일이 없는 한 줄(신고 이력 미확인)과 기한 임박 줄, 로그인 3개(PIN 000000)가 함께 들어갑니다.</p>
+            <div class="actions">
+              <button type="button" class="btn" data-action="run-license" data-i18n-html="flow.demo"><span class="play">▶</span> 샘플로 시연</button>
+            </div>
+          </div>
+        </section>
 
-        <form class="lic-login-form" id="lic-login-form" hidden autocomplete="off">
-          <h5 data-i18n="license.loginH">로그인 발급</h5>
-          <p class="sec-note" id="lic-login-who">—</p>
-          <div class="lic-login-row">
-            <div class="field"><label for="lic-login-role" data-i18n="license.loginRoleLabel">시스템 권한</label>
-              <select id="lic-login-role"><option value="행정" data-i18n="common.role.행정">행정</option><option value="원무" data-i18n="common.role.원무">원무</option><option value="원장" data-i18n="common.role.원장">원장</option></select></div>
-            <div class="field"><label for="lic-login-pin" data-i18n="users.pinLabel">임시 PIN (6~8자리)</label><input id="lic-login-pin" type="password" inputmode="numeric" pattern="\d{6,8}" minlength="6" maxlength="8" required autocomplete="new-password"></div>
-            <button type="submit" class="btn" id="lic-login-ok" data-i18n="license.loginOk">발급</button>
-            <button type="button" class="btn secondary" id="lic-login-cancel" data-i18n="common.cancel">취소</button>
+        <section class="flow-step" data-step="2">
+          <span class="step" aria-hidden="true">②</span>
+          <h4><span data-i18n="flow.step2entry">입력</span> <span class="sub" data-i18n="license.step2">직원 추가</span></h4>
+          <div class="flow-body">
+            <div class="lic-add">
+              <div class="field">
+                <label data-i18n="license.fRole">직종</label>
+                <select id="lic-role">
+                  <option value="한의사" data-i18n="common.role.한의사">한의사</option>
+                  <option value="간호사" data-i18n="common.role.간호사">간호사</option>
+                  <option value="물리치료사" data-i18n="common.role.물리치료사">물리치료사</option>
+                  <option value="간호조무사" data-i18n="common.role.간호조무사">간호조무사</option>
+                  <option value="행정" data-i18n="common.role.행정">행정</option>
+                  <option value="원무" data-i18n="common.role.원무">원무</option>
+                  <option value="기타" data-i18n="common.role.기타">기타</option>
+                </select>
+              </div>
+              <div class="field">
+                <label data-i18n="license.fName">이름</label>
+                <input id="lic-name" type="text" placeholder="홍길동">
+              </div>
+              <div class="field">
+                <label data-i18n-html="license.fNo">면허번호 <span style="color:var(--faint);font-weight:400">(선택 · OCR 자동)</span></label>
+                <input id="lic-no" type="text" inputmode="numeric" placeholder="12345">
+              </div>
+              <div class="field">
+                <label data-i18n-html="license.fAcquired">취득일 <span style="color:var(--faint);font-weight:400">(면허증 기재 · OCR 자동)</span></label>
+                <input id="lic-acquired" type="date">
+              </div>
+              <div class="field">
+                <label data-i18n-html="license.fReported">최근 면허신고일 <span style="color:var(--faint);font-weight:400">(기한 = +3년 · 모르면 비워두기)</span></label>
+                <input id="lic-reported" type="date">
+              </div>
+              <div class="field">
+                <label data-i18n="license.fCme">보수교육 마감</label>
+                <input id="lic-cme" type="date">
+              </div>
+              <button class="btn" id="lic-add-btn" data-i18n="common.add">추가</button>
+              <button class="btn secondary" id="lic-cancel" style="display:none" data-i18n="common.cancel">취소</button>
+              <p class="lic-role-note" id="lic-role-note" aria-live="polite"></p>
+            </div>
           </div>
-          <p class="sec-note" data-i18n="license.loginNote">「원장」 권한은 사용자·PIN 관리, 활동 기록 내보내기, 전체 파기를 할 수 있습니다. PIN은 저장되지 않고 마스터키를 감싸는 데만 쓰입니다.</p>
-        </form>
+        </section>
 
-        <h4 style="margin-top:24px"><span class="step">02</span> <span data-i18n="license.step2">직원 추가</span></h4>
-        <div class="lic-add">
-          <div class="field">
-            <label data-i18n="license.fRole">직종</label>
-            <select id="lic-role">
-              <option value="한의사" data-i18n="common.role.한의사">한의사</option>
-              <option value="간호사" data-i18n="common.role.간호사">간호사</option>
-              <option value="물리치료사" data-i18n="common.role.물리치료사">물리치료사</option>
-              <option value="간호조무사" data-i18n="common.role.간호조무사">간호조무사</option>
-              <option value="행정" data-i18n="common.role.행정">행정</option>
-              <option value="원무" data-i18n="common.role.원무">원무</option>
-              <option value="기타" data-i18n="common.role.기타">기타</option>
-            </select>
-          </div>
-          <div class="field">
-            <label data-i18n="license.fName">이름</label>
-            <input id="lic-name" type="text" placeholder="홍길동">
-          </div>
-          <div class="field">
-            <label data-i18n-html="license.fNo">면허번호 <span style="color:var(--faint);font-weight:400">(선택 · OCR 자동)</span></label>
-            <input id="lic-no" type="text" inputmode="numeric" placeholder="12345">
-          </div>
-          <div class="field">
-            <label data-i18n-html="license.fAcquired">취득일 <span style="color:var(--faint);font-weight:400">(면허증 기재 · OCR 자동)</span></label>
-            <input id="lic-acquired" type="date">
-          </div>
-          <div class="field">
-            <label data-i18n-html="license.fReported">최근 면허신고일 <span style="color:var(--faint);font-weight:400">(기한 = +3년 · 모르면 비워두기)</span></label>
-            <input id="lic-reported" type="date">
-          </div>
-          <div class="field">
-            <label data-i18n="license.fCme">보수교육 마감</label>
-            <input id="lic-cme" type="date">
-          </div>
-          <button class="btn" id="lic-add-btn" data-i18n="common.add">추가</button>
-          <button class="btn secondary" id="lic-cancel" style="display:none" data-i18n="common.cancel">취소</button>
-          <p class="lic-role-note" id="lic-role-note" aria-live="polite"></p>
-        </div>
+        <section class="flow-step" data-step="3">
+          <span class="step" aria-hidden="true">③</span>
+          <h4><span data-i18n="flow.step3">결과 검토</span> <span class="sub" data-i18n="license.step1">직원 명부 — 면허·자격 · 로그인</span></h4>
+          <div class="flow-body">
+            <div id="lic-status" class="status" style="display:none"></div>
+            <div class="result-toolbar">
+              <div class="summary" id="lic-summary">총 0명 · 기한 임박 0명 · 로그인 0명</div>
+            </div>
+            <div class="lic-list" id="lic-list">
+              <!-- populated by JS (core/entities.js Staff) -->
+            </div>
 
-        <div class="result-toolbar" style="margin-top:18px">
-          <div class="summary" id="lic-summary">총 0명 · 기한 임박 0명 · 로그인 0명</div>
-          <div class="actions">
-            <button class="btn secondary" id="lic-ics" data-i18n-html="license.icsBtn">신고기한 .ics <span class="arrow">↓</span></button>
-            <button class="btn secondary" id="lic-share" data-i18n-html="common.shareBtn">공유 <span class="arrow">↗</span></button>
-          </div>
-        </div>
+            <form class="lic-login-form" id="lic-login-form" hidden autocomplete="off">
+              <h5 data-i18n="license.loginH">로그인 발급</h5>
+              <p class="sec-note" id="lic-login-who">—</p>
+              <div class="lic-login-row">
+                <div class="field"><label for="lic-login-role" data-i18n="license.loginRoleLabel">시스템 권한</label>
+                  <select id="lic-login-role"><option value="행정" data-i18n="common.role.행정">행정</option><option value="원무" data-i18n="common.role.원무">원무</option><option value="원장" data-i18n="common.role.원장">원장</option></select></div>
+                <div class="field"><label for="lic-login-pin" data-i18n="users.pinLabel">임시 PIN (6~8자리)</label><input id="lic-login-pin" type="password" inputmode="numeric" pattern="\d{6,8}" minlength="6" maxlength="8" required autocomplete="new-password"></div>
+                <button type="submit" class="btn" id="lic-login-ok" data-i18n="license.loginOk">발급</button>
+                <button type="button" class="btn secondary" id="lic-login-cancel" data-i18n="common.cancel">취소</button>
+              </div>
+              <p class="sec-note" data-i18n="license.loginNote">「원장」 권한은 사용자·PIN 관리, 활동 기록 내보내기, 전체 파기를 할 수 있습니다. PIN은 저장되지 않고 마스터키를 감싸는 데만 쓰입니다.</p>
+            </form>
 
-        <p class="caveat" data-i18n-html="license.caveat">
-          ※ 면허·자격 신고는 직종별 중앙회를 통해 진행됩니다 — <span id="lic-orgs">—</span>. 링크는 각 협회 대표 사이트이며 신고 포털 주소는 <em>확인 필요</em>합니다. 행정·원무·기타 직원은 신고 대상이 아니므로 "해당 없음"으로 표시되고 마감 계산에서 제외됩니다. 보수교육 이수증은 각 협회 시스템에 보관됩니다. 로그인(PIN)은 이 명부의 한 행에 연결되며 「원장」 권한만 발급·해제할 수 있습니다.
-        </p>
+            <p class="caveat" data-i18n-html="license.caveat">
+              ※ 면허·자격 신고는 직종별 중앙회를 통해 진행됩니다 — <span id="lic-orgs">—</span>. 링크는 각 협회 대표 사이트이며 신고 포털 주소는 <em>확인 필요</em>합니다. 행정·원무·기타 직원은 신고 대상이 아니므로 "해당 없음"으로 표시되고 마감 계산에서 제외됩니다. 보수교육 이수증은 각 협회 시스템에 보관됩니다. 로그인(PIN)은 이 명부의 한 행에 연결되며 「원장」 권한만 발급·해제할 수 있습니다.
+            </p>
+          </div>
+        </section>
+
+        <section class="flow-step" data-step="4">
+          <span class="step" aria-hidden="true">④</span>
+          <h4 data-i18n="flow.step4">내보내기 · 다음 단계</h4>
+          <div class="flow-body">
+            <div class="actions">
+              <span class="act"><span class="act-k" data-i18n="license.icsK">신고·보수교육 기한</span><button class="btn secondary" id="lic-ics" data-i18n-html="flow.export.ics">.ics 내려받기 <span class="arrow">↓</span></button></span>
+              <button class="btn secondary" id="lic-share" data-i18n-html="common.shareBtn">공유 <span class="arrow">↗</span></button>
+              <span class="spacer"></span>
+              <button type="button" class="btn secondary" data-go="tab-accred"><span><span data-i18n="flow.next">다음</span>: <span data-i18n="nav.accred">인증 자체점검</span></span> <span class="arrow">→</span></button>
+            </div>
+          </div>
+        </section>
       </div>
     </section>
 
@@ -1421,24 +1685,61 @@
         의료기관 인증은 <em>한방병원에는 자율</em>입니다 — 의무 인증 대상은 요양병원·정신병원 등(의료법 §58조의4, 확인 필요)이고, 인증 유효기간은 4년입니다. 그래도 신청을 결정한 뒤 막판에 몰아서 준비하면 결국 <em>지적사항</em>이 됩니다. 아래는 <em>자체점검 예시 (<span data-accred-count>—</span>항목)</em> — 실제 기준은 의료기관평가인증원 한방병원 인증기준을 따르세요. 평소에 한 줄씩 체크해두면 <em>홈</em>에 진행률이 표시되고, 조사 직전엔 PDF 한 장으로 정리됩니다.
       </p>
 
-      <div class="card">
-        <div class="result-toolbar" style="margin-bottom:0">
-          <div class="summary" id="accred-summary"><strong>0</strong> / 0 항목 완료 — 0%</div>
-          <div class="actions">
-            <button class="btn secondary" id="accred-print" data-i18n-html="accred.printBtn">PDF 출력 <span class="arrow">↓</span></button>
-            <button class="btn secondary" id="accred-share" data-i18n-html="common.shareBtn">공유 <span class="arrow">↗</span></button>
-            <button class="btn secondary" id="accred-reset" data-i18n="accred.resetBtn">초기화</button>
+      <div class="flow">
+        <section class="flow-step" data-step="1">
+          <span class="step" aria-hidden="true">①</span>
+          <h4 data-i18n="flow.step1">샘플 · 시연</h4>
+          <div class="flow-body">
+            <p data-i18n-html="accred.demoLabel">운영 중인 한방병원이 갖추고 있을 <strong>기본 항목 9개</strong>(환자 확인·응급 카트·권리 게시·감염관리·폐기물·산소·오리엔테이션 등)를 체크합니다 — 자동 판정 항목은 직원 명부·단가표·점검 결과에서 스스로 판정됩니다.</p>
+            <div class="actions">
+              <button type="button" class="btn" data-action="run-accred" data-i18n-html="flow.demo"><span class="play">▶</span> 샘플로 시연</button>
+            </div>
           </div>
-        </div>
-        <div class="accred-progress"><div class="bar" id="accred-bar" style="width:0%"></div></div>
-        <p class="accred-legend" data-i18n-html="accred.autoLegend"><span class="accred-auto ok"><span class="glyph">✓</span> 자동 판정</span> 항목은 직원 명부·비급여 단가표·최근 점검 결과로 앱이 판정합니다 — 체크박스 대신 상태와 사유가 표시되고, 나머지는 직접 체크합니다.</p>
-        <div class="accred-cats" id="accred-cats">
-          <!-- populated by JS -->
-        </div>
-        <p class="caveat" style="margin-top:18px" data-i18n-html="accred.caveat">
-          ※ 자체점검 예시 (<span data-accred-count>—</span>항목) — 실제 기준은 <a class="small-link" href="https://www.koiha.or.kr" target="_blank" rel="noopener noreferrer">의료기관평가인증원</a> 한방병원 인증기준 최신판을 우선합니다. "이 앱의 관련 도구"는 인증 기준이 아니라 이 앱 안의 연관 화면으로 가는 링크입니다.
-        </p>
-        <p class="poc-print-footer" id="accred-print-footer"></p>
+        </section>
+
+        <section class="flow-step" data-step="2">
+          <span class="step" aria-hidden="true">②</span>
+          <h4><span data-i18n="flow.step2entry">입력</span> <span class="sub" data-i18n="accred.checkH">항목 체크</span></h4>
+          <div class="flow-body">
+            <p class="accred-legend" data-i18n-html="accred.autoLegend"><span class="accred-auto ok"><span class="glyph">✓</span> 자동 판정</span> 항목은 직원 명부·비급여 단가표·최근 점검 결과로 앱이 판정합니다 — 체크박스 대신 상태와 사유가 표시되고, 나머지는 직접 체크합니다.</p>
+            <div class="accred-cats" id="accred-cats">
+              <!-- populated by JS -->
+            </div>
+            <p class="caveat" style="margin-top:18px" data-i18n-html="accred.caveat">
+              ※ 자체점검 예시 (<span data-accred-count>—</span>항목) — 실제 기준은 <a class="small-link" href="https://www.koiha.or.kr" target="_blank" rel="noopener noreferrer">의료기관평가인증원</a> 한방병원 인증기준 최신판을 우선합니다. "이 앱의 관련 도구"는 인증 기준이 아니라 이 앱 안의 연관 화면으로 가는 링크입니다.
+            </p>
+          </div>
+        </section>
+
+        <section class="flow-step" data-step="3">
+          <span class="step" aria-hidden="true">③</span>
+          <h4><span data-i18n="flow.step3">결과 검토</span> <span class="sub" data-i18n="accred.autoH">자동 판정 요약</span></h4>
+          <div class="flow-body">
+            <div id="accred-status" class="status"></div>
+            <div class="accred-progress"><div class="bar" id="accred-bar" style="width:0%"></div></div>
+            <div class="result-toolbar">
+              <div class="summary" id="accred-summary"><strong>0</strong> / 0 항목 완료 — 0%</div>
+              <div class="actions">
+                <button class="btn secondary sm" id="accred-reset" data-i18n="accred.resetBtn">초기화</button>
+              </div>
+            </div>
+            <div class="accred-auto-list" id="accred-auto-list"></div>
+            <p class="poc-print-footer" id="accred-print-footer"></p>
+          </div>
+        </section>
+
+        <section class="flow-step" data-step="4">
+          <span class="step" aria-hidden="true">④</span>
+          <h4 data-i18n="flow.step4">내보내기 · 다음 단계</h4>
+          <div class="flow-body">
+            <div class="actions">
+              <span class="act"><span class="act-k" data-i18n="accred.printK">자체점검표</span><button class="btn secondary" id="accred-print" data-i18n-html="flow.export.print">인쇄 <span class="arrow">↗</span></button></span>
+              <button class="btn secondary" id="accred-share" data-i18n-html="common.shareBtn">공유 <span class="arrow">↗</span></button>
+              <span class="spacer"></span>
+              <button type="button" class="btn secondary" data-go="tab-privacy"><span><span data-i18n="flow.next">다음</span>: <span data-i18n="nav.privacy">데이터 처리 현황</span></span> <span class="arrow">→</span></button>
+            </div>
+          </div>
+        </section>
       </div>
     </section>
 
@@ -1531,7 +1832,8 @@
     </section>
 
     <!-- ─────────────────────────────────────────── -->
-    <!-- 조직 › 마스터 업로드 — KOICD 상병 / 심평원 행위·수가 masters (moved out of the retired 검색 panel; js/tabs/tab6-search.js) -->
+    <!-- 조직 › 마스터 업로드 — KOICD 상병 / 심평원 행위·수가 masters (js/tabs/tab6-search.js).
+         Flow subset: ① sample master files only (no seeded master — the bundled 발췌 IS the demo), ② upload + mapping, ③ status, ④ next. -->
     <!-- ─────────────────────────────────────────── -->
     <section class="panel" id="tab-masters" role="tabpanel">
       <div class="panel-head">
@@ -1545,30 +1847,68 @@
       <p class="panel-blurb" data-i18n-html="masters.blurb">
         내장 상병·행위 표는 <em>데모 발췌·예시</em>입니다. 여기서 <em>KOICD 상병마스터</em>와 <em>심평원 행위·수가 마스터</em>(xlsx)를 올리고 헤더를 매핑하면 상병 정비·심사결과 대조·검색·AI 어시스트가 모두 실제 마스터를 기준으로 동작합니다. 공개 참조표이므로 이 브라우저(IndexedDB)에만 보관됩니다.
       </p>
-      <div class="source-badge" id="search-source-badge"></div>
-      <div class="master-upload">
-        <div class="master-card">
-          <h5 data-i18n="search.masterKcdH">상병 마스터 업로드 — KOICD</h5>
-          <p class="desc" data-i18n-html="search.masterKcdDesc">KOICD에서 내려받은 상병마스터(xlsx). 컬럼 예: <code>상병기호</code> · <code>한글명</code> · <code>영문명</code> · <code>완전코드구분</code>. 올린 뒤 헤더를 매핑하면 정비·검색·AI 탭이 이 표를 기준으로 동작합니다. 공개 참조표이므로 이 브라우저(IndexedDB)에만 보관됩니다.</p>
-          <div class="master-status" id="master-status-kcd"></div>
-          <div class="master-actions">
-            <label class="btn secondary" for="master-file-kcd" data-i18n="search.pickXlsx">xlsx 선택</label>
-            <input type="file" id="master-file-kcd" accept=".xlsx,.xls,.csv">
-            <button type="button" class="btn secondary" id="master-clear-kcd" disabled data-i18n="search.clearUpload">업로드본 지우기</button>
+      <div class="flow">
+        <section class="flow-step" data-step="1">
+          <span class="step" aria-hidden="true">①</span>
+          <h4 data-i18n="flow.step1">샘플 · 시연</h4>
+          <div class="flow-body">
+            <p data-i18n-html="masters.demoLabel">마스터 예시 파일 두 개 — 내장 발췌를 <strong>KOICD 상병마스터 형식</strong>(상병기호 · 한글명 · 영문명 · 완전코드구분)과 <strong>심평원 행위·수가 마스터 형식</strong>(수가코드 · 한글명 · 단가 · 분류 · 급여구분 · 자보구분)으로 내려받아 ②의 헤더 매핑을 미리 봅니다. 시연할 샘플 마스터는 없습니다 — 내장 표가 예시입니다.</p>
+            <div class="actions">
+              <span class="act"><span class="act-k" data-i18n="search.filterKcd">KCD 상병</span><button type="button" class="btn secondary" data-action="sample-masters-kcd" data-i18n-html="flow.sampleMaster">마스터 예시 파일 받기 <span class="arrow">↓</span></button></span>
+              <span class="act"><span class="act-k" data-i18n="search.filterFee">행위·수가</span><button type="button" class="btn secondary" data-action="sample-masters-fee" data-i18n-html="flow.sampleMaster">마스터 예시 파일 받기 <span class="arrow">↓</span></button></span>
+            </div>
           </div>
-          <div class="master-map" id="master-map-kcd" hidden></div>
-        </div>
-        <div class="master-card">
-          <h5 data-i18n="search.masterFeeH">행위·수가 마스터 업로드 — 심평원</h5>
-          <p class="desc" data-i18n-html="search.masterFeeDesc">심평원 행위 급여·비급여 목록 및 수가 마스터(xlsx). 컬럼 예: <code>수가코드</code> · <code>한글명</code> · <code>단가</code> · <code>분류</code> · <code>급여구분</code> · <code>자보구분</code>. 올리면 자보 정산의 예시 수가표와 검색 결과가 실제 코드로 바뀌고, 급여/비급여/자보 표시가 함께 나옵니다.</p>
-          <div class="master-status" id="master-status-fee"></div>
-          <div class="master-actions">
-            <label class="btn secondary" for="master-file-fee" data-i18n="search.pickXlsx">xlsx 선택</label>
-            <input type="file" id="master-file-fee" accept=".xlsx,.xls,.csv">
-            <button type="button" class="btn secondary" id="master-clear-fee" disabled data-i18n="search.clearUpload">업로드본 지우기</button>
+        </section>
+
+        <section class="flow-step" data-step="2">
+          <span class="step" aria-hidden="true">②</span>
+          <h4 data-i18n="flow.step2">데이터 올리기</h4>
+          <div class="flow-body">
+            <div class="master-upload">
+              <div class="master-card">
+                <h5 data-i18n="search.masterKcdH">상병 마스터 업로드 — KOICD</h5>
+                <p class="desc" data-i18n-html="search.masterKcdDesc">KOICD에서 내려받은 상병마스터(xlsx). 컬럼 예: <code>상병기호</code> · <code>한글명</code> · <code>영문명</code> · <code>완전코드구분</code>. 올린 뒤 헤더를 매핑하면 정비·검색·AI 탭이 이 표를 기준으로 동작합니다. 공개 참조표이므로 이 브라우저(IndexedDB)에만 보관됩니다.</p>
+                <div class="master-actions">
+                  <label class="btn secondary" for="master-file-kcd" data-i18n="search.pickXlsx">xlsx 올리기</label>
+                  <input type="file" id="master-file-kcd" accept=".xlsx,.xls,.csv">
+                  <button type="button" class="btn secondary" id="master-clear-kcd" disabled data-i18n="search.clearUpload">업로드본 지우기</button>
+                </div>
+                <div class="master-map" id="master-map-kcd" hidden></div>
+              </div>
+              <div class="master-card">
+                <h5 data-i18n="search.masterFeeH">행위·수가 마스터 업로드 — 심평원</h5>
+                <p class="desc" data-i18n-html="search.masterFeeDesc">심평원 행위 급여·비급여 목록 및 수가 마스터(xlsx). 컬럼 예: <code>수가코드</code> · <code>한글명</code> · <code>단가</code> · <code>분류</code> · <code>급여구분</code> · <code>자보구분</code>. 올리면 자보 정산의 예시 수가표와 검색 결과가 실제 코드로 바뀌고, 급여/비급여/자보 표시가 함께 나옵니다.</p>
+                <div class="master-actions">
+                  <label class="btn secondary" for="master-file-fee" data-i18n="search.pickXlsx">xlsx 올리기</label>
+                  <input type="file" id="master-file-fee" accept=".xlsx,.xls,.csv">
+                  <button type="button" class="btn secondary" id="master-clear-fee" disabled data-i18n="search.clearUpload">업로드본 지우기</button>
+                </div>
+                <div class="master-map" id="master-map-fee" hidden></div>
+              </div>
+            </div>
           </div>
-          <div class="master-map" id="master-map-fee" hidden></div>
-        </div>
+        </section>
+
+        <section class="flow-step" data-step="3">
+          <span class="step" aria-hidden="true">③</span>
+          <h4><span data-i18n="flow.step3">결과 검토</span> <span class="sub" data-i18n="masters.sourceH">현재 기준 표</span></h4>
+          <div class="flow-body">
+            <div class="status" id="master-status-kcd-line"><span class="dot"></span><span class="act-k" data-i18n="search.filterKcd">KCD 상병</span><span id="master-status-kcd"></span></div>
+            <div class="status" id="master-status-fee-line"><span class="dot"></span><span class="act-k" data-i18n="search.filterFee">행위·수가</span><span id="master-status-fee"></span></div>
+          </div>
+        </section>
+
+        <section class="flow-step" data-step="4">
+          <span class="step" aria-hidden="true">④</span>
+          <h4 data-i18n="flow.step4">내보내기 · 다음 단계</h4>
+          <div class="flow-body">
+            <div class="actions">
+              <span class="act-note" data-i18n="masters.noExport">마스터는 참조표 — 내보내기 없음. 올린 표는 상병 정비 · 심사결과 대조 · 검색 · AI 어시스트가 바로 씁니다</span>
+              <span class="spacer"></span>
+              <button type="button" class="btn secondary" data-go="tab-kcd"><span><span data-i18n="flow.next">다음</span>: <span data-i18n="nav.kcd">상병 정비</span></span> <span class="arrow">→</span></button>
+            </div>
+          </div>
+        </section>
       </div>
     </section>
 
@@ -1605,15 +1945,22 @@
       <p class="panel-blurb" data-i18n-html="ai.blurb">
         한의사·간호사가 적은 <em>진료 메모</em>를 그대로 붙여넣거나 <em>음성으로 받아쓰면</em> — AI가 상병(KCD)·한의 병증 U코드·행위 코드 초안을 한꺼번에 골라드립니다. 추천마다 <em>왜 이 코드인지 근거</em>와 <em>조정 주의점</em>(상병-처치 부위 일치, 추나 횟수 한도, 경상환자 4주 진단서, 첩약 처방일수, 초·재진 진찰료)이 함께 나오니, 원무팀은 <em>맞는지 확인만</em> 하면 됩니다. 결정은 사람이, 검색은 AI가.
       </p>
-      <div class="demo-strip">
-        <span class="demo-label" data-i18n-html="ai.demoLabel">처음이신가요? <strong>"교통사고 후 경추·요추 통증"</strong> 메모로 — 메모 한 줄에서 청구 가능한 코드들이 어떻게 한 번에 나오는지 보여드립니다.</span>
-        <button type="button" class="demo-cta" data-action="run-ai"><span class="play">▶</span> <span data-i18n="ai.demoCta">샘플 메모로 시연</span></button>
-      </div>
+      <div class="flow ai-shell">
+        <section class="flow-step" data-step="1">
+          <span class="step" aria-hidden="true">①</span>
+          <h4 data-i18n="flow.step1">샘플 · 시연</h4>
+          <div class="flow-body">
+            <p data-i18n-html="ai.demoLabel">처음이신가요? <strong>"교통사고 후 경추·요추 통증"</strong> 메모로 — 메모 한 줄에서 청구 가능한 코드들이 어떻게 한 번에 나오는지 보여드립니다.</p>
+            <div class="actions">
+              <button type="button" class="btn" data-action="run-ai" data-i18n-html="flow.demo"><span class="play">▶</span> 샘플로 시연</button>
+            </div>
+          </div>
+        </section>
 
-      <div class="ai-shell">
-        <div class="card">
-          <h4><span class="step">01</span> <span data-i18n="ai.step1">진료 메모 입력</span></h4>
-          <div class="ai-input">
+        <section class="flow-step" data-step="2">
+          <span class="step" aria-hidden="true">②</span>
+          <h4><span data-i18n="flow.step2entry">입력</span> <span class="sub" data-i18n="ai.step1">진료 메모 입력</span></h4>
+          <div class="flow-body ai-input">
             <div id="ai-ctx" class="ai-ctx" hidden></div>
             <div class="ai-textarea-wrap">
               <textarea id="ai-input" placeholder="예) 60세 남자, 3주 전 추돌사고 후 경부·요부 통증. 회전시 우측 어깨 방사통. SLR 양성. 침술·부항·추나 시술 예정." data-i18n-attr="placeholder:ai.placeholder"></textarea>
@@ -1632,18 +1979,21 @@
               <strong>예시 모드:</strong> 아무것도 전송하지 않습니다 — 브라우저 안의 규칙 기반 예시 결과입니다. 라이브로 바꾸면 전송 전에 마스킹 미리보기와 사용자별 동의를 거칩니다.
             </p>
           </div>
-        </div>
+        </section>
 
-        <div class="card">
-          <h4><span class="step">02</span> <span data-i18n="ai.step2">추천 결과</span> <span id="ai-mode-pill" class="ai-mode-pill" role="status" hidden>예시 모드</span></h4>
-          <div class="ai-output" id="ai-output">
-            <div class="placeholder" data-i18n-html="ai.placeholderOut">메모를 입력하고 <em>코드 추천</em>을 누르면 결과가 여기에 표시됩니다.</div>
+        <section class="flow-step" data-step="3">
+          <span class="step" aria-hidden="true">③</span>
+          <h4><span data-i18n="flow.step3">결과 검토</span> <span class="sub" data-i18n="ai.step2">추천 결과</span> <span id="ai-mode-pill" class="ai-mode-pill" role="status" hidden>예시 모드</span></h4>
+          <div class="flow-body">
+            <div class="ai-output" id="ai-output">
+              <div class="placeholder" data-i18n-html="ai.placeholderOut">메모를 입력하고 <em>코드 추천</em>을 누르면 결과가 여기에 표시됩니다.</div>
+            </div>
+            <div id="ai-actions" class="ai-actions" hidden></div>
+            <p class="caveat" data-i18n-html="ai.caveat">
+              ※ AI는 <em>찾아드리는 일</em>까지만 합니다. 추천 코드는 <strong>예시 목록</strong>(내장 발췌·예시표) 기준이며, 조직 › 마스터 업로드에서 마스터를 올리면 마스터에 있는 코드만 제안합니다. 자보는 건강보험 행위 코드를 그대로 쓰고, 교통사고 환자에게는 비급여를 제안하지 않습니다. 청구 결정은 원무팀의 몫 — 실제 청구 전에 청구 › <em>상병 정비</em>·<em>심사결과 대조</em>에서 한 번 더 확인해주세요.
+            </p>
           </div>
-          <div id="ai-actions" class="ai-actions" hidden></div>
-          <p class="caveat" data-i18n-html="ai.caveat">
-            ※ AI는 <em>찾아드리는 일</em>까지만 합니다. 추천 코드는 <strong>예시 목록</strong>(내장 발췌·예시표) 기준이며, 조직 › 마스터 업로드에서 마스터를 올리면 마스터에 있는 코드만 제안합니다. 자보는 건강보험 행위 코드를 그대로 쓰고, 교통사고 환자에게는 비급여를 제안하지 않습니다. 청구 결정은 원무팀의 몫 — 실제 청구 전에 청구 › <em>상병 정비</em>·<em>심사결과 대조</em>에서 한 번 더 확인해주세요.
-          </p>
-        </div>
+        </section>
       </div>
     </aside>
   </div>

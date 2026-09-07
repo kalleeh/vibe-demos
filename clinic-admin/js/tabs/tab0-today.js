@@ -107,7 +107,7 @@ export function init(ctx) {
         ${showLater ? groups.later.map(item).join("") : ""}
       </div>`;
     }
-    $("#dday-list").innerHTML = html || `<div class="empty-state">${esc(t("today.noDeadlines"))}</div>`;
+    $("#dday-list").innerHTML = html || `<div class="empty">${esc(t("today.noDeadlines"))}</div>`;
     $$("#dday-list .dday").forEach(el => {
       const go = () => { let c; try { c = el.dataset.ctx ? JSON.parse(el.dataset.ctx) : undefined; } catch {} if (el.dataset.link) activateTab(el.dataset.link, c); };
       el.addEventListener("click", go);
@@ -374,7 +374,7 @@ export function init(ctx) {
       cards.push({ tab: "tab-yearend", label: t("nav.yearend"), who: t("today.resume.yeLeft", { e: ye.meta.errors, y: ye.meta.taxYear || "" }), when: relTime(ye.createdAt) });
     }
     if (!cards.length) {
-      $("#resume-list").innerHTML = `<div class="resume"><span class="empty">${esc(t("today.resumeEmpty"))}</span></div>`;
+      $("#resume-list").innerHTML = `<div class="resume"><span class="resume-empty">${esc(t("today.resumeEmpty"))}</span></div>`;
       return;
     }
     $("#resume-list").innerHTML = cards.map(c => `

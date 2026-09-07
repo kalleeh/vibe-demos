@@ -1,5 +1,5 @@
 /* clinic-admin — Tab 08 · 직원 명부 — 면허·자격 + 로그인 (the roster UI over core/entities.js Staff) */
-import { $, $$, esc, todayISO, daysUntil, Haptic, Toast, Lightbox, Share, bindCameraButton, roleLabel } from "../core/ui.js";
+import { $, $$, esc, todayISO, daysUntil, Haptic, Toast, Lightbox, Share, bindCameraButton, roleLabel, emptyHTML } from "../core/ui.js";
 import { t, getLang, onLangChange } from "../core/i18n.js";
 import { EventBus, ActivityLog } from "../core/store.js";
 import { Attachments } from "../core/attachments.js";
@@ -86,7 +86,7 @@ export function init() {
     const list = Staff.list();
     const owner = Session.isOwner(), me = Session.user();
     if (!list.length) {
-      $("#lic-list").innerHTML = `<div class="empty-state">${esc(t("license.emptyList"))}</div>`;
+      $("#lic-list").innerHTML = emptyHTML(esc(t("license.emptyList")), { demoOnly: true });
       $("#lic-summary").textContent = t("license.summary", { n: 0, i: 0, l: 0 });
       return;
     }

@@ -336,7 +336,7 @@ export function renderReconciliation(host, { claims, review, payer = "auto", ins
           <h5>${esc(t("jabo.byReasonH"))} <span>${esc(t("jabo.exampleClass"))}</span></h5>
           ${byReason.length ? `<table><thead><tr><th>${esc(t("jabo.thReason"))}</th><th class="code">${esc(t("jabo.thLines"))}</th><th class="code">${esc(t("jabo.thCut"))}</th></tr></thead><tbody>
             ${byReason.map(g => `<tr><td>${esc(g.reason)}</td><td class="code" style="text-align:right">${g.lines}</td><td class="code" style="text-align:right; color:var(--accent)">−${fmtKRW(g.cut)}</td></tr>`).join("")}
-          </tbody></table>` : `<div class="empty-state small">${esc(t("jabo.noCuts"))}</div>`}
+          </tbody></table>` : `<div class="empty small">${esc(t("jabo.noCuts"))}</div>`}
         </div>
         <div class="recon-group">
           <h5>${esc(t("jabo.byMonthH"))}</h5>

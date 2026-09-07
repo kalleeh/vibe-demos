@@ -4,7 +4,7 @@
 export default {
   /* ── overrides of base keys ── */
   "yearend.demoLabel": "5 patients · <strong>7 visits</strong> — data seeded with a wrong-length RRN, a negative amount and a duplicate row, to preview the pre-check flow.",
-  "yearend.statusSample": "Sample: 5 patients · 7 visits — a wrong-length RRN, a negative amount and a duplicate row show the pre-check flow ({e} errors). RRNs are masked automatically.",
+  "yearend.statusSample": "5 patients · 7 visits with a wrong-length RRN, a negative amount and a duplicate row ({e} errors). RRNs are masked automatically.",
   "retention.demoLabel": "<strong>9 fictional records (2014–2016)</strong> — past retention, expiring soon, misclassified, and rows computed from the creation date because no completion date was given.",
   "today.insJabo": "Auto-insurance claims this month",
   "today.insCut": "Adjustment rate",
@@ -66,7 +66,7 @@ export default {
   "bigeup.statusNoOrg": "No institution code — enter the institution profile before downloading the sheet.",
   "bigeup.notice.h": "Price notice (for the reception counter)",
   "bigeup.notice.summary": "Non-covered price disclosure (Medical Service Act §45) — builds the price list to post at reception from the prices entered. The mid price is the posted price; min–max is shown as the range.",
-  "bigeup.notice.printBtn": "Print price notice <span class=\"arrow\">↗</span>",
+
   "bigeup.notice.title": "{org} — non-covered (비급여) price notice",
   "bigeup.notice.sub": "Effective {date} · {n} items · Medical Service Act §45 · sample items (the real notice uses HIRA standard-code names)",
   "bigeup.notice.thPrice": "Posted price",

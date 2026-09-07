@@ -33,7 +33,7 @@ export default {
 
   /* ── Claims › claim batch landing (payer-aware head copy — claims.p3.* — and the payer cards live in en.claims2.js) ── */
   "claims.num": "Claims · Claim batch",
-  "claims.uploadH": "Upload — claim statements · review results",
+
   "claims.dropClaims": "Claim statement export",
   "claims.dropReview": "HIRA review-result file", "claims.dropReviewHint": "Statement no. · procedure code · approved amount · adjustment reason — linked to the current batch",
   "claims.caveat": "※ Uploading the same file in <strong>Diagnosis codes</strong> or <strong>Auto-insurance reconciliation</strong> creates the same batch. Batches are encrypted in the browser and kept 90 days · up to 20 (Organisation › Data processing).",
@@ -57,7 +57,7 @@ export default {
   "org.h3": "Which <em>institution</em> is this admin office?",
   "org.badgeLaw": "Medical Service Act §45-2 · Income Tax Act §165 file headers", "org.badge": "Stored in this browser only · not personal data",
   "org.blurb": "Name, institution code, business registration number, type and representative go straight into the headers of the <em>non-covered report</em>, the <em>year-end tax data</em> and the <em>auto-insurance settlement sheet</em>; the type (hospital · clinic) sets the non-covered reporting cadence and the deadline calendar. Enter it once and every screen reads the same profile.",
-  "org.panelH": "Institution profile",
+
   "org.caveat": "※ Institution data is public business-registration information, <strong>not personal data</strong>, so it is stored in plain text (plain tier) — see the “Institution profile” row in Organisation › Data processing. In a demo, “Tour with sample data” fills in 한솔한방병원.",
 
   /* ── Organisation › data processing panel ── */
@@ -93,4 +93,35 @@ export default {
   "tour.appeal.title": "Claims · Appeals", "tour.appeal.body": "Drafts handed over from adjusted lines form the register — enter the notice date and the deadline (+90 days, to be confirmed) attaches as a D-day; move the status preparing → submitted → result and print the draft letter. Overdue appeals also surface in Home’s to-do list.",
   "tour.patients.title": "Patients · the three trackers", "tour.patients.body": "Auto-insurance guarantees (insurer calls · expiry D-day), the document issuance log (statutory ledger · issuer check) and non-covered consent (priced from the price table) — all store only the pseudonymous patient number (****0142). The intake board’s card ⋯ menu opens them directly.",
   "tour.org.title": "Organisation · staff roster and the rest", "tour.org.body": "The roster computes licence renewal deadlines (3 years) and issues logins (PIN). The institution profile heads every report file, the accreditation self-check is auto-judged from the other screens, data processing shows per-item encryption · retention · erasure · backup, and master upload takes the KOICD / HIRA tables. That is the tour — use the left menu from here.",
+
+  /* ── canonical panel flow ── */
+  "flow.step1": "Sample · demo", "flow.step2": "Upload", "flow.step2entry": "Enter", "flow.step3": "Review", "flow.step4": "Download · next step",
+  "flow.sample": "Download sample <span class=\"arrow\">↓</span>", "flow.sampleMaster": "Download sample master <span class=\"arrow\">↓</span>",
+  "flow.demo": "<span class=\"play\">▶</span> Run demo",
+  "flow.upload": "Drop an Excel / CSV file here, or click to upload", "flow.columns": "Show column names",
+  "flow.review": "Reviewed", "flow.state.demo": "Demo run", "flow.state.saved": "Entered",
+  "flow.export.xlsx": "Download XLSX <span class=\"arrow\">↓</span>", "flow.export.csv": "Download CSV <span class=\"arrow\">↓</span>",
+  "flow.export.ics": "Download .ics <span class=\"arrow\">↓</span>", "flow.export.print": "Print <span class=\"arrow\">↗</span>",
+  "flow.next": "Next step",
+  "flow.emptyHint": "First time? ① Sample · demo — download the sample file or press “Run demo”.",
+  "flow.emptyHintDemo": "First time? “Run demo” in ① Sample · demo fills in example records.",
+  "flow.emptyHintManual": "First time? “Manual sample” in ② Upload fills an example case.",
+  /* per-panel ① sentences · ④ captions */
+  "claims.demoLabel": "<strong>Hansol KM Hospital 2026-08</strong> — 12 auto-insurance and 10 NHIS statements with their HIRA review results become two batches, and the three-step progress fills in side by side.",
+  "claims.noExport": "The batch itself is not exported — results live on each step's screen", "claims.statusDemo": "Both payers' batches and review results are linked.",
+  "guarantee.demoLabel": "<strong>Guarantees for two auto-insurance patients</strong> — an extension request expiring in five days (Samsung Fire) and an already expired one (DB Insurance), with five phone/fax log lines.",
+  "docs.demoLabel": "<strong>Four issued documents</strong> — a January receipt re-issue (year-end hint), a certificate for an auto-insurance claim, an opinion letter picked up by a proxy (power of attorney · ID checked), a visit confirmation for an employer.",
+  "consent.demoLabel": "<strong>Three consent records</strong> — 14 days of herbal decoction, pharmacopuncture outside the guarantee scope, and Chuna sessions over the limit turned non-covered (signature pending). Prices come from the non-covered price table.",
+  "license.demoLabel": "<strong>Hansol KM Hospital's 7 staff</strong> — 2 KM doctors · nurse · physiotherapist · nursing assistant · admin · front desk. One row without a report date (unverified), one near its deadline, and 3 logins (PIN 000000).",
+  "license.statusDemo": "{n} staff · {l} logins added — existing rows untouched.", "license.icsK": "Report · CME deadlines",
+  "accred.demoLabel": "Ticks the <strong>nine basics</strong> a running KM hospital has (patient ID, emergency cart, rights posted, infection control, waste, oxygen, orientation…) — the auto-judged items judge themselves from the roster, the price table and the last checks.",
+  "accred.checkH": "Tick the items", "accred.autoH": "Auto-judged summary", "accred.autoState": "Self-check", "accred.autoSummary": "auto-judged {ok}/{n} met · {p}% overall", "accred.printK": "Self-check sheet",
+  "accred.logDemo": "Accreditation self-check demo — nine basics ticked",
+  "masters.demoLabel": "Two sample master files — the bundled excerpt written in the <strong>KOICD diagnosis-master shape</strong> (상병기호 · 한글명 · 영문명 · 완전코드구분) and the <strong>HIRA procedure/fee-master shape</strong> (수가코드 · 한글명 · 단가 · 분류 · 급여구분 · 자보구분), to try the header mapping in ②. There is no sample master to run — the bundled tables are the demo.",
+  "masters.sourceH": "Current reference tables", "masters.noExport": "Masters are reference tables — nothing to export. Diagnosis cleanup · reconciliation · search · the AI assist use the uploaded table directly",
+  "masters.sampleKcdFile": "sample_master_KOICD_diagnoses.xlsx", "masters.sampleKcdSheet": "Diagnosis master (sample)", "masters.sampleFeeFile": "sample_master_HIRA_procedures.xlsx", "masters.sampleFeeSheet": "Procedure/fee master (sample)",
+  "masters.logSample": "Sample master file downloaded ({n} rows)",
+  "org.completeH": "Completeness", "org.completeCount": "{n}/{total} fields", "org.completeMissing": "empty: {f}",
+  "org.noExport": "The profile heads every report file — nothing to export separately",
+  "bigeup.web.k": "Website notice", "bigeup.history.k": "Change history", "bigeup.notice.k": "Price notice",
 };

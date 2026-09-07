@@ -20,7 +20,7 @@ export default {
   /* ── 환자 › 자보 지불보증 ── */
   "guarantee.badgeLaw": "자동차손해배상 보장법 §12 · 자동차보험진료수가 기준", "guarantee.badge": "가명 환자 · 브라우저 내 암호화 · 보증 종료 후 1년 보존",
   "guarantee.blurb": "자보 환자는 <em>사고접수번호와 보험사</em>만 들고 옵니다 — 원무가 보험사에 전화·팩스로 <em>지불보증</em>(보증번호·범위·기간·담당자)을 받아야 진료비가 보험사로 갑니다. 한방은 입원 일수와 약침·첩약 빈도에서 보증 범위 실랑이가 잦고, 보증은 진료 중에 만료되어 <em>연장 요청</em>이 또 한 통의 전화가 됩니다. 여기서 케이스별 보증 상태와 통화 기록을 한 줄씩 남기고, 만료 7일 전에 미리 봅니다.",
-  "guarantee.listH": "지불보증 대장", "guarantee.newBtn": "+ 새 지불보증", "guarantee.exportBtn": "지불보증 대장 XLSX",
+  "guarantee.listH": "지불보증 대장", "guarantee.newBtn": "+ 새 지불보증",
   "guarantee.searchPh": "접수번호 · 보증번호 · 보험사 검색", "guarantee.chipSoon": "만료 임박",
   "guarantee.summary": "{n}건 표시 · 만료 임박 {soon} · 만료 {expired}",
   "guarantee.empty": "지불보증 기록이 없습니다 — 「+ 새 지불보증」으로 보험사 통화를 기록하세요. 접수 보드 카드의 ⋯ 메뉴에서도 열립니다.",
@@ -49,7 +49,7 @@ export default {
   /* ── 환자 › 서류 발급 대장 ── */
   "docs.badgeLaw": "의료법 §17 · 시행규칙 §15 (부본 3년)", "docs.badge": "발급번호 연번 · 대리인 확인 · 수수료 비급여 고지",
   "docs.blurb": "진단서·진료확인서·입퇴원확인서·소견서·진료비 세부내역서 — 창구에서 매일 나가는 서류마다 <em>누가 누구에게 몇 부를 얼마에</em> 발급했는지 남기는 <em>진단서 등 발급 대장</em>은 법정 기록입니다 (의료법 시행규칙 — 세부 서식은 확인 필요). 진단서·소견서는 <em>한의사</em>만 발급할 수 있고, 대리인 수령은 위임장·신분증 확인이 필요합니다. 제증명 수수료는 비급여이므로 접수 창구에 게시해야 합니다.",
-  "docs.listH": "발급 대장", "docs.newBtn": "+ 발급 기록", "docs.exportBtn": "발급 대장 XLSX", "docs.printBtn": "월별 대장 인쇄", "docs.printMonth": "인쇄할 월",
+  "docs.listH": "발급 대장", "docs.newBtn": "+ 발급 기록","docs.printMonth": "인쇄할 월",
   "docs.searchPh": "발급번호 · 용도 · 비고 검색",
   "docs.summary": "{n}건 표시 · 이번 달 {m}건 · 수수료 {fee}",
   "docs.empty": "발급 기록이 없습니다 — 「+ 발급 기록」으로 첫 서류를 남기세요. 접수 보드 카드의 ⋯ 메뉴에서도 열립니다.",
@@ -76,7 +76,7 @@ export default {
   /* ── 환자 › 비급여 설명·동의 ── */
   "consent.badgeLaw": "의료법 §45 · 시행규칙 §42조의2 (사전 설명 의무)", "consent.badge": "우리 단가표 기준 · 동의서 초안 인쇄",
   "consent.blurb": "첩약·약침·추나 초과분처럼 <em>비급여 항목은 시행 전에 항목과 가격을 설명</em>해야 하고 (의료법 §45 · 시행규칙 §42조의2 — 확인 필요), 대부분 병원은 서명받은 <em>동의서</em>를 종이나 스캔으로 보관합니다. 여기서는 조직 › 비급여 단가표의 <em>우리 가격</em>으로 항목을 고르고, 누가 어떤 방식으로 설명했는지와 서명 여부를 기록한 뒤 동의서 초안을 인쇄합니다. 자보 환자는 그 항목을 자보 케이스로 바로 넘길 수 있습니다.",
-  "consent.listH": "설명·동의 기록", "consent.newBtn": "+ 설명·동의 기록", "consent.exportBtn": "동의 기록 XLSX", "consent.printBtn": "동의서 초안",
+  "consent.listH": "설명·동의 기록", "consent.newBtn": "+ 설명·동의 기록","consent.printBtn": "동의서 초안",
   "consent.searchPh": "항목 코드 · 명칭 · 비고 검색", "consent.chipSigned": "서명 완료", "consent.chipUnsigned": "서명 대기",
   "consent.summary": "{n}건 표시 · 서명 대기 {unsigned} · 합계 {sum}",
   "consent.empty": "설명·동의 기록이 없습니다 — 「+ 설명·동의 기록」으로 첫 비급여 설명을 남기세요.",

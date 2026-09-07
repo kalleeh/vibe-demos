@@ -9,7 +9,7 @@
    IA (Phase 2): panels live in AREAS (core/nav.js). Clicking an area lands on its last-visited panel; `[` `]` cycle
    panels inside the area, `1`–`5` jump areas (never while typing). 검색 and AI are utilities: the overlay opens on
    ⌘K / the topbar 🔍, the drawer on the topbar ✦ and every "AI에게 묻기" action (activateTab("tab-ai", ctx)). */
-import { $, $$, esc, Toast, Dialog, Lightbox } from "./core/ui.js";
+import { $, $$, esc, Toast, Dialog, Lightbox, setStatus, flowStatus } from "./core/ui.js";
 import { t, getLang, setLang, onLangChange, isEn } from "./core/i18n.js";
 import { Store, EventBus, ActivityLog, SyncStatus } from "./core/store.js";
 import { AREAS, TAB_BY_ID, panelsOf, activateTab, activateArea, cyclePanel, refreshCrumb, activeTabId, registerUtility } from "./core/nav.js";
@@ -48,7 +48,10 @@ document.addEventListener("click", (e) => {
   const a = e.target.closest?.(".area-btn[data-area]");
   if (a) { activateArea(a.dataset.area); return; }
   const p = e.target.closest?.("#rail-areas [data-panel], #subnav [data-panel]");
-  if (p) activateTab(p.dataset.panel);
+  if (p) { activateTab(p.dataset.panel); return; }
+  // ④ 다음 단계 hand-offs (static HTML and the trackers' rendered flow alike): <button data-go="tab-…">.
+  const g = e.target.closest?.("[data-go]");
+  if (g && TAB_BY_ID[g.dataset.go]) activateTab(g.dataset.go);
 });
 /* Phone sub-nav: the active area's panels as a segmented control (hidden when the area has a single panel). */
 function renderSubnav() {
@@ -178,13 +181,24 @@ EventBus.on("app:ready", () => {
   if (!Store.get(WELCOMED_KEY)) setTimeout(openWelcome, 350);
 });
 
-/* 조직 › 기관 프로필 — the promoted Org editor (mounted once the Store is unlocked). */
+/* 조직 › 기관 프로필 — the promoted Org editor (mounted once the Store is unlocked). ③ 완성도 = a status line
+   (`{state} · {n}/5 항목 · {when}`) + the read-only header preview every export carries. */
 let orgPanelMounted = false;
+const ORG_FIELDS = ["name", "ykiho", "biz", "kind", "rep"];
+function paintOrgComplete() {
+  const el = $("#org-complete"); if (!el) return;
+  const o = Org.get(), n = ORG_FIELDS.filter(f => o[f]).length, complete = Org.isComplete();
+  setStatus(el, complete ? null : "warn", `${esc(t(complete ? "org.statusComplete" : "org.statusIncomplete"))} · ${esc(t("org.completeCount", { n, total: ORG_FIELDS.length }))}${complete ? "" : ` — ${esc(t("org.completeMissing", { f: ORG_FIELDS.filter(f => !o[f]).map(f => t("org.f." + f)).join(" · ") }))}`}`);
+  renderOrgReadOnly($("#org-panel-ro"), o, { onEdit: () => $("#orgpanel-name")?.focus({ preventScroll: true }) });
+}
 function mountOrgPanel() {
   if (orgPanelMounted || !$("#org-panel-form")) return;
   renderOrgForm($("#org-panel-form"), { prefix: "orgpanel" });
   orgPanelMounted = true;
+  paintOrgComplete();
 }
+Org.onChange(() => { if (orgPanelMounted) paintOrgComplete(); });
+onLangChange(() => { if (orgPanelMounted) paintOrgComplete(); });
 EventBus.on("app:ready", mountOrgPanel);
 EventBus.on("session:unlocked", mountOrgPanel);
 
@@ -446,6 +460,12 @@ async function seedAll() {
 $("#welcome-seed")?.addEventListener("click", () => {
   seedAll();
   closeWelcome(true);
+});
+/* 조직 › 직원 명부 ① [샘플로 시연] — the roster is a shared entity (seedEntities), so its standalone demo lives here, not in tab8. */
+$('[data-action="run-license"]')?.addEventListener("click", async () => {
+  let ent = null;
+  try { ent = await seedEntities(); } catch (e) { console.warn("seedEntities", e); }
+  setStatus($("#lic-status"), null, flowStatus(t("flow.state.demo"), Staff.list().length, t("license.statusDemo", { n: ent?.staff ?? 0, l: ent?.logins ?? 0 })));
 });
 
 /* ─────────────────────────────────────────────────────────

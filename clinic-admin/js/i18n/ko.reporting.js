@@ -5,7 +5,7 @@
 export default {
   /* ── overrides of base keys (text changed with the shared demo data / KPI tiles) ── */
   "yearend.demoLabel": "5명 환자 · <strong>7건 진료</strong> — 주민번호 자릿수 오류·음수 금액·중복 행이 섞인 데이터로 사전점검 흐름을 미리 보실 수 있습니다.",
-  "yearend.statusSample": "샘플 환자 5명 · 7건 — 주민번호 자릿수 오류, 음수 금액, 중복 행이 섞인 데이터로 사전점검 흐름을 보여드립니다 (오류 {e}건). 주민등록번호는 자동 마스킹.",
+  "yearend.statusSample": "주민번호 자릿수 오류, 음수 금액, 중복 행이 섞인 5명 · 7건 (오류 {e}건). 주민등록번호는 자동 마스킹.",
   "retention.demoLabel": "<strong>9건 가상 기록 (2014–2016)</strong> — 보존기간 경과·만료 임박·분류 오류, 진료완료일이 없어 작성일자로 계산된 행까지 다양한 케이스로 점검표를 미리 보실 수 있습니다.",
   "today.insJabo": "이번 달 자보 청구",
   "today.insCut": "조정률",
@@ -67,7 +67,7 @@ export default {
   "bigeup.statusNoOrg": "요양기관기호가 없어 준비표를 내려받을 수 없습니다 — 기관 정보를 먼저 입력하세요.",
   "bigeup.notice.h": "가격 고지문 (접수 창구 게시용)",
   "bigeup.notice.summary": "의료법 §45 비급여 고지 — 입력된 단가로 접수 창구에 붙일 가격표를 만듭니다. 중간값을 고지 단가로, 최저–최고를 범위로 표시합니다.",
-  "bigeup.notice.printBtn": "가격 고지문 인쇄 <span class=\"arrow\">↗</span>",
+
   "bigeup.notice.title": "{org} 비급여 진료비용 고지",
   "bigeup.notice.sub": "적용일 {date} · {n}개 항목 · 의료법 §45 · 예시 항목 (실제 고지는 심평원 표준코드 항목명으로)",
   "bigeup.notice.thPrice": "고지 단가",

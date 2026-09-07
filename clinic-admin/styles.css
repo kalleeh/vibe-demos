@@ -130,53 +130,6 @@
     }
     .panel-blurb em { color: var(--accent); font-style: italic; }
 
-    .demo-strip {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      flex-wrap: wrap;
-      padding: 14px 18px;
-      margin: -8px 0 22px;
-      background: rgba(255,255,255,0.45);
-      border: 1px solid var(--line);
-      border-left: 3px solid var(--accent);
-      border-radius: 6px;
-    }
-    .demo-strip .demo-label {
-      flex: 1 1 auto;
-      font-family: "Fraunces", "Noto Serif KR", serif;
-      font-style: italic;
-      font-size: 14px;
-      color: var(--ink-2);
-      line-height: 1.4;
-    }
-    .demo-strip .demo-label strong {
-      font-style: normal;
-      font-family: "Inter", sans-serif;
-      font-weight: 500;
-      color: var(--ink);
-    }
-    .demo-strip .demo-cta {
-      font-family: "JetBrains Mono", monospace;
-      font-size: 11px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--paper);
-      background: var(--ink);
-      border: 1px solid var(--ink);
-      border-radius: 5px;
-      padding: 9px 16px;
-      cursor: pointer;
-      transition: background .2s, transform .15s;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-    .demo-strip .demo-cta:hover { background: var(--accent); border-color: var(--accent); }
-    .demo-strip .demo-cta:active { transform: scale(0.98); }
-    .demo-strip .demo-cta .play { font-size: 9px; }
-
     /* ── Live shared intake board (PocketBase realtime showcase) ── */
     .intake-board { margin: -8px 0 26px; }
     .intake-board .board-head {
@@ -288,17 +241,6 @@
       font-size: 10px; color: var(--muted); margin: 0;
     }
 
-    /* ── Two-column workspace layout ── */
-    .work {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 28px;
-      align-items: start;
-    }
-    @media (max-width: 880px) {
-      .work { grid-template-columns: 1fr; gap: 18px; }
-    }
-
     .card {
       position: relative;
       background: rgba(255,255,255,0.5);
@@ -317,23 +259,7 @@
       z-index: -1;
       opacity: 0.7;
     }
-    .card h4 {
-      font-family: "JetBrains Mono", monospace;
-      font-size: 11px;
-      letter-spacing: 1.4px;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 14px;
-      display: flex;
-      align-items: baseline;
-      gap: 8px;
-    }
-    .card h4 .step {
-      color: var(--accent);
-      font-weight: 600;
-    }
 
-    /* ── Drop zone ── */
     .drop {
       display: block;
       border: 1.5px dashed rgba(20,17,13,0.22);
@@ -420,30 +346,6 @@
       border-radius: 3px;
       color: var(--celadon-2);
     }
-
-    /* ── Status / progress ── */
-    .status-line {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 14px;
-      background: rgba(123,168,154,0.10);
-      border-left: 2px solid var(--celadon);
-      border-radius: 4px;
-      font-family: "JetBrains Mono", monospace;
-      font-size: 11px;
-      color: var(--ink-2);
-      margin-top: 14px;
-    }
-    .status-line.warn { background: rgba(184,122,28,0.12); border-color: var(--warn); }
-    .status-line.err  { background: rgba(176,74,47,0.10);  border-color: var(--accent); }
-    .status-line .dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--celadon-2);
-    }
-    .status-line.warn .dot { background: var(--warn); }
-    .status-line.err  .dot { background: var(--accent); }
 
     /* ── Buttons ── */
     .btn {
@@ -534,15 +436,6 @@
     td .pill.warn  { background: rgba(184,122,28,0.15); color: var(--warn); }
     td .pill.err   { background: rgba(176,74,47,0.13);  color: var(--err); }
     td .pill.info  { background: rgba(123,168,154,0.16); color: var(--celadon-2); }
-
-    .empty-state {
-      padding: 56px 24px;
-      text-align: center;
-      color: var(--muted);
-      font-family: "Fraunces", "Noto Serif KR", serif;
-      font-style: italic;
-      font-size: 16px;
-    }
 
     /* ── Result toolbar ── */
     .result-toolbar {
@@ -1015,7 +908,7 @@
       font-size: 10px;
       color: var(--faint);
     }
-    .resume .empty { color: var(--faint); font-style: italic; font-family: "Fraunces", serif; }
+    .resume .resume-empty { color: var(--faint); font-style: italic; font-family: "Fraunces", serif; }
 
     /* Insight cards (Tab 00) */
     .insights {
@@ -1409,7 +1302,7 @@
       .frame.shell { display: block !important; height: auto !important; max-width: none; padding: 12px; }
       .work-col, .work-scroll { display: block !important; height: auto !important; overflow: visible !important; max-width: none; padding: 0; }
       .rail, .more-scrim, .topbar, .subnav, .bottombar, .ai-drawer, .toast-tray, .search-scrim, .welcome-scrim, .lightbox,
-      .install-nudge, .intake-board, .demo-strip, .drop, .drop-actions, .item-search,
+      .install-nudge, .intake-board, .drop, .drop-actions, .item-search, .flow-step[data-step="1"], .flow-step[data-step="4"] .actions,
       .btn, .ghost, .filter-chip, .ai-input .model-toggle, .result-toolbar .actions,
       .lic-actions, .lic-add, .accred-link { display: none !important; }
       .panel { display: none !important; }
@@ -1914,10 +1807,6 @@
     }
     .toast .go:hover { background: rgba(243,238,226,0.15); }
 
-    /* Demo strips are hidden (still in DOM so seedAll() / the e2e can click their CTAs programmatically). */
-    body.shell-v2 .demo-strip {
-      display: none !important;
-    }
     body.shell-v2 .panel { padding: 24px 0 60px; }
     body.shell-v2 .panel-head {
       padding-bottom: 14px;

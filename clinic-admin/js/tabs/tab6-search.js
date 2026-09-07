@@ -4,7 +4,7 @@
      searchAll(query, { source, limit }) → rows      uploaded KOICD 상병 / 심평원 행위·수가 masters when present, else the
                                                      bundled 발췌·예시 tables, with a source badge per row; Hangul 초성 works.
      srcLabel(origin)                                "업로드 마스터" / "데모 발췌" (overlay source pills)
-   init() wires the master upload/mapping/status UI in #tab-masters (+ #search-source-badge) and flashes the cards on
+   init() wires the master upload/mapping/status UI in #tab-masters (③ = the two #master-status-* lines) and flashes the cards on
    activateTab("tab-masters", { section: "masters" }) — which is also where activateTab("tab-search", { section:
    "masters" }) is routed by nav.js. Rebuilding the index emits `search:index` (local) so the overlay re-renders.
    i18n: bundled rows carry name_en (data/*.json) and uploaded KOICD masters carry the file's 영문명 column, so the
@@ -12,7 +12,7 @@
 import { $, esc, fmtKRW, won, fuzzyMatch } from "../core/ui.js";
 import { t, tOr, pick, onLangChange } from "../core/i18n.js";
 import { EventBus, ActivityLog } from "../core/store.js";
-import { readSpreadsheet } from "../core/files.js";
+import { readSpreadsheet, downloadXLSX } from "../core/files.js";
 import { Masters, toEdi } from "../core/masters.js";
 import { Tariff } from "../core/entities.js";
 import { tariffPrice } from "./claims-shared.js";
@@ -91,10 +91,6 @@ export function init(ctx) {
         clearBtn.disabled = true;
       }
     }
-    const badge = $("#search-source-badge");
-    if (badge) badge.innerHTML =
-      `<span class="src-pill ${Masters.kcd().source === "master" ? "master" : "demo"}">${esc(t("search.badgeKcd", { label: Masters.kcd().label }))}</span>
-       <span class="src-pill ${Masters.fee().source === "master" ? "master" : "demo"}">${esc(t("search.badgeFee", { label: Masters.fee().label }))}</span>`;
   };
 
   const renderMapping = (kind) => {
@@ -156,6 +152,18 @@ export function init(ctx) {
       ActivityLog.push("search", t("search.logMasterClear", { label: Masters.FIELDS[kind].label }), { kind });
     });
   }
+
+  // ① — the bundled 발췌 written in the two masters' own header shapes, so the ② mapping can be tried on a real file.
+  $('[data-action="sample-masters-kcd"]')?.addEventListener("click", () => {
+    const rows = (DATA.kcd?.codes || []).map(c => ({ 상병기호: c.edi || toEdi(c.code), 한글명: c.name, 영문명: c.name_en || "", 완전코드구분: c.complete === false ? "N" : "Y" }));
+    downloadXLSX(rows, t("masters.sampleKcdFile"), t("masters.sampleKcdSheet"));
+    ActivityLog.push("search", t("masters.logSample", { n: rows.length }), {});
+  });
+  $('[data-action="sample-masters-fee"]')?.addEventListener("click", () => {
+    const rows = (DATA.jabo?.items || []).map(it => ({ 수가코드: it.code, 한글명: it.name, 단가: it.price ?? "", 분류: it.category || "", 급여구분: "급여", 자보구분: "Y", 단위: it.unit || "회" }));
+    downloadXLSX(rows, t("masters.sampleFeeFile"), t("masters.sampleFeeSheet"));
+    ActivityLog.push("search", t("masters.logSample", { n: rows.length }), {});
+  });
 
   // Source badges elsewhere (상병 정비 · 심사결과 대조 · overlay) land here: flash the cards so the eye finds them.
   const flashMasters = () => {

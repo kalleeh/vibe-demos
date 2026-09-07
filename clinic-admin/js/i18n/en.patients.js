@@ -18,7 +18,7 @@ export default {
   /* ── Patients › auto-insurance payment guarantees ── */
   "guarantee.badgeLaw": "Guarantee of Automobile Accident Compensation Act §12 · auto-insurance fee schedule", "guarantee.badge": "Pseudonymous patients · encrypted in the browser · kept 1 year after the guarantee ends",
   "guarantee.blurb": "An auto-insurance (자보) patient arrives with nothing but an <em>accident claim number and an insurer</em> — the front desk has to obtain a <em>payment guarantee</em> (지불보증: guarantee no., scope, period, adjuster) by phone or fax before the bill goes to the insurer. In Korean medicine the scope fights are about inpatient days and pharmacopuncture / herbal-decoction frequency, and a guarantee routinely expires mid-course, so an <em>extension request</em> is one more phone call. Log every guarantee and call here, one line each, and see expiries seven days ahead.",
-  "guarantee.listH": "Guarantee ledger", "guarantee.newBtn": "+ New guarantee", "guarantee.exportBtn": "Guarantee ledger XLSX",
+  "guarantee.listH": "Guarantee ledger", "guarantee.newBtn": "+ New guarantee",
   "guarantee.searchPh": "Search claim no. · guarantee no. · insurer", "guarantee.chipSoon": "Expiring soon",
   "guarantee.summary": "{n} shown · expiring soon {soon} · expired {expired}",
   "guarantee.empty": "No guarantees yet — use “+ New guarantee” to log the call to the insurer. The ⋯ menu on an intake-board card opens this too.",
@@ -47,7 +47,7 @@ export default {
   /* ── Patients › document issuance log ── */
   "docs.badgeLaw": "Medical Service Act §17 · Enforcement Rule §15 (copies kept 3 years)", "docs.badge": "Sequential issue no. · proxy checks · fee posted as non-covered",
   "docs.blurb": "Medical certificates, treatment confirmations, admission / discharge confirmations, medical opinions, itemised bills — for every document that leaves the counter the <em>issuance log</em> (진단서 등 발급 대장) records <em>who issued what, to whom, how many copies, for what fee</em>. It is a statutory record (Enforcement Rule of the Medical Service Act — exact form to be confirmed). Certificates and opinions may only be issued by a <em>KM doctor</em>; proxy pick-up needs a power of attorney and the proxy's ID. Certificate fees are non-covered and must be posted at the counter.",
-  "docs.listH": "Issuance log", "docs.newBtn": "+ Log a document", "docs.exportBtn": "Issuance log XLSX", "docs.printBtn": "Print monthly log", "docs.printMonth": "Month to print",
+  "docs.listH": "Issuance log", "docs.newBtn": "+ Log a document","docs.printMonth": "Month to print",
   "docs.searchPh": "Search issue no. · purpose · note",
   "docs.summary": "{n} shown · this month {m} · fees {fee}",
   "docs.empty": "No documents logged yet — use “+ Log a document” for the first one. The ⋯ menu on an intake-board card opens this too.",
@@ -74,7 +74,7 @@ export default {
   /* ── Patients › non-covered explanation & consent ── */
   "consent.badgeLaw": "Medical Service Act §45 · Enforcement Rule §42-2 (prior explanation duty)", "consent.badge": "Priced from our tariff · printable consent draft",
   "consent.blurb": "Herbal decoctions, pharmacopuncture, chuna sessions beyond the covered count — <em>non-covered (비급여) items must be explained, with their prices, before they are provided</em> (Medical Service Act §45 · Enforcement Rule §42-2 — to be confirmed), and most hospitals keep the signed <em>consent form</em> on paper or as a scan. Here you pick items at <em>our own prices</em> from Organisation › non-covered tariff, record who explained them and how, whether the form was signed, and print a consent draft. For an auto-insurance patient the items go straight into the auto-insurance case.",
-  "consent.listH": "Explanation & consent records", "consent.newBtn": "+ Record a consent", "consent.exportBtn": "Consent records XLSX", "consent.printBtn": "Consent draft",
+  "consent.listH": "Explanation & consent records", "consent.newBtn": "+ Record a consent","consent.printBtn": "Consent draft",
   "consent.searchPh": "Search item code · name · note", "consent.chipSigned": "Signed", "consent.chipUnsigned": "Unsigned",
   "consent.summary": "{n} shown · unsigned {unsigned} · total {sum}",
   "consent.empty": "No consent records yet — use “+ Record a consent” for the first non-covered explanation.",

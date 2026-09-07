@@ -14,7 +14,7 @@
    tab-guarantee.js read one derivation without a tab→tab import.
    ENCRYPTED TIER: the three keys are listed in store.js SENSITIVE_KEYS (canonical) — registerRows(encrypted: true) would add
    them anyway. Import position: a tab-level module (imports core + security only; never shell.js). */
-import { $, $$, esc, daysUntil, roleLabel } from "../core/ui.js";
+import { $, $$, esc, daysUntil, roleLabel, setStatus, relTime } from "../core/ui.js";
 import { t, pick, getLang } from "../core/i18n.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { activateTab } from "../core/nav.js";
@@ -35,6 +35,25 @@ export const introHTML = (ns) => {
   }
   return `<p class="panel-blurb">${t(ns + ".blurb")}</p>`;
 };
+/* Canonical flow shell for the three trackers (styles-ia.css .flow) — ① 샘플 · 시연 → ② 입력 → ③ 결과 검토 → ④ 내보내기 · 다음 단계.
+   The tab fills the ② / ③ / ④ bodies; ① is the panel's demo sentence (<ns>.demoLabel) + [샘플로 시연] (data-action run-<ns>),
+   ④ ends with the hand-off button ([data-go] — shell.js routes it). */
+export function flowHTML(ns, { input, review, exports, next }) {
+  const step = (n, title, body) => `<section class="flow-step" data-step="${n}"><span class="step" aria-hidden="true">${"①②③④"[n - 1]}</span><h4>${title}</h4><div class="flow-body">${body}</div></section>`;
+  return `<div class="flow">
+    ${step(1, esc(t("flow.step1")), `<p>${t(ns + ".demoLabel")}</p><div class="actions"><button type="button" class="btn" data-action="run-${ns}">${t("flow.demo")}</button></div>`)}
+    ${step(2, esc(t("flow.step2entry")), input)}
+    ${step(3, `<span>${esc(t("flow.step3"))}</span> <span class="sub">${esc(t(ns + ".listH"))}</span> <span class="count" data-count></span>`, `<div class="status" data-status style="display:none"></div>${review}`)}
+    ${step(4, esc(t("flow.step4")), `<div class="actions">${exports}<span class="spacer"></span><button type="button" class="btn secondary" data-go="${next.tab}"><span>${esc(t("flow.next"))}: ${esc(t(next.labelKey))}</span> <span class="arrow">→</span></button></div>`)}
+  </div>`;
+}
+/* ③ status line in the canonical `{state} · {n}건 · {when}` shape — the tab keeps the last state and re-paints it after every mount. */
+export const flowState = (stateKey, n, kind = null) => ({ stateKey, n, at: Date.now(), kind });
+export function paintFlowStatus(host, st) {
+  const el = host?.querySelector("[data-status]"); if (!el) return;
+  if (!st) { el.style.display = "none"; return; }
+  setStatus(el, st.kind, `${esc(t(st.stateKey))} · ${esc(t("common.nItems", { n: st.n }))} · ${esc(relTime(st.at))}`);
+}
 export const rid = (p) => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 export const str = (v) => String(v ?? "").trim();
 export const num = (v) => { const n = Number(String(v ?? "").replace(/[^\d.-]/g, "")); return Number.isFinite(n) ? n : 0; };
@@ -170,7 +189,7 @@ export function audit(tag, text, pid, meta = {}) { return ActivityLog.push(tag, 
    columns: [{ key, label, cls? }]  rows: [{ id, cls?, cells: { key: html }, actions?: html }] */
 export function renderTable(host, { columns, rows, empty, highlightId = null }) {
   if (!host) return;
-  if (!rows.length) { host.innerHTML = `<div class="empty-state">${empty}</div>`; return; }
+  if (!rows.length) { host.innerHTML = `<div class="empty"><p>${empty}</p><p class="empty-hint">${esc(t("flow.emptyHintDemo"))}</p></div>`; return; }
   host.innerHTML = `
     <table class="p3-table">
       <thead><tr>${columns.map(c => `<th class="${esc(c.cls || "")}">${esc(c.label)}</th>`).join("")}<th class="p3-th-actions"></th></tr></thead>

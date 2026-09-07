@@ -13,7 +13,7 @@
    source at load, so 홈's todo, the D-day list, the topbar chip and the .ics carry every open appeal's 기한.
    Domain: 국민건강보험법 §87 이의신청 — 90일 from knowing the decision (medium-high confidence, "확인 필요"); 자보 이의제기 goes
    to 심평원 자보심사센터 first (LOW confidence on its window — same 90-day placeholder). */
-import { $, esc, won, fmtKRW, todayISO, setStatus, daysUntil } from "../core/ui.js";
+import { $, esc, won, fmtKRW, todayISO, setStatus, daysUntil, emptyHTML, flowStatus } from "../core/ui.js";
 import { t, pick, getLang, onLangChange } from "../core/i18n.js";
 import { EventBus, ActivityLog } from "../core/store.js";
 import { downloadXLSX, headerRow, pocMark } from "../core/files.js";
@@ -96,7 +96,7 @@ export function init(ctx) {
       if (filters.month !== "all" && rec.claims.meta?.month && rec.claims.meta.month !== filters.month) continue;
       for (const l of rec.res.lines) if (l.hasCut && !Appeals.findByLine({ batchId: rec.claims.id, stmt: l.stmt, code: l.code })) rows.push({ p, rec, l });
     }
-    if (!rows.length) { el.innerHTML = `<div class="empty-state small">${esc(t("appeal.cand.empty"))}</div>`; return; }
+    if (!rows.length) { el.innerHTML = emptyHTML(esc(t("appeal.cand.empty")), { small: true }); return; }
     el.innerHTML = `
       <table>
         <thead><tr><th>${esc(t("appeal.th.payer"))}</th><th class="code">${esc(t("jabo.thStmt"))}</th><th>${esc(t("jabo.fPid"))}</th><th class="code">${esc(t("jabo.thCode"))}</th><th>${esc(t("jabo.thName"))}</th><th class="code">${esc(t("jabo.thCut"))}</th><th>${esc(t("jabo.thReason"))}</th><th>${esc(t("jabo.thActions"))}</th></tr></thead>
@@ -174,7 +174,7 @@ export function init(ctx) {
     renderSummary(list);
     renderCandidates();
     const el = $("#appeal-list"); if (!el) return;
-    if (!list.length) { el.innerHTML = `<div class="empty-state">${esc(Appeals.list().length ? t("appeal.emptyFiltered") : t("appeal.empty"))}</div>`; renderDraft(); return; }
+    if (!list.length) { el.innerHTML = emptyHTML(esc(Appeals.list().length ? t("appeal.emptyFiltered") : t("appeal.empty")), { demoOnly: true }); renderDraft(); return; }
     el.innerHTML = STATUS_ORDER.filter(s => list.some(a => a.status === s)).map(s => {
       const rows = list.filter(a => a.status === s);
       return `<div class="appeal-group" data-status="${s}">
@@ -249,7 +249,7 @@ export function init(ctx) {
     const box = $("#appeal-draft"), btn = $("#appeal-draft-print"), title = $("#appeal-draft-for");
     if (!box) return;
     const a = draftId ? Appeals.get(draftId) : null;
-    if (!a) { draftId = null; box.innerHTML = `<div class="empty-state small">${esc(t("appeal.draft.empty"))}</div>`; btn.disabled = true; if (title) title.textContent = ""; return; }
+    if (!a) { draftId = null; box.innerHTML = emptyHTML(esc(t("appeal.draft.empty")), { small: true }); btn.disabled = true; if (title) title.textContent = ""; return; }
     box.innerHTML = `<pre class="appeal-draft-text">${esc(draftText(a))}</pre>`;
     btn.disabled = false;
     if (title) title.textContent = t("appeal.draft.for", { stmt: a.stmt, who: a.pid ? Patients.alias(a.pid) : "—" });
@@ -313,7 +313,7 @@ export function init(ctx) {
     const third = Appeals.findByLine({ batchId: nhis.claims.id, stmt: "N2608-0007", code: "예시-03" });
     if (third && third.status !== "result") Appeals.update(third.id, { status: "result", result: "partial", resultDate: daysAgo(10), resultAmount: Math.round(third.cutAmount / 2) });
     render();
-    status(null, () => t("appeal.statusSeeded", { n: Appeals.list().length }));
+    status(null, () => flowStatus(t("flow.state.demo"), Appeals.list().length, t("appeal.statusSeeded")));
   };
   $('[data-action="run-appeal"]').addEventListener("click", () => { seedFn(); });
 

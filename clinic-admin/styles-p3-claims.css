@@ -26,8 +26,6 @@ tr.focus td { background: rgba(123,168,154,0.14); }
 
 /* ── 이의신청 관리 ── */
 /* register + draft side by side only on very wide screens; otherwise the 10-column register needs the full width */
-#tab-appeal .appeal-work { grid-template-columns: 1fr; }
-@media (min-width: 1500px) { #tab-appeal .appeal-work { grid-template-columns: 1.55fr 1fr; } }
 .appeal-toolbar { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin: 12px 0 8px; }
 .appeal-toolbar label { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
 .appeal-toolbar select { padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper); font-size: 12px; color: var(--ink-2); max-width: 180px; }

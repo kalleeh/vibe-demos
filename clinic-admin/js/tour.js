@@ -13,10 +13,10 @@ const STEPS = [
   { key: "seed",     panel: "tab-today",     target: "#home-todo" },
   { key: "todo",     panel: "tab-today",     target: "#home-todo" },
   { key: "claims",   panel: "tab-claims",    target: "#claims-progress" },
-  { key: "recon",    panel: "tab-jabo",      target: "#jabo-recon-card" },
+  { key: "recon",    panel: "tab-jabo",      target: "#tab-jabo .flow-step[data-step=\"3\"]" },
   { key: "appeal",   panel: "tab-appeal",    target: "#appeal-register-card" },
   { key: "patients", panel: "tab-guarantee", target: "#tab-guarantee .panel-body" },
-  { key: "org",      panel: "tab-license",   target: "#tab-license .card" }
+  { key: "org",      panel: "tab-license",   target: "#tab-license .flow-step[data-step=\"3\"]" }
 ];
 
 const Tour = (() => {

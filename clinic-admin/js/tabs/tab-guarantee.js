@@ -24,7 +24,7 @@ import { activateTab } from "../core/nav.js";
 import { Patients, Insurers } from "../core/entities.js";
 import { Session } from "../security/session.js";
 import { registerRows } from "../security/lifecycle.js";
-import { $, $$, esc, KEYS, collection, str, audit, renderTable, chipRow, onPanelCtx, renderPatientStrip, pidOptions, staffRef, insurerOptions, insurerLabel, aliasOf, dash, dLabel, addDays, introHTML,
+import { $, $$, esc, KEYS, collection, str, audit, renderTable, chipRow, onPanelCtx, renderPatientStrip, pidOptions, staffRef, insurerOptions, insurerLabel, aliasOf, dash, dLabel, addDays, introHTML, flowHTML, flowState, paintFlowStatus,
          guaranteeState, guaranteeDeadlines, GUARANTEE_STATUSES as STATUSES, GUARANTEE_ACTIVE as ACTIVE } from "./patients-shared.js";
 
 export { guaranteeState, guaranteeDeadlines };
@@ -58,30 +58,25 @@ export function init() {
   if (!host) return;
   let filter = { pid: "", status: "", q: "" };
   let draft = null;          // editor state (null = closed)
-  let highlightId = null;
+  let highlightId = null, flowSt = null;
 
   const mount = () => {
-    host.innerHTML = `${introHTML("guarantee")}
-      <div class="card p3-card">
-        <h4><span class="step">01</span> <span>${esc(t("guarantee.listH"))}</span> <span class="p3-count" data-count></span></h4>
-        <div class="p3-filter">
+    host.innerHTML = `${introHTML("guarantee")}${flowHTML("guarantee", {
+      input: `<div class="actions"><button type="button" class="btn" data-new>${esc(t("guarantee.newBtn"))}</button><span class="p3-sub">${esc(t("guarantee.editorHint"))}</span></div>
+        <div class="p3-editor" data-editor hidden></div>`,
+      review: `<div class="p3-filter">
           <select class="p3-pid" data-f-pid aria-label="${esc(t("patients.filterPatient"))}"><option value="">${esc(t("patients.allPatients"))}</option>${pidOptions(filter.pid, { placeholder: false })}</select>
           <div class="search-filters p3-chips" data-chips>${chipRow(["", ...STATUSES, "soon"], filter.status, v => v === "" ? t("patients.all") : v === "soon" ? t("guarantee.chipSoon") : statusLabel(v))}</div>
           <input type="search" class="p3-search" data-f-q value="${esc(filter.q)}" placeholder="${esc(t("guarantee.searchPh"))}" aria-label="${esc(t("guarantee.searchPh"))}">
-          <span class="spacer"></span>
-          <button type="button" class="btn" data-new>${esc(t("guarantee.newBtn"))}</button>
         </div>
         <div class="p3-strip" data-strip hidden></div>
-        <div class="p3-editor" data-editor hidden></div>
         <div class="result p3-result" data-list></div>
-        <div class="result-toolbar">
-          <div class="summary" data-summary></div>
-          <div class="actions">
-            <button type="button" class="btn secondary" data-export>${esc(t("guarantee.exportBtn"))} <span class="arrow">↓</span></button>
-          </div>
-        </div>
-        <p class="caveat">${t("guarantee.caveat")}</p>
-      </div>`;
+        <div class="result-toolbar"><div class="summary" data-summary></div></div>
+        <p class="caveat">${t("guarantee.caveat")}</p>`,
+      exports: `<span class="act"><span class="act-k">${esc(t("guarantee.listH"))}</span><button type="button" class="btn" data-export>${t("flow.export.xlsx")}</button></span>`,
+      next: { tab: "tab-jabo", labelKey: "nav.jabo" }
+    })}`;
+    paintFlowStatus(host, flowSt);
     host.querySelector("[data-f-pid]").addEventListener("change", (e) => { filter.pid = e.target.value; renderList(); renderStrip(); });
     host.querySelector("[data-chips]").addEventListener("click", (e) => { const b = e.target.closest("[data-chip]"); if (!b) return; filter.status = b.dataset.chip; $$("[data-chip]", host).forEach(x => x.classList.toggle("active", x === b)); renderList(); });
     host.querySelector("[data-f-q]").addEventListener("input", (e) => { filter.q = e.target.value; renderList(); });
@@ -241,6 +236,7 @@ export function init() {
       const saved = G.upsert(draft);
       audit(TAG, t(isNew ? "guarantee.logAdd" : "guarantee.logEdit", { insurer: insurerLabel(saved.insurer), status: statusLabel(saved.status) }), saved.pid);
       highlightId = saved.id;
+      flowSt = flowState("flow.state.saved", G.list().length); paintFlowStatus(host, flowSt);
     } catch (err) { Toast.show({ tag: TAG, html: esc(err.message || String(err)) }); Haptic.warn(); return; }
     Haptic.save();
     closeEditor();
@@ -266,6 +262,12 @@ export function init() {
 
   /* ── wiring ── */
   mount();
+  // ① [샘플로 시연] — standalone: seeds this tracker's two guarantees (idempotent) and reports in ③.
+  host.addEventListener("click", (e) => {
+    if (!e.target.closest('[data-action="run-guarantee"]')) return;
+    seed(); filter = { pid: "", status: "", q: "" }; mount();
+    flowSt = flowState("flow.state.demo", G.list().length); paintFlowStatus(host, flowSt);
+  });
   G.onChange(() => { renderList(); renderStrip(); });
   Patients.onChange(() => { const sel = host.querySelector("[data-f-pid]"); if (sel) sel.innerHTML = `<option value="">${esc(t("patients.allPatients"))}</option>` + pidOptions(filter.pid, { placeholder: false }); renderStrip(); renderList(); });
   onPanelCtx("tab-guarantee", {

@@ -1,5 +1,5 @@
 /* clinic-admin — Tab 04 · 비급여 보고 준비표 */
-import { $, $$, esc, fmtKRW, todayISO, relTime, setStatus, debounce } from "../core/ui.js";
+import { $, $$, esc, fmtKRW, todayISO, relTime, setStatus, debounce, emptyHTML, flowStatus } from "../core/ui.js";
 import { t, tOr, pick, getLang, onLangChange } from "../core/i18n.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { downloadXLSX, downloadCSV, headerRow, pocMark } from "../core/files.js";
@@ -168,7 +168,7 @@ export function init(ctx) {
     const box = $("#bg-notice");
     const btn = $("#bg-notice-print");
     if (!box) return;
-    box.innerHTML = rows.length ? noticeHTML(rows) : `<div class="empty-state">${esc(t("bigeup.notice.empty"))}</div>`;
+    box.innerHTML = rows.length ? noticeHTML(rows) : emptyHTML(esc(t("bigeup.notice.empty")), { demoOnly: true });
     if (btn) btn.disabled = rows.length === 0;
   };
   $("#bg-notice-print")?.addEventListener("click", () => {
@@ -193,7 +193,7 @@ export function init(ctx) {
     const el = $("#bg-history"); if (!el) return;
     const hist = readHistory();
     $("#bg-history-count").textContent = String(hist.length);
-    if (!hist.length) { el.innerHTML = `<div class="empty-state">${esc(t("bigeup.history.empty"))}</div>`; return; }
+    if (!hist.length) { el.innerHTML = emptyHTML(esc(t("bigeup.history.empty")), { small: true }); return; }
     el.innerHTML = `<table>
       <thead><tr><th class="code">${esc(t("bigeup.history.thWhen"))}</th><th class="code">${esc(t("bigeup.fDate"))}</th><th class="code">${esc(t("bigeup.history.thCount"))}</th><th>${esc(t("bigeup.history.thChanges"))}</th><th>${esc(t("bigeup.history.thBy"))}</th></tr></thead>
       <tbody>${hist.slice(0, 30).map(h => {
@@ -248,7 +248,7 @@ export function init(ctx) {
     } else if (done > 0 && !ykiho) {
       lastStatus = { kind: "warn", fn: () => t("bigeup.statusNoOrg") };
     } else if (done > 0) {
-      lastStatus = { kind: noFreq ? "warn" : null, fn: () => t("bigeup.statusDone", { n: done, nf: noFreq ? t("bigeup.statusNoFreq", { n: noFreq }) : "" }) };
+      lastStatus = { kind: noFreq ? "warn" : null, fn: () => flowStatus(t("flow.review"), done, t("bigeup.statusDone", { nf: noFreq ? t("bigeup.statusNoFreq", { n: noFreq }) : "" })) };
     } else {
       lastStatus = null;
     }
@@ -284,7 +284,7 @@ export function init(ctx) {
     if (!dateEl.value) { dateEl.value = todayISO(); Tariff.setEffectiveDate(dateEl.value); }
     fillPrefill();
     writeAll();
-    lastStatus = { kind: null, fn: () => t("bigeup.statusSample", { n: N }) };
+    lastStatus = { kind: null, fn: () => flowStatus(t("flow.state.demo"), N, t("bigeup.statusSample")) };
     setStatus($("#bg-status"), null, lastStatus.fn());
   };
   $('[data-action="run-bigeup"]').addEventListener("click", runSample);

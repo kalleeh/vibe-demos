@@ -269,6 +269,92 @@ const leakedKeys = (p, scope) => p.evaluate(([sel, re]) => {
 }, [scope, KEY_RE.source]);
 const CHROME_SCOPE = "#topbar, #rail, #subnav, #bottombar, #toast-tray";
 async function noKeys(label, scope, p = page) { const l = await leakedKeys(p, scope); ok(l.length === 0, `${label}: no raw i18n keys in the visible text (${l.slice(0, 4).join(", ") || "none"})`); }
+/* ── the canonical panel flow (styles-ia.css .flow): ① 샘플 · 시연 → ② 데이터 올리기 / 입력 → ③ 결과 검토 → ④ 내보내기 · 다음 단계.
+   Per panel: which steps exist, whether it consumes files (① then also carries [샘플 파일 받기] ×N), its demo CTA and the ④ export kinds
+   in order. 홈 · 접수 보드 · 데이터 처리 현황 are exempt; 기관 프로필 has no ①; 마스터 업로드 has sample files but no seeded master. */
+const FLOW = {
+  "tab-claims":    { steps: [1, 2, 3, 4], demo: "run-claims",    samples: 2, exports: [] },
+  "tab-kcd":       { steps: [1, 2, 3, 4], demo: "run-kcd",       samples: 1, exports: ["xlsx"] },
+  "tab-jabo":      { steps: [1, 2, 3, 4], demo: "run-jabo",      samples: 2, exports: ["xlsx", "xlsx"] },
+  "tab-nhis":      { steps: [1, 2, 3, 4], demo: "run-nhis",      samples: 2, exports: ["xlsx"] },
+  "tab-appeal":    { steps: [1, 2, 3, 4], demo: "run-appeal",    samples: 0, exports: ["xlsx", "print"] },
+  "tab-yearend":   { steps: [1, 2, 3, 4], demo: "run-ye",        samples: 1, exports: ["csv"] },
+  "tab-bigeup":    { steps: [1, 2, 3, 4], demo: "run-bigeup",    samples: 0, exports: ["xlsx", "csv", "csv", "print"] },
+  "tab-retention": { steps: [1, 2, 3, 4], demo: "run-ret",       samples: 1, exports: ["xlsx", "xlsx"] },
+  "tab-guarantee": { steps: [1, 2, 3, 4], demo: "run-guarantee", samples: 0, exports: ["xlsx"] },
+  "tab-docs":      { steps: [1, 2, 3, 4], demo: "run-docs",      samples: 0, exports: ["xlsx", "print"] },
+  "tab-consent":   { steps: [1, 2, 3, 4], demo: "run-consent",   samples: 0, exports: ["xlsx"] },
+  "tab-license":   { steps: [1, 2, 3, 4], demo: "run-license",   samples: 0, exports: ["ics"] },
+  "tab-accred":    { steps: [1, 2, 3, 4], demo: "run-accred",    samples: 0, exports: ["print"] },
+  "tab-org":       { steps: [2, 3, 4],    demo: null,            samples: 0, exports: [] },
+  "tab-masters":   { steps: [1, 2, 3, 4], demo: null,            samples: 2, sampleLabel: "master", exports: [] }
+};
+const FLOW_LABEL = {
+  ko: { sample: "샘플 파일 받기", master: "마스터 예시 파일 받기", demo: "샘플로 시연", xlsx: "XLSX 내려받기", csv: "CSV 내려받기", ics: ".ics 내려받기", print: "인쇄", next: "다음", titles: ["샘플 · 시연", ["데이터 올리기", "입력"], "결과 검토", "내보내기 · 다음 단계"], count: /· \d+건 ·/ },
+  en: { sample: "Download sample", master: "Download sample master", demo: "Run demo", xlsx: "Download XLSX", csv: "Download CSV", ics: "Download .ics", print: "Print", next: "Next step", titles: ["Sample · demo", ["Upload", "Enter"], "Review", "Download · next step"], count: /· \d+ items ·/ }
+};
+const cleanBtn = (s) => String(s || "").replace(/[▶↓↗→⎙]/g, "").replace(/\s+/g, " ").trim();
+const flowShape = (p, panel) => p.evaluate((id) => {
+  const root = document.querySelector(`#${id}`);
+  const flows = root.querySelectorAll(".flow");
+  const steps = [...(flows[0]?.querySelectorAll(":scope > .flow-step") || [])].map(st => ({
+    n: +st.dataset.step, marker: st.querySelector(":scope > .step")?.textContent.trim(),
+    title: (st.querySelector(":scope > h4 > span:first-child") || st.querySelector(":scope > h4"))?.textContent.trim(),
+    buttons: [...st.querySelectorAll(":scope > .flow-body > .actions button, :scope > .flow-body > .actions .act > button")].map(b => ({ text: b.textContent, action: b.dataset.action || "", go: b.dataset.go || "" })),
+    statusFirst: !!st.querySelector(":scope > .flow-body > .status:first-child, :scope > .flow-body > [data-status]:first-child"),
+    statusText: [...st.querySelectorAll(":scope > .flow-body > .status")].filter(e => e.style.display !== "none").map(e => e.textContent.replace(/\s+/g, " ").trim()).join(" || ")
+  }));
+  const oldMarkers = root.querySelectorAll(".card h4 .step, .demo-strip, .work").length;
+  const emptyBad = [...root.querySelectorAll(".flow .result > .empty:not(.small)")].filter(e => e.querySelectorAll("p").length !== 2 || !e.querySelector(".empty-hint")).length;
+  return { flows: flows.length, steps, oldMarkers, emptyBad };
+}, panel);
+async function checkFlow(lang, p = page) {
+  const L = FLOW_LABEL[lang];
+  for (const [panel, spec] of Object.entries(FLOW)) {
+    await goTab(panel, p);
+    const f = await flowShape(p, panel);
+    ok(f.flows === 1 && f.oldMarkers === 0, `${panel}: exactly one .flow, no 01/02 card markers · demo strips · .work grids left`);
+    ok(f.steps.map(s => s.n).join(",") === spec.steps.join(",") && f.steps.every(s => s.marker === "①②③④"[s.n - 1]), `${panel}: steps ${spec.steps.map(n => "①②③④"[n - 1]).join("")} with ①②③④ markers (got ${f.steps.map(s => s.marker).join("")})`);
+    ok(f.steps.every(s => { const want = L.titles[s.n - 1]; return Array.isArray(want) ? want.includes(s.title) : s.title === want; }), `${panel} [${lang}]: canonical step titles (${f.steps.map(s => s.title).join(" · ")})`);
+    const s1 = f.steps.find(s => s.n === 1);
+    if (s1) {
+      const demo = s1.buttons.filter(b => cleanBtn(b.text) === L.demo && b.action === spec.demo);
+      const samples = s1.buttons.filter(b => cleanBtn(b.text) === L[spec.sampleLabel || "sample"] && /^sample-/.test(b.action));
+      ok((spec.demo ? demo.length === 1 : demo.length === 0) && samples.length === spec.samples && s1.buttons.length === demo.length + samples.length, `${panel} [${lang}]: ① = ${spec.samples}× [${L[spec.sampleLabel || "sample"]}] + ${spec.demo ? 1 : 0}× [${L.demo}] (${s1.buttons.map(b => cleanBtn(b.text)).join(" | ")})`);
+    }
+    const s3 = f.steps.find(s => s.n === 3);
+    ok(s3 && s3.statusFirst, `${panel}: ③ opens with the status line`);
+    const s4 = f.steps.find(s => s.n === 4);
+    const exp = s4.buttons.filter(b => !b.go && !/공유|Share/.test(b.text)).map(b => cleanBtn(b.text));
+    ok(exp.join("|") === spec.exports.map(k => L[k]).join("|"), `${panel} [${lang}]: ④ exports = ${exp.join(" · ") || "none"}`);
+    ok(s4.buttons.filter(b => b.go).length === 1 && cleanBtn(s4.buttons.find(b => b.go).text).startsWith(L.next + ":"), `${panel} [${lang}]: ④ ends with one [${L.next}: …] hand-off`);
+    ok(f.emptyBad === 0, `${panel}: every ③ empty state is the two-line .empty component`);
+  }
+}
+/* [샘플로 시연] must work on its own (not only through the welcome seed): click it on an un-seeded device and ③ fills within 5 s. */
+const FLOW_FILLED = {
+  "tab-claims": "#claims-batch-card .cb-grid", "tab-kcd": "#kcd-result tbody tr", "tab-jabo": "#jabo-recon-result tbody tr", "tab-nhis": "#nhis-recon-result tbody tr",
+  "tab-appeal": "#appeal-list tr.appeal-row", "tab-yearend": "#ye-result table", "tab-bigeup": "#bg-notice table", "tab-retention": "#ret-result tbody tr",
+  "tab-guarantee": "#tab-guarantee .p3-table tbody tr", "tab-docs": "#tab-docs .p3-table tbody tr", "tab-consent": "#tab-consent .p3-table tbody tr",
+  "tab-license": "#lic-list .lic:nth-child(5)", "tab-accred": ".accred-item.done:not(.derived)"
+};
+async function checkStandaloneDemos(p, pin) {
+  for (const [panel, spec] of Object.entries(FLOW)) {
+    if (!spec.demo) continue;
+    await goTab(panel, p);
+    const before = await p.locator(FLOW_FILLED[panel]).count();
+    const t0 = Date.now();
+    await p.evaluate((a) => document.querySelector(`[data-action="${a}"]`).click(), spec.demo);
+    if (panel === "tab-license") await answerReauth(pin, p);
+    await p.waitForFunction((sel) => document.querySelectorAll(sel).length > 0, FLOW_FILLED[panel], { timeout: 5000 });
+    // the status line follows the fill; the roster demo also issues three server logins (PBKDF2 + hook each) before it reports
+    await p.waitForFunction((id) => [...document.querySelectorAll(`#${id} .flow-step[data-step="3"] .status`)].some(e => e.style.display !== "none"), panel, { timeout: panel === "tab-license" ? 30000 : 5000 });
+    const f = await flowShape(p, panel);
+    const st = f.steps.find(s => s.n === 3)?.statusText || "";
+    ok(FLOW_LABEL.ko.count.test(st), `${panel}: [샘플로 시연] standalone filled ③ in ${Date.now() - t0} ms (rows ${before} → ${await p.locator(FLOW_FILLED[panel]).count()}), status “${st.slice(0, 60)}”`);
+  }
+}
+
 /* Rail foot / ⋯ sheet contract: exactly install · lock · users · info · demo (+ the KO|EN toggle), no duplicates of the topbar utilities. */
 const RAIL_FOOT = ["rail-install", "rail-lock", "rail-users", "rail-info", "rail-demo"];
 const expandLater = async () => { await page.evaluate(() => { const d = document.querySelector("#home-deadlines"); if (d) d.open = true; }); const m = $("#dday-more"); if (await m.count() && (await m.getAttribute("aria-expanded")) === "false") { await m.click(); await wait(100); } };
@@ -463,10 +549,15 @@ try {
   }
   await goTab("tab-today");
 
+  /* 2a-flow · every record panel follows the one canonical flow */
+  at("flow pattern (KO): ① 샘플·시연 → ② 올리기/입력 → ③ 결과 검토 → ④ 내보내기·다음 단계 — same markers, titles, buttons, labels on every record panel");
+  await checkFlow("ko");
+  await goTab("tab-today");
+
   /* 2b · the connected story, part 1 — 00 오늘 right after the seed */
   at("홈 — KPIs by payer from the seeded reconciliations, no nudges, resume cards, deadlines carry ctx, todo rows deep-link");
   ok(await page.evaluate(() => document.querySelector("#today-nudges")?.style.display === "none"), "no nudges (org complete · roster filled)");
-  ok(await page.evaluate(() => document.querySelector("#kpi-empty")?.style.display === "none"), "KPI empty-state hidden");
+  ok(await page.evaluate(() => document.querySelector("#kpi-empty")?.style.display === "none"), "KPI empty hidden");
   ok(await page.evaluate(() => document.querySelectorAll("#today-insights .insight.kpi").length === 9 && !document.querySelector("#today-insights .kpi-loading")), "9 KPI tiles, skeleton removed");
   const g = (s) => page.evaluate((sel) => document.querySelector(sel)?.innerText.replace(/\s+/g, " ").trim(), s);
   const kpi = { month: await $("#kpi-month").inputValue(), n: await g("#ins-jabo"), sub: await g("#ins-jabo-sub"), nhis: await g("#ins-nhis"), nhisSub: await g("#ins-nhis-sub"), cut: await g("#ins-cut"), cutSub: await g("#ins-cut-sub"), reason: await g("#ins-reason"), reasonSub: await g("#ins-reason-sub"), ins: await g("#ins-insurer"), insSub: await g("#ins-insurer-sub"), appeal: await g("#ins-appeal"), appealSub: await g("#ins-appeal-sub"), ar: await g("#ins-ar"), arSub: await g("#ins-ar-sub"), nonpay: await g("#ins-nonpay"), nonpaySub: await g("#ins-nonpay-sub"), guar: await g("#ins-guar"), guarSub: await g("#ins-guar-sub") };
@@ -742,7 +833,7 @@ try {
   await page.waitForSelector("#info-scrim.open");
   ok(/한솔한방병원/.test(await $("#info-org").innerText()) && (await $("#info-org input").count()) === 0 && (await $("#info-org [data-org-edit]").count()) === 1, "ⓘ modal keeps a READ-ONLY org summary + link (no editor)");
   const infoTxt = await $("#info-scrim").innerText();
-  ok(/앱 v3\.1\.0-poc/.test(infoTxt) && infoTxt.includes(`워크스페이스 ${ORG.name}`) && /▶ 시연/.test(infoTxt) && /AI 어시스트/.test(infoTxt) && !/AI 코딩|다음 단계에서|둘러보기 다시/.test(infoTxt), "info modal: current version line names the server workspace, ▶ 시연 pointer, no stale wording");
+  ok(/앱 v3\.2\.0-poc/.test(infoTxt) && infoTxt.includes(`워크스페이스 ${ORG.name}`) && /▶ 시연/.test(infoTxt) && /AI 어시스트/.test(infoTxt) && !/AI 코딩|다음 단계에서|둘러보기 다시/.test(infoTxt), "info modal: current version line names the server workspace, ▶ 시연 pointer, no stale wording");
   await noKeys("info modal", "#info-scrim");
   await $("#info-close").click(); await closed("#info-scrim");
   await goTab("tab-yearend");
@@ -781,7 +872,7 @@ try {
   await page.waitForSelector("#search-scrim.open");
   await page.waitForSelector("#search-result table");
   ok((await $("#search-result tbody tr").count()) > 0 && (await $("#search-result .src-pill.demo").count()) > 0, "results with 데모 발췌 badge");
-  ok((await $("#search-source-badge .src-pill.demo").count()) === 2, "masters panel source badge: 상병 + 행위 both 데모");
+  ok((await $('#tab-masters .flow-step[data-step="3"] .src-pill.demo').count()) === 2, "masters ③: 상병 + 행위 status lines both 데모");
   await page.keyboard.press("Escape"); await closed("#search-scrim");
   await openSearch();
   ok((await $("#search-input").inputValue()) === "" && (await $("#search-nav-results .palette-item").count()) >= 13, "⌘K opens an empty overlay listing every panel + commands");
@@ -807,7 +898,7 @@ try {
   ok((await $('#master-map-kcd select[data-field="code"]').inputValue()) === "상병기호", "header mapping auto-suggested");
   await $('[data-map-save="kcd"]').click();
   await page.waitForSelector("#master-status-kcd .src-pill.master");
-  ok((await $("#search-source-badge .src-pill.master").count()) === 1, "search badge flipped to 업로드 마스터 for 상병");
+  ok((await $('#tab-masters .flow-step[data-step="3"] .src-pill.master').count()) === 1, "masters ③ flipped to 업로드 마스터 for 상병");
   await goTab("tab-kcd");
   ok((await $("#kcd-master-badge .src-pill.master").count()) === 1, "tab 01 badge flipped to 업로드본");
   await runDemo("run-kcd");
@@ -2082,6 +2173,11 @@ try {
   ok(util.p.ctx?.prefill === "M54.5 요통" && util.open && util.panel === "tab-kcd" && util.note.includes("M54.5"), `activateTab("tab-ai", ctx) opens the drawer, emits tab:activated { id: "tab-ai", ctx }, leaves the panel (${util.panel}), fills the note`);
   await $L("#ai-drawer-close").click();
 
+  at("flow pattern: every [샘플로 시연] works standalone on an un-seeded device — ③ fills within 5 s and the status reads {state} · {n}건 · {when}");
+  ok((await ent(pL, (E) => E.Batches.list().length)) === 0 && (await ent(pL, (E, S, Store) => (Store.get("appeals.list", []) || []).length)) === 0, "legacy device has no batches / appeals yet (the welcome seed never ran here)");
+  await checkStandaloneDemos(pL, OWNER_PIN);
+  ok((await ent(pL, (E) => E.Batches.list("claims").length)) === 2 && (await ent(pL, (E) => E.Staff.list().length)) >= 10, "standalone demos created the two sample claim batches and the roster rows without the welcome seed");
+
   at("Batches: create / list / latest / cap 20 / remove — encrypted claims.batch.* keys");
   const bt = await ent(pL, (E) => {
     const ids = [];
@@ -2128,7 +2224,7 @@ try {
   await pL.waitForSelector("#lock-unlock:not([hidden])", { timeout: 20000 });
   await unlockAs("홍 원장", OWNER_PIN, pL);
   await pL.waitForSelector("body:not(.locked)", { timeout: 30000 });
-  ok((await ent(pL, (E) => E.Staff.list().length)) === 4 && (await ent(pL, (E) => E.Org.get().name)) === "옛 한방병원", "…and it still decrypts after the unlock (roster 4, org intact)");
+  ok((await ent(pL, (E) => E.Staff.list().length)) === 11 && (await ent(pL, (E) => E.Org.get().name)) === "옛 한방병원", "…and it still decrypts after the unlock (roster 11 = 4 legacy + 7 from the standalone 직원 명부 demo, org intact)");
   await ctxL.close();
 
   /* 13 · ENGLISH pass — fresh profile on a reset server */
@@ -2206,6 +2302,8 @@ try {
     if (["tab-guarantee", "tab-docs", "tab-consent"].includes(panel)) await $2(`#${panel} [data-editor] [data-cancel]`).click();
   }
   ok(/Prescription \/ treatment days exceeded/.test(await $2("#nhis-reason-list").innerText()), "EN: 건보 reason glossary translated");
+  at("flow pattern (EN): the same four steps, English titles + canonical button labels on every record panel");
+  await checkFlow("en", p2);
   await goTab2("tab-appeal");
   ok(/preparing|submitted|result/i.test(await $2("#appeal-list").innerText()) && /D\+10 overdue/i.test(await $2("#appeal-list").innerText()) && /attention/i.test(await $2("#claims-steps-nhis").innerText()), "EN: appeal statuses + overdue badge + landing 'needs attention' state translated");
   await goTab2("tab-guarantee");

@@ -106,8 +106,8 @@
 .org-edit { justify-self: end; align-self: center; background: none; border: none; cursor: pointer; font: inherit; }
 
 /* 03/05 · "recent batch" strip + re-open link */
-.status-line.recent-batch { background: rgba(123,168,154,0.10); border-color: rgba(93,140,126,0.35); }
-.status-line.recent-batch .small-link { margin-left: auto; background: none; border: none; cursor: pointer; font: inherit; font-size: 12px; }
+.status.recent-batch { background: rgba(123,168,154,0.10); border-color: rgba(93,140,126,0.35); }
+.status.recent-batch .small-link { margin-left: auto; background: none; border: none; cursor: pointer; font: inherit; font-size: 12px; }
 
 /* 03 · claims cross-check card */
 .xcheck { margin-bottom: 16px; padding: 12px 14px; border: 1px dashed var(--line); border-radius: 6px; background: var(--paper); }

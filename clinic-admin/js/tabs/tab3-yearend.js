@@ -1,5 +1,5 @@
 /* clinic-admin — Tab 03 · 연말정산 의료비 자료 사전점검 */
-import { $, esc, fmtKRW, won, todayISO, relTime, setStatus, bindDrop } from "../core/ui.js";
+import { $, esc, fmtKRW, won, todayISO, relTime, setStatus, bindDrop, emptyHTML, flowStatus } from "../core/ui.js";
 import { t, onLangChange } from "../core/i18n.js";
 import { EventBus, ActivityLog, bindPersist } from "../core/store.js";
 import { readSpreadsheet, downloadXLSX, downloadCSV, headerRow } from "../core/files.js";
@@ -138,7 +138,7 @@ export function init() {
   const renderXCheck = (result) => {
     const x = xcheck(result);
     if (!x) return "";
-    if (x.noPid) return `<div class="xcheck"><h5 class="ye-subhead">${esc(t("yearend.xc.h"))}</h5><div class="status-line warn" style="display:flex"><span class="dot"></span><span>${esc(t("yearend.xc.noPid"))}</span></div></div>`;
+    if (x.noPid) return `<div class="xcheck"><h5 class="ye-subhead">${esc(t("yearend.xc.h"))}</h5><div class="status warn" style="display:flex"><span class="dot"></span><span>${esc(t("yearend.xc.noPid"))}</span></div></div>`;
     const list = (rows, fmt) => rows.length ? `<ul class="xcheck-list">${rows.slice(0, 12).map(fmt).join("")}${rows.length > 12 ? `<li class="more">${esc(t("yearend.xc.more", { n: rows.length - 12 }))}</li>` : ""}</ul>` : `<div class="xcheck-none">${esc(t("yearend.xc.none"))}</div>`;
     return `
       <div class="xcheck" id="ye-xcheck">
@@ -179,7 +179,7 @@ export function init() {
           <td class="code">${i.row}</td><td>${esc(who(i))}</td><td class="code">${esc(i.pid || "—")}</td><td class="code">${esc(rrnCell(i))}</td>
           <td>${esc(fieldText(i.field))}</td><td>${esc(msgText(i.msg))}</td><td>${pill(i.level)}</td></tr>`).join("")}
         </tbody>
-      </table>` : `<div class="status-line" style="display:flex"><span class="dot"></span><span>${esc(t("yearend.noIssues"))}</span></div>`;
+      </table>` : `<div class="status" style="display:flex"><span class="dot"></span><span>${esc(t("yearend.noIssues"))}</span></div>`;
 
     const patientTable = `
       <h5 class="ye-subhead">${esc(t("yearend.patientsH", { n: patients.length }))}</h5>
@@ -274,11 +274,11 @@ export function init() {
   function lookup() {
     const out = $("#ye-lookup-out"); if (!out) return;
     const pid = String(pidInput?.value || "").trim();
-    if (!pid) { out.innerHTML = `<div class="empty-state small">${esc(t("yearend.lookup.empty"))}</div>`; return; }
+    if (!pid) { out.innerHTML = emptyHTML(esc(t("yearend.lookup.empty")), { small: true }); return; }
     const b = Batches.latest("yearend");
     const alias = Patients.alias(pid);
     const known = !!Patients.get(pid);
-    if (!b) { out.innerHTML = `<div class="status-line warn" style="display:flex"><span class="dot"></span><span>${esc(t("yearend.lookup.noBatch", { who: alias }))}</span></div>`; return; }
+    if (!b) { out.innerHTML = `<div class="status warn" style="display:flex"><span class="dot"></span><span>${esc(t("yearend.lookup.noBatch", { who: alias }))}</span></div>`; return; }
     const rows = (b.rows || []).filter(r => String(r.pid || "").trim() === pid);
     const total = rows.reduce((s, r) => s + (+r.total || 0), 0), own = rows.reduce((s, r) => s + (+r.own || 0), 0), non = rows.reduce((s, r) => s + (+r.non || 0), 0);
     const errs = rows.filter(r => r.verdict === "error").length;
@@ -332,9 +332,7 @@ export function init() {
       const result = validate(rows);
       storeBatch(result, { fileName: file.name });
       ActivityLog.push("yearend", t("yearend.logRun", { n: result.rows.length, e: result.issues.filter(i => i.level === "error").length }), { file: file.name });
-      finish(result, (errs) => errs
-        ? t("yearend.statusErrs", { n: result.rows.length, e: errs })
-        : t("yearend.statusOk", { n: result.rows.length }));
+      finish(result, (errs) => flowStatus(t("flow.review"), result.rows.length, errs ? t("yearend.statusErrs", { e: errs }) : t("yearend.statusOk")));
     } catch (err) {
       status("err", () => t("common.statusReadFailShort"));
     }
@@ -384,7 +382,7 @@ export function init() {
     const result = validate(sampleYeData());
     storeBatch(result, { sample: true });
     ActivityLog.push("yearend", t("yearend.logSample", { n: result.rows.length }), { sample: true });
-    finish(result, (errs) => t("yearend.statusSample", { e: errs }));
+    finish(result, (errs) => flowStatus(t("flow.state.demo"), result.rows.length, t("yearend.statusSample", { e: errs })));
   };
   $('[data-action="run-ye"]').addEventListener("click", runSample);
 

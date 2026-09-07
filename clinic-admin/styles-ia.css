@@ -149,7 +149,7 @@
 .gsearch-codes-head .summary { margin-left: auto; font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.5px; }
 .gsearch-codes-head .summary strong { color: var(--ink); font-weight: 600; }
 .gsearch-codes .result { flex: 1 1 auto; min-height: 120px; max-height: none; border: none; border-radius: 0; background: transparent; overflow: auto; }
-.gsearch-codes .result .empty-state { padding: 40px 24px; font-size: 14px; }
+.gsearch-codes .result .empty { padding: 40px 24px; font-size: 14px; }
 .gsearch .palette-foot { flex-shrink: 0; align-items: center; }
 .gsearch .palette-foot .link { margin-left: auto; background: none; border: none; padding: 0; color: var(--accent); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; font: inherit; text-transform: none; letter-spacing: 0; }
 @media (max-width: 880px) {
@@ -205,7 +205,6 @@
 
 /* ── 청구 › 청구 배치 landing · batch card + 3-step progress ── */
 .claims-batch-card { margin-bottom: 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 6px; background: rgba(255,255,255,0.55); }
-.claims-batch-card .empty-state.small { padding: 18px; font-size: 13px; }
 .claims-batch-card .cb-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--ink); margin-bottom: 10px; }
 .claims-batch-card .cb-head .code { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--muted); }
 .claims-batch-card .pill, .claims-step .cs-state { display: inline-block; padding: 2px 8px; border-radius: 3px; font-family: "JetBrains Mono", monospace; font-size: 9.5px; letter-spacing: 0.6px; text-transform: uppercase; background: rgba(20,17,13,0.06); color: var(--muted); }
@@ -244,7 +243,6 @@
 #tab-org .org-form .org-grid { grid-template-columns: 1.4fr 1fr 1fr 0.8fr 1fr; }
 @media (max-width: 880px) { #tab-org .org-form .org-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 480px) { #tab-org .org-form .org-grid { grid-template-columns: 1fr; } }
-#tab-masters .source-badge { margin: -6px 0 14px; }
 
 /* ── 청구 배치 landing (UX polish) — upload card full width, then one progress column per 보험유형 (자보 · 건보) ── */
 .claims-landing { display: flex; flex-direction: column; gap: 22px; }
@@ -293,6 +291,93 @@ body.tour-open .work-scroll { padding-bottom: 200px; }
 @media (max-width: 880px) {
   .tour-card { right: 12px; left: 12px; width: auto; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
   body.tour-open .work-scroll { padding-bottom: calc(260px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* ── Canonical panel flow — every panel that consumes or produces records reads the same way:
+   ① 샘플 · 시연 (sample file + run demo) → ② 데이터 올리기 / 입력 → ③ 결과 검토 (status · summary · table) → ④ 내보내기 · 다음 단계.
+   Same marker (①②③④, mono, accent), same titles (flow.step1..4), same components (.status · .empty · .actions). ── */
+.flow { display: flex; flex-direction: column; gap: 18px; }
+.flow-step {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 10px; align-items: baseline;
+  padding: 20px 22px 22px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,0.5);
+}
+.flow-step::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: -1; opacity: 0.7;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='1'/><feColorMatrix values='0 0 0 0 0.08 0 0 0 0 0.07 0 0 0 0 0.05 0 0 0 0.06 0'/></filter><rect width='100' height='100' filter='url(%23n)'/></svg>");
+}
+.flow-step > .step { grid-column: 1; font-family: "JetBrains Mono", monospace; font-size: 19px; line-height: 1; color: var(--accent); font-weight: 500; }
+.flow-step > h4 {
+  grid-column: 2; margin: 0; min-width: 0;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px;
+  font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted);
+}
+.flow-step > h4 .count { margin-left: auto; font-size: 10px; letter-spacing: 1px; color: var(--muted); text-transform: none; }
+.flow-step > h4 .sub { font-size: 10.5px; letter-spacing: 0.6px; text-transform: none; color: var(--faint); }
+.flow-step > .flow-body { grid-column: 1 / -1; min-width: 0; margin-top: 14px; }
+/* ① — one compact row: the sentence + [샘플 파일 받기] [▶ 샘플로 시연] */
+.flow-step[data-step="1"] { padding: 14px 22px 16px; border-left: 3px solid var(--accent); }
+.flow-step[data-step="1"] > .flow-body { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-top: 10px; }
+.flow-step[data-step="1"] > .flow-body > p { flex: 1 1 320px; margin: 0; font-family: "Fraunces", "Noto Serif KR", serif; font-style: italic; font-size: 14px; line-height: 1.45; color: var(--ink-2); word-break: keep-all; }
+.flow-step[data-step="1"] > .flow-body > p strong { font-style: normal; font-family: "Inter", sans-serif; font-weight: 500; color: var(--ink); }
+.flow-step[data-step="1"] > .flow-body > .actions { flex: 0 1 auto; margin-left: auto; }
+/* action rows (① samples · ④ exports + hand-offs) */
+.flow-step .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.flow-step .actions .act { display: inline-flex; align-items: center; gap: 8px; }
+.flow-step .actions .act-k { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.flow-step .actions .spacer { flex: 1 1 auto; }
+.flow-step .actions .act-note { flex: 1 1 260px; min-width: 0; font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: 0.3px; color: var(--muted); line-height: 1.5; word-break: keep-all; }
+.flow-step .actions .btn .play { font-size: 9px; }
+.flow-step .actions select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; background: rgba(255,255,255,0.7); font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--ink); }
+/* sub-heads inside a step (e.g. 수기 단건 정산 · 파기 대장) */
+.flow-h5 { margin: 22px 0 10px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 12px; font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
+.flow-h5:first-child { margin-top: 0; }
+.flow-h5 .count { font-size: 9.5px; color: var(--paper); background: var(--accent); border-radius: 999px; padding: 1px 7px; letter-spacing: 0.5px; }
+.flow-h5 .ghost { padding: 4px 9px; border: 1px solid var(--line); border-radius: 4px; background: transparent; font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--ink-2); cursor: pointer; }
+.flow-h5 .ghost:hover { border-color: var(--ink); background: rgba(255,255,255,0.6); }
+/* 인증 자체점검 ③ — the auto-judged items restated with their reasons (the checkable list stays in ②) */
+.accred-auto-list { display: flex; flex-direction: column; margin-top: 12px; border: 1px solid var(--line); border-radius: 6px; background: rgba(255,255,255,0.5); }
+.accred-auto-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 10px 14px; border-bottom: 1px solid var(--line-2); font-size: 13px; color: var(--ink); }
+.accred-auto-row:last-child { border-bottom: none; }
+.accred-auto-row .check { width: 20px; text-align: center; font-family: "JetBrains Mono", monospace; font-weight: 700; }
+.accred-auto-row.ok .check { color: var(--ok); } .accred-auto-row.warn .check { color: var(--warn); } .accred-auto-row.bad .check { color: var(--accent); }
+.accred-auto-row .item-meta { display: block; margin-top: 2px; font-size: 11.5px; color: var(--muted); }
+/* the format hint under a drop zone + the [열 이름 보기] disclosure */
+.hint.cols { display: block; margin-top: 8px; font-family: "JetBrains Mono", monospace; text-transform: none; letter-spacing: 0.3px; font-size: 10.5px; color: var(--ink-2); line-height: 1.6; word-break: keep-all; }
+.hint.cols.cols-out { text-align: center; margin: 10px 0 0; }
+details.schema { padding: 10px 14px; }
+details.schema > summary { cursor: pointer; list-style: none; font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
+details.schema > summary::-webkit-details-marker { display: none; }
+details.schema > summary::before { content: "▸ "; color: var(--accent); }
+details.schema[open] > summary::before { content: "▾ "; }
+details.schema[open] > summary { margin-bottom: 8px; }
+/* ③ status line — one component, always first in the step */
+.status {
+  display: flex; align-items: center; gap: 10px; padding: 12px 14px; margin: 0 0 12px;
+  background: rgba(123,168,154,0.10); border-left: 2px solid var(--celadon); border-radius: 4px;
+  font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--ink-2); line-height: 1.5; word-break: keep-all;
+}
+.status.warn { background: rgba(184,122,28,0.12); border-color: var(--warn); }
+.status.err  { background: rgba(176,74,47,0.10);  border-color: var(--accent); }
+.status .dot { width: 7px; height: 7px; flex-shrink: 0; border-radius: 50%; background: var(--celadon-2); }
+.status.warn .dot { background: var(--warn); }
+.status.err  .dot { background: var(--accent); }
+.status + .status { margin-top: -4px; }
+/* ③ empty state — the same two lines everywhere: what to do, and where the sample is */
+.empty { padding: 40px 24px; text-align: center; color: var(--muted); font-family: "Fraunces", "Noto Serif KR", serif; font-style: italic; font-size: 15.5px; line-height: 1.5; word-break: keep-all; }
+.empty p { margin: 0; }
+.empty .empty-hint { margin-top: 8px; font-family: "JetBrains Mono", monospace; font-style: normal; font-size: 10.5px; letter-spacing: 0.3px; color: var(--faint); }
+.empty.small { padding: 18px; font-size: 13px; }
+.result-toolbar { margin-bottom: 10px; }
+.result-toolbar:last-child { margin-bottom: 0; }
+.result-toolbar .summary { line-height: 1.6; }
+@media (max-width: 600px) {
+  .flow-step { padding: 16px 14px 18px; }
+  .flow-step[data-step="1"] { padding: 12px 14px 14px; }
+  .flow-step[data-step="1"] > .flow-body > .actions, .flow-step[data-step="4"] .actions { margin-left: 0; width: 100%; }
+  .flow-step .actions .btn { flex: 1 1 auto; justify-content: center; }
+  .flow-step .actions .act { flex: 1 1 100%; justify-content: space-between; }
+  .flow-step .actions .spacer { display: none; }
 }
 
 /* ── Print · reduced motion ── */

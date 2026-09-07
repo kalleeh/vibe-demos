@@ -11,13 +11,13 @@
      claimsSteps()                → flat array over the payers that have a batch (자보 first), every step carrying `payer` + `batchId`
                                     (falls back to the idle 자보 steps when there is no batch at all)
      claimsStepsByPayer()         → { auto: [...], nhis: [...] } */
-import { $, esc, setStatus, bindDrop, won, relTime } from "../core/ui.js";
+import { $, esc, setStatus, bindDrop, won, relTime, emptyHTML, flowStatus } from "../core/ui.js";
 import { t, onLangChange } from "../core/i18n.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
-import { readSpreadsheet } from "../core/files.js";
+import { readSpreadsheet, downloadXLSX } from "../core/files.js";
 import { activateTab } from "../core/nav.js";
 import { Batches } from "../core/entities.js";
-import { currentClaimsBatch, reviewFor, ingestClaimsFile, createReviewBatch, renderBatchStrip, onClaimsChange, reconOf, appealStateOf, setBatchPayer, batchPayer, payerLabel, reconTabOf, PAYERS, Appeals, nhisHistory } from "./claims-shared.js";
+import { currentClaimsBatch, reviewFor, ingestClaimsFile, createReviewBatch, renderBatchStrip, onClaimsChange, reconOf, appealStateOf, setBatchPayer, batchPayer, payerLabel, reconTabOf, PAYERS, Appeals, nhisHistory, ensureSampleBatch, ensureNhisSampleBatch, loadSampleRows } from "./claims-shared.js";
 
 export function seed() { /* the claims tools seed the shared batches themselves; the landing only reads them */ }
 
@@ -76,7 +76,7 @@ export function init() {
   const renderCard = (p) => {
     const el = cardHost(p); if (!el) return;
     const cur = currentClaimsBatch(p);
-    if (!cur) { el.innerHTML = `<div class="empty-state small">${esc(t(p === "nhis" ? "claims.card.emptyNhis" : "claims.card.emptyAuto"))}</div>`; return; }
+    if (!cur) { el.innerHTML = emptyHTML(esc(t(p === "nhis" ? "claims.card.emptyNhis" : "claims.card.emptyAuto")), { small: true }); return; }
     const review = reviewFor(cur.id);
     const m = cur.meta || {};
     const cell = (k, v) => `<div class="cb-cell"><span class="cb-k">${esc(t(k))}</span><span class="cb-v">${v}</span></div>`;
@@ -173,6 +173,17 @@ export function init() {
   }
   bindDrop("drop-claims-claims", ingestClaims);
   bindDrop("drop-claims-review", ingestReview);
+  // ① — the two 자보 sample files (Korean EMR-export headers) and a standalone demo that loads BOTH payers' sample pairs.
+  $('[data-action="sample-claims-claims"]').addEventListener("click", async () => { const s = await loadSampleRows(); downloadXLSX(s.claims.rows, t("jabo.sampleClaimsFile"), t("jabo.sampleClaimsSheet")); });
+  $('[data-action="sample-claims-review"]').addEventListener("click", async () => { const s = await loadSampleRows(); downloadXLSX(s.review.rows, t("jabo.sampleReviewFile"), t("jabo.sampleReviewSheet")); });
+  $('[data-action="run-claims"]').addEventListener("click", async () => {
+    status(null, () => t("jabo.statusLoadingSamples"));
+    try {
+      const [a, n] = await Promise.all([ensureSampleBatch(), ensureNhisSampleBatch()]);
+      renderAll();
+      status(null, () => flowStatus(t("flow.state.demo"), (a.claims.meta?.stmts ?? 0) + (n.claims.meta?.stmts ?? 0), t("claims.statusDemo")));
+    } catch (err) { console.error(err); status("err", () => t("jabo.statusSampleFail")); }
+  });
 
   renderAll();
   onClaimsChange(renderAll);

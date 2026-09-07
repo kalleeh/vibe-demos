@@ -49,7 +49,6 @@ h4 .home-count { vertical-align: middle; margin-left: 4px; }
 /* ── 03 · 환자 문의 대응 ── */
 .ye-lookup-row { display: flex; gap: 8px; align-items: stretch; margin: 0 0 10px; }
 .ye-lookup-row input { flex: 1 1 auto; min-width: 0; font: inherit; font-family: "JetBrains Mono", monospace; font-size: 13px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 5px; background: rgba(255,255,255,0.8); color: var(--ink); }
-.ye-lookup .empty-state.small { padding: 18px; font-size: 13px; }
 .ye-lookup-card { padding: 12px 14px; }
 .ye-lookup-card.missing { border-left: 3px solid var(--accent); }
 .ye-lookup-card.found { border-left: 3px solid var(--ok); }

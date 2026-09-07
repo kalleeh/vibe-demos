@@ -34,7 +34,7 @@ export default {
 
   /* ── 청구 › 청구 배치 landing (the payer-aware head copy — claims.p3.* — and the payer cards live in ko.claims2.js) ── */
   "claims.num": "청구 · 청구 배치",
-  "claims.uploadH": "파일 업로드 — 청구 명세서 · 심사결과통보",
+
   "claims.dropClaims": "청구 명세서 export",
   "claims.dropReview": "심평원 심사결과 파일", "claims.dropReviewHint": "명세서번호 · 행위코드 · 인정금액 · 조정사유 — 현재 배치에 연결됩니다",
   "claims.caveat": "※ 같은 파일을 <strong>상병 정비</strong>나 <strong>심사결과 대조</strong>에서 올려도 같은 배치가 됩니다. 배치는 브라우저 안에서 암호화되어 90일 · 최대 20건까지 보관됩니다 (조직 › 데이터 처리 현황).",
@@ -58,7 +58,7 @@ export default {
   "org.h3": "어느 <em>기관</em>의 행정실인가요?",
   "org.badgeLaw": "의료법 §45조의2 · 소득세법 §165 자료 머리글", "org.badge": "이 브라우저에만 저장 · 개인정보 아님",
   "org.blurb": "기관명·요양기관기호·사업자등록번호·종별·대표자는 <em>비급여 보고 준비표</em>, <em>연말정산 자료</em>, <em>자보 정산표</em>의 머리글에 그대로 들어가고, 종별(병원·의원)은 비급여 보고 주기와 마감 캘린더를 정합니다. 한 번만 입력해두면 모든 화면이 같은 프로필을 읽습니다.",
-  "org.panelH": "기관 프로필",
+
   "org.caveat": "※ 기관 정보는 사업자등록·요양기관 공개 정보로 <strong>개인정보가 아니어서</strong> 평문(plain tier)으로 저장됩니다 — 조직 › 데이터 처리 현황의 「기관 프로필」 행을 참고하세요. 데모라면 「샘플 데이터로 둘러보기」가 한솔한방병원으로 채웁니다.",
 
   /* ── 조직 › 데이터 처리 현황 panel ── */
@@ -94,4 +94,35 @@ export default {
   "tour.appeal.title": "청구 · 이의신청", "tour.appeal.body": "조정 줄에서 넘어온 초안이 대장이 됩니다 — 통보일을 적으면 기한(+90일, 확인 필요)이 D-day로 붙고, 준비중 → 제출 → 결과로 상태를 옮기며, 초안은 인쇄할 수 있습니다. 기한 초과는 홈의 할 일에도 올라갑니다.",
   "tour.patients.title": "환자 · 세 추적기", "tour.patients.body": "자보 지불보증(보험사 통화·만료 D-day), 서류 발급 대장(법정 대장·발급자 확인), 비급여 설명·동의(단가표 기준) — 모두 가명 환자번호(****0142)만 저장합니다. 접수 보드의 카드 ⋯ 메뉴에서도 바로 열립니다.",
   "tour.org.title": "조직 · 직원 명부와 나머지", "tour.org.body": "직원 명부는 면허신고 기한(3년)을 계산하고 로그인(PIN)을 발급합니다. 기관 프로필은 모든 보고 파일의 머리글, 인증 자체점검은 다른 화면의 결과로 자동 판정, 데이터 처리 현황은 항목별 암호화·보존·파기·백업, 마스터 업로드는 KOICD·심평원 표. 끝 — 왼쪽 메뉴로 다니세요.",
+
+  /* ── canonical panel flow (styles-ia.css .flow) — ① 샘플 · 시연 → ② 데이터 올리기 / 입력 → ③ 결과 검토 → ④ 내보내기 · 다음 단계 ── */
+  "flow.step1": "샘플 · 시연", "flow.step2": "데이터 올리기", "flow.step2entry": "입력", "flow.step3": "결과 검토", "flow.step4": "내보내기 · 다음 단계",
+  "flow.sample": "샘플 파일 받기 <span class=\"arrow\">↓</span>", "flow.sampleMaster": "마스터 예시 파일 받기 <span class=\"arrow\">↓</span>",
+  "flow.demo": "<span class=\"play\">▶</span> 샘플로 시연",
+  "flow.upload": "엑셀 · CSV 파일을 끌어다 놓거나 눌러서 올리기", "flow.columns": "열 이름 보기",
+  "flow.review": "검토 완료", "flow.state.demo": "샘플 시연", "flow.state.saved": "입력 완료",
+  "flow.export.xlsx": "XLSX 내려받기 <span class=\"arrow\">↓</span>", "flow.export.csv": "CSV 내려받기 <span class=\"arrow\">↓</span>",
+  "flow.export.ics": ".ics 내려받기 <span class=\"arrow\">↓</span>", "flow.export.print": "인쇄 <span class=\"arrow\">↗</span>",
+  "flow.next": "다음",
+  "flow.emptyHint": "처음이라면 ① 샘플 · 시연 — 샘플 파일을 받거나 「샘플로 시연」을 누르세요.",
+  "flow.emptyHintDemo": "처음이라면 ① 샘플 · 시연의 「샘플로 시연」이 예시 기록을 채웁니다.",
+  "flow.emptyHintManual": "처음이라면 ② 데이터 올리기의 「수기 샘플」이 예시 케이스를 채웁니다.",
+  /* per-panel ① sentences · ④ captions the flow needs */
+  "claims.demoLabel": "<strong>한솔한방병원 2026-08</strong> — 자보 명세서 12건과 건보 명세서 10건, 각각의 심평원 심사결과가 두 배치로 올라가고 세 단계 진행 상황이 나란히 채워집니다.",
+  "claims.noExport": "배치 자체는 내보내지 않습니다 — 결과는 각 단계 화면에서", "claims.statusDemo": "자보 · 건보 두 배치와 심사결과가 연결되었습니다.",
+  "guarantee.demoLabel": "<strong>자보 환자 2명의 지불보증</strong> — 5일 뒤 만료되는 연장 요청 건(삼성화재)과 이미 만료된 건(DB손해보험), 통화·팩스 기록 5줄이 함께 들어갑니다.",
+  "docs.demoLabel": "<strong>발급 기록 4건</strong> — 1월 영수증 재발급(연말정산 안내), 자보 제출용 진단서, 대리인 수령 소견서(위임장·신분증 확인), 직장 제출 진료확인서.",
+  "consent.demoLabel": "<strong>설명·동의 기록 3건</strong> — 첩약 14일분, 자보 보증 범위 밖 약침, 추나 한도 초과분의 비급여 전환(서명 대기). 단가는 비급여 보고의 단가표에서 옵니다.",
+  "license.demoLabel": "<strong>한솔한방병원 직원 7명</strong> — 한의사 2 · 간호사 · 물리치료사 · 간호조무사 · 행정 · 원무. 신고일이 없는 한 줄(신고 이력 미확인)과 기한 임박 줄, 로그인 3개(PIN 000000)가 함께 들어갑니다.",
+  "license.statusDemo": "직원 {n}명 · 로그인 {l}개 추가 — 이미 있던 줄은 그대로.", "license.icsK": "신고 · 보수교육 기한",
+  "accred.demoLabel": "운영 중인 한방병원이 갖추고 있을 <strong>기본 항목 9개</strong>(환자 확인·응급 카트·권리 게시·감염관리·폐기물·산소·오리엔테이션 등)를 체크합니다 — 자동 판정 항목은 직원 명부·단가표·점검 결과에서 스스로 판정됩니다.",
+  "accred.checkH": "항목 체크", "accred.autoH": "자동 판정 요약", "accred.autoState": "자체점검", "accred.autoSummary": "자동 판정 {ok}/{n} 충족 · 전체 {p}%", "accred.printK": "자체점검표",
+  "accred.logDemo": "인증 자체점검 시연 — 기본 항목 9개 체크",
+  "masters.demoLabel": "마스터 예시 파일 두 개 — 내장 발췌를 <strong>KOICD 상병마스터 형식</strong>(상병기호 · 한글명 · 영문명 · 완전코드구분)과 <strong>심평원 행위·수가 마스터 형식</strong>(수가코드 · 한글명 · 단가 · 분류 · 급여구분 · 자보구분)으로 내려받아 ②의 헤더 매핑을 미리 봅니다. 시연할 샘플 마스터는 없습니다 — 내장 표가 예시입니다.",
+  "masters.sourceH": "현재 기준 표", "masters.noExport": "마스터는 참조표 — 내보내기 없음. 올린 표는 상병 정비 · 심사결과 대조 · 검색 · AI 어시스트가 바로 씁니다",
+  "masters.sampleKcdFile": "마스터예시_KOICD_상병.xlsx", "masters.sampleKcdSheet": "상병마스터(예시)", "masters.sampleFeeFile": "마스터예시_심평원_행위수가.xlsx", "masters.sampleFeeSheet": "행위수가마스터(예시)",
+  "masters.logSample": "마스터 예시 파일 내려받음 ({n}행)",
+  "org.completeH": "완성도", "org.completeCount": "{n}/{total} 항목", "org.completeMissing": "비어 있음: {f}",
+  "org.noExport": "프로필은 모든 보고 파일의 머리글로 들어갑니다 — 별도 내보내기 없음",
+  "bigeup.web.k": "홈페이지 고지용", "bigeup.history.k": "변경 이력", "bigeup.notice.k": "가격 고지문",
 };

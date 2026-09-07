@@ -21,7 +21,7 @@ import { Org, Patients, Staff, Tariff } from "../core/entities.js";
 import { Session } from "../security/session.js";
 import { registerRows } from "../security/lifecycle.js";
 import { tariffRows, tariffPrice } from "./claims-shared.js";
-import { $, $$, esc, KEYS, collection, str, num, audit, renderTable, chipRow, onPanelCtx, renderPatientStrip, pidOptions, staffOptions, staffRef, aliasOf, dash, openPrint, introHTML } from "./patients-shared.js";
+import { $, $$, esc, KEYS, collection, str, num, audit, renderTable, chipRow, onPanelCtx, renderPatientStrip, pidOptions, staffOptions, staffRef, aliasOf, dash, openPrint, introHTML, flowHTML, flowState, paintFlowStatus } from "./patients-shared.js";
 
 const METHODS = ["구두+서면", "서면", "전자"];
 const TAG = "consent";
@@ -50,32 +50,27 @@ export function init({ DATA } = {}) {
   const nameOf = (code) => { const it = (DATA?.bigeup?.items || []).find(x => x.code === code); return it ? pick(it, "name") : ""; };
   const tariffItems = () => tariffRows(nameOf);
   let filter = { pid: "", signed: "", q: "" };
-  let draft = null, highlightId = null;
+  let draft = null, highlightId = null, flowSt = null;
 
   const mount = () => {
     const hasTariff = tariffItems().length > 0;
-    host.innerHTML = `${introHTML("consent")}
-      <div class="card p3-card">
-        <h4><span class="step">01</span> <span>${esc(t("consent.listH"))}</span> <span class="p3-count" data-count></span></h4>
-        ${hasTariff ? "" : `<div class="status-line warn p3-tariff-empty" data-tariff-empty><span class="dot"></span><span>${esc(t("consent.tariffEmpty"))} <button type="button" class="link" data-go-tariff>${esc(t("consent.tariffEmptyGo"))} →</button></span></div>`}
-        <div class="p3-filter">
+    host.innerHTML = `${introHTML("consent")}${flowHTML("consent", {
+      input: `${hasTariff ? "" : `<div class="status warn p3-tariff-empty" data-tariff-empty><span class="dot"></span><span>${esc(t("consent.tariffEmpty"))} <button type="button" class="link" data-go-tariff>${esc(t("consent.tariffEmptyGo"))} →</button></span></div>`}
+        <div class="actions"><button type="button" class="btn" data-new>${esc(t("consent.newBtn"))}</button><span class="p3-sub">${esc(t("consent.editorHint"))}</span></div>
+        <div class="p3-editor" data-editor hidden></div>`,
+      review: `<div class="p3-filter">
           <select class="p3-pid" data-f-pid aria-label="${esc(t("patients.filterPatient"))}"><option value="">${esc(t("patients.allPatients"))}</option>${pidOptions(filter.pid, { placeholder: false })}</select>
           <div class="search-filters p3-chips" data-chips>${chipRow(["", "signed", "unsigned"], filter.signed, v => v === "" ? t("patients.all") : v === "signed" ? t("consent.chipSigned") : t("consent.chipUnsigned"))}</div>
           <input type="search" class="p3-search" data-f-q value="${esc(filter.q)}" placeholder="${esc(t("consent.searchPh"))}" aria-label="${esc(t("consent.searchPh"))}">
-          <span class="spacer"></span>
-          <button type="button" class="btn" data-new>${esc(t("consent.newBtn"))}</button>
         </div>
         <div class="p3-strip" data-strip hidden></div>
-        <div class="p3-editor" data-editor hidden></div>
         <div class="result p3-result" data-list></div>
-        <div class="result-toolbar">
-          <div class="summary" data-summary></div>
-          <div class="actions">
-            <button type="button" class="btn secondary" data-export>${esc(t("consent.exportBtn"))} <span class="arrow">↓</span></button>
-          </div>
-        </div>
-        <p class="caveat">${t("consent.caveat")}</p>
-      </div>`;
+        <div class="result-toolbar"><div class="summary" data-summary></div></div>
+        <p class="caveat">${t("consent.caveat")}</p>`,
+      exports: `<span class="act"><span class="act-k">${esc(t("consent.listH"))}</span><button type="button" class="btn" data-export>${t("flow.export.xlsx")}</button></span>`,
+      next: { tab: "tab-bigeup", labelKey: "nav.bigeup" }
+    })}`;
+    paintFlowStatus(host, flowSt);
     host.querySelector("[data-go-tariff]")?.addEventListener("click", () => activateTab("tab-bigeup"));
     host.querySelector("[data-f-pid]").addEventListener("change", (e) => { filter.pid = e.target.value; renderList(); renderStrip(); });
     host.querySelector("[data-chips]").addEventListener("click", (e) => { const b = e.target.closest("[data-chip]"); if (!b) return; filter.signed = b.dataset.chip; $$("[data-chip]", host).forEach(x => x.classList.toggle("active", x === b)); renderList(); });
@@ -212,6 +207,7 @@ export function init({ DATA } = {}) {
       const saved = C.upsert(draft);
       audit(TAG, t(isNew ? "consent.logAdd" : "consent.logEdit", { n: saved.items.length, sum: won(total(saved)), signed: saved.signed ? t("consent.signedYes") : t("consent.signedNo") }), saved.pid);
       highlightId = saved.id;
+      flowSt = flowState("flow.state.saved", C.list().length); paintFlowStatus(host, flowSt);
     } catch (err) { Toast.show({ tag: TAG, html: esc(err.message || String(err)) }); Haptic.warn(); return; }
     Haptic.save();
     closeEditor();
@@ -250,8 +246,12 @@ export function init({ DATA } = {}) {
 
   /* ── wiring ── */
   mount();
+  host.addEventListener("click", (e) => {
+    if (!e.target.closest('[data-action="run-consent"]')) return;
+    seed(); filter = { pid: "", signed: "", q: "" }; flowSt = flowState("flow.state.demo", C.list().length); mount();
+  });
   C.onChange(() => { renderList(); renderStrip(); });
-  Tariff.onChange(() => { const d = draft ? readForm() : null; draft = null; mount(); if (d) openEditor(d); }); // the empty-state notice + the item picker follow the tariff
+  Tariff.onChange(() => { const d = draft ? readForm() : null; draft = null; mount(); if (d) openEditor(d); }); // the empty notice + the item picker follow the tariff
   Patients.onChange(() => { const sel = host.querySelector("[data-f-pid]"); if (sel) sel.innerHTML = `<option value="">${esc(t("patients.allPatients"))}</option>` + pidOptions(filter.pid, { placeholder: false }); renderStrip(); renderList(); });
   Staff.onChange(() => renderList());
   onPanelCtx("tab-consent", {

@@ -1,7 +1,7 @@
 /* clinic-admin — Tab 09 · 인증 자체점검 + ACCRED_ITEMS (shared constant — imported by tab0-today.js and shell.js)
    Sibling import: retentionStats from tab5-retention.js (the 파기 대장 count is mr3's disposal-review evidence); tab5 never
    imports tab9, so the direction is one-way. */
-import { $, $$, esc, todayISO, daysUntil, relTime, Haptic, Toast, Share } from "../core/ui.js";
+import { $, $$, esc, todayISO, daysUntil, relTime, Haptic, Toast, Share, setStatus, flowStatus } from "../core/ui.js";
 import { t, pick, onLangChange } from "../core/i18n.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { pocMark } from "../core/files.js";
@@ -140,6 +140,7 @@ export function init() {
   fillCounts();
   const isDone = (it, d) => isDerived(it.id) ? d?.level === "ok" : !!checked[it.id];
   const GLYPH = { ok: "✓", warn: "△", bad: "✗" };
+  let demoAt = null; // set by ① [샘플로 시연] → the ③ status names the demo until the next reload
 
   const render = () => {
     const derived = Object.fromEntries(allItems.filter(it => isDerived(it.id)).map(it => [it.id, derive(it.id)]));
@@ -147,6 +148,12 @@ export function init() {
     const pct = allItems.length ? Math.round((doneTotal / allItems.length) * 100) : 0;
     $("#accred-summary").innerHTML = t("accred.summary", { d: doneTotal, n: allItems.length, p: pct });
     $("#accred-bar").style.width = pct + "%";
+    // ③ — status line ({state} · {n}건 · {when}) + the auto-judged items with their reasons (checkable items stay in ②).
+    const autoList = allItems.filter(it => isDerived(it.id)).map(it => ({ it, d: derived[it.id] }));
+    const autoOk = autoList.filter(x => x.d.level === "ok").length;
+    setStatus($("#accred-status"), autoOk === autoList.length ? null : "warn", flowStatus(t(demoAt ? "flow.state.demo" : "accred.autoState"), doneTotal, t("accred.autoSummary", { ok: autoOk, n: autoList.length, p: pct })));
+    const al = $("#accred-auto-list");
+    if (al) al.innerHTML = autoList.map(({ it, d }) => `<div class="accred-auto-row ${d.level}" data-auto="${esc(it.id)}"><span class="check">${GLYPH[d.level]}</span><div class="body">${esc(accredText(it, "label"))}<span class="item-meta">${esc(t(d.reason[0], d.reason[1]))}</span></div>${it.linkTab ? `<a class="accred-link" href="#" data-link="${esc(it.linkTab)}"${d.ctx ? ` data-ctx='${esc(JSON.stringify(d.ctx))}'` : ""}>${esc(t("accred.goto"))}</a>` : ""}</div>`).join("");
 
     $("#accred-cats").innerHTML = cats.map(cat => {
       const cdone = cat.items.filter(it => isDone(it, derived[it.id])).length;
@@ -277,6 +284,8 @@ export function init() {
     Store.set("accred.checked", { ...checked });
     render();
   } };
+  // ① [샘플로 시연] — standalone: ticks the same nine manual items the seed does and names the demo in ③.
+  $('[data-action="run-accred"]')?.addEventListener("click", () => { demoAt = Date.now(); api.seed(); ActivityLog.push("accred", t("accred.logDemo"), { sample: true }); });
 }
 
 export { ACCRED_ITEMS, accredText, accredProgress, isDerived };

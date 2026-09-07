@@ -6,7 +6,7 @@
    result to that 명세서 and highlights it.
    i18n: result rows carry neutral field names + a `note` [key, vars] so the table, the status line and the
    XLSX headers can be re-rendered in either language from the same `lastResult`. */
-import { $, esc, setStatus, todayISO, relTime, bindDrop } from "../core/ui.js";
+import { $, esc, setStatus, todayISO, relTime, bindDrop, emptyHTML, flowStatus } from "../core/ui.js";
 import { t, onLangChange } from "../core/i18n.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { downloadXLSX, headerRow } from "../core/files.js";
@@ -197,7 +197,7 @@ export function init(ctx) {
     lastBatchId = batch.id;
     if (batch.meta?.partial === "items") {
       lastResult = null; $("#kcd-toolbar").style.display = "none"; renderFilter();
-      $("#kcd-result").innerHTML = `<div class="empty-state">${esc(t("kcd.noKcdSide"))}</div>`;
+      $("#kcd-result").innerHTML = emptyHTML(esc(t("kcd.noKcdSide")));
       status("warn", () => t("kcd.noKcdSide"));
       return;
     }
@@ -218,7 +218,7 @@ export function init(ctx) {
       if (r.empty) { status("warn", () => t("common.statusEmptyFile")); return; }
       ActivityLog.push("kcd", t("kcd.logBatch", { src: file.name, n: r.batch.meta.stmts }), { rows: r.batch.rows.length });
       focusStmt = null;
-      run(r.batch, { statusFn: (res) => t("kcd.statusDone", { n: res.rows.length }), meta: { rows: r.batch.rows.length } });
+      run(r.batch, { statusFn: (res) => flowStatus(t("flow.review"), res.rows.length, t("kcd.statusDone")), meta: { rows: r.batch.rows.length } });
     } catch (err) {
       console.error(err);
       status("err", () => t("common.statusReadFail"));
@@ -254,7 +254,7 @@ export function init(ctx) {
     try {
       const { claims } = await ensureSampleBatch();
       focusStmt = null;
-      run(claims, { statusFn: (r) => t("kcd.statusSampleDone", { n: r.rows.length }), meta: { sample: true } });
+      run(claims, { statusFn: (r) => flowStatus(t("flow.state.demo"), r.rows.length, t("kcd.statusSampleDone")), meta: { sample: true } });
     } catch (err) { console.error(err); status("err", () => t("common.statusReadFail")); }
   };
   $('[data-action="run-kcd"]').addEventListener("click", () => { seedFn(); });
@@ -283,7 +283,7 @@ export function init(ctx) {
   const restore = () => {
     const b = currentClaimsBatch();
     if (b) rerunQuietly(b);
-    else { lastResult = null; lastBatchId = null; $("#kcd-toolbar").style.display = "none"; renderFilter(); $("#kcd-result").innerHTML = `<div class="empty-state">${esc(t("kcd.empty"))}</div>`; }
+    else { lastResult = null; lastBatchId = null; $("#kcd-toolbar").style.display = "none"; renderFilter(); $("#kcd-result").innerHTML = emptyHTML(esc(t("kcd.empty"))); }
   };
   onClaimsChange((ev) => {
     strip();

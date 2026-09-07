@@ -1,7 +1,7 @@
 /* clinic-admin — claims area styles (Phase 2). Append-only; owned by the claims agent. */
 
 /* ── Master source badges (tabs 01/02/06) ── */
-.master-badge, .fee-badge, .source-badge { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 10px 0 4px; font-size: 12px; color: var(--muted); }
+.master-badge, .fee-badge { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 10px 0 4px; font-size: 12px; color: var(--muted); }
 .master-badge .basis em { color: var(--accent); font-style: italic; }
 .src-pill {
   display: inline-block; padding: 2px 8px; border-radius: 3px;
@@ -23,7 +23,6 @@
 .recon-group { border: 1px solid var(--line); border-radius: 6px; background: rgba(255,255,255,0.6); overflow: auto; max-height: 260px; }
 .recon-group h5 { margin: 0; padding: 8px 12px; font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line-2); }
 .recon-group h5 span { text-transform: none; letter-spacing: 0; color: var(--faint); }
-.recon-group .empty-state.small { padding: 18px; font-size: 13px; }
 .qty-mini { color: var(--faint); font-size: 10px; margin-left: 4px; }
 tr.orphan td { background: rgba(184,122,28,0.06); }
 .process-note { font-size: 12px; color: var(--ink-2); background: rgba(123,168,154,0.10); border-left: 3px solid var(--celadon); padding: 8px 12px; border-radius: 0 4px 4px 0; margin: 0 0 12px; line-height: 1.6; }

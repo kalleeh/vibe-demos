@@ -12,7 +12,7 @@
    Cross-tab actions per reconciliation row: 상병 정비에서 보기 (01, focused on the 명세서) · 행위 검색 (06) ·
    AI에게 묻기 (07, for 상병-처치 부위 불일치 / 동일부위 중복).
    i18n: everything user-visible goes through t()/pick(); the language toggle re-renders from state the tab holds. */
-import { $, esc, fmtKRW, won, todayISO, fuzzyMatch, setStatus, debounce, bindDrop, Haptic, Toast, redactSubject } from "../core/ui.js";
+import { $, esc, fmtKRW, won, todayISO, fuzzyMatch, setStatus, debounce, bindDrop, Haptic, Toast, redactSubject, emptyHTML, flowStatus } from "../core/ui.js";
 import { t, tOr, pick, onLangChange } from "../core/i18n.js";
 import { Store, EventBus, ActivityLog, bindPersist } from "../core/store.js";
 import { readSpreadsheet, downloadXLSX, headerRow } from "../core/files.js";
@@ -61,7 +61,7 @@ export function init(ctx) {
     const dx = stmtCodes(batch, l.stmt).join(", ") || "—";
     return t("jabo.askPrefill", { stmt: l.stmt, who: Patients.alias(l.pid), dx, code: l.code, name: procName(l.code, l.name) || l.code, reason: lineReason(l) || "—" });
   };
-  const reconHost = () => $("#jabo-recon-card");
+  const reconHost = () => $("#tab-jabo"); // ③ (summary · groups · table) and ④ (download) are sibling flow steps → the panel is the host
   const renderRecon = () => {
     if (!lastPair) return null;
     const res = renderReconciliation(reconHost(), {
@@ -101,7 +101,7 @@ export function init(ctx) {
     }
     const unreviewed = res.lines.filter(l => l.status === "none").length;
     reconStatus(unreviewed ? "warn" : null, () =>
-      t("jabo.statusRecon", { l: res.lines.length, r: groupByReason(res.lines).length, cut: won(res.totals.cut) }) +
+      flowStatus(t(claims.meta?.sample ? "flow.state.demo" : "flow.review"), res.lines.length, t("jabo.statusRecon", { r: groupByReason(res.lines).length, cut: won(res.totals.cut) })) +
       (unreviewed ? t("jabo.statusUnreviewed", { n: unreviewed }) : "") + t("jabo.statusAppeal"));
   };
 
@@ -115,7 +115,7 @@ export function init(ctx) {
   const clearRecon = () => {
     lastRecon = null; lastPair = null; lastClaimsId = null;
     $("#jabo-recon-toolbar").style.display = "none"; $("#jabo-recon-groups").innerHTML = "";
-    $("#jabo-recon-result").innerHTML = `<div class="empty-state">${esc(t("jabo.reconEmpty"))}</div>`;
+    $("#jabo-recon-result").innerHTML = emptyHTML(esc(t("jabo.reconEmpty")));
     renderSlots();
   };
   // Re-derive the reconciliation from the 자보 batch pair (boot, batch switch, review upload). A global current batch of
@@ -325,7 +325,7 @@ export function init(ctx) {
     $("#jabo-summary").innerHTML = t("jabo.manualSummary", { n: items.length, c: won(totals.claimed), a: won(totals.paid), r: cutPct });
     $("#jabo-download").disabled = items.length === 0;
     if (!items.length) {
-      $("#jabo-preview").innerHTML = `<div class="empty-state">${esc(t("jabo.manualEmpty"))}</div>`;
+      $("#jabo-preview").innerHTML = `<div class="empty"><p>${esc(t("jabo.manualEmpty"))}</p><p class="empty-hint">${esc(t("flow.emptyHintManual"))}</p></div>`;
     } else {
       $("#jabo-preview").innerHTML = `
         <table>
@@ -504,7 +504,7 @@ export function init(ctx) {
       + (skipped.length ? t("jabo.caseSkipped", { codes: skipped.join(", ") }) : "")
       + (addedBg.length ? t("jabo.caseBigeup", { n: addedBg.length }) : "")
       + (skippedBg.length ? t("jabo.caseBigeupSkipped", { codes: skippedBg.join(", ") }) : ""));
-    $("#jabo-items")?.closest(".card")?.scrollIntoView({ block: "start", behavior: "smooth" });
+    $("#jabo-items")?.closest(".flow-step")?.scrollIntoView({ block: "start", behavior: "smooth" });
   };
 
   // 수기 샘플 — 명세서 M2608-0001 of the shared clinic (P-2026-0142 · 삼성화재 · 접수 SS-2026-77812 · 사고 2026-08-03).
@@ -545,7 +545,7 @@ export function init(ctx) {
     const c = p?.id === "tab-jabo" ? p.ctx : null;
     if (!c) return;
     if (c.dx || (Array.isArray(c.items) && c.items.length) || (Array.isArray(c.bigeupItems) && c.bigeupItems.length) || c.pid) applyCase(c);
-    else if (c.focus === "manual") setTimeout(() => $("#jabo-items")?.closest(".card")?.scrollIntoView({ block: "start", behavior: "smooth" }), 60); // 홈 todo → the unfinished 수기 case
+    else if (c.focus === "manual") setTimeout(() => $("#jabo-items")?.closest(".flow-step")?.scrollIntoView({ block: "start", behavior: "smooth" }), 60); // 홈 todo → the unfinished 수기 case
     else if (c.stmt) { // 이의신청 → 대조로 보기: highlight that 명세서's rows
       focusStmt = c.stmt;
       if (!lastPair) restore();

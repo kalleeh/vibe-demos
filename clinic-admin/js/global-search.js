@@ -115,7 +115,7 @@ export function initGlobalSearch({ commands = () => [] } = {}) {
   function renderCodes(q) {
     if (!q) {
       results = []; openInsert = -1;
-      codesBox.innerHTML = `<div class="empty-state">${esc(t("search.empty"))}</div>`;
+      codesBox.innerHTML = `<div class="empty">${esc(t("search.empty"))}</div>`;
       summary.textContent = t("search.summaryIdle");
       dlBtn.disabled = true;
       return;
@@ -125,7 +125,7 @@ export function initGlobalSearch({ commands = () => [] } = {}) {
     summary.innerHTML = t("search.summary", { n: results.length, q: esc(q), scope: activeFilter === "all" ? esc(t("search.filterAll")) : esc(results[0]?.source_label || "—") })
       + (results.length > SHOW_MAX ? ` · ${esc(t("search.shownMax", { n: SHOW_MAX }))}` : "");
     dlBtn.disabled = results.length === 0;
-    if (!results.length) { codesBox.innerHTML = `<div class="empty-state">${esc(t("search.noResults"))}</div>`; return; }
+    if (!results.length) { codesBox.innerHTML = `<div class="empty">${esc(t("search.noResults"))}</div>`; return; }
     codesBox.innerHTML = `
       <table>
         <thead><tr>

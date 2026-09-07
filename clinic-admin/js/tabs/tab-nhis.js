@@ -7,7 +7,7 @@
    within 90 days of the notice — 국민건강보험법 §87 (medium-high, shown as "확인 필요").
    Row hand-offs: 상병 정비 { stmt, batchId } · 검색 { query } · 이의신청 준비 → tab-appeal { create } · ctx { stmt } highlights a 명세서.
    State: nhis.history (mirror of jabo.history — counts + totals + byReason, no pid) for 홈; registered in claims-shared.js. */
-import { $, esc, won, todayISO, setStatus, bindDrop } from "../core/ui.js";
+import { $, esc, won, todayISO, setStatus, bindDrop, emptyHTML, flowStatus } from "../core/ui.js";
 import { t, pick, onLangChange } from "../core/i18n.js";
 import { EventBus, ActivityLog } from "../core/store.js";
 import { readSpreadsheet, downloadXLSX } from "../core/files.js";
@@ -40,7 +40,7 @@ export function init(ctx) {
   };
   const renderRecon = () => {
     if (!lastPair) return null;
-    lastRecon = renderReconciliation($("#nhis-recon-card"), {
+    lastRecon = renderReconciliation($("#tab-nhis"), { // ③ + ④ are sibling flow steps → the panel is the host
       claims: lastPair.claims, review: lastPair.review, payer: "nhis", insurerSelect: false, procName, reasonLabel: nhisReasonLabel,
       askReasons: ASK_REASONS, askPrefill, focusStmt
     });
@@ -50,7 +50,7 @@ export function init(ctx) {
   // Card 02 — what to do with the cuts: counts + one button into 이의신청 filtered to this batch's month.
   const renderNext = () => {
     const el = $("#nhis-next"); if (!el) return;
-    if (!lastRecon || !lastPair) { el.innerHTML = `<div class="empty-state small">${esc(t("nhis.nextEmpty"))}</div>`; return; }
+    if (!lastRecon || !lastPair) { el.innerHTML = emptyHTML(esc(t("nhis.nextEmpty")), { small: true }); return; }
     const cuts = lastRecon.lines.filter(l => l.hasCut);
     const appeals = Appeals.forBatch(lastPair.claims.id);
     const open = appeals.filter(Appeals.isOpen).length, overdue = appeals.filter(Appeals.isOverdue).length;
@@ -82,7 +82,7 @@ export function init(ctx) {
     }
     const unreviewed = res.lines.filter(l => l.status === "none").length;
     status(unreviewed ? "warn" : null, () =>
-      t("jabo.statusRecon", { l: res.lines.length, r: groupByReason(res.lines).length, cut: won(res.totals.cut) }) +
+      flowStatus(t(claims.meta?.sample ? "flow.state.demo" : "flow.review"), res.lines.length, t("jabo.statusRecon", { r: groupByReason(res.lines).length, cut: won(res.totals.cut) })) +
       (unreviewed ? t("jabo.statusUnreviewed", { n: unreviewed }) : "") + t("nhis.statusAppeal", { n: Appeals.WINDOW_DAYS.nhis }));
   };
   const renderSlots = () => {
@@ -94,7 +94,7 @@ export function init(ctx) {
   const clearRecon = () => {
     lastRecon = null; lastPair = null; lastClaimsId = null;
     $("#nhis-recon-toolbar").style.display = "none"; $("#nhis-recon-groups").innerHTML = "";
-    $("#nhis-recon-result").innerHTML = `<div class="empty-state">${esc(t("jabo.reconEmpty"))}</div>`;
+    $("#nhis-recon-result").innerHTML = emptyHTML(esc(t("jabo.reconEmpty")));
     renderSlots(); renderNext();
   };
   const restore = ({ silent = true, meta } = {}) => {

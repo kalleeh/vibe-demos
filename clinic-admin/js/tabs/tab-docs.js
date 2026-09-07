@@ -23,7 +23,7 @@ import { Org, Patients, Staff } from "../core/entities.js";
 import { Session } from "../security/session.js";
 import { registerRows } from "../security/lifecycle.js";
 import { tariffRows } from "./claims-shared.js";
-import { $, $$, esc, KEYS, collection, str, num, audit, renderTable, chipRow, onPanelCtx, renderPatientStrip, pidOptions, staffOptions, staffRef, staffJob, aliasOf, dash, openPrint, introHTML } from "./patients-shared.js";
+import { $, $$, esc, KEYS, collection, str, num, audit, renderTable, chipRow, onPanelCtx, renderPatientStrip, pidOptions, staffOptions, staffRef, staffJob, aliasOf, dash, openPrint, introHTML, flowHTML, flowState, paintFlowStatus } from "./patients-shared.js";
 
 export const DOC_TYPES = ["진단서", "진료확인서", "입퇴원확인서", "소견서", "진료비 세부내역서", "영수증 재발급"];
 const PURPOSES = ["보험 제출", "직장", "학교", "법원", "기타"];
@@ -78,34 +78,28 @@ export function init({ DATA } = {}) {
   const nameOf = (code) => { const it = (DATA?.bigeup?.items || []).find(x => x.code === code); return it ? pick(it, "name") : ""; };
   const tariffItems = () => tariffRows(nameOf);
   let filter = { pid: "", type: "", q: "" };
-  let draft = null, highlightId = null, printMonth = "";
+  let draft = null, highlightId = null, printMonth = "", flowSt = null;
 
   const months = () => [...new Set(D.list().map(r => (r.issuedAt || "").slice(0, 7)).filter(Boolean))].sort().reverse();
   const mount = () => {
     const ms = months(); if (!ms.includes(printMonth)) printMonth = ms[0] || todayISO().slice(0, 7);
-    host.innerHTML = `${introHTML("docs")}
-      <div class="card p3-card">
-        <h4><span class="step">01</span> <span>${esc(t("docs.listH"))}</span> <span class="p3-count" data-count></span></h4>
-        <div class="p3-filter">
+    host.innerHTML = `${introHTML("docs")}${flowHTML("docs", {
+      input: `<div class="actions"><button type="button" class="btn" data-new>${esc(t("docs.newBtn"))}</button><span class="p3-sub">${esc(t("docs.editorHint"))}</span></div>
+        <div class="p3-editor" data-editor hidden></div>`,
+      review: `<div class="p3-filter">
           <select class="p3-pid" data-f-pid aria-label="${esc(t("patients.filterPatient"))}"><option value="">${esc(t("patients.allPatients"))}</option>${pidOptions(filter.pid, { placeholder: false })}</select>
           <div class="search-filters p3-chips" data-chips>${chipRow(["", ...DOC_TYPES], filter.type, v => v === "" ? t("patients.all") : typeLabel(v))}</div>
           <input type="search" class="p3-search" data-f-q value="${esc(filter.q)}" placeholder="${esc(t("docs.searchPh"))}" aria-label="${esc(t("docs.searchPh"))}">
-          <span class="spacer"></span>
-          <button type="button" class="btn" data-new>${esc(t("docs.newBtn"))}</button>
         </div>
         <div class="p3-strip" data-strip hidden></div>
-        <div class="p3-editor" data-editor hidden></div>
         <div class="result p3-result" data-list></div>
-        <div class="result-toolbar">
-          <div class="summary" data-summary></div>
-          <div class="actions">
-            <select data-print-month aria-label="${esc(t("docs.printMonth"))}">${(ms.length ? ms : [printMonth]).map(m => `<option value="${m}"${m === printMonth ? " selected" : ""}>${m}</option>`).join("")}</select>
-            <button type="button" class="btn secondary" data-print>${esc(t("docs.printBtn"))} <span class="arrow">⎙</span></button>
-            <button type="button" class="btn secondary" data-export>${esc(t("docs.exportBtn"))} <span class="arrow">↓</span></button>
-          </div>
-        </div>
-        <p class="caveat">${t("docs.caveat")}</p>
-      </div>`;
+        <div class="result-toolbar"><div class="summary" data-summary></div></div>
+        <p class="caveat">${t("docs.caveat")}</p>`,
+      exports: `<span class="act"><span class="act-k">${esc(t("docs.listH"))}</span><button type="button" class="btn" data-export>${t("flow.export.xlsx")}</button></span>
+        <span class="act"><span class="act-k">${esc(t("docs.printMonth"))}</span><select data-print-month aria-label="${esc(t("docs.printMonth"))}">${(ms.length ? ms : [printMonth]).map(m => `<option value="${m}"${m === printMonth ? " selected" : ""}>${m}</option>`).join("")}</select><button type="button" class="btn secondary" data-print>${t("flow.export.print")}</button></span>`,
+      next: { tab: "tab-yearend", labelKey: "nav.yearend" }
+    })}`;
+    paintFlowStatus(host, flowSt);
     host.querySelector("[data-f-pid]").addEventListener("change", (e) => { filter.pid = e.target.value; renderList(); renderStrip(); });
     host.querySelector("[data-chips]").addEventListener("click", (e) => { const b = e.target.closest("[data-chip]"); if (!b) return; filter.type = b.dataset.chip; $$("[data-chip]", host).forEach(x => x.classList.toggle("active", x === b)); renderList(); });
     host.querySelector("[data-f-q]").addEventListener("input", (e) => { filter.q = e.target.value; renderList(); });
@@ -243,6 +237,7 @@ export function init({ DATA } = {}) {
       const saved = D.upsert(draft);
       audit(TAG, t(isNew ? "docs.logAdd" : "docs.logEdit", { no: saved.no, type: typeLabel(saved.docType) }), saved.pid);
       highlightId = saved.id;
+      flowSt = flowState("flow.state.saved", D.list().length);
     } catch (err) { Toast.show({ tag: TAG, html: esc(err.message || String(err)) }); Haptic.warn(); return; }
     Haptic.save();
     closeEditor();
@@ -283,6 +278,10 @@ export function init({ DATA } = {}) {
 
   /* ── wiring ── */
   mount();
+  host.addEventListener("click", (e) => {
+    if (!e.target.closest('[data-action="run-docs"]')) return;
+    seed(); filter = { pid: "", type: "", q: "" }; flowSt = flowState("flow.state.demo", D.list().length); mount();
+  });
   D.onChange(() => { renderList(); renderStrip(); });
   Patients.onChange(() => { const sel = host.querySelector("[data-f-pid]"); if (sel) sel.innerHTML = `<option value="">${esc(t("patients.allPatients"))}</option>` + pidOptions(filter.pid, { placeholder: false }); renderStrip(); renderList(); });
   Staff.onChange(() => renderList());

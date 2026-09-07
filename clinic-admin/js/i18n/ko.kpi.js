@@ -56,10 +56,9 @@ export default {
   "today.dl.guaranteeSource": "보험사 지불보증 만료 · 환자 › 지불보증",
 
   /* ── 04 비급여 · 홈페이지 CSV + 변경 이력 ── */
-  "bigeup.history.h": "홈페이지 고지용 CSV · 가격표 변경 이력",
+  "bigeup.history.h": "가격표 변경 이력",
   "bigeup.history.summary": "홈페이지 게시용 가격표는 <em>항목 · 가격 · 적용일</em> 세 컬럼의 CSV로, 변경 이력은 단가를 저장할 때마다 자동으로 쌓입니다 (변경 시각 · 적용일 · 이전 → 이후 금액 · 담당).",
-  "bigeup.web.btn": "홈페이지 고지용 CSV <span class=\"arrow\">↓</span>",
-  "bigeup.history.csvBtn": "이력 CSV <span class=\"arrow\">↓</span>",
+
   "bigeup.history.count": "변경 기록",
   "bigeup.history.empty": "단가를 저장하면 변경 이력이 여기에 쌓입니다.",
   "bigeup.history.thWhen": "변경 시각", "bigeup.history.thCount": "항목 수", "bigeup.history.thChanges": "변경 (코드 이전 → 이후)", "bigeup.history.thBy": "담당",
@@ -82,7 +81,7 @@ export default {
   "retention.method.shred": "파쇄", "retention.method.erase": "전자삭제",
   "retention.ledger.h": "파기 대장 (누적)",
   "retention.ledger.summary": "생성된 파기 대장은 여기에 누적됩니다 — 인증 자체점검(기록부 폐기 심의 절차)의 증빙으로 쓰입니다.",
-  "retention.ledger.btn": "전체 대장 XLSX <span class=\"arrow\">↓</span>",
+
   "retention.ledger.empty": "아직 파기 대장이 없습니다.",
   "retention.ledger.thDate": "파기일", "retention.ledger.more": "외 {n}건 (XLSX에는 전체)",
   "retention.ledger.col.rec": "기록ID(가명)", "retention.ledger.col.pid": "환자(별칭)", "retention.ledger.col.type": "기록종류", "retention.ledger.col.expiry": "보존기한",

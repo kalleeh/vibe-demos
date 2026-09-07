@@ -1,5 +1,5 @@
 /* clinic-admin — Tab 05 · 의무기록 보존기간 점검 */
-import { $, esc, todayISO, relTime, setStatus, bindDrop, Toast } from "../core/ui.js";
+import { $, esc, todayISO, relTime, setStatus, bindDrop, Toast, emptyHTML, flowStatus } from "../core/ui.js";
 import { t, pick, onLangChange } from "../core/i18n.js";
 import { Store, EventBus, ActivityLog } from "../core/store.js";
 import { readSpreadsheet, downloadXLSX, headerRow, pocMark } from "../core/files.js";
@@ -204,7 +204,7 @@ export function init(ctx) {
     const rows = readDisposals();
     $("#ret-ledger-count").textContent = String(rows.length);
     $("#ret-ledger-download").disabled = rows.length === 0;
-    if (!rows.length) { el.innerHTML = `<div class="empty-state">${esc(t("retention.ledger.empty"))}</div>`; return; }
+    if (!rows.length) { el.innerHTML = emptyHTML(esc(t("retention.ledger.empty")), { small: true }); return; }
     const recent = [...rows].sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 30);
     el.innerHTML = `<table>
       <thead><tr><th class="code">${esc(t("retention.ledger.thDate"))}</th><th class="code">${esc(t("retention.dispose.thRec"))}</th><th>${esc(t("retention.thType2"))}</th><th class="code">${esc(t("retention.thExpiry"))}</th><th>${esc(t("retention.dispose.method"))}</th><th>${esc(t("retention.dispose.officer"))}</th><th>${esc(t("retention.dispose.approver"))}</th></tr></thead>
@@ -306,11 +306,8 @@ export function init(ctx) {
       storeBatch(result, { fileName: file.name });
       ActivityLog.push("retention", t("retention.logRun", { n: result.rows.length, o: result.stats.over, s: result.stats.soon }), { file: file.name });
       const urgent = result.stats.over + result.stats.bad;
-      if (urgent > 0) {
-        status("warn", () => t("retention.statusUrgent", { u: urgent }) + (result.stats.fallback ? t("retention.statusFallbackNote", { n: result.stats.fallback }) : ""));
-      } else {
-        status(null, () => t("retention.statusAllOk", { n: result.rows.length }));
-      }
+      status(urgent > 0 ? "warn" : null, () => flowStatus(t("flow.review"), result.rows.length,
+        urgent > 0 ? t("retention.statusUrgent", { u: urgent }) + (result.stats.fallback ? t("retention.statusFallbackNote", { n: result.stats.fallback }) : "") : t("retention.statusAllOk")));
     } catch (err) {
       status("err", () => t("common.statusReadFailShort"));
     }
@@ -351,9 +348,8 @@ export function init(ctx) {
     storeBatch(result, { sample: true });
     ActivityLog.push("retention", t("retention.logSample", { n: result.rows.length }), { sample: true });
     const urgent = result.stats.over + result.stats.bad;
-    status(urgent > 0 ? "warn" : null, () => urgent > 0
-      ? t("retention.statusSampleUrgent", { n: result.rows.length, u: urgent, f: result.stats.fallback })
-      : t("retention.statusSampleOk", { n: result.rows.length }));
+    status(urgent > 0 ? "warn" : null, () => flowStatus(t("flow.state.demo"), result.rows.length,
+      urgent > 0 ? t("retention.statusSampleUrgent", { u: urgent, f: result.stats.fallback }) : t("retention.statusSampleOk")));
   };
   $('[data-action="run-ret"]').addEventListener("click", runSample);
 
