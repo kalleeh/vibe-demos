@@ -1,0 +1,23 @@
+{
+ "skills": [
+  "ember_lash",
+  "cinder_bolt",
+  "voltaic_lance",
+  "ash_nova",
+  "emberfall",
+  "stormward",
+  "tempest_of_cinders"
+ ],
+ "items": [
+  "weapon",
+  "helm",
+  "chest",
+  "gloves",
+  "pants",
+  "boots",
+  "amulet",
+  "ring"
+ ],
+ "license": "Generated for this project with Stable Image Core via Amazon Bedrock",
+ "style": "dark painterly"
+}
