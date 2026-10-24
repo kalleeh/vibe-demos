@@ -6,7 +6,7 @@
    after the first visit. Network-first for every same-origin file (the page, the app and the
    assets change together on each publish); this version's cache is only the offline fallback.
    Cross-origin requests are never intercepted. */
-const CACHE = "vibe-apartment-walkthrough-1bd70a608c";
+const CACHE = "vibe-apartment-walkthrough-2827454a70";
 const CACHE_PREFIX = "vibe-apartment-walkthrough-";
 const SHELL = ["./", "./index.html", "./styles.css", "./app.js", "./manifest.webmanifest", "./icon.svg", "./assets/manifest.json", "./assets/scene.json", "./assets/env.jpg", "./assets/lm_living.png", "./assets/lm_bedroom.png", "./assets/lm_kitchen.png", "./assets/lm_balcony.png", "./assets/lm_bath.png", "./assets/lm_outside.png", "./assets/lm_hall.png", "./assets/lm_shell.png", "./assets/lm_doors.png", "./assets/draco_wasm_wrapper.js", "./assets/draco_decoder.wasm", "./assets/apartment.glb"];
 
