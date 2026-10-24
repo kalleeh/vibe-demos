@@ -3,11 +3,12 @@ paths:
   - "molecule-journey/**"
   - "live-globe/**"
   - "hangul-particles/**"
+  - "apartment-walkthrough/**"
 ---
 
 # Three.js fidelity stack
 
-> Scoped to the demos that import Three.js at runtime. Adding a NEW Three.js demo? Add its folder to the `paths:` glob above. (`starwars-homage/` is NOT here — it ships a pre-rendered MP4 and uses no Three.js.) `hangul-particles/` is a `Points` + custom `ShaderMaterial` piece: only the renderer setup below applies to it — no PBR materials, GLBs, or `paintKenney` involved.
+> Scoped to the demos that import Three.js at runtime. Adding a NEW Three.js demo? Add its folder to the `paths:` glob above. (`starwars-homage/` is NOT here — it ships a pre-rendered MP4 and uses no Three.js.) `hangul-particles/` is a `Points` + custom `ShaderMaterial` piece: only the renderer setup below applies to it — no PBR materials, GLBs, or `paintKenney` involved. `apartment-walkthrough/` is generated (see CLAUDE.md): its lighting is baked offline, so it uses AgX tone mapping and an equirect env map from the Blender scene rather than `RoomEnvironment`; change it in its source project, not here.
 
 The difference between "looks like clay" and "looks like a real object" is the rendering setup, NOT polygon count. Polycount only matters for silhouettes that visibly facet (spheres, tori, cylinders); flat-shaded boxes don't get more real with more triangles. Get the four-step setup in place before reaching for higher mesh density.
 

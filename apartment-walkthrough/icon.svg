@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>Apartment walkthrough</title>
+  <rect width="512" height="512" rx="112" fill="#1c1e22"/>
+  <!-- floor plan: outer walls, two inner walls with door gaps -->
+  <g fill="none" stroke="#efe9dc" stroke-width="22" stroke-linecap="square">
+    <path d="M104 120 H408 V392 H104 Z"/>
+    <path d="M104 268 H196 M252 268 H300 V392"/>
+    <path d="M300 120 V200"/>
+  </g>
+  <!-- the walker: a view cone and a dot -->
+  <path d="M212 196 L300 150 A100 100 0 0 1 300 242 Z" fill="#f2c14e" opacity="0.35"/>
+  <circle cx="212" cy="196" r="20" fill="#f2c14e"/>
+</svg>

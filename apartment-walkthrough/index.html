@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- Same-origin only: no third-party request, no inline script or style. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; connect-src 'self' data: blob:; img-src 'self' data: blob:; style-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Apartment walkthrough</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1c1e22">
+<meta name="description" content="Walk through an apartment modelled in Blender, with lighting baked in Cycles.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Walkthrough">
+</head>
+<body>
+<div id="stage"></div>
+<div id="crosshair" aria-hidden="true"></div>
+<div id="hud">
+  <div id="room" aria-live="polite"></div>
+  <div id="hint" hidden></div>
+</div>
+<div id="flash" role="status" hidden></div>
+<canvas id="minimap" width="260" height="222" aria-label="Floor plan with your position (M to hide)"></canvas>
+<div id="stick" hidden aria-hidden="true"><div id="stick-knob"></div></div>
+<button id="door-btn" type="button" hidden>Open the door</button>
+<button id="menu-btn" type="button" hidden aria-label="Menu">Menu</button>
+
+<div id="overlay">
+  <div class="card">
+    <h1>Apartment walkthrough</h1>
+    <p id="overlay-status" role="status" aria-live="polite">Starting</p>
+    <div id="progress" role="progressbar" aria-label="Loading the apartment" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress-fill"></div></div>
+    <button id="enter" type="button" disabled>Loading</button>
+    <div class="cols">
+      <section>
+        <h2>Controls</h2>
+        <ul class="keys only-desktop">
+          <li><kbd>Mouse</kbd> look around</li>
+          <li><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or arrows: walk</li>
+          <li><kbd>Shift</kbd> walk faster</li>
+          <li><kbd>←</kbd><kbd>→</kbd> turn without the mouse</li>
+          <li><kbd>E</kbd> open or close the nearest door</li>
+          <li><kbd>M</kbd> floor plan on or off</li>
+          <li><kbd>[</kbd><kbd>]</kbd> darker or brighter</li>
+          <li><kbd>Esc</kbd> this menu</li>
+        </ul>
+        <ul class="keys only-touch">
+          <li>Drag on the left to walk; push to the edge to walk faster</li>
+          <li>Drag anywhere else to look around</li>
+          <li>Near a door, tap the door button</li>
+          <li>Menu, top right: this card</li>
+          <li>Hold the phone sideways for the widest view</li>
+        </ul>
+        <p class="exposure"><button id="darker" type="button">Darker</button> <button id="brighter" type="button">Brighter</button></p>
+      </section>
+      <section>
+        <h2>Jump to a viewpoint</h2>
+        <ol id="tour" class="keys"></ol>
+      </section>
+    </div>
+    <p class="dim small">Modelled in Blender from a floor plan and reference photos; lighting baked in Cycles. Dimensions are estimates.</p>
+  </div>
+</div>
+<noscript><p class="noscript">This app needs JavaScript.</p></noscript>
+<script src="app.js"></script>
+</body>
+</html>

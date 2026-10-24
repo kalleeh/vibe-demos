@@ -1,0 +1,14 @@
+{
+  "name": "Apartment Walkthrough",
+  "short_name": "Walkthrough",
+  "description": "Walk through an apartment modelled in Blender, with lighting baked in Cycles.",
+  "lang": "en",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#1c1e22",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

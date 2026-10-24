@@ -1,0 +1,70 @@
+:root { color-scheme: dark; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #111; color: #f3f1ec; }
+#stage, #stage canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; outline: none; }
+#crosshair { position: fixed; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45); pointer-events: none; }
+#hud { position: fixed; left: 16px; top: 14px; pointer-events: none; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7); }
+#room { font-weight: 650; font-size: 17px; letter-spacing: 0.01em; }
+#hint { margin-top: 6px; padding: 4px 9px; display: inline-block; border-radius: 6px; background: rgba(0, 0, 0, 0.55); }
+#hint[hidden] { display: none; }
+#flash { position: fixed; left: 50%; top: 18px; transform: translateX(-50%); padding: 6px 12px; border-radius: 8px;
+  background: rgba(0, 0, 0, 0.6); pointer-events: none; }
+#minimap { position: fixed; right: 14px; bottom: 14px; border-radius: 10px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4); }
+#overlay { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(10, 12, 14, 0.72);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+#overlay[hidden] { display: none; }
+.card { width: min(760px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto; padding: 26px 30px;
+  border-radius: 14px; background: rgba(28, 30, 34, 0.94); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); }
+h1 { margin: 0 0 6px; font-size: 24px; }
+h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.06em; color: #b9b3a6; margin: 18px 0 8px; }
+#enter { margin: 8px 0 4px; padding: 11px 22px; font: inherit; font-weight: 650; color: #1a1a1a; background: #f2c14e;
+  border: 0; border-radius: 9px; cursor: pointer; }
+#enter:disabled { background: #6b6658; color: #ddd; cursor: progress; }
+#enter:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 28px; }
+@media (max-width: 640px) { .cols { grid-template-columns: 1fr; } }
+.keys { margin: 0; padding: 0; list-style: none; }
+.keys li { margin: 4px 0; }
+ol.keys { counter-reset: none; }
+#tour { columns: 2; column-gap: 18px; }
+#tour li { break-inside: avoid; }
+kbd { display: inline-block; min-width: 1.4em; padding: 1px 6px; margin-right: 3px; text-align: center; font: 600 12px/1.5 ui-monospace, monospace;
+  color: #111; background: #ece8df; border-radius: 4px; box-shadow: 0 1px 0 #9b968b; }
+.dim { color: #9d978a; }
+.small { font-size: 12.5px; margin-top: 18px; }
+.noscript { position: fixed; inset: 0; display: grid; place-items: center; }
+
+/* loading bar: real download / unpack progress */
+#progress { height: 6px; margin: 4px 0 12px; border-radius: 3px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
+#progress[hidden] { display: none; }
+#progress-fill { height: 100%; background: #f2c14e; transform: scaleX(0); transform-origin: left center; transition: transform 0.2s linear; }
+@media (prefers-reduced-motion: reduce) { #progress-fill { transition: none; } }
+
+/* viewpoint buttons and exposure buttons in the menu */
+button.stop { all: unset; cursor: pointer; padding: 3px 6px; margin: -3px -6px; border-radius: 6px; }
+button.stop:hover { background: rgba(255, 255, 255, 0.08); }
+button.stop:focus-visible { outline: 2px solid #f2c14e; }
+.exposure button, #menu-btn, #door-btn { font: inherit; font-weight: 600; color: #f3f1ec; background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.exposure { margin: 14px 0 0; }
+
+/* desktop vs touch help */
+body:not(.touch) .only-touch { display: none; }
+body.touch .only-desktop { display: none; }
+
+/* touch: on-screen controls, no browser gestures on the canvas */
+#stage canvas { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+#stick { position: fixed; left: 0; top: 0; width: 112px; height: 112px; border-radius: 50%; pointer-events: none;
+  border: 2px solid rgba(255, 255, 255, 0.45); background: rgba(0, 0, 0, 0.18); }
+#stick[hidden] { display: none; }
+#stick-knob { position: absolute; left: 32px; top: 32px; width: 48px; height: 48px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7); box-shadow: 0 1px 6px rgba(0, 0, 0, 0.4); }
+#menu-btn { position: fixed; top: max(12px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right));
+  background: rgba(0, 0, 0, 0.5); }
+#door-btn { position: fixed; bottom: max(22px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
+  padding: 12px 20px; font-size: 16px; color: #1a1a1a; background: #f2c14e; border: 0; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4); }
+#menu-btn[hidden], #door-btn[hidden] { display: none; }
+body.touch #crosshair { display: none; }
+body.touch #minimap { width: 150px; height: auto; right: max(10px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); opacity: 0.9; }
+body.touch #hud { left: max(14px, env(safe-area-inset-left)); top: max(12px, env(safe-area-inset-top)); }
+@media (max-height: 480px) { .card { padding: 16px 20px; } h2 { margin: 10px 0 6px; } .small { margin-top: 10px; } }

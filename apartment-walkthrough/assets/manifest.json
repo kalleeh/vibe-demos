@@ -1,0 +1,62 @@
+{
+ "generator": "apartment-walkthrough/publish.mjs",
+ "version": "1bd70a608c",
+ "files": [
+  {
+   "name": "scene.json",
+   "bytes": 31178
+  },
+  {
+   "name": "env.jpg",
+   "bytes": 294288
+  },
+  {
+   "name": "lm_living.png",
+   "bytes": 2530282
+  },
+  {
+   "name": "lm_bedroom.png",
+   "bytes": 810687
+  },
+  {
+   "name": "lm_kitchen.png",
+   "bytes": 658549
+  },
+  {
+   "name": "lm_balcony.png",
+   "bytes": 624873
+  },
+  {
+   "name": "lm_bath.png",
+   "bytes": 500432
+  },
+  {
+   "name": "lm_outside.png",
+   "bytes": 180172
+  },
+  {
+   "name": "lm_hall.png",
+   "bytes": 616612
+  },
+  {
+   "name": "lm_shell.png",
+   "bytes": 1646126
+  },
+  {
+   "name": "lm_doors.png",
+   "bytes": 159501
+  },
+  {
+   "name": "draco_wasm_wrapper.js",
+   "bytes": 58456
+  },
+  {
+   "name": "draco_decoder.wasm",
+   "bytes": 192420
+  },
+  {
+   "name": "apartment.glb",
+   "bytes": 6140644
+  }
+ ]
+}
