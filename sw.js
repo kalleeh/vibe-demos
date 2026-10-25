@@ -1,7 +1,7 @@
 /* vibe-studio root landing — minimal offline shell SW.
    Tight scope: only caches the root landing, never demo subpaths
    (each demo registers its own SW under its own scope). */
-const CACHE = "vibe-root-v11";
+const CACHE = "vibe-root-v12";
 // Cache family prefix — activate() only evicts stale caches in this family,
 // never sibling demos' caches (CacheStorage is shared per origin).
 const CACHE_PREFIX = "vibe-root-";

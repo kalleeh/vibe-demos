@@ -68,3 +68,41 @@ body.touch #crosshair { display: none; }
 body.touch #minimap { width: 150px; height: auto; right: max(10px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); opacity: 0.9; }
 body.touch #hud { left: max(14px, env(safe-area-inset-left)); top: max(12px, env(safe-area-inset-top)); }
 @media (max-height: 480px) { .card { padding: 16px 20px; } h2 { margin: 10px 0 6px; } .small { margin-top: 10px; } }
+
+/* [interact] begin */
+/* the dot grows and turns yellow when it is on something you can use */
+#crosshair.on-target { width: 14px; height: 14px; margin: -7px 0 0 -7px; background: rgba(242, 193, 78, 0.3);
+  box-shadow: 0 0 0 2px rgba(242, 193, 78, 0.95), 0 0 0 3px rgba(0, 0, 0, 0.4); }
+
+/* menu: sound button and the list of things to switch (the keyboard and text way to every control) */
+#sound-btn[aria-pressed="false"] { opacity: 0.8; }
+.things { margin: 0; padding: 0; list-style: none; }
+.things li { margin: 3px 0; }
+.things button { display: block; width: 100%; box-sizing: border-box; padding: 4px 10px; text-align: left; font: inherit; font-size: 13.5px;
+  color: #f3f1ec; background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 7px; cursor: pointer; }
+.things button:hover { background: rgba(255, 255, 255, 0.14); }
+.things button[aria-pressed="true"] { background: rgba(242, 193, 78, 0.2); border-color: rgba(242, 193, 78, 0.6); }
+#sound-btn:focus-visible, .things button:focus-visible { outline: 3px solid #f2c14e; outline-offset: 2px; }
+#sound-btn, .things button { -webkit-tap-highlight-color: transparent; }
+/* touch: the context button sits at the right, above the 150 px floor plan (260:222, so 128 px high), inside the look area. A touch
+   that starts in the left 42 % of the screen is the walking joystick (touch.js LEFT_PART), so the button never reaches into it: its
+   left edge stays at or right of 42 % of the width (max-width is 58 % less the margins) and it wraps (390 px wide phone: at most
+   226 - 12 = 214 px). Bottom left was where pass 2 had put it, which is the thumb's place for walking. */
+body.touch #door-btn { left: auto; right: max(10px, env(safe-area-inset-right)); transform: none;
+  bottom: calc(max(10px, env(safe-area-inset-bottom)) + 128px + 12px);
+  max-width: calc(58vw - 12px - env(safe-area-inset-right)); text-align: left; line-height: 1.25; }
+/* [interact] end */
+
+/* (each track's rules go in its own block) */
+/* [render] begin */
+/* still mode: the "Rendering… N samples" chip under the hint, and the menu button */
+#pt-chip { margin-top: 6px; padding: 3px 9px; display: inline-block; border-radius: 6px; background: rgba(0, 0, 0, 0.45);
+  font-size: 13px; font-variant-numeric: tabular-nums; }
+#pt-chip[hidden] { display: none; }
+#pt-btn { font: inherit; font-weight: 600; color: #f3f1ec; background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+#pt-btn[aria-pressed="true"] { color: #1a1a1a; background: #f2c14e; border-color: #f2c14e; }
+#pt-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+#pt-btn:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+#pt-note { margin: 6px 0 0; }
+/* [render] end */

@@ -1,50 +1,54 @@
 {
  "generator": "apartment-walkthrough/publish.mjs",
- "version": "2827454a70",
+ "version": "2e06810f5b",
  "files": [
   {
    "name": "scene.json",
-   "bytes": 31178
+   "bytes": 41809
   },
   {
    "name": "env.jpg",
-   "bytes": 294288
+   "bytes": 277822
   },
   {
    "name": "lm_living.png",
-   "bytes": 2530282
+   "bytes": 3182329
   },
   {
    "name": "lm_bedroom.png",
-   "bytes": 810687
+   "bytes": 866073
   },
   {
    "name": "lm_kitchen.png",
-   "bytes": 658549
+   "bytes": 588358
   },
   {
    "name": "lm_balcony.png",
-   "bytes": 624873
+   "bytes": 891178
   },
   {
    "name": "lm_bath.png",
-   "bytes": 500432
-  },
-  {
-   "name": "lm_outside.png",
-   "bytes": 180172
+   "bytes": 559091
   },
   {
    "name": "lm_hall.png",
-   "bytes": 616612
+   "bytes": 843480
   },
   {
    "name": "lm_shell.png",
-   "bytes": 1646126
+   "bytes": 1973755
+  },
+  {
+   "name": "lm_far.png",
+   "bytes": 1077430
+  },
+  {
+   "name": "lm_outside.png",
+   "bytes": 1339468
   },
   {
    "name": "lm_doors.png",
-   "bytes": 159501
+   "bytes": 168385
   },
   {
    "name": "draco_wasm_wrapper.js",
@@ -56,7 +60,62 @@
   },
   {
    "name": "apartment.glb",
-   "bytes": 6140644
+   "bytes": 4938460
+  },
+  {
+   "name": "rgh_living.png",
+   "bytes": 382818,
+   "lazy": true
+  },
+  {
+   "name": "rgh_bedroom.png",
+   "bytes": 53645,
+   "lazy": true
+  },
+  {
+   "name": "rgh_kitchen.png",
+   "bytes": 28156,
+   "lazy": true
+  },
+  {
+   "name": "rgh_balcony.png",
+   "bytes": 20658,
+   "lazy": true
+  },
+  {
+   "name": "rgh_bath.png",
+   "bytes": 9495,
+   "lazy": true
+  },
+  {
+   "name": "rgh_hall.png",
+   "bytes": 10623,
+   "lazy": true
+  },
+  {
+   "name": "rgh_shell.png",
+   "bytes": 172331,
+   "lazy": true
+  },
+  {
+   "name": "rgh_far.png",
+   "bytes": 10253,
+   "lazy": true
+  },
+  {
+   "name": "rgh_outside.png",
+   "bytes": 62788,
+   "lazy": true
+  },
+  {
+   "name": "rgh_doors.png",
+   "bytes": 1673,
+   "lazy": true
+  },
+  {
+   "name": "sky.hdr",
+   "bytes": 271633,
+   "lazy": true
   }
  ]
 }
