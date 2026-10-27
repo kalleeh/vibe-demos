@@ -13,7 +13,7 @@
    under their own address). After an update the new worker takes over the open page (skipWaiting, claim) and the page asks it again
    to keep its apartment (the request it sent to the outgoing worker went to a cache that is being deleted).
    Cross-origin requests are never intercepted. */
-const CACHE = "vibe-apartment-walkthrough-v2-ebdea861d9";
+const CACHE = "vibe-apartment-walkthrough-v2-fd5b8371f0";
 const CACHE_PREFIX = "vibe-apartment-walkthrough-";
 const SAFE_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 const FLAT_ID = /^[a-z0-9]{1,16}$/;

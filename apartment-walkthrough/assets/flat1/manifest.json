@@ -1,7 +1,7 @@
 {
  "generator": "apartment-walkthrough/publish.mjs",
  "flat": "flat1",
- "version": "ebdea861d9",
+ "version": "fd5b8371f0",
  "files": [
   {
    "name": "scene.json",

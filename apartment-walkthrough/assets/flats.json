@@ -1,6 +1,6 @@
 {
  "generator": "apartment-walkthrough/publish.mjs",
- "version": "ebdea861d9",
+ "version": "fd5b8371f0",
  "default": "flat1",
  "flats": [
   {
@@ -15,7 +15,7 @@
    "name": "Apartment 2",
    "label": "4 rooms, balcony",
    "preview": "preview.jpg",
-   "bytes": 17588481
+   "bytes": 17539116
   }
  ],
  "shared": [

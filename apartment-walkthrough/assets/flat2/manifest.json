@@ -1,78 +1,78 @@
 {
  "generator": "apartment-walkthrough/publish.mjs",
  "flat": "flat2",
- "version": "ebdea861d9",
+ "version": "fd5b8371f0",
  "files": [
   {
    "name": "scene.json",
-   "bytes": 109356
+   "bytes": 109353
   },
   {
    "name": "env.jpg",
-   "bytes": 239522
+   "bytes": 237711
   },
   {
    "name": "lm_bed_east.png",
-   "bytes": 1064094
+   "bytes": 1065935
   },
   {
    "name": "lm_kitchen.png",
-   "bytes": 855258
+   "bytes": 850407
   },
   {
    "name": "lm_living.png",
-   "bytes": 3134832
+   "bytes": 3126627
   },
   {
    "name": "lm_bath.png",
-   "bytes": 734751
+   "bytes": 735583
   },
   {
    "name": "lm_bed_large.png",
-   "bytes": 937342
+   "bytes": 917870
   },
   {
    "name": "lm_hall.png",
-   "bytes": 731227
+   "bytes": 731248
   },
   {
    "name": "lm_outside.png",
-   "bytes": 1086615
+   "bytes": 1084710
   },
   {
    "name": "lm_far.png",
-   "bytes": 1104035
+   "bytes": 1103889
   },
   {
    "name": "lm_shell.png",
-   "bytes": 2245172
+   "bytes": 2252182
   },
   {
    "name": "lm_doors.png",
-   "bytes": 167453
+   "bytes": 162985
   },
   {
    "name": "apartment.glb",
-   "bytes": 5178824
+   "bytes": 5160616
   },
   {
    "name": "preview.jpg",
-   "bytes": 29668,
+   "bytes": 29367,
    "preview": true
   },
   {
    "name": "rgh_bed_east.png",
-   "bytes": 40595,
+   "bytes": 40530,
    "lazy": true
   },
   {
    "name": "rgh_kitchen.png",
-   "bytes": 78689,
+   "bytes": 76837,
    "lazy": true
   },
   {
    "name": "rgh_living.png",
-   "bytes": 359776,
+   "bytes": 361334,
    "lazy": true
   },
   {
@@ -82,12 +82,12 @@
   },
   {
    "name": "rgh_bed_large.png",
-   "bytes": 18625,
+   "bytes": 18139,
    "lazy": true
   },
   {
    "name": "rgh_hall.png",
-   "bytes": 38817,
+   "bytes": 38822,
    "lazy": true
   },
   {
