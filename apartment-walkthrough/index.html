@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#1c1e22">
-<meta name="description" content="Walk through an apartment modelled in Blender, with lighting baked in Cycles.">
+<meta name="description" content="Walk through two apartments modelled in Blender, with lighting baked in Cycles.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -38,6 +38,12 @@
 <div id="overlay">
   <div class="card">
     <h1>Apartment walkthrough</h1>
+    <!-- the apartment cards (main.js builds them from the list of apartments; hidden while there is only one) -->
+    <div id="flat-picker" hidden>
+      <h2 id="flats-h">Choose an apartment</h2>
+      <div id="flat-cards" class="flat-cards" role="group" aria-labelledby="flats-h"></div>
+    </div>
+    <p id="flat-notice" class="dim small" role="status" hidden></p>
     <p id="overlay-status" role="status" aria-live="polite">Starting</p>
     <div id="progress" role="progressbar" aria-label="Loading the apartment" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress-fill"></div></div>
     <button id="enter" type="button" disabled>Loading</button>
@@ -79,6 +85,7 @@
       <section>
         <h2>Jump to a viewpoint</h2>
         <ol id="tour" class="keys"></ol>
+        <p id="switch-wrap" class="exposure" hidden><button id="switch-btn" type="button" aria-describedby="switch-note">Switch apartment</button> <span id="switch-note" class="dim small"></span></p>
         <!-- [render] begin menu -->
         <h2>Still mode</h2>
         <p><button id="pt-btn" type="button" aria-pressed="false">Still mode (path traced)</button></p>

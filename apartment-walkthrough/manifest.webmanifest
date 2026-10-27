@@ -1,7 +1,7 @@
 {
   "name": "Apartment Walkthrough",
   "short_name": "Walkthrough",
-  "description": "Walk through an apartment modelled in Blender, with lighting baked in Cycles.",
+  "description": "Walk through two apartments modelled in Blender, with lighting baked in Cycles.",
   "lang": "en",
   "start_url": "./",
   "scope": "./",

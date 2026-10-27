@@ -1,75 +1,73 @@
 {
  "generator": "apartment-walkthrough/publish.mjs",
- "version": "2e06810f5b",
+ "flat": "flat1",
+ "version": "ebdea861d9",
  "files": [
   {
    "name": "scene.json",
-   "bytes": 41809
+   "bytes": 43141
   },
   {
    "name": "env.jpg",
-   "bytes": 277822
+   "bytes": 277958
   },
   {
    "name": "lm_living.png",
-   "bytes": 3182329
+   "bytes": 3191391
   },
   {
    "name": "lm_bedroom.png",
-   "bytes": 866073
+   "bytes": 858477
   },
   {
    "name": "lm_kitchen.png",
-   "bytes": 588358
+   "bytes": 589426
   },
   {
    "name": "lm_balcony.png",
-   "bytes": 891178
+   "bytes": 833782
   },
   {
    "name": "lm_bath.png",
-   "bytes": 559091
+   "bytes": 597878
   },
   {
    "name": "lm_hall.png",
-   "bytes": 843480
+   "bytes": 842231
   },
   {
    "name": "lm_shell.png",
-   "bytes": 1973755
+   "bytes": 1975689
   },
   {
    "name": "lm_far.png",
-   "bytes": 1077430
+   "bytes": 1077448
   },
   {
    "name": "lm_outside.png",
-   "bytes": 1339468
+   "bytes": 1338841
   },
   {
    "name": "lm_doors.png",
-   "bytes": 168385
-  },
-  {
-   "name": "draco_wasm_wrapper.js",
-   "bytes": 58456
-  },
-  {
-   "name": "draco_decoder.wasm",
-   "bytes": 192420
+   "bytes": 171456
   },
   {
    "name": "apartment.glb",
-   "bytes": 4938460
+   "bytes": 4959344
+  },
+  {
+   "name": "preview.jpg",
+   "bytes": 23856,
+   "preview": true
   },
   {
    "name": "rgh_living.png",
-   "bytes": 382818,
+   "bytes": 384697,
    "lazy": true
   },
   {
    "name": "rgh_bedroom.png",
-   "bytes": 53645,
+   "bytes": 51003,
    "lazy": true
   },
   {
@@ -79,7 +77,7 @@
   },
   {
    "name": "rgh_balcony.png",
-   "bytes": 20658,
+   "bytes": 20713,
    "lazy": true
   },
   {
@@ -94,7 +92,7 @@
   },
   {
    "name": "rgh_shell.png",
-   "bytes": 172331,
+   "bytes": 172621,
    "lazy": true
   },
   {
@@ -109,7 +107,7 @@
   },
   {
    "name": "rgh_doors.png",
-   "bytes": 1673,
+   "bytes": 1842,
    "lazy": true
   },
   {

@@ -40,6 +40,23 @@ kbd { display: inline-block; min-width: 1.4em; padding: 1px 6px; margin-right: 3
 #progress-fill { height: 100%; background: #f2c14e; transform: scaleX(0); transform-origin: left center; transition: transform 0.2s linear; }
 @media (prefers-reduced-motion: reduce) { #progress-fill { transition: none; } }
 
+/* apartment cards in the start card: one button per apartment, the open one pressed; the focus ring is white, 3 px */
+.flat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin: 4px 0 10px; }
+.flat-card { display: block; box-sizing: border-box; width: 100%; padding: 8px; text-align: left; font: inherit; color: inherit;
+  background: rgba(255, 255, 255, 0.06); border: 2px solid rgba(255, 255, 255, 0.18); border-radius: 12px; cursor: pointer; }
+.flat-card:hover { background: rgba(255, 255, 255, 0.11); }
+.flat-card[aria-pressed="true"] { border-color: #f2c14e; background: rgba(242, 193, 78, 0.14); cursor: default; }
+.flat-card:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.flat-card img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: #2a2d33; }
+.flat-name { display: block; margin-top: 8px; font-weight: 650; }
+.flat-label { display: block; font-size: 13px; color: #b9b3a6; }
+.flat-card[aria-pressed="true"] .flat-label::after { content: " \00b7  open"; color: #f2c14e; }
+#flat-notice { margin: 0 0 8px; }
+#switch-btn { font: inherit; font-weight: 600; color: #f3f1ec; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+#switch-btn:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+#switch-wrap[hidden], #flat-picker[hidden], #flat-notice[hidden] { display: none; }
+
 /* viewpoint buttons and exposure buttons in the menu */
 button.stop { all: unset; cursor: pointer; padding: 3px 6px; margin: -3px -6px; border-radius: 6px; }
 button.stop:hover { background: rgba(255, 255, 255, 0.08); }
@@ -67,7 +84,14 @@ body.touch .only-desktop { display: none; }
 body.touch #crosshair { display: none; }
 body.touch #minimap { width: 150px; height: auto; right: max(10px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); opacity: 0.9; }
 body.touch #hud { left: max(14px, env(safe-area-inset-left)); top: max(12px, env(safe-area-inset-top)); }
-@media (max-height: 480px) { .card { padding: 16px 20px; } h2 { margin: 10px 0 6px; } .small { margin-top: 10px; } }
+@media (max-height: 480px) {
+  .card { padding: 16px 20px; } h2 { margin: 10px 0 6px; } .small { margin-top: 10px; }
+  /* landscape phone: the two 16:9 cards would fill the screen and push the start button below the fold */
+  .flat-cards { gap: 8px; margin: 2px 0 6px; }
+  .flat-card { padding: 5px; }
+  .flat-card img { aspect-ratio: auto; height: 18vh; max-height: 78px; }
+  .flat-name { margin-top: 4px; }
+}
 
 /* [interact] begin */
 /* the dot grows and turns yellow when it is on something you can use */

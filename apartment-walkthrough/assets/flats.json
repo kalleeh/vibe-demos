@@ -1,0 +1,31 @@
+{
+ "generator": "apartment-walkthrough/publish.mjs",
+ "version": "ebdea861d9",
+ "default": "flat1",
+ "flats": [
+  {
+   "id": "flat1",
+   "name": "Apartment 1",
+   "label": "2 rooms, balcony",
+   "preview": "preview.jpg",
+   "bytes": 16757062
+  },
+  {
+   "id": "flat2",
+   "name": "Apartment 2",
+   "label": "4 rooms, balcony",
+   "preview": "preview.jpg",
+   "bytes": 17588481
+  }
+ ],
+ "shared": [
+  {
+   "name": "draco_wasm_wrapper.js",
+   "bytes": 58456
+  },
+  {
+   "name": "draco_decoder.wasm",
+   "bytes": 192420
+  }
+ ]
+}

@@ -1,0 +1,119 @@
+{
+ "generator": "apartment-walkthrough/publish.mjs",
+ "flat": "flat2",
+ "version": "ebdea861d9",
+ "files": [
+  {
+   "name": "scene.json",
+   "bytes": 109356
+  },
+  {
+   "name": "env.jpg",
+   "bytes": 239522
+  },
+  {
+   "name": "lm_bed_east.png",
+   "bytes": 1064094
+  },
+  {
+   "name": "lm_kitchen.png",
+   "bytes": 855258
+  },
+  {
+   "name": "lm_living.png",
+   "bytes": 3134832
+  },
+  {
+   "name": "lm_bath.png",
+   "bytes": 734751
+  },
+  {
+   "name": "lm_bed_large.png",
+   "bytes": 937342
+  },
+  {
+   "name": "lm_hall.png",
+   "bytes": 731227
+  },
+  {
+   "name": "lm_outside.png",
+   "bytes": 1086615
+  },
+  {
+   "name": "lm_far.png",
+   "bytes": 1104035
+  },
+  {
+   "name": "lm_shell.png",
+   "bytes": 2245172
+  },
+  {
+   "name": "lm_doors.png",
+   "bytes": 167453
+  },
+  {
+   "name": "apartment.glb",
+   "bytes": 5178824
+  },
+  {
+   "name": "preview.jpg",
+   "bytes": 29668,
+   "preview": true
+  },
+  {
+   "name": "rgh_bed_east.png",
+   "bytes": 40595,
+   "lazy": true
+  },
+  {
+   "name": "rgh_kitchen.png",
+   "bytes": 78689,
+   "lazy": true
+  },
+  {
+   "name": "rgh_living.png",
+   "bytes": 359776,
+   "lazy": true
+  },
+  {
+   "name": "rgh_bath.png",
+   "bytes": 14613,
+   "lazy": true
+  },
+  {
+   "name": "rgh_bed_large.png",
+   "bytes": 18625,
+   "lazy": true
+  },
+  {
+   "name": "rgh_hall.png",
+   "bytes": 38817,
+   "lazy": true
+  },
+  {
+   "name": "rgh_outside.png",
+   "bytes": 35776,
+   "lazy": true
+  },
+  {
+   "name": "rgh_far.png",
+   "bytes": 25626,
+   "lazy": true
+  },
+  {
+   "name": "rgh_shell.png",
+   "bytes": 158034,
+   "lazy": true
+  },
+  {
+   "name": "rgh_doors.png",
+   "bytes": 2093,
+   "lazy": true
+  },
+  {
+   "name": "sky.hdr",
+   "bytes": 263677,
+   "lazy": true
+  }
+ ]
+}
